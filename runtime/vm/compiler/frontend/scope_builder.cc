@@ -427,6 +427,16 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
+    case UntaggedFunction::kRecordFieldGetter: {
+      needs_expr_temp_ = true;
+      // Add a receiver parameter.
+      Class& klass = Class::Handle(Z, function.Owner());
+      parsed_function_->set_receiver_var(
+          MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                       Symbols::This(), H.GetDeclarationType(klass)));
+      scope_->InsertParameterAt(0, parsed_function_->receiver_var());
+      break;
+    }
     case UntaggedFunction::kIrregexpFunction:
       UNREACHABLE();
   }

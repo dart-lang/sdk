@@ -9194,7 +9194,15 @@ class Parser {
         //                   | 'const' typeArguments? '[' elements? ']'
         //                   | 'const' typeArguments? '{' elements? '}'
         //                   | 'const' '(' expression ')'
-        throw new UnimplementedError('TODO(paulberry)');
+        Token const_ = next;
+        // TODO(paulberry): report error if this constant is not permitted by
+        // the grammar.  Pay careful attention to making sure that constructs
+        // like `const const Foo()`, `const const []`, and `const const {}`
+        // lead to errors.
+        token = parsePrecedenceExpression(
+            const_, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
+        listener.handleConstantPattern(const_);
+        return token;
     }
     TokenType type = next.type;
     if (type.isRelationalOperator || type.isEqualityOperator) {
@@ -9252,7 +9260,8 @@ class Parser {
     }
     // TODO(paulberry): report error if this constant is not permitted by the
     // grammar
-    token = parseUnaryExpression(token, /* allowCascades = */ false);
+    token = parsePrecedenceExpression(
+        token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
     listener.handleConstantPattern(null);
     return token;
   }

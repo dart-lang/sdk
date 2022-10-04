@@ -164,7 +164,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    final element = node.element2;
+    final element = node.element;
     if (element is AugmentationImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -485,7 +485,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is LibraryExportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -810,7 +810,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is LibraryImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -871,7 +871,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    final element = node.element2;
+    final element = node.element;
     if (element is LibraryOrAugmentationElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -884,7 +884,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     ++_libraryDirectiveIndex;
-    var element = node.element2;
+    var element = node.element;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -967,7 +967,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is PartElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }

@@ -59,7 +59,7 @@ class _FutureOrNormalizer extends ReplacementVisitor {
               ? Nullability.legacy
               : Nullability.nonNullable;
       return typeArgument.withDeclaredNullability(nullability);
-    } else if (typeArgument is NeverType) {
+    } else if (typeArgument == const NeverType.nonNullable()) {
       // FutureOr<Never> --> Future<Never>
       return InterfaceType(
           _coreTypes.futureClass, futureOr.nullability, [typeArgument]);

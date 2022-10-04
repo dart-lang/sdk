@@ -616,7 +616,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     _deprecatedVerifier.importDirective(node);
-    var importElement = node.element2;
+    var importElement = node.element;
     if (importElement != null &&
         importElement.prefix is DeferredImportElementPrefix) {
       _checkForLoadLibraryFunction(node, importElement);
@@ -1073,7 +1073,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var importElement = node.element2;
+    var importElement = node.element;
     if (importElement == null) {
       return;
     }
@@ -1095,7 +1095,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void _checkForInternalExport(ExportDirective node) {
     if (!_inPublicPackageApi) return;
 
-    var libraryElement = node.element2?.exportedLibrary;
+    var libraryElement = node.element?.exportedLibrary;
     if (libraryElement == null) return;
     if (libraryElement.hasInternal) {
       _errorReporter.reportErrorForNode(
@@ -1104,7 +1104,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           [libraryElement.displayName]);
     }
     var exportNamespace =
-        NamespaceBuilder().createExportNamespaceForDirective(node.element2!);
+        NamespaceBuilder().createExportNamespaceForDirective(node.element!);
     exportNamespace.definedNames.forEach((String name, Element element) {
       if (element.hasInternal) {
         _errorReporter.reportErrorForNode(
@@ -1932,7 +1932,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyImport(ImportDirective node) {
-    var element = node.element2?.importedLibrary;
+    var element = node.element?.importedLibrary;
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element!.library)) {
       // The only way for an import directive's URI to have a `null`

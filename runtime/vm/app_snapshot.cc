@@ -5929,12 +5929,12 @@ class VMSerializationRoots : public SerializationRoots {
                      "[]");
     s->AddBaseObject(Bool::True().ptr(), "bool", "true");
     s->AddBaseObject(Bool::False().ptr(), "bool", "false");
-    ASSERT(Object::extractor_parameter_types().ptr() != Object::null());
-    s->AddBaseObject(Object::extractor_parameter_types().ptr(), "Array",
-                     "<extractor parameter types>");
-    ASSERT(Object::extractor_parameter_names().ptr() != Object::null());
-    s->AddBaseObject(Object::extractor_parameter_names().ptr(), "Array",
-                     "<extractor parameter names>");
+    ASSERT(Object::synthetic_getter_parameter_types().ptr() != Object::null());
+    s->AddBaseObject(Object::synthetic_getter_parameter_types().ptr(), "Array",
+                     "<synthetic getter parameter types>");
+    ASSERT(Object::synthetic_getter_parameter_names().ptr() != Object::null());
+    s->AddBaseObject(Object::synthetic_getter_parameter_names().ptr(), "Array",
+                     "<synthetic getter parameter names>");
     s->AddBaseObject(Object::empty_context_scope().ptr(), "ContextScope",
                      "<empty>");
     s->AddBaseObject(Object::empty_object_pool().ptr(), "ObjectPool",
@@ -6050,10 +6050,10 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::empty_type_arguments().ptr());
     d->AddBaseObject(Bool::True().ptr());
     d->AddBaseObject(Bool::False().ptr());
-    ASSERT(Object::extractor_parameter_types().ptr() != Object::null());
-    d->AddBaseObject(Object::extractor_parameter_types().ptr());
-    ASSERT(Object::extractor_parameter_names().ptr() != Object::null());
-    d->AddBaseObject(Object::extractor_parameter_names().ptr());
+    ASSERT(Object::synthetic_getter_parameter_types().ptr() != Object::null());
+    d->AddBaseObject(Object::synthetic_getter_parameter_types().ptr());
+    ASSERT(Object::synthetic_getter_parameter_names().ptr() != Object::null());
+    d->AddBaseObject(Object::synthetic_getter_parameter_names().ptr());
     d->AddBaseObject(Object::empty_context_scope().ptr());
     d->AddBaseObject(Object::empty_object_pool().ptr());
     d->AddBaseObject(Object::empty_compressed_stackmaps().ptr());

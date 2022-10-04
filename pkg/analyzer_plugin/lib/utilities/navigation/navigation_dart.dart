@@ -390,7 +390,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element2;
+    var exportElement = node.element;
     if (exportElement != null) {
       Element? libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -419,7 +419,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element2;
+    var importElement = node.element;
     if (importElement != null) {
       Element? libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -437,7 +437,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForNode(node.name2, node.element2);
+    computer._addRegionForNode(node.name2, node.element);
   }
 
   @override
@@ -448,7 +448,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    final element = node.element2;
+    final element = node.element;
     if (element is PartElement) {
       final uri = element.uri;
       if (uri is DirectiveUriWithUnit) {
@@ -471,7 +471,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    computer._addRegionForNode(node.libraryName ?? node.uri, node.element2);
+    computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
     super.visitPartOfDirective(node);
   }
 

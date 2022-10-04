@@ -20,7 +20,7 @@ Element? getExportedElement(LibraryElement? library, String name) {
 LibraryImportElement? getImportElement(SimpleIdentifier prefixNode) {
   var parent = prefixNode.parent;
   if (parent is ImportDirective) {
-    return parent.element2;
+    return parent.element;
   }
   return _getImportElementInfo(prefixNode);
 }

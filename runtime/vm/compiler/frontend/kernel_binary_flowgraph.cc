@@ -939,6 +939,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return flow_graph_builder_->BuildGraphOfImplicitClosureFunction(function);
     case UntaggedFunction::kFfiTrampoline:
       return flow_graph_builder_->BuildGraphOfFfiTrampoline(function);
+    case UntaggedFunction::kRecordFieldGetter:
+      return flow_graph_builder_->BuildGraphOfRecordFieldGetter(function);
     case UntaggedFunction::kIrregexpFunction:
       break;
   }
@@ -989,6 +991,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case UntaggedFunction::kNoSuchMethodDispatcher:
     case UntaggedFunction::kInvokeFieldDispatcher:
     case UntaggedFunction::kFfiTrampoline:
+    case UntaggedFunction::kRecordFieldGetter:
       break;
     case UntaggedFunction::kDynamicInvocationForwarder:
       if (PeekTag() != kField) {

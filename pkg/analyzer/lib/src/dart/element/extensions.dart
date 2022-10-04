@@ -140,6 +140,13 @@ extension RecordTypeExtension on RecordType {
   /// A regular expression used to match positional field names.
   static final RegExp _positionalName = RegExp(r'^\$(([0-9])|([1-9][0-9]*))$');
 
+  List<RecordTypeField> get fields {
+    return [
+      ...positionalFields,
+      ...namedFields,
+    ];
+  }
+
   /// The [name] is either an actual name like `foo` in `({int foo})`, or
   /// the name of a positional field like `$0` in `(int, String)`.
   RecordTypeField? fieldByName(String name) {

@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
 import '../../util/feature_sets.dart';
+import '../dart/resolution/node_text_expectations.dart';
 import '../summary/resolved_ast_printer.dart';
 
 class ParserDiagnosticsTest {
@@ -28,6 +29,7 @@ class ParserDiagnosticsTest {
     );
     if (actual != expected) {
       print(actual);
+      NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
   }

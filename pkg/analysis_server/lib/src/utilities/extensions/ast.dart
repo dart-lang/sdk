@@ -133,7 +133,7 @@ extension CompilationUnitExtension on CompilationUnit {
 extension DirectiveExtensions on Directive {
   /// If the target imports or exports a [LibraryElement], returns it.
   LibraryElement? get referencedLibrary {
-    final element = element2;
+    final element = this.element;
     if (element is LibraryExportElement) {
       return element.exportedLibrary;
     } else if (element is LibraryImportElement) {
@@ -156,13 +156,13 @@ extension DirectiveExtensions on Directive {
   DirectiveUri? get referencedUri {
     final self = this;
     if (self is AugmentationImportDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     } else if (self is ExportDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     } else if (self is ImportDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     } else if (self is PartDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     }
     return null;
   }

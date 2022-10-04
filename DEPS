@@ -111,13 +111,13 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "49bc3ff32b5578b6e19f8fd376d668130941ee29", # manually rev'd
 
-  "dartdoc_rev": "866338f12eb404217ec5a2e245ba5007779b7a3c",
+  "dartdoc_rev": "71545cdf2e5cc4ac3c8e81cbff3e1c91c6516f38",
   "devtools_rev": "b21cd59f1f6bb60cacd59ba39e376d2a50d82f74",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
   "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",
   "glob_rev": "1d51fcc172e5adfbae6e82c3f8f119774cb2fca2",
-  "html_rev": "faafebfd2965ce38ed8ca22e42791255d48ad5e7",
+  "html_rev": "0740fc737350959cfdb5f8a34425a29d0dc0d285",
   "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
   "http_parser_rev": "b968f7ddde0588273a6cbd1d2eb6569f418606ac",
   "http_rev": "738a55b20e391c5a526b86bf4b02af6b7745b494",
@@ -128,7 +128,7 @@ vars = {
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "f5d64426af1b48966a4b33e97927c9fc456960b6",
-  "markdown_rev": "87e4c689342d5bbaa84ba2999abf0bff503979be",
+  "markdown_rev": "5713b50853f04c8e33af54334790f3d01d130dd5",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
   "mime_rev": "bf041aa372a27aae6f94e185aa0af3932b9de98b",
@@ -153,7 +153,7 @@ vars = {
   "sync_http_rev": "f5c1f18f579752112870fa2f1860470d28c6f605",
   "term_glyph_rev": "ec7cf7bb51ebb7d55760a1359f6697690dbc06ba",
   "test_descriptor_rev": "f392f85a9804349976be041616ef66925cee8a91",
-  "test_process_rev": "3e695bcfeab551473ddc288970f345f30e5e1375",
+  "test_process_rev": "068f9f83180014dd587a20af0caa9b2c22431141",
   "test_reflective_loader_rev": "ef934b7a894d78601ba67d8f6207bd4505690456",
   "test_rev": "58beb14cf1562429d411efa8926d7c61d0d0b133",
   "typed_data_rev": "6369490ede1c87a4a5758304a606a6e4eee364b9",

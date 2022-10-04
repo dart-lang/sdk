@@ -236,6 +236,6 @@ void f() {
 
   void _createRefactoring(String search) {
     var directive = findNode.import(search);
-    createRenameRefactoringForElement(directive.element2);
+    createRenameRefactoringForElement(directive.element);
   }
 }

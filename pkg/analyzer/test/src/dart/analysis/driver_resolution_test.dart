@@ -3295,7 +3295,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    final import = findNode.import('dart:math').element2!;
+    final import = findNode.import('dart:math').element!;
 
     var pRef = findNode.simple('p(a)');
     assertElement(pRef, import.prefix);
@@ -3504,7 +3504,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    final import = findNode.import('dart:math').element2!;
+    final import = findNode.import('dart:math').element!;
 
     var invocation = findNode.methodInvocation('p(a)');
     expect(invocation.staticType, isDynamicType);
@@ -3677,7 +3677,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    final import = findNode.import('a.dart').element2!;
+    final import = findNode.import('a.dart').element!;
     var tElement = import.importedLibrary!.publicNamespace.get('T');
 
     var prefixedName = findNode.prefixed('p.T');
@@ -3745,7 +3745,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    final import = findNode.import('a.dart').element2!;
+    final import = findNode.import('a.dart').element!;
     var tElement = import.importedLibrary!.publicNamespace.get('T');
 
     var prefixedName = findNode.prefixed('p.T');

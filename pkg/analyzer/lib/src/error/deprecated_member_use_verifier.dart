@@ -30,7 +30,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void exportDirective(ExportDirective node) {
-    _checkForDeprecated(node.element2?.exportedLibrary, node);
+    _checkForDeprecated(node.element?.exportedLibrary, node);
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -42,7 +42,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void importDirective(ImportDirective node) {
-    _checkForDeprecated(node.element2?.importedLibrary, node);
+    _checkForDeprecated(node.element?.importedLibrary, node);
   }
 
   void indexExpression(IndexExpression node) {

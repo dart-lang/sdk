@@ -74,6 +74,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
+  FlowGraph* BuildGraphOfRecordFieldGetter(const Function& function);
 
   struct ClosureCallInfo;
 

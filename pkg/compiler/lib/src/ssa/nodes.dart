@@ -4337,7 +4337,9 @@ AbstractBool _typeTest(
   bool _nullIs(DartType /*!*/ type) =>
       dartTypes.isStrongTopType(type) ||
       type is LegacyType &&
-          (type.baseType.isObject || type.baseType is NeverType) ||
+          (type.baseType.isObject ||
+              type.baseType is NeverType ||
+              _nullIs(type.baseType)) ||
       type is NullableType ||
       type is FutureOrType && _nullIs(type.typeArgument) ||
       type.isNull;

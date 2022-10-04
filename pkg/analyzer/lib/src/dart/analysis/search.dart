@@ -619,7 +619,7 @@ class Search {
       if (unitResult is ResolvedUnitResult) {
         CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
-          if (directive is PartOfDirective && directive.element2 == element) {
+          if (directive is PartOfDirective && directive.element == element) {
             results.add(
               SearchResult._(
                 unit.declaredElement!,

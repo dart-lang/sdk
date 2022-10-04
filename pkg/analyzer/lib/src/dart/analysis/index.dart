@@ -688,7 +688,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    final element = node.element2;
+    final element = node.element;
     recordUriReference(element?.exportedLibrary, node.uri);
     super.visitExportDirective(node);
   }
@@ -730,7 +730,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    final element = node.element2;
+    final element = node.element;
     recordUriReference(element?.importedLibrary, node.uri);
     super.visitImportDirective(node);
   }
@@ -793,7 +793,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitPartDirective(PartDirective node) {
-    final partElement = node.element2;
+    final partElement = node.element;
     if (partElement is PartElement) {
       final partElementUri = partElement.uri;
       if (partElementUri is DirectiveUriWithUnit) {

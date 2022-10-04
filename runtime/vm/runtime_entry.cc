@@ -2622,6 +2622,14 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
       cls = cls.SuperClass();
     }
 
+    if (receiver.IsRecord()) {
+      const Record& record = Record::Cast(receiver);
+      const intptr_t field_index = record.GetFieldIndexByName(function_name);
+      if (field_index >= 0) {
+        return record.FieldAt(field_index);
+      }
+    }
+
     // Fall through for noSuchMethod
   } else {
     // Call through field.
@@ -2686,6 +2694,20 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
                                         orig_arguments_desc);
       }
       cls = cls.SuperClass();
+    }
+
+    if (receiver.IsRecord()) {
+      const Record& record = Record::Cast(receiver);
+      const intptr_t field_index =
+          record.GetFieldIndexByName(demangled_target_name);
+      if (field_index >= 0) {
+        const Object& getter_result =
+            Object::Handle(zone, record.FieldAt(field_index));
+        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+        orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
+        return DartEntry::InvokeClosure(thread, orig_arguments,
+                                        orig_arguments_desc);
+      }
     }
   }
 

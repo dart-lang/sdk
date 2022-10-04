@@ -481,6 +481,7 @@ static bool IsImplicitFunction(const Function& func) {
     case UntaggedFunction::kNoSuchMethodDispatcher:
     case UntaggedFunction::kInvokeFieldDispatcher:
     case UntaggedFunction::kIrregexpFunction:
+    case UntaggedFunction::kRecordFieldGetter:
       return true;
     default:
       if (func.token_pos() == func.end_token_pos()) {

@@ -3570,7 +3570,7 @@ var v = 0
   LibraryImportElement _getImportElement(
       CompilationUnit unit, int directiveIndex) {
     var import = unit.directives[directiveIndex] as ImportDirective;
-    return import.element2!;
+    return import.element!;
   }
 
   Source _getImportSource(CompilationUnit unit, int directiveIndex) {

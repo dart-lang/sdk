@@ -1221,14 +1221,14 @@ void Object::Init(IsolateGroup* isolate_group) {
   *out_of_memory_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
 
-  // Allocate the parameter arrays for method extractor types and names.
-  *extractor_parameter_types_ = Array::New(1, Heap::kOld);
-  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
-  *extractor_parameter_names_ = Array::New(1, Heap::kOld);
-  // Fill in extractor_parameter_names_ later, after symbols are initialized
-  // (in Object::FinalizeVMIsolate). extractor_parameter_names_ object
-  // needs to be created earlier as VM isolate snapshot reader references it
-  // before Object::FinalizeVMIsolate.
+  // Allocate the parameter types and names for synthetic getters.
+  *synthetic_getter_parameter_types_ = Array::New(1, Heap::kOld);
+  synthetic_getter_parameter_types_->SetAt(0, Object::dynamic_type());
+  *synthetic_getter_parameter_names_ = Array::New(1, Heap::kOld);
+  // Fill in synthetic_getter_parameter_names_ later, after symbols are
+  // initialized (in Object::FinalizeVMIsolate).
+  // synthetic_getter_parameter_names_ object needs to be created earlier as
+  // VM isolate snapshot reader references it before Object::FinalizeVMIsolate.
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
@@ -1301,10 +1301,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(out_of_memory_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
-  ASSERT(!extractor_parameter_types_->IsSmi());
-  ASSERT(extractor_parameter_types_->IsArray());
-  ASSERT(!extractor_parameter_names_->IsSmi());
-  ASSERT(extractor_parameter_names_->IsArray());
+  ASSERT(!synthetic_getter_parameter_types_->IsSmi());
+  ASSERT(synthetic_getter_parameter_types_->IsArray());
+  ASSERT(!synthetic_getter_parameter_names_->IsSmi());
+  ASSERT(synthetic_getter_parameter_names_->IsArray());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {
@@ -1430,9 +1430,9 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
 
-  // Finish initialization of extractor_parameter_names_ which was
+  // Finish initialization of synthetic_getter_parameter_names_ which was
   // Started in Object::InitOnce()
-  extractor_parameter_names_->SetAt(0, Symbols::This());
+  synthetic_getter_parameter_names_->SetAt(0, Symbols::This());
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
@@ -3879,9 +3879,10 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   const intptr_t kNumParameters = 1;
   signature.set_num_fixed_parameters(kNumParameters);
   signature.SetNumOptionalParameters(0, false);
-  signature.set_parameter_types(Object::extractor_parameter_types());
+  signature.set_parameter_types(Object::synthetic_getter_parameter_types());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  extractor.set_positional_parameter_names(Object::extractor_parameter_names());
+  extractor.set_positional_parameter_names(
+      Object::synthetic_getter_parameter_names());
 #endif
   signature.set_result_type(Object::dynamic_type());
 
@@ -3919,6 +3920,62 @@ FunctionPtr Function::GetMethodExtractor(const String& getter_name) const {
     }
   }
   ASSERT(result.kind() == UntaggedFunction::kMethodExtractor);
+  return result.ptr();
+}
+
+// Record field getters are used to access fields of arbitrary
+// record instances dynamically.
+FunctionPtr Class::CreateRecordFieldGetter(const String& getter_name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(IsRecordClass());
+  ASSERT(Field::IsGetterName(getter_name));
+  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
+  const Function& getter = Function::Handle(
+      zone,
+      Function::New(signature,
+                    String::Handle(zone, Symbols::New(thread, getter_name)),
+                    UntaggedFunction::kRecordFieldGetter,
+                    false,  // Not static.
+                    false,  // Not const.
+                    false,  // Not abstract.
+                    false,  // Not external.
+                    false,  // Not native.
+                    *this, TokenPosition::kMinSource));
+
+  // Initialize signature: receiver is a single fixed parameter.
+  const intptr_t kNumParameters = 1;
+  signature.set_num_fixed_parameters(kNumParameters);
+  signature.SetNumOptionalParameters(0, false);
+  signature.set_parameter_types(Object::synthetic_getter_parameter_types());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  getter.set_positional_parameter_names(
+      Object::synthetic_getter_parameter_names());
+#endif
+  signature.set_result_type(Object::dynamic_type());
+
+  getter.set_is_debuggable(false);
+  getter.set_is_visible(false);
+
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  getter.SetSignature(signature);
+
+  AddFunction(getter);
+
+  return getter.ptr();
+}
+
+FunctionPtr Class::GetRecordFieldGetter(const String& getter_name) const {
+  ASSERT(IsRecordClass());
+  ASSERT(Field::IsGetterName(getter_name));
+  Thread* thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  Function& result = Function::Handle(thread->zone(),
+                                      LookupDynamicFunctionUnsafe(getter_name));
+  if (result.IsNull()) {
+    result = CreateRecordFieldGetter(getter_name);
+  }
+  ASSERT(result.kind() == UntaggedFunction::kRecordFieldGetter);
   return result.ptr();
 }
 
@@ -10448,6 +10505,9 @@ const char* Function::ToCString() const {
       break;
     case UntaggedFunction::kFfiTrampoline:
       buffer.AddString(" ffi-trampoline-function");
+      break;
+    case UntaggedFunction::kRecordFieldGetter:
+      buffer.AddString(" record-field-getter");
       break;
     default:
       UNREACHABLE();
@@ -27652,6 +27712,40 @@ RecordTypePtr Record::GetRecordType() const {
   type = RecordType::New(field_types, field_names, Nullability::kNonNullable);
   type = ClassFinalizer::FinalizeType(type);
   return RecordType::Cast(type).ptr();
+}
+
+intptr_t Record::GetPositionalFieldIndexFromFieldName(
+    const String& field_name) {
+  if (field_name.IsOneByteString() && field_name.Length() >= 1 &&
+      field_name.CharAt(0) == '$') {
+    int64_t value = 0;
+    const char* cstr = field_name.ToCString();
+    if (OS::StringToInt64(cstr + 1 /* skip '$' */, &value)) {
+      if (value >= 0 && value < kMaxElements) {
+        return static_cast<intptr_t>(value);
+      }
+    }
+  }
+  return -1;
+}
+
+intptr_t Record::GetFieldIndexByName(const String& field_name) const {
+  ASSERT(field_name.IsSymbol());
+  const intptr_t field_index =
+      Record::GetPositionalFieldIndexFromFieldName(field_name);
+  if (field_index >= 0) {
+    if (field_index < NumPositionalFields()) {
+      return field_index;
+    }
+  } else {
+    const Array& field_names = Array::Handle(this->field_names());
+    for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
+      if (field_names.At(i) == field_name.ptr()) {
+        return NumPositionalFields() + i;
+      }
+    }
+  }
+  return -1;
 }
 
 }  // namespace dart

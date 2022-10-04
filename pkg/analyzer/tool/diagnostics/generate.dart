@@ -12,7 +12,7 @@ import '../messages/error_code_info.dart';
 
 /// Generate the file `diagnostics.md` based on the documentation associated
 /// with the declarations of the error codes.
-void main() async {
+Future<void> main() async {
   var sink = File(computeOutputPath()).openWrite();
   var generator = DocumentationGenerator();
   generator.writeDocumentation(sink);

@@ -1172,7 +1172,9 @@ class UntaggedFunction : public UntaggedObject {
   /* (i.e., those checks omitted by the caller for interface calls). */        \
   V(DynamicInvocationForwarder)                                                \
   /* A `dart:ffi` call or callback trampoline. */                              \
-  V(FfiTrampoline)
+  V(FfiTrampoline)                                                             \
+  /* getter for a record field */                                              \
+  V(RecordFieldGetter)
 
   enum Kind {
 #define KIND_DEFN(Name) k##Name,

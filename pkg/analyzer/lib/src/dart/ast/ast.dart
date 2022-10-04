@@ -917,9 +917,13 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @override
-  AugmentationImportElement? get element2 {
-    return super.element2 as AugmentationImportElement?;
+  AugmentationImportElement? get element {
+    return super.element as AugmentationImportElement?;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  AugmentationImportElement? get element2 => element;
 
   @override
   Token get endToken => semicolon;
@@ -3573,13 +3577,17 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
     required super.metadata,
   });
 
+  @override
+  Element? get element => _element;
+
   /// Set the element associated with this directive to be the given [element].
   set element(Element? element) {
     _element = element;
   }
 
+  @Deprecated('Use element instead')
   @override
-  Element? get element2 => _element;
+  Element? get element2 => element;
 }
 
 /// A do statement.
@@ -4094,9 +4102,13 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   });
 
   @override
-  LibraryExportElementImpl? get element2 {
-    return super.element2 as LibraryExportElementImpl?;
+  LibraryExportElementImpl? get element {
+    return super.element as LibraryExportElementImpl?;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  LibraryExportElementImpl? get element2 => element;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
@@ -6963,7 +6975,11 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  LibraryImportElement? get element2 => super.element2 as LibraryImportElement?;
+  LibraryImportElement? get element => super.element as LibraryImportElement?;
+
+  @Deprecated('Use element instead')
+  @override
+  LibraryImportElement? get element2 => element;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
@@ -7002,10 +7018,12 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   /// to the same absolute URI, so to the same library, regardless of the used
   /// syntax (absolute, relative, not normalized).
   static bool areSyntacticallyIdenticalExceptUri(
-    ImportDirective node1,
-    ImportDirective node2,
+    NamespaceDirective node1,
+    NamespaceDirective node2,
   ) {
-    if (node1.prefix?.name != node2.prefix?.name) {
+    if (node1 is ImportDirective &&
+        node2 is ImportDirective &&
+        node1.prefix?.name != node2.prefix?.name) {
       return false;
     }
 
@@ -9580,9 +9598,13 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   });
 
   @override
-  PartElement? get element2 {
-    return super.element2 as PartElement?;
+  PartElement? get element {
+    return super.element as PartElement?;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  PartElement? get element2 => element;
 
   @override
   Token get endToken => semicolon;

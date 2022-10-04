@@ -1883,6 +1883,13 @@ class Listener implements UnescapeErrorListener {
 
   /// Called after the parser has consumed a constant pattern, consisting of an
   /// optional `const` and an expression.
+  ///
+  /// Note that some expressions can legally begin with `const`, so there is
+  /// ambiguity as to whether to associate the `const` keyword with the constant
+  /// pattern or the constant expression.  This ambiguity is resolved in favor
+  /// of associating the `const` keyword with the constant pattern.  So for
+  /// example, in `case const []` the `const` keyword is passed to
+  /// [handleConstantPattern] rather than [handleLiteralList].
   void handleConstantPattern(Token? constKeyword) {
     logEvent("ConstantPattern");
   }

@@ -2,35 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'parser_test_base.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PatternsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class PatternsTest extends FastaParserTestCase {
-  final FeatureSet _enabledFeatureSet = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: ExperimentStatus.currentVersion,
-    flags: [EnableString.patterns],
-  );
-
+class PatternsTest extends ParserDiagnosticsTest {
   late FindNode findNode;
 
   test_cast_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   switch (x) {
     case y as int:
@@ -38,10 +31,17 @@ test(dynamic x) {
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y as int');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'int');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+''');
   }
 
   test_cast_insideExtractor_explicitlyNamed() {
@@ -49,16 +49,34 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: 1 as int):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1 as int)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: f
+        colon: :
+      pattern: CastPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+  rightParenthesis: )
+''');
   }
 
   test_cast_insideExtractor_implicitlyNamed() {
@@ -66,187 +84,620 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(: var f as int):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(: var f as int)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: CastPattern
+        pattern: VariablePattern
+          keyword: var
+          name: f
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+  rightParenthesis: )
+''');
   }
 
   test_cast_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case var y as int) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    expect(caseClause.pattern, TypeMatcher<CastPattern>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: CastPattern
+    pattern: VariablePattern
+      keyword: var
+      name: y
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+''');
   }
 
   test_cast_insideList() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [1 as int]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1 as int]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.elements[0], TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    CastPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+      asToken: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+  rightBracket: ]
+''');
   }
 
   test_cast_insideLogicalAnd_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ as double? & Object? _:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ as double? & Object? _');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.leftOperand, TypeMatcher<CastPattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: CastPattern
+    pattern: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+        question: ?
+      name: _
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: double
+      question: ?
+  operator: &
+  rightOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+      question: ?
+    name: _
+''');
   }
 
   test_cast_insideLogicalAnd_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ & double? _ as Object?:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ & double? _ as Object?');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.leftOperand, TypeMatcher<VariablePattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+      question: ?
+    name: _
+  operator: &
+  rightOperand: CastPattern
+    pattern: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+      question: ?
+''');
   }
 
   test_cast_insideLogicalOr_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ as double? | Object? _:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ as double? | Object? _');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.leftOperand, TypeMatcher<CastPattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: CastPattern
+    pattern: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+        question: ?
+      name: _
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: double
+      question: ?
+  operator: |
+  rightOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+      question: ?
+    name: _
+''');
   }
 
   test_cast_insideLogicalOr_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ | double? _ as Object?:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ | double? _ as Object?');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.leftOperand, TypeMatcher<VariablePattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+      question: ?
+    name: _
+  operator: |
+  rightOperand: CastPattern
+    pattern: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+      question: ?
+''');
   }
 
   test_cast_insideMap() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': 1 as int}:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1 as int}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.entries[0].value, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  entries
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: CastPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+  rightBracket: }
+''');
   }
 
   test_cast_insideParenthesized() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1 as int):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(1 as int)');
-    var parenthesizedPattern =
-        switchPatternCase.pattern as ParenthesizedPattern;
-    expect(parenthesizedPattern.pattern, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+  rightParenthesis: )
+''');
   }
 
   test_cast_insideRecord_explicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (n: 1 as int, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(n: 1 as int, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: n
+        colon: :
+      pattern: CastPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_cast_insideRecord_implicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (: var n as int, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(: var n as int, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: CastPattern
+        pattern: VariablePattern
+          keyword: var
+          name: n
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_cast_insideRecord_unnamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1 as int, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1 as int, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: CastPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b.c:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+    operator: .
+    propertyName: SimpleIdentifier
+      token: c
+''');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b.c as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: PropertyAccess
+      target: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+        period: .
+        identifier: SimpleIdentifier
+          token: b
+      operator: .
+      propertyName: SimpleIdentifier
+        token: c
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case a.b.c) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: PropertyAccess
+      target: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+        period: .
+        identifier: SimpleIdentifier
+          token: b
+      operator: .
+      propertyName: SimpleIdentifier
+        token: c
+''');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b.c!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: PropertyAccess
+      target: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+        period: .
+        identifier: SimpleIdentifier
+          token: b
+      operator: .
+      propertyName: SimpleIdentifier
+        token: c
+  operator: !
+''');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b.c?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: PropertyAccess
+      target: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+        period: .
+        identifier: SimpleIdentifier
+          token: b
+      operator: .
+      propertyName: SimpleIdentifier
+        token: c
+  operator: ?
+''');
+  }
+
+  test_constant_identifier_prefixed_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+    period: .
+    identifier: SimpleIdentifier
+      token: b
+''');
+  }
+
+  test_constant_identifier_prefixed_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_identifier_prefixed_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case a.b) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+''');
+  }
+
+  test_constant_identifier_prefixed_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+  operator: !
+''');
+  }
+
+  test_constant_identifier_prefixed_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case a.b?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+  operator: ?
+''');
   }
 
   test_constant_identifier_unprefixed_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   switch (x) {
     case y:
@@ -254,14 +705,17 @@ test(dynamic x) {
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y:');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression.toString(), 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SimpleIdentifier
+    token: y
+''');
   }
 
   test_constant_identifier_unprefixed_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   switch (x) {
     case y as Object:
@@ -269,30 +723,39 @@ test(dynamic x) {
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_constant_identifier_unprefixed_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   if (x case y) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression.toString(), 'y');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+''');
   }
 
   test_constant_identifier_unprefixed_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   switch (x) {
     case y!:
@@ -300,15 +763,19 @@ test(dynamic x) {
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+  operator: !
+''');
   }
 
   test_constant_identifier_unprefixed_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   switch (x) {
     case y?:
@@ -316,10 +783,1339 @@ test(dynamic x) {
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+  operator: ?
+''');
+  }
+
+  test_constant_list_typed_empty_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[]:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: ListLiteral
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+    leftBracket: [
+    rightBracket: ]
+''');
+  }
+
+  test_constant_list_typed_empty_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[] as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      rightBracket: ]
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_list_typed_empty_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const <int>[]) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      rightBracket: ]
+''');
+  }
+
+  test_constant_list_typed_empty_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[]!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      rightBracket: ]
+  operator: !
+''');
+  }
+
+  test_constant_list_typed_empty_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[]?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      rightBracket: ]
+  operator: ?
+''');
+  }
+
+  test_constant_list_typed_nonEmpty_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[1]:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: ListLiteral
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+    leftBracket: [
+    elements
+      IntegerLiteral
+        literal: 1
+    rightBracket: ]
+''');
+  }
+
+  test_constant_list_typed_nonEmpty_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[1] as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_list_typed_nonEmpty_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const <int>[1]) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+''');
+  }
+
+  test_constant_list_typed_nonEmpty_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[1]!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+  operator: !
+''');
+  }
+
+  test_constant_list_typed_nonEmpty_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>[1]?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+  operator: ?
+''');
+  }
+
+  test_constant_list_untyped_empty_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const []:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: ListLiteral
+    leftBracket: [
+    rightBracket: ]
+''');
+  }
+
+  test_constant_list_untyped_empty_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const [] as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_list_untyped_empty_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const []) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+''');
+  }
+
+  test_constant_list_untyped_empty_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const []!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+  operator: !
+''');
+  }
+
+  test_constant_list_untyped_empty_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const []?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+  operator: ?
+''');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const [1]:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: ListLiteral
+    leftBracket: [
+    elements
+      IntegerLiteral
+        literal: 1
+    rightBracket: ]
+''');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const [1] as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const [1]) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+''');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const [1]!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+  operator: !
+''');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const [1]?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ListLiteral
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: ]
+  operator: ?
+''');
+  }
+
+  test_constant_map_typed_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int, int>{1: 2}:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SetOrMapLiteral
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+    leftBracket: {
+    elements
+      SetOrMapLiteral
+        key: IntegerLiteral
+          literal: 1
+        separator: :
+        value: IntegerLiteral
+          literal: 2
+    rightBracket: }
+    isMap: false
+''');
+  }
+
+  test_constant_map_typed_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int, int>{1: 2} as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_map_typed_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const <int, int>{1: 2}) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+''');
+  }
+
+  test_constant_map_typed_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int, int>{1: 2}!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+  operator: !
+''');
+  }
+
+  test_constant_map_typed_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int, int>{1: 2}?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+  operator: ?
+''');
+  }
+
+  test_constant_map_untyped_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1: 2}:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SetOrMapLiteral
+    leftBracket: {
+    elements
+      SetOrMapLiteral
+        key: IntegerLiteral
+          literal: 1
+        separator: :
+        value: IntegerLiteral
+          literal: 2
+    rightBracket: }
+    isMap: false
+''');
+  }
+
+  test_constant_map_untyped_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1: 2} as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_map_untyped_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const {1: 2}) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+''');
+  }
+
+  test_constant_map_untyped_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1: 2}!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+  operator: !
+''');
+  }
+
+  test_constant_map_untyped_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1: 2}?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        SetOrMapLiteral
+          key: IntegerLiteral
+            literal: 1
+          separator: :
+          value: IntegerLiteral
+            literal: 2
+      rightBracket: }
+      isMap: false
+  operator: ?
+''');
+  }
+
+  test_constant_objectExpression_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const Foo(1):
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: Foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 1
+      rightParenthesis: )
+''');
+  }
+
+  test_constant_objectExpression_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const Foo(1) as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: Foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 1
+        rightParenthesis: )
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_objectExpression_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const Foo(1)) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: Foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 1
+        rightParenthesis: )
+''');
+  }
+
+  test_constant_objectExpression_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const Foo(1)!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: Foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 1
+        rightParenthesis: )
+  operator: !
+''');
+  }
+
+  test_constant_objectExpression_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const Foo(1)?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: Foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 1
+        rightParenthesis: )
+  operator: ?
+''');
+  }
+
+  test_constant_parenthesized_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const (1):
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IntegerLiteral
+      literal: 1
+    rightParenthesis: )
+''');
+  }
+
+  test_constant_parenthesized_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const (1) as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression: IntegerLiteral
+        literal: 1
+      rightParenthesis: )
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_parenthesized_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const (1)) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression: IntegerLiteral
+        literal: 1
+      rightParenthesis: )
+''');
+  }
+
+  test_constant_parenthesized_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const (1)!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression: IntegerLiteral
+        literal: 1
+      rightParenthesis: )
+  operator: !
+''');
+  }
+
+  test_constant_parenthesized_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const (1)?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression: IntegerLiteral
+        literal: 1
+      rightParenthesis: )
+  operator: ?
+''');
+  }
+
+  test_constant_set_typed_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>{1}:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SetOrMapLiteral
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+    leftBracket: {
+    elements
+      IntegerLiteral
+        literal: 1
+    rightBracket: }
+    isMap: false
+''');
+  }
+
+  test_constant_set_typed_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>{1} as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_set_typed_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const <int>{1}) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+''');
+  }
+
+  test_constant_set_typed_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>{1}!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+  operator: !
+''');
+  }
+
+  test_constant_set_typed_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const <int>{1}?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+  operator: ?
+''');
+  }
+
+  test_constant_set_untyped_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1}:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SetOrMapLiteral
+    leftBracket: {
+    elements
+      IntegerLiteral
+        literal: 1
+    rightBracket: }
+    isMap: false
+''');
+  }
+
+  test_constant_set_untyped_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1} as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_constant_set_untyped_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case const {1}) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+''');
+  }
+
+  test_constant_set_untyped_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1}!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+  operator: !
+''');
+  }
+
+  test_constant_set_untyped_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case const {1}?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 1
+      rightBracket: }
+      isMap: false
+  operator: ?
+''');
   }
 
   test_errorRecovery_afterQuestionSuffixInExpression() {
@@ -341,86 +2137,172 @@ f() {
   test_extractor_pattern_with_type_args() {
     _parse('''
 class C<T> {}
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C<int>():
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C<int>()");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.typeName.toString(), 'C');
-    expect(extractorPattern.typeArguments.toString(), '<int>');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+    rightBracket: >
+  leftParenthesis: (
+  rightParenthesis: )
+''');
   }
 
   test_extractor_prefixed_withTypeArgs_insideCase() {
     _parse('''
 import 'dart:async' as async;
 
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case async.Future<int>():
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.typeName.toString(), 'async.Future');
-    expect(extractorPattern.typeArguments.toString(), '<int>');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: async
+    period: .
+    identifier: SimpleIdentifier
+      token: Future
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+    rightBracket: >
+  leftParenthesis: (
+  rightParenthesis: )
+''');
   }
 
   test_extractor_prefixed_withTypeArgs_insideCast() {
     _parse('''
 import 'dart:async' as async;
 
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case async.Future<int>() as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase("async.Future<int>() as Object");
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ExtractorPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase("async.Future<int>() as Object");
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: CastPattern
+    pattern: ExtractorPattern
+      typeName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: async
+        period: .
+        identifier: SimpleIdentifier
+          token: Future
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
+      leftParenthesis: (
+      rightParenthesis: )
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
   }
 
   test_extractor_prefixed_withTypeArgs_insideNullAssert() {
     _parse('''
 import 'dart:async' as async;
 
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case async.Future<int>()!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()!");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ExtractorPattern
+    typeName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: async
+      period: .
+      identifier: SimpleIdentifier
+        token: Future
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+    leftParenthesis: (
+    rightParenthesis: )
+  operator: !
+''');
   }
 
   test_extractor_prefixed_withTypeArgs_insideNullCheck() {
     _parse('''
 import 'dart:async' as async;
 
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case async.Future<int>()?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()?");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ExtractorPattern
+    typeName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: async
+      period: .
+      identifier: SimpleIdentifier
+        token: Future
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+    leftParenthesis: (
+    rightParenthesis: )
+  operator: ?
+''');
   }
 
   test_extractor_unprefixed_withoutTypeArgs_insideCast() {
@@ -428,17 +2310,34 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: 1) as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1) as Object");
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ExtractorPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ExtractorPattern
+    typeName: SimpleIdentifier
+      token: C
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          name: f
+          colon: :
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+    rightParenthesis: )
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_extractor_unprefixed_withoutTypeArgs_insideNullAssert() {
@@ -446,17 +2345,31 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: 1)!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1)!");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ExtractorPattern
+    typeName: SimpleIdentifier
+      token: C
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          name: f
+          colon: :
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+    rightParenthesis: )
+  operator: !
+''');
   }
 
   test_extractor_unprefixed_withoutTypeArgs_insideNullCheck() {
@@ -464,17 +2377,31 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: 1)?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1)?");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ExtractorPattern
+    typeName: SimpleIdentifier
+      token: C
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          name: f
+          colon: :
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+    rightParenthesis: )
+  operator: ?
+''');
   }
 
   test_extractor_unprefixed_withTypeArgs_insideNullAssert() {
@@ -482,709 +2409,1042 @@ test(dynamic x) {
 class C<T> {
   T? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C<int>(f: 1)!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C<int>(f: 1)!");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ExtractorPattern
+    typeName: SimpleIdentifier
+      token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          name: f
+          colon: :
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+    rightParenthesis: )
+  operator: !
+''');
   }
 
   test_list_insideCase_typed_nonEmpty() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case <int>[1, 2]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1, 2]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.typeArguments.toString(), '<int>');
-    expect(listPattern.leftBracket.lexeme, '[');
-    expect(listPattern.elements, hasLength(2));
-    expect(listPattern.elements[0].toString(), '1');
-    expect(listPattern.elements[1].toString(), '2');
-    expect(listPattern.rightBracket.lexeme, ']');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+    rightBracket: >
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 2
+  rightBracket: ]
+''');
   }
 
   test_list_insideCase_untyped_empty() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case []:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.typeArguments, isNull);
-    expect(listPattern.leftBracket.lexeme, '[');
-    expect(listPattern.elements, isEmpty);
-    expect(listPattern.rightBracket.lexeme, ']');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  rightBracket: ]
+''');
   }
 
   test_list_insideCase_untyped_emptyWithWhitespace() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [ ]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[ ]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.typeArguments, isNull);
-    expect(listPattern.leftBracket.lexeme, '[');
-    expect(listPattern.elements, isEmpty);
-    expect(listPattern.rightBracket.lexeme, ']');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  rightBracket: ]
+''');
   }
 
   test_list_insideCase_untyped_nonEmpty() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [1, 2]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1, 2]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.typeArguments, isNull);
-    expect(listPattern.leftBracket.lexeme, '[');
-    expect(listPattern.elements, hasLength(2));
-    expect(listPattern.elements[0].toString(), '1');
-    expect(listPattern.elements[1].toString(), '2');
-    expect(listPattern.rightBracket.lexeme, ']');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 2
+  rightBracket: ]
+''');
   }
 
   test_list_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [1] as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1] as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ListPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+    rightBracket: ]
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_list_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [1]!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1]!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ListPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ListPattern
+    leftBracket: [
+    elements
+      ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+    rightBracket: ]
+  operator: !
+''');
   }
 
   test_list_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [1]?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1]?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ListPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ListPattern
+    leftBracket: [
+    elements
+      ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+    rightBracket: ]
+  operator: ?
+''');
   }
 
   test_literal_boolean_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case true:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('true');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<BooleanLiteral>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: BooleanLiteral
+    literal: true
+''');
   }
 
   test_literal_boolean_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case true as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('true as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: BooleanLiteral
+      literal: true
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_literal_boolean_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case true) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<BooleanLiteral>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: BooleanLiteral
+      literal: true
+''');
   }
 
   test_literal_boolean_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case true!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('true!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: BooleanLiteral
+      literal: true
+  operator: !
+''');
   }
 
   test_literal_boolean_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case true?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('true?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: BooleanLiteral
+      literal: true
+  operator: ?
+''');
   }
 
   test_literal_double_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1.0:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1.0');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<DoubleLiteral>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: DoubleLiteral
+    literal: 1.0
+''');
   }
 
   test_literal_double_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1.0 as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1.0 as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: DoubleLiteral
+      literal: 1.0
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_literal_double_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case 1.0) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<DoubleLiteral>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: DoubleLiteral
+      literal: 1.0
+''');
   }
 
   test_literal_double_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1.0!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1.0!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: DoubleLiteral
+      literal: 1.0
+  operator: !
+''');
   }
 
   test_literal_double_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1.0?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1.0?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: DoubleLiteral
+      literal: 1.0
+  operator: ?
+''');
   }
 
   test_literal_integer_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<IntegerLiteral>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: IntegerLiteral
+    literal: 1
+''');
   }
 
   test_literal_integer_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_literal_integer_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case 1) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<IntegerLiteral>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_literal_integer_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: !
+''');
   }
 
   test_literal_integer_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: ?
+''');
   }
 
   test_literal_null_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case null:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('null');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<NullLiteral>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: NullLiteral
+    literal: null
+''');
   }
 
   test_literal_null_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case null as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('null as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: NullLiteral
+      literal: null
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_literal_null_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case null) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<NullLiteral>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: NullLiteral
+      literal: null
+''');
   }
 
   test_literal_null_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case null!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('null!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: NullLiteral
+      literal: null
+  operator: !
+''');
   }
 
   test_literal_null_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case null?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('null?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: NullLiteral
+      literal: null
+  operator: ?
+''');
   }
 
   test_literal_string_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case "x":
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('"x"');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<StringLiteral>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SimpleStringLiteral
+    literal: "x"
+''');
   }
 
   test_literal_string_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case "x" as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('"x" as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ConstantPattern
+    expression: SimpleStringLiteral
+      literal: "x"
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_literal_string_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case "x") {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<StringLiteral>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: ConstantPattern
+    expression: SimpleStringLiteral
+      literal: "x"
+''');
   }
 
   test_literal_string_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case "x"!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('"x"!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SimpleStringLiteral
+      literal: "x"
+  operator: !
+''');
   }
 
   test_literal_string_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case "x"?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('"x"?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SimpleStringLiteral
+      literal: "x"
+  operator: ?
+''');
   }
 
   test_logicalAnd_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case int? _ & double? _) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var binaryPattern = caseClause.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '&');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: BinaryPattern
+    leftOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+        question: ?
+      name: _
+    operator: &
+    rightOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+''');
   }
 
   test_logicalAnd_insideLogicalAnd_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ & double? _ & Object? _:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ & double? _ & Object? _');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.leftOperand, TypeMatcher<BinaryPattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: BinaryPattern
+    leftOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+        question: ?
+      name: _
+    operator: &
+    rightOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+  operator: &
+  rightOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+      question: ?
+    name: _
+''');
   }
 
   test_logicalAnd_insideLogicalOr_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ & double? _ | Object? _:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ & double? _ | Object? _');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.leftOperand, TypeMatcher<BinaryPattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: BinaryPattern
+    leftOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+        question: ?
+      name: _
+    operator: &
+    rightOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+  operator: |
+  rightOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+      question: ?
+    name: _
+''');
   }
 
   test_logicalAnd_insideLogicalOr_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ | double? _ & Object? _:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ | double? _ & Object? _');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.leftOperand, TypeMatcher<VariablePattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<BinaryPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+      question: ?
+    name: _
+  operator: |
+  rightOperand: BinaryPattern
+    leftOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+    operator: &
+    rightOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: Object
+        question: ?
+      name: _
+''');
   }
 
   test_logicalOr_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case int? _ | double? _) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var binaryPattern = caseClause.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '|');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: BinaryPattern
+    leftOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+        question: ?
+      name: _
+    operator: |
+    rightOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+''');
   }
 
   test_logicalOr_insideLogicalOr_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int? _ | double? _ | Object? _:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase('int? _ | double? _ | Object? _');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.leftOperand, TypeMatcher<BinaryPattern>());
-    expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: BinaryPattern
+    leftOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+        question: ?
+      name: _
+    operator: |
+    rightOperand: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+        question: ?
+      name: _
+  operator: |
+  rightOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: Object
+      question: ?
+    name: _
+''');
   }
 
   test_map_insideCase_typed_nonEmpty() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case <String, int>{'a': 1, 'b': 2}:
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase("<String, int>{'a': 1, 'b': 2}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.typeArguments.toString(), '<String, int>');
-    expect(mapPattern.leftBracket.lexeme, '{');
-    expect(mapPattern.entries, hasLength(2));
-    expect(mapPattern.entries[0].key.toString(), "'a'");
-    expect(mapPattern.entries[0].separator.lexeme, ':');
-    expect(mapPattern.entries[0].value.toString(), '1');
-    expect(mapPattern.entries[1].key.toString(), "'b'");
-    expect(mapPattern.entries[1].separator.lexeme, ':');
-    expect(mapPattern.entries[1].value.toString(), '2');
-    expect(mapPattern.rightBracket.lexeme, '}');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: String
+      NamedType
+        name: SimpleIdentifier
+          token: int
+    rightBracket: >
+  leftBracket: {
+  entries
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'b'
+      separator: :
+      value: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightBracket: }
+''');
   }
 
   test_map_insideCase_untyped_empty() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {}:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.typeArguments, isNull);
-    expect(mapPattern.leftBracket.lexeme, '{');
-    expect(mapPattern.entries, isEmpty);
-    expect(mapPattern.rightBracket.lexeme, '}');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  rightBracket: }
+''');
   }
 
   test_map_insideCase_untyped_nonEmpty() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': 1, 'b': 2}:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1, 'b': 2}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.typeArguments, isNull);
-    expect(mapPattern.leftBracket.lexeme, '{');
-    expect(mapPattern.entries, hasLength(2));
-    expect(mapPattern.entries[0].key.toString(), "'a'");
-    expect(mapPattern.entries[0].separator.lexeme, ':');
-    expect(mapPattern.entries[0].value.toString(), '1');
-    expect(mapPattern.entries[1].key.toString(), "'b'");
-    expect(mapPattern.entries[1].separator.lexeme, ':');
-    expect(mapPattern.entries[1].value.toString(), '2');
-    expect(mapPattern.rightBracket.lexeme, '}');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  entries
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'b'
+      separator: :
+      value: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightBracket: }
+''');
   }
 
   test_map_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': 1} as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1} as Object");
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<MapPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: MapPattern
+    leftBracket: {
+    entries
+      MapPatternEntry
+        key: SimpleStringLiteral
+          literal: 'a'
+        separator: :
+        value: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+    rightBracket: }
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_map_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': 1}!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1}!");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<MapPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: MapPattern
+    leftBracket: {
+    entries
+      MapPatternEntry
+        key: SimpleStringLiteral
+          literal: 'a'
+        separator: :
+        value: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+    rightBracket: }
+  operator: !
+''');
   }
 
   test_map_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': 1}?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1}?");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<MapPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: MapPattern
+    leftBracket: {
+    entries
+      MapPatternEntry
+        key: SimpleStringLiteral
+          literal: 'a'
+        separator: :
+        value: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+    rightBracket: }
+  operator: ?
+''');
   }
 
   test_nullAssert_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   switch (x) {
     case y!:
@@ -1192,10 +3452,14 @@ test(dynamic x) {
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+  operator: !
+''');
   }
 
   test_nullAssert_insideExtractor_explicitlyNamed() {
@@ -1203,16 +3467,31 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: 1!):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1!)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: f
+        colon: :
+      pattern: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: !
+  rightParenthesis: )
+''');
   }
 
   test_nullAssert_insideExtractor_implicitlyNamed() {
@@ -1220,183 +3499,310 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(: var f!):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(: var f!)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: PostfixPattern
+        operand: VariablePattern
+          keyword: var
+          name: f
+        operator: !
+  rightParenthesis: )
+''');
   }
 
   test_nullAssert_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case var y!) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    expect(caseClause.pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: PostfixPattern
+    operand: VariablePattern
+      keyword: var
+      name: y
+    operator: !
+''');
   }
 
   test_nullAssert_insideList() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [1!]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1!]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.elements[0], TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    PostfixPattern
+      operand: ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+      operator: !
+  rightBracket: ]
+''');
   }
 
   test_nullAssert_insideLogicalAnd_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1! & 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1! & 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<PostfixPattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    operator: !
+  operator: &
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_nullAssert_insideLogicalAnd_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 & 2!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 & 2!');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: &
+  rightOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 2
+    operator: !
+''');
   }
 
   test_nullAssert_insideLogicalOr_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1! | 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1! | 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<PostfixPattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    operator: !
+  operator: |
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_nullAssert_insideLogicalOr_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 | 2!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 | 2!');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: |
+  rightOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 2
+    operator: !
+''');
   }
 
   test_nullAssert_insideMap() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': 1!}:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1!}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.entries[0].value, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  entries
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: !
+  rightBracket: }
+''');
   }
 
   test_nullAssert_insideParenthesized() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1!):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(1!)');
-    var parenthesizedPattern =
-        switchPatternCase.pattern as ParenthesizedPattern;
-    expect(parenthesizedPattern.pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    operator: !
+  rightParenthesis: )
+''');
   }
 
   test_nullAssert_insideRecord_explicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (n: 1!, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(n: 1!, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: n
+        colon: :
+      pattern: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: !
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_nullAssert_insideRecord_implicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (: var n!, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(: var n!, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: PostfixPattern
+        operand: VariablePattern
+          keyword: var
+          name: n
+        operator: !
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_nullAssert_insideRecord_unnamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1!, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1!, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: !
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_nullCheck_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   const y = 1;
   switch (x) {
     case y?:
@@ -1404,10 +3810,14 @@ test(dynamic x) {
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+  operator: ?
+''');
   }
 
   test_nullCheck_insideExtractor_explicitlyNamed() {
@@ -1415,16 +3825,31 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: 1?):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1?)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: f
+        colon: :
+      pattern: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: ?
+  rightParenthesis: )
+''');
   }
 
   test_nullCheck_insideExtractor_implicitlyNamed() {
@@ -1432,409 +3857,658 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(: var f?):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(: var f?)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: PostfixPattern
+        operand: VariablePattern
+          keyword: var
+          name: f
+        operator: ?
+  rightParenthesis: )
+''');
   }
 
   test_nullCheck_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case var y?) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    expect(caseClause.pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: PostfixPattern
+    operand: VariablePattern
+      keyword: var
+      name: y
+    operator: ?
+''');
   }
 
   test_nullCheck_insideList() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [1?]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[1?]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.elements[0], TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    PostfixPattern
+      operand: ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+      operator: ?
+  rightBracket: ]
+''');
   }
 
   test_nullCheck_insideLogicalAnd_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1? & 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1? & 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<PostfixPattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    operator: ?
+  operator: &
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_nullCheck_insideLogicalAnd_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 & 2?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 & 2?');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: &
+  rightOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 2
+    operator: ?
+''');
   }
 
   test_nullCheck_insideLogicalOr_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1? | 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1? | 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<PostfixPattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    operator: ?
+  operator: |
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_nullCheck_insideLogicalOr_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 | 2?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 | 2?');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: |
+  rightOperand: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 2
+    operator: ?
+''');
   }
 
   test_nullCheck_insideMap() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': 1?}:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1?}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.entries[0].value, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  entries
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: ?
+  rightBracket: }
+''');
   }
 
   test_nullCheck_insideParenthesized() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1?):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(1?)');
-    var parenthesizedPattern =
-        switchPatternCase.pattern as ParenthesizedPattern;
-    expect(parenthesizedPattern.pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: PostfixPattern
+    operand: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    operator: ?
+  rightParenthesis: )
+''');
   }
 
   test_nullCheck_insideRecord_explicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (n: 1?, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(n: 1?, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: n
+        colon: :
+      pattern: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: ?
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_nullCheck_insideRecord_implicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (: var n?, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(: var n?, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: PostfixPattern
+        operand: VariablePattern
+          keyword: var
+          name: n
+        operator: ?
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_nullCheck_insideRecord_unnamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1?, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1?, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: PostfixPattern
+        operand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+        operator: ?
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_parenthesized_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1) as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(1) as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ParenthesizedPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    rightParenthesis: )
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_parenthesized_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1)!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(1)!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ParenthesizedPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    rightParenthesis: )
+  operator: !
+''');
   }
 
   test_parenthesized_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1)?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(1)?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ParenthesizedPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 1
+    rightParenthesis: )
+  operator: ?
+''');
   }
 
   test_record_insideCase_empty() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case ():
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("()");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.leftParenthesis.lexeme, '(');
-    expect(recordPattern.fields, isEmpty);
-    expect(recordPattern.rightParenthesis.lexeme, ')');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  rightParenthesis: )
+''');
   }
 
   test_record_insideCase_oneField() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1,):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1,)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.leftParenthesis.lexeme, '(');
-    expect(recordPattern.fields, hasLength(1));
-    expect(recordPattern.fields[0].toString(), '1');
-    expect(recordPattern.rightParenthesis.lexeme, ')');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+  rightParenthesis: )
+''');
   }
 
-  test_record_insideCase_twoFIelds() {
+  test_record_insideCase_twoFields() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.leftParenthesis.lexeme, '(');
-    expect(recordPattern.fields, hasLength(2));
-    expect(recordPattern.fields[0].toString(), '1');
-    expect(recordPattern.fields[1].toString(), '2');
-    expect(recordPattern.rightParenthesis.lexeme, ')');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 1
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_record_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1, 2) as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1, 2) as Object");
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<RecordPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: RecordPattern
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+      RecordPatternField
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 2
+    rightParenthesis: )
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_record_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1, 2)!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1, 2)!");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<RecordPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: RecordPattern
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+      RecordPatternField
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 2
+    rightParenthesis: )
+  operator: !
+''');
   }
 
   test_record_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (1, 2)?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(1, 2)?");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<RecordPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: RecordPattern
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+      RecordPatternField
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 2
+    rightParenthesis: )
+  operator: ?
+''');
   }
 
   test_relational_insideCase_equal() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case == 1 << 1:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('== 1 << 1');
-    var relationalPattern = switchPatternCase.pattern as RelationalPattern;
-    expect(relationalPattern.operator.lexeme, '==');
-    expect(relationalPattern.operand.toString(), '1 << 1');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_relational_insideCase_greaterThan() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case > 1 << 1:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('> 1 << 1');
-    var relationalPattern = switchPatternCase.pattern as RelationalPattern;
-    expect(relationalPattern.operator.lexeme, '>');
-    expect(relationalPattern.operand.toString(), '1 << 1');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: >
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_relational_insideCase_greaterThanOrEqual() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case >= 1 << 1:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('>= 1 << 1');
-    var relationalPattern = switchPatternCase.pattern as RelationalPattern;
-    expect(relationalPattern.operator.lexeme, '>=');
-    expect(relationalPattern.operand.toString(), '1 << 1');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: >=
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_relational_insideCase_lessThan() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case < 1 << 1:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('< 1 << 1');
-    var relationalPattern = switchPatternCase.pattern as RelationalPattern;
-    expect(relationalPattern.operator.lexeme, '<');
-    expect(relationalPattern.operand.toString(), '1 << 1');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: <
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_relational_insideCase_lessThanOrEqual() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case <= 1 << 1:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('<= 1 << 1');
-    var relationalPattern = switchPatternCase.pattern as RelationalPattern;
-    expect(relationalPattern.operator.lexeme, '<=');
-    expect(relationalPattern.operand.toString(), '1 << 1');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: <=
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_relational_insideCase_notEqual() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case != 1 << 1:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('!= 1 << 1');
-    var relationalPattern = switchPatternCase.pattern as RelationalPattern;
-    expect(relationalPattern.operator.lexeme, '!=');
-    expect(relationalPattern.operand.toString(), '1 << 1');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: !=
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_relational_insideExtractor_explicitlyNamed() {
@@ -1842,457 +4516,612 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: == 1):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: == 1)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(
-        extractorPattern.fields[0].pattern, TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: f
+        colon: :
+      pattern: RelationalPattern
+        operator: ==
+        operand: IntegerLiteral
+          literal: 1
+  rightParenthesis: )
+''');
   }
 
   test_relational_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case == 1) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    expect(caseClause.pattern, TypeMatcher<RelationalPattern>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: RelationalPattern
+    operator: ==
+    operand: IntegerLiteral
+      literal: 1
+''');
   }
 
   test_relational_insideList() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [== 1]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[== 1]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.elements[0], TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    RelationalPattern
+      operator: ==
+      operand: IntegerLiteral
+        literal: 1
+  rightBracket: ]
+''');
   }
 
   test_relational_insideLogicalAnd_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case == 1 & 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('== 1 & 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<RelationalPattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: RelationalPattern
+    operator: ==
+    operand: IntegerLiteral
+      literal: 1
+  operator: &
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_relational_insideLogicalAnd_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 & == 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 & == 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: &
+  rightOperand: RelationalPattern
+    operator: ==
+    operand: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_relational_insideLogicalOr_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case == 1 | 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('== 1 | 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<RelationalPattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: RelationalPattern
+    operator: ==
+    operand: IntegerLiteral
+      literal: 1
+  operator: |
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_relational_insideLogicalOr_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 | == 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 | == 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: |
+  rightOperand: RelationalPattern
+    operator: ==
+    operand: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_relational_insideMap() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': == 1}:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': == 1}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.entries[0].value, TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  entries
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: RelationalPattern
+        operator: ==
+        operand: IntegerLiteral
+          literal: 1
+  rightBracket: }
+''');
   }
 
   test_relational_insideParenthesized() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (== 1):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(== 1)');
-    var parenthesizedPattern =
-        switchPatternCase.pattern as ParenthesizedPattern;
-    expect(parenthesizedPattern.pattern, TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: RelationalPattern
+    operator: ==
+    operand: IntegerLiteral
+      literal: 1
+  rightParenthesis: )
+''');
   }
 
   test_relational_insideRecord_explicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (n: == 1, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(n: == 1, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: n
+        colon: :
+      pattern: RelationalPattern
+        operator: ==
+        operand: IntegerLiteral
+          literal: 1
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_relational_insideRecord_unnamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (== 1, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(== 1, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<RelationalPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: RelationalPattern
+        operator: ==
+        operand: IntegerLiteral
+          literal: 1
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_variable_final_typed_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final int y:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('final int y');
-    var variablePattern = switchPatternCase.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type.toString(), 'int');
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  keyword: final
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+  name: y
+''');
   }
 
   test_variable_final_typed_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final int y as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.type.toString(), 'Object');
-    var variablePattern = castPattern.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_variable_final_typed_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case final int y) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var variablePattern = caseClause.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type.toString(), 'int');
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+''');
   }
 
   test_variable_final_typed_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final int y!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '!');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  operator: !
+''');
   }
 
   test_variable_final_typed_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final int y?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '?');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  operator: ?
+''');
   }
 
   test_variable_final_untyped_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final y:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('final y');
-    var variablePattern = switchPatternCase.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  keyword: final
+  name: y
+''');
   }
 
   test_variable_final_untyped_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final y as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.type.toString(), 'Object');
-    var variablePattern = castPattern.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    keyword: final
+    name: y
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_variable_final_untyped_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case final y) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var variablePattern = caseClause.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    keyword: final
+    name: y
+''');
   }
 
   test_variable_final_untyped_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final y!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '!');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    name: y
+  operator: !
+''');
   }
 
   test_variable_final_untyped_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case final y?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '?');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    name: y
+  operator: ?
+''');
   }
 
   test_variable_typed_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int y:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('int y');
-    var variablePattern = switchPatternCase.pattern as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type.toString(), 'int');
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+  name: y
+''');
   }
 
   test_variable_typed_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int y as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.type.toString(), 'Object');
-    var variablePattern = castPattern.pattern as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_variable_typed_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case int y) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var variablePattern = caseClause.pattern as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type.toString(), 'int');
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+''');
   }
 
   test_variable_typed_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int y!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '!');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  operator: !
+''');
   }
 
   test_variable_typed_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int y?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '?');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  operator: ?
+''');
   }
 
   test_variable_typedNamedAs_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int as:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('int as');
-    var variablePattern = switchPatternCase.pattern as VariablePattern;
-    expect(variablePattern.keyword, isNull);
-    expect(variablePattern.type.toString(), 'int');
-    expect(variablePattern.name.lexeme, 'as');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+  name: as
+''');
   }
 
   test_variable_typedNamedAs_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int as as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('int as as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.type.toString(), 'Object');
-    var variablePattern = castPattern.pattern as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'as');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_variable_typedNamedAs_insideExtractor_explicitlyNamed() {
@@ -2300,16 +5129,31 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(f: int as):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: int as)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: f
+        colon: :
+      pattern: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: as
+  rightParenthesis: )
+''');
   }
 
   test_variable_typedNamedAs_insideExtractor_implicitlyNamed() {
@@ -2317,305 +5161,449 @@ test(dynamic x) {
 class C {
   int? f;
 }
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case C(: int as):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("C(: int as)");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  typeName: SimpleIdentifier
+    token: C
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: as
+  rightParenthesis: )
+''');
   }
 
   test_variable_typedNamedAs_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case int as) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    expect(caseClause.pattern, TypeMatcher<VariablePattern>());
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+''');
   }
 
   test_variable_typedNamedAs_insideList() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case [int as]:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('[int as]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.elements[0], TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+      name: as
+  rightBracket: ]
+''');
   }
 
   test_variable_typedNamedAs_insideLogicalAnd_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int as & 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('int as & 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<VariablePattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+  operator: &
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_variable_typedNamedAs_insideLogicalAnd_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 & int as:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 & int as');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '&');
-    expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: &
+  rightOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+''');
   }
 
   test_variable_typedNamedAs_insideLogicalOr_lhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int as | 2:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('int as | 2');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<VariablePattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+  operator: |
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+''');
   }
 
   test_variable_typedNamedAs_insideLogicalOr_rhs() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case 1 | int as:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('1 | int as');
-    var binaryPattern = switchPatternCase.pattern as BinaryPattern;
-    expect(binaryPattern.leftOperand, TypeMatcher<ConstantPattern>());
-    expect(binaryPattern.operator.lexeme, '|');
-    expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  operator: |
+  rightOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+''');
   }
 
   test_variable_typedNamedAs_insideMap() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case {'a': int as}:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': int as}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.entries[0].value, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  entries
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: as
+  rightBracket: }
+''');
   }
 
   test_variable_typedNamedAs_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int as!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('int as!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '!');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'as');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+  operator: !
+''');
   }
 
   test_variable_typedNamedAs_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case int as?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('int as?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '?');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword, null);
-    expect(variablePattern.type, same(findNode.typeAnnotation('int')));
-    expect(variablePattern.name.lexeme, 'as');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+  operator: ?
+''');
   }
 
   test_variable_typedNamedAs_insideParenthesized() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (int as):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('(int as)');
-    var parenthesizedPattern =
-        switchPatternCase.pattern as ParenthesizedPattern;
-    expect(parenthesizedPattern.pattern, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+  rightParenthesis: )
+''');
   }
 
   test_variable_typedNamedAs_insideRecord_explicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (n: int as, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(n: int as, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: n
+        colon: :
+      pattern: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: as
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_variable_typedNamedAs_insideRecord_implicitlyNamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (: int as, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(: int as, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: as
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_variable_typedNamedAs_insideRecord_unnamed() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case (int as, 2):
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("(int as, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: as
+    RecordPatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 2
+  rightParenthesis: )
+''');
   }
 
   test_variable_var_insideCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case var y:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('var y');
-    var variablePattern = switchPatternCase.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'var');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  keyword: var
+  name: y
+''');
   }
 
   test_variable_var_insideCast() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case var y as Object:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.type.toString(), 'Object');
-    var variablePattern = castPattern.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'var');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    keyword: var
+    name: y
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
   }
 
   test_variable_var_insideIfCase() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   if (x case var y) {}
 }
 ''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var variablePattern = caseClause.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'var');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    keyword: var
+    name: y
+''');
   }
 
   test_variable_var_insideNullAssert() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case var y!:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '!');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'var');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: var
+    name: y
+  operator: !
+''');
   }
 
   test_variable_var_insideNullCheck() {
     _parse('''
-test(dynamic x) {
+void f(x) {
   switch (x) {
     case var y?:
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase('y?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '?');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'var');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: var
+    name: y
+  operator: ?
+''');
   }
 
   void _parse(String content, {List<ExpectedError>? errors}) {
-    var unit = parseCompilationUnit(content,
-        errors: errors, featureSet: _enabledFeatureSet);
-    findNode = FindNode(content, unit);
+    var parseResult = parseStringWithErrors(content);
+    if (errors != null) {
+      parseResult.assertErrors(errors);
+    } else {
+      parseResult.assertNoErrors();
+    }
+    findNode = parseResult.findNode;
   }
 }
