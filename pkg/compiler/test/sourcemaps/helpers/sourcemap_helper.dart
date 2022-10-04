@@ -19,6 +19,7 @@ import 'package:compiler/src/io/position_information.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
+import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import '../../helpers/memory_compiler.dart';
@@ -219,6 +220,11 @@ class RecordingSourceInformationStrategy
       <js.Node, RecordedSourceInformationProcess>{};
 
   RecordingSourceInformationStrategy(this.strategy);
+
+  @override
+  void onElementMapAvailable(JsToElementMap elementMap) {
+    strategy.onElementMapAvailable(elementMap);
+  }
 
   @override
   SourceInformationBuilder createBuilderForContext(MemberEntity member) {

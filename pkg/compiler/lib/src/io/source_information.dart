@@ -10,6 +10,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
+import '../js_model/element_map.dart';
 import 'source_file.dart';
 import 'position_information.dart';
 
@@ -105,6 +106,12 @@ class FrameContext {
 /// Strategy for creating, processing and applying [SourceInformation].
 class SourceInformationStrategy {
   const SourceInformationStrategy();
+
+  /// Called when the [JsToElementMap] is available.
+  ///
+  /// The [JsToElementMap] is used by some source information strategies to
+  /// extract member details relevant in the source-map generation process.
+  void onElementMapAvailable(JsToElementMap elementMap) {}
 
   /// Create a [SourceInformationBuilder] for [member].
   SourceInformationBuilder createBuilderForContext(

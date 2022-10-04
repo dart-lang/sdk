@@ -12,24 +12,22 @@ library dart2js.source_information.kernel;
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_strategy.dart';
 import '../universe/call_structure.dart';
 import 'source_information.dart';
 import 'position_information.dart';
 
 class KernelSourceInformationStrategy
     extends AbstractPositionSourceInformationStrategy {
-  final JsBackendStrategy _backendStrategy;
+  JsToElementMap _elementMap;
 
-  const KernelSourceInformationStrategy(this._backendStrategy);
+  @override
+  void onElementMapAvailable(JsToElementMap elementMap) {
+    _elementMap = elementMap;
+  }
 
   @override
   SourceInformationBuilder createBuilderForContext(MemberEntity member) {
-    return KernelSourceInformationBuilder(
-        _backendStrategy
-            // ignore:deprecated_member_use_from_same_package
-            .elementMap,
-        member);
+    return KernelSourceInformationBuilder(_elementMap, member);
   }
 }
 
