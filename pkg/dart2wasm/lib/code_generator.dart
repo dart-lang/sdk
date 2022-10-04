@@ -53,9 +53,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.Local? preciseThisLocal;
   w.Local? returnValueLocal;
   final Map<TypeParameter, w.Local> typeLocals = {};
-  final List<TryBlockFinalizer> finalizers = [];
+
+  /// Finalizers to run on `return`.
+  final List<TryBlockFinalizer> returnFinalizers = [];
+
+  /// Finalizers to run on a `break`. `breakFinalizers[L].last` (which should
+  /// always be present) is the `br` target for the label `L` that will run the
+  /// finalizers, or break out of the loop.
+  final Map<LabeledStatement, List<w.Label>> breakFinalizers = {};
+
   final List<w.Label> tryLabels = [];
-  final Map<LabeledStatement, w.Label> labels = {};
+
   final Map<SwitchCase, w.Label> switchLabels = {};
 
   /// Maps a switch statement to the information used when doing a backward
@@ -726,15 +734,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   void visitLabeledStatement(LabeledStatement node) {
     w.Label label = b.block();
-    labels[node] = label;
+    breakFinalizers[node] = <w.Label>[label];
     visitStatement(node.body);
-    labels.remove(node);
+    breakFinalizers.remove(node);
     b.end();
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    b.br(labels[node.target]!);
+    b.br(breakFinalizers[node.target]!.last);
   }
 
   @override
@@ -867,30 +875,64 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitTryFinally(TryFinally node) {
-    // We lower a [TryFinally] to three nested blocks, and we emit the finalizer
-    // up to three times. Once in a catch, to handle the case where the try
+    // We lower a [TryFinally] to a number of nested blocks, depending on how
+    // many different code paths we have that run the finally block.
+    //
+    // We emit the finalizer once in a catch, to handle the case where the try
     // throws. Once outside of the catch, to handle the case where the try does
-    // not throw. Finally, if there is a return within the try block, then we
-    // emit the finalizer one more time along with logic to continue walking up
-    // the stack.
+    // not throw. If there is a return within the try block, then we emit the
+    // finalizer one more time along with logic to continue walking up the
+    // stack.
+    //
+    // A `break L` can run more than one finalizer, and each of those
+    // finalizers will need to be run in a different `try` block. So for each
+    // wrapping label we generate a block to run the finalizer on `break` and
+    // then branch to the right Wasm block to either run the next finalizer or
+    // break.
+
+    // The block for the try-finally statement. Used as `br` target in normal
+    // execution after the finalizer (no throws, returns, or breaks).
     w.Label tryFinallyBlock = b.block();
-    w.Label finalizerBlock = b.block();
-    finalizers.add(TryBlockFinalizer(finalizerBlock));
+
+    // Create one block for each wrapping label
+    for (final labelBlocks in breakFinalizers.values) {
+      labelBlocks.add(b.block());
+    }
+
+    // Continuation of this block runs the finalizer and returns (or jumps to
+    // the next finalizer block). Used as `br` target on `return`.
+    w.Label returnFinalizerBlock = b.block();
+    returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
+
     w.Label tryBlock = b.try_();
     visitStatement(node.body);
-    bool mustHandleReturn = finalizers.removeLast().mustHandleReturn;
-    b.br(tryBlock);
+    final bool mustHandleReturn =
+        returnFinalizers.removeLast().mustHandleReturn;
     b.catch_(translator.exceptionTag);
+
+    // `break` statements in the current finalizer and the rest will not run
+    // the current finalizer, update the `break` targets
+    final removedBreakTargets = <LabeledStatement, w.Label>{};
+    for (final breakFinalizerEntry in breakFinalizers.entries) {
+      removedBreakTargets[breakFinalizerEntry.key] =
+          breakFinalizerEntry.value.removeLast();
+    }
+
+    // Run finalizer on exception
     visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
     b.end(); // end tryBlock.
+
+    // Run finalizer on normal execution (no breaks, throws, or returns)
     visitStatement(node.finalizer);
     b.br(tryFinallyBlock);
-    b.end(); // end finalizerBlock.
+    b.end(); // end returnFinalizerBlock.
+
+    // Run finalizer on `return`
     if (mustHandleReturn) {
       visitStatement(node.finalizer);
-      if (finalizers.isNotEmpty) {
-        b.br(finalizers.last.label);
+      if (returnFinalizers.isNotEmpty) {
+        b.br(returnFinalizers.last.label);
       } else {
         if (returnValueLocal != null) {
           b.local_get(returnValueLocal!);
@@ -899,7 +941,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         _returnFromFunction();
       }
     }
-    b.end(); // end tryFinallyBlock.
+
+    // Generate finalizers for `break`s in the `try` block
+    for (final removedBreakTargetEntry in removedBreakTargets.entries) {
+      b.end();
+      visitStatement(node.finalizer);
+      b.br(breakFinalizers[removedBreakTargetEntry.key]!.last);
+    }
+
+    // Terminate `tryFinallyBlock`
+    b.end();
   }
 
   @override
@@ -1077,8 +1128,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // as the stack unwinds. When we get to the top of the finalizer stack, we
     // will handle the return using [returnValueLocal] if this function returns
     // a value.
-    if (finalizers.isNotEmpty) {
-      for (TryBlockFinalizer finalizer in finalizers) {
+    if (returnFinalizers.isNotEmpty) {
+      for (TryBlockFinalizer finalizer in returnFinalizers) {
         finalizer.mustHandleReturn = true;
       }
       if (returnType != voidMarker) {
@@ -1088,7 +1139,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         returnValueLocal ??= addLocal(returnType.withNullability(true));
         b.local_set(returnValueLocal!);
       }
-      b.br(finalizers.last.label);
+      b.br(returnFinalizers.last.label);
     } else {
       _returnFromFunction();
     }
@@ -2411,7 +2462,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 }
 
 class TryBlockFinalizer {
+  /// `br` target to run the finalizer
   final w.Label label;
+
+  /// Whether the last finalizer in the chain should return. When this is
+  /// `false` the block won't be used, as the block is for running finalizers
+  /// when returning.
   bool mustHandleReturn = false;
 
   TryBlockFinalizer(this.label);
