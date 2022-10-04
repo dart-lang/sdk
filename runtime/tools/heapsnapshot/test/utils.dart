@@ -20,7 +20,7 @@ class Testee {
 
   Future<String> start(List<String> args) async {
     var script = Platform.script.toFilePath();
-    if (script.endsWith('dart_2.dill')) {
+    if (RegExp('dart_([0-9]+).dill').hasMatch(script)) {
       // We run via `dart test` and the `package:test` has wrapped the `main()`
       // function. We don't want to invoke the wrapper as subprocess, but rather
       // the actual file.

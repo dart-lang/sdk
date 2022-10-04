@@ -22,6 +22,12 @@ class PostfixCompleter {
 }
 
 String? _selectCandidate(String prefix, List<String> candidates) {
+  // If there's an exact match, use that.
+  if (candidates.any((candidate) => prefix == candidate)) {
+    return prefix;
+  }
+
+  // Otherwise use the longest possible completion.
   candidates = candidates
       .where((c) => prefix.length < c.length && c.startsWith(prefix))
       .toList();

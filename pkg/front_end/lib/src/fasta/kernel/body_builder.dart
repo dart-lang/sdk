@@ -106,7 +106,7 @@ import '../type_inference/inference_results.dart'
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart' show UnknownType;
-import '../util/helpers.dart' show DelayedActionPerformer;
+import '../util/helpers.dart';
 import 'collections.dart';
 import 'constness.dart' show Constness;
 import 'constructor_tearoff_lowering.dart';
@@ -128,10 +128,6 @@ import 'utils.dart';
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const int noLocation = TreeNode.noOffset;
-
-// TODO(danrubel): Remove this once control flow and spread collection support
-// has been enabled by default.
-const Object invalidCollectionElement = const Object();
 
 enum JumpTargetKind {
   Break,
@@ -611,9 +607,6 @@ class BodyBuilder extends StackListenerImpl
 
   DartType get implicitTypeArgument => const ImplicitTypeArgument();
 
-  @override
-  LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
-
   void _enterLocalState({bool inLateLocalInitializer = false}) {
     _localInitializerState =
         _localInitializerState.prepend(inLateLocalInitializer);
@@ -673,6 +666,28 @@ class BodyBuilder extends StackListenerImpl
   Expression toEffect(Object? node) {
     if (node is Generator) return node.buildForEffect();
     return toValue(node);
+  }
+
+  Matcher toMatcher(Object? node) {
+    if (node is Matcher) {
+      return node;
+    } else if (node is Binder) {
+      return new BinderMatcher(node);
+    } else if (node is Generator) {
+      // TODO(johnniwinther): Generate matcher from Generator.
+      return new DummyMatcher();
+    } else if (node is Expression) {
+      // TODO(johnniwinther): Generate matcher from Expression.
+      return new DummyMatcher();
+    } else if (node is ProblemBuilder) {
+      // ignore: unused_local_variable
+      Expression expression =
+          buildProblem(node.message, node.charOffset, noLength);
+      // TODO(johnniwinther): Generate matcher from Expression.
+      return new DummyMatcher();
+    } else {
+      return unhandled("${node.runtimeType}", "toMatcher", -1, uri);
+    }
   }
 
   List<Expression> popListForValue(int n) {
@@ -1785,9 +1800,11 @@ class BodyBuilder extends StackListenerImpl
                 parameters.positionalParameters.length, (int i) {
                 VariableDeclaration formal = parameters.positionalParameters[i];
                 return new FormalParameterBuilder(
-                    /* metadata = */ null,
+                    /* metadata = */
+                    null,
                     FormalParameterKind.requiredPositional,
-                    /* modifiers = */ 0,
+                    /* modifiers = */
+                    0,
                     const ImplicitTypeBuilder(),
                     formal.name!,
                     libraryBuilder,
@@ -1842,7 +1859,8 @@ class BodyBuilder extends StackListenerImpl
   List<Initializer>? parseInitializers(Token token,
       {bool doFinishConstructor = true}) {
     Parser parser = new Parser(this,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: globalFeatures.patterns.isEnabled);
     if (!token.isEof) {
       token = parser.parseInitializers(token);
       checkEmpty(token.charOffset);
@@ -1863,7 +1881,8 @@ class BodyBuilder extends StackListenerImpl
 
   Expression parseFieldInitializer(Token token) {
     Parser parser = new Parser(this,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: globalFeatures.patterns.isEnabled);
     Token endToken =
         parser.parseExpression(parser.syntheticPreviousToken(token));
     assert(checkState(token, [
@@ -1880,7 +1899,8 @@ class BodyBuilder extends StackListenerImpl
 
   Expression parseAnnotation(Token token) {
     Parser parser = new Parser(this,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: globalFeatures.patterns.isEnabled);
     Token endToken = parser.parseMetadata(parser.syntheticPreviousToken(token));
     assert(checkState(token, [ValueKinds.Expression]));
     Expression annotation = pop() as Expression;
@@ -1890,7 +1910,8 @@ class BodyBuilder extends StackListenerImpl
 
   ArgumentsImpl parseArguments(Token token) {
     Parser parser = new Parser(this,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: globalFeatures.patterns.isEnabled);
     token = parser.parseArgumentsRest(token);
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
@@ -2260,7 +2281,23 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleParenthesizedCondition(Token token, Token? case_) {
     if (case_ != null) {
-      throw new UnimplementedError('TODO(paulberry)');
+      assert(checkState(token, [
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Matcher,
+          ValueKinds.Binder,
+        ]),
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.ProblemBuilder,
+        ]),
+      ]));
+      reportIfNotEnabled(
+          libraryFeatures.patterns, case_.charOffset, case_.charCount);
+      // ignore: unused_local_variable
+      Matcher matcher = toMatcher(pop());
+      // TODO(johnniwinther): Create an if-case statement.
     }
     assert(checkState(token, [
       unionOfKinds([
@@ -2304,6 +2341,30 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator,
       ]),
     ]));
+  }
+
+  @override
+  void handleParenthesizedPattern(Token token) {
+    debugEvent("ParenthesizedPattern");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ])
+    ]));
+    // TODO(johnniwinther): Do we need a ParenthesizedMatcher ?
+    reportIfNotEnabled(
+        libraryFeatures.patterns, token.charOffset, token.charCount);
+
+    Object? value = pop();
+    if (value is Matcher || value is Binder) {
+      push(value);
+    } else {
+      push(toValue(value));
+    }
   }
 
   @override
@@ -2452,14 +2513,27 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
       ]),
       ValueKinds.ConstantContext,
     ]));
     debugEvent("endCaseExpression");
-    Expression expression = popForValue();
-    constantContext = pop() as ConstantContext;
-    super.push(expression);
-    assert(checkState(colon, [ValueKinds.Expression]));
+    Object? value = pop();
+    if (value is Matcher || value is Binder) {
+      constantContext = pop() as ConstantContext;
+      super.push(toMatcher(value));
+    } else {
+      Expression expression = toValue(value);
+      constantContext = pop() as ConstantContext;
+      super.push(expression);
+    }
+    assert(checkState(colon, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Matcher,
+      ])
+    ]));
   }
 
   @override
@@ -2521,6 +2595,35 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Initializer,
       ]),
     ]));
+  }
+
+  @override
+  void endBinaryPattern(Token token) {
+    debugEvent("BinaryPattern");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ])
+    ]));
+    reportIfNotEnabled(
+        libraryFeatures.patterns, token.charOffset, token.charCount);
+    // ignore: unused_local_variable
+    Matcher left = toMatcher(pop());
+    // ignore: unused_local_variable
+    Matcher right = toMatcher(pop());
+    // TODO(johnniwinther): Create a binary matcher.
+    push(new DummyMatcher());
   }
 
   void doBinaryExpression(Token token) {
@@ -3753,12 +3856,11 @@ class BodyBuilder extends StackListenerImpl
       exitLocalScope();
       typeInferrer.assignedVariables.discardNode();
 
-      handleRecoverableError(
+      push(buildProblem(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
-          forToken,
-          forToken);
-      push(invalidCollectionElement);
+          forToken.charOffset,
+          forToken.charCount));
       return;
     }
 
@@ -3917,24 +4019,23 @@ class BodyBuilder extends StackListenerImpl
   void handleLiteralList(
       int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
     debugEvent("LiteralList");
+    assert(checkState(leftBracket, [
+      ...repeatedKinds(
+          unionOfKinds([
+            ValueKinds.Generator,
+            ValueKinds.Expression,
+            ValueKinds.ProblemBuilder,
+          ]),
+          count),
+      ValueKinds.TypeArgumentsOrNull,
+    ]));
 
     if (constantContext == ConstantContext.required && constKeyword == null) {
       addProblem(fasta.messageMissingExplicitConst, offsetForToken(leftBracket),
           noLength);
     }
 
-    // TODO(danrubel): Replace this with popListForValue
-    // when control flow and spread collections have been enabled by default
-    List<Expression> expressions =
-        new List<Expression>.filled(count, dummyExpression, growable: true);
-    for (int i = count - 1; i >= 0; i--) {
-      Object? elem = pop();
-      if (elem != invalidCollectionElement) {
-        expressions[i] = toValue(elem);
-      } else {
-        expressions.removeAt(i);
-      }
-    }
+    List<Expression> expressions = popListForValue(count);
 
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
@@ -3969,6 +4070,35 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  void handleListPattern(int count, Token leftBracket, Token rightBracket) {
+    debugEvent("ListPattern");
+    assert(checkState(leftBracket, [
+      ...repeatedKinds(
+          unionOfKinds([
+            ValueKinds.Generator,
+            ValueKinds.Expression,
+            ValueKinds.ProblemBuilder,
+            ValueKinds.Matcher,
+            ValueKinds.Binder,
+          ]),
+          count),
+      ValueKinds.TypeArgumentsOrNull,
+    ]));
+
+    reportIfNotEnabled(libraryFeatures.patterns, leftBracket.charOffset,
+        leftBracket.charCount);
+
+    for (int i = 0; i < count; i++) {
+      // ignore: unused_local_variable
+      Matcher element = toMatcher(pop());
+    }
+    // ignore: unused_local_variable
+    List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
+    // TODO(johnniwinther): Create list matcher.
+    push(new DummyMatcher());
+  }
+
+  @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
     debugEvent("RecordLiteral");
     assert(checkState(
@@ -3982,13 +4112,8 @@ class BodyBuilder extends StackListenerImpl
             ]),
             count)));
 
-    if (!libraryFeatures.records.isEnabled) {
-      addProblem(
-          templateExperimentNotEnabledOffByDefault
-              .withArguments(ExperimentalFlag.records.name),
-          token.offset,
-          noLength);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.records, token.charOffset, token.charCount);
 
     // Pop all elements. This will put them in evaluation order.
     List<Object?>? elements =
@@ -4033,6 +4158,36 @@ class BodyBuilder extends StackListenerImpl
         isConst:
             constKeyword != null || constantContext == ConstantContext.inferred,
         offset: token.offset));
+  }
+
+  @override
+  void handleRecordPattern(Token token, int count) {
+    debugEvent("RecordPattern");
+    debugEvent("RecordLiteral");
+    assert(checkState(
+        token,
+        repeatedKinds(
+            unionOfKinds([
+              ValueKinds.Generator,
+              ValueKinds.Expression,
+              ValueKinds.ProblemBuilder,
+              ValueKinds.NamedExpression,
+              ValueKinds.Matcher,
+              // TODO(johnniwinther): Support named matchers.
+              // ValueKinds.NamedMatcher,
+              ValueKinds.Binder,
+            ]),
+            count)));
+
+    reportIfNotEnabled(
+        libraryFeatures.patterns, token.charOffset, token.charCount);
+
+    // Pop all elements.
+    // ignore: unused_local_variable
+    List<Object?>? elements =
+        const FixedNullableList<Object>().pop(stack, count);
+    // TODO(johnniwinther): Create a record matcher.
+    push(new DummyMatcher());
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,
@@ -4085,6 +4240,17 @@ class BodyBuilder extends StackListenerImpl
     bool hasSetEntry,
   ) {
     debugEvent("LiteralSetOrMap");
+    assert(checkState(leftBrace, [
+      ...repeatedKinds(
+          unionOfKinds([
+            ValueKinds.Expression,
+            ValueKinds.Generator,
+            ValueKinds.ProblemBuilder,
+            ValueKinds.MapLiteralEntry,
+          ]),
+          count),
+      ValueKinds.TypeArgumentsOrNull
+    ]));
 
     if (constantContext == ConstantContext.required && constKeyword == null) {
       addProblem(fasta.messageMissingExplicitConst, offsetForToken(leftBrace),
@@ -4095,10 +4261,7 @@ class BodyBuilder extends StackListenerImpl
         new List<dynamic>.filled(count, null, growable: true);
     for (int i = count - 1; i >= 0; i--) {
       Object? elem = pop();
-      // TODO(danrubel): Revise this to handle control flow and spread
-      if (elem == invalidCollectionElement) {
-        setOrMapEntries.removeAt(i);
-      } else if (elem is MapLiteralEntry) {
+      if (elem is MapLiteralEntry) {
         setOrMapEntries[i] = elem;
       } else {
         setOrMapEntries[i] = toValue(elem);
@@ -4148,6 +4311,62 @@ class BodyBuilder extends StackListenerImpl
       }
       buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);
     }
+  }
+
+  @override
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    debugEvent('MapPatternEntry');
+    assert(checkState(colon, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ])
+    ]));
+    // ignore: unused_local_variable
+    Matcher key = toMatcher(pop());
+    // ignore: unused_local_variable
+    Matcher value = toMatcher(pop());
+    // TODO(johnniwinther): Create map entry.
+    push(new DummyMatcher());
+  }
+
+  @override
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    debugEvent('MapPattern');
+    assert(checkState(leftBrace, [
+      ...repeatedKinds(
+          unionOfKinds([
+            ValueKinds.Expression,
+            ValueKinds.Generator,
+            ValueKinds.ProblemBuilder,
+            ValueKinds.Matcher,
+            ValueKinds.MapLiteralEntry,
+            // TODO(johnniwinther): Support map-pattern entry
+            ValueKinds.Binder,
+          ]),
+          count),
+      ValueKinds.TypeArgumentsOrNull,
+    ]));
+
+    reportIfNotEnabled(
+        libraryFeatures.patterns, leftBrace.charOffset, leftBrace.charCount);
+    for (int i = 0; i < count; i++) {
+      // TODO(johnniwinther): Create map literal entry matcher.
+      pop();
+    }
+    // ignore: unused_local_variable
+    List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
+    push(new DummyMatcher());
   }
 
   @override
@@ -4512,6 +4731,14 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
+    assert(checkState(operator, [
+      ValueKinds.TypeBuilder,
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+    ]));
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
         allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
     Expression expression = popForValue();
@@ -4519,6 +4746,30 @@ class BodyBuilder extends StackListenerImpl
         offsetForToken(operator), expression, type,
         forNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
     push(asExpression);
+  }
+
+  @override
+  void handleCastPattern(Token operator) {
+    debugEvent('CastPattern');
+    assert(checkState(operator, [
+      ValueKinds.TypeBuilder,
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ]),
+    ]));
+    reportIfNotEnabled(
+        libraryFeatures.patterns, operator.charOffset, operator.charCount);
+    // ignore: unused_local_variable
+    DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
+        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
+    // ignore: unused_local_variable
+    Matcher operand = toMatcher(pop());
+    // TODO(johnniwinther): Create a cast matcher.
+    push(new DummyMatcher());
   }
 
   @override
@@ -6413,12 +6664,11 @@ class BodyBuilder extends StackListenerImpl
       exitLocalScope();
       typeInferrer.assignedVariables.discardNode();
 
-      handleRecoverableError(
+      push(buildProblem(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
-          forToken,
-          forToken);
-      push(invalidCollectionElement);
+          forToken.charOffset,
+          forToken.charCount));
       return;
     }
 
@@ -6808,8 +7058,9 @@ class BodyBuilder extends StackListenerImpl
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
     int count = labelCount + expressionCount;
-    List<Object>? labelsAndExpressions = const FixedNullableList<Object>()
-        .popNonNullable(stack, count, dummyLabel);
+    List<Object>? labelsExpressionsAndMatchers =
+        const FixedNullableList<Object>()
+            .popNonNullable(stack, count, dummyLabel);
     List<Label>? labels =
         labelCount == 0 ? null : new List<Label>.filled(labelCount, dummyLabel);
     List<Expression> expressions = new List<Expression>.filled(
@@ -6817,12 +7068,15 @@ class BodyBuilder extends StackListenerImpl
         growable: true);
     int labelIndex = 0;
     int expressionIndex = 0;
-    if (labelsAndExpressions != null) {
-      for (Object labelOrExpression in labelsAndExpressions) {
-        if (labelOrExpression is Label) {
-          labels![labelIndex++] = labelOrExpression;
+    if (labelsExpressionsAndMatchers != null) {
+      for (Object labelExpressionOrMatcher in labelsExpressionsAndMatchers) {
+        if (labelExpressionOrMatcher is Label) {
+          labels![labelIndex++] = labelExpressionOrMatcher;
+        } else if (labelExpressionOrMatcher is Matcher) {
+          // TODO(johnniwinther): Handle matchers.
         } else {
-          expressions[expressionIndex++] = labelOrExpression as Expression;
+          expressions[expressionIndex++] =
+              labelExpressionOrMatcher as Expression;
         }
       }
     }
@@ -7763,6 +8017,174 @@ class BodyBuilder extends StackListenerImpl
   void handleNewAsIdentifier(Token token) {
     reportIfNotEnabled(
         libraryFeatures.constructorTearoffs, token.charOffset, token.length);
+  }
+
+  @override
+  void handleConstantPattern(Token? constKeyword) {
+    debugEvent("ConstantPattern");
+    assert(checkState(constKeyword, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+    ]));
+    Expression expression = toValue(pop());
+    push(expression);
+  }
+
+  @override
+  void handleExtractorPatternFields(
+      int count, Token beginToken, Token endToken) {
+    debugEvent("ExtractorPattern");
+    assert(checkState(
+        beginToken,
+        repeatedKinds(
+            unionOfKinds([
+              ValueKinds.Expression, ValueKinds.Generator,
+              ValueKinds.ProblemBuilder,
+              ValueKinds.Matcher,
+              // TODO(johnniwinther): Support named matcher.
+              ValueKinds.Binder,
+            ]),
+            count)));
+    reportIfNotEnabled(
+        libraryFeatures.patterns, beginToken.charOffset, beginToken.charCount);
+    for (int i = 0; i < count; i++) {
+      pop();
+    }
+    // TODO(johnniwinther): Push (named) matchers.
+    push(count != 0 ? <Matcher>[] : NullValue.MatcherList);
+  }
+
+  @override
+  void handleExtractorPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    debugEvent("ExtractorPattern");
+    assert(checkState(firstIdentifier, [
+      ValueKinds.MatcherListOrNull,
+      ValueKinds.TypeArgumentsOrNull,
+    ]));
+
+    reportIfNotEnabled(libraryFeatures.patterns, firstIdentifier.charOffset,
+        firstIdentifier.charCount);
+
+    // ignore: unused_local_variable
+    List<Matcher>? fields = pop() as List<Matcher>?;
+    // ignore: unused_local_variable
+    List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
+
+    // TODO(johnniwinther): Create extractor pattern.
+    push(new DummyMatcher());
+  }
+
+  @override
+  void handleRelationalPattern(Token token) {
+    debugEvent("RelationalPattern");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ]),
+    ]));
+    reportIfNotEnabled(
+        libraryFeatures.patterns, token.charOffset, token.charCount);
+    // ignore: unused_local_variable
+    Matcher operand = toMatcher(pop());
+    // TODO(johnniwinther): Create a relational matcher.
+    push(new DummyMatcher());
+  }
+
+  @override
+  void handleNullAssertPattern(Token bang) {
+    debugEvent("NullAssertPattern");
+    assert(checkState(bang, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ]),
+    ]));
+    reportIfNotEnabled(
+        libraryFeatures.patterns, bang.charOffset, bang.charCount);
+    // ignore: unused_local_variable
+    Matcher operand = toMatcher(pop());
+    // TODO(johnniwinther): Create a relational matcher.
+    push(new DummyMatcher());
+  }
+
+  @override
+  void handleNullCheckPattern(Token question) {
+    debugEvent('NullCheckPattern');
+    assert(checkState(question, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ]),
+    ]));
+    reportIfNotEnabled(
+        libraryFeatures.patterns, question.charOffset, question.charCount);
+    // ignore: unused_local_variable
+    Matcher operand = toMatcher(pop());
+    // TODO(johnniwinther): Create a relational matcher.
+    push(new DummyMatcher());
+  }
+
+  @override
+  void handleVariablePattern(Token? keyword, Token variable) {
+    debugEvent('VariablePattern');
+    assert(checkState(keyword ?? variable, [
+      ValueKinds.TypeBuilderOrNull,
+    ]));
+
+    reportIfNotEnabled(
+        libraryFeatures.patterns, variable.charOffset, variable.charCount);
+    // ignore: unused_local_variable
+    TypeBuilder? type = pop(NullValue.TypeBuilder) as TypeBuilder?;
+    // TODO(johnniwinther): Create a variable binder
+    push(new DummyBinder());
+  }
+
+  @override
+  void handlePatternField(Token? colon) {
+    debugEvent("PatternField");
+    assert(checkState(colon, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Matcher,
+        ValueKinds.Binder,
+      ]),
+      if (colon != null) ValueKinds.IdentifierOrNull,
+    ]));
+
+    Object? value = pop();
+    if (value is Binder) {
+      // TODO(johnniwinther): Create (named) binder.
+    } else {
+      // TODO(johnniwinther): Create (named) matcher.
+      // ignore: unused_local_variable
+      Matcher matcher = toMatcher(value);
+    }
+    // ignore: unused_local_variable
+    Identifier? name;
+    if (colon != null) {
+      name = pop() as Identifier?;
+      // TODO(johnniwinther): Push named binder/matcher.
+      push(new DummyMatcher());
+    } else {
+      // TODO(johnniwinther): Push binder/matcher.
+      push(new DummyMatcher());
+    }
   }
 }
 

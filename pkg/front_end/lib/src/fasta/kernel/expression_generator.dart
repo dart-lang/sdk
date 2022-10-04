@@ -316,11 +316,8 @@ abstract class Generator {
 class VariableUseGenerator extends Generator {
   final VariableDeclaration variable;
 
-  final DartType? promotedType;
-
   VariableUseGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.variable,
-      [this.promotedType])
+      ExpressionGeneratorHelper helper, Token token, this.variable)
       : assert(variable.isAssignable, 'Variable $variable is not assignable'),
         super(helper, token);
 
@@ -410,8 +407,6 @@ class VariableUseGenerator extends Generator {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", variable: ");
     printNodeOn(variable, sink, syntheticNames: syntheticNames);
-    sink.write(", promotedType: ");
-    printNodeOn(promotedType, sink, syntheticNames: syntheticNames);
   }
 }
 

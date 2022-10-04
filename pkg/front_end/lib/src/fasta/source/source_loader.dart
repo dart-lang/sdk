@@ -1172,7 +1172,8 @@ severity: $severity
       {
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_parser);
-        Parser parser = new Parser(new ForwardingListener());
+        Parser parser = new Parser(new ForwardingListener(),
+            allowPatterns: target.globalFeatures.patterns.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1259,7 +1260,8 @@ severity: $severity
 
     return listener.parseSingleExpression(
         new Parser(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe),
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+            allowPatterns: target.globalFeatures.patterns.isEnabled),
         token,
         parameters);
   }
@@ -2760,6 +2762,8 @@ class int extends num {}
 class num {}
 
 class Function {}
+
+class Record {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an

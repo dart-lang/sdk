@@ -28,6 +28,7 @@ class CoreTypes {
       'Function',
       'Invocation',
       'FallThroughError',
+      'Record',
     ],
     'dart:_internal': [
       'LateInitializationErrorImpl',

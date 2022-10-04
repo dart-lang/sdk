@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 
 class FakeAnalysis implements Analysis {
   @override
-  Set<int> get roots => <int>{1};
+  final IntSet roots = IntSet();
 
   @override
   dynamic noSuchMethod(Invocation i) {}
@@ -86,6 +86,35 @@ main() {
     test('complete default eval command', () {
       cliState.namedSets.nameSet({1}, 'foobar');
       expect(complete('foo'), 'foobar');
+    });
+  });
+
+  group('cli-completion meta commands', () {
+    setUp(() {
+      cliState = CliState(CompletionCollector());
+    });
+
+    test('complete short-help', () {
+      expect(complete('h'), 'h');
+    });
+    test('complete long-help', () {
+      expect(complete('he'), 'help');
+    });
+    test('complete short-help-command', () {
+      expect(complete('h lo'), 'h load');
+    });
+    test('complete long-help-command', () {
+      expect(complete('help lo'), 'help load');
+    });
+
+    test('complete exit', () {
+      expect(complete('e'), 'exit');
+    });
+    test('complete short-quit', () {
+      expect(complete('q'), 'q');
+    });
+    test('complete long-quit', () {
+      expect(complete('qu'), 'quit');
     });
   });
 }

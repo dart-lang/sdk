@@ -10,7 +10,7 @@ main() {
   var r1 = const (42);
   //             ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
   //                ^
   // [analyzer] SYNTACTIC_ERROR.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
   // [cfe] Record literal with one field requires a trailing comma.
@@ -18,7 +18,7 @@ main() {
   var r2 = const ();
   //             ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
   //              ^
   // [analyzer] SYNTACTIC_ERROR.RECORD_LITERAL_EMPTY
   // [cfe] Record literal can't be empty.

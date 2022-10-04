@@ -82,10 +82,9 @@ void main() async {
         .where((p) => !p.isEmpty)
         .toList();
     if (args.isEmpty) continue;
-    if (args.length == 1 && args.single == 'exit') {
+
+    if (await cliCommandRunner.run(cliState, args)) {
       return;
     }
-
-    await cliCommandRunner.run(cliState, args);
   }
 }

@@ -25,6 +25,7 @@ import '../identifiers.dart' as type;
 
 import '../kernel/body_builder.dart' as type show FormalParameters;
 import '../kernel/expression_generator.dart' as type;
+import '../kernel/internal_ast.dart' as type;
 
 import '../modifier.dart' as type;
 
@@ -48,6 +49,7 @@ class ValueKinds {
       const SingleValueKind<type.AsyncMarker>();
   static const ValueKind AsyncModifier =
       const SingleValueKind<type.AsyncMarker>();
+  static const ValueKind Binder = const SingleValueKind<type.Binder>();
   static const ValueKind Bool = const SingleValueKind<bool>();
   static const ValueKind ConstantContext =
       const SingleValueKind<type.ConstantContext>();
@@ -70,6 +72,11 @@ class ValueKinds {
   static const ValueKind Initializer =
       const SingleValueKind<type.Initializer>();
   static const ValueKind Integer = const SingleValueKind<int>();
+  static const ValueKind MapLiteralEntry =
+      const SingleValueKind<type.MapLiteralEntry>();
+  static const ValueKind Matcher = const SingleValueKind<type.Matcher>();
+  static const ValueKind MatcherListOrNull =
+      const SingleValueKind<List<type.Matcher>>(NullValue.MatcherList);
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
   static const ValueKind MixinApplicationBuilder =
       const SingleValueKind<type.MixinApplicationBuilder>();

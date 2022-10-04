@@ -112,8 +112,6 @@ class LoadCommand extends Command {
 
   Future executeInternal(
       CliState state, ArgResults options, List<String> args) async {
-    HeapSnapshotGraph.getSnapshot;
-
     if (args.length != 1) {
       printUsage(state);
       return;
@@ -241,7 +239,7 @@ class InfoCommand extends SnapshotCommand {
 
     state.output.print('Known named sets:');
     final table = Table();
-    state.namedSets.forEach((String name, Set<int> oids) {
+    state.namedSets.forEach((String name, IntSet oids) {
       table.addRow([name, '{#${oids.length}}']);
     });
     state.output.print(indent('  ', table.asString));
@@ -398,6 +396,58 @@ class DescFilterCommand extends SnapshotCommand {
   }
 }
 
+class HelpCommand extends Command {
+  final name = 'help';
+  final description = 'Shows general help or help for a specific command.';
+  final usage = 'help <command>?';
+  final nameAliases = ['h'];
+
+  HelpCommand();
+
+  Future executeInternal(
+      CliState state, ArgResults options, List<String> args) async {
+    if (args.length >= 1) {
+      final helpCommandName = args[0];
+      final helpCommand = cliCommandRunner.name2command[helpCommandName];
+      if (helpCommand != null) {
+        helpCommand.printUsage(state);
+        return;
+      }
+    }
+    final table = Table();
+    cliCommandRunner.name2command.forEach((name, command) {
+      if (name == command.name) {
+        table.addRow([command.name, command.description]);
+      }
+    });
+    state.output.print('Available commands:');
+    state.output.print(indent('    ', table.asString));
+  }
+
+  String? completeCommand(CliState state, String text) {
+    if (text.indexOf(' ') == -1) {
+      final pc = PostfixCompleter(text);
+      final possibleCommands = cliCommandRunner.name2command.keys.toList();
+      return pc.tryComplete(text, possibleCommands);
+    }
+    return null;
+  }
+}
+
+class ExitCommand extends Command {
+  final name = 'exit';
+  final description = 'Exits the program.';
+  final usage = 'exit';
+  final nameAliases = ['quit', 'q'];
+
+  ExitCommand();
+
+  Future executeInternal(
+      CliState state, ArgResults options, List<String> args) {
+    throw 'unreachable';
+  }
+}
+
 class CommandRunner {
   final Command defaultCommand;
   final Map<String, Command> name2command = {};
@@ -411,36 +461,21 @@ class CommandRunner {
     }
   }
 
-  Future run(CliState state, List<String> args) async {
-    if (args.isEmpty) return;
+  /// Returns `true` if the CLI tool should exit and `false` otherwise.
+  Future<bool> run(CliState state, List<String> args) async {
+    if (args.isEmpty) return false;
 
     final commandName = args.first;
     final command = name2command[commandName];
     if (command != null) {
-      await command.execute(state, args.skip(1).toList());
-      return;
-    }
-    if (const ['help', 'h'].contains(commandName)) {
-      if (args.length > 1) {
-        final helpCommandName = args[1];
-        final helpCommand = name2command[helpCommandName];
-        if (helpCommand != null) {
-          helpCommand.printUsage(state);
-          return;
-        }
+      if (command is ExitCommand) {
+        return true;
       }
-      final table = Table();
-      name2command.forEach((name, command) {
-        if (name == command.name) {
-          table.addRow([command.name, command.description]);
-        }
-      });
-      state.output.print('Available commands:');
-      state.output.print(indent('    ', table.asString));
-      return;
+      await command.execute(state, args.skip(1).toList());
+      return false;
     }
-
     await defaultCommand.execute(state, args);
+    return false;
   }
 
   String? completeCommand(CliState state, String text) {
@@ -499,6 +534,8 @@ final cliCommandRunner = CommandRunner([
   EvaluateCommand(),
   ExamineCommand(),
   DescFilterCommand(),
+  HelpCommand(),
+  ExitCommand(),
 ], EvaluateCommand());
 
 class CompletionCollector extends Output {

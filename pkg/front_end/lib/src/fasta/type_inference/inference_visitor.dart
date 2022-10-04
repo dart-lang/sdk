@@ -7362,7 +7362,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitInternalRecordLiteral(
       InternalRecordLiteral node, DartType typeContext) {
     List<Expression> positional = node.positional;
-    List<NamedExpression> named = node.named;
+    List<NamedExpression> namedUnsorted = node.named;
+    List<NamedExpression> named = namedUnsorted;
     Map<String, NamedExpression>? namedElements = node.namedElements;
     List<Object> originalElementOrder = node.originalElementOrder;
     List<VariableDeclaration>? hoistedExpressions;
@@ -7371,19 +7372,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<String, DartType>? namedTypeContexts;
     if (typeContext is RecordType &&
         typeContext.positional.length == positional.length &&
-        typeContext.named.length == named.length) {
+        typeContext.named.length == namedUnsorted.length) {
+      namedTypeContexts = <String, DartType>{};
+      for (NamedType namedType in typeContext.named) {
+        namedTypeContexts[namedType.name] = namedType.type;
+      }
+
       bool sameNames = true;
-      for (int i = 0; sameNames && i < named.length; i++) {
-        if (typeContext.named[i].name != named[i].name) {
+      for (int i = 0; sameNames && i < namedUnsorted.length; i++) {
+        if (!namedTypeContexts.containsKey(namedUnsorted[i].name)) {
           sameNames = false;
         }
       }
+
       if (sameNames) {
         positionalTypeContexts = typeContext.positional;
-        namedTypeContexts = <String, DartType>{};
-        for (NamedType namedType in typeContext.named) {
-          namedTypeContexts[namedType.name] = namedType.type;
-        }
+      } else {
+        namedTypeContexts = null;
       }
     }
 
@@ -7396,9 +7401,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       namedTypes = [];
       for (int index = 0; index < positional.length; index++) {
         Expression expression = positional[index];
-        ExpressionInferenceResult expressionResult = inferExpression(expression,
-            positionalTypeContexts?[index] ?? const UnknownType(), true);
-        positionalTypes.add(expressionResult.inferredType);
+
+        DartType contextType =
+            positionalTypeContexts?[index] ?? const UnknownType();
+        ExpressionInferenceResult expressionResult =
+            inferExpression(expression, contextType, true);
+        if (contextType is! UnknownType) {
+          expressionResult =
+              ensureAssignableResult(contextType, expressionResult);
+        }
+
+        positionalTypes.add(
+            expressionResult.postCoercionType ?? expressionResult.inferredType);
         positional[index] = expressionResult.expression;
       }
     } else {
@@ -7436,12 +7450,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       for (int index = originalElementOrder.length - 1; index >= 0; index--) {
         Object element = originalElementOrder[index];
         if (element is NamedExpression) {
-          ExpressionInferenceResult expressionResult = inferExpression(
-              element.value,
-              namedTypeContexts?[element.name] ?? const UnknownType(),
-              true);
+          DartType contextType =
+              namedTypeContexts?[element.name] ?? const UnknownType();
+          ExpressionInferenceResult expressionResult =
+              inferExpression(element.value, contextType, true);
+          if (contextType is! UnknownType) {
+            expressionResult =
+                ensureAssignableResult(contextType, expressionResult);
+          }
           Expression expression = expressionResult.expression;
-          DartType type = expressionResult.inferredType;
+          DartType type = expressionResult.postCoercionType ??
+              expressionResult.inferredType;
           // TODO(johnniwinther): Should we use [isPureExpression] as is, make
           // it include (simple) literals, or add a new predicate?
           if (needsHoisting && !isPureExpression(expression)) {
@@ -7462,12 +7481,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           nameIndex--;
         } else {
-          ExpressionInferenceResult expressionResult = inferExpression(
-              element as Expression,
-              positionalTypeContexts?[positionalIndex] ?? const UnknownType(),
-              true);
+          DartType contextType =
+              positionalTypeContexts?[positionalIndex] ?? const UnknownType();
+          ExpressionInferenceResult expressionResult =
+              inferExpression(element as Expression, contextType, true);
+          if (contextType is! UnknownType) {
+            expressionResult =
+                ensureAssignableResult(contextType, expressionResult);
+          }
           Expression expression = expressionResult.expression;
-          DartType type = expressionResult.inferredType;
+          DartType type = expressionResult.postCoercionType ??
+              expressionResult.inferredType;
           // TODO(johnniwinther): Should we use [isPureExpression] as is, make
           // it include (simple) literals, or add a new predicate?
           if (needsHoisting && !isPureExpression(expression)) {
