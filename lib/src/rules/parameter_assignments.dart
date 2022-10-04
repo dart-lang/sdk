@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
@@ -43,7 +41,7 @@ void badFunctionPositional(int required, [int optional = 42]) { // LINT
 **BAD:**
 ```dart
 class A {
-    void badMethod(int parameter) { // LINT
+  void badMethod(int parameter) { // LINT
     parameter = 4;
   }
 }
@@ -84,28 +82,12 @@ class A {
 bool _isDefaultFormalParameterWithDefaultValue(FormalParameter parameter) =>
     parameter is DefaultFormalParameter && parameter.defaultValue != null;
 
-bool _isDefaultFormalParameterWithoutDefaultValueReassigned(
-        FormalParameter parameter, AssignmentExpression assignment) =>
-    parameter is DefaultFormalParameter &&
-    parameter.defaultValue == null &&
-    _isFormalParameterReassigned(parameter, assignment);
-
 bool _isFormalParameterReassigned(
     FormalParameter parameter, AssignmentExpression assignment) {
   var leftHandSide = assignment.leftHandSide;
   return leftHandSide is SimpleIdentifier &&
       leftHandSide.staticElement == parameter.declaredElement;
 }
-
-bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
-    n is PrefixExpression &&
-        n.operand is SimpleIdentifier &&
-        (n.operand as SimpleIdentifier).staticElement ==
-            parameter.declaredElement ||
-    n is PostfixExpression &&
-        n.operand is SimpleIdentifier &&
-        (n.operand as SimpleIdentifier).staticElement ==
-            parameter.declaredElement;
 
 class ParameterAssignments extends LintRule {
   ParameterAssignments()
@@ -124,6 +106,62 @@ class ParameterAssignments extends LintRule {
   }
 }
 
+class _DeclarationVisitor extends RecursiveAstVisitor {
+  final FormalParameter parameter;
+  final LintRule rule;
+  final bool paramIsNotNullByDefault;
+  final bool paramDefaultsToNull;
+  bool hasBeenAssigned = false;
+
+  _DeclarationVisitor(this.parameter, this.rule,
+      {required this.paramIsNotNullByDefault,
+      required this.paramDefaultsToNull});
+
+  @override
+  visitAssignmentExpression(AssignmentExpression node) {
+    if (paramIsNotNullByDefault) {
+      if (_isFormalParameterReassigned(parameter, node)) {
+        rule.reportLint(node);
+      }
+    } else if (paramDefaultsToNull) {
+      if (_isFormalParameterReassigned(parameter, node)) {
+        if (hasBeenAssigned) {
+          rule.reportLint(node);
+        }
+        hasBeenAssigned = true;
+      }
+    }
+
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  visitPostfixExpression(PostfixExpression node) {
+    if (paramIsNotNullByDefault) {
+      var operand = node.operand;
+      if (operand is SimpleIdentifier &&
+          operand.staticElement == parameter.declaredElement) {
+        rule.reportLint(node);
+      }
+    }
+
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  visitPrefixExpression(PrefixExpression node) {
+    if (paramIsNotNullByDefault) {
+      var operand = node.operand;
+      if (operand is SimpleIdentifier &&
+          operand.staticElement == parameter.declaredElement) {
+        rule.reportLint(node);
+      }
+    }
+
+    super.visitPrefixExpression(node);
+  }
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
@@ -131,68 +169,32 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var parameters = node.functionExpression.parameters;
-    if (parameters != null) {
-      // Getter do not have formal parameters.
-      for (var e in parameters.parameters) {
-        var declaredElement = e.declaredElement;
-        if (declaredElement != null &&
-            node.functionExpression.body
-                .isPotentiallyMutatedInScope(declaredElement)) {
-          _reportIfSimpleParameterOrWithDefaultValue(e, node);
-        }
-      }
-    }
+    _checkParameters(
+        node.functionExpression.parameters, node.functionExpression.body);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var parameterList = node.parameters;
-    if (parameterList != null) {
-      // Getters don't have parameters.
-      for (var e in parameterList.parameters) {
-        var declaredElement = e.declaredElement;
-        if (declaredElement != null &&
-            node.body.isPotentiallyMutatedInScope(declaredElement)) {
-          _reportIfSimpleParameterOrWithDefaultValue(e, node);
-        }
-      }
-    }
+    _checkParameters(node.parameters, node.body);
   }
 
-  void _reportIfSimpleParameterOrWithDefaultValue(
-      FormalParameter parameter, AstNode functionOrMethodDeclaration) {
-    var nodes = functionOrMethodDeclaration.traverseNodesInDFS();
+  void _checkParameters(FormalParameterList? parameterList, FunctionBody body) {
+    if (parameterList == null) return;
 
-    if (parameter is SimpleFormalParameter ||
-        _isDefaultFormalParameterWithDefaultValue(parameter)) {
-      var mutatedNodes = nodes.where((n) =>
-          (n is AssignmentExpression &&
-              _isFormalParameterReassigned(parameter, n)) ||
-          _preOrPostFixExpressionMutation(parameter, n));
-      mutatedNodes.forEach(rule.reportLint);
-      return;
-    }
-
-    var assignmentsNodes = nodes
-        .where((n) =>
-            n is AssignmentExpression &&
-            _isDefaultFormalParameterWithoutDefaultValueReassigned(
-                parameter, n))
-        .toList();
-
-    var nonNullCoalescingAssignments = assignmentsNodes.where((n) =>
-        (n as AssignmentExpression).operator.type !=
-        TokenType.QUESTION_QUESTION_EQ);
-
-    if (assignmentsNodes.length > 1 ||
-        nonNullCoalescingAssignments.isNotEmpty) {
-      var node = assignmentsNodes.length > 1
-          ? assignmentsNodes.last
-          : nonNullCoalescingAssignments.isNotEmpty
-              ? nonNullCoalescingAssignments.first
-              : parameter;
-      rule.reportLint(node);
+    for (var parameter in parameterList.parameters) {
+      var declaredElement = parameter.declaredElement;
+      if (declaredElement != null &&
+          body.isPotentiallyMutatedInScope(declaredElement)) {
+        var paramIsNotNullByDefault = parameter is SimpleFormalParameter ||
+            _isDefaultFormalParameterWithDefaultValue(parameter);
+        var paramDefaultsToNull = parameter is DefaultFormalParameter &&
+            parameter.defaultValue == null;
+        if (paramDefaultsToNull || paramIsNotNullByDefault) {
+          body.accept(_DeclarationVisitor(parameter, rule,
+              paramDefaultsToNull: paramDefaultsToNull,
+              paramIsNotNullByDefault: paramIsNotNullByDefault));
+        }
+      }
     }
   }
 }

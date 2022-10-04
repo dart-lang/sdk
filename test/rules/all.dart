@@ -47,6 +47,7 @@ import 'non_constant_identifier_names_test.dart'
 import 'null_closures_test.dart' as null_closures;
 import 'omit_local_variable_types_test.dart' as omit_local_variable_types;
 import 'overridden_fields_test.dart' as overridden_fields;
+import 'parameter_assignments_test.dart' as parameter_assignments;
 import 'prefer_asserts_in_initializer_lists_test.dart'
     as prefer_asserts_in_initializer_lists;
 import 'prefer_collection_literals_test.dart' as prefer_collection_literals;
@@ -120,6 +121,7 @@ void main() {
   null_closures.main();
   omit_local_variable_types.main();
   overridden_fields.main();
+  parameter_assignments.main();
   prefer_asserts_in_initializer_lists.main();
   prefer_collection_literals.main();
   prefer_const_constructors.main();
