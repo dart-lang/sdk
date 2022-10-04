@@ -123,17 +123,26 @@ class RecordLiteralResolver {
     );
   }
 
-  void _resolveField(Expression field, DartType? contextType) {
+  void _resolveField(ExpressionImpl field, DartType? contextType) {
     _resolver.analyzeExpression(field, contextType);
-    _resolver.popRewrite();
+    field = _resolver.popRewrite()!;
+
+    // Implicit cast from `dynamic`.
+    if (contextType != null && field.typeOrThrow.isDynamic) {
+      field.staticType = contextType;
+      if (field is NamedExpressionImpl) {
+        field.expression.staticType = contextType;
+      }
+    }
   }
 
   void _resolveFields(RecordLiteralImpl node, DartType? contextType) {
     if (contextType is RecordType) {
       var index = 0;
       for (final field in node.fields) {
+        field as ExpressionImpl;
         DartType? fieldContextType;
-        if (field is NamedExpression) {
+        if (field is NamedExpressionImpl) {
           final name = field.name.label.name;
           fieldContextType = contextType.namedField(name)?.type;
         } else {
@@ -146,6 +155,7 @@ class RecordLiteralResolver {
       }
     } else {
       for (final field in node.fields) {
+        field as ExpressionImpl;
         _resolveField(field, null);
       }
     }
