@@ -40,17 +40,12 @@ double getDouble() => -1.0;
 
 ''';
 
-bool _isFunctionExpression(AstNode node) => node is FunctionExpression;
-
 bool _isPrimitiveType(DartType type) =>
     type is InterfaceType &&
     (type.isDartCoreBool ||
         type.isDartCoreDouble ||
         type.isDartCoreInt ||
         type.isDartCoreNum);
-
-bool _isReturnNull(AstNode node) =>
-    node is ReturnStatement && node.expression.isNullLiteral;
 
 class AvoidReturningNull extends LintRule {
   AvoidReturningNull()
@@ -71,6 +66,25 @@ class AvoidReturningNull extends LintRule {
       registry.addFunctionExpression(this, visitor);
       registry.addMethodDeclaration(this, visitor);
     }
+  }
+}
+
+class _BodyVisitor extends RecursiveAstVisitor {
+  final LintRule rule;
+  _BodyVisitor(this.rule);
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    // Skip Function expressions.
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    if (node.expression.isNullLiteral) {
+      rule.reportLint(node);
+    }
+
+    super.visitReturnStatement(node);
   }
 }
 
@@ -102,9 +116,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node);
       return;
     }
-    node
-        .traverseNodesInDFS(excludeCriteria: _isFunctionExpression)
-        .where(_isReturnNull)
-        .forEach(rule.reportLint);
+
+    node.accept(_BodyVisitor(rule));
   }
 }
