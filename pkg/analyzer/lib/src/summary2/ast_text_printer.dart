@@ -134,9 +134,9 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.exceptionType?.accept(this);
     _token(node.catchKeyword);
     _token(node.leftParenthesis);
-    node.exceptionParameter2?.accept(this);
+    node.exceptionParameter?.accept(this);
     _token(node.comma);
-    node.stackTraceParameter2?.accept(this);
+    node.stackTraceParameter?.accept(this);
     _token(node.rightParenthesis);
     node.body.accept(this);
   }

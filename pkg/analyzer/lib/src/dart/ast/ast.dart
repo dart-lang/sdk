@@ -1654,13 +1654,19 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   Token get endToken => _body.endToken;
 
   @override
-  CatchClauseParameterImpl? get exceptionParameter2 {
+  CatchClauseParameterImpl? get exceptionParameter {
     return _exceptionParameter;
   }
 
-  set exceptionParameter2(CatchClauseParameterImpl? parameter) {
+  set exceptionParameter(CatchClauseParameterImpl? parameter) {
     _exceptionParameter = parameter;
     _becomeParentOf(parameter);
+  }
+
+  @Deprecated('Use exceptionParameter instead')
+  @override
+  CatchClauseParameterImpl? get exceptionParameter2 {
+    return exceptionParameter;
   }
 
   @override
@@ -1671,13 +1677,19 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @override
-  CatchClauseParameterImpl? get stackTraceParameter2 {
+  CatchClauseParameterImpl? get stackTraceParameter {
     return _stackTraceParameter;
   }
 
-  set stackTraceParameter2(CatchClauseParameterImpl? parameter) {
+  set stackTraceParameter(CatchClauseParameterImpl? parameter) {
     _stackTraceParameter = parameter;
     _becomeParentOf(parameter);
+  }
+
+  @Deprecated('Use stackTraceParameter instead')
+  @override
+  CatchClauseParameterImpl? get stackTraceParameter2 {
+    return stackTraceParameter;
   }
 
   @override
@@ -1686,9 +1698,9 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     ..addNode('exceptionType', exceptionType)
     ..addToken('catchKeyword', catchKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('exceptionParameter', exceptionParameter2)
+    ..addNode('exceptionParameter', exceptionParameter)
     ..addToken('comma', comma)
-    ..addNode('stackTraceParameter', stackTraceParameter2)
+    ..addNode('stackTraceParameter', stackTraceParameter)
     ..addToken('rightParenthesis', rightParenthesis)
     ..addNode('body', body);
 

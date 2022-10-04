@@ -1013,7 +1013,7 @@ class StatementCompletionProcessor {
           var struct = _KeywordConditionBlockStructure(
               catchKeyword,
               catchNode.leftParenthesis!,
-              catchNode.exceptionParameter2!,
+              catchNode.exceptionParameter!,
               catchNode.rightParenthesis!,
               catchNode.body);
           if (sb != null) {

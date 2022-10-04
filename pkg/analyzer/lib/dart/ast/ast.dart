@@ -924,6 +924,11 @@ abstract class CatchClause implements AstNode {
 
   /// Return the parameter whose value will be the exception that was thrown, or
   /// `null` if there is no 'catch' keyword.
+  CatchClauseParameter? get exceptionParameter;
+
+  /// Return the parameter whose value will be the exception that was thrown, or
+  /// `null` if there is no 'catch' keyword.
+  @Deprecated('Use exceptionParameter instead')
   CatchClauseParameter? get exceptionParameter2;
 
   /// Return the type of exceptions caught by this catch clause, or `null` if
@@ -942,6 +947,11 @@ abstract class CatchClause implements AstNode {
 
   /// Return the parameter whose value will be the stack trace associated with
   /// the exception, or `null` if there is no stack trace parameter.
+  CatchClauseParameter? get stackTraceParameter;
+
+  /// Return the parameter whose value will be the stack trace associated with
+  /// the exception, or `null` if there is no stack trace parameter.
+  @Deprecated('Use stackTraceParameter instead')
   CatchClauseParameter? get stackTraceParameter2;
 }
 

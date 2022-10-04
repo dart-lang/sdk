@@ -78,7 +78,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitCatchClause(CatchClause node) {
-    var exceptionParameter = node.exceptionParameter2;
+    var exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
       declaredParam(
         exceptionParameter.name,
@@ -87,7 +87,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
       );
     }
 
-    var stackTraceParameter = node.stackTraceParameter2;
+    var stackTraceParameter = node.stackTraceParameter;
     if (stackTraceParameter != null) {
       declaredParam(
         stackTraceParameter.name,

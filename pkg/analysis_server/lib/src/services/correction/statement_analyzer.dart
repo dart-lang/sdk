@@ -157,7 +157,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
         for (var catchClause in catchClauses) {
           if (firstSelectedNode == catchClause ||
               firstSelectedNode == catchClause.body ||
-              firstSelectedNode == catchClause.exceptionParameter2) {
+              firstSelectedNode == catchClause.exceptionParameter) {
             invalidSelection(
                 'Selection must either cover whole try statement or parts of try, catch, or finally block.');
           }
