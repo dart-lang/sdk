@@ -20336,19 +20336,19 @@ void AbstractType::SetIsBeingFinalized() const {
 }
 
 void AbstractType::set_flags(uint32_t value) const {
-  StoreNonPointer(&untag()->flags_, value);
+  untag()->set_flags(value);
 }
 
 void AbstractType::set_type_state(UntaggedAbstractType::TypeState value) const {
   ASSERT(!IsCanonical());
   set_flags(
-      UntaggedAbstractType::TypeStateBits::update(value, untag()->flags_));
+      UntaggedAbstractType::TypeStateBits::update(value, untag()->flags()));
 }
 
 void AbstractType::set_nullability(Nullability value) const {
   ASSERT(!IsCanonical());
   set_flags(UntaggedAbstractType::NullabilityBits::update(
-      static_cast<uint8_t>(value), untag()->flags_));
+      static_cast<uint8_t>(value), untag()->flags()));
 }
 
 bool AbstractType::IsEquivalent(const Instance& other,

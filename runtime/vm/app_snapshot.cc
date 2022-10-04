@@ -4124,7 +4124,7 @@ class TypeSerializationCluster
     }
 #endif
     WriteFromTo(type);
-    s->WriteUnsigned(type->untag()->flags_);
+    s->WriteUnsigned(type->untag()->flags());
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4153,7 +4153,7 @@ class TypeDeserializationCluster
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->flags_ = d.ReadUnsigned();
+      type->untag()->set_flags(d.ReadUnsigned());
     }
   }
 
@@ -4235,8 +4235,8 @@ class FunctionTypeSerializationCluster
   void WriteFunctionType(Serializer* s, FunctionTypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    ASSERT(Utils::IsUint(8, type->untag()->flags_));
-    s->Write<uint8_t>(type->untag()->flags_);
+    ASSERT(Utils::IsUint(8, type->untag()->flags()));
+    s->Write<uint8_t>(type->untag()->flags());
     s->Write<uint32_t>(type->untag()->packed_parameter_counts_);
     s->Write<uint16_t>(type->untag()->packed_type_parameter_counts_);
   }
@@ -4267,7 +4267,7 @@ class FunctionTypeDeserializationCluster
       Deserializer::InitializeHeader(
           type, kFunctionTypeCid, FunctionType::InstanceSize(), mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->flags_ = d.Read<uint8_t>();
+      type->untag()->set_flags(d.Read<uint8_t>());
       type->untag()->packed_parameter_counts_ = d.Read<uint32_t>();
       type->untag()->packed_type_parameter_counts_ = d.Read<uint16_t>();
     }
@@ -4351,8 +4351,8 @@ class RecordTypeSerializationCluster
   void WriteRecordType(Serializer* s, RecordTypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    ASSERT(Utils::IsUint(8, type->untag()->flags_));
-    s->Write<uint8_t>(type->untag()->flags_);
+    ASSERT(Utils::IsUint(8, type->untag()->flags()));
+    s->Write<uint8_t>(type->untag()->flags());
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4380,7 +4380,7 @@ class RecordTypeDeserializationCluster
       Deserializer::InitializeHeader(
           type, kRecordTypeCid, RecordType::InstanceSize(), mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->flags_ = d.Read<uint8_t>();
+      type->untag()->set_flags(d.Read<uint8_t>());
     }
   }
 
@@ -4556,8 +4556,8 @@ class TypeParameterSerializationCluster
     s->Write<int32_t>(type->untag()->parameterized_class_id_);
     s->Write<uint8_t>(type->untag()->base_);
     s->Write<uint8_t>(type->untag()->index_);
-    ASSERT(Utils::IsUint(8, type->untag()->flags_));
-    s->Write<uint8_t>(type->untag()->flags_);
+    ASSERT(Utils::IsUint(8, type->untag()->flags()));
+    s->Write<uint8_t>(type->untag()->flags());
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4590,7 +4590,7 @@ class TypeParameterDeserializationCluster
       type->untag()->parameterized_class_id_ = d.Read<int32_t>();
       type->untag()->base_ = d.Read<uint8_t>();
       type->untag()->index_ = d.Read<uint8_t>();
-      type->untag()->flags_ = d.Read<uint8_t>();
+      type->untag()->set_flags(d.Read<uint8_t>());
     }
   }
 

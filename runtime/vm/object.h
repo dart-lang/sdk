@@ -8197,7 +8197,7 @@ class AbstractType : public Instance {
 
   Nullability nullability() const {
     return static_cast<Nullability>(
-        UntaggedAbstractType::NullabilityBits::decode(untag()->flags_));
+        UntaggedAbstractType::NullabilityBits::decode(untag()->flags()));
   }
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
@@ -8493,7 +8493,7 @@ class AbstractType : public Instance {
 
   UntaggedAbstractType::TypeState type_state() const {
     return static_cast<UntaggedAbstractType::TypeState>(
-        UntaggedAbstractType::TypeStateBits::decode(untag()->flags_));
+        UntaggedAbstractType::TypeStateBits::decode(untag()->flags()));
   }
   void set_flags(uint32_t value) const;
   void set_type_state(UntaggedAbstractType::TypeState value) const;
