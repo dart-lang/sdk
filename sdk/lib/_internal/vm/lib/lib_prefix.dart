@@ -31,6 +31,14 @@ class _DeferredNotLoadedError extends Error implements NoSuchMethodError {
   String toString() {
     return "Deferred library $prefix was not loaded.";
   }
+
+  // Implementations needed to implement the `_receiver` and `_invocation`
+  // members added in the @patch class of [NoSuchMethodError].
+
+  Object? get _receiver =>
+      throw UnsupportedError('_DeferredNotLoadedError._receiver');
+  Invocation get _invocation =>
+      throw UnsupportedError('_DeferredNotLoadedError._invocation');
 }
 
 @pragma("vm:entry-point")

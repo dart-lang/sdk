@@ -1076,3 +1076,49 @@ abstract class NativeApi {
   static Pointer<Void> get initializeApiDLData =>
       Pointer.fromAddress(_initializeApiDLData());
 }
+
+// Implementations needed to implement the private member added in the
+// patch class of [Array].
+
+@patch
+class _ArraySize<T extends NativeType> implements Array<T> {
+  _checkIndex(int index) => throw UnsupportedError('_ArraySize._checkIndex');
+
+  List<int> get _nestedDimensions =>
+      throw UnsupportedError('_ArraySize._nestedDimensions');
+
+  int get _nestedDimensionsFirst =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFirst');
+
+  int? get _nestedDimensionsFirstCache =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFirstCache');
+
+  void set _nestedDimensionsFirstCache(int? _) {
+    throw UnsupportedError('_ArraySize._nestedDimensionsFirstCache');
+  }
+
+  int get _nestedDimensionsFlattened =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFlattened');
+
+  int? get _nestedDimensionsFlattenedCache =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFlattenedCache');
+
+  void set _nestedDimensionsFlattenedCache(int? _) {
+    throw UnsupportedError('_ArraySize._nestedDimensionsFlattenedCache');
+  }
+
+  List<int> get _nestedDimensionsRest =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsRest');
+
+  List<int>? get _nestedDimensionsRestCache =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsRestCache');
+
+  void set _nestedDimensionsRestCache(List<int>? _) {
+    throw UnsupportedError('_ArraySize._nestedDimensionsRestCache');
+  }
+
+  int get _size => throw UnsupportedError('_ArraySize._size');
+
+  Object get _typedDataBase =>
+      throw UnsupportedError('_ArraySize._typedDataBase');
+}

@@ -12,14 +12,6 @@ class int {
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
 
-  int _bitAndFromSmi(_Smi other);
-  int _bitAndFromInteger(int other);
-  int _bitOrFromInteger(int other);
-  int _bitXorFromInteger(int other);
-  int _shlFromInteger(int other);
-  int _shrFromInteger(int other);
-  int _ushrFromInteger(int other);
-
   static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
     var ix = first;

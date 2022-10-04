@@ -167,3 +167,33 @@ class StateError {
     throw new StateError(msg);
   }
 }
+
+// Implementations needed to implement the `_stackTrace` member added
+// in the @patch class of [Error].
+
+@patch
+class OutOfMemoryError {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('OutOfMemoryError._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('OutOfMemoryError._stackTrace');
+  }
+}
+
+@patch
+class StackOverflowError {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('StackOverflowError._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('StackOverflowError._stackTrace');
+  }
+}
+
+@patch
+class IntegerDivisionByZeroException {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('IntegerDivisionByZeroException._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('IntegerDivisionByZeroException._stackTrace');
+  }
+}

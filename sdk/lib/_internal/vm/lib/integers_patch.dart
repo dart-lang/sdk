@@ -12,7 +12,6 @@ class int {
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
 
-  int _bitAndFromSmi(_Smi other);
   int _bitAndFromInteger(int other);
   int _bitOrFromInteger(int other);
   int _bitXorFromInteger(int other);

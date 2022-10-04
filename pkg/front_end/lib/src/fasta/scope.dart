@@ -1282,8 +1282,8 @@ abstract class MergedScope<T extends Builder> {
   void _addBuilderToMergedScope(T parentBuilder, String name,
       Builder newBuilder, Builder? existingBuilder,
       {required bool setter}) {
-    if (parentBuilder.isAugmentation) {
-      if (existingBuilder != null) {
+    if (existingBuilder != null) {
+      if (parentBuilder.isAugmentation) {
         if (newBuilder.isAugmentation) {
           existingBuilder.applyPatch(newBuilder);
         } else {
@@ -1322,24 +1322,33 @@ abstract class MergedScope<T extends Builder> {
               ]);
         }
       } else {
-        if (newBuilder.isAugmentation) {
-          Message message;
-          if (newBuilder is SourceMemberBuilder) {
-            if (_origin is SourceLibraryBuilder) {
-              message = templateUnmatchedAugmentationLibraryMember
-                  .withArguments(name);
-            } else {
-              message =
-                  templateUnmatchedAugmentationClassMember.withArguments(name);
-            }
-          } else if (newBuilder is SourceClassBuilder) {
-            message = templateUnmatchedAugmentationClass.withArguments(name);
+        // Patch libraries implicitly assume matching members are patch
+        // members.
+        existingBuilder.applyPatch(newBuilder);
+      }
+    } else {
+      if (newBuilder.isAugmentation) {
+        Message message;
+        if (newBuilder is SourceMemberBuilder) {
+          if (_origin is SourceLibraryBuilder) {
+            message =
+                templateUnmatchedAugmentationLibraryMember.withArguments(name);
           } else {
             message =
-                templateUnmatchedAugmentationDeclaration.withArguments(name);
+                templateUnmatchedAugmentationClassMember.withArguments(name);
           }
-          originLibrary.addProblem(
-              message, newBuilder.charOffset, name.length, newBuilder.fileUri);
+        } else if (newBuilder is SourceClassBuilder) {
+          message = templateUnmatchedAugmentationClass.withArguments(name);
+        } else {
+          message =
+              templateUnmatchedAugmentationDeclaration.withArguments(name);
+        }
+        originLibrary.addProblem(
+            message, newBuilder.charOffset, name.length, newBuilder.fileUri);
+      } else {
+        if (!parentBuilder.isAugmentation && !name.startsWith('_')) {
+          // We special-case public members injected in patch libraries.
+          _addInjectedPatchMember(name, newBuilder);
         } else {
           _originScope.addLocalMember(name, newBuilder, setter: setter);
           for (Scope augmentationScope in _augmentationScopes.values) {
@@ -1347,14 +1356,6 @@ abstract class MergedScope<T extends Builder> {
                 setter: setter);
           }
         }
-      }
-    } else {
-      if (existingBuilder != null) {
-        // Patch libraries implicitly assume matching members are patch
-        // members.
-        existingBuilder.applyPatch(newBuilder);
-      } else {
-        _addInjectedPatchMember(name, newBuilder);
       }
     }
   }
@@ -1419,29 +1420,8 @@ class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
 
   @override
   void _addInjectedPatchMember(String name, Builder newBuilder) {
-    if (name.startsWith('_')) {
-      injectMemberFromPatch(name, newBuilder);
-    } else {
-      exportMemberFromPatch(name, newBuilder);
-    }
-  }
-
-  void injectMemberFromPatch(String name, Builder member) {
-    if (member.isSetter) {
-      assert(
-          _originScope.lookupLocalMember(name, setter: true) == null,
-          "Setter $name already bound to "
-          "${_originScope.lookupLocalMember(name, setter: true)}, "
-          "trying to add $member.");
-      _originScope.addLocalMember(name, member as MemberBuilder, setter: true);
-    } else {
-      assert(
-          _originScope.lookupLocalMember(name, setter: false) == null,
-          "Member $name already bound to "
-          "${_originScope.lookupLocalMember(name, setter: false)}, "
-          "trying to add $member.");
-      _originScope.addLocalMember(name, member, setter: false);
-    }
+    assert(!name.startsWith('_'), "Unexpected private member $newBuilder");
+    exportMemberFromPatch(name, newBuilder);
   }
 
   void exportMemberFromPatch(String name, Builder member) {
