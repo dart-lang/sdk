@@ -7,6 +7,8 @@ import 'dart:typed_data';
 import 'package:vm_service/vm_service.dart';
 
 import 'format.dart';
+import 'intset.dart';
+export 'intset.dart';
 
 const int _invalidIdx = 0;
 const int _rootObjectIdx = 1;
@@ -14,7 +16,7 @@ const int _rootObjectIdx = 1;
 class Analysis {
   final HeapSnapshotGraph graph;
 
-  late final reachableObjects = transitiveGraph(<int>{_rootObjectIdx});
+  late final reachableObjects = transitiveGraph(roots);
 
   late final Uint32List _retainers = _calculateRetainers();
 
@@ -66,13 +68,13 @@ class Analysis {
   Analysis(this.graph);
 
   /// The roots from which alive data can be discovered.
-  Set<int> get roots => <int>{_rootObjectIdx};
+  final IntSet roots = IntSet()..add(_rootObjectIdx);
 
   /// Calculates retaining paths for all objects in [objs].
   ///
   /// All retaining paths will have the object itself plus at most [depth]
   /// retainers in it.
-  List<DedupedUint32List> retainingPathsOf(Set<int> objs, int depth) {
+  List<DedupedUint32List> retainingPathsOf(IntSet objs, int depth) {
     final paths = <DedupedUint32List, int>{};
     for (var oId in objs) {
       final rpath = _retainingPathOf(oId, depth);
@@ -143,7 +145,7 @@ class Analysis {
   ///
   /// The classes are sored by sum of shallow-size of objects of a class if
   /// [sortBySize] is true and by number of objects per-class otherwise.
-  HeapStats generateObjectStats(Set<int> objects, {bool sortBySize = true}) {
+  HeapStats generateObjectStats(IntSet objects, {bool sortBySize = true}) {
     final graphObjects = graph.objects;
     final numCids = graph.classes.length;
 
@@ -184,7 +186,7 @@ class Analysis {
   ///
   /// The returned [HeapData]s are sorted by cumulative size if
   /// [sortBySize] is true and by number of objects otherwise.
-  HeapDataStats generateDataStats(Set<int> objects, {bool sortBySize = true}) {
+  HeapDataStats generateDataStats(IntSet objects, {bool sortBySize = true}) {
     final graphObjects = graph.objects;
     final klasses = graph.classes;
     final counts = <HeapData, int>{};
@@ -212,8 +214,8 @@ class Analysis {
   }
 
   /// Calculates the set of objects transitively reachable by [roots].
-  Set<int> transitiveGraph(Set<int> roots, [TraverseFilter? tfilter = null]) {
-    final reachable = <int>{};
+  IntSet transitiveGraph(IntSet roots, [TraverseFilter? tfilter = null]) {
+    final reachable = IntSet();
     final worklist = <int>[];
 
     final objects = graph.objects;
@@ -221,7 +223,7 @@ class Analysis {
     reachable.addAll(roots);
     worklist.addAll(roots);
 
-    final weakProperties = <int>{};
+    final weakProperties = IntSet();
 
     while (worklist.isNotEmpty) {
       while (worklist.isNotEmpty) {
@@ -287,9 +289,8 @@ class Analysis {
   }
 
   /// Calculates the set of objects that transitively can reach [oids].
-  Set<int> reverseTransitiveGraph(Set<int> oids,
-      [TraverseFilter? tfilter = null]) {
-    final reachable = <int>{};
+  IntSet reverseTransitiveGraph(IntSet oids, [TraverseFilter? tfilter = null]) {
+    final reachable = IntSet();
     final worklist = <int>[];
 
     final objects = graph.objects;
@@ -354,8 +355,8 @@ class Analysis {
   }
 
   // Only keep those in [toFilter] that have references from [from].
-  Set<int> filterObjectsReferencedBy(Set<int> toFilter, Set<int> from) {
-    final result = <int>{};
+  IntSet filterObjectsReferencedBy(IntSet toFilter, IntSet from) {
+    final result = IntSet();
     final objects = graph.objects;
 
     for (final fromId in from) {
@@ -372,11 +373,11 @@ class Analysis {
   }
 
   /// Returns set of cids that are matching the provided [patterns].
-  Set<int> findClassIdsMatching(Iterable<String> patterns) {
+  IntSet findClassIdsMatching(Iterable<String> patterns) {
     final regexPatterns = patterns.map((p) => RegExp(p)).toList();
 
     final classes = graph.classes;
-    final cids = <int>{};
+    final cids = IntSet();
     for (final klass in classes) {
       if (regexPatterns.any((pattern) =>
           pattern.hasMatch(klass.name) ||
@@ -391,13 +392,13 @@ class Analysis {
   TraverseFilter? parseTraverseFilter(List<String> patterns) {
     if (patterns.isEmpty) return null;
 
-    final aset = <int>{};
-    final naset = <int>{};
+    final aset = IntSet();
+    final naset = IntSet();
 
     int bits = 0;
 
-    final fmap = <int, Set<int>>{};
-    final nfmap = <int, Set<int>>{};
+    final fmap = <int, IntSet>{};
+    final nfmap = <int, IntSet>{};
     for (String pattern in patterns) {
       final bool isNegated = pattern.startsWith('^');
       if (isNegated) {
@@ -418,7 +419,7 @@ class Analysis {
           for (final field in klass.fields) {
             if (fieldNameRegexp.hasMatch(field.name)) {
               (isNegated ? nfmap : fmap)
-                  .putIfAbsent(cid, _buildSet)
+                  .putIfAbsent(cid, IntSet.new)
                   .add(field.index);
             }
           }
@@ -443,21 +444,20 @@ class Analysis {
   }
 
   /// Returns set of objects from [objectIds] whose class id is in [cids].
-  Set<int> filterByClassId(Set<int> objectIds, Set<int> cids) {
+  IntSet filterByClassId(IntSet objectIds, IntSet cids) {
     return filter(objectIds, (object) => cids.contains(object.classId));
   }
 
   /// Returns set of objects from [objectIds] whose class id is in [cids].
-  Set<int> filterByClassPatterns(Set<int> objectIds, List<String> patterns) {
+  IntSet filterByClassPatterns(IntSet objectIds, List<String> patterns) {
     final tfilter = parseTraverseFilter(patterns);
     if (tfilter == null) return objectIds;
     return filter(objectIds, tfilter._shouldFilterObject);
   }
 
   /// Returns set of objects from [objectIds] whose class id is in [cids].
-  Set<int> filter(
-      Set<int> objectIds, bool Function(HeapSnapshotObject) filter) {
-    final result = <int>{};
+  IntSet filter(IntSet objectIds, bool Function(HeapSnapshotObject) filter) {
+    final result = IntSet();
     final objects = graph.objects;
     objectIds.forEach((int objId) {
       if (filter(objects[objId])) {
@@ -468,11 +468,11 @@ class Analysis {
   }
 
   /// Returns users of [objs].
-  Set<int> findUsers(Set<int> objs, List<String> patterns) {
+  IntSet findUsers(IntSet objs, List<String> patterns) {
     final tfilter = parseTraverseFilter(patterns);
 
     final objects = graph.objects;
-    final result = <int>{};
+    final result = IntSet();
     for (final objId in objs) {
       final object = objects[objId];
       final referrers = object.referrers;
@@ -496,11 +496,11 @@ class Analysis {
   }
 
   /// Returns references of [objs].
-  Set<int> findReferences(Set<int> objs, List<String> patterns) {
+  IntSet findReferences(IntSet objs, List<String> patterns) {
     final tfilter = parseTraverseFilter(patterns);
 
     final objects = graph.objects;
-    final result = <int>{};
+    final result = IntSet();
     for (final objId in objs) {
       final object = objects[objId];
       final references = object.references;
@@ -625,7 +625,7 @@ class Analysis {
     }
 
     @pragma('vm:prefer-inline')
-    bool hasMoreThanOneAlive(Set<int> reachableObjects, Uint32List list) {
+    bool hasMoreThanOneAlive(IntSet reachableObjects, Uint32List list) {
       int count = 0;
       for (int i = 0; i < list.length; ++i) {
         if (reachableObjects.contains(list[i])) {
@@ -662,9 +662,9 @@ class Analysis {
   Uint32List _calculateRetainers() {
     final retainers = Uint32List(graph.objects.length);
 
-    var worklist = {_rootObjectIdx};
+    var worklist = IntSet()..add(_rootObjectIdx);
     while (!worklist.isEmpty) {
-      final next = <int>{};
+      final next = IntSet();
 
       for (final objId in worklist) {
         final object = graph.objects[objId];
@@ -717,11 +717,11 @@ class TraverseFilter {
 
   final int _bits;
 
-  final Set<int>? _allowed;
-  final Set<int>? _disallowed;
+  final IntSet? _allowed;
+  final IntSet? _disallowed;
 
-  final Map<int, Set<int>>? _followMap;
-  final Map<int, Set<int>>? _notFollowMap;
+  final Map<int, IntSet>? _followMap;
+  final Map<int, IntSet>? _notFollowMap;
 
   const TraverseFilter._(this._patterns, this._bits, this._allowed,
       this._disallowed, this._followMap, this._notFollowMap);
@@ -735,8 +735,8 @@ class TraverseFilter {
     sb.writeln(
         'The traverse filter expression "${_patterns.join(' ')}" matches:\n');
 
-    final ca = _allowed ?? const {};
-    final cna = _disallowed ?? const {};
+    final ca = _allowed ?? IntSet();
+    final cna = _disallowed ?? IntSet();
 
     final klasses = graph.classes.toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -747,8 +747,8 @@ class TraverseFilter {
       final posEdge = [];
       final negEdge = [];
 
-      final f = _followMap?[cid] ?? const {};
-      final nf = _notFollowMap?[cid] ?? const {};
+      final f = _followMap?[cid] ?? IntSet();
+      final nf = _notFollowMap?[cid] ?? IntSet();
       for (final field in klass.fields) {
         final fieldIndex = field.index;
         if (f.contains(fieldIndex)) {
@@ -974,5 +974,3 @@ enum _Arch {
   arch64,
   arch64c,
 }
-
-Set<int> _buildSet() => <int>{};

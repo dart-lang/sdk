@@ -241,7 +241,7 @@ class InfoCommand extends SnapshotCommand {
 
     state.output.print('Known named sets:');
     final table = Table();
-    state.namedSets.forEach((String name, Set<int> oids) {
+    state.namedSets.forEach((String name, IntSet oids) {
       table.addRow([name, '{#${oids.length}}']);
     });
     state.output.print(indent('  ', table.asString));

@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 
 class FakeAnalysis implements Analysis {
   @override
-  Set<int> get roots => <int>{1};
+  final IntSet roots = IntSet();
 
   @override
   dynamic noSuchMethod(Invocation i) {}

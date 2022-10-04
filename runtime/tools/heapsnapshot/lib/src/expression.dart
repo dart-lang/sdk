@@ -10,7 +10,7 @@ import 'analysis.dart';
 import 'completion.dart';
 
 abstract class SetExpression {
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output);
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output);
 }
 
 class FilterExpression extends SetExpression {
@@ -19,7 +19,7 @@ class FilterExpression extends SetExpression {
 
   FilterExpression(this.expr, this.patterns);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final oids = expr.evaluate(namedSets, analysis, output);
     if (oids == null) return null;
 
@@ -54,7 +54,7 @@ class DFilterExpression extends SetExpression {
 
   DFilterExpression(this.expr, this.patterns);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final oids = expr.evaluate(namedSets, analysis, output);
     if (oids == null) return null;
     final predicates = patterns.map((String pattern) {
@@ -129,7 +129,7 @@ class MinusExpression extends SetExpression {
 
   MinusExpression(this.expr, this.operands);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final result = expr.evaluate(namedSets, analysis, output)?.toSet();
     if (result == null) return null;
 
@@ -148,8 +148,8 @@ class OrExpression extends SetExpression {
 
   OrExpression(this.exprs);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
-    final result = <int>{};
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+    final result = IntSet();
     for (int i = 0; i < exprs.length; ++i) {
       final oids = exprs[i].evaluate(namedSets, analysis, output);
       if (oids == null) return null;
@@ -165,11 +165,11 @@ class AndExpression extends SetExpression {
 
   AndExpression(this.expr, this.operands);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final nullableResult = expr.evaluate(namedSets, analysis, output)?.toSet();
     if (nullableResult == null) return null;
 
-    Set<int> result = nullableResult;
+    IntSet result = nullableResult;
     for (int i = 0; i < operands.length; ++i) {
       final oids = operands[i].evaluate(namedSets, analysis, output);
       if (oids == null) return null;
@@ -187,13 +187,13 @@ class SampleExpression extends SetExpression {
 
   SampleExpression(this.expr, this.count);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final oids = expr.evaluate(namedSets, analysis, output);
     if (oids == null) return null;
 
     if (oids.isEmpty) return oids;
 
-    final result = <int>{};
+    final result = IntSet();
     final l = oids.toList();
     while (result.length < count && result.length < oids.length) {
       result.add(l[_random.nextInt(oids.length)]);
@@ -209,7 +209,7 @@ class ClosureExpression extends SetExpression {
 
   ClosureExpression(this.expr, this.patterns);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final roots = expr.evaluate(namedSets, analysis, output);
     if (roots == null) return null;
 
@@ -231,7 +231,7 @@ class UserClosureExpression extends SetExpression {
 
   UserClosureExpression(this.expr, this.patterns);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final roots = expr.evaluate(namedSets, analysis, output);
     if (roots == null) return null;
 
@@ -246,7 +246,7 @@ class FollowExpression extends SetExpression {
 
   FollowExpression(this.objs, this.patterns);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final oids = objs.evaluate(namedSets, analysis, output);
     if (oids == null) return null;
 
@@ -260,7 +260,7 @@ class UserFollowExpression extends SetExpression {
 
   UserFollowExpression(this.objs, this.patterns);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final oids = objs.evaluate(namedSets, analysis, output);
     if (oids == null) return null;
 
@@ -273,7 +273,7 @@ class NamedExpression extends SetExpression {
 
   NamedExpression(this.name);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final oids = namedSets.getSet(name);
     if (oids == null) {
       output.printError('"$name" does not refer to a command or named set.');
@@ -289,7 +289,7 @@ class SetNameExpression extends SetExpression {
 
   SetNameExpression(this.name, this.expr);
 
-  Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
+  IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
     final oids = expr.evaluate(namedSets, analysis, output);
     if (oids == null) return null;
 
@@ -298,7 +298,7 @@ class SetNameExpression extends SetExpression {
   }
 }
 
-Set<int>? parseAndEvaluate(
+IntSet? parseAndEvaluate(
     NamedSets namedSets, Analysis analysis, String text, Output output) {
   final sexpr = parseExpression(text, output, namedSets.names.toSet());
   if (sexpr == null) return null;
@@ -611,18 +611,18 @@ List<String> _parsePatterns(_TokenIterator tokens, Output output) {
 }
 
 class NamedSets {
-  final Map<String, Set<int>> _namedSets = {};
+  final Map<String, IntSet> _namedSets = {};
   int _varIndex = 0;
 
   List<String> get names => _namedSets.keys.toList();
 
-  String nameSet(Set<int> oids, [String? id]) {
+  String nameSet(IntSet oids, [String? id]) {
     id ??= _generateName();
     _namedSets[id] = oids;
     return id;
   }
 
-  Set<int>? getSet(String name) => _namedSets[name];
+  IntSet? getSet(String name) => _namedSets[name];
 
   bool hasSetName(String name) => _namedSets.containsKey(name);
 
@@ -634,7 +634,7 @@ class NamedSets {
     _namedSets.removeWhere((name, _) => cond(name));
   }
 
-  void forEach(void Function(String, Set<int>) fun) {
+  void forEach(void Function(String, IntSet) fun) {
     _namedSets.forEach(fun);
   }
 
