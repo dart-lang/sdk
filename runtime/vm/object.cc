@@ -20166,24 +20166,36 @@ const char* Instance::ToCString() const {
 }
 
 classid_t AbstractType::type_class_id() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return kIllegalCid;
 }
 
 ClassPtr AbstractType::type_class() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return Class::null();
 }
 
 TypeArgumentsPtr AbstractType::arguments() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 void AbstractType::set_arguments(const TypeArguments& value) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
 }
@@ -20303,6 +20315,9 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
 bool AbstractType::IsInstantiated(Genericity genericity,
                                   intptr_t num_free_fun_type_params,
                                   TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20339,6 +20354,9 @@ void AbstractType::set_nullability(Nullability value) const {
 bool AbstractType::IsEquivalent(const Instance& other,
                                 TypeEquality kind,
                                 TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20374,6 +20392,9 @@ bool AbstractType::IsNullabilityEquivalent(Thread* thread,
 }
 
 bool AbstractType::IsRecursive(TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20381,6 +20402,9 @@ bool AbstractType::IsRecursive(TrailPtr trail) const {
 
 bool AbstractType::RequireConstCanonicalTypeErasure(Zone* zone,
                                                     TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20392,6 +20416,9 @@ AbstractTypePtr AbstractType::InstantiateFrom(
     intptr_t num_free_fun_type_params,
     Heap::Space space,
     TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -20399,12 +20426,18 @@ AbstractTypePtr AbstractType::InstantiateFrom(
 
 AbstractTypePtr AbstractType::Canonicalize(Thread* thread,
                                            TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 void AbstractType::EnumerateURIs(URIs* uris) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
 }
@@ -20561,76 +20594,11 @@ StringPtr AbstractType::ScrubbedName() const {
 
 void AbstractType::PrintName(NameVisibility name_visibility,
                              BaseTextBuffer* printer) const {
-  if (IsTypeRef()) {
-    // Cycles via base class type arguments are not a problem (not printed).
-    const AbstractType& ref_type =
-        AbstractType::Handle(TypeRef::Cast(*this).type());
-    ref_type.PrintName(name_visibility, printer);
-    return;
-  }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Class& cls = Class::Handle(zone);
-  if (IsTypeParameter()) {
-    const TypeParameter& type_param = TypeParameter::Cast(*this);
-    // Type parameter names are meaningless after canonicalization.
-    printer->AddString(type_param.CanonicalNameCString());
-    printer->AddString(NullabilitySuffix(name_visibility));
-    return;
-  }
-  if (IsFunctionType()) {
-    const char* suffix = NullabilitySuffix(name_visibility);
-    if (suffix[0] != '\0') {
-      printer->AddString("(");
-    }
-    FunctionType::Cast(*this).Print(name_visibility, printer);
-    if (suffix[0] != '\0') {
-      printer->AddString(")");
-      printer->AddString(suffix);
-    }
-    return;
-  }
-  if (IsRecordType()) {
-    RecordType::Cast(*this).Print(name_visibility, printer);
-    return;
-  }
-  const TypeArguments& args = TypeArguments::Handle(zone, arguments());
-  const intptr_t num_args = args.IsNull() ? 0 : args.Length();
-  intptr_t first_type_param_index;
-  intptr_t num_type_params = num_args;  // Number of type parameters to print.
-  cls = type_class();
-  if (cls.is_declaration_loaded()) {
-    // Do not print the full vector, but only the declared type parameters.
-    num_type_params = cls.NumTypeParameters();
-  }
-  printer->AddString(cls.NameCString(name_visibility));
-  if (num_type_params > num_args) {
-    first_type_param_index = 0;
-    if (!IsFinalized() || IsBeingFinalized()) {
-      // TODO(regis): Check if this is dead code.
-      num_type_params = num_args;
-    } else {
-      ASSERT(num_args == 0);  // Type is raw.
-    }
-  } else {
-    // The actual type argument vector can be longer than necessary, because
-    // of type optimizations.
-    if (IsFinalized() && cls.is_type_finalized()) {
-      first_type_param_index = cls.NumTypeArguments() - num_type_params;
-    } else {
-      first_type_param_index = num_args - num_type_params;
-    }
-  }
-  if (num_type_params == 0) {
-    // Do nothing.
-  } else {
-    args.PrintSubvectorName(first_type_param_index, num_type_params,
-                            name_visibility, printer);
-  }
-  printer->AddString(NullabilitySuffix(name_visibility));
-  // The name is only used for type checking and debugging purposes.
-  // Unless profiling data shows otherwise, it is not worth caching the name in
-  // the type.
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
+  // AbstractType is an abstract class.
+  UNREACHABLE();
 }
 
 StringPtr AbstractType::ClassName() const {
@@ -20962,18 +20930,19 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
 }
 
 uword AbstractType::Hash() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return 0;
 }
 
 const char* AbstractType::ToCString() const {
-  if (IsNull()) {
-    return "AbstractType: null";
-  }
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return "AbstractType";
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
+  return "AbstractType: null";
 }
 
 void AbstractType::SetTypeTestingStub(const Code& stub) const {
@@ -21649,6 +21618,49 @@ void Type::EnumerateURIs(URIs* uris) const {
   type_args.EnumerateURIs(uris);
 }
 
+void Type::PrintName(NameVisibility name_visibility,
+                     BaseTextBuffer* printer) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const TypeArguments& args = TypeArguments::Handle(zone, arguments());
+  const intptr_t num_args = args.IsNull() ? 0 : args.Length();
+  intptr_t first_type_param_index;
+  intptr_t num_type_params = num_args;  // Number of type parameters to print.
+  const Class& cls = Class::Handle(zone, type_class());
+  if (cls.is_declaration_loaded()) {
+    // Do not print the full vector, but only the declared type parameters.
+    num_type_params = cls.NumTypeParameters();
+  }
+  printer->AddString(cls.NameCString(name_visibility));
+  if (num_type_params > num_args) {
+    first_type_param_index = 0;
+    if (!IsFinalized() || IsBeingFinalized()) {
+      // TODO(regis): Check if this is dead code.
+      num_type_params = num_args;
+    } else {
+      ASSERT(num_args == 0);  // Type is raw.
+    }
+  } else {
+    // The actual type argument vector can be longer than necessary, because
+    // of type optimizations.
+    if (IsFinalized() && cls.is_type_finalized()) {
+      first_type_param_index = cls.NumTypeArguments() - num_type_params;
+    } else {
+      first_type_param_index = num_args - num_type_params;
+    }
+  }
+  if (num_type_params == 0) {
+    // Do nothing.
+  } else {
+    args.PrintSubvectorName(first_type_param_index, num_type_params,
+                            name_visibility, printer);
+  }
+  printer->AddString(NullabilitySuffix(name_visibility));
+  // The name is only used for type checking and debugging purposes.
+  // Unless profiling data shows otherwise, it is not worth caching the name in
+  // the type.
+}
+
 uword Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = type_class_id();
@@ -22013,6 +22025,19 @@ void FunctionType::EnumerateURIs(URIs* uris) const {
   type.EnumerateURIs(uris);
 }
 
+void FunctionType::PrintName(NameVisibility name_visibility,
+                             BaseTextBuffer* printer) const {
+  const char* suffix = NullabilitySuffix(name_visibility);
+  if (suffix[0] != '\0') {
+    printer->AddString("(");
+  }
+  FunctionType::Cast(*this).Print(name_visibility, printer);
+  if (suffix[0] != '\0') {
+    printer->AddString(")");
+    printer->AddString(suffix);
+  }
+}
+
 bool TypeRef::RequireConstCanonicalTypeErasure(Zone* zone,
                                                TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
@@ -22135,6 +22160,14 @@ void TypeRef::EnumerateURIs(URIs* uris) const {
   const String& uri = String::Handle(zone, library.url());
   AddURI(uris, name, uri);
   // Break cycle by not printing type arguments.
+}
+
+void TypeRef::PrintName(NameVisibility name_visibility,
+                        BaseTextBuffer* printer) const {
+  // Cycles via base class type arguments are not a problem (not printed).
+  const AbstractType& ref_type =
+      AbstractType::Handle(TypeRef::Cast(*this).type());
+  ref_type.PrintName(name_visibility, printer);
 }
 
 uword TypeRef::Hash() const {
@@ -22515,6 +22548,14 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
   return (ptr() == type_parameter.ptr());
 }
 #endif  // DEBUG
+
+void TypeParameter::PrintName(NameVisibility name_visibility,
+                              BaseTextBuffer* printer) const {
+  const TypeParameter& type_param = TypeParameter::Cast(*this);
+  // Type parameter names are meaningless after canonicalization.
+  printer->AddString(type_param.CanonicalNameCString());
+  printer->AddString(NullabilitySuffix(name_visibility));
+}
 
 uword TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized() || IsBeingFinalized());  // Bound may not be finalized.
@@ -27496,6 +27537,11 @@ void RecordType::EnumerateURIs(URIs* uris) const {
     type = FieldTypeAt(i);
     type.EnumerateURIs(uris);
   }
+}
+
+void RecordType::PrintName(NameVisibility name_visibility,
+                           BaseTextBuffer* printer) const {
+  RecordType::Cast(*this).Print(name_visibility, printer);
 }
 
 AbstractTypePtr RecordType::InstantiateFrom(
