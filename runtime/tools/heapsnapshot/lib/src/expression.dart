@@ -653,7 +653,7 @@ An `<expr>` can be
 Filtering a set of objects based on class/field or data:
 
   filter   <expr> $dslFilter
-  dfilter  <expr> [{<,<=,==,>=,>}len]* [content-pattern]*
+  dfilter  <expr> [{<,<=,==,>=,>}NUM]* [content-pattern]*
 
 Traversing to references or uses of the set of objects:
 
