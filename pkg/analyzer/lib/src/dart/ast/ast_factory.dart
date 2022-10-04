@@ -49,33 +49,6 @@ class AstFactoryImpl {
           typeArguments as TypeArgumentListImpl?,
           argumentList as ArgumentListImpl);
 
-  FieldFormalParameterImpl fieldFormalParameter2(
-          {Comment? comment,
-          List<Annotation>? metadata,
-          Token? covariantKeyword,
-          Token? requiredKeyword,
-          Token? keyword,
-          TypeAnnotation? type,
-          required Token thisKeyword,
-          required Token period,
-          required Token name,
-          TypeParameterList? typeParameters,
-          FormalParameterList? parameters,
-          Token? question}) =>
-      FieldFormalParameterImpl(
-          comment as CommentImpl?,
-          metadata,
-          covariantKeyword,
-          requiredKeyword,
-          keyword,
-          type as TypeAnnotationImpl?,
-          thisKeyword,
-          period,
-          name,
-          typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl?,
-          question);
-
   FormalParameterListImpl formalParameterList(
           Token leftParenthesis,
           List<FormalParameter> parameters,
@@ -84,27 +57,6 @@ class AstFactoryImpl {
           Token rightParenthesis) =>
       FormalParameterListImpl(leftParenthesis, parameters, leftDelimiter,
           rightDelimiter, rightParenthesis);
-
-  FunctionTypedFormalParameterImpl functionTypedFormalParameter2(
-          {Comment? comment,
-          List<Annotation>? metadata,
-          Token? covariantKeyword,
-          Token? requiredKeyword,
-          TypeAnnotation? returnType,
-          required Token name,
-          TypeParameterList? typeParameters,
-          required FormalParameterList parameters,
-          Token? question}) =>
-      FunctionTypedFormalParameterImpl(
-          comment as CommentImpl?,
-          metadata,
-          covariantKeyword,
-          requiredKeyword,
-          returnType as TypeAnnotationImpl?,
-          name,
-          typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl,
-          question);
 
   ImplicitCallReferenceImpl implicitCallReference({
     required Expression expression,
@@ -116,24 +68,6 @@ class AstFactoryImpl {
           staticElement: staticElement,
           typeArguments: typeArguments as TypeArgumentListImpl?,
           typeArgumentTypes: typeArgumentTypes);
-
-  IndexExpressionImpl indexExpressionForCascade2(
-          {required Token period,
-          Token? question,
-          required Token leftBracket,
-          required Expression index,
-          required Token rightBracket}) =>
-      IndexExpressionImpl.forCascade(
-          period, question, leftBracket, index as ExpressionImpl, rightBracket);
-
-  IndexExpressionImpl indexExpressionForTarget2(
-          {required Expression target,
-          Token? question,
-          required Token leftBracket,
-          required Expression index,
-          required Token rightBracket}) =>
-      IndexExpressionImpl.forTarget(target as ExpressionImpl, question,
-          leftBracket, index as ExpressionImpl, rightBracket);
 
   InstanceCreationExpressionImpl instanceCreationExpression(Token? keyword,
           ConstructorName constructorName, ArgumentList argumentList,
@@ -251,23 +185,6 @@ class AstFactoryImpl {
           {required Token? modifier, required SimpleIdentifier name}) =>
       ShowHideElementImpl(modifier, name);
 
-  SimpleFormalParameterImpl simpleFormalParameter2(
-          {Comment? comment,
-          List<Annotation>? metadata,
-          Token? covariantKeyword,
-          Token? requiredKeyword,
-          Token? keyword,
-          TypeAnnotation? type,
-          required Token? name}) =>
-      SimpleFormalParameterImpl(
-          comment as CommentImpl?,
-          metadata,
-          covariantKeyword,
-          requiredKeyword,
-          keyword,
-          type as TypeAnnotationImpl?,
-          name);
-
   SimpleIdentifierImpl simpleIdentifier(Token token,
       {bool isDeclaration = false}) {
     if (isDeclaration) {
@@ -300,33 +217,6 @@ class AstFactoryImpl {
 
   SuperExpressionImpl superExpression(Token superKeyword) =>
       SuperExpressionImpl(superKeyword);
-
-  SuperFormalParameterImpl superFormalParameter(
-          {Comment? comment,
-          List<Annotation>? metadata,
-          Token? covariantKeyword,
-          Token? requiredKeyword,
-          Token? keyword,
-          TypeAnnotation? type,
-          required Token superKeyword,
-          required Token period,
-          required Token name,
-          TypeParameterList? typeParameters,
-          FormalParameterList? parameters,
-          Token? question}) =>
-      SuperFormalParameterImpl(
-          comment as CommentImpl?,
-          metadata,
-          covariantKeyword,
-          requiredKeyword,
-          keyword,
-          type as TypeAnnotationImpl?,
-          superKeyword,
-          period,
-          name,
-          typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl?,
-          question);
 
   SwitchCaseImpl switchCase(List<Label> labels, Token keyword,
           Expression expression, Token colon, List<Statement> statements) =>

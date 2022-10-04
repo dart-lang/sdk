@@ -42,15 +42,6 @@ class AstTestFactory {
         rightHandSide: rightHandSide as ExpressionImpl,
       );
 
-  static IndexExpressionImpl cascadedIndexExpression(Expression index) =>
-      astFactory.indexExpressionForCascade2(
-          period: TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-          leftBracket:
-              TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
-          index: index,
-          rightBracket:
-              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
-
   static PropertyAccessImpl cascadedPropertyAccess(String propertyName) =>
       astFactory.propertyAccess(
           null,
@@ -247,21 +238,6 @@ class AstTestFactory {
           List<VariableDeclaration> variables) =>
       fieldDeclaration(isStatic, keyword, null, variables);
 
-  static FieldFormalParameterImpl fieldFormalParameter(
-          Keyword? keyword, TypeAnnotation? type, String identifier,
-          [FormalParameterList? parameterList]) =>
-      astFactory.fieldFormalParameter2(
-          keyword:
-              keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          type: type,
-          thisKeyword: TokenFactory.tokenFromKeyword(Keyword.THIS),
-          period: TokenFactory.tokenFromType(TokenType.PERIOD),
-          name: identifier3(identifier).token,
-          parameters: parameterList);
-
-  static FieldFormalParameterImpl fieldFormalParameter2(String identifier) =>
-      fieldFormalParameter(null, null, identifier);
-
   static FormalParameterListImpl formalParameterList(
           [List<FormalParameter> parameters = const []]) =>
       astFactory.formalParameterList(
@@ -270,14 +246,6 @@ class AstTestFactory {
           null,
           null,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static FunctionTypedFormalParameterImpl functionTypedFormalParameter(
-          TypeAnnotation? returnType, String identifier,
-          [List<FormalParameter> parameters = const []]) =>
-      astFactory.functionTypedFormalParameter2(
-          returnType: returnType,
-          name: identifier3(identifier).token,
-          parameters: formalParameterList(parameters));
 
   static PrefixedIdentifierImpl identifier(
           SimpleIdentifier prefix, SimpleIdentifier identifier) =>
@@ -332,37 +300,6 @@ class AstTestFactory {
   static ImportDirectiveImpl importDirective3(String uri, String? prefix,
           [List<Combinator> combinators = const []]) =>
       importDirective([], uri, false, prefix, combinators);
-
-  static IndexExpressionImpl indexExpression({
-    required Expression target,
-    bool hasQuestion = false,
-    required Expression index,
-  }) {
-    return astFactory.indexExpressionForTarget2(
-      target: target,
-      question: hasQuestion
-          ? TokenFactory.tokenFromType(
-              TokenType.QUESTION,
-            )
-          : null,
-      leftBracket: TokenFactory.tokenFromType(
-        TokenType.OPEN_SQUARE_BRACKET,
-      ),
-      index: index,
-      rightBracket: TokenFactory.tokenFromType(
-        TokenType.CLOSE_SQUARE_BRACKET,
-      ),
-    );
-  }
-
-  static IndexExpressionImpl indexExpressionForCascade(Expression array,
-          Expression index, TokenType period, TokenType leftBracket) =>
-      astFactory.indexExpressionForCascade2(
-          period: TokenFactory.tokenFromType(period),
-          leftBracket: TokenFactory.tokenFromType(leftBracket),
-          index: index,
-          rightBracket:
-              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static InstanceCreationExpressionImpl instanceCreationExpression(
           Keyword? keyword, ConstructorName name,
@@ -589,27 +526,6 @@ class AstTestFactory {
           modifier: TokenFactory.tokenFromString("set"),
           name: identifier3(name));
 
-  static SimpleFormalParameterImpl simpleFormalParameter(
-          Keyword keyword, String parameterName) =>
-      simpleFormalParameter2(keyword, null, parameterName);
-
-  static SimpleFormalParameterImpl simpleFormalParameter2(
-          Keyword? keyword, TypeAnnotation? type, String? parameterName) =>
-      astFactory.simpleFormalParameter2(
-          keyword:
-              keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          type: type,
-          name:
-              parameterName == null ? null : identifier3(parameterName).token);
-
-  static SimpleFormalParameterImpl simpleFormalParameter3(
-          String parameterName) =>
-      simpleFormalParameter2(null, null, parameterName);
-
-  static SimpleFormalParameterImpl simpleFormalParameter4(
-          TypeAnnotation type, String? parameterName) =>
-      simpleFormalParameter2(null, type, parameterName);
-
   static SpreadElementImpl spreadElement(
           TokenType operator, Expression expression) =>
       astFactory.spreadElement(
@@ -638,21 +554,6 @@ class AstTestFactory {
 
   static SuperExpressionImpl superExpression() =>
       astFactory.superExpression(TokenFactory.tokenFromKeyword(Keyword.SUPER));
-
-  static SuperFormalParameterImpl superFormalParameter(
-          Keyword? keyword, TypeAnnotation? type, String identifier,
-          [FormalParameterList? parameterList]) =>
-      astFactory.superFormalParameter(
-          keyword:
-              keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          type: type,
-          superKeyword: TokenFactory.tokenFromKeyword(Keyword.SUPER),
-          period: TokenFactory.tokenFromType(TokenType.PERIOD),
-          name: identifier3(identifier).token,
-          parameters: parameterList);
-
-  static SuperFormalParameterImpl superFormalParameter2(String identifier) =>
-      superFormalParameter(null, null, identifier);
 
   static SwitchCaseImpl switchCase(
           Expression expression, List<Statement> statements) =>

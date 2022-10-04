@@ -221,7 +221,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     exceptionTypeNode?.accept(this);
 
     _withNameScope(() {
-      var exceptionNode = node.exceptionParameter2;
+      var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
         var element = LocalVariableElementImpl(
           exceptionNode.name.lexeme,
@@ -248,7 +248,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         );
       }
 
-      var stackTraceNode = node.stackTraceParameter2;
+      var stackTraceNode = node.stackTraceParameter;
       if (stackTraceNode != null) {
         var element = LocalVariableElementImpl(
           stackTraceNode.name.lexeme,

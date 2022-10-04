@@ -13,10 +13,14 @@ abstract class VmInteropHandler {
   /// Notifies the VM to run [script] with [args] upon DartDev exit.
   ///
   /// If [packageConfigOverride] is given, that is where the packageConfig is found.
+  ///
+  /// If [forceNoSoundNullSafety] is given and set to true, the spawned isolate will run
+  /// with `--no-sound-null-safety` enabled.
   static void run(
     String script,
     List<String> args, {
     String? packageConfigOverride,
+    bool forceNoSoundNullSafety = false,
   }) {
     final port = _port;
     if (port == null) return;
@@ -24,6 +28,7 @@ abstract class VmInteropHandler {
       _kResultRun,
       script,
       packageConfigOverride,
+      forceNoSoundNullSafety,
       // Copy the list so it doesn't get GC'd underneath us.
       args.toList()
     ];

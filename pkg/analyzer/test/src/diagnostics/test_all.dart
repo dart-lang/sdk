@@ -369,10 +369,6 @@ import 'invalid_modifier_on_setter_test.dart' as invalid_modifier_on_setter;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
 import 'invalid_null_aware_operator_test.dart' as invalid_null_aware_operator;
-import 'invalid_override_different_default_values_named_test.dart'
-    as invalid_override_different_default_values_named;
-import 'invalid_override_different_default_values_positional_test.dart'
-    as invalid_override_different_default_values_positional;
 import 'invalid_override_of_non_virtual_member_test.dart'
     as invalid_override_of_non_virtual_member;
 import 'invalid_override_test.dart' as invalid_override;
@@ -1050,8 +1046,6 @@ main() {
     invalid_modifier_on_setter.main();
     invalid_non_virtual_annotation.main();
     invalid_null_aware_operator.main();
-    invalid_override_different_default_values_named.main();
-    invalid_override_different_default_values_positional.main();
     invalid_override_of_non_virtual_member.main();
     invalid_override.main();
     invalid_reference_to_generative_enum_constructor.main();

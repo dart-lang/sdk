@@ -34,12 +34,12 @@ class RemoveUnusedCatchStack extends CorrectionProducer {
       return;
     }
 
-    final exceptionParameter = catchClause.exceptionParameter2;
+    final exceptionParameter = catchClause.exceptionParameter;
     if (exceptionParameter == null) {
       return;
     }
 
-    if (catchClause.stackTraceParameter2 == stackTraceParameter) {
+    if (catchClause.stackTraceParameter == stackTraceParameter) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(
           range.endEnd(exceptionParameter, stackTraceParameter),

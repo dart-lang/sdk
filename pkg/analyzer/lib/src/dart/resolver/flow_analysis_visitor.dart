@@ -501,8 +501,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     for (var identifier in [
-      node.exceptionParameter2,
-      node.stackTraceParameter2,
+      node.exceptionParameter,
+      node.stackTraceParameter,
     ]) {
       if (identifier != null) {
         assignedVariables.declare(identifier.declaredElement!);

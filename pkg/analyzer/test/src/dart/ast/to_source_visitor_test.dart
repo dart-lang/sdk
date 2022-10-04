@@ -1519,10 +1519,11 @@ void f$code {}
   }
 
   void test_visitFormalParameterList_r() {
-    _assertSource(
-        "(a)",
-        AstTestFactory.formalParameterList(
-            [AstTestFactory.simpleFormalParameter3("a")]));
+    final code = '(int a)';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rn() {
@@ -1558,12 +1559,11 @@ void f$code {}
   }
 
   void test_visitFormalParameterList_rr() {
-    _assertSource(
-        "(a, b)",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.simpleFormalParameter3("b")
-        ]));
+    final code = '(int a, int b)';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rrn() {
@@ -1877,8 +1877,11 @@ void f($code) {}
   }
 
   void test_visitFunctionTypedFormalParameter_noType() {
-    _assertSource(
-        "f()", AstTestFactory.functionTypedFormalParameter(null, "f"));
+    final code = 'int f()';
+    final findNode = _parseStringToFindNode('''
+void f($code) {}
+''');
+    _assertSource(code, findNode.functionTypedFormalParameter(code));
   }
 
   void test_visitFunctionTypedFormalParameter_nullable() {
@@ -2092,13 +2095,11 @@ import 'a.dart' $code;
   }
 
   void test_visitIndexExpression() {
-    _assertSource(
-      "a[i]",
-      AstTestFactory.indexExpression(
-        target: AstTestFactory.identifier3("a"),
-        index: AstTestFactory.identifier3("i"),
-      ),
-    );
+    final code = 'a[0]';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.index(code));
   }
 
   void test_visitInstanceCreationExpression_const() {
@@ -3057,8 +3058,11 @@ void f($code) {}
   }
 
   void test_visitSimpleFormalParameter_keyword() {
-    _assertSource(
-        "var a", AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"));
+    final code = 'var a';
+    final findNode = _parseStringToFindNode('''
+void f($code) {}
+''');
+    _assertSource(code, findNode.simpleFormalParameter(code));
   }
 
   void test_visitSimpleFormalParameter_keyword_type() {
@@ -3162,8 +3166,13 @@ class A {
   }
 
   void test_visitSuperFormalParameter_keyword() {
-    _assertSource("var super.a",
-        AstTestFactory.superFormalParameter(Keyword.VAR, null, "a"));
+    final code = 'final super.foo';
+    final findNode = _parseStringToFindNode('''
+class A {
+  A($code);
+}
+''');
+    _assertSource(code, findNode.superFormalParameter(code));
   }
 
   void test_visitSuperFormalParameter_keywordAndType() {

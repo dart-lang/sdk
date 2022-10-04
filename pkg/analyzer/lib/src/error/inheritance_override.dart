@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -355,17 +354,6 @@ class _ClassVerifier {
         errorReporter: reporter,
         errorNode: node,
       );
-
-      if (!_isNonNullableByDefault &&
-          superMember is MethodElement &&
-          member is MethodElement &&
-          methodParameterNodes != null) {
-        _checkForOptionalParametersDifferentDefaultValues(
-          superMember,
-          member,
-          methodParameterNodes,
-        );
-      }
     }
 
     if (mixinIndex == -1) {
@@ -502,98 +490,6 @@ class _ClassVerifier {
       namedType,
     );
     return true;
-  }
-
-  void _checkForOptionalParametersDifferentDefaultValues(
-    MethodElement baseExecutable,
-    MethodElement derivedExecutable,
-    List<FormalParameter> derivedParameterNodes,
-  ) {
-    var derivedIsAbstract = derivedExecutable.isAbstract;
-    var derivedOptionalNodes = <FormalParameter>[];
-    var derivedOptionalElements = <ParameterElementImpl>[];
-    var derivedParameterElements = derivedExecutable.parameters;
-    for (var i = 0; i < derivedParameterElements.length; i++) {
-      var parameterElement =
-          derivedParameterElements[i] as ParameterElementImpl;
-      if (parameterElement.isOptional) {
-        derivedOptionalNodes.add(derivedParameterNodes[i]);
-        derivedOptionalElements.add(parameterElement);
-      }
-    }
-
-    var baseOptionalElements = <ParameterElementImpl>[];
-    var baseParameterElements = baseExecutable.parameters;
-    for (var i = 0; i < baseParameterElements.length; ++i) {
-      var baseParameter = baseParameterElements[i];
-      if (baseParameter.isOptional) {
-        baseOptionalElements
-            .add(baseParameter.declaration as ParameterElementImpl);
-      }
-    }
-
-    // Stop if no optional parameters.
-    if (baseOptionalElements.isEmpty || derivedOptionalElements.isEmpty) {
-      return;
-    }
-
-    if (derivedOptionalElements[0].isNamed) {
-      for (int i = 0; i < derivedOptionalElements.length; i++) {
-        var derivedElement = derivedOptionalElements[i];
-        if (_isNonNullableByDefault &&
-            derivedIsAbstract &&
-            !derivedElement.hasDefaultValue) {
-          continue;
-        }
-        var name = derivedElement.name;
-        for (var j = 0; j < baseOptionalElements.length; j++) {
-          var baseParameter = baseOptionalElements[j];
-          if (name == baseParameter.name && baseParameter.hasDefaultValue) {
-            var baseValue = baseParameter.computeConstantValue();
-            var derivedResult = derivedElement.evaluationResult!;
-            if (!_constantValuesEqual(derivedResult.value, baseValue)) {
-              reporter.reportErrorForNode(
-                StaticWarningCode
-                    .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-                derivedOptionalNodes[i],
-                [
-                  baseExecutable.enclosingElement.displayName,
-                  baseExecutable.displayName,
-                  name
-                ],
-              );
-            }
-          }
-        }
-      }
-    } else {
-      for (var i = 0;
-          i < derivedOptionalElements.length && i < baseOptionalElements.length;
-          i++) {
-        var derivedElement = derivedOptionalElements[i];
-        if (_isNonNullableByDefault &&
-            derivedIsAbstract &&
-            !derivedElement.hasDefaultValue) {
-          continue;
-        }
-        var baseElement = baseOptionalElements[i];
-        if (baseElement.hasDefaultValue) {
-          var baseValue = baseElement.computeConstantValue();
-          var derivedResult = derivedElement.evaluationResult!;
-          if (!_constantValuesEqual(derivedResult.value, baseValue)) {
-            reporter.reportErrorForNode(
-              StaticWarningCode
-                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-              derivedOptionalNodes[i],
-              [
-                baseExecutable.enclosingElement.displayName,
-                baseExecutable.displayName
-              ],
-            );
-          }
-        }
-      }
-    }
   }
 
   /// Check that [classElement] is not a superinterface to itself.
@@ -1029,13 +925,5 @@ class _ClassVerifier {
         ],
       );
     }
-  }
-
-  static bool _constantValuesEqual(DartObject? x, DartObject? y) {
-    // If either constant value couldn't be computed due to an error, the
-    // corresponding DartObject will be `null`.  Since an error has already been
-    // reported, there's no need to report another.
-    if (x == null || y == null) return true;
-    return x == y;
   }
 }

@@ -252,9 +252,9 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.exceptionType, other.exceptionType) &&
         isEqualTokens(node.catchKeyword, other.catchKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.exceptionParameter2, other.exceptionParameter2) &&
+        isEqualNodes(node.exceptionParameter, other.exceptionParameter) &&
         isEqualTokens(node.comma, other.comma) &&
-        isEqualNodes(node.stackTraceParameter2, other.stackTraceParameter2) &&
+        isEqualNodes(node.stackTraceParameter, other.stackTraceParameter) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.body, other.body);
   }
@@ -2127,11 +2127,11 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     if (identical(node.exceptionType, _oldNode)) {
       node.exceptionType = _newNode as TypeAnnotation;
       return true;
-    } else if (identical(node.exceptionParameter2, _oldNode)) {
-      node.exceptionParameter2 = _newNode as CatchClauseParameterImpl;
+    } else if (identical(node.exceptionParameter, _oldNode)) {
+      node.exceptionParameter = _newNode as CatchClauseParameterImpl;
       return true;
-    } else if (identical(node.stackTraceParameter2, _oldNode)) {
-      node.stackTraceParameter2 = _newNode as CatchClauseParameterImpl;
+    } else if (identical(node.stackTraceParameter, _oldNode)) {
+      node.stackTraceParameter = _newNode as CatchClauseParameterImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
       node.body = _newNode as Block;
@@ -3512,8 +3512,8 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addToScope(node.exceptionParameter2?.name);
-    _addToScope(node.stackTraceParameter2?.name);
+    _addToScope(node.exceptionParameter?.name);
+    _addToScope(node.stackTraceParameter?.name);
     super.visitCatchClause(node);
   }
 

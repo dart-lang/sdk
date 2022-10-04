@@ -14,8 +14,8 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addLocalVariable(node, node.exceptionParameter2?.declaredElement);
-    _addLocalVariable(node, node.stackTraceParameter2?.declaredElement);
+    _addLocalVariable(node, node.exceptionParameter?.declaredElement);
+    _addLocalVariable(node, node.stackTraceParameter?.declaredElement);
     node.body.accept(this);
   }
 

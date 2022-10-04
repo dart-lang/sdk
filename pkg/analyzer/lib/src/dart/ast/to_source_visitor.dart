@@ -169,8 +169,8 @@ class ToSourceVisitor implements AstVisitor<void> {
         sink.write(' ');
       }
       sink.write('catch (');
-      _visitNode(node.exceptionParameter2);
-      _visitNode(node.stackTraceParameter2, prefix: ', ');
+      _visitNode(node.exceptionParameter);
+      _visitNode(node.stackTraceParameter, prefix: ', ');
       sink.write(') ');
     } else {
       sink.write(' ');

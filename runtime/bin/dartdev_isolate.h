@@ -61,6 +61,7 @@ class DartDevIsolate {
       Dart_IsolateGroupCreateCallback create_isolate,
       char** packages_file,
       char** script,
+      bool* sound_null_safety,
       CommandLineOptions* dart_options);
 
  protected:
@@ -71,6 +72,7 @@ class DartDevIsolate {
     void Run(Dart_IsolateGroupCreateCallback create_isolate,
              char** package_config_override_,
              char** script,
+             bool* force_no_sound_null_safety,
              CommandLineOptions* dart_options);
 
     DartDev_Result result() const { return result_; }
@@ -84,6 +86,7 @@ class DartDevIsolate {
     static DartDev_Result result_;
     static char** script_;
     static char** package_config_override_;
+    static bool* force_no_sound_null_safety_;
     static std::unique_ptr<char*[], void (*)(char**)> argv_;
     static intptr_t argc_;
 

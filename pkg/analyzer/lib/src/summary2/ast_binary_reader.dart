@@ -465,13 +465,13 @@ class AstBinaryReader {
   }
 
   FieldFormalParameter _readFieldFormalParameter() {
-    var typeParameters = _readOptionalNode() as TypeParameterList?;
-    var type = _readOptionalNode() as TypeAnnotation?;
-    var formalParameters = _readOptionalNode() as FormalParameterList?;
+    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var formalParameters = _readOptionalNode() as FormalParameterListImpl?;
     var flags = _readByte();
     var metadata = _readNodeList<Annotation>();
     var name = _readDeclarationName();
-    var node = astFactory.fieldFormalParameter2(
+    var node = FieldFormalParameterImpl(
       name: name,
       period: Tokens.period(),
       thisKeyword: Tokens.this_(),
@@ -601,13 +601,13 @@ class AstBinaryReader {
   }
 
   FunctionTypedFormalParameter _readFunctionTypedFormalParameter() {
-    var typeParameters = _readOptionalNode() as TypeParameterList?;
-    var returnType = _readOptionalNode() as TypeAnnotation?;
-    var formalParameters = readNode() as FormalParameterList;
+    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var returnType = _readOptionalNode() as TypeAnnotationImpl?;
+    var formalParameters = readNode() as FormalParameterListImpl;
     var flags = _readByte();
     var metadata = _readNodeList<Annotation>();
     var name = _readDeclarationName();
-    var node = astFactory.functionTypedFormalParameter2(
+    var node = FunctionTypedFormalParameterImpl(
       comment: null,
       covariantKeyword:
           AstBinaryFlags.isCovariant(flags) ? Tokens.covariant_() : null,
@@ -618,6 +618,7 @@ class AstBinaryReader {
           AstBinaryFlags.isRequired(flags) ? Tokens.required_() : null,
       returnType: returnType,
       typeParameters: typeParameters,
+      question: null,
     );
     return node;
   }
@@ -683,12 +684,12 @@ class AstBinaryReader {
 
   IndexExpression _readIndexExpression() {
     var flags = _readByte();
-    var target = _readOptionalNode() as Expression?;
-    var index = readNode() as Expression;
+    var target = _readOptionalNode() as ExpressionImpl?;
+    var index = readNode() as ExpressionImpl;
     // TODO(scheglov) Is this clumsy?
     IndexExpressionImpl node;
     if (target != null) {
-      node = (astFactory.indexExpressionForTarget2(
+      node = (IndexExpressionImpl.forTarget(
         target: target,
         question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
         leftBracket: Tokens.openSquareBracket(),
@@ -698,7 +699,7 @@ class AstBinaryReader {
         ..period =
             AstBinaryFlags.hasPeriod(flags) ? Tokens.periodPeriod() : null;
     } else {
-      node = astFactory.indexExpressionForCascade2(
+      node = IndexExpressionImpl.forCascade(
         period: Tokens.periodPeriod(),
         question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
         leftBracket: Tokens.openSquareBracket(),
@@ -1061,12 +1062,12 @@ class AstBinaryReader {
   }
 
   SimpleFormalParameter _readSimpleFormalParameter() {
-    var type = _readOptionalNode() as TypeAnnotation?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
     var flags = _readByte();
     var metadata = _readNodeList<Annotation>();
     var name = AstBinaryFlags.hasName(flags) ? _readDeclarationName() : null;
 
-    var node = astFactory.simpleFormalParameter2(
+    var node = SimpleFormalParameterImpl(
       name: name,
       type: type,
       covariantKeyword:

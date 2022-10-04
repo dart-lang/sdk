@@ -28,7 +28,7 @@
 #   - 206 for ParserErrorCodes.
 # -  68 "needsFix"
 # - 287 "hasFix"
-# -  57 "noFix"
+# -  55 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -2599,14 +2599,6 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
-StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED:
-  status: noFix
-  notes: |-
-    This is a pre-null safety code. No need to add a fix.
-StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL:
-  status: noFix
-  notes: |-
-    This is a pre-null safety code. No need to add a fix.
 StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:

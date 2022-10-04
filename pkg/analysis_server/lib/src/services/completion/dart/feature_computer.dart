@@ -393,8 +393,8 @@ class FeatureComputer {
           }
         }
       } else if (node is CatchClause) {
-        if (node.exceptionParameter2?.declaredElement == variable ||
-            node.stackTraceParameter2?.declaredElement == variable) {
+        if (node.exceptionParameter?.declaredElement == variable ||
+            node.stackTraceParameter?.declaredElement == variable) {
           return distance;
         }
       }

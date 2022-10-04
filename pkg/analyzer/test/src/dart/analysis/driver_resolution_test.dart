@@ -7533,11 +7533,11 @@ void main() {
       CatchClause catchClause = statement.catchClauses[0];
       expect(catchClause.exceptionType, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionNode = catchClause.exceptionParameter!;
       var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.objectType);
 
-      var stackNode = catchClause.stackTraceParameter2!;
+      var stackNode = catchClause.stackTraceParameter!;
       var stackElement = stackNode.declaredElement!;
       expect(stackElement.type, typeProvider.stackTraceType);
 
@@ -7562,11 +7562,11 @@ void main() {
       _assertNamedTypeSimple(
           catchClause.exceptionType as NamedType, typeProvider.intType);
 
-      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionNode = catchClause.exceptionParameter!;
       var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.intType);
 
-      var stackNode = catchClause.stackTraceParameter2!;
+      var stackNode = catchClause.stackTraceParameter!;
       var stackElement = stackNode.declaredElement!;
       expect(stackElement.type, typeProvider.stackTraceType);
 
@@ -7589,9 +7589,9 @@ void main() {
       var statement = statements[2] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       expect(catchClause.exceptionType, isNull);
-      expect(catchClause.stackTraceParameter2, isNull);
+      expect(catchClause.stackTraceParameter, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionNode = catchClause.exceptionParameter!;
       var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.objectType);
     }
@@ -7601,9 +7601,9 @@ void main() {
       var statement = statements[3] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       _assertNamedTypeSimple(catchClause.exceptionType!, typeProvider.intType);
-      expect(catchClause.stackTraceParameter2, isNull);
+      expect(catchClause.stackTraceParameter, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionNode = catchClause.exceptionParameter!;
       var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.intType);
     }
@@ -7614,8 +7614,8 @@ void main() {
       CatchClause catchClause = statement.catchClauses[0];
       _assertNamedTypeSimple(
           catchClause.exceptionType as NamedType, typeProvider.intType);
-      expect(catchClause.exceptionParameter2, isNull);
-      expect(catchClause.stackTraceParameter2, isNull);
+      expect(catchClause.exceptionParameter, isNull);
+      expect(catchClause.stackTraceParameter, isNull);
     }
   }
 

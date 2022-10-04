@@ -102,7 +102,7 @@ class JsBackendStrategy {
     if (!generateSourceMap) {
       sourceInformationStrategy = const JavaScriptSourceInformationStrategy();
     } else {
-      sourceInformationStrategy = KernelSourceInformationStrategy(this);
+      sourceInformationStrategy = KernelSourceInformationStrategy();
     }
     _emitterTask = CodeEmitterTask(_compiler, generateSourceMap);
     _functionCompiler = SsaFunctionCompiler(
@@ -136,13 +136,6 @@ class JsBackendStrategy {
     if (generatedCode[element] == null) return null;
     return js.prettyPrint(generatedCode[element],
         enableMinification: _compiler.options.enableMinification);
-  }
-
-  @deprecated
-  JsToElementMap get elementMap {
-    assert(_elementMap != null,
-        "JsBackendStrategy.elementMap has not been created yet.");
-    return _elementMap;
   }
 
   /// Codegen support for generating table of interceptors and
@@ -198,6 +191,7 @@ class JsBackendStrategy {
   /// This is used to support serialization after type inference.
   void registerJClosedWorld(covariant JsClosedWorld closedWorld) {
     _elementMap = closedWorld.elementMap;
+    sourceInformationStrategy.onElementMapAvailable(_elementMap);
   }
 
   /// Called when the compiler starts running the codegen.
@@ -388,8 +382,7 @@ class JsBackendStrategy {
         _compiler.reporter,
         _compiler.dumpInfoTask,
         _ssaMetrics,
-        // ignore:deprecated_member_use_from_same_package
-        elementMap,
+        _elementMap /*!*/,
         sourceInformationStrategy);
   }
 

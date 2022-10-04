@@ -2766,8 +2766,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var catchClause = catchClauses[i];
         nullSafetyDeadCodeVerifier.verifyCatchClause(catchClause);
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter2?.declaredElement,
-          catchClause.stackTraceParameter2?.declaredElement,
+          catchClause.exceptionParameter?.declaredElement,
+          catchClause.stackTraceParameter?.declaredElement,
         );
         catchClause.accept(this);
         flow.tryCatchStatement_catchEnd();
@@ -3326,13 +3326,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    var exception = node.exceptionParameter2;
+    var exception = node.exceptionParameter;
     if (exception != null) {
       Scope outerScope = nameScope;
       try {
         nameScope = LocalScope(nameScope);
         _define(exception.declaredElement!);
-        var stackTrace = node.stackTraceParameter2;
+        var stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
           _define(stackTrace.declaredElement!);
         }

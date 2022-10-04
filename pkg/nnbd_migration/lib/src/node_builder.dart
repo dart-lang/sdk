@@ -90,37 +90,37 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitCatchClause(CatchClause node) {
-    var exceptionElement = node.exceptionParameter2?.declaredElement;
+    var exceptionElement = node.exceptionParameter?.declaredElement;
     var target = exceptionElement == null
         ? NullabilityNodeTarget.text('exception type')
         : NullabilityNodeTarget.element(exceptionElement);
     DecoratedType? exceptionType = _pushNullabilityNodeTarget(
         target, () => node.exceptionType?.accept(this));
-    if (node.exceptionParameter2 != null) {
+    if (node.exceptionParameter != null) {
       // If there is no `on Type` part of the catch clause, the type is dynamic.
       if (exceptionType == null) {
         exceptionType = DecoratedType.forImplicitType(_typeProvider,
             _typeProvider.dynamicType, _graph, target.withCodeRef(node));
         instrumentation?.implicitType(
-            source, node.exceptionParameter2, exceptionType);
+            source, node.exceptionParameter, exceptionType);
       }
       _variables!.recordDecoratedElementType(
-          node.exceptionParameter2?.declaredElement, exceptionType);
+          node.exceptionParameter?.declaredElement, exceptionType);
     }
-    if (node.stackTraceParameter2 != null) {
+    if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
       var target = NullabilityNodeTarget.text('stack trace').withCodeRef(node);
       var nullabilityNode = NullabilityNode.forInferredType(target);
       _graph.makeNonNullableUnion(nullabilityNode,
-          StackTraceTypeOrigin(source, node.stackTraceParameter2));
+          StackTraceTypeOrigin(source, node.stackTraceParameter));
       var stackTraceType =
           DecoratedType(_typeProvider.stackTraceType, nullabilityNode);
       _variables!.recordDecoratedElementType(
-          node.stackTraceParameter2?.declaredElement, stackTraceType);
+          node.stackTraceParameter?.declaredElement, stackTraceType);
       instrumentation?.implicitType(
-          source, node.stackTraceParameter2, stackTraceType);
+          source, node.stackTraceParameter, stackTraceType);
     }
-    node.stackTraceParameter2?.accept(this);
+    node.stackTraceParameter?.accept(this);
     node.body.accept(this);
     return null;
   }

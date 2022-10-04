@@ -386,8 +386,8 @@ void f() {
       source: findNode.catchClause('(e2,'),
       childAccessors: [
         (node) => node.exceptionType!,
-        (node) => node.exceptionParameter2!,
-        (node) => node.stackTraceParameter2!,
+        (node) => node.exceptionParameter!,
+        (node) => node.stackTraceParameter!,
         (node) => node.body,
       ],
     );

@@ -1,6 +1,8 @@
 ## 5.2.0-dev
 * Deprecated `Element.enclosingElement3`, use `enclosingElement` instead.
 * Deprecated `Directive.element2`, use `element` instead.
+* Deprecated `CatchClause.exceptionParameter2`, use `exceptionParameter` instead.
+* Deprecated `CatchClause.stackTraceParameter2`, use `stackTraceParameter` instead.
 
 ## 5.1.0
 * Deprecated `AstNode.name2`, use `name` instead.
