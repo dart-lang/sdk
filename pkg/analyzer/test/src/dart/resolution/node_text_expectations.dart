@@ -15,6 +15,7 @@ class NodeTextExpectationsCollector {
     'ContextResolutionTest.assertDriverStateString',
     'FileResolutionTest.assertStateString',
     'ParserDiagnosticsTest.assertParsedNodeText',
+    'ResolutionTest.assertParsedNodeText',
     'ResolutionTest.assertResolvedNodeText',
   };
 

@@ -3702,12 +3702,18 @@ class AstBuilder extends StackListener {
         ? firstIdentifier
         : PrefixedIdentifierImpl(
             firstIdentifier, dot, SimpleIdentifierImpl(secondIdentifierToken!));
-    push(ExtractorPatternImpl(
-        typeName: typeName,
-        typeArguments: typeArguments,
+    push(
+      ExtractorPatternImpl(
+        type: NamedTypeImpl(
+          name: typeName,
+          typeArguments: typeArguments,
+          question: null,
+        ),
         leftParenthesis: arguments.leftParenthesis,
         fields: arguments.fields,
-        rightParenthesis: arguments.rightParenthesis));
+        rightParenthesis: arguments.rightParenthesis,
+      ),
+    );
   }
 
   @override

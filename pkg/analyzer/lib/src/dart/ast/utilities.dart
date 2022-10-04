@@ -558,8 +558,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitExtractorPattern(ExtractorPattern node) {
     var other = _other as ExtractorPattern;
-    return isEqualNodes(node.typeName, other.typeName) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
+    return isEqualNodes(node.type, other.type) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         _isEqualNodeLists(node.fields, other.fields) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis);

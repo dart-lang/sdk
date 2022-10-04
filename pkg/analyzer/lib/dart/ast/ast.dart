@@ -2188,12 +2188,8 @@ abstract class ExtractorPattern implements DartPattern {
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the type arguments associated with this pattern, or `null` if no
-  /// type arguments were declared.
-  TypeArgumentList? get typeArguments;
-
   /// The name of the type of object from which values will be extracted.
-  Identifier get typeName;
+  NamedType get type;
 }
 
 /// The declaration of one or more fields of the same type.

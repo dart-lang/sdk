@@ -448,8 +448,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitExtractorPattern(ExtractorPattern node) {
-    _visitNode(node.typeName);
-    _visitNode(node.typeArguments);
+    _visitNode(node.type);
     sink.write('(');
     _visitNodeList(node.fields, separator: ', ');
     sink.write(')');

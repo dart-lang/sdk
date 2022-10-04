@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -32,8 +31,9 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -68,8 +68,9 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -101,8 +102,9 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -131,15 +133,16 @@ void f(x) {
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          token: int
-    rightBracket: >
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
   leftParenthesis: (
   rightParenthesis: )
 ''');
@@ -160,15 +163,16 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
     leftParenthesis: (
     rightParenthesis: )
   operator: !
@@ -190,15 +194,16 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
     leftParenthesis: (
     rightParenthesis: )
   operator: ?
@@ -212,7 +217,7 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -221,20 +226,19 @@ void f(x) {
       break;
   }
 }
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''');
 
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ExtractorPattern
-    typeName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
-      period: .
-      identifier: SimpleIdentifier
-        token: C
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+        period: .
+        identifier: SimpleIdentifier
+          token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -259,7 +263,7 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -268,20 +272,19 @@ void f(x) {
       break;
   }
 }
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''');
 
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
-      period: .
-      identifier: SimpleIdentifier
-        token: C
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+        period: .
+        identifier: SimpleIdentifier
+          token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -303,7 +306,7 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -312,20 +315,19 @@ void f(x) {
       break;
   }
 }
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''');
 
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
-      period: .
-      identifier: SimpleIdentifier
-        token: C
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+        period: .
+        identifier: SimpleIdentifier
+          token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -345,7 +347,7 @@ PostfixPattern
 class C<T> {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -354,54 +356,13 @@ void f(x) {
       break;
   }
 }
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''');
 
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-    period: .
-    identifier: SimpleIdentifier
-      token: C
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          token: int
-    rightBracket: >
-  leftParenthesis: (
-  rightParenthesis: )
-''');
-  }
-
-  test_prefixedIdentifier_withTypeArguments_inside_nullAssert() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class C<T> {}
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart' as prefix;
-
-void f(x) {
-  switch (x) {
-    case prefix.C<int>()!:
-      break;
-  }
-}
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
-    ]);
-
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ExtractorPattern
-    typeName: PrefixedIdentifier
+  type: NamedType
+    name: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .
@@ -414,6 +375,45 @@ PostfixPattern
           name: SimpleIdentifier
             token: int
       rightBracket: >
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_prefixedIdentifier_withTypeArguments_inside_nullAssert() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class C<T> {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f(x) {
+  switch (x) {
+    case prefix.C<int>()!:
+      break;
+  }
+}
+''');
+
+    final node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: ExtractorPattern
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+        period: .
+        identifier: SimpleIdentifier
+          token: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
     leftParenthesis: (
     rightParenthesis: )
   operator: !
@@ -425,7 +425,7 @@ PostfixPattern
 class C<T> {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -434,27 +434,26 @@ void f(x) {
       break;
   }
 }
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''');
 
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
-      period: .
-      identifier: SimpleIdentifier
-        token: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+        period: .
+        identifier: SimpleIdentifier
+          token: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
     leftParenthesis: (
     rightParenthesis: )
   operator: ?
