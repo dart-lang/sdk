@@ -127,6 +127,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
       )
+      ..addFlag('sound-null-safety',
+          help: 'Respect the nullability of types at runtime.',
+          defaultsTo: null)
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -182,6 +185,11 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     final buildArgs = <String>[];
     buildArgs.add('--snapshot-kind=$formatName');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
+
+    final bool? soundNullSafety = args['sound-null-safety'];
+    if (soundNullSafety != null) {
+      buildArgs.add('--${soundNullSafety ? '' : 'no-'}sound-null-safety');
+    }
 
     final String? packages = args[packagesOption.flag];
     if (packages != null) {
