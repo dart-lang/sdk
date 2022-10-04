@@ -491,6 +491,9 @@ closures
 clue
 code
 coerce
+coerced
+coercing
+coercion
 coincides
 coinductively
 collapses

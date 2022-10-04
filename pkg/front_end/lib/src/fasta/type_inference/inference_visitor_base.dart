@@ -529,6 +529,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType expressionType = inferenceResult.inferredType;
     Expression expression = inferenceResult.expression;
     Expression result;
+    DartType? postCoercionType;
     switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
         result = expression;
@@ -540,6 +541,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..isForNonNullableByDefault = isNonNullableByDefault
           ..isForDynamic = expressionType is DynamicType
           ..fileOffset = fileOffset;
+        postCoercionType = initialContextType;
         break;
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
@@ -624,7 +626,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (!identical(result, expression)) {
       flowAnalysis.forwardExpression(result, expression);
-      return new ExpressionInferenceResult(expressionType, result);
+      return new ExpressionInferenceResult(expressionType, result,
+          postCoercionType: postCoercionType);
     } else {
       return inferenceResult;
     }

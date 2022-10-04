@@ -15,7 +15,7 @@ foo3() {
 }
 
 foo4() {
-  (num, num) r = (3 as dynamic, 3.5); // Error.
+  (num, num) r = (3 as dynamic, 3.5);
 }
 
 foo5((int, String?) r, (int, X) Function<X>() f) {
