@@ -32,6 +32,8 @@ class Crash {
 
   final StackTrace? trace;
 
+  bool _hasBeenReported = false;
+
   Crash(this.uri, this.charOffset, this.error, this.trace);
 
   @override
@@ -70,6 +72,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
     trace = error.trace ?? trace;
     uri = error.uri ?? uri;
     charOffset = error.charOffset ?? charOffset;
+    error._hasBeenReported = true;
     error = error.error;
   }
   uri ??= firstSourceUri;
@@ -92,7 +95,8 @@ Future<T> reportCrash<T>(error, StackTrace trace,
       // Assume the crash logger isn't running.
       client.close(force: true);
       return new Future<T>.error(
-          new Crash(uri, charOffset, error, trace), trace);
+          new Crash(uri, charOffset, error, trace).._hasBeenReported = true,
+          trace);
     }
     // ignore: unnecessary_null_comparison
     if (request != null) {
@@ -130,11 +134,12 @@ Future<T> withCrashReporting<T>(
   resetCrashReporting();
   try {
     return await action();
-  } on Crash {
-    rethrow;
   } on DebugAbort {
     rethrow;
   } catch (e, s) {
+    if (e is Crash && e._hasBeenReported) {
+      rethrow;
+    }
     UriOffset? uriOffset = currentUriOffset();
     return reportCrash(e, s, uriOffset?.uri, uriOffset?.fileOffset);
   }
