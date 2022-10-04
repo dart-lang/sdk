@@ -17414,10 +17414,8 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
                                      Code::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
+    result.set_state_bits(0);
     result.set_pointer_offsets_length(pointer_offsets_length);
-    result.set_is_optimized(false);
-    result.set_is_force_optimized(false);
-    result.set_is_alive(false);
 #if defined(INCLUDE_IL_PRINTER)
     result.set_comments(Comments::New(0));
 #endif
