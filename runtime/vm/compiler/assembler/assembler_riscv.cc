@@ -3144,15 +3144,14 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
-  lbu(TMP, FieldAddress(object, target::Object::tags_offset()));
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
-  and_(TMP, TMP, TMP2);
-  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
-  beqz(TMP, &done, kNearJump);
-  Stop("Store buffer update is required");
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kNewBit);
+  beqz(TMP2, &done, kNearJump);
+  lbu(TMP2, FieldAddress(object, target::Object::tags_offset()));
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
+  beqz(TMP2, &done, kNearJump);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif
 }
@@ -3178,15 +3177,14 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
-  lbu(TMP, FieldAddress(object, target::Object::tags_offset()));
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
-  and_(TMP, TMP, TMP2);
-  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
-  beqz(TMP, &done, kNearJump);
-  Stop("Store buffer update is required");
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kNewBit);
+  beqz(TMP2, &done, kNearJump);
+  lbu(TMP2, FieldAddress(object, target::Object::tags_offset()));
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
+  beqz(TMP2, &done, kNearJump);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif
 }

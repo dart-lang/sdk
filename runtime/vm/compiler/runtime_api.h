@@ -411,6 +411,7 @@ class UntaggedObject : public AllStatic {
  public:
   static const word kCardRememberedBit;
   static const word kCanonicalBit;
+  static const word kNewBit;
   static const word kOldAndNotRememberedBit;
   static const word kOldAndNotMarkedBit;
   static const word kImmutableBit;

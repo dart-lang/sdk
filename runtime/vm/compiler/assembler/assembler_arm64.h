@@ -2982,22 +2982,6 @@ class Assembler : public AssemblerBase {
     Emit(encoding);
   }
 
-  enum BarrierFilterMode {
-    // Filter falls through into the barrier update code. Target label
-    // is a "after-store" label.
-    kJumpToNoUpdate,
-
-    // Filter falls through to the "after-store" code. Target label
-    // is barrier update code label.
-    kJumpToBarrier,
-  };
-
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
-
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;
   std::function<void()> generate_invoke_array_write_barrier_;

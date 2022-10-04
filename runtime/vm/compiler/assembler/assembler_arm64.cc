@@ -994,43 +994,6 @@ void Assembler::LoadCompressedSmiFromOffset(Register dest,
 #endif
 }
 
-// Preserves object and value registers.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* label,
-                                      CanBeSmi value_can_be_smi,
-                                      BarrierFilterMode how_to_jump) {
-  COMPILE_ASSERT((target::ObjectAlignment::kNewObjectAlignmentOffset ==
-                  target::kWordSize) &&
-                 (target::ObjectAlignment::kOldObjectAlignmentOffset == 0));
-
-  // Write-barrier triggers if the value is in the new space (has bit set) and
-  // the object is in the old space (has bit cleared).
-  if (value_can_be_smi == kValueIsNotSmi) {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
-    // To check that, we compute value & ~object and skip the write barrier
-    // if the bit is not set. We can't destroy the object.
-    bic(TMP, value, Operand(object));
-  } else {
-    // For the value we are only interested in the new/old bit and the tag bit.
-    // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-    and_(TMP, value,
-         Operand(value, LSL, target::ObjectAlignment::kNewObjectBitPosition));
-    // And the result with the negated space bit of the object.
-    bic(TMP, TMP, Operand(object));
-  }
-  if (how_to_jump == kJumpToNoUpdate) {
-    tbz(label, TMP, target::ObjectAlignment::kNewObjectBitPosition);
-  } else {
-    tbnz(label, TMP, target::ObjectAlignment::kNewObjectBitPosition);
-  }
-}
-
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
@@ -1220,13 +1183,12 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kNewBit);
   ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  b(&done, ZERO);
-
-  Stop("Store buffer update is required");
+  tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif  // defined(DEBUG)
   // No store buffer update.
@@ -1246,13 +1208,12 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kNewBit);
   ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  b(&done, ZERO);
-
-  Stop("Store buffer update is required");
+  tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif  // defined(DEBUG)
   // No store buffer update.

@@ -2086,16 +2086,15 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  pushl(value);
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  testb(FieldAddress(value, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kNewBit));
+  j(ZERO, &done, Assembler::kNearJump);
   testb(FieldAddress(object, target::Object::tags_offset()),
         Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
-
-  Stop("Store buffer update is required");
+  Stop("Write barrier is required");
   Bind(&done);
-  popl(value);
 #endif  // defined(DEBUG)
   // No store buffer update.
 }
