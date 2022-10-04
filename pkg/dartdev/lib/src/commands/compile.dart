@@ -70,14 +70,16 @@ class CompileJSCommand extends CompileSubcommandCommand {
     if (!Sdk.checkArtifactExists(librariesPath)) return 255;
 
     VmInteropHandler.run(
-        sdk.dart2jsSnapshot,
-        [
-          '--libraries-spec=$librariesPath',
-          '--cfe-invocation-modes=compile',
-          '--invoker=dart_cli',
-          ...argResults!.arguments,
-        ],
-        packageConfigOverride: null);
+      sdk.dart2jsSnapshot,
+      [
+        '--libraries-spec=$librariesPath',
+        '--cfe-invocation-modes=compile',
+        '--invoker=dart_cli',
+        ...argResults!.arguments,
+      ],
+      packageConfigOverride: null,
+      forceNoSoundNullSafety: true,
+    );
 
     return 0;
   }
