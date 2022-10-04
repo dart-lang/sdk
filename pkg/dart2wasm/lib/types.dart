@@ -114,7 +114,9 @@ class Types {
       for (InterfaceType subtype in subtypes) {
         interfaceTypeEnvironment._add(subtype);
         List<DartType>? typeArguments = translator.hierarchy
-            .getTypeArgumentsAsInstanceOf(subtype, superclass);
+            .getTypeArgumentsAsInstanceOf(subtype, superclass)
+            ?.map(normalize)
+            .toList();
         ClassInfo subclassInfo = translator.classInfo[subtype.classNode]!;
         Map<int, List<DartType>> substitutionMap =
             subtypeMap[subclassInfo.classId] ??= {};
@@ -311,6 +313,57 @@ class Types {
     _makeTypeList(codeGen, type.typeArguments);
   }
 
+  DartType normalizeFutureOrType(FutureOrType type) {
+    final s = normalize(type.typeArgument);
+
+    // `coreTypes.isTope` and `coreTypes.isObject` take into account the
+    // normalization rules of `futureOr`.
+    if (coreTypes.isTop(type) || coreTypes.isObject(type)) {
+      return s;
+    } else if (s is NeverType) {
+      return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
+          const [const NeverType.nonNullable()]);
+    } else if (s is NullType) {
+      return InterfaceType(coreTypes.futureClass, Nullability.nullable,
+          const [const NullType()]);
+    }
+
+    // The type is normalized, and remains a `FutureOr` so now we normalize its
+    // nullability.
+    final declaredNullability = s.nullability == Nullability.nullable
+        ? Nullability.nonNullable
+        : type.declaredNullability;
+    return FutureOrType(s, declaredNullability);
+  }
+
+  /// Normalizes a Dart type. Many rules are already applied for us, but some we
+  /// have to apply manually, particularly to [FutureOr].
+  DartType normalize(DartType type) {
+    if (type is InterfaceType) {
+      return InterfaceType(type.classNode, type.nullability,
+          type.typeArguments.map(normalize).toList());
+    } else if (type is FunctionType) {
+      return FunctionType(type.positionalParameters.map(normalize).toList(),
+          normalize(type.returnType), type.nullability,
+          namedParameters: type.namedParameters
+              .map((namedType) => NamedType(
+                  namedType.name, normalize(namedType.type),
+                  isRequired: namedType.isRequired))
+              .toList(),
+          typeParameters: type.typeParameters
+              .map((typeParameter) => TypeParameter(
+                  typeParameter.name,
+                  normalize(typeParameter.bound),
+                  normalize(typeParameter.defaultType)))
+              .toList(),
+          requiredParameterCount: type.requiredParameterCount);
+    } else if (type is FutureOrType) {
+      return normalizeFutureOrType(type);
+    } else {
+      return type;
+    }
+  }
+
   void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
     w.Instructions b = codeGen.b;
     w.DefinedFunction function = codeGen.function;
@@ -382,6 +435,8 @@ class Types {
   /// TODO(joshualitt): Refactor this logic to remove the dependency on
   /// CodeGenerator.
   w.ValueType makeType(CodeGenerator codeGen, DartType type) {
+    // Always ensure type is normalized before making a type.
+    type = normalize(type);
     w.Instructions b = codeGen.b;
     if (_isTypeConstant(type)) {
       translator.constants.instantiateConstant(

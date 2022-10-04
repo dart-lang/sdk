@@ -780,7 +780,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
-    DartType type = constant.type;
+    DartType type = types.normalize(constant.type);
 
     ClassInfo info = translator.classInfo[types.classForType(type)]!;
     translator.functions.allocateClass(info.classId);
