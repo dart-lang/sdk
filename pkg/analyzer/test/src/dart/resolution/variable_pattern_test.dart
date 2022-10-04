@@ -430,8 +430,9 @@ void f(x) {
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -463,8 +464,9 @@ void f(x) {
     final node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField

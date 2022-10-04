@@ -4697,24 +4697,19 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
   final Token rightParenthesis;
 
   @override
-  final TypeArgumentListImpl? typeArguments;
-
-  @override
-  final IdentifierImpl typeName;
+  final NamedTypeImpl type;
 
   ExtractorPatternImpl(
-      {required this.typeName,
-      required this.typeArguments,
+      {required this.type,
       required this.leftParenthesis,
       required List<RecordPatternField> fields,
       required this.rightParenthesis}) {
-    _becomeParentOf(typeName);
-    _becomeParentOf(typeArguments);
+    _becomeParentOf(type);
     _fields._initialize(this, fields);
   }
 
   @override
-  Token get beginToken => typeName.beginToken;
+  Token get beginToken => type.beginToken;
 
   @override
   Token get endToken => rightParenthesis;
@@ -4724,8 +4719,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addNode('typeName', typeName)
-    ..addNode('typeArguments', typeArguments)
+    ..addNode('type', type)
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNodeList('fields', fields)
     ..addToken('rightParenthesis', rightParenthesis);
@@ -4748,8 +4742,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    typeName.accept(visitor);
-    typeArguments?.accept(visitor);
+    type.accept(visitor);
     fields.accept(visitor);
   }
 }

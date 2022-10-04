@@ -59,8 +59,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -94,8 +95,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -2147,15 +2149,16 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          token: int
-    rightBracket: >
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
   leftParenthesis: (
   rightParenthesis: )
 ''');
@@ -2175,19 +2178,20 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: async
-    period: .
-    identifier: SimpleIdentifier
-      token: Future
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          token: int
-    rightBracket: >
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: async
+      period: .
+      identifier: SimpleIdentifier
+        token: Future
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
   leftParenthesis: (
   rightParenthesis: )
 ''');
@@ -2210,19 +2214,20 @@ SwitchPatternCase
   keyword: case
   pattern: CastPattern
     pattern: ExtractorPattern
-      typeName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: async
-        period: .
-        identifier: SimpleIdentifier
-          token: Future
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: SimpleIdentifier
-              token: int
-        rightBracket: >
+      type: NamedType
+        name: PrefixedIdentifier
+          prefix: SimpleIdentifier
+            token: async
+          period: .
+          identifier: SimpleIdentifier
+            token: Future
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: SimpleIdentifier
+                token: int
+          rightBracket: >
       leftParenthesis: (
       rightParenthesis: )
     asToken: as
@@ -2252,19 +2257,20 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: async
-      period: .
-      identifier: SimpleIdentifier
-        token: Future
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: async
+        period: .
+        identifier: SimpleIdentifier
+          token: Future
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
     leftParenthesis: (
     rightParenthesis: )
   operator: !
@@ -2286,19 +2292,20 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: async
-      period: .
-      identifier: SimpleIdentifier
-        token: Future
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: async
+        period: .
+        identifier: SimpleIdentifier
+          token: Future
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
     leftParenthesis: (
     rightParenthesis: )
   operator: ?
@@ -2321,8 +2328,9 @@ void f(x) {
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -2356,8 +2364,9 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -2388,8 +2397,9 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
     leftParenthesis: (
     fields
       RecordPatternField
@@ -2420,15 +2430,16 @@ void f(x) {
     assertParsedNodeText(node, r'''
 PostfixPattern
   operand: ExtractorPattern
-    typeName: SimpleIdentifier
-      token: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+        rightBracket: >
     leftParenthesis: (
     fields
       RecordPatternField
@@ -3477,8 +3488,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -3509,8 +3521,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -3835,8 +3848,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -3867,8 +3881,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -4526,8 +4541,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -5139,8 +5155,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
@@ -5171,8 +5188,9 @@ void f(x) {
     var node = findNode.switchPatternCase('case').pattern;
     assertParsedNodeText(node, r'''
 ExtractorPattern
-  typeName: SimpleIdentifier
-    token: C
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
   leftParenthesis: (
   fields
     RecordPatternField
