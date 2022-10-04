@@ -10347,7 +10347,7 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   Token leftParenthesis;
 
   /// The syntactic elements used to compute the fields of the record.
-  final NodeListImpl<Expression> _fields = NodeListImpl._();
+  final NodeListImpl<ExpressionImpl> _fields = NodeListImpl._();
 
   @override
   Token rightParenthesis;
@@ -10356,7 +10356,7 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   RecordLiteralImpl(
       {required this.constKeyword,
       required this.leftParenthesis,
-      required List<Expression> fields,
+      required List<ExpressionImpl> fields,
       required this.rightParenthesis}) {
     _fields._initialize(this, fields);
   }
@@ -10368,7 +10368,7 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   Token get endToken => rightParenthesis;
 
   @override
-  NodeList<Expression> get fields => _fields;
+  NodeList<ExpressionImpl> get fields => _fields;
 
   @override
   bool get isConst => constKeyword != null || inConstantContext;

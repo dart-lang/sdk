@@ -29,7 +29,7 @@ class RecordLiteralResolver {
   void reportDuplicateFieldDefinitions(RecordLiteralImpl node) {
     var usedNames = <String, NamedExpression>{};
     for (var field in node.fields) {
-      if (field is NamedExpression) {
+      if (field is NamedExpressionImpl) {
         var name = field.name.label.name;
         var previousField = usedNames[name];
         if (previousField != null) {
@@ -53,7 +53,7 @@ class RecordLiteralResolver {
       }
     }
     for (var field in fields) {
-      if (field is NamedExpression) {
+      if (field is NamedExpressionImpl) {
         var nameNode = field.name.label;
         var name = nameNode.name;
         if (name.startsWith('_')) {
@@ -96,7 +96,7 @@ class RecordLiteralResolver {
     final namedFields = <RecordTypeNamedFieldImpl>[];
     for (final field in node.fields) {
       final fieldType = field.typeOrThrow;
-      if (field is NamedExpression) {
+      if (field is NamedExpressionImpl) {
         namedFields.add(
           RecordTypeNamedFieldImpl(
             name: field.name.label.name,
@@ -140,7 +140,6 @@ class RecordLiteralResolver {
     if (contextType is RecordType) {
       var index = 0;
       for (final field in node.fields) {
-        field as ExpressionImpl;
         DartType? fieldContextType;
         if (field is NamedExpressionImpl) {
           final name = field.name.label.name;
@@ -155,7 +154,6 @@ class RecordLiteralResolver {
       }
     } else {
       for (final field in node.fields) {
-        field as ExpressionImpl;
         _resolveField(field, null);
       }
     }

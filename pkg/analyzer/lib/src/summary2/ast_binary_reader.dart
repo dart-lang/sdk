@@ -1011,7 +1011,7 @@ class AstBinaryReader {
 
   RecordLiteralImpl _readRecordLiteral() {
     var flags = _readByte();
-    var fields = _readNodeList<Expression>();
+    var fields = _readNodeList<ExpressionImpl>();
     var node = RecordLiteralImpl(
       constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
       leftParenthesis: Tokens.openParenthesis(),
