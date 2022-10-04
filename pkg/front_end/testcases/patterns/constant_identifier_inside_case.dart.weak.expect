@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  #L1:
+  switch(x) {
+    #L2:
+    case #C1:
+      {
+        break #L1;
+      }
+  }
+}
+
+constants  {
+  #C1 = 1
+}

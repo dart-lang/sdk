@@ -5,55 +5,11 @@ try {
 true ? *synthetic*: 2;
 } catch (e) {}
 }
-''', errors: [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
-    ]);
-  }
-
-  test_extractor_pattern_inside_cast() {
-    _parse('''
-
-
-
-
-
-
-class C {
-int? f;
-}
-test(dynamic x) {
-switch (x) {
-case C(f: 1) as Object:
-break;
-}
-}
 
 
 f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 try[KeywordToken] {[BeginToken]
 true[KeywordToken] ?[SimpleToken] [SyntheticStringToken]:[SimpleToken] 2[StringToken];[SimpleToken]
 }[SimpleToken] catch[KeywordToken] ([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
-}[SimpleToken]
-''', errors: [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
-    ]);
-  }
-
-  test_extractor_pattern_inside_cast() {
-    _parse('''[StringToken]
-
-
-
-
-
-
-class[KeywordToken] C[StringToken] {[BeginToken]
-int[StringToken]?[SimpleToken] f[StringToken];[SimpleToken]
-}[SimpleToken]
-test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
-switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
-case[KeywordToken] C[StringToken]([BeginToken]f[StringToken]:[SimpleToken] 1[StringToken])[SimpleToken] as[KeywordToken] Object[StringToken]:[SimpleToken]
-break[KeywordToken];[SimpleToken]
-}[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

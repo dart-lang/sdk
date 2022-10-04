@@ -831,7 +831,8 @@ class DietListener extends StackListenerImpl {
     final BodyBuilder listener = createFunctionListener(builder);
     try {
       Parser parser = new Parser(listener,
-          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          allowPatterns: globalFeatures.patterns.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Pops metadata constants.
@@ -1078,7 +1079,8 @@ class DietListener extends StackListenerImpl {
     Token token = startToken;
     try {
       Parser parser = new Parser(bodyBuilder,
-          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          allowPatterns: globalFeatures.patterns.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         bodyBuilder.pop(); // Annotations.
@@ -1113,7 +1115,8 @@ class DietListener extends StackListenerImpl {
       bool isTopLevel) {
     Token token = startToken;
     Parser parser = new Parser(bodyBuilder,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: globalFeatures.patterns.isEnabled);
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
@@ -1236,7 +1239,8 @@ class DietListener extends StackListenerImpl {
       StackListenerImpl listener = createListener(builder, memberScope,
           isDeclarationInstanceMember: false);
       Parser parser = new Parser(listener,
-          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          allowPatterns: globalFeatures.patterns.isEnabled);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }
