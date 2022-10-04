@@ -151,6 +151,7 @@ records/record_type_errors: FormatterCrash
 records/record_type_unsupported: FormatterCrash
 records/simple_inference: FormatterCrash
 records/structurally_constant: FormatterCrash
+records/type_record: FormatterCrash
 regress/ambiguous_builder_01: FormatterCrash
 regress/issue_29942: FormatterCrash
 regress/issue_29944: FormatterCrash

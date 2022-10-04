@@ -78,3 +78,7 @@ class Type {}
 
 /*class: Invocation:Invocation,Object*/
 class Invocation {}
+
+/*cfe|cfe:builder.class: Record:Object,Record*/
+/*analyzer.class: Record:Record,Object*/
+class Record {}

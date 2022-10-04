@@ -55,8 +55,7 @@ class ConstructorReferenceBuilder {
         PrefixBuilder prefix = declaration;
         declaration = prefix.lookup(middle, name.charOffset, fileUri);
       } else if (declaration is ClassBuilder) {
-        ClassBuilder cls = declaration;
-        declaration = cls.findConstructorOrFactory(
+        declaration = declaration.findConstructorOrFactory(
             middle, name.charOffset, fileUri, accessingLibrary);
         if (suffix == null) {
           target = declaration;

@@ -2760,6 +2760,8 @@ class int extends num {}
 class num {}
 
 class Function {}
+
+class Record {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an

@@ -35,6 +35,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                 ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'Record'.
+//                        ^
+// [cfe] Member not found: 'empty'.
   print(emptyRecord);
 }
