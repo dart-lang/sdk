@@ -63,8 +63,7 @@ void pub() {
 
     expect(result.exitCode, 0);
 
-    expect(result.stdout,
-        contains('Publish the current package to pub.dartlang.org.'));
+    expect(result.stdout, contains('Publish the current package to pub.dev.'));
     expect(result.stdout, result2.stdout);
 
     expect(result.stderr, isEmpty);

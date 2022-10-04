@@ -159,6 +159,20 @@ Updated the Linter to `1.28.0`, which includes changes that
 - Remove remaining support for `.packages` files. The flag
   `--legacy-packages-file` is no longer supported.
 - Support a new field `funding` in pubspec.yaml.
+- Validate the CRC32c checksum of downloaded archives and retry on failure.
+- `dart pub add foo:<constraint>` with an existing dependency will now update
+  the constraint rather than fail.
+- Update `dart pub publish` to allow `dependency_overrides` in pubspec.yaml.
+  They will still cause a publication warning.
+  Note that only `dependency_overrides` from the root package effect resolution.
+- Update `dart pub publish` to require a working resolution.
+  If publishing a breaking release of mutually dependent packages use `dependency_overrides`
+  to obtain a resolution.
+- `dart pub get` now fails gracefully when run from inside the pub-cache.
+- `dart pub publish` now shows the file sizes of large files in your package to
+  prevent accidental publication of large unrelated files.
+- Fix a bug in `dart pub upgrade --major-versions` where packages not requiring
+  major updates would be held back unless needed.
 
 #### dart2js
 
