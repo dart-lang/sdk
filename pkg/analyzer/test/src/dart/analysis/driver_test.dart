@@ -1876,7 +1876,7 @@ class B {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertType(f.declaredElement2!.type, 'int Function()');
+    assertType(f.declaredElement!.type, 'int Function()');
     assertType(f.returnType!.typeOrThrow, 'int');
 
     // The same result is also received through the stream.
@@ -2441,7 +2441,7 @@ class C {
 
     var result = await driver.getResultValid(b);
     var c = _getTopLevelVar(result.unit, 'c');
-    var typeC = c.declaredElement2!.type as InterfaceType;
+    var typeC = c.declaredElement!.type as InterfaceType;
     // The class C has an old field 'foo', not the new 'bar'.
     expect(typeC.element2.getField('foo'), isNotNull);
     expect(typeC.element2.getField('bar'), isNull);
@@ -3381,7 +3381,7 @@ class F extends X {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertType(f.declaredElement2!.type, 'int Function()');
+    assertType(f.declaredElement!.type, 'int Function()');
     assertType(f.returnType!.typeOrThrow, 'int');
   }
 
@@ -3503,21 +3503,21 @@ var v = 0
   void _assertClassFieldType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassField(unit, className, fieldName);
-    var type = node.declaredElement2!.type;
+    var type = node.declaredElement!.type;
     assertType(type, expected);
   }
 
   void _assertClassMethodReturnType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassMethod(unit, className, fieldName);
-    var type = node.declaredElement2!.returnType;
+    var type = node.declaredElement!.returnType;
     assertType(type, expected);
   }
 
   void _assertTopLevelVarType(
       CompilationUnit unit, String name, String expected) {
     VariableDeclaration variable = _getTopLevelVar(unit, name);
-    assertType(variable.declaredElement2!.type, expected);
+    assertType(variable.declaredElement!.type, expected);
   }
 
   void _expectCircularityError(EvaluationResultImpl evaluationResult) {
@@ -3531,7 +3531,7 @@ var v = 0
   ClassDeclaration _getClass(CompilationUnit unit, String name) {
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        if (declaration.name2.lexeme == name) {
+        if (declaration.name.lexeme == name) {
           return declaration;
         }
       }
@@ -3545,7 +3545,7 @@ var v = 0
     for (ClassMember declaration in classDeclaration.members) {
       if (declaration is FieldDeclaration) {
         for (var field in declaration.fields.variables) {
-          if (field.name2.lexeme == fieldName) {
+          if (field.name.lexeme == fieldName) {
             return field;
           }
         }
@@ -3559,7 +3559,7 @@ var v = 0
     ClassDeclaration classDeclaration = _getClass(unit, className);
     for (ClassMember declaration in classDeclaration.members) {
       if (declaration is MethodDeclaration &&
-          declaration.name2.lexeme == methodName) {
+          declaration.name.lexeme == methodName) {
         return declaration;
       }
     }
@@ -3581,7 +3581,7 @@ var v = 0
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in declaration.variables.variables) {
-          if (variable.name2.lexeme == name) {
+          if (variable.name.lexeme == name) {
             return variable;
           }
         }

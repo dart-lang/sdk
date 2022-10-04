@@ -54,7 +54,7 @@ class RemoveInitializer extends CorrectionProducer {
       if (variable != null && initializer != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(
-            range.endEnd(variable.name2, initializer),
+            range.endEnd(variable.name, initializer),
           );
         });
       } else {

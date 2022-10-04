@@ -8,12 +8,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,139 +20,30 @@ import '../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../src/diagnostics/parser_diagnostics.dart';
 import '../../util/feature_sets.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ClassDeclarationTest);
-    defineReflectiveTests(ClassTypeAliasTest);
     defineReflectiveTests(ConstructorDeclarationTest);
     defineReflectiveTests(FieldFormalParameterTest);
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
+    defineReflectiveTests(HideClauseImplTest);
+    defineReflectiveTests(ImplementsClauseImplTest);
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(NormalFormalParameterTest);
+    defineReflectiveTests(OnClauseImplTest);
     defineReflectiveTests(PreviousTokenTest);
     defineReflectiveTests(PropertyAccessTest);
+    defineReflectiveTests(ShowClauseImplTest);
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
     defineReflectiveTests(StringInterpolationTest);
     defineReflectiveTests(VariableDeclarationTest);
+    defineReflectiveTests(WithClauseImplTest);
   });
-}
-
-@reflectiveTest
-class ClassDeclarationTest extends ParserTestCase {
-  @Deprecated('Filter members instead')
-  void test_getConstructor() {
-    List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
-    ConstructorDeclaration defaultConstructor =
-        AstTestFactory.constructorDeclaration(
-            AstTestFactory.identifier3("Test"),
-            null,
-            AstTestFactory.formalParameterList(),
-            initializers);
-    ConstructorDeclaration aConstructor = AstTestFactory.constructorDeclaration(
-        AstTestFactory.identifier3("Test"),
-        "a",
-        AstTestFactory.formalParameterList(),
-        initializers);
-    ConstructorDeclaration bConstructor = AstTestFactory.constructorDeclaration(
-        AstTestFactory.identifier3("Test"),
-        "b",
-        AstTestFactory.formalParameterList(),
-        initializers);
-    ClassDeclaration clazz = AstTestFactory.classDeclaration(
-        null, "Test", null, null, null, null,
-        members: [defaultConstructor, aConstructor, bConstructor]);
-    expect(clazz.getConstructor(null), same(defaultConstructor));
-    expect(clazz.getConstructor("a"), same(aConstructor));
-    expect(clazz.getConstructor("b"), same(bConstructor));
-    expect(clazz.getConstructor("noSuchConstructor"), isNull);
-  }
-
-  @Deprecated('Filter members instead')
-  void test_getField() {
-    VariableDeclaration aVar = AstTestFactory.variableDeclaration("a");
-    VariableDeclaration bVar = AstTestFactory.variableDeclaration("b");
-    VariableDeclaration cVar = AstTestFactory.variableDeclaration("c");
-    ClassDeclaration clazz = AstTestFactory.classDeclaration(
-        null, "Test", null, null, null, null,
-        members: [
-          AstTestFactory.fieldDeclaration2(false, null, [aVar]),
-          AstTestFactory.fieldDeclaration2(false, null, [bVar, cVar])
-        ]);
-    expect(clazz.getField("a"), same(aVar));
-    expect(clazz.getField("b"), same(bVar));
-    expect(clazz.getField("c"), same(cVar));
-    expect(clazz.getField("noSuchField"), isNull);
-  }
-
-  @Deprecated('Filter members instead')
-  void test_getMethod() {
-    MethodDeclaration aMethod = AstTestFactory.methodDeclaration(
-        null,
-        null,
-        null,
-        null,
-        AstTestFactory.identifier3("a"),
-        AstTestFactory.formalParameterList());
-    MethodDeclaration bMethod = AstTestFactory.methodDeclaration(
-        null,
-        null,
-        null,
-        null,
-        AstTestFactory.identifier3("b"),
-        AstTestFactory.formalParameterList());
-    ClassDeclaration clazz = AstTestFactory.classDeclaration(
-        null, "Test", null, null, null, null,
-        members: [aMethod, bMethod]);
-    expect(clazz.getMethod("a"), same(aMethod));
-    expect(clazz.getMethod("b"), same(bMethod));
-    expect(clazz.getMethod("noSuchMethod"), isNull);
-  }
-
-  @Deprecated('Use abstractKeyword instead')
-  void test_isAbstract() {
-    expect(
-        AstTestFactory.classDeclaration(null, "A", null, null, null, null)
-            .isAbstract,
-        isFalse);
-    expect(
-        AstTestFactory.classDeclaration(
-                Keyword.ABSTRACT, "B", null, null, null, null)
-            .isAbstract,
-        isTrue);
-  }
-}
-
-@reflectiveTest
-class ClassTypeAliasTest extends ParserTestCase {
-  @Deprecated('Use abstractKeyword instead')
-  void test_isAbstract() {
-    expect(
-        AstTestFactory.classTypeAlias(
-                "A",
-                null,
-                null,
-                AstTestFactory.namedType4('B'),
-                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
-                null)
-            .isAbstract,
-        isFalse);
-    expect(
-        AstTestFactory.classTypeAlias(
-                "B",
-                null,
-                Keyword.ABSTRACT,
-                AstTestFactory.namedType4('A'),
-                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
-                null)
-            .isAbstract,
-        isTrue);
-  }
 }
 
 @reflectiveTest
@@ -650,6 +539,29 @@ class C extends B {
 }
 
 @reflectiveTest
+class HideClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+import 'dart:core' hide int Function();
+''');
+    final node = parseResult.findNode.import('import');
+    expect(node.combinators[0].endToken, isNotNull);
+  }
+}
+
+@reflectiveTest
+class ImplementsClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+class A implements C Function() {}
+class C {}
+''');
+    final node = parseResult.findNode.classDeclaration('A');
+    expect(node.implementsClause!.endToken, isNotNull);
+  }
+}
+
+@reflectiveTest
 class IndexExpressionTest extends _AstTest {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
@@ -802,27 +714,22 @@ void f() {
   }
 
   void test_isNullAware_false() {
-    final expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.nullLiteral(),
-      index: AstTestFactory.nullLiteral(),
-    );
-    expect(expression.isNullAware, isFalse);
-  }
-
-  void test_isNullAware_regularIndex() {
-    final expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.nullLiteral(),
-      index: AstTestFactory.nullLiteral(),
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a[0];
+}
+''');
+    final expression = findNode.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.nullLiteral(),
-      hasQuestion: true,
-      index: AstTestFactory.nullLiteral(),
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?[0];
+}
+''');
+    final expression = findNode.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 }
@@ -1067,241 +974,109 @@ void f() {
   }
 
   void test_isNullAware_regularInvocation() {
-    final invocation = AstTestFactory.methodInvocation3(
-        AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a.foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final invocation = AstTestFactory.methodInvocation3(
-        AstTestFactory.nullLiteral(),
-        'foo',
-        null,
-        [],
-        TokenType.QUESTION_PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?.foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
 
 @reflectiveTest
-class NodeListTest {
-  void test_add() {
-    AstNode parent = AstTestFactory.argumentList();
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
-    list.insert(0, secondNode);
-    list.insert(0, firstNode);
-    expect(list, hasLength(2));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(secondNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    AstNode thirdNode = false_();
-    list.insert(1, thirdNode);
-    expect(list, hasLength(3));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(thirdNode));
-    expect(list[2], same(secondNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    expect(thirdNode.parent, same(parent));
-  }
-
-  void test_add_negative() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.insert(-1, true_());
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
-  void test_add_tooBig() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.insert(1, true_());
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
-  void test_addAll() {
-    AstNode parent = AstTestFactory.argumentList();
-    List<AstNode> firstNodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    firstNodes.add(firstNode);
-    firstNodes.add(secondNode);
-    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
-    list.addAll(firstNodes);
-    expect(list, hasLength(2));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(secondNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    List<AstNode> secondNodes = <AstNode>[];
-    AstNode thirdNode = true_();
-    AstNode fourthNode = false_();
-    secondNodes.add(thirdNode);
-    secondNodes.add(fourthNode);
-    list.addAll(secondNodes);
-    expect(list, hasLength(4));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(secondNode));
-    expect(list[2], same(thirdNode));
-    expect(list[3], same(fourthNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    expect(thirdNode.parent, same(parent));
-    expect(fourthNode.parent, same(parent));
-  }
-
-  void test_creation() {
-    AstNode owner = AstTestFactory.argumentList();
-    NodeList<AstNode> list = astFactory.nodeList<AstNode>(owner);
-    expect(list, isNotNull);
-    expect(list, hasLength(0));
-    expect(list.owner, same(owner));
-  }
-
-  void test_get_negative() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list[-1];
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
-  void test_get_tooBig() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list[1];
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
+class NodeListTest extends ParserDiagnosticsTest {
   void test_getBeginToken_empty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    expect(list.beginToken, isNull);
+    final parseResult = parseStringWithErrors(r'''
+final x = f();
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('()');
+    final nodeList = argumentList.arguments;
+    expect(nodeList.beginToken, isNull);
   }
 
   void test_getBeginToken_nonEmpty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory.parenthesizedExpression(true_());
-    list.add(node);
-    expect(list.beginToken, same(node.beginToken));
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0, 1);
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
+    final first = nodeList[0];
+    expect(nodeList.beginToken, same(first.beginToken));
   }
 
   void test_getEndToken_empty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    expect(list.endToken, isNull);
+    final parseResult = parseStringWithErrors(r'''
+final x = f();
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('()');
+    final nodeList = argumentList.arguments;
+    expect(nodeList.endToken, isNull);
   }
 
   void test_getEndToken_nonEmpty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory.parenthesizedExpression(true_());
-    list.add(node);
-    expect(list.endToken, same(node.endToken));
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0, 1);
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
+    final last = nodeList[nodeList.length - 1];
+    expect(nodeList.endToken, same(last.endToken));
   }
 
   void test_indexOf() {
-    List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    AstNode thirdNode = true_();
-    AstNode fourthNode = false_();
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    list.addAll(nodes);
-    expect(list, hasLength(3));
-    expect(list.indexOf(firstNode), 0);
-    expect(list.indexOf(secondNode), 1);
-    expect(list.indexOf(thirdNode), 2);
-    expect(list.indexOf(fourthNode), -1);
-  }
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0, 1, 2);
+final y = 42;
+''');
+    parseResult.assertNoErrors();
 
-  void test_remove() {
-    List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    AstNode thirdNode = true_();
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    list.addAll(nodes);
-    expect(list, hasLength(3));
-    expect(list.removeAt(1), same(secondNode));
-    expect(list, hasLength(2));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(thirdNode));
-  }
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
 
-  void test_remove_negative() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.removeAt(-1);
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
+    final first = nodeList[0];
+    final second = nodeList[1];
+    final third = nodeList[2];
 
-  void test_remove_tooBig() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.removeAt(1);
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
+    expect(nodeList, hasLength(3));
+    expect(nodeList.indexOf(first), 0);
+    expect(nodeList.indexOf(second), 1);
+    expect(nodeList.indexOf(third), 2);
 
-  void test_set() {
-    List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    AstNode thirdNode = true_();
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    list.addAll(nodes);
-    expect(list, hasLength(3));
-    AstNode fourthNode = AstTestFactory.integer(0);
-    list[1] = fourthNode;
-    expect(list, hasLength(3));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(fourthNode));
-    expect(list[2], same(thirdNode));
+    final notInList = parseResult.findNode.integerLiteral('42');
+    expect(nodeList.indexOf(notInList), -1);
   }
 
   void test_set_negative() {
-    AstNode node = true_();
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0);
+final y = 42;
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
+
     try {
-      list[-1] = node;
+      nodeList[-1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
@@ -1309,28 +1084,20 @@ class NodeListTest {
   }
 
   void test_set_tooBig() {
-    AstNode node = true_();
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0);
+final y = 42;
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
     try {
-      list[1] = node;
+      nodeList[1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
     }
-  }
-
-  static BooleanLiteralImpl false_() {
-    return BooleanLiteralImpl(
-      literal: Tokens.true_(),
-      value: true,
-    );
-  }
-
-  static BooleanLiteralImpl true_() {
-    return BooleanLiteralImpl(
-      literal: Tokens.true_(),
-      value: true,
-    );
   }
 }
 
@@ -1344,6 +1111,18 @@ void f(int i) {}
     var parameters = function.functionExpression.parameters;
     var parameter = parameters?.parameters[0] as NormalFormalParameter;
     expect(parameter.sortedCommentAndAnnotations, isEmpty);
+  }
+}
+
+@reflectiveTest
+class OnClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+mixin M on C Function() {}
+class C {}
+''');
+    final node = parseResult.findNode.mixinDeclaration('M');
+    expect(node.onClause!.endToken, isNotNull);
   }
 }
 
@@ -1458,15 +1237,34 @@ void f() {
   }
 
   void test_isNullAware_regularPropertyAccess() {
-    final invocation = AstTestFactory.propertyAccess2(
-        AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  (a).foo;
+}
+''');
+    final invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final invocation = AstTestFactory.propertyAccess2(
-        AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?.foo;
+}
+''');
+    final invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
+  }
+}
+
+@reflectiveTest
+class ShowClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+import 'dart:core' show int Function();
+''');
+    final node = parseResult.findNode.import('import');
+    expect(node.combinators[0].endToken, isNotNull);
   }
 }
 
@@ -1501,31 +1299,25 @@ class A {
     expect(identifier.inGetterContext(), isFalse);
   }
 
-  @deprecated
-  void test_inGetterContext_fieldFormalParameter() {
-    FieldFormalParameter parameter =
-        AstTestFactory.fieldFormalParameter2('test');
-    SimpleIdentifier identifier = parameter.identifier;
-    expect(identifier.inGetterContext(), isFalse);
-  }
-
   void test_inGetterContext_forEachLoop() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("a");
-    Expression iterator = AstTestFactory.listLiteral();
-    Statement body = BlockImpl(
-      leftBracket: Tokens.openCurlyBracket(),
-      statements: [],
-      rightBracket: Tokens.closeCurlyBracket(),
-    );
-    AstTestFactory.forStatement(
-        AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
+    final parseResult = parseStringWithErrors('''
+void f() {
+  for (v in [0]) {}
+}
+''');
+    final identifier = parseResult.findNode.simple('v in');
     expect(identifier.inGetterContext(), isFalse);
   }
 
   void test_inReferenceContext() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("id");
-    AstTestFactory.namedExpression(
-        AstTestFactory.label(identifier), AstTestFactory.identifier3("_"));
+    final parseResult = parseStringWithErrors('''
+void f() {
+  foo(id: 0);
+}
+final v = f(0, 1, 2);
+class C {}
+''');
+    final identifier = parseResult.findNode.simple('id:');
     expect(identifier.inGetterContext(), isFalse);
     expect(identifier.inSetterContext(), isFalse);
   }
@@ -1554,15 +1346,12 @@ class A {
   }
 
   void test_inSetterContext_forEachLoop() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("a");
-    Expression iterator = AstTestFactory.listLiteral();
-    Statement body = BlockImpl(
-      leftBracket: Tokens.openCurlyBracket(),
-      statements: [],
-      rightBracket: Tokens.closeCurlyBracket(),
-    );
-    AstTestFactory.forStatement(
-        AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
+    final parseResult = parseStringWithErrors('''
+void f() {
+  for (v in [0]) {}
+}
+''');
+    final identifier = parseResult.findNode.simple('v in');
     expect(identifier.inSetterContext(), isTrue);
   }
 
@@ -1575,18 +1364,24 @@ final x = List<String>.^foo();
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
-    MethodInvocation invocation = AstTestFactory.methodInvocation2(
-        "test", [AstTestFactory.identifier3("arg0")]);
-    SimpleIdentifier identifier = invocation.methodName;
+    final findNode = _parseStringToFindNode('''
+void f() {
+  foo(0);
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
+    final identifier = invocation.methodName;
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inMethodInvocation_withTarget() {
-    MethodInvocation invocation = AstTestFactory.methodInvocation(
-        AstTestFactory.identifier3("target"),
-        "test",
-        [AstTestFactory.identifier3("arg0")]);
-    SimpleIdentifier identifier = invocation.methodName;
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a.foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
+    final identifier = invocation.methodName;
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1970,154 +1765,177 @@ class SimpleStringLiteralTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class SpreadElementTest extends ParserTestCase {
+class SpreadElementTest extends _AstTest {
   void test_notNullAwareSpread() {
-    final spread = AstTestFactory.spreadElement(
-        TokenType.PERIOD_PERIOD_PERIOD, AstTestFactory.nullLiteral());
+    final findNode = _parseStringToFindNode('''
+final x = [...foo];
+''');
+    final spread = findNode.spreadElement('...foo');
     expect(spread.isNullAware, isFalse);
   }
 
   void test_nullAwareSpread() {
-    final spread = AstTestFactory.spreadElement(
-        TokenType.PERIOD_PERIOD_PERIOD_QUESTION, AstTestFactory.nullLiteral());
+    final findNode = _parseStringToFindNode('''
+final x = [...?foo];
+''');
+    final spread = findNode.spreadElement('...?foo');
     expect(spread.isNullAware, isTrue);
   }
 }
 
 @reflectiveTest
-class StringInterpolationTest extends ParserTestCase {
+class StringInterpolationTest extends ParserDiagnosticsTest {
   void test_contentsOffsetEnd() {
-    var bb = AstTestFactory.interpolationExpression(
-        AstTestFactory.identifier3('bb'));
-    // 'a${bb}ccc'
     {
-      var ae = AstTestFactory.interpolationString("'a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 1);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.contentsOffset, 11);
+      expect(node.contentsEnd, 20);
     }
-    // '''a${bb}ccc'''
+
     {
-      var ae = AstTestFactory.interpolationString("'''a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 3);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r"""
+final v = '''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.contentsOffset, 13);
+      expect(node.contentsEnd, 22);
     }
-    // """a${bb}ccc"""
+
     {
-      var ae = AstTestFactory.interpolationString('"""a', "a");
-      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 3);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = """a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.contentsOffset, 13);
+      expect(node.contentsEnd, 22);
     }
-    // r'a${bb}ccc'
+
     {
-      var ae = AstTestFactory.interpolationString("r'a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 2);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = r'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      expect(node.contentsOffset, 12);
+      expect(node.contentsEnd, 21);
     }
-    // r'''a${bb}ccc'''
+
     {
-      var ae = AstTestFactory.interpolationString("r'''a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 4);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r"""
+final v = r'''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      expect(node.contentsOffset, 14);
+      expect(node.contentsEnd, 23);
     }
-    // r"""a${bb}ccc"""
+
     {
-      var ae = AstTestFactory.interpolationString('r"""a', "a");
-      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 4);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = r"""a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      expect(node.contentsOffset, 14);
+      expect(node.contentsEnd, 23);
     }
   }
 
   void test_isMultiline() {
-    var b = AstTestFactory.interpolationExpression(
-        AstTestFactory.identifier3('bb'));
-    // '
     {
-      var a = AstTestFactory.interpolationString("'a", "a");
-      var c = AstTestFactory.interpolationString("ccc'", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isFalse);
     }
-    // '''
+
     {
-      var a = AstTestFactory.interpolationString("'''a", "a");
-      var c = AstTestFactory.interpolationString("ccc'''", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = "a${bb}ccc";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.isMultiline, isFalse);
+    }
+
+    {
+      final parseResult = parseStringWithErrors(r"""
+final v = '''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
-    // "
+
     {
-      var a = AstTestFactory.interpolationString('"a', "a");
-      var c = AstTestFactory.interpolationString('ccc"', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
-      expect(node.isMultiline, isFalse);
-    }
-    // """
-    {
-      var a = AstTestFactory.interpolationString('"""a', "a");
-      var c = AstTestFactory.interpolationString('ccc"""', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = """a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
   }
 
   void test_isRaw() {
-    var node = parseStringLiteral('"first \$x last"') as StringInterpolation;
+    final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+    parseResult.assertNoErrors();
+    final node = parseResult.findNode.stringInterpolation('ccc');
     expect(node.isRaw, isFalse);
   }
 
   void test_isSingleQuoted() {
-    var b = AstTestFactory.interpolationExpression(
-        AstTestFactory.identifier3('bb'));
-    // "
     {
-      var a = AstTestFactory.interpolationString('"a', "a");
-      var c = AstTestFactory.interpolationString('ccc"', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
-      expect(node.isSingleQuoted, isFalse);
-    }
-    // """
-    {
-      var a = AstTestFactory.interpolationString('"""a', "a");
-      var c = AstTestFactory.interpolationString('ccc"""', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
-      expect(node.isSingleQuoted, isFalse);
-    }
-    // '
-    {
-      var a = AstTestFactory.interpolationString("'a", "a");
-      var c = AstTestFactory.interpolationString("ccc'", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
     }
-    // '''
+
     {
-      var a = AstTestFactory.interpolationString("'''a", "a");
-      var c = AstTestFactory.interpolationString("ccc'''", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r"""
+final v = '''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
+    }
+
+    {
+      final parseResult = parseStringWithErrors(r'''
+final v = "a${bb}ccc";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.isSingleQuoted, isFalse);
+    }
+
+    {
+      final parseResult = parseStringWithErrors(r'''
+final v = """a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.isSingleQuoted, isFalse);
     }
   }
 }
 
 @reflectiveTest
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class SuperFormalParameterTest {
   void test_endToken_noParameters() {
     SuperFormalParameter parameter =
@@ -2159,6 +1977,18 @@ int i = 0;
     var variables = result.unit.declarations[0] as TopLevelVariableDeclaration;
     var variable = variables.variables.variables[0];
     expect(variable.sortedCommentAndAnnotations, isEmpty);
+  }
+}
+
+@reflectiveTest
+class WithClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+class A with C Function() {}
+class C {}
+''');
+    final node = parseResult.findNode.classDeclaration('A');
+    expect(node.withClause!.endToken, isNotNull);
   }
 }
 

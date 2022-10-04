@@ -3,23 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 
 import '../mini_ast.dart';
+import '../mini_ir.dart';
 import '../mini_types.dart';
 
 /// Creates a [Statement] that, when analyzed, will cause [callback] to be
 /// passed an [SsaNodeHarness] allowing the test to examine the values of
 /// variables' SSA nodes.
 Statement getSsaNodes(void Function(SsaNodeHarness) callback) =>
-    new _GetSsaNodes(callback);
+    new _GetSsaNodes(callback, location: computeLocation());
 
 Statement implicitThis_whyNotPromoted(String staticType,
         void Function(Map<Type, NonPromotionReason>) callback) =>
-    new _WhyNotPromoted_ImplicitThis(Type(staticType), callback);
+    new _WhyNotPromoted_ImplicitThis(Type(staticType), callback,
+        location: computeLocation());
 
 /// Test harness for creating flow analysis tests.  This class implements all
 /// the [Operations] needed by flow analysis, as well as other methods needed
@@ -48,16 +49,17 @@ class _GetExpressionInfo extends Expression {
 
   final void Function(ExpressionInfo<Type>?) callback;
 
-  _GetExpressionInfo(this.target, this.callback);
+  _GetExpressionInfo(this.target, this.callback, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    target.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
   }
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeExpression(target);
+    var type =
+        h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
     h.flow.forwardExpression(this, target);
     callback(h.flow.expressionInfoForTesting(this));
     return new SimpleTypeAnalysisResult<Type>(type: type);
@@ -67,15 +69,15 @@ class _GetExpressionInfo extends Expression {
 class _GetSsaNodes extends Statement {
   final void Function(SsaNodeHarness) callback;
 
-  _GetSsaNodes(this.callback);
+  _GetSsaNodes(this.callback, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   void visit(Harness h) {
     callback(SsaNodeHarness(h.flow));
-    h.irBuilder.atom('null');
+    h.irBuilder.atom('null', Kind.statement, location: location);
   }
 }
 
@@ -84,11 +86,11 @@ class _WhyNotPromoted extends Expression {
 
   final void Function(Map<Type, NonPromotionReason>) callback;
 
-  _WhyNotPromoted(this.target, this.callback);
+  _WhyNotPromoted(this.target, this.callback, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    target.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
   }
 
   @override
@@ -96,7 +98,8 @@ class _WhyNotPromoted extends Expression {
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeExpression(target);
+    var type =
+        h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
     h.flow.forwardExpression(this, target);
     Type.withComparisonsAllowed(() {
       callback(h.flow.whyNotPromoted(this)());
@@ -110,10 +113,11 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
 
   final void Function(Map<Type, NonPromotionReason>) callback;
 
-  _WhyNotPromoted_ImplicitThis(this.staticType, this.callback);
+  _WhyNotPromoted_ImplicitThis(this.staticType, this.callback,
+      {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'implicit this (whyNotPromoted)';
@@ -123,7 +127,7 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
     Type.withComparisonsAllowed(() {
       callback(h.flow.whyNotPromotedImplicitThis(staticType)());
     });
-    h.irBuilder.atom('noop');
+    h.irBuilder.atom('noop', Kind.statement, location: location);
   }
 }
 
@@ -134,7 +138,7 @@ extension ExpressionExtensionForFlowAnalysisTesting on Expression {
   /// analysis information associated with it, `null` will be passed to
   /// [callback].
   Expression getExpressionInfo(void Function(ExpressionInfo<Type>?) callback) =>
-      new _GetExpressionInfo(this, callback);
+      new _GetExpressionInfo(this, callback, location: computeLocation());
 
   /// Creates an [Expression] that, when analyzed, will behave the same as
   /// `this`, but after visiting it, will cause [callback] to be passed the
@@ -142,5 +146,5 @@ extension ExpressionExtensionForFlowAnalysisTesting on Expression {
   /// non-promotion info, an empty map will be passed to [callback].
   Expression whyNotPromoted(
           void Function(Map<Type, NonPromotionReason>) callback) =>
-      new _WhyNotPromoted(this, callback);
+      new _WhyNotPromoted(this, callback, location: computeLocation());
 }

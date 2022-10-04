@@ -1165,11 +1165,15 @@ static void JumpIfNotList(Assembler* assembler, Register cid, Label* target) {
 }
 
 static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfNotInRange, target);
 }
 
 // Return type quickly for simple types (not parameterized and not signature).
@@ -1181,6 +1185,9 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ cmpl(EDI, Immediate(kClosureCid));
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
+
+  __ cmpl(EDI, Immediate(kRecordCid));
+  __ j(EQUAL, normal_ir_body);  // Instance is a record.
 
   __ cmpl(EDI, Immediate(kNumPredefinedCids));
   __ j(ABOVE, &use_declaration_type);
@@ -1256,6 +1263,10 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ cmpl(cid1, Immediate(kClosureCid));
+  __ j(EQUAL, normal_ir_body);
+
+  // Check if left hand side is a record. Records are handled in the runtime.
+  __ cmpl(cid1, Immediate(kRecordCid));
   __ j(EQUAL, normal_ir_body);
 
   // Check whether class ids match. If class ids don't match types may still be
@@ -1421,8 +1432,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ movzxb(EDI, FieldAddress(EDI, target::Type::nullability_offset()));
-  __ movzxb(EBX, FieldAddress(EBX, target::Type::nullability_offset()));
+  __ LoadAbstractTypeNullability(EDI, EDI);
+  __ LoadAbstractTypeNullability(EBX, EBX);
   __ cmpl(EDI, EBX);
   __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
   // Fall through to equal case if nullability is strictly equal.
@@ -1449,7 +1460,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // FunctionType object.
   __ movl(EAX, FieldAddress(EAX, target::FunctionType::hash_offset()));
@@ -1460,7 +1471,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));
   __ movl(EBX, Address(ESP, +2 * target::kWordSize));

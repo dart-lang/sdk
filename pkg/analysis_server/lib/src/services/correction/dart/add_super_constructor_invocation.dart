@@ -24,7 +24,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       return;
     }
 
-    var targetClassElement = targetClassNode.declaredElement2!;
+    var targetClassElement = targetClassNode.declaredElement!;
     var superType = targetClassElement.supertype;
     if (superType == null) {
       return;
@@ -50,7 +50,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddSuperConstructorInvocation] producer.
 class _AddInvocation extends CorrectionProducer {
   /// The constructor to be invoked.
@@ -105,6 +105,10 @@ class _AddInvocation extends CorrectionProducer {
             firstParameter = false;
           } else {
             builder.write(', ');
+          }
+
+          if (parameter.isNamed) {
+            builder.write('${parameter.name}: ');
           }
           // default value
           builder.addSimpleLinkedEdit(

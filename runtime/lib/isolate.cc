@@ -244,8 +244,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       case kFloat64x2Cid:
         continue;
 
-      case kArrayCid:
-      {
+      case kArrayCid: {
         array ^= Array::RawCast(raw);
         visitor.VisitObject(array.GetTypeArguments());
         const intptr_t batch_size = (2 << 14) - 1;
@@ -1303,10 +1302,12 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   const ExternalTypedData& typed_data = ExternalTypedData::Handle(
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, length,
                              thread->heap()->SpaceForExternal(length)));
-  FinalizablePersistentHandle::New(thread->isolate_group(), typed_data,
-                                   /* peer= */ data,
-                                   &ExternalTypedDataFinalizer, length,
-                                   /*auto_delete=*/true);
+  FinalizablePersistentHandle* finalizable_ref =
+      FinalizablePersistentHandle::New(thread->isolate_group(), typed_data,
+                                       /* peer= */ data,
+                                       &ExternalTypedDataFinalizer, length,
+                                       /*auto_delete=*/true);
+  ASSERT(finalizable_ref != nullptr);
   return typed_data.ptr();
 }
 

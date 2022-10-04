@@ -1041,7 +1041,7 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
   ASSERT(results->is_empty());
   ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
   if (type.IsFunctionType() || type.IsDartFunctionType() ||
-      !type.IsInstantiated()) {
+      type.IsRecordType() || !type.IsInstantiated()) {
     return Bool::null();
   }
   const Class& type_class = Class::Handle(Z, type.type_class());
@@ -1108,8 +1108,8 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type,
   ASSERT(type.IsFinalized());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
-  // Function types have different type checking rules.
-  if (type.IsFunctionType()) return false;
+  // Function and record types have different type checking rules.
+  if (type.IsFunctionType() || type.IsRecordType()) return false;
 
   const Class& type_class = Class::Handle(type.type_class());
   if (!CHA::HasSingleConcreteImplementation(type_class, type_cid)) {

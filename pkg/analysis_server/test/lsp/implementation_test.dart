@@ -116,6 +116,26 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
     ''');
 
+  Future<void> test_method_startOfParameterList() => _testMarkedContent('''
+      abstract class A {
+        void m^();
+      }
+
+      class B extends A {
+        void [[m]]() {}
+      }
+    ''');
+
+  Future<void> test_method_startOfTypeParameterList() => _testMarkedContent('''
+      abstract class A {
+        void m^<T>();
+      }
+
+      class B extends A {
+        void [[m]]<T>() {}
+      }
+    ''');
+
   Future<void> test_method_sub() => _testMarkedContent('''
       abstract class A {
         void ^b();
@@ -177,7 +197,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     );
 
     final expectedLocations = rangesFromMarkers(content)
-        .map((r) => Location(uri: mainFileUri.toString(), range: r));
+        .map((r) => Location(uri: mainFileUri, range: r));
 
     if (expectResults) {
       expect(res, equals(expectedLocations));

@@ -63,9 +63,9 @@ class VarianceBuilder {
         return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
-      var element = type.element;
+      var element = type.element2;
       var arguments = type.arguments;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;
@@ -174,7 +174,7 @@ class VarianceBuilder {
     try {
       for (var parameter in parameterList.typeParameters) {
         var variance = _computeFunctionType(
-          parameter.declaredElement2!,
+          parameter.declaredElement!,
           returnType: node.returnType?.type,
           typeFormals: null,
           parameters: FunctionTypeBuilder.getParameters(
@@ -220,7 +220,7 @@ class VarianceBuilder {
     _visit.add(node);
     try {
       for (var parameter in parameterList.typeParameters) {
-        var variance = _compute(parameter.declaredElement2!, type);
+        var variance = _compute(parameter.declaredElement!, type);
         _setVariance(parameter, variance);
       }
     } finally {
@@ -257,7 +257,7 @@ class VarianceBuilder {
   }
 
   static void _setVariance(TypeParameter node, Variance variance) {
-    var element = node.declaredElement2 as TypeParameterElementImpl;
+    var element = node.declaredElement as TypeParameterElementImpl;
     element.variance = variance;
   }
 }

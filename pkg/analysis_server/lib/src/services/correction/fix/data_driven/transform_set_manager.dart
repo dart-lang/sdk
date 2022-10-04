@@ -16,6 +16,9 @@ class TransformSetManager {
   /// The name of the data file.
   static const String dataFileName = 'fix_data.yaml';
 
+  /// The name of the data folder.
+  static const String dataFolderName = 'fix_data';
+
   /// Initialize a newly created transform set manager.
   TransformSetManager._();
 
@@ -37,6 +40,10 @@ class TransformSetManager {
       if (transformSet != null) {
         transformSets.add(transformSet);
       }
+      var folder = directory.getChildAssumingFolder(dataFolderName);
+      if (folder.exists) {
+        _loadTransforms(transformSets, folder);
+      }
     }
     var sdkRoot = analysisContext.sdkRoot;
     if (sdkRoot != null) {
@@ -47,6 +54,23 @@ class TransformSetManager {
       }
     }
     return transformSets;
+  }
+
+  /// Recursively search all the children of the specified [folder],
+  /// and add the transform sets found to the [transforms].
+  void _loadTransforms(List<TransformSet> transforms, Folder folder) {
+    for (var resource in folder.getChildren()) {
+      if (resource is File) {
+        if (resource.shortName.endsWith('.yaml')) {
+          var transformSet = _loadTransformSet(resource);
+          if (transformSet != null) {
+            transforms.add(transformSet);
+          }
+        }
+      } else if (resource is Folder) {
+        _loadTransforms(transforms, resource);
+      }
+    }
   }
 
   /// Read the [file] and parse the content. Return the transform set that was

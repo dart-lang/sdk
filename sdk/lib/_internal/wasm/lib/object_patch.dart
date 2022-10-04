@@ -11,6 +11,8 @@ external void _setHash(Object obj, int hash);
 external _Type _getInterfaceTypeRuntimeType(
     Object object, List<Type> typeArguments);
 
+external _Type _getFunctionTypeRuntimeType(Object object);
+
 @patch
 class Object {
   @patch
@@ -47,7 +49,13 @@ class Object {
   external Type get runtimeType;
 
   @pragma("wasm:entry-point")
-  _Type get _runtimeType => _getInterfaceTypeRuntimeType(this, _typeArguments);
+  _Type get _runtimeType {
+    if (ClassID.getID(this) == ClassID.cid_Function) {
+      return _getFunctionTypeRuntimeType(this);
+    } else {
+      return _getInterfaceTypeRuntimeType(this, _typeArguments);
+    }
+  }
 
   @patch
   String toString() => _toString(this);

@@ -141,6 +141,10 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET,
   ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET,
   ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED,
+  ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+  ParserErrorCode.RECORD_LITERAL_EMPTY,
+  ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST,
+  ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -431,6 +435,13 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try declaring a constant.",
   );
 
+  static const ParserErrorCode EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST =
+      ParserErrorCode(
+    'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
+    "Record type named fields list can't be empty.",
+    correctionMessage: "Try adding a record type named field to the list.",
+  );
+
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
     'ENUM_IN_CLASS',
     "Enums can't be declared inside classes.",
@@ -493,6 +504,36 @@ class ParserErrorCode extends ErrorCode {
     "Expected a list or map literal.",
     correctionMessage:
         "Try inserting a list or map literal, or remove the type arguments.",
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_EXTENDS = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected a class name.",
+    correctionMessage: "Try using a class name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_EXTENDS',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_IMPLEMENTS = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected the name of a class or mixin.",
+    correctionMessage:
+        "Try using a class or mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_IMPLEMENTS',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_ON = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected the name of a class or mixin.",
+    correctionMessage:
+        "Try using a class or mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_ON',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_WITH = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected a mixin name.",
+    correctionMessage: "Try using a mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_WITH',
   );
 
   static const ParserErrorCode EXPECTED_STRING_LITERAL = ParserErrorCode(
@@ -1379,6 +1420,26 @@ class ParserErrorCode extends ErrorCode {
     'PREFIX_AFTER_COMBINATOR',
     "The prefix ('as' clause) should come before any show/hide combinators.",
     correctionMessage: "Try moving the prefix before the combinators.",
+  );
+
+  static const ParserErrorCode RECORD_LITERAL_EMPTY = ParserErrorCode(
+    'RECORD_LITERAL_EMPTY',
+    "Record literal can't be empty.",
+    correctionMessage: "Try adding elements or use 'Record.empty()' instead.",
+  );
+
+  static const ParserErrorCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
+      ParserErrorCode(
+    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "Record literal with one field requires a trailing comma.",
+    correctionMessage: "Try adding a trailing comma.",
+  );
+
+  static const ParserErrorCode RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA =
+      ParserErrorCode(
+    'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "Record type with one entry requires a trailing comma.",
+    correctionMessage: "Try adding a trailing comma.",
   );
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =

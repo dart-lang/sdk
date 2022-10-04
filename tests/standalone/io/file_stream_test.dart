@@ -58,7 +58,27 @@ void testStreamIsEmpty() {
   });
 }
 
-void main() {
+Future<void> testStreamAppendedToAfterOpen() async {
+  asyncStart();
+
+  final pipe = Pipe.createSync();
+  pipe.write.add("Hello World".codeUnits);
+  int i = 0;
+  await pipe.read.listen((event) {
+    Expect.listEquals("Hello World".codeUnits, event);
+    if (i < 10) {
+      pipe.write.add("Hello World".codeUnits);
+      ++i;
+    } else {
+      pipe.write.close();
+    }
+  }).asFuture();
+
+  asyncEnd();
+}
+
+void main() async {
   testPauseResumeCancelStream();
   testStreamIsEmpty();
+  await testStreamAppendedToAfterOpen();
 }

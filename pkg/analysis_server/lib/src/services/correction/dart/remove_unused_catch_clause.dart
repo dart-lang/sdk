@@ -24,7 +24,7 @@ class RemoveUnusedCatchClause extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final exceptionParameter = node.parent;
+    final exceptionParameter = node;
     if (exceptionParameter is! CatchClauseParameter) {
       return;
     }

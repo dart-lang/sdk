@@ -40,13 +40,6 @@ class AstFactoryImpl {
   CommentImpl endOfLineComment(List<Token> tokens) =>
       CommentImpl.createEndOfLineComment(tokens);
 
-  ExpressionStatementImpl expressionStatement(
-          Expression expression, Token? semicolon) =>
-      ExpressionStatementImpl(expression as ExpressionImpl, semicolon);
-
-  ExtendsClauseImpl extendsClause(Token extendsKeyword, NamedType superclass) =>
-      ExtendsClauseImpl(extendsKeyword, superclass as NamedTypeImpl);
-
   ExtensionOverrideImpl extensionOverride(
           {required Identifier extensionName,
           TypeArgumentList? typeArguments,
@@ -65,7 +58,7 @@ class AstFactoryImpl {
           TypeAnnotation? type,
           required Token thisKeyword,
           required Token period,
-          required SimpleIdentifier identifier,
+          required Token name,
           TypeParameterList? typeParameters,
           FormalParameterList? parameters,
           Token? question}) =>
@@ -78,39 +71,10 @@ class AstFactoryImpl {
           type as TypeAnnotationImpl?,
           thisKeyword,
           period,
-          identifier as SimpleIdentifierImpl,
+          name,
           typeParameters as TypeParameterListImpl?,
           parameters as FormalParameterListImpl?,
           question);
-
-  ForEachPartsWithDeclarationImpl forEachPartsWithDeclaration(
-          {required DeclaredIdentifier loopVariable,
-          required Token inKeyword,
-          required Expression iterable}) =>
-      ForEachPartsWithDeclarationImpl(loopVariable as DeclaredIdentifierImpl,
-          inKeyword, iterable as ExpressionImpl);
-
-  ForEachPartsWithIdentifierImpl forEachPartsWithIdentifier(
-          {required SimpleIdentifier identifier,
-          required Token inKeyword,
-          required Expression iterable}) =>
-      ForEachPartsWithIdentifierImpl(identifier as SimpleIdentifierImpl,
-          inKeyword, iterable as ExpressionImpl);
-
-  ForElementImpl forElement(
-          {Token? awaitKeyword,
-          required Token forKeyword,
-          required Token leftParenthesis,
-          required ForLoopParts forLoopParts,
-          required Token rightParenthesis,
-          required CollectionElement body}) =>
-      ForElementImpl(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          forLoopParts as ForLoopPartsImpl,
-          rightParenthesis,
-          body as CollectionElementImpl);
 
   FormalParameterListImpl formalParameterList(
           Token leftParenthesis,
@@ -121,79 +85,13 @@ class AstFactoryImpl {
       FormalParameterListImpl(leftParenthesis, parameters, leftDelimiter,
           rightDelimiter, rightParenthesis);
 
-  ForPartsWithDeclarationsImpl forPartsWithDeclarations(
-          {required VariableDeclarationList variables,
-          required Token leftSeparator,
-          Expression? condition,
-          required Token rightSeparator,
-          List<Expression>? updaters}) =>
-      ForPartsWithDeclarationsImpl(
-          variables as VariableDeclarationListImpl,
-          leftSeparator,
-          condition as ExpressionImpl?,
-          rightSeparator,
-          updaters);
-
-  ForPartsWithExpressionImpl forPartsWithExpression(
-          {Expression? initialization,
-          required Token leftSeparator,
-          Expression? condition,
-          required Token rightSeparator,
-          List<Expression>? updaters}) =>
-      ForPartsWithExpressionImpl(
-          initialization as ExpressionImpl?,
-          leftSeparator,
-          condition as ExpressionImpl?,
-          rightSeparator,
-          updaters);
-
-  ForStatementImpl forStatement(
-      {Token? awaitKeyword,
-      required Token forKeyword,
-      required Token leftParenthesis,
-      required ForLoopParts forLoopParts,
-      required Token rightParenthesis,
-      required Statement body}) {
-    return ForStatementImpl(
-        awaitKeyword,
-        forKeyword,
-        leftParenthesis,
-        forLoopParts as ForLoopPartsImpl,
-        rightParenthesis,
-        body as StatementImpl);
-  }
-
-  FunctionDeclarationStatementImpl functionDeclarationStatement(
-          FunctionDeclaration functionDeclaration) =>
-      FunctionDeclarationStatementImpl(
-          functionDeclaration as FunctionDeclarationImpl);
-
-  FunctionExpressionImpl functionExpression(TypeParameterList? typeParameters,
-          FormalParameterList? parameters, FunctionBody body) =>
-      FunctionExpressionImpl(typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl?, body as FunctionBodyImpl);
-
-  FunctionExpressionInvocationImpl functionExpressionInvocation(
-          Expression function,
-          TypeArgumentList? typeArguments,
-          ArgumentList argumentList) =>
-      FunctionExpressionInvocationImpl(
-          function as ExpressionImpl,
-          typeArguments as TypeArgumentListImpl?,
-          argumentList as ArgumentListImpl);
-
-  FunctionReferenceImpl functionReference(
-          {required Expression function, TypeArgumentList? typeArguments}) =>
-      FunctionReferenceImpl(function as ExpressionImpl,
-          typeArguments: typeArguments as TypeArgumentListImpl?);
-
   FunctionTypedFormalParameterImpl functionTypedFormalParameter2(
           {Comment? comment,
           List<Annotation>? metadata,
           Token? covariantKeyword,
           Token? requiredKeyword,
           TypeAnnotation? returnType,
-          required SimpleIdentifier identifier,
+          required Token name,
           TypeParameterList? typeParameters,
           required FormalParameterList parameters,
           Token? question}) =>
@@ -203,70 +101,10 @@ class AstFactoryImpl {
           covariantKeyword,
           requiredKeyword,
           returnType as TypeAnnotationImpl?,
-          identifier as SimpleIdentifierImpl,
+          name,
           typeParameters as TypeParameterListImpl?,
           parameters as FormalParameterListImpl,
           question);
-
-  GenericFunctionTypeImpl genericFunctionType(
-          TypeAnnotation? returnType,
-          Token functionKeyword,
-          TypeParameterList? typeParameters,
-          FormalParameterList parameters,
-          {Token? question}) =>
-      GenericFunctionTypeImpl(
-          returnType as TypeAnnotationImpl?,
-          functionKeyword,
-          typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl,
-          question: question);
-
-  HideClauseImpl hideClause(
-          {required Token hideKeyword,
-          required List<ShowHideClauseElement> elements}) =>
-      HideClauseImpl(hideKeyword, elements);
-
-  HideCombinatorImpl hideCombinator(
-          Token keyword, List<SimpleIdentifier> hiddenNames) =>
-      HideCombinatorImpl(keyword, hiddenNames);
-
-  IfElementImpl ifElement(
-          {required Token ifKeyword,
-          required Token leftParenthesis,
-          required Expression condition,
-          required Token rightParenthesis,
-          required CollectionElement thenElement,
-          Token? elseKeyword,
-          CollectionElement? elseElement}) =>
-      IfElementImpl(
-          ifKeyword,
-          leftParenthesis,
-          condition as ExpressionImpl,
-          rightParenthesis,
-          thenElement as CollectionElementImpl,
-          elseKeyword,
-          elseElement as CollectionElementImpl?);
-
-  IfStatementImpl ifStatement(
-          Token ifKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token rightParenthesis,
-          Statement thenStatement,
-          Token? elseKeyword,
-          Statement? elseStatement) =>
-      IfStatementImpl(
-          ifKeyword,
-          leftParenthesis,
-          condition as ExpressionImpl,
-          rightParenthesis,
-          thenStatement as StatementImpl,
-          elseKeyword,
-          elseStatement as StatementImpl?);
-
-  ImplementsClauseImpl implementsClause(
-          Token implementsKeyword, List<NamedType> interfaces) =>
-      ImplementsClauseImpl(implementsKeyword, interfaces);
 
   ImplicitCallReferenceImpl implicitCallReference({
     required Expression expression,
@@ -306,24 +144,15 @@ class AstFactoryImpl {
           argumentList as ArgumentListImpl,
           typeArguments: typeArguments as TypeArgumentListImpl?);
 
-  IntegerLiteralImpl integerLiteral(Token literal, int? value) =>
-      IntegerLiteralImpl(literal, value);
-
   InterpolationExpressionImpl interpolationExpression(
           Token leftBracket, Expression expression, Token? rightBracket) =>
       InterpolationExpressionImpl(
           leftBracket, expression as ExpressionImpl, rightBracket);
 
-  InterpolationStringImpl interpolationString(Token contents, String value) =>
-      InterpolationStringImpl(contents, value);
-
   IsExpressionImpl isExpression(Expression expression, Token isOperator,
           Token? notOperator, TypeAnnotation type) =>
       IsExpressionImpl(expression as ExpressionImpl, isOperator, notOperator,
           type as TypeAnnotationImpl);
-
-  LabelImpl label(SimpleIdentifier label, Token colon) =>
-      LabelImpl(label as SimpleIdentifierImpl, colon);
 
   LabeledStatementImpl labeledStatement(
           List<Label> labels, Statement statement) =>
@@ -354,39 +183,6 @@ class AstFactoryImpl {
         rightBracket);
   }
 
-  MapLiteralEntryImpl mapLiteralEntry(
-          Expression key, Token separator, Expression value) =>
-      MapLiteralEntryImpl(
-          key as ExpressionImpl, separator, value as ExpressionImpl);
-
-  MethodInvocationImpl methodInvocation(
-          Expression? target,
-          Token? operator,
-          SimpleIdentifier methodName,
-          TypeArgumentList? typeArguments,
-          ArgumentList argumentList) =>
-      MethodInvocationImpl(
-          target as ExpressionImpl?,
-          operator,
-          methodName as SimpleIdentifierImpl,
-          typeArguments as TypeArgumentListImpl?,
-          argumentList as ArgumentListImpl);
-
-  NamedExpressionImpl namedExpression(Label name, Expression expression) =>
-      NamedExpressionImpl(name as LabelImpl, expression as ExpressionImpl);
-
-  NamedTypeImpl namedType({
-    required Identifier name,
-    TypeArgumentList? typeArguments,
-    Token? question,
-  }) =>
-      NamedTypeImpl(
-          name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
-          question: question);
-
-  NativeClauseImpl nativeClause(Token nativeKeyword, StringLiteral? name) =>
-      NativeClauseImpl(nativeKeyword, name as StringLiteralImpl?);
-
   NativeFunctionBodyImpl nativeFunctionBody(
           Token nativeKeyword, StringLiteral? stringLiteral, Token semicolon) =>
       NativeFunctionBodyImpl(
@@ -394,12 +190,6 @@ class AstFactoryImpl {
 
   NodeListImpl<E> nodeList<E extends AstNode>(AstNode owner) =>
       NodeListImpl<E>(owner as AstNodeImpl);
-
-  NullLiteralImpl nullLiteral(Token literal) => NullLiteralImpl(literal);
-
-  OnClauseImpl onClause(
-          Token onKeyword, List<NamedType> superclassConstraints) =>
-      OnClauseImpl(onKeyword, superclassConstraints);
 
   ParenthesizedExpressionImpl parenthesizedExpression(Token leftParenthesis,
           Expression expression, Token rightParenthesis) =>
@@ -457,10 +247,6 @@ class AstFactoryImpl {
           required List<ShowHideClauseElement> elements}) =>
       ShowClauseImpl(showKeyword, elements);
 
-  ShowCombinatorImpl showCombinator(
-          Token keyword, List<SimpleIdentifier> shownNames) =>
-      ShowCombinatorImpl(keyword, shownNames);
-
   ShowHideElementImpl showHideElement(
           {required Token? modifier, required SimpleIdentifier name}) =>
       ShowHideElementImpl(modifier, name);
@@ -472,7 +258,7 @@ class AstFactoryImpl {
           Token? requiredKeyword,
           Token? keyword,
           TypeAnnotation? type,
-          required SimpleIdentifier? identifier}) =>
+          required Token? name}) =>
       SimpleFormalParameterImpl(
           comment as CommentImpl?,
           metadata,
@@ -480,7 +266,7 @@ class AstFactoryImpl {
           requiredKeyword,
           keyword,
           type as TypeAnnotationImpl?,
-          identifier as SimpleIdentifierImpl?);
+          name);
 
   SimpleIdentifierImpl simpleIdentifier(Token token,
       {bool isDeclaration = false}) {
@@ -524,7 +310,7 @@ class AstFactoryImpl {
           TypeAnnotation? type,
           required Token superKeyword,
           required Token period,
-          required SimpleIdentifier identifier,
+          required Token name,
           TypeParameterList? typeParameters,
           FormalParameterList? parameters,
           Token? question}) =>
@@ -537,7 +323,7 @@ class AstFactoryImpl {
           type as TypeAnnotationImpl?,
           superKeyword,
           period,
-          identifier as SimpleIdentifierImpl,
+          name,
           typeParameters as TypeParameterListImpl?,
           parameters as FormalParameterListImpl?,
           question);

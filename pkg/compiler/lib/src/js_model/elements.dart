@@ -222,10 +222,9 @@ abstract class JFunction extends JMember
   @override
   final AsyncMarker asyncMarker;
 
-  JFunction(JLibrary library, JClass? enclosingClass, Name name,
+  JFunction(super.library, super.enclosingClass, super.name,
       this.parameterStructure, this.asyncMarker,
-      {bool isStatic = false, this.isExternal = false})
-      : super(library, enclosingClass, name, isStatic: isStatic);
+      {super.isStatic, this.isExternal = false});
 }
 
 abstract class JConstructor extends JFunction
@@ -267,10 +266,8 @@ class JGenerativeConstructor extends JConstructor {
   static const String tag = 'generative-constructor';
 
   JGenerativeConstructor(
-      JClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {required bool isExternal, required bool isConst})
-      : super(enclosingClass, name, parameterStructure,
-            isExternal: isExternal, isConst: isConst);
+      super.enclosingClass, super.name, super.parameterStructure,
+      {required super.isExternal, required super.isConst});
 
   factory JGenerativeConstructor.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -314,12 +311,10 @@ class JFactoryConstructor extends JConstructor {
   final bool isFromEnvironmentConstructor;
 
   JFactoryConstructor(
-      JClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {required bool isExternal,
-      required bool isConst,
-      required this.isFromEnvironmentConstructor})
-      : super(enclosingClass, name, parameterStructure,
-            isExternal: isExternal, isConst: isConst);
+      super.enclosingClass, super.name, super.parameterStructure,
+      {required super.isExternal,
+      required super.isConst,
+      required this.isFromEnvironmentConstructor});
 
   factory JFactoryConstructor.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -401,13 +396,11 @@ class JMethod extends JFunction {
   @override
   final bool isAbstract;
 
-  JMethod(JLibrary library, JClass? enclosingClass, Name name,
-      ParameterStructure parameterStructure, AsyncMarker asyncMarker,
-      {required bool isStatic,
-      required bool isExternal,
-      required this.isAbstract})
-      : super(library, enclosingClass, name, parameterStructure, asyncMarker,
-            isStatic: isStatic, isExternal: isExternal);
+  JMethod(super.library, super.enclosingClass, super.name,
+      super.parameterStructure, super.asyncMarker,
+      {required super.isStatic,
+      required super.isExternal,
+      required this.isAbstract});
 
   factory JMethod.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -644,11 +637,10 @@ class JField extends JMember implements FieldEntity, IndexedField {
   @override
   final bool isConst;
 
-  JField(JLibrary library, JClass? enclosingClass, Name name,
-      {required bool isStatic,
+  JField(super.library, super.enclosingClass, super.name,
+      {required super.isStatic,
       required this.isAssignable,
-      required this.isConst})
-      : super(library, enclosingClass, name, isStatic: isStatic);
+      required this.isConst});
 
   factory JField.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

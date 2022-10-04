@@ -1074,7 +1074,7 @@ const Code<Null> codeCompilingWithSoundNullSafety =
 const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
     "CompilingWithSoundNullSafety",
     severity: Severity.info,
-    problemMessage: r"""Compiling with sound null safety""");
+    problemMessage: r"""Compiling with sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCompilingWithoutSoundNullSafety =
@@ -1084,7 +1084,8 @@ const Code<Null> codeCompilingWithoutSoundNullSafety =
 const MessageCode messageCompilingWithoutSoundNullSafety = const MessageCode(
     "CompilingWithoutSoundNullSafety",
     severity: Severity.info,
-    problemMessage: r"""Compiling without sound null safety""");
+    problemMessage: r"""Compiling without sound null safety!
+Dart 3 will only support sound null safety, see https://dart.dev/null-safety""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2882,25 +2883,14 @@ const MessageCode messageEmptyOptionalParameterList = const MessageCode(
     correctionMessage: r"""Try adding an optional parameter to the list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeEmptyRecordTypeFieldsList =
-    messageEmptyRecordTypeFieldsList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEmptyRecordTypeFieldsList = const MessageCode(
-    "EmptyRecordTypeFieldsList",
-    analyzerCodes: <String>["MISSING_IDENTIFIER"],
-    problemMessage: r"""Record type fields list cannot be empty.""",
-    correctionMessage: r"""Try adding a record type field to the list.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyRecordTypeNamedFieldsList =
     messageEmptyRecordTypeNamedFieldsList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEmptyRecordTypeNamedFieldsList = const MessageCode(
     "EmptyRecordTypeNamedFieldsList",
-    analyzerCodes: <String>["MISSING_IDENTIFIER"],
-    problemMessage: r"""Record type named fields list cannot be empty.""",
+    index: 129,
+    problemMessage: r"""Record type named fields list can't be empty.""",
     correctionMessage:
         r"""Try adding a record type named field to the list.""");
 
@@ -7132,6 +7122,76 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateJsInteropStaticInteropMockExternalExtensionMemberConflict =
+    const Template<Message Function(String name, String string)>(
+        problemMessageTemplate:
+            r"""External extension member with name '#name' is defined in the following extensions and none are more specific: #string.""",
+        correctionMessageTemplate:
+            r"""Try using the `@JS` annotation to rename conflicting members.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeJsInteropStaticInteropMockExternalExtensionMemberConflict =
+    const Code<Message Function(String name, String string)>(
+  "JsInteropStaticInteropMockExternalExtensionMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(
+      codeJsInteropStaticInteropMockExternalExtensionMemberConflict,
+      problemMessage:
+          """External extension member with name '${name}' is defined in the following extensions and none are more specific: ${string}.""",
+      correctionMessage: """Try using the `@JS` annotation to rename conflicting members.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String name2,
+        String
+            name3)> templateJsInteropStaticInteropMockMissingOverride = const Template<
+        Message Function(
+            String name, String name2, String name3)>(
+    problemMessageTemplate:
+        r"""`@staticInterop` class '#name' has external extension member '#name2', but Dart class '#name3' does not have an overriding instance member.""",
+    correctionMessageTemplate:
+        r"""Add a Dart instance member in '#name3' that overrides '#name.#name2'.""",
+    withArguments: _withArgumentsJsInteropStaticInteropMockMissingOverride);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String name3)>
+    codeJsInteropStaticInteropMockMissingOverride =
+    const Code<Message Function(String name, String name2, String name3)>(
+  "JsInteropStaticInteropMockMissingOverride",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockMissingOverride(
+    String name, String name2, String name3) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeJsInteropStaticInteropMockMissingOverride,
+      problemMessage:
+          """`@staticInterop` class '${name}' has external extension member '${name2}', but Dart class '${name3}' does not have an overriding instance member.""",
+      correctionMessage: """Add a Dart instance member in '${name3}' that overrides '${name}.${name2}'.""",
+      arguments: {'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
     const Template<Message Function(String name)>(
@@ -9125,19 +9185,6 @@ const MessageCode messageObjectMixesIn = const MessageCode("ObjectMixesIn",
     problemMessage: r"""The class 'Object' can't use mixins.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeOnlyOneRecordTypeFieldsList =
-    messageOnlyOneRecordTypeFieldsList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageOnlyOneRecordTypeFieldsList = const MessageCode(
-    "OnlyOneRecordTypeFieldsList",
-    analyzerCodes: <String>["MISSING_IDENTIFIER"],
-    problemMessage:
-        r"""Record type fields list cannot contain only one element without a named field.""",
-    correctionMessage:
-        r"""Try adding another record type field to the list or add a named field.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9913,6 +9960,41 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
     analyzerCodes: <String>["PRIVATE_OPTIONAL_PARAMETER"],
     problemMessage: r"""An optional named parameter can't start with '_'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordLiteralEmpty = messageRecordLiteralEmpty;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordLiteralEmpty = const MessageCode(
+    "RecordLiteralEmpty",
+    index: 128,
+    problemMessage: r"""Record literal can't be empty.""",
+    correctionMessage:
+        r"""Try adding elements or use 'Record.empty()' instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordLiteralOnePositionalFieldNoTrailingComma =
+    messageRecordLiteralOnePositionalFieldNoTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
+    const MessageCode("RecordLiteralOnePositionalFieldNoTrailingComma",
+        index: 127,
+        problemMessage:
+            r"""Record literal with one field requires a trailing comma.""",
+        correctionMessage: r"""Try adding a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordTypeOnePositionalFieldNoTrailingComma =
+    messageRecordTypeOnePositionalFieldNoTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
+    const MessageCode("RecordTypeOnePositionalFieldNoTrailingComma",
+        index: 130,
+        problemMessage:
+            r"""Record type with one entry requires a trailing comma.""",
+        correctionMessage: r"""Try adding a trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectingConstructorWithAnotherInitializer =

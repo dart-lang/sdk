@@ -15,24 +15,21 @@ const int _errorResponseErrorType = 0;
 const int _osErrorResponseErrorCode = 1;
 const int _osErrorResponseMessage = 2;
 
-// Functions used to receive exceptions from native ports.
-bool _isErrorResponse(response) =>
-    response is List && response[0] != _successResponse;
-
-/// Returns an [Exception] or an [Error].
-_exceptionFromResponse(response, String message, String path) {
-  assert(_isErrorResponse(response));
-  switch (response[_errorResponseErrorType]) {
-    case _illegalArgumentResponse:
-      return new ArgumentError("$message: $path");
-    case _osErrorResponse:
-      var err = new OSError(response[_osErrorResponseMessage],
-          response[_osErrorResponseErrorCode]);
-      return new FileSystemException(message, path, err);
-    case _fileClosedResponse:
-      return new FileSystemException("File closed", path);
-    default:
-      return new Exception("Unknown error");
+/// If the [response] is an error, throws an [Exception] or an [Error].
+void _checkForErrorResponse(Object? response, String message, String path) {
+  if (response is List<Object?> && response[0] != _successResponse) {
+    switch (response[_errorResponseErrorType]) {
+      case _illegalArgumentResponse:
+        throw ArgumentError("$message: $path");
+      case _osErrorResponse:
+        var err = OSError(response[_osErrorResponseMessage] as String,
+            response[_osErrorResponseErrorCode] as int);
+        throw FileSystemException(message, path, err);
+      case _fileClosedResponse:
+        throw FileSystemException("File closed", path);
+      default:
+        throw AssertionError("Unknown error");
+    }
   }
 }
 

@@ -215,7 +215,7 @@ class _ProcessStartStatus {
 // implicit constructor.
 class _ProcessImplNativeWrapper extends NativeFieldWrapperClass1 {}
 
-class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
+class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   static bool connectedResourceHandler = false;
 
   _ProcessImpl(

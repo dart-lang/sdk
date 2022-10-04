@@ -506,9 +506,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         throw createError(response, "Failed host lookup: '$host'");
       }
       return [
-        for (var result in response.skip(1))
-          _InternetAddress(InternetAddressType._from(result[0]), result[1],
-              host, result[2], result[3])
+        for (List<Object?> result in (response as List).skip(1))
+          _InternetAddress(
+              InternetAddressType._from(result[0] as int),
+              result[1] as String,
+              host,
+              result[2] as Uint8List,
+              result[3] as int)
       ];
     });
   }
@@ -530,7 +534,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed reverse host lookup", addr);
       } else {
-        return (addr as _InternetAddress)._cloneWithNewHost(response);
+        return addr._cloneWithNewHost(response as String);
       }
     });
   }
@@ -544,16 +548,19 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed listing interfaces");
       } else {
-        var map = response.skip(1).fold(new Map<String, NetworkInterface>(),
-            (map, result) {
-          var type = InternetAddressType._from(result[0]);
-          var name = result[3];
-          var index = result[4];
-          var address = _InternetAddress(type, result[1], "", result[2]);
+        var map = (response as List)
+            .skip(1)
+            .fold(new Map<String, NetworkInterface>(), (map, result) {
+          List<Object?> resultList = result as List<Object?>;
+          var type = InternetAddressType._from(resultList[0] as int);
+          var name = resultList[3] as String;
+          var index = resultList[4] as int;
+          var address = _InternetAddress(
+              type, resultList[1] as String, "", resultList[2] as Uint8List);
           if (!includeLinkLocal && address.isLinkLocal) return map;
           if (!includeLoopback && address.isLoopback) return map;
           map.putIfAbsent(name, () => new _NetworkInterface(name, index));
-          map[name].addresses.add(address);
+          (map[name] as _NetworkInterface).addresses.add(address);
           return map;
         });
         return map.values.toList();
@@ -749,7 +756,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 "Address family not supported by protocol family, "
                 // ...and then add some details.
                 "sourceAddress.type must be ${InternetAddressType.unix} but was "
-                "${source.type}", address: address);
+                "${source.type}",
+                address: address);
           }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
@@ -1541,23 +1549,23 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static createError(error, String message,
       [InternetAddress? address, int? port]) {
     if (error is OSError) {
-      return new SocketException(message,
+      return SocketException(message,
           osError: error, address: address, port: port);
     } else if (error is List) {
       assert(isErrorResponse(error));
       switch (error[0]) {
         case _illegalArgumentResponse:
-          return new ArgumentError();
+          return ArgumentError();
         case _osErrorResponse:
-          return new SocketException(message,
-              osError: new OSError(error[2], error[1]),
+          return SocketException(message,
+              osError: OSError(error[2], error[1]),
               address: address,
               port: port);
         default:
-          return new Exception("Unknown error");
+          return AssertionError("Unknown error");
       }
     } else {
-      return new SocketException(message, address: address, port: port);
+      return SocketException(message, address: address, port: port);
     }
   }
 
@@ -2585,23 +2593,49 @@ class ResourceHandle {
   factory ResourceHandle.fromStdout(Stdout stdout) {
     return _ResourceHandleImpl(stdout._fd);
   }
+
+  factory ResourceHandle.fromReadPipe(ReadPipe pipe) {
+    _ReadPipe rp = pipe as _ReadPipe;
+    return ResourceHandle.fromFile(rp._openedFile!);
+  }
+
+  factory ResourceHandle.fromWritePipe(WritePipe pipe) {
+    _WritePipe wp = pipe as _WritePipe;
+    return ResourceHandle.fromFile(wp._file);
+  }
 }
 
 @pragma("vm:entry-point")
 class _ResourceHandleImpl implements ResourceHandle {
+  bool _toMethodCalled = false;
+
   @pragma("vm:entry-point")
   int _handle; // file descriptor on linux
   @pragma("vm:entry-point")
   _ResourceHandleImpl(this._handle);
 
-  @pragma("vm:external-name", "ResourceHandleImpl_toFile")
-  external RandomAccessFile toFile();
-  @pragma("vm:external-name", "ResourceHandleImpl_toSocket")
-  external Socket toSocket();
-  @pragma("vm:external-name", "ResourceHandleImpl_toRawSocket")
-  external List<dynamic> _toRawSocket();
+  RandomAccessFile toFile() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+    return _toFile();
+  }
+
+  RawDatagramSocket toRawDatagramSocket() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+    return _toRawDatagramSocket();
+  }
 
   RawSocket toRawSocket() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+
     List<dynamic> list = _toRawSocket();
     InternetAddressType type = InternetAddressType._from(list[0] as int);
     String hostname = list[1] as String;
@@ -2615,8 +2649,30 @@ class _ResourceHandleImpl implements ResourceHandle {
     return _RawSocket(nativeSocket);
   }
 
+  Socket toSocket() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+    return _toSocket();
+  }
+
+  _ReadPipe toReadPipe() {
+    return _ReadPipe(toFile());
+  }
+
+  _WritePipe toWritePipe() {
+    return _WritePipe(toFile());
+  }
+
+  @pragma("vm:external-name", "ResourceHandleImpl_toFile")
+  external RandomAccessFile _toFile();
+  @pragma("vm:external-name", "ResourceHandleImpl_toSocket")
+  external Socket _toSocket();
+  @pragma("vm:external-name", "ResourceHandleImpl_toRawSocket")
+  external List<dynamic> _toRawSocket();
   @pragma("vm:external-name", "ResourceHandleImpl_toRawDatagramSocket")
-  external RawDatagramSocket toRawDatagramSocket();
+  external RawDatagramSocket _toRawDatagramSocket();
 
   @pragma("vm:entry-point")
   static final _ResourceHandleImpl _sentinel = _ResourceHandleImpl(-1);

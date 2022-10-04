@@ -23,6 +23,7 @@ worlds:
           }
           static String get getter2 => "42!";
           static void set setter2(String s) {}
+          static int field = 42;
         }
     expectedLibraryCount: 1
   - entry: main.dart
@@ -45,6 +46,7 @@ worlds:
           }
           static String get getter2 => "42!";
           static void set setter2(String s) {}
+          static int field = 42;
         }
     expectedLibraryCount: 1
     advancedInvalidation: bodiesOnly

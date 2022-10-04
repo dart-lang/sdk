@@ -25,6 +25,15 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
+  /// Generate the given [constant].
+  void generateConstant(_Constant constant) {
+    write('const String ');
+    write(constant.name);
+    write(' = ');
+    write(constant.value);
+    writeln(';');
+  }
+
   /// Generate all of the constants associated with the [api].
   void generateConstants() {
     var visitor = _ConstantVisitor(api);
@@ -32,17 +41,8 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
     var constants = visitor.constants;
     constants.sort((first, second) => first.name.compareTo(second.name));
     for (var constant in constants) {
-      generateContant(constant);
+      generateConstant(constant);
     }
-  }
-
-  /// Generate the given [constant].
-  void generateContant(_Constant constant) {
-    write('const String ');
-    write(constant.name);
-    write(' = ');
-    write(constant.value);
-    writeln(';');
   }
 
   @override

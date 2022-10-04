@@ -4,7 +4,7 @@
 
 // part of "core_patch.dart";
 
-@pragma("wasm:import", "performance.now")
+@pragma("wasm:import", "dart2wasm.performanceNow")
 external double _performanceNow();
 
 @patch

@@ -27,6 +27,7 @@ import 'kernel_world_interfaces.dart' as interfaces;
 
 /// The immutable result of the [ResolutionWorldBuilder].
 class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
+  @override
   final KernelToElementMap elementMap;
   @override
   final KElementEnvironment elementEnvironment;
@@ -34,6 +35,8 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
   final DartTypes dartTypes;
   @override
   final KCommonElements commonElements;
+
+  @override
   final NativeData nativeData;
   final InterceptorData interceptorData;
   @override
@@ -48,8 +51,11 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
 
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
+
+  @override
   final KFieldAnalysis fieldAnalysis;
   final Iterable<ClassEntity> liveNativeClasses;
+  @override
   final Map<MemberEntity, MemberUsage> liveMemberUsage;
 
   @override

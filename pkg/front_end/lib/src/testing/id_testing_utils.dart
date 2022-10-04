@@ -48,6 +48,11 @@ Library? lookupLibrary(Component component, Uri uri, {bool required = true}) {
     if (library.importUri == uri) {
       return library;
     }
+    for (LibraryPart part in library.parts) {
+      if (library.fileUri.resolve(part.partUri) == uri) {
+        return library;
+      }
+    }
   }
   if (required) {
     throw new ArgumentError("Library '$uri' not found.");
@@ -160,8 +165,13 @@ ExtensionBuilder? lookupExtensionBuilder(
   TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, extension.enclosingLibrary,
       required: required);
-  ExtensionBuilder? extensionBuilder =
-      libraryBuilder.members![extension.name] as ExtensionBuilder?;
+  ExtensionBuilder? extensionBuilder;
+  for (ExtensionBuilder builder in libraryBuilder.extensions!) {
+    if (builder.extension == extension) {
+      extensionBuilder = builder;
+      break;
+    }
+  }
   if (extensionBuilder == null && required) {
     throw new ArgumentError("ExtensionBuilder for $extension not found.");
   }
@@ -178,7 +188,8 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
-      memberBuilder = classBuilder.constructorScope.local[memberName];
+      memberBuilder =
+          classBuilder.constructorScope.lookupLocalMember(memberName);
     } else {
       memberBuilder = classBuilder.scope.lookupLocalMember(memberName,
           setter: member is Procedure && member.isSetter) as MemberBuilder?;
@@ -414,10 +425,10 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
       sb.write(comma);
       sb.write('{');
       comma = '';
-      for (ConstantRecordNamedField namedField in node.named) {
+      for (MapEntry<String, Constant> entry in node.named.entries) {
         sb.write(comma);
-        sb.write('${namedField.name}:');
-        namedField.value.accept(this);
+        sb.write('${entry.key}:');
+        entry.value.accept(this);
         comma = ',';
       }
       sb.write('}');

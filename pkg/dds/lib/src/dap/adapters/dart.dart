@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:json_rpc_2/error_code.dart' as jsonRpcErrors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
@@ -17,11 +18,13 @@ import '../base_debug_adapter.dart';
 import '../exceptions.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
+import '../progress_reporter.dart';
 import '../protocol_common.dart';
 import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import '../utils.dart';
+import 'mixins.dart';
 
 /// The mime type to send with source responses to the client.
 ///
@@ -111,6 +114,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) : super(
           name: name,
           cwd: cwd,
@@ -123,6 +127,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
+          sendCustomProgressEvents: sendCustomProgressEvents,
         );
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
@@ -169,6 +174,11 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   /// libraries.
   final bool? debugSdkLibraries;
 
+  /// Whether to send custom progress events for long-running operations.
+  ///
+  /// If `false` or `null`, will send standard DAP progress notifications.
+  final bool? sendCustomProgressEvents;
+
   /// Whether external package libraries should be marked as debuggable.
   ///
   /// Treated as `false` if null, which means "step in" will not step into
@@ -212,6 +222,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.evaluateGettersInDebugViews,
     required this.evaluateToStringInDebugViews,
     required this.sendLogsToClient,
+    this.sendCustomProgressEvents = false,
   });
 
   DartCommonLaunchAttachRequestArguments.fromMap(Map<String, Object?> obj)
@@ -228,7 +239,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
             obj['evaluateGettersInDebugViews'] as bool?,
         evaluateToStringInDebugViews =
             obj['evaluateToStringInDebugViews'] as bool?,
-        sendLogsToClient = obj['sendLogsToClient'] as bool?;
+        sendLogsToClient = obj['sendLogsToClient'] as bool?,
+        sendCustomProgressEvents = obj['sendCustomProgressEvents'] as bool?;
 
   Map<String, Object?> toJson() => {
         if (restart != null) 'restart': restart,
@@ -245,6 +257,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (evaluateToStringInDebugViews != null)
           'evaluateToStringInDebugViews': evaluateToStringInDebugViews,
         if (sendLogsToClient != null) 'sendLogsToClient': sendLogsToClient,
+        if (sendCustomProgressEvents != null)
+          'sendCustomProgressEvents': sendCustomProgressEvents,
       };
 }
 
@@ -285,7 +299,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
 /// (for example when the server sends a `StoppedEvent` it may cause the client
 /// to then send a `stackTraceRequest` or `scopesRequest` to get variables).
 abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
-    TA extends AttachRequestArguments> extends BaseDebugAdapter<TL, TA> {
+        TA extends AttachRequestArguments> extends BaseDebugAdapter<TL, TA>
+    with FileUtils {
   late final DartCommonLaunchAttachRequestArguments args;
   final _debuggerInitializedCompleter = Completer<void>();
   final _configurationDoneCompleter = Completer<void>();
@@ -544,12 +559,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// The URI protocol will be changed to ws/wss but otherwise not normalised.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
-  Future<void> connectDebugger(
-    Uri uri, {
-    // TODO(dantup): Remove this after parameter after updating the Flutter
-    //   DAP to not pass it.
-    bool? resumeIfStarting,
-  }) async {
+  Future<void> connectDebugger(Uri uri) async {
     // Start up a DDS instance for this VM.
     if (enableDds) {
       logger?.call('Starting a DDS instance for $uri');
@@ -637,6 +647,26 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     );
   }
 
+  /// Starts reporting progress to the client for a single operation.
+  ///
+  /// The returned [DapProgressReporter] can be used to send updated messages
+  /// and to complete progress (hiding the progress notification).
+  ///
+  /// Clients will use [title] as a prefix for all updates, appending [message]
+  /// in the form:
+  ///
+  /// title: message
+  ///
+  /// When `update` is called, the new message will replace the previous
+  /// message but the title prefix will remain.
+  DapProgressReporter startProgressNotification(
+    String id,
+    String title, {
+    String? message,
+  }) {
+    return DapProgressReporter.start(this, id, title, message: message);
+  }
+
   /// Process any existing isolates that may have been created before the
   /// streams above were set up.
   Future<void> _configureExistingIsolates(
@@ -711,7 +741,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     void Function(Object?) sendResponse,
   ) async {
     switch (request.command) {
-
       // Used by tests to validate available protocols (e.g. DDS). There may be
       // value in making this available to clients in future, but for now it's
       // internal.
@@ -1191,7 +1220,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     final path = args.source.path;
     final name = args.source.name;
-    final uri = path != null ? Uri.file(path).toString() : name!;
+    final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
     await _isolateManager.setBreakpoints(uri, breakpoints);
 
@@ -2071,13 +2100,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     try {
       return await func();
     } on vm.RPCError catch (e) {
-      // If we're been asked to shut down while this request was occurring,
-      // it's normal to get kServiceDisappeared so we should handle this
-      // silently.
-      if (isTerminating && e.code == RpcErrorCodes.kServiceDisappeared) {
-        return null;
+      // If we've been asked to shut down while this request was occurring,
+      // it's normal to get some types of errors from in-flight VM Service
+      // requests and we should handle them silently.
+      if (isTerminating) {
+        // kServiceDisappeared is thrown sometimes when services disappear.
+        if (e.code == RpcErrorCodes.kServiceDisappeared) {
+          return null;
+        }
+        // SERVER_ERROR can occur when DDS completes any outstanding requests
+        // with "The client closed with pending request".
+        if (e.code == jsonRpcErrors.SERVER_ERROR) {
+          return null;
+        }
       }
 
+      // Otherwise, it's an unexpected/unknown failure and should be rethrown.
       rethrow;
     }
   }
@@ -2169,6 +2207,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) : super(
           restart: restart,
           name: name,
@@ -2180,6 +2219,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
+          sendCustomProgressEvents: sendCustomProgressEvents,
         );
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)

@@ -11,14 +11,14 @@ class TestClass {
   TestClass();
 
   num method([num value = 100]) => value;
-  num method2({num value: 100}) => value;
+  num method2({num value = 100}) => value;
 
   static num staticMethod([num value = 200]) => value;
-  static num staticMethod2({num value: 200}) => value;
+  static num staticMethod2({num value = 200}) => value;
 }
 
 num globalMethod([num value = 300]) => value;
-num globalMethod2({num value: 300}) => value;
+num globalMethod2({num value = 300}) => value;
 
 main() {
   var obj = new TestClass();

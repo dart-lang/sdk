@@ -86,9 +86,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (className == _structClassName || className == _unionClassName) {
           inCompound = true;
           compound = node;
-          if (node.declaredElement2!.isEmptyStruct) {
-            _errorReporter.reportErrorForToken(FfiCode.EMPTY_STRUCT, node.name2,
-                [node.name2.lexeme, className]);
+          if (node.declaredElement!.isEmptyStruct) {
+            _errorReporter.reportErrorForToken(
+                FfiCode.EMPTY_STRUCT, node.name, [node.name.lexeme, className]);
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -96,21 +96,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         } else if (className == _abiSpecificIntegerClassName) {
           _validateAbiSpecificIntegerAnnotation(node);
           _validateAbiSpecificIntegerMappingAnnotation(
-              node.name2, node.metadata);
+              node.name, node.metadata);
         } else if (className != _allocatorClassName &&
             className != _opaqueClassName &&
             className != _abiSpecificIntegerClassName) {
           _errorReporter.reportErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
               superclass.name,
-              [node.name2.lexeme, superclass.name.name]);
+              [node.name.lexeme, superclass.name.name]);
         }
       } else if (superclass.isCompoundSubtype ||
           superclass.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
-            [node.name2.lexeme, superclass.name.name]);
+            [node.name.lexeme, superclass.name.name]);
       }
     }
 
@@ -124,11 +124,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (typename.ffiClass != null) {
         _errorReporter.reportErrorForNode(subtypeOfFfiCode, typename,
-            [node.name2.lexeme, typename.name.toSource()]);
+            [node.name.lexeme, typename.name.toSource()]);
       } else if (typename.isCompoundSubtype ||
           typename.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(subtypeOfStructCode, typename,
-            [node.name2.lexeme, typename.name.toSource()]);
+            [node.name.lexeme, typename.name.toSource()]);
       }
     }
 
@@ -148,13 +148,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (inCompound) {
-      if (node.declaredElement2!.typeParameters.isNotEmpty) {
+      if (node.declaredElement!.typeParameters.isNotEmpty) {
         _errorReporter.reportErrorForToken(
-            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name2, [node.name2.lexeme]);
+            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.lexeme]);
       }
       final implementsClause = node.implementsClause;
       if (implementsClause != null) {
-        final compoundType = node.declaredElement2!.thisType;
+        final compoundType = node.declaredElement!.thisType;
         final structType = compoundType.superclass!;
         final ffiLibrary = structType.element2.library;
         final finalizableElement = ffiLibrary.getClass(_finalizableClassName)!;
@@ -162,8 +162,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
           _errorReporter.reportErrorForToken(
               FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
-              node.name2,
-              [node.name2.lexeme]);
+              node.name,
+              [node.name.lexeme]);
         }
       }
     }
@@ -194,7 +194,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     _checkFfiNative(
       errorNode: node,
       annotations: node.metadata,
-      declarationElement: node.declaredElement2!,
+      declarationElement: node.declaredElement!,
       formalParameterList: node.functionExpression.parameters,
     );
     super.visitFunctionDeclaration(node);
@@ -204,7 +204,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var element = node.staticElement;
     if (element is MethodElement) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement.isAllocatorExtension &&
           element.name == _allocateExtensionMethodName) {
         _validateAllocate(node);
@@ -217,7 +217,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     var element = node.staticElement;
     if (element is MethodElement) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeStructArrayExtension) {
         if (element.name == '[]') {
@@ -230,7 +230,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructor = node.constructorName.staticElement;
-    var class_ = constructor?.enclosingElement3;
+    var class_ = constructor?.enclosingElement;
     if (class_.isStructSubclass || class_.isUnionSubclass) {
       _errorReporter.reportErrorForNode(
         FfiCode.CREATION_OF_STRUCT_OR_UNION,
@@ -246,7 +246,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     _checkFfiNative(
         errorNode: node,
         annotations: node.metadata,
-        declarationElement: node.declaredElement2!,
+        declarationElement: node.declaredElement!,
         formalParameterList: node.parameters);
     super.visitMethodDeclaration(node);
   }
@@ -255,7 +255,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var element = node.methodName.staticElement;
     if (element is MethodElement) {
-      Element enclosingElement = element.enclosingElement3;
+      Element enclosingElement = element.enclosingElement;
       if (enclosingElement.isPointer) {
         if (element.name == 'fromFunction') {
           _validateFromFunction(node, element);
@@ -272,7 +272,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       }
     } else if (element is FunctionElement) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is CompilationUnitElement) {
         if (element.library.name == 'dart.ffi') {
           if (element.name == 'sizeOf') {
@@ -288,7 +288,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.staticElement;
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension) {
         if (element.name == 'ref') {
           _validateRefPrefixedIdentifier(node);
@@ -302,7 +302,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitPropertyAccess(PropertyAccess node) {
     var element = node.propertyName.staticElement;
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension) {
         if (element.name == 'ref') {
           _validateRefPropertyAccess(node);
@@ -361,7 +361,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         // Receiver can only be Pointer if the class extends
         // NativeFieldWrapperClass1.
         if (ffiSignature.normalParameterTypes[0].isPointer) {
-          final cls = declarationElement.enclosingElement3 as ClassElement;
+          final cls = declarationElement.enclosingElement as InterfaceElement;
           if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
             _errorReporter.reportErrorForNode(
                 FfiCode
@@ -385,11 +385,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
 
       // Arguments can only be Pointer if the class extends
-      // NativeFieldWrapperClass1.
+      // Pointer or NativeFieldWrapperClass1.
       for (var i = 0; i < formalParameters.length; i++) {
         if (ffiParameterTypes[i].isPointer) {
-          final type = formalParameters[i].declaredElement!.type;
-          if (!_extendsNativeFieldWrapperClass1(type as InterfaceType)) {
+          final type =
+              formalParameters[i].declaredElement!.type as InterfaceType;
+          if (!type.isPointer && !_extendsNativeFieldWrapperClass1(type)) {
             _errorReporter.reportErrorForNode(
                 FfiCode
                     .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
@@ -428,11 +429,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       final element = type.element2;
-      if (element is ClassElement) {
-        type = element.supertype;
-      } else {
-        break;
-      }
+      type = element.supertype;
     }
     return false;
   }
@@ -617,7 +614,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   _PrimitiveDartType _typeForAnnotation(Annotation annotation) {
     var element = annotation.element;
     if (element is ConstructorElement) {
-      String name = element.enclosingElement3.name;
+      String name = element.enclosingElement.name;
       if (_primitiveIntegerNativeTypes.contains(name)) {
         return _PrimitiveDartType.int;
       } else if (_primitiveDoubleNativeTypes.contains(name)) {
@@ -638,7 +635,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         node.members.single is! ConstructorDeclaration ||
         (node.members.single as ConstructorDeclaration).constKeyword == null) {
       _errorReporter.reportErrorForToken(
-          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name2);
+          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name);
     }
   }
 
@@ -736,7 +733,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
       if (annotation.element.ffiClass != null ||
-          annotation.element?.enclosingElement3.isAbiSpecificIntegerSubclass ==
+          annotation.element?.enclosingElement.isAbiSpecificIntegerSubclass ==
               true) {
         if (requiredFound) {
           extraAnnotations.add(annotation);
@@ -977,7 +974,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (node.externalKeyword == null) {
         _errorReporter.reportErrorForToken(
           FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
-          fields.variables[0].name2,
+          fields.variables[0].name,
         );
       }
     }
@@ -985,7 +982,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var fieldType = fields.type;
     if (fieldType == null) {
       _errorReporter.reportErrorForToken(
-          FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name2);
+          FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
     } else {
       DartType declaredType = fieldType.typeOrThrow;
       if (declaredType.isDartCoreInt) {
@@ -1013,7 +1010,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element2;
-        if (clazz is ClassElement && clazz.isEmptyStruct) {
+        if (clazz.isEmptyStruct) {
           _errorReporter.reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [
             clazz.name,
             clazz.supertype!.getDisplayString(withNullability: false)
@@ -1030,7 +1027,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (field.initializer != null) {
           _errorReporter.reportErrorForToken(
             FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
-            field.name2,
+            field.name,
           );
         }
       }
@@ -1311,7 +1308,7 @@ extension on Annotation {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement3.name ==
+        element.enclosingElement.name ==
             FfiVerifier._abiSpecificIntegerMappingClassName;
   }
 
@@ -1319,21 +1316,21 @@ extension on Annotation {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement3.name == 'Array';
+        element.enclosingElement.name == 'Array';
   }
 
   bool get isFfiNative {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement3.name == 'FfiNative';
+        element.enclosingElement.name == 'FfiNative';
   }
 
   bool get isPacked {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement3.name == 'Packed';
+        element.enclosingElement.name == 'Packed';
   }
 }
 
@@ -1377,7 +1374,7 @@ extension on ElementAnnotation {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement3.name == 'Array';
+        element.enclosingElement.name == 'Array';
     // Note: this is 'Array' instead of '_ArraySize' because it finds the
     // forwarding factory instead of the forwarded constructor.
   }
@@ -1386,7 +1383,7 @@ extension on ElementAnnotation {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement3.name == 'Packed';
+        element.enclosingElement.name == 'Packed';
   }
 
   int? get packedMemberAlignment {
@@ -1401,7 +1398,7 @@ extension on Element? {
   ClassElement? get ffiClass {
     var element = this;
     if (element is ConstructorElement) {
-      element = element.enclosingElement3;
+      element = element.enclosingElement;
     }
     if (element is ClassElement && element.isFfiClass) {
       return element;

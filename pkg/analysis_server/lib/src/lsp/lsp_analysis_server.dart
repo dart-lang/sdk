@@ -308,8 +308,7 @@ class LspAnalysisServer extends AnalysisServer {
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: Uri.file(path).toString(),
-        version: documentVersions[path]?.version);
+        uri: Uri.file(path), version: documentVersions[path]?.version);
   }
 
   void handleClientConnection(
@@ -552,8 +551,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    final params = PublishClosingLabelsParams(
-        uri: Uri.file(path).toString(), labels: labels);
+    final params =
+        PublishClosingLabelsParams(uri: Uri.file(path), labels: labels);
     final message = NotificationMessage(
       method: CustomMethods.publishClosingLabels,
       params: params,
@@ -563,8 +562,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params = PublishDiagnosticsParams(
-        uri: Uri.file(path).toString(), diagnostics: errors);
+    final params =
+        PublishDiagnosticsParams(uri: Uri.file(path), diagnostics: errors);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,
@@ -574,8 +573,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
-    final params = PublishFlutterOutlineParams(
-        uri: Uri.file(path).toString(), outline: outline);
+    final params =
+        PublishFlutterOutlineParams(uri: Uri.file(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishFlutterOutline,
       params: params,
@@ -585,8 +584,7 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishOutline(String path, Outline outline) {
-    final params =
-        PublishOutlineParams(uri: Uri.file(path).toString(), outline: outline);
+    final params = PublishOutlineParams(uri: Uri.file(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishOutline,
       params: params,

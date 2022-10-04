@@ -138,7 +138,7 @@ class U55<T> {
       x21;
   late A Function<A>(List<A> x) Function<B extends core.int>(int x) x22;
 
-  U55({this.tIsBool: false, this.tIsInt: false})
+  U55({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0() => throw 'uncalled';

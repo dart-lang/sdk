@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, ExtensionElement, PrefixElement;
+    show ExtensionElement, InterfaceElement, PrefixElement;
 import 'package:analyzer/dart/element/type.dart';
 
 /// An object that can be used to determine whether an element is appropriate
@@ -151,6 +151,8 @@ class _MatcherBuilder {
       _buildFromBinaryExpression(node);
     } else if (node is ConstructorName) {
       _buildFromConstructorName(node);
+    } else if (node is FunctionDeclaration) {
+      _addMatcher(components: [node.name.lexeme], kinds: []);
     } else if (node is Literal) {
       var parent = node.parent;
       if (parent is ArgumentList) {
@@ -160,10 +162,14 @@ class _MatcherBuilder {
       _buildFromNamedType(node);
     } else if (node is PrefixedIdentifier) {
       _buildFromPrefixedIdentifier(node);
+    } else if (node is MethodDeclaration) {
+      _buildFromMethodDeclaration(node);
     } else if (node is SimpleIdentifier && nameToken != null) {
       _buildFromSimpleIdentifier(node, nameToken);
     } else if (node is TypeArgumentList) {
       _buildFromTypeArgumentList(node);
+    } else if (node is VariableDeclaration) {
+      _addMatcher(components: [node.name.lexeme], kinds: []);
     }
   }
 
@@ -202,7 +208,7 @@ class _MatcherBuilder {
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.staticElement?.enclosingElement3.name;
+      var superclassName = parent.staticElement?.enclosingElement.name;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -258,7 +264,7 @@ class _MatcherBuilder {
   /// Build a matcher for the method being declared.
   void _buildFromMethodDeclaration(MethodDeclaration node) {
     _addMatcher(
-      components: [node.name2.lexeme],
+      components: [node.name.lexeme],
       kinds: [ElementKind.methodKind],
     );
   }
@@ -395,7 +401,7 @@ class _MatcherBuilder {
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.
     var container = node.prefix.staticElement;
-    if (container is ClassElement) {
+    if (container is InterfaceElement) {
       _addMatcher(
         components: [node.identifier.name, container.name],
         kinds: const [
@@ -459,7 +465,7 @@ class _MatcherBuilder {
       _buildFromArgumentList(parent.parent!.parent as ArgumentList);
     } else if (parent is NamedType) {
       _buildFromNamedType(parent);
-    } else if (parent is MethodDeclaration && nameToken == parent.name2) {
+    } else if (parent is MethodDeclaration && nameToken == parent.name) {
       _buildFromMethodDeclaration(parent);
     } else if (parent is MethodInvocation &&
         node == parent.methodName &&
@@ -503,8 +509,8 @@ class _MatcherBuilder {
       }
     }
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement is ClassElement) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is InterfaceElement) {
         return [identifier.name, enclosingElement.name];
       } else if (enclosingElement is ExtensionElement) {
         var name = enclosingElement.name;

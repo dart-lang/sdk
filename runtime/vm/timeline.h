@@ -130,6 +130,11 @@ class TimelineStream {
 
 class RecorderLock : public AllStatic {
  public:
+  static void Init() {
+    outstanding_event_writes_.store(0);
+    shutdown_lock_.store(false, std::memory_order_release);
+  }
+
   static void EnterLock() {
     outstanding_event_writes_.fetch_add(1, std::memory_order_acquire);
   }
@@ -188,6 +193,11 @@ class Timeline : public AllStatic {
     recorder_discards_clock_values_ = value;
   }
 
+  static Dart_TimelineRecorderCallback callback() { return callback_; }
+  static void set_callback(Dart_TimelineRecorderCallback callback) {
+    callback_ = callback;
+  }
+
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
   static void ReclaimCachedBlocksFromThreads();
 
@@ -218,6 +228,7 @@ class Timeline : public AllStatic {
   static void ReclaimCachedBlocksFromThreadsUnsafe();
 
   static TimelineEventRecorder* recorder_;
+  static Dart_TimelineRecorderCallback callback_;
   static MallocGrowableArray<char*>* enabled_streams_;
   static bool recorder_discards_clock_values_;
 
@@ -280,20 +291,21 @@ class TimelineEventArguments {
 class TimelineEvent {
  public:
   // Keep in sync with StateBits below.
+  // Keep in sync with constants in sdk/lib/developer/timeline.dart.
   enum EventType {
-    kNone,
-    kBegin,
-    kEnd,
-    kDuration,
-    kInstant,
-    kAsyncBegin,
-    kAsyncInstant,
-    kAsyncEnd,
-    kCounter,
-    kFlowBegin,
-    kFlowStep,
-    kFlowEnd,
-    kMetadata,
+    kNone = 0,
+    kBegin = 1,
+    kEnd = 2,
+    kDuration = 3,
+    kInstant = 4,
+    kAsyncBegin = 5,
+    kAsyncInstant = 6,
+    kAsyncEnd = 7,
+    kCounter = 8,
+    kFlowBegin = 9,
+    kFlowStep = 10,
+    kFlowEnd = 11,
+    kMetadata = 12,
     kNumEventTypes,
   };
 
@@ -389,6 +401,8 @@ class TimelineEvent {
 
   EventType event_type() const { return EventTypeField::decode(state_); }
 
+  TimelineStream* stream() const { return stream_; }
+
   bool IsFinishedDuration() const {
     return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
   }
@@ -407,6 +421,14 @@ class TimelineEvent {
     ASSERT(IsFinishedDuration());
     return timestamp1_;
   }
+
+  int64_t timestamp0() const { return timestamp0_; }
+  int64_t timestamp1() const { return timestamp1_; }
+
+  bool HasIsolateId() const;
+  bool HasIsolateGroupId() const;
+  const char* GetFormattedIsolateId() const;
+  const char* GetFormattedIsolateGroupId() const;
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;
@@ -916,6 +938,9 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const { return CALLBACK_RECORDER_NAME; }
+  intptr_t Size() {
+    return 0;
+  }
 
  protected:
   TimelineEventBlock* GetNewBlockLocked() { return NULL; }
@@ -923,6 +948,26 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   void Clear() {}
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
+};
+
+// A recorder that forwards completed events to the callback provided by
+// Dart_SetTimelineRecorderCallback.
+class TimelineEventEmbedderCallbackRecorder
+    : public TimelineEventCallbackRecorder {
+ public:
+  TimelineEventEmbedderCallbackRecorder() {}
+  virtual ~TimelineEventEmbedderCallbackRecorder() {}
+
+  virtual void OnEvent(TimelineEvent* event);
+};
+
+// A recorder that does nothing.
+class TimelineEventNopRecorder : public TimelineEventCallbackRecorder {
+ public:
+  TimelineEventNopRecorder() {}
+  virtual ~TimelineEventNopRecorder() {}
+
+  virtual void OnEvent(TimelineEvent* event);
 };
 
 // A recorder that stores events in chains of blocks of events.
@@ -1067,27 +1112,11 @@ class TimelineEventFileRecorder : public TimelineEventPlatformRecorder {
 
 class DartTimelineEventHelpers : public AllStatic {
  public:
-  static void ReportTaskEvent(Thread* thread,
-                              TimelineEvent* event,
+  static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
-                              const char* phase,
-                              const char* category,
+                              intptr_t type,
                               char* name,
                               char* args);
-
-  static void ReportFlowEvent(Thread* thread,
-                              TimelineEvent* event,
-                              const char* category,
-                              char* name,
-                              int64_t type,
-                              int64_t flow_id,
-                              char* args);
-
-  static void ReportInstantEvent(Thread* thread,
-                                 TimelineEvent* event,
-                                 const char* category,
-                                 char* name,
-                                 char* args);
 };
 
 }  // namespace dart

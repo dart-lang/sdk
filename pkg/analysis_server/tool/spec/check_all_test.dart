@@ -11,7 +11,7 @@ import 'generate_all.dart';
 
 /// Check that all targets have been code generated.  If they haven't tell the
 /// user to run generate_all.dart.
-void main() async {
+Future<void> main() async {
   var script = Platform.script.toFilePath(windows: Platform.isWindows);
   var components = split(script);
   var index = components.indexOf('analysis_server');

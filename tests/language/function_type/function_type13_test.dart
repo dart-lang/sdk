@@ -103,7 +103,7 @@ class U13<T> {
   late Function<A>() Function(int x) x22;
   late void Function<A>(A x) Function(int x) x23;
 
-  U13({this.tIsBool: false, this.tIsInt: false})
+  U13({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int x0, [Function x = _voidFunction]) => throw 'uncalled';

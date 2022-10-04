@@ -25,32 +25,32 @@ class DefaultTypesBuilder {
   void build(List<AstNode> nodes) {
     for (var node in nodes) {
       if (node is ClassDeclaration) {
-        var element = node.declaredElement2!;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is ClassTypeAlias) {
-        var element = node.declaredElement2!;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is EnumDeclaration) {
-        var element = node.declaredElement2!;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
-        var element = node.declaredElement2!;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is GenericTypeAlias) {
-        var element = node.declaredElement2!;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is MixinDeclaration) {
-        var element = node.declaredElement2!;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
@@ -119,7 +119,7 @@ class DefaultTypesBuilder {
         if (typeParametersByName == null) {
           typeParametersByName = {};
           for (var parameterNode in typeParameters) {
-            var name = parameterNode.name2.lexeme;
+            var name = parameterNode.name.lexeme;
             typeParametersByName[name] = parameterNode;
           }
         }
@@ -152,7 +152,7 @@ class DefaultTypesBuilder {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
-      var element = parameter.declaredElement2 as TypeParameterElementImpl;
+      var element = parameter.declaredElement as TypeParameterElementImpl;
       var defaultType = element.defaultType;
       if (defaultType is TypeBuilder) {
         var builtType = defaultType.build();
@@ -182,7 +182,7 @@ class DefaultTypesBuilder {
     var bounds = <DartType>[];
     for (int i = 0; i < length; i++) {
       var node = nodes[i];
-      elements.add(node.declaredElement2 as TypeParameterElementImpl);
+      elements.add(node.declaredElement as TypeParameterElementImpl);
       bounds.add(node.bound?.type ?? dynamicType);
     }
 
@@ -228,7 +228,7 @@ class DefaultTypesBuilder {
 
     // Set computed TypeBuilder(s) as default types.
     for (var i = 0; i < length; i++) {
-      var element = nodes[i].declaredElement2 as TypeParameterElementImpl;
+      var element = nodes[i].declaredElement as TypeParameterElementImpl;
       element.defaultType = bounds[i];
     }
   }
@@ -243,13 +243,13 @@ class DefaultTypesBuilder {
   ) {
     var paths = <List<_CycleElement>>[];
     if (startType is NamedTypeBuilder) {
-      var declaration = startType.element;
+      var declaration = startType.element2;
       if (startType.arguments.isEmpty) {
-        if (startType.element == end) {
+        if (startType.element2 == end) {
           paths.add([
             _CycleElement(startParameter, startType),
           ]);
-        } else if (visited.add(startType.element)) {
+        } else if (visited.add(startType.element2)) {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
               var parameterNode = _linker.getLinkingNode(parameter);
@@ -273,12 +273,12 @@ class DefaultTypesBuilder {
             }
           }
 
-          if (declaration is ClassElement) {
+          if (declaration is InterfaceElement) {
             recurseParameters(declaration.typeParameters);
           } else if (declaration is TypeAliasElement) {
             recurseParameters(declaration.typeParameters);
           }
-          visited.remove(startType.element);
+          visited.remove(startType.element2);
         }
       } else {
         for (var argument in startType.arguments) {

@@ -13,6 +13,8 @@
 #error Do not include assembler_ia32.h directly; use assembler.h instead.
 #endif
 
+#include <functional>
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/compiler/assembler/assembler_base.h"
@@ -580,6 +582,10 @@ class Assembler : public AssemblerBase {
     PushRegister(value);
   }
 
+  void PushValueAtOffset(Register base, int32_t offset) {
+    pushl(Address(base, offset));
+  }
+
   void CompareRegisters(Register a, Register b);
   void CompareObjectRegisters(Register a, Register b) {
     CompareRegisters(a, b);
@@ -686,6 +692,18 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(dst, Address(base, offset));
+  }
+  void StoreUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(Address(base, offset), dst);
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      movaps(dst, src);
+    }
+  }
+
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
@@ -728,6 +746,12 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     addl(dest, src);
   }
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    leal(dest, Address(src, scale, value));
+  }
 
   void SubImmediate(Register reg, const Immediate& imm);
   void SubRegisters(Register dest, Register src) {
@@ -741,6 +765,9 @@ class Assembler : public AssemblerBase {
   }
   void LslImmediate(Register dst, int32_t shift) {
     shll(dst, Immediate(shift));
+  }
+  void LsrImmediate(Register dst, int32_t shift) override {
+    shrl(dst, Immediate(shift));
   }
 
   void CompareImmediate(Register reg, int32_t immediate) {
@@ -808,6 +835,31 @@ class Assembler : public AssemblerBase {
                                 const Object& value,
                                 MemoryOrder memory_order = kRelaxedNonAtomic);
 
+  void StoreIntoObjectOffset(Register object,  // Object we are storing into.
+                             int32_t offset,   // Where we are storing into.
+                             Register value,   // Value we are storing.
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObject(object, FieldAddress(object, offset), value,
+                    can_value_be_smi, memory_order);
+  }
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
+
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
                             const Address& dest,
@@ -829,15 +881,17 @@ class Assembler : public AssemblerBase {
     cmpxchgl(address, reg);
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    cmpb(FieldAddress(type,
-                      compiler::target::FunctionType::nullability_offset()),
-         Immediate(value));
+  void LoadAbstractTypeNullability(Register dst, Register type) override {
+    movzxb(dst,
+           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+    andl(dst,
+         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
   }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
-         Immediate(value));
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override {
+    LoadAbstractTypeNullability(scratch, type);
+    cmpl(scratch, Immediate(value));
   }
 
   void EnterFrame(intptr_t frame_space);

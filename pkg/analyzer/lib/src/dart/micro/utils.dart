@@ -47,7 +47,7 @@ ConstructorElement? _getActualConstructorElement(
     ConstructorElement? constructor) {
   var seenConstructors = <ConstructorElement?>{};
   while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-    var enclosing = constructor.enclosingElement3;
+    var enclosing = constructor.enclosingElement;
     if (enclosing is ClassElement && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
           .whereType<SuperConstructorInvocation>()
@@ -77,7 +77,7 @@ LibraryImportElement? _getImportElement(
     String prefix,
     Element element,
     Map<LibraryImportElement, Set<Element>> importElementsMap) {
-  if (element.enclosingElement3 is! CompilationUnitElement) {
+  if (element.enclosingElement is! CompilationUnitElement) {
     return null;
   }
   var usedLibrary = element.library;
@@ -277,14 +277,14 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    var e = node.declaredElement2;
+    var e = node.declaredElement;
     if (e == element) {
       if (e!.name.isEmpty) {
         references.add(
             MatchInfo(e.nameOffset + e.nameLength, 0, MatchKind.DECLARATION));
       } else {
         var offset = node.period!.offset;
-        var length = node.name2!.end - offset;
+        var length = node.name!.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       }
     }
@@ -314,7 +314,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         length = 0;
       }
       references.add(MatchInfo(offset, length, kind));
-    } else if (e != null && e.enclosingElement3 == element) {
+    } else if (e != null && e.enclosingElement == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
       length = element.nameLength;
@@ -333,7 +333,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         offset = constructorSelector.period.offset;
         length = constructorSelector.name.end - offset;
       } else {
-        offset = node.name2.end;
+        offset = node.name.end;
         length = 0;
       }
       var kind = node.arguments == null

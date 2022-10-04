@@ -569,7 +569,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
           }
         }
       } else if (parent is MethodDeclaration) {
-        type = parent.declaredElement2?.returnType;
+        type = parent.declaredElement?.returnType;
         if (type != null && type.isVoid) {
           optype.includeVoidReturnSuggestions = true;
         }
@@ -628,7 +628,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       // class A { static late ^ }
       if (node.staticKeyword != null &&
           variables.length == 1 &&
-          variables[0].name2.lexeme == 'late') {
+          variables[0].name.lexeme == 'late') {
         optype.completionLocation = 'FieldDeclaration_static_late';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -637,7 +637,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (node.staticKeyword == null &&
           offset <= node.semicolon.offset &&
           variables.length == 1 &&
-          variables[0].name2.lexeme == 'static') {
+          variables[0].name.lexeme == 'static') {
         optype.completionLocation = 'FieldDeclaration_static';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -806,7 +806,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name2) && node.returnType == null) {
+        identical(entity, node.name) && node.returnType == null) {
       optype.completionLocation = 'FunctionDeclaration_returnType';
       optype.includeTypeNameSuggestions = true;
     }
@@ -821,7 +821,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name2) && node.returnType == null) {
+        identical(entity, node.name) && node.returnType == null) {
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -948,7 +948,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name2) && node.returnType == null) {
+        identical(entity, node.name) && node.returnType == null) {
       optype.completionLocation = 'MethodDeclaration_returnType';
     }
     // TODO(brianwilkerson) In visitFunctionDeclaration, this is conditional. It
@@ -1141,6 +1141,61 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
     }
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    optype.completionLocation = 'RecordLiteral_fields';
+
+    final entity = this.entity;
+    if (entity is NamedExpression && offset <= entity.name.colon.offset) {
+      // No values, only names.
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    optype.completionLocation = 'RecordTypeAnnotation_positionalFields';
+
+    final entity = this.entity;
+    if (entity is Token && entity == node.rightParenthesis) {
+      final previous = entity.previous;
+      if (previous != null) {
+        if (previous.type != TokenType.COMMA) {
+          optype.includeVarNameSuggestions = true;
+          return;
+        }
+      }
+    }
+
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    optype.completionLocation = 'RecordTypeAnnotationNamedField_name';
+    optype.includeVarNameSuggestions = true;
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    optype.completionLocation = 'RecordTypeAnnotationNamedFields_fields';
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    optype.completionLocation = 'RecordTypeAnnotationPositionalField_name';
+    optype.includeVarNameSuggestions = true;
   }
 
   @override

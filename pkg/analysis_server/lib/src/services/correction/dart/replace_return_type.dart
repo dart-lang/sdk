@@ -84,12 +84,12 @@ class ReplaceReturnType extends CorrectionProducer {
     if (newType != null) {
       var clazz = method.thisOrAncestorOfType<ClassDeclaration>();
       if (clazz != null) {
-        var classElement = clazz.declaredElement2!;
+        var classElement = clazz.declaredElement!;
         var overriddenList = InheritanceManager3().getOverridden2(
             classElement,
             Name(
               classElement.library.source.uri,
-              method.declaredElement2!.name,
+              method.declaredElement!.name,
             ));
 
         if (overriddenList != null) {

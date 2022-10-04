@@ -223,7 +223,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
-    expect(element.enclosingElement3, expectedEnclosing);
+    expect(element.enclosingElement, expectedEnclosing);
   }
 
   Future<void> assertErrorsInCode(
@@ -428,6 +428,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(parameterElement.type, expected);
   }
 
+  void assertParsedNodeText(
+    AstNode node,
+    String expected, {
+    bool skipArgumentList = false,
+  }) {
+    var actual = _parsedNodeText(
+      node,
+      skipArgumentList: skipArgumentList,
+    );
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   void assertPrefixedIdentifier(
     PrefixedIdentifier node, {
     required Object? element,
@@ -500,7 +516,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ) {
     var actualMapString = Map.fromEntries(
       substitution.map.entries.where((entry) {
-        return entry.key.enclosingElement3 is! ExecutableElement;
+        return entry.key.enclosingElement is! ExecutableElement;
       }).map((entry) {
         return MapEntry(
           entry.key.name,
@@ -689,7 +705,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is ConstructorReference) {
       return node.constructorName.staticElement;
     } else if (node is Declaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     } else if (node is ExtensionOverride) {
       return node.staticElement;
     } else if (node is FormalParameter) {
@@ -801,6 +817,23 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Never _failNotSimpleIdentifier(AstNode node) {
     fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
+  }
+
+  String _parsedNodeText(
+    AstNode node, {
+    bool skipArgumentList = false,
+  }) {
+    var buffer = StringBuffer();
+    node.accept(
+      ResolvedAstPrinter(
+        selfUriStr: '${result.libraryElement.source.uri}',
+        sink: buffer,
+        indent: '',
+        skipArgumentList: skipArgumentList,
+        withResolution: false,
+      ),
+    );
+    return buffer.toString();
   }
 
   String _resolvedNodeText(

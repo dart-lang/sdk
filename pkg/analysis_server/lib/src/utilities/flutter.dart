@@ -113,6 +113,17 @@ class Flutter {
     }
   }
 
+  /// Return the named expression representing the `builder` argument of the
+  /// given [newExpr], or `null` if none.
+  NamedExpression? findBuilderArgument(InstanceCreationExpression newExpr) {
+    for (var argument in newExpr.argumentList.arguments) {
+      if (isBuilderArgument(argument)) {
+        return argument as NamedExpression;
+      }
+    }
+    return null;
+  }
+
   /// Return the named expression representing the `child` argument of the given
   /// [newExpr], or `null` if none.
   NamedExpression? findChildArgument(InstanceCreationExpression newExpr) {
@@ -192,7 +203,7 @@ class Flutter {
 
   /// Return the presentation for the given Flutter `Widget` creation [node].
   String? getWidgetPresentationText(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement?.enclosingElement3;
+    var element = node.constructorName.staticElement?.enclosingElement;
     if (!isWidget(element)) {
       return null;
     }
@@ -220,21 +231,23 @@ class Flutter {
 
   /// Return the instance creation expression that surrounds the given
   /// [node], if any, else null. The [node] may be the instance creation
-  /// expression itself or the identifier that names the constructor.
+  /// expression itself or an (optionally prefixed) identifier that names the
+  /// constructor.
   InstanceCreationExpression? identifyNewExpression(AstNode? node) {
     InstanceCreationExpression? newExpr;
     if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      var grandParent = parent?.parent;
-      var greatGrandParent = grandParent?.parent;
-      if (parent is ConstructorName &&
-          grandParent is InstanceCreationExpression) {
-        newExpr = grandParent;
-      } else if (grandParent is ConstructorName &&
-          greatGrandParent is InstanceCreationExpression) {
-        newExpr = greatGrandParent;
-      }
-    } else if (node is InstanceCreationExpression) {
+      node = node.parent;
+    }
+    if (node is PrefixedIdentifier) {
+      node = node.parent;
+    }
+    if (node is NamedType) {
+      node = node.parent;
+    }
+    if (node is ConstructorName) {
+      node = node.parent;
+    }
+    if (node is InstanceCreationExpression) {
       newExpr = node;
     }
     return newExpr;
@@ -277,6 +290,10 @@ class Flutter {
     }
     return null;
   }
+
+  /// Return `true` is the given [argument] is the `builder` argument.
+  bool isBuilderArgument(Expression argument) =>
+      argument is NamedExpression && argument.name.label.name == 'builder';
 
   /// Return `true` is the given [argument] is the `child` argument.
   bool isChildArgument(Expression argument) =>
@@ -338,13 +355,13 @@ class Flutter {
   }
 
   /// Return `true` if the [element] is the Flutter class `Alignment`.
-  bool isExactAlignment(ClassElement element) {
+  bool isExactAlignment(InterfaceElement element) {
     return _isExactWidget(element, 'Alignment', _uriAlignment);
   }
 
   /// Return `true` if the [element] is the Flutter class
   /// `AlignmentDirectional`.
-  bool isExactAlignmentDirectional(ClassElement element) {
+  bool isExactAlignmentDirectional(InterfaceElement element) {
     return _isExactWidget(element, 'AlignmentDirectional', _uriAlignment);
   }
 
@@ -504,7 +521,7 @@ class Flutter {
   /// Return `true` if the given [expr] is a constructor invocation for a
   /// class that has the Flutter class `Widget` as a superclass.
   bool isWidgetCreation(InstanceCreationExpression? expr) {
-    var element = expr?.constructorName.staticElement?.enclosingElement3;
+    var element = expr?.constructorName.staticElement?.enclosingElement;
     return isWidget(element);
   }
 
@@ -538,7 +555,7 @@ class Flutter {
   /// Return `true` if the given [element] has a supertype with the
   /// [requiredName] defined in the file with the [requiredUri].
   bool _hasSupertype(
-      ClassElement? element, Uri requiredUri, String requiredName) {
+      InterfaceElement? element, Uri requiredUri, String requiredName) {
     if (element == null) {
       return false;
     }

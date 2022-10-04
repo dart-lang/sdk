@@ -423,7 +423,8 @@ void f() {
 ''');
     _createRefactoringForString('f');
     return _assertConditionsFatal(
-        'Cannot extract the name part of a declaration.');
+        'The selection does not cover a set of statements or an expression. '
+        'Extend selection to a valid range.');
   }
 
   Future<void> test_bad_namePartOfDeclaration_variable() async {
@@ -434,7 +435,7 @@ void f() {
 ''');
     _createRefactoringForString('vvv');
     return _assertConditionsFatal(
-        'Cannot extract the name part of a declaration.');
+        'Can only extract a single expression or a set of statements.');
   }
 
   Future<void> test_bad_namePartOfQualified() async {
@@ -1710,6 +1711,40 @@ void f(Foo<String, int> foo, String s) {
 }
 
 int res(Foo<String, int> foo, String s) => foo(s);
+''');
+  }
+
+  Future<void> test_singleExpression_recordType_named() async {
+    await indexTestUnit('''
+void f() {
+  var r = (f1: 0, f2: true);
+}
+''');
+    _createRefactoringForString('(f1: 0, f2: true)');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var r = res();
+}
+
+({int f1, bool f2}) res() => (f1: 0, f2: true);
+''');
+  }
+
+  Future<void> test_singleExpression_recordType_positional() async {
+    await indexTestUnit('''
+void f() {
+  var r = (0, true);
+}
+''');
+    _createRefactoringForString('(0, true)');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var r = res();
+}
+
+(int, bool) res() => (0, true);
 ''');
   }
 
@@ -3055,6 +3090,29 @@ int f() {
 
 int res() {
   return 42;
+}
+''');
+  }
+
+  Future<void> test_statements_topFunction_parameters_recordType() async {
+    await indexTestUnit('''
+void f((int, String) r) {
+// start
+  print(r);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f((int, String) r) {
+// start
+  res(r);
+// end
+}
+
+void res((int, String) r) {
+  print(r);
 }
 ''');
   }

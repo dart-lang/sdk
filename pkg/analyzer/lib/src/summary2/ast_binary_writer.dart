@@ -776,7 +776,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _writeByte(Tag.TypeParameter);
-    _writeDeclarationName(node.name2);
+    _writeDeclarationName(node.name);
     _writeOptionalNode(node.bound);
     _storeDeclaration(node);
   }
@@ -870,7 +870,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       f();
     } else {
       var elements = node.typeParameters
-          .map((typeParameter) => typeParameter.declaredElement2!)
+          .map((typeParameter) => typeParameter.declaredElement!)
           .toList();
       _sink.localElements.withElements(elements, () {
         f();

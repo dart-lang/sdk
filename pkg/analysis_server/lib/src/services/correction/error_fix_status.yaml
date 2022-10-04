@@ -24,10 +24,10 @@
 #   issue created for it.
 #
 # Stats:
-# - 739 "needsEvaluation"
-# -  45 "needsFix"
-# - 284 "hasFix"
-# -  47 "noFix"
+# - 726 "needsEvaluation"
+# -  58 "needsFix"
+# - 287 "hasFix"
+# -  48 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -40,20 +40,13 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
     be able to provide a fix.
 AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
   status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
+  notes: Fixed.
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
   status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
+  notes: Fixed.
 AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED:
   status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
-AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
-  status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
+  notes: Fixed.
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-
@@ -102,9 +95,7 @@ CompileTimeErrorCode.AMBIGUOUS_EXPORT:
   notes: |-
     For each exported name, add a fix to hide the name.
 CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
-  status: needsFix
-  notes: |-
-    For each extension, add a fix to add an extension override.
+  status: hasFix
 CompileTimeErrorCode.AMBIGUOUS_IMPORT:
   status: needsFix
   notes: |-
@@ -363,10 +354,13 @@ CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
 CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
-  status: needsEvaluation
-CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
   status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
+  status: needsFix
   since: 2.17
+  notes: Use AddConst.new
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
   status: noFix
   since: 2.17
@@ -678,6 +672,8 @@ CompileTimeErrorCode.MISSING_DART_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER:
   status: hasFix
+CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
+  status: hasFix
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
   status: hasFix
 CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
@@ -784,7 +780,8 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: Use MakeFinal.new
 CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
@@ -1546,31 +1543,63 @@ HintCode.UNUSED_RESULT_WITH_MESSAGE:
 HintCode.UNUSED_SHOWN_NAME:
   status: hasFix
 LanguageCode.IMPLICIT_DYNAMIC_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_INVOKE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_METHOD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_PARAMETER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_RETURN:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:
   status: hasFix
 LintCode.always_put_required_named_parameters_first:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Can fix by moving required named parameters before non-required ones.
 LintCode.always_require_non_null_named_parameters:
   status: hasFix
 LintCode.always_specify_types:
@@ -1582,9 +1611,15 @@ LintCode.annotate_overrides:
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
 LintCode.avoid_as:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could try to account for special situations, but this cannot be fixed
+    universally, and the lint rule is deprecated.
 LintCode.avoid_bool_literals_in_conditional_expressions:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Each expression like `condition ? true : boolExpression` can be universally
+    fixed to not contain a bool literal.
 LintCode.avoid_catches_without_on_clauses:
   status: needsEvaluation
 LintCode.avoid_catching_errors:
@@ -1676,7 +1711,7 @@ LintCode.cast_nullable_to_non_nullable:
 LintCode.close_sinks:
   status: needsEvaluation
 LintCode.combinators_ordering:
-  status: needsEvaluation
+  status: hasFix
 LintCode.comment_references:
   status: needsEvaluation
 LintCode.conditional_uri_does_not_exist:
@@ -2022,7 +2057,8 @@ ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE:
 ParserErrorCode.ABSTRACT_CLASS_MEMBER:
   status: hasFix
 ParserErrorCode.ABSTRACT_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: Remove abstract keyword
 ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsEvaluation
 ParserErrorCode.ABSTRACT_LATE_FIELD:
@@ -2109,6 +2145,8 @@ ParserErrorCode.EMPTY_ENUM_BODY:
   notes: |-
     We can't guess at the names or number of the enum constants that should be
     added.
+ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
+  status: needsEvaluation
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsEvaluation
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
@@ -2129,6 +2167,14 @@ ParserErrorCode.EXPECTED_INSTEAD:
   status: needsEvaluation
 ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
   status: needsEvaluation
+ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
+  status: noFix
+ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
+  status: noFix
+ParserErrorCode.EXPECTED_NAMED_TYPE_ON:
+  status: noFix
+ParserErrorCode.EXPECTED_NAMED_TYPE_WITH:
+  status: noFix
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: needsEvaluation
 ParserErrorCode.EXPECTED_TOKEN:
@@ -2382,6 +2428,12 @@ ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
 ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
   status: needsEvaluation
 ParserErrorCode.PREFIX_AFTER_COMBINATOR:
+  status: needsEvaluation
+ParserErrorCode.RECORD_LITERAL_EMPTY:
+  status: needsEvaluation
+ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: needsEvaluation
+ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: needsEvaluation
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation

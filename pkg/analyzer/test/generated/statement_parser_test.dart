@@ -1072,7 +1072,7 @@ main() {
     assertNoErrors();
     List<VariableDeclaration> variables = statement.variables.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'Function');
+    expect(variables[0].name.lexeme, 'Function');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_gftType() {
@@ -1082,7 +1082,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1095,7 +1095,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1107,7 +1107,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1119,7 +1119,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1131,7 +1131,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1142,7 +1142,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1154,7 +1154,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1164,7 +1164,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
@@ -1179,7 +1179,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
@@ -1194,7 +1194,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name2.lexeme, 'v');
+    expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));

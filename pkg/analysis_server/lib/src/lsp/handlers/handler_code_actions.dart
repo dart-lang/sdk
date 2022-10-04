@@ -13,6 +13,8 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
@@ -564,6 +566,19 @@ class CodeActionHandler
     try {
       final refactorActions = <Either2<CodeAction, Command>>[];
 
+      // New refactors.
+      if (server.clientConfiguration.global.experimentalNewRefactors) {
+        final context = RefactoringContext(
+          server: server,
+          resolvedResult: unit,
+          selectionOffset: offset,
+          selectionLength: length,
+        );
+        final processor = RefactoringProcessor(context);
+        final actions = await processor.compute();
+        refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
+      }
+
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
         // Extract Method
@@ -610,6 +625,7 @@ class CodeActionHandler
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
         final node = NodeLocator(offset).searchWithin(unit.unit);
         final element = server.getElementOfNode(node);
+
         // Getter to Method
         if (element is PropertyAccessorElement &&
             ConvertGetterToMethodRefactoring(

@@ -1039,6 +1039,36 @@ var x = p.a.b + 1;
 ''', () => _xInitializer(), () => [findNode.propertyAccess('p.a.b + 1')]);
   }
 
+  test_recordLiteral() async {
+    await _assertConst(r'''
+var x = const (0, 1, 2);
+''', () => _xInitializer());
+  }
+
+  test_recordLiteral_constructorParameter() async {
+    await _assertConst(r'''
+class C {
+  final Object f;
+  const C(int a) : f = (0, a);
+}
+''', () => findNode.recordLiteral('(0'));
+  }
+
+  test_recordLiteral_notConst() async {
+    await _assertConst(r'''
+var x = (0, 1, 2);
+''', () => _xInitializer());
+  }
+
+  test_recordLiteral_notConst_element() async {
+    await _assertNotConst(r'''
+final a = 0;
+final b = 1;
+var x = const (a, b, 2);
+''', () => _xInitializer(),
+        () => [findNode.simple('a,'), findNode.simple('b,')]);
+  }
+
   test_setLiteral() async {
     await _assertConst(r'''
 var x = const {0, 1, 2};

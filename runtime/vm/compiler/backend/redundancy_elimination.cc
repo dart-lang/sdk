@@ -3042,7 +3042,9 @@ class StoreOptimizer : public LivenessAnalysis {
   bool CanEliminateStore(Instruction* instr) {
     if (CompilerState::Current().is_aot()) {
       // Tracking initializing stores is important for proper shared boxes
-      // initialization, which doesn't happen in AOT.
+      // initialization, which doesn't happen in AOT and for
+      // LowerContextAllocation optimization which creates unitialized objects
+      // which is also JIT-only currently.
       return true;
     }
     switch (instr->tag()) {
@@ -3065,6 +3067,28 @@ class StoreOptimizer : public LivenessAnalysis {
     BitVector* all_places =
         new (zone) BitVector(zone, aliased_set_->max_place_id());
     all_places->SetAll();
+
+    BitVector* all_aliased_places =
+        new (zone) BitVector(zone, aliased_set_->max_place_id());
+    if (CompilerState::Current().is_aot()) {
+      const auto& places = aliased_set_->places();
+      // Go through all places and identify those which are escaping.
+      // We find such places by inspecting definition allocation
+      // [AliasIdentity] field, which is populated above by
+      // [AliasedSet::ComputeAliasing].
+      for (intptr_t i = 0; i < places.length(); i++) {
+        Place* place = places[i];
+        if (place->DependsOnInstance()) {
+          Definition* instance = place->instance();
+          if (Place::IsAllocation(instance) &&
+              !instance->Identity().IsAliased()) {
+            continue;
+          }
+        }
+        all_aliased_places->Add(i);
+      }
+    }
+
     for (BlockIterator block_it = graph_->postorder_iterator();
          !block_it.Done(); block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
@@ -3118,19 +3142,52 @@ class StoreOptimizer : public LivenessAnalysis {
           continue;
         }
 
+        if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+          // Initialize live-out for exit blocks since it won't be computed
+          // otherwise during the fixed point iteration.
+          live_out->CopyFrom(all_places);
+        }
+
         // Handle side effects, deoptimization and function return.
-        if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-            instr->MayThrow() || instr->IsReturn()) {
-          // Instructions that return from the function, instructions with side
-          // effects and instructions that can deoptimize are considered as
-          // loads from all places.
-          live_in->CopyFrom(all_places);
-          if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
-            // Initialize live-out for exit blocks since it won't be computed
-            // otherwise during the fixed point iteration.
-            live_out->CopyFrom(all_places);
+        if (CompilerState::Current().is_aot()) {
+          // Instructions that return from the function, instructions with
+          // side effects are considered as loads from all places.
+          if (instr->HasUnknownSideEffects() || instr->IsReturn() ||
+              instr->MayThrow()) {
+            if (instr->HasUnknownSideEffects() || instr->IsReturn()) {
+              // Instructions that may throw and has unknown side effects
+              // still load from all places.
+              live_in->CopyFrom(all_places);
+            } else {
+              // If we are oustide of try-catch block, instructions that "may
+              // throw" only "load from escaping places".
+              // If we are inside of try-catch block, instructions that "may
+              // throw" also "load from all places".
+              if (block->try_index() == kInvalidTryIndex) {
+                live_in->AddAll(all_aliased_places);
+              } else {
+                live_in->CopyFrom(all_places);
+              }
+            }
+            continue;
           }
-          continue;
+        } else {  // jit
+          // Similar optimization to the above could be implemented in JIT
+          // as long as deoptimization side-effects are taken into account.
+          // Conceptually variables in deoptimization environment for
+          // "MayThrow" instructions have to be also added to the
+          // [live_in] set as they can be considered as escaping (to
+          // unoptimized code). However those deoptimization environment
+          // variables include also non-escaping(not aliased) ones, so
+          // how to deal with that needs to be figured out.
+          if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
+              instr->MayThrow() || instr->IsReturn()) {
+            // Instructions that return from the function, instructions with
+            // side effects and instructions that can deoptimize are considered
+            // as loads from all places.
+            live_in->CopyFrom(all_places);
+            continue;
+          }
         }
 
         // Handle loads.

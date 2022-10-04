@@ -26,6 +26,7 @@ import '../operator.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'name_scheme.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
@@ -49,10 +50,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
   final ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder;
 
+  final ExtensionName extensionName;
+
   SourceExtensionBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      String name,
+      this.extensionName,
       this.typeParameters,
       this.onType,
       this.extensionTypeShowHideClauseBuilder,
@@ -64,14 +67,20 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       int endOffset,
       Extension? referenceFrom)
       : _extension = new Extension(
-            name: name,
+            name: extensionName.name,
             fileUri: parent.fileUri,
             typeParameters:
                 TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
             reference: referenceFrom?.reference)
           ..isExtensionTypeDeclaration = isExtensionTypeDeclaration
+          ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset, scope);
+        super(metadata, modifiers, extensionName.name, parent, nameOffset,
+            scope) {
+    extensionName.attachExtension(_extension);
+  }
+
+  bool get isUnnamedExtension => extensionName.isUnnamedExtension;
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -241,16 +250,17 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    scope
-        .filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true)
-        .forEach((SourceMemberBuilder declaration) {
+    Iterator<SourceMemberBuilder> iterator =
+        scope.filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      SourceMemberBuilder declaration = iterator.current;
       count +=
           declaration.buildBodyNodes((Member member, BuiltMemberKind kind) {
         _buildMember(declaration, member, kind,
             addMembersToLibrary: addMembersToLibrary);
       });
-    });
+    }
     return count;
   }
 
@@ -289,15 +299,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       }
     }
 
-    void build(SourceMemberBuilder member) {
-      member.buildOutlineExpressions(
+    Iterator<SourceMemberBuilder> iterator =
+        scope.filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      iterator.current.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
-
-    scope
-        .filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true)
-        .forEach(build);
   }
 }
 

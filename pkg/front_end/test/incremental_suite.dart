@@ -325,6 +325,10 @@ class WorldProperties {
   static const Property<List<String>?> serializationShouldNotInclude =
       Property.optional(
           'serializationShouldNotInclude', ListValue(StringValue()));
+
+  static const Property<bool> checkConstantCoverageReferences =
+      Property.optional('checkConstantCoverageReferences', BoolValue(),
+          defaultValue: true);
 }
 
 /// Yaml properties for an [ExpressionCompilation] with a [World].
@@ -434,6 +438,10 @@ const String EXPECTATIONS = '''
   {
     "name": "NNBDModeMismatch",
     "group": "Fail"
+  },
+  {
+    "name": "ConstantCoverageReferenceWithoutNode",
+    "group": "Fail"
   }
 ]
 ''';
@@ -476,6 +484,8 @@ final Expectation LibraryCountMismatch =
 final Expectation InitializedFromDillMismatch =
     staticExpectationSet["InitializedFromDillMismatch"];
 final Expectation NNBDModeMismatch = staticExpectationSet["NNBDModeMismatch"];
+final Expectation ConstantCoverageReferenceWithoutNode =
+    staticExpectationSet["ConstantCoverageReferenceWithoutNode"];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
@@ -842,6 +852,10 @@ class World {
 
   final List<String>? serializationShouldNotInclude;
 
+  /// Whether to check if the serialized constant coverage references
+  /// points to anything in itself.
+  final bool checkConstantCoverageReferences;
+
   World({
     required this.modules,
     required this.updateWorldType,
@@ -881,6 +895,7 @@ class World {
     required this.expectedContent,
     required this.incrementalSerializationDoesWork,
     required this.serializationShouldNotInclude,
+    required this.checkConstantCoverageReferences,
   });
 
   static World create(Map world) {
@@ -987,6 +1002,9 @@ class World {
     List<String>? serializationShouldNotInclude =
         WorldProperties.serializationShouldNotInclude.read(world, keys);
 
+    bool checkConstantCoverageReferences =
+        WorldProperties.checkConstantCoverageReferences.read(world, keys);
+
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for World: $keys";
     }
@@ -1031,6 +1049,7 @@ class World {
       expectedContent: expectedContent,
       incrementalSerializationDoesWork: incrementalSerializationDoesWork,
       serializationShouldNotInclude: serializationShouldNotInclude,
+      checkConstantCoverageReferences: checkConstantCoverageReferences,
     );
   }
 }
@@ -1417,6 +1436,12 @@ class NewWorldTest {
       newestWholeComponentData = util.postProcess(component!);
       newestWholeComponent = component;
 
+      if (world.checkConstantCoverageReferences) {
+        Result<TestData>? result = checkConstantCoverageReferences(
+            newestWholeComponentData, omitPlatform, sdkSummaryData, data);
+        if (result != null) return result;
+      }
+
       if (world.uriToSourcesDoesntInclude != null) {
         for (String filename in world.uriToSourcesDoesntInclude!) {
           Uri uri = base.resolve(filename);
@@ -1774,6 +1799,38 @@ class NewWorldTest {
     }
     return new Result<TestData>.pass(data);
   }
+}
+
+Result<TestData>? checkConstantCoverageReferences(
+    List<int> newestWholeComponentData,
+    bool omitPlatform,
+    List<int> sdkSummaryData,
+    TestData data) {
+  // Note that this is in a method to avoid "semi-leaks".
+  Component loadedComponent = new Component();
+  if (omitPlatform) {
+    new BinaryBuilder(sdkSummaryData, filename: null)
+        .readComponent(loadedComponent);
+  }
+  new BinaryBuilder(newestWholeComponentData, filename: null)
+      .readComponent(loadedComponent);
+
+  for (MapEntry<Uri, Source> source in loadedComponent.uriToSource.entries) {
+    Set<Reference>? references = source.value.constantCoverageConstructors;
+    if (references != null) {
+      for (Reference reference in references) {
+        if (reference.node == null) {
+          return new Result<TestData>(
+              data,
+              ConstantCoverageReferenceWithoutNode,
+              "Constant coverage reference without node: "
+              "${reference.canonicalName} from ${source.value.importUri} "
+              "indexed in ${source.key}");
+        }
+      }
+    }
+  }
+  return null;
 }
 
 class Strategy extends EquivalenceStrategy {

@@ -439,6 +439,7 @@ class Object {
   V(Instance, null_instance)                                                   \
   V(Function, null_function)                                                   \
   V(FunctionType, null_function_type)                                          \
+  V(RecordType, null_record_type)                                              \
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(TypeArguments, empty_type_arguments)                                       \
@@ -633,7 +634,7 @@ class Object {
   };
 
  protected:
-  friend ObjectPtr AllocateObject(intptr_t, intptr_t);
+  friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
   Object() : ptr_(null_) {}
@@ -1302,10 +1303,10 @@ class Class : public Object {
   }
 
   // Asserts that the class of the super type has been resolved.
-  // |original_classes| only has an effect when reloading. If true and we
-  // are reloading, it will prefer the original classes to the replacement
-  // classes.
-  ClassPtr SuperClass(bool original_classes = false) const;
+  // If |class_table| is provided it will be used to resolve class id to the
+  // actual class object, instead of using current class table on the isolate
+  // group.
+  ClassPtr SuperClass(ClassTable* class_table = nullptr) const;
 
   // Interfaces is an array of Types.
   ArrayPtr interfaces() const {
@@ -1443,6 +1444,11 @@ class Class : public Object {
     return GetClassId(cls) == kClosureCid;
   }
 
+  // Check if this class represents the 'Record' class.
+  bool IsRecordClass() const {
+    return id() == kRecordCid;
+  }
+
   static bool IsInFullSnapshot(ClassPtr cls) {
     NoSafepointScope no_safepoint;
     return UntaggedLibrary::InFullSnapshotBit::decode(
@@ -1491,10 +1497,9 @@ class Class : public Object {
 
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
-  // |original_classes| only has an effect when reloading. If true and we
-  // are reloading, it will prefer the original classes to the replacement
-  // classes.
-  ArrayPtr OffsetToFieldMap(bool original_classes = false) const;
+  // If |class_table| is provided it will be used to resolve super classes by
+  // class id, instead of the current class_table stored in the isolate.
+  ArrayPtr OffsetToFieldMap(ClassTable* class_table = nullptr) const;
 
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
@@ -1826,6 +1831,10 @@ class Class : public Object {
 #endif  // defined(DART_PRECOMPILER)
   }
 
+  static intptr_t UnboxedFieldSizeInBytesByCid(intptr_t cid);
+  void MarkFieldBoxedDuringReload(ClassTable* class_table,
+                                  const Field& field) const;
+
  private:
   TypePtr declaration_type() const {
     return untag()->declaration_type<std::memory_order_acquire>();
@@ -1840,7 +1849,8 @@ class Class : public Object {
                              ProgramReloadContext* context) const;
 
   // Tells whether instances need morphing for reload.
-  bool RequiresInstanceMorphing(const Class& replacement) const;
+  bool RequiresInstanceMorphing(ClassTable* class_table,
+                                const Class& replacement) const;
 
   template <class FakeInstance, class TargetFakeInstance>
   static ClassPtr NewCommon(intptr_t index);
@@ -4049,9 +4059,6 @@ class Field : public Object {
     return !untag()->owner()->IsField();
   }
 
-  // Mark previously unboxed field boxed. Only operates on clones, updates
-  // original as well as this clone.
-  void DisableFieldUnboxing() const;
   // Returns a field cloned from 'this'. 'this' is set as the
   // original field of result.
   FieldPtr CloneFromOriginal() const;
@@ -4082,22 +4089,6 @@ class Field : public Object {
     ASSERT(IsOriginal());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(ReflectableBit::update(value, untag()->kind_bits_));
-  }
-  bool is_double_initialized() const {
-    return DoubleInitializedBit::decode(kind_bits());
-  }
-  // Called in parser after allocating field, immutable property otherwise.
-  // Marks fields that are initialized with a simple double constant.
-  void set_is_double_initialized_unsafe(bool value) const {
-    ASSERT(IsOriginal());
-    // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(DoubleInitializedBit::update(value, untag()->kind_bits_));
-  }
-
-  void set_is_double_initialized(bool value) const {
-    DEBUG_ASSERT(
-        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-    set_is_double_initialized_unsafe(value);
   }
 
   bool initializer_changed_after_initialization() const {
@@ -4263,17 +4254,6 @@ class Field : public Object {
     return has_initializer() && !has_nontrivial_initializer();
   }
 
-  bool is_non_nullable_integer() const {
-    return IsNonNullableIntBit::decode(kind_bits());
-  }
-
-  void set_is_non_nullable_integer(bool is_non_nullable_integer) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(IsNonNullableIntBit::update(is_non_nullable_integer,
-                                              untag()->kind_bits_));
-  }
-
   StaticTypeExactnessState static_type_exactness_state() const {
     return StaticTypeExactnessState::Decode(
         LoadNonPointer<int8_t, std::memory_order_relaxed>(
@@ -4353,22 +4333,20 @@ class Field : public Object {
 
   const char* GuardedPropertiesAsCString() const;
 
-  intptr_t UnboxedFieldCid() const { return guarded_cid(); }
-
-  bool is_unboxing_candidate() const {
-    return UnboxingCandidateBit::decode(kind_bits());
+  bool is_unboxed() const {
+    return UnboxedBit::decode(kind_bits());
   }
 
-  // Default 'true', set to false once optimizing compiler determines it should
-  // be boxed.
-  void set_is_unboxing_candidate_unsafe(bool b) const {
-    set_kind_bits(UnboxingCandidateBit::update(b, untag()->kind_bits_));
+  // Field unboxing decisions are based either on static types (JIT) or
+  // inferred types (AOT). See the callers of this function.
+  void set_is_unboxed_unsafe(bool b) const {
+    set_kind_bits(UnboxedBit::update(b, untag()->kind_bits_));
   }
 
-  void set_is_unboxing_candidate(bool b) const {
+  void set_is_unboxed(bool b) const {
     DEBUG_ASSERT(
         IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-    set_is_unboxing_candidate_unsafe(b);
+    set_is_unboxed_unsafe(b);
   }
 
   enum {
@@ -4483,10 +4461,6 @@ class Field : public Object {
   void set_type_test_cache(const SubtypeTestCache& cache) const;
 #endif
 
-  // Unboxed fields require exclusive ownership of the box.
-  // Ensure this by cloning the box if necessary.
-  const Object* CloneForUnboxed(const Object& value) const;
-
  private:
   static void InitializeNew(const Field& result,
                             const String& name,
@@ -4505,9 +4479,8 @@ class Field : public Object {
     kStaticBit,
     kFinalBit,
     kHasNontrivialInitializerBit,
-    kUnboxingCandidateBit,
+    kUnboxedBit,
     kReflectableBit,
-    kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
     kHasPragmaBit,
     kCovariantBit,
@@ -4516,18 +4489,14 @@ class Field : public Object {
     kIsExtensionMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
-    kIsNonNullableIntBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
   class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
   class HasNontrivialInitializerBit
       : public BitField<uint16_t, bool, kHasNontrivialInitializerBit, 1> {};
-  class UnboxingCandidateBit
-      : public BitField<uint16_t, bool, kUnboxingCandidateBit, 1> {};
+  class UnboxedBit : public BitField<uint16_t, bool, kUnboxedBit, 1> {};
   class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
-  class DoubleInitializedBit
-      : public BitField<uint16_t, bool, kDoubleInitializedBit, 1> {};
   class InitializerChangedAfterInitializatonBit
       : public BitField<uint16_t,
                         bool,
@@ -4544,8 +4513,6 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
-  class IsNonNullableIntBit
-      : public BitField<uint16_t, bool, kIsNonNullableIntBit, 1> {};
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -5483,7 +5450,7 @@ class Instructions : public Object {
 
   static const intptr_t kMaxElements =
       (kMaxInt32 - (sizeof(UntaggedInstructions) + sizeof(UntaggedObject) +
-                    (2 * kMaxObjectAlignment)));
+                    (2 * kObjectStartAlignment)));
 
   // Currently, we align bare instruction payloads on 4 byte boundaries.
   //
@@ -7765,7 +7732,20 @@ class Instance : public Object {
     StoreCompressedPointer(RawFieldAddrAtOffset(offset), value.ptr());
   }
 
-  static InstancePtr NewFromCidAndSize(SharedClassTable* shared_class_table,
+  template <typename T>
+  T* RawUnboxedFieldAddrAtOffset(intptr_t offset) const {
+    return reinterpret_cast<T*>(raw_value() - kHeapObjectTag + offset);
+  }
+  template <typename T>
+  T RawGetUnboxedFieldAtOffset(intptr_t offset) const {
+    return *RawUnboxedFieldAddrAtOffset<T>(offset);
+  }
+  template <typename T>
+  void RawSetUnboxedFieldAtOffset(intptr_t offset, const T& value) const {
+    *RawUnboxedFieldAddrAtOffset<T>(offset) = value;
+  }
+
+  static InstancePtr NewFromCidAndSize(ClassTable* class_table,
                                        classid_t cid,
                                        Heap::Space heap = Heap::kNew);
 
@@ -8185,12 +8165,25 @@ class TypeArguments : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
-  virtual bool IsFinalized() const;
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const;
-  virtual void SetIsBeingFinalized() const;
+  static intptr_t flags_offset() {
+    return OFFSET_OF(UntaggedAbstractType, flags_);
+  }
 
-  virtual Nullability nullability() const;
+  bool IsFinalized() const {
+    const auto state = type_state();
+    return (state == UntaggedAbstractType::kFinalizedInstantiated) ||
+           (state == UntaggedAbstractType::kFinalizedUninstantiated);
+  }
+  void SetIsFinalized() const;
+  bool IsBeingFinalized() const {
+    return type_state() == UntaggedAbstractType::kBeingFinalized;
+  }
+  void SetIsBeingFinalized() const;
+
+  Nullability nullability() const {
+    return static_cast<Nullability>(
+        UntaggedAbstractType::NullabilityBits::decode(untag()->flags_));
+  }
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
   bool IsNullable() const { return nullability() == Nullability::kNullable; }
@@ -8396,6 +8389,9 @@ class AbstractType : public Instance {
   // Check if this type represents the Dart '_Closure' type.
   bool IsDartClosureType() const;
 
+  // Check if this type represents the Dart 'Record' type.
+  bool IsDartRecordType() const;
+
   // Check if this type represents the 'Pointer' type from "dart:ffi".
   bool IsFfiPointerType() const;
 
@@ -8405,6 +8401,10 @@ class AbstractType : public Instance {
   // Returns the type argument of this (possibly nested) 'FutureOr' type.
   // Returns unmodified type if this type is not a 'FutureOr' type.
   AbstractTypePtr UnwrapFutureOr() const;
+
+  // Returns true if parameter of this type might need a
+  // null assertion (if null assertions are enabled).
+  bool NeedsNullAssertion() const;
 
   // Returns true if catching this type will catch all exceptions.
   // Exception objects are guaranteed to be non-nullable, so
@@ -8471,44 +8471,36 @@ class AbstractType : public Instance {
                            TrailPtr trail = nullptr) const;
 
  protected:
+  bool IsNullabilityEquivalent(Thread* thread,
+                               const AbstractType& other_type,
+                               TypeEquality kind) const;
+
+  UntaggedAbstractType::TypeState type_state() const {
+    return static_cast<UntaggedAbstractType::TypeState>(
+        UntaggedAbstractType::TypeStateBits::decode(untag()->flags_));
+  }
+  void set_flags(uint32_t value) const;
+  void set_type_state(UntaggedAbstractType::TypeState value) const;
+  void set_nullability(Nullability value) const;
+
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
   friend class Class;
   friend class Function;
   friend class TypeArguments;
+  friend class TypeRef;
 };
 
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
 class Type : public AbstractType {
  public:
-  static intptr_t type_class_id_offset() {
-    return OFFSET_OF(UntaggedType, type_class_id_);
-  }
   static intptr_t arguments_offset() {
     return OFFSET_OF(UntaggedType, arguments_);
   }
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(UntaggedType, type_state_);
-  }
   static intptr_t hash_offset() { return OFFSET_OF(UntaggedType, hash_); }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedType, nullability_);
-  }
-  virtual bool IsFinalized() const {
-    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
-           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return untag()->type_state_ == UntaggedType::kBeingFinalized;
-  }
-  virtual void SetIsBeingFinalized() const;
   virtual bool HasTypeClass() const {
     ASSERT(type_class_id() != kIllegalCid);
     return true;
-  }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
   }
   TypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
@@ -8625,11 +8617,6 @@ class Type : public AbstractType {
   // in ClassIdTagType. This allows us to guard against that case, instead of
   // silently truncating the cid.
   void set_type_class_id(intptr_t id) const;
-  void set_type_state(uint8_t state) const;
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
-  }
 
   static TypePtr New(Heap::Space space = Heap::kOld);
 
@@ -8657,28 +8644,10 @@ class FunctionType : public AbstractType {
   using PackedNumOptionalParameters =
       UntaggedFunctionType::PackedNumOptionalParameters;
 
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(UntaggedFunctionType, type_state_);
-  }
   static intptr_t hash_offset() {
     return OFFSET_OF(UntaggedFunctionType, hash_);
   }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedFunctionType, nullability_);
-  }
-  virtual bool IsFinalized() const {
-    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
-           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return untag()->type_state_ == UntaggedType::kBeingFinalized;
-  }
-  virtual void SetIsBeingFinalized() const;
   virtual bool HasTypeClass() const { return false; }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
-  }
   FunctionTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
@@ -8928,18 +8897,94 @@ class FunctionType : public AbstractType {
  private:
   void SetHash(intptr_t value) const;
 
-  void set_type_state(uint8_t state) const;
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
-  }
-
   static FunctionTypePtr New(Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FunctionType, AbstractType);
   friend class Class;
   friend class ClearTypeHashVisitor;
   friend class Function;
+};
+
+// A RecordType represents the type of a record. It describes
+// number of named and positional fields, field types and
+// names of the named fields.
+class RecordType : public AbstractType {
+ public:
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
+  virtual bool HasTypeClass() const { return false; }
+  RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
+  virtual classid_t type_class_id() const { return kIllegalCid; }
+  virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
+                              TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            TypeEquality kind,
+                            TrailPtr trail = nullptr) const;
+  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
+
+  virtual AbstractTypePtr InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+#if defined(DEBUG)
+  // Check if type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
+  virtual void EnumerateURIs(URIs* uris) const;
+
+  virtual uword Hash() const;
+  uword ComputeHash() const;
+
+  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
+
+  ArrayPtr field_types() const {
+    return untag()->field_types();
+  }
+
+  AbstractTypePtr FieldTypeAt(intptr_t index) const;
+  void SetFieldTypeAt(intptr_t index, const AbstractType& value) const;
+
+  // Names of the named fields, sorted.
+  ArrayPtr field_names() const {
+    return untag()->field_names();
+  }
+
+  StringPtr FieldNameAt(intptr_t index) const;
+  void SetFieldNameAt(intptr_t index, const String& value) const;
+
+  intptr_t NumFields() const;
+  intptr_t NumNamedFields() const;
+  intptr_t NumPositionalFields() const;
+
+  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedRecordType));
+  }
+
+  static RecordTypePtr New(const Array& field_types,
+                           const Array& field_names,
+                           Nullability nullability = Nullability::kLegacy,
+                           Heap::Space space = Heap::kOld);
+
+ private:
+  void SetHash(intptr_t value) const;
+
+  void set_field_types(const Array& value) const;
+  void set_field_names(const Array& value) const;
+
+  static RecordTypePtr New(Heap::Space space);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
+  friend class Class;
+  friend class ClassFinalizer;
+  friend class ClearTypeHashVisitor;
+  friend class Record;
 };
 
 // A TypeRef is used to break cycles in the representation of recursive types.
@@ -8950,19 +8995,6 @@ class TypeRef : public AbstractType {
  public:
   static intptr_t type_offset() { return OFFSET_OF(UntaggedTypeRef, type_); }
 
-  virtual bool IsFinalized() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    return !ref_type.IsNull() && ref_type.IsFinalized();
-  }
-  virtual bool IsBeingFinalized() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    return ref_type.IsNull() || ref_type.IsBeingFinalized();
-  }
-  virtual Nullability nullability() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    ASSERT(!ref_type.IsNull());
-    return ref_type.nullability();
-  }
   virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
            AbstractType::Handle(type()).HasTypeClass();
@@ -9027,23 +9059,6 @@ class TypeRef : public AbstractType {
 // to the ObjectType.
 class TypeParameter : public AbstractType {
  public:
-  virtual bool IsFinalized() const {
-    return UntaggedTypeParameter::FinalizedBit::decode(untag()->flags_);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return UntaggedTypeParameter::BeingFinalizedBit::decode(untag()->flags_);
-  }
-  virtual void SetIsBeingFinalized() const;
-  static intptr_t flags_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, flags_);
-  }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, nullability_);
-  }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
-  }
   TypeParameterPtr ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
@@ -9136,8 +9151,6 @@ class TypeParameter : public AbstractType {
 
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
-  void set_flags(uint8_t flags) const;
-  void set_nullability(Nullability value) const;
 
   static TypeParameterPtr New();
 
@@ -9323,6 +9336,7 @@ class Mint : public Integer {
 
   int64_t value() const { return untag()->value_; }
   static intptr_t value_offset() { return OFFSET_OF(UntaggedMint, value_); }
+  static int64_t Value(MintPtr mint) { return mint->untag()->value_; }
 
   virtual bool IsZero() const { return value() == 0; }
   virtual bool IsNegative() const { return value() < 0; }
@@ -9363,6 +9377,7 @@ class Mint : public Integer {
 class Double : public Number {
  public:
   double value() const { return untag()->value_; }
+  static double Value(DoublePtr dbl) { return dbl->untag()->value_; }
 
   bool BitwiseEqualsToDouble(double value) const;
   virtual bool OperatorEquals(const Instance& other) const;
@@ -10706,6 +10721,76 @@ class Float64x2 : public Instance {
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
   friend class Class;
+};
+
+class Record : public Instance {
+ public:
+  intptr_t num_fields() const { return NumFields(ptr()); }
+  static intptr_t NumFields(RecordPtr ptr) { return ptr->untag()->num_fields_; }
+  static intptr_t num_fields_offset() {
+    return OFFSET_OF(UntaggedRecord, num_fields_);
+  }
+
+  intptr_t NumNamedFields() const;
+  intptr_t NumPositionalFields() const;
+
+  ArrayPtr field_names() const { return untag()->field_names(); }
+  static intptr_t field_names_offset() {
+    return OFFSET_OF(UntaggedRecord, field_names_);
+  }
+
+  ObjectPtr FieldAt(intptr_t field_index) const {
+    return untag()->field(field_index);
+  }
+  void SetFieldAt(intptr_t field_index, const Object& value) const {
+    untag()->set_field(field_index, value.ptr());
+  }
+
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return sizeof(UntaggedRecord); }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
+  static intptr_t field_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data) +
+           kBytesPerElement * index;
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(UntaggedRecord) ==
+           OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t num_fields) {
+    return RoundedAllocationSize(sizeof(UntaggedRecord) +
+                                 (num_fields * kBytesPerElement));
+  }
+
+  static RecordPtr New(intptr_t num_fields,
+                       const Array& field_names,
+                       Heap::Space space = Heap::kNew);
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+
+  // Returns RecordType representing runtime type of this record instance.
+  // It is not created eagerly when record instance is allocated because
+  // it depends on runtime types of values if its fields, which can be
+  // quite expensive to query.
+  RecordTypePtr GetRecordType() const;
+
+ private:
+  void set_num_fields(intptr_t num_fields) const;
+  void set_field_names(const Array& field_names) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
+  friend class Class;
+  friend class Object;
 };
 
 class PointerBase : public Instance {
@@ -12591,6 +12676,33 @@ inline void FunctionType::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   untag()->set_hash(Smi::New(value));
+}
+
+inline uword RecordType::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(untag()->hash());
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+inline void RecordType::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  untag()->set_hash(Smi::New(value));
+}
+
+inline intptr_t RecordType::NumFields() const {
+  return Array::LengthOf(field_types());
+}
+
+inline intptr_t RecordType::NumNamedFields() const {
+  return Array::LengthOf(field_names());
+}
+
+inline intptr_t RecordType::NumPositionalFields() const {
+  return NumFields() - NumNamedFields();
 }
 
 inline uword TypeParameter::Hash() const {

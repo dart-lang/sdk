@@ -261,11 +261,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::C::@constructor::•
+      staticElement: self::@class::C::@constructor::new
       staticType: null
       tearOffTypeArgumentTypes
         int
-    staticElement: self::@class::C::@constructor::•
+    staticElement: self::@class::C::@constructor::new
   staticType: C<int> Function(int)
 ''');
   }
@@ -669,9 +669,9 @@ FunctionReference
         period: .
         name: SimpleIdentifier
           token: new
-          staticElement: self::@class::A::@constructor::•
+          staticElement: self::@class::A::@constructor::new
           staticType: null
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()

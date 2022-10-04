@@ -8,14 +8,14 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 MemberId computeMemberId(Element element) {
-  var enclosingElement = element.enclosingElement3;
+  var enclosingElement = element.enclosingElement;
   if (enclosingElement is CompilationUnitElement) {
     var memberName = element.name!;
     if (element is PropertyAccessorElement && element.isSetter) {
       memberName += '=';
     }
     return MemberId.internal(memberName);
-  } else if (enclosingElement is ClassElement) {
+  } else if (enclosingElement is InterfaceElement) {
     var memberName = element.name!;
     var className = enclosingElement.name;
     return MemberId.internal(memberName, className: className);
@@ -95,7 +95,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   T? computeNodeValue(Id id, AstNode node);
 
   Id createClassId(Declaration node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     return ClassId(element.name!);
   }
 
@@ -109,7 +109,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   Id createMemberId(Declaration node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     return computeMemberId(element);
   }
 

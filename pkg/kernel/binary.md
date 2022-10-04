@@ -340,7 +340,7 @@ type Extension extends Node {
   List<Expression> annotations;
   UriReference fileUri;
   FileOffset fileOffset;
-  Byte flags (isExtensionTypeDeclaration);
+  Byte flags (isExtensionTypeDeclaration, isUnnamedExtension);
   List<TypeParameter> typeParameters;
   DartType onType;
   Option<ExtensionTypeShowHideClause> showHideClause;

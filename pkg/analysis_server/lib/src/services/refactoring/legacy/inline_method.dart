@@ -55,7 +55,9 @@ String _getMethodSourceForInvocation(
     // prepare argument
     Expression? argument;
     for (var arg in arguments) {
-      if (arg.staticParameterElement == parameter) {
+      // Compare using names because parameter elements may not be the same
+      // instance for methods with generic type arguments.
+      if (arg.staticParameterElement?.name == parameter.name) {
         argument = arg;
         break;
       }
@@ -160,14 +162,14 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   }
   // fields
   {
-    var enclosingClassElement = node.enclosingInterfaceElement;
-    if (enclosingClassElement != null) {
+    var enclosingInterfaceElement = node.enclosingInterfaceElement;
+    if (enclosingInterfaceElement != null) {
       var elements = [
-        ...enclosingClassElement.allSupertypes.map((e) => e.element2),
-        enclosingClassElement,
+        ...enclosingInterfaceElement.allSupertypes.map((e) => e.element2),
+        enclosingInterfaceElement,
       ];
-      for (var classElement in elements) {
-        var classMembers = getChildren(classElement);
+      for (var interfaceElement in elements) {
+        var classMembers = getChildren(interfaceElement);
         for (var classMemberElement in classMembers) {
           result.add(classMemberElement.displayName);
         }
@@ -213,9 +215,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String? get className {
-    var classElement = _methodElement?.enclosingElement3;
-    if (classElement is ClassElement) {
-      return classElement.displayName;
+    var interfaceElement = _methodElement?.enclosingElement;
+    if (interfaceElement is InterfaceElement) {
+      return interfaceElement.displayName;
     }
     return null;
   }
@@ -264,17 +266,17 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // prepare method information
     result.addStatus(await _prepareMethod());
     if (result.hasFatalError) {
-      return Future<RefactoringStatus>.value(result);
+      return result;
     }
     // maybe operator
     if (_methodElement!.isOperator) {
       result = RefactoringStatus.fatal('Cannot inline operator.');
-      return Future<RefactoringStatus>.value(result);
+      return result;
     }
     // maybe [a]sync*
     if (_methodElement!.isGenerator) {
       result = RefactoringStatus.fatal('Cannot inline a generator.');
-      return Future<RefactoringStatus>.value(result);
+      return result;
     }
     // analyze method body
     result.addStatus(_prepareMethodParts());
@@ -304,11 +306,20 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     var fatalStatus = RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
 
-    var identifier = NodeLocator(offset).searchWithin(resolveResult.unit);
-    if (identifier is! SimpleIdentifier) {
+    final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    final Element? element;
+
+    if (selectedNode is FunctionDeclaration) {
+      element = selectedNode.declaredElement;
+      isDeclaration = true;
+    } else if (selectedNode is MethodDeclaration) {
+      element = selectedNode.declaredElement;
+      isDeclaration = true;
+    } else if (selectedNode is SimpleIdentifier) {
+      element = selectedNode.writeOrReadElement;
+    } else {
       return fatalStatus;
     }
-    var element = identifier.writeOrReadElement;
     if (element is! ExecutableElement) {
       return fatalStatus;
     }
@@ -347,13 +358,23 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // prepare for failure
     var fatalStatus = RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
+
     // prepare selected SimpleIdentifier
-    var identifier = NodeLocator(offset).searchWithin(resolveResult.unit);
-    if (identifier is! SimpleIdentifier) {
+    final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    final Element? element;
+    if (selectedNode is FunctionDeclaration) {
+      element = selectedNode.declaredElement;
+      isDeclaration = true;
+    } else if (selectedNode is MethodDeclaration) {
+      element = selectedNode.declaredElement;
+      isDeclaration = true;
+    } else if (selectedNode is SimpleIdentifier) {
+      element = selectedNode.writeOrReadElement;
+    } else {
       return fatalStatus;
     }
+
     // prepare selected ExecutableElement
-    var element = identifier.writeOrReadElement;
     if (element is! ExecutableElement) {
       return fatalStatus;
     }
@@ -380,8 +401,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       return fatalStatus;
     }
 
-    isDeclaration = resolveResult.uri == element.source.uri &&
-        identifier.offset == element.nameOffset;
     deleteSource = isDeclaration;
     inlineAll = deleteSource;
     return RefactoringStatus();
@@ -789,6 +808,19 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    final nameRange = range.token(node.name);
+    if (bodyRange.covers(nameRange)) {
+      final declaredElement = node.declaredElement;
+      if (declaredElement != null) {
+        result.addVariable(declaredElement, nameRange);
+      }
+    }
+
+    super.visitVariableDeclaration(node);
+  }
+
   void _addMemberQualifier(SimpleIdentifier node) {
     // should be unqualified
     var qualifier = getNodeQualifier(node);
@@ -806,13 +838,13 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     } else {
       return;
     }
-    if (element.enclosingElement3 is! ClassElement) {
+    if (element.enclosingElement is! InterfaceElement) {
       return;
     }
     // record the implicit static or instance reference
     var offset = node.offset;
     if (element.isStatic) {
-      var className = element.enclosingElement3.displayName;
+      var className = element.enclosingElement.displayName;
       result.addImplicitClassNameOffset(className, offset);
     } else {
       result.addImplicitThisOffset(offset);

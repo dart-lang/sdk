@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 
 abstract class A {
-  m({a: 1, c: 3, b: 2});
+  m({a = 1, c = 3, b = 2});
 }
 
 class B implements A {

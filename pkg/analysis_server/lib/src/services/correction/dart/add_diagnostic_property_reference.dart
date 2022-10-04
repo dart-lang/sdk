@@ -34,20 +34,22 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    if (node is! SimpleIdentifier) {
+    final String name;
+    if (node is MethodDeclaration) {
+      name = node.name.lexeme;
+    } else if (node is VariableDeclaration) {
+      name = node.name.lexeme;
+    } else {
       return;
     }
 
     final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null ||
-        !flutter
-            .isDiagnosticable(classDeclaration.declaredElement2!.thisType)) {
+        !flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
       return;
     }
 
-    final parent = node.parent!;
-
-    var type = _getReturnType(parent);
+    var type = _getReturnType(node);
     if (type == null) {
       return;
     }
@@ -99,8 +101,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         if (decl != null) {
           declType = decl.type;
           // getter
-        } else if (parent is MethodDeclaration) {
-          declType = parent.returnType;
+        } else if (node is MethodDeclaration) {
+          declType = node.returnType;
         }
 
         if (declType != null) {
@@ -112,12 +114,12 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
           }
         }
       }
-      builder.writeln("$constructorName('${node.name}', ${node.name}));");
+      builder.writeln("$constructorName('$name', $name));");
     }
 
     final debugFillProperties = classDeclaration.members
         .whereType<MethodDeclaration>()
-        .where((e) => e.name2.lexeme == 'debugFillProperties')
+        .where((e) => e.name.lexeme == 'debugFillProperties')
         .singleOrNull;
     if (debugFillProperties == null) {
       var location = utils.prepareNewMethodLocation(classDeclaration);
@@ -195,13 +197,13 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   DartType? _getReturnType(AstNode node) {
     if (node is MethodDeclaration) {
       // Getter.
-      var element = node.declaredElement2;
+      var element = node.declaredElement;
       if (element is PropertyAccessorElement) {
         return element.returnType;
       }
     } else if (node is VariableDeclaration) {
       // Field.
-      var element = node.declaredElement2;
+      var element = node.declaredElement;
       if (element is FieldElement) {
         return element.type;
       }

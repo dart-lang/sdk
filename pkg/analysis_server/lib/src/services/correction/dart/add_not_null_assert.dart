@@ -17,12 +17,7 @@ class AddNotNullAssert extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final identifier = node;
-    if (identifier is! SimpleIdentifier) {
-      return;
-    }
-
-    var formalParameter = identifier.parent;
+    final formalParameter = node;
     if (formalParameter is! FormalParameter) {
       return;
     }
@@ -48,7 +43,8 @@ class AddNotNullAssert extends CorrectionProducer {
           if (condition is BinaryExpression) {
             final leftOperand = condition.leftOperand;
             if (leftOperand is SimpleIdentifier) {
-              if (leftOperand.staticElement == identifier.staticElement &&
+              if (leftOperand.staticElement ==
+                      formalParameter.declaredElement &&
                   condition.operator.type == TokenType.BANG_EQ &&
                   condition.rightOperand is NullLiteral) {
                 return;
@@ -60,7 +56,7 @@ class AddNotNullAssert extends CorrectionProducer {
 
       final body_final = body;
       await builder.addDartFileEdit(file, (builder) {
-        final id = identifier.name;
+        final id = formalParameter.name!.lexeme;
         final prefix = utils.getNodePrefix(executable);
         final indent = utils.getIndent(1);
         // todo (pq): follow-ups:
@@ -70,8 +66,8 @@ class AddNotNullAssert extends CorrectionProducer {
         // adding the statement to the beginning of the list, special casing
         // when there are no statements (or when there's a single statement
         // and the whole block is on the same line).
-        var offset = min(utils.getLineNext(body_final.beginToken.offset),
-            body_final.endToken.offset);
+        var offset = min(
+            utils.getLineNext(body_final.offset), body_final.endToken.offset);
         builder.addSimpleInsertion(
             offset, '$prefix${indent}assert($id != null);$eol');
       });

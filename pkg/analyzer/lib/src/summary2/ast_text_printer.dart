@@ -152,7 +152,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.abstractKeyword);
     _token(node.macroKeyword);
     _token(node.classKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
@@ -169,7 +169,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.abstractKeyword);
     _token(node.macroKeyword);
     _token(node.typedefKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     _token(node.equals);
     node.superclass.accept(this);
@@ -217,7 +217,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.factoryKeyword);
     node.returnType.accept(this);
     _token(node.period);
-    _token(node.name2);
+    _token(node.name);
     node.parameters.accept(this);
     _token(node.separator);
     _nodeList(node.initializers, node.body.beginToken);
@@ -316,7 +316,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _declaration(node);
-    _token(node.name2);
+    _token(node.name);
     node.arguments?.accept(this);
   }
 
@@ -324,7 +324,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     _compilationUnitMember(node);
     _token(node.enumKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -370,7 +370,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _compilationUnitMember(node);
     _token(node.extensionKeyword);
     _token(node.typeKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     _token(node.onKeyword);
     node.extendedType.accept(this);
@@ -495,7 +495,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.externalKeyword);
     node.returnType?.accept(this);
     _token(node.propertyKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.functionExpression.accept(this);
   }
 
@@ -529,7 +529,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _compilationUnitMember(node);
     _token(node.typedefKeyword);
     node.returnType?.accept(this);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
     _token(node.semicolon);
@@ -558,7 +558,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _compilationUnitMember(node);
     _token(node.typedefKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     _token(node.equals);
     node.type.accept(this);
@@ -670,7 +670,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitLibraryDirective(LibraryDirective node) {
     _directive(node);
     _token(node.libraryKeyword);
-    node.name.accept(this);
+    node.name2?.accept(this);
     _token(node.semicolon);
   }
 
@@ -702,7 +702,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     _token(node.propertyKeyword);
     _token(node.operatorKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
     node.body.accept(this);
@@ -721,7 +721,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     _compilationUnitMember(node);
     _token(node.mixinKeyword);
-    _token(node.name2);
+    _token(node.name);
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -994,7 +994,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
     _token((node as TypeParameterImpl).varianceKeyword);
-    _token(node.name2);
+    _token(node.name);
     _token(node.extendsKeyword);
     node.bound?.accept(this);
   }
@@ -1009,7 +1009,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _annotatedNode(node);
-    _token(node.name2);
+    _token(node.name);
     _token(node.equals);
     node.initializer?.accept(this);
   }

@@ -43,10 +43,10 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
     } else if (node is ClassDeclaration) {
-      properties['declaredElement'] = node.declaredElement2;
+      properties['declaredElement'] = node.declaredElement;
       properties['abstract keyword'] = node.abstractKeyword;
     } else if (node is ClassTypeAlias) {
-      properties['declaredElement'] = node.declaredElement2;
+      properties['declaredElement'] = node.declaredElement;
       properties['abstract keyword'] = node.abstractKeyword;
     } else if (node is CompilationUnit) {
       properties['declaredElement'] = node.declaredElement;
@@ -55,7 +55,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is ConstructorName) {
       properties['static element'] = node.staticElement;
     } else if (node is DeclaredIdentifier) {
-      properties['element'] = node.declaredElement2;
+      properties['element'] = node.declaredElement;
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
       properties['element'] = node.element2;
@@ -75,7 +75,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
         properties['kind'] = 'unknown kind';
       }
     } else if (node is FunctionDeclaration) {
-      properties['declaredElement'] = node.declaredElement2;
+      properties['declaredElement'] = node.declaredElement;
       properties['external keyword'] = node.externalKeyword;
       properties['property keyword'] = node.propertyKeyword;
     } else if (node is FunctionExpressionInvocation) {
@@ -94,7 +94,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is LibraryDirective) {
       properties['element'] = node.element2;
     } else if (node is MethodDeclaration) {
-      properties['declaredElement'] = node.declaredElement2;
+      properties['declaredElement'] = node.declaredElement;
       properties['external keyword'] = node.externalKeyword;
       properties['modifier keyword'] = node.modifierKeyword;
       properties['operator keyword'] = node.operatorKeyword;
@@ -126,7 +126,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is VariableDeclarationList) {
       properties['keyword'] = node.keyword;
     } else if (node is Declaration) {
-      properties['declaredElement'] = node.declaredElement2;
+      properties['declaredElement'] = node.declaredElement;
     } else if (node is Expression) {
       properties['static type'] = node.staticType;
     } else if (node is FunctionBody) {
@@ -144,11 +144,11 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
   /// declaration.
   String? _getName(AstNode node) {
     if (node is ClassTypeAlias) {
-      return node.name2.lexeme;
+      return node.name.lexeme;
     } else if (node is ClassDeclaration) {
-      return node.name2.lexeme;
+      return node.name.lexeme;
     } else if (node is ConstructorDeclaration) {
-      var name = node.name2;
+      var name = node.name;
       if (name == null) {
         return node.returnType.name;
       } else {
@@ -159,21 +159,21 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is FieldDeclaration) {
       return _getNames(node.fields);
     } else if (node is FunctionDeclaration) {
-      return node.name2.lexeme;
+      return node.name.lexeme;
     } else if (node is FunctionTypeAlias) {
-      return node.name2.lexeme;
+      return node.name.lexeme;
     } else if (node is Identifier) {
       return node.name;
     } else if (node is MethodDeclaration) {
-      return node.name2.lexeme;
+      return node.name.lexeme;
     } else if (node is TopLevelVariableDeclaration) {
       return _getNames(node.variables);
     } else if (node is TypeAnnotation) {
       return node.toSource();
     } else if (node is TypeParameter) {
-      return node.name2.lexeme;
+      return node.name.lexeme;
     } else if (node is VariableDeclaration) {
-      return node.name2.lexeme;
+      return node.name.lexeme;
     }
     return null;
   }
@@ -189,7 +189,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       } else {
         buffer.write(', ');
       }
-      buffer.write(variable.name2.lexeme);
+      buffer.write(variable.name.lexeme);
     }
     return buffer.toString();
   }

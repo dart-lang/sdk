@@ -6,13 +6,17 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
+import 'package:dart2wasm/closures.dart';
+import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/translator.dart';
 import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart' show substitute, Substitution;
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+const int maxArrayNewFixedLength = 10000;
 
 class ConstantInfo {
   final Constant constant;
@@ -20,31 +24,31 @@ class ConstantInfo {
   final w.DefinedFunction? function;
 
   ConstantInfo(this.constant, this.global, this.function);
+
+  bool get isLazy => function != null;
 }
 
 typedef ConstantCodeGenerator = void Function(
     w.DefinedFunction?, w.Instructions);
 
-/// Handles the creation of Dart constants. Can operate in two modes - eager and
-/// lazy - controlled by [TranslatorOptions.lazyConstants].
+/// Handles the creation of Dart constants.
 ///
 /// Each (non-trivial) constant is assigned to a Wasm global. Multiple
 /// occurrences of the same constant use the same global.
 ///
-/// In eager mode, the constant is contained within the global initializer,
-/// meaning all constants are initialized eagerly during module initialization.
-/// In lazy mode, the global starts out uninitialized, and every use of the
-/// constant checks the global to see if it has been initialized and calls an
-/// initialization function otherwise.
+/// When possible, the constant is contained within the global initializer,
+/// meaning the constant is initialized eagerly during module initialization.
+/// If this would exceed built-in Wasm limits (in particular the maximum length
+/// for `array.new_fixed`), the constant is lazy, meaning that the global starts
+/// out uninitialized, and every use of the constant checks the global to see if
+/// it has been initialized and calls an initialization function otherwise.
+/// A constant is also forced to be lazy if any sub-constants (e.g. elements of
+/// a constant list) are lazy.
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
-  final StringBuffer oneByteStrings = StringBuffer();
-  final StringBuffer twoByteStrings = StringBuffer();
-  late final w.DefinedFunction oneByteStringFunction;
-  late final w.DefinedFunction twoByteStringFunction;
-  late final w.DataSegment oneByteStringSegment;
-  late final w.DataSegment twoByteStringSegment;
+  w.DataSegment? oneByteStringSegment;
+  w.DataSegment? twoByteStringSegment;
   late final w.DefinedGlobal emptyString;
   late final w.DefinedGlobal emptyTypeList;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
@@ -52,19 +56,11 @@ class Constants {
   bool currentlyCreating = false;
 
   Constants(this.translator) {
-    if (lazyConstants) {
-      oneByteStringFunction = makeStringFunction(translator.oneByteStringClass);
-      twoByteStringFunction = makeStringFunction(translator.twoByteStringClass);
-    } else if (stringDataSegments) {
-      oneByteStringSegment = m.addDataSegment();
-      twoByteStringSegment = m.addDataSegment();
-    }
     initEmptyString();
     initEmptyTypeList();
   }
 
   w.Module get m => translator.m;
-  bool get lazyConstants => translator.options.lazyConstants;
   bool get stringDataSegments => translator.options.stringDataSegments;
 
   void initEmptyString() {
@@ -73,29 +69,14 @@ class Constants {
     w.ArrayType arrayType =
         (info.struct.fields.last.type as w.RefType).heapType as w.ArrayType;
 
-    if (lazyConstants) {
-      w.RefType emptyStringType = info.nullableType;
-      emptyString = m.addGlobal(w.GlobalType(emptyStringType));
-      emptyString.initializer.ref_null(emptyStringType.heapType);
-      emptyString.initializer.end();
-
-      w.Instructions b = translator.initFunction.body;
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      b.i32_const(0);
-      b.array_new_default(arrayType);
-      b.struct_new(info.struct);
-      b.global_set(emptyString);
-    } else {
-      w.RefType emptyStringType = info.nonNullableType;
-      emptyString = m.addGlobal(w.GlobalType(emptyStringType, mutable: false));
-      w.Instructions ib = emptyString.initializer;
-      ib.i32_const(info.classId);
-      ib.i32_const(initialIdentityHash);
-      ib.array_new_fixed(arrayType, 0);
-      ib.struct_new(info.struct);
-      ib.end();
-    }
+    w.RefType emptyStringType = info.nonNullableType;
+    emptyString = m.addGlobal(w.GlobalType(emptyStringType, mutable: false));
+    w.Instructions ib = emptyString.initializer;
+    ib.i32_const(info.classId);
+    ib.i32_const(initialIdentityHash);
+    ib.array_new_fixed(arrayType, 0);
+    ib.struct_new(info.struct);
+    ib.end();
 
     Constant emptyStringConstant = StringConstant("");
     constantInfo[emptyStringConstant] =
@@ -109,33 +90,16 @@ class Constants {
     w.ArrayType arrayType = refType.heapType as w.ArrayType;
 
     // Create the empty type list with its type parameter uninitialized for now.
-    if (lazyConstants) {
-      w.RefType emptyListType = info.nullableType;
-      emptyTypeList = m.addGlobal(w.GlobalType(emptyListType));
-      emptyTypeList.initializer.ref_null(emptyListType.heapType);
-      emptyTypeList.initializer.end();
-
-      w.Instructions b = translator.initFunction.body;
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      b.ref_null(typeInfo.struct); // Initialized later
-      b.i64_const(0);
-      b.i32_const(0);
-      b.array_new_default(arrayType);
-      b.struct_new(info.struct);
-      b.global_set(emptyTypeList);
-    } else {
-      w.RefType emptyListType = info.nonNullableType;
-      emptyTypeList = m.addGlobal(w.GlobalType(emptyListType, mutable: false));
-      w.Instructions ib = emptyTypeList.initializer;
-      ib.i32_const(info.classId);
-      ib.i32_const(initialIdentityHash);
-      ib.ref_null(typeInfo.struct); // Initialized later
-      ib.i64_const(0);
-      ib.array_new_fixed(arrayType, 0);
-      ib.struct_new(info.struct);
-      ib.end();
-    }
+    w.RefType emptyListType = info.nonNullableType;
+    emptyTypeList = m.addGlobal(w.GlobalType(emptyListType, mutable: false));
+    w.Instructions ib = emptyTypeList.initializer;
+    ib.i32_const(info.classId);
+    ib.i32_const(initialIdentityHash);
+    ib.ref_null(typeInfo.struct); // Initialized later
+    ib.i64_const(0);
+    ib.array_new_fixed(arrayType, 0);
+    ib.struct_new(info.struct);
+    ib.end();
 
     Constant emptyTypeListConstant = ListConstant(
         InterfaceType(translator.typeClass, Nullability.nonNullable), const []);
@@ -156,40 +120,6 @@ class Constants {
         translator.typeParameterIndex[info.cls!.typeParameters.single]!);
   }
 
-  void finalize() {
-    if (lazyConstants) {
-      finalizeStrings();
-    }
-  }
-
-  void finalizeStrings() {
-    Uint8List oneByteStringsAsBytes =
-        Uint8List.fromList(oneByteStrings.toString().codeUnits);
-    assert(Endian.host == Endian.little);
-    Uint8List twoByteStringsAsBytes =
-        Uint16List.fromList(twoByteStrings.toString().codeUnits)
-            .buffer
-            .asUint8List();
-    Uint8List stringsAsBytes = (BytesBuilder()
-          ..add(twoByteStringsAsBytes)
-          ..add(oneByteStringsAsBytes))
-        .toBytes();
-
-    w.Memory stringMemory =
-        m.addMemory(false, stringsAsBytes.length, stringsAsBytes.length);
-    m.addDataSegment(stringsAsBytes, stringMemory, 0);
-    makeStringFunctionBody(translator.oneByteStringClass, oneByteStringFunction,
-        (b) {
-      b.i32_load8_u(stringMemory, twoByteStringsAsBytes.length);
-    });
-    makeStringFunctionBody(translator.twoByteStringClass, twoByteStringFunction,
-        (b) {
-      b.i32_const(1);
-      b.i32_shl();
-      b.i32_load16_u(stringMemory, 0);
-    });
-  }
-
   /// Create one of the two Wasm functions (one for each string type) called
   /// from every lazily initialized string constant (of that type) to create and
   /// initialize the string.
@@ -201,7 +131,7 @@ class Constants {
     ClassInfo info = translator.classInfo[cls]!;
     w.FunctionType ftype = m.addFunctionType(
         const [w.NumType.i32, w.NumType.i32], [info.nonNullableType]);
-    return m.addFunction(ftype, "makeString (${cls.name})");
+    return m.addFunction(ftype, "makeString ${cls.name}");
   }
 
   void makeStringFunctionBody(Class cls, w.DefinedFunction function,
@@ -276,11 +206,11 @@ class Constants {
 
   /// Ensure that the constant has a Wasm global assigned.
   ///
-  /// In eager mode, sub-constants must have Wasm globals assigned before the
-  /// global for the composite constant is assigned, since global initializers
-  /// can only refer to earlier globals.
-  void ensureConstant(Constant constant) {
-    ConstantCreator(this).ensureConstant(constant);
+  /// Sub-constants must have Wasm globals assigned before the global for the
+  /// composite constant is assigned, since global initializers can only refer
+  /// to earlier globals.
+  ConstantInfo? ensureConstant(Constant constant) {
+    return ConstantCreator(this).ensureConstant(constant);
   }
 
   /// Emit code to push a constant onto the stack.
@@ -312,26 +242,33 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
   @override
   w.ValueType defaultConstant(Constant constant) {
     ConstantInfo info = ConstantCreator(constants).ensureConstant(constant)!;
-    w.ValueType globalType = info.global.type.type;
-    if (globalType.nullable) {
-      if (info.function != null) {
-        // Lazily initialized constant.
-        w.Label done = b.block(const [], [globalType.withNullability(false)]);
-        b.global_get(info.global);
-        b.br_on_non_null(done);
-        b.call(info.function!);
-        b.end();
-      } else {
-        // Constant initialized in the module init function.
-        b.global_get(info.global);
-        b.ref_as_non_null();
-      }
-      return globalType.withNullability(false);
+    if (info.isLazy) {
+      // Lazily initialized constant.
+      w.ValueType type = info.global.type.type.withNullability(false);
+      w.Label done = b.block(const [], [type]);
+      b.global_get(info.global);
+      b.br_on_non_null(done);
+      b.call(info.function!);
+      b.end();
+      return type;
     } else {
       // Constant initialized eagerly in a global initializer.
       b.global_get(info.global);
-      return globalType;
+      return info.global.type.type;
     }
+  }
+
+  @override
+  w.ValueType visitUnevaluatedConstant(UnevaluatedConstant constant) {
+    if (constant == ParameterInfo.defaultValueSentinel) {
+      // Instantiate a sentinel value specific to the parameter type.
+      w.ValueType sentinelType = expectedType.withNullability(false);
+      assert(sentinelType is w.RefType,
+          "Default value sentinel for unboxed parameter");
+      translator.globals.instantiateDummyValue(b, sentinelType);
+      return sentinelType;
+    }
+    return super.visitUnevaluatedConstant(constant);
   }
 
   @override
@@ -397,7 +334,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   Translator get translator => constants.translator;
   Types get types => translator.types;
   w.Module get m => constants.m;
-  bool get lazyConstants => constants.lazyConstants;
 
   ConstantInfo? ensureConstant(Constant constant) {
     ConstantInfo? info = constants.constantInfo[constant];
@@ -411,9 +347,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   }
 
   ConstantInfo createConstant(
-      Constant constant, w.RefType type, ConstantCodeGenerator generator) {
+      Constant constant, w.RefType type, ConstantCodeGenerator generator,
+      {bool lazy = false}) {
     assert(!type.nullable);
-    if (lazyConstants) {
+    if (lazy) {
       // Create uninitialized global and function to initialize it.
       w.DefinedGlobal global =
           m.addGlobal(w.GlobalType(type.withNullability(true)));
@@ -454,55 +391,40 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         : translator.twoByteStringClass]!;
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
-    return createConstant(constant, type, (function, b) {
-      if (lazyConstants) {
-        // Copy string contents from linear memory on initialization. The memory
-        // is initialized by an active data segment for each string type.
-        StringBuffer buffer =
-            isOneByte ? constants.oneByteStrings : constants.twoByteStrings;
-        int offset = buffer.length;
-        int length = constant.value.length;
-        buffer.write(constant.value);
+    bool lazy = constant.value.length > maxArrayNewFixedLength;
+    return createConstant(constant, type, lazy: lazy, (function, b) {
+      w.ArrayType arrayType =
+          (info.struct.fields.last.type as w.RefType).heapType as w.ArrayType;
 
-        b.i32_const(offset);
-        b.i32_const(length);
-        b.call(isOneByte
-            ? constants.oneByteStringFunction
-            : constants.twoByteStringFunction);
-      } else {
-        w.ArrayType arrayType =
-            (info.struct.fields.last.type as w.RefType).heapType as w.ArrayType;
-
-        b.i32_const(info.classId);
-        b.i32_const(initialIdentityHash);
-        if (constants.stringDataSegments) {
-          // Initialize string contents from passive data segment.
-          w.DataSegment segment;
-          Uint8List bytes;
-          if (isOneByte) {
-            segment = constants.oneByteStringSegment;
-            bytes = Uint8List.fromList(constant.value.codeUnits);
-          } else {
-            assert(Endian.host == Endian.little);
-            segment = constants.twoByteStringSegment;
-            bytes = Uint16List.fromList(constant.value.codeUnits)
-                .buffer
-                .asUint8List();
-          }
-          int offset = segment.length;
-          segment.append(bytes);
-          b.i32_const(offset);
-          b.i32_const(constant.value.length);
-          b.array_new_data(arrayType, segment);
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      if (lazy || constants.stringDataSegments) {
+        // Initialize string contents from passive data segment.
+        w.DataSegment segment;
+        Uint8List bytes;
+        if (isOneByte) {
+          segment = constants.oneByteStringSegment ??= m.addDataSegment();
+          bytes = Uint8List.fromList(constant.value.codeUnits);
         } else {
-          // Initialize string contents from i32 constants on the stack.
-          for (int charCode in constant.value.codeUnits) {
-            b.i32_const(charCode);
-          }
-          b.array_new_fixed(arrayType, constant.value.length);
+          assert(Endian.host == Endian.little);
+          segment = constants.twoByteStringSegment ??= m.addDataSegment();
+          bytes = Uint16List.fromList(constant.value.codeUnits)
+              .buffer
+              .asUint8List();
         }
-        b.struct_new(info.struct);
+        int offset = segment.length;
+        segment.append(bytes);
+        b.i32_const(offset);
+        b.i32_const(constant.value.length);
+        b.array_new_data(arrayType, segment);
+      } else {
+        // Initialize string contents from i32 constants on the stack.
+        for (int charCode in constant.value.codeUnits) {
+          b.i32_const(charCode);
+        }
+        b.array_new_fixed(arrayType, constant.value.length);
       }
+      b.struct_new(info.struct);
     });
   }
 
@@ -517,11 +439,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     const int baseFieldCount = 2;
     int fieldCount = info.struct.fields.length;
     List<Constant?> subConstants = List.filled(fieldCount, null);
+    bool lazy = false;
     constant.fieldValues.forEach((reference, subConstant) {
       int index = translator.fieldIndex[reference.asField]!;
       assert(subConstants[index] == null);
       subConstants[index] = subConstant;
-      ensureConstant(subConstant);
+      lazy |= ensureConstant(subConstant)?.isLazy ?? false;
     });
 
     // Collect sub-constants for type arguments.
@@ -543,7 +466,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       args = supertype.typeArguments;
     }
 
-    return createConstant(constant, type, (function, b) {
+    return createConstant(constant, type, lazy: lazy, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       for (int i = baseFieldCount; i < fieldCount; i++) {
@@ -559,14 +482,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   ConstantInfo? visitListConstant(ListConstant constant) {
     Constant typeArgConstant = TypeLiteralConstant(constant.typeArgument);
     ensureConstant(typeArgConstant);
+    bool lazy = constant.entries.length > maxArrayNewFixedLength;
     for (Constant subConstant in constant.entries) {
-      ensureConstant(subConstant);
+      lazy |= ensureConstant(subConstant)?.isLazy ?? false;
     }
 
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
-    return createConstant(constant, type, (function, b) {
+    return createConstant(constant, type, lazy: lazy, (function, b) {
       w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
       w.ArrayType arrayType = refType.heapType as w.ArrayType;
       w.ValueType elementType = arrayType.elementType.type.unpacked;
@@ -576,7 +500,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       constants.instantiateConstant(
           function, b, typeArgConstant, constants.typeInfo.nullableType);
       b.i64_const(length);
-      if (lazyConstants) {
+      if (lazy) {
         // Allocate array and set each entry to the corresponding sub-constant.
         w.Local arrayLocal = function!.addLocal(refType.withNullability(false));
         b.i32_const(length);
@@ -614,12 +538,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return i.isEven ? entry.key : entry.value;
     });
     ListConstant dataList = ListConstant(const DynamicType(), dataElements);
-    ensureConstant(dataList);
+    bool lazy = ensureConstant(dataList)?.isLazy ?? false;
 
     ClassInfo info = translator.classInfo[translator.immutableMapClass]!;
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
-    return createConstant(constant, type, (function, b) {
+    return createConstant(constant, type, lazy: lazy, (function, b) {
       w.RefType indexType =
           info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
       w.RefType dataType =
@@ -645,12 +569,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     Constant elementTypeConstant = TypeLiteralConstant(constant.typeArgument);
     ensureConstant(elementTypeConstant);
     ListConstant dataList = ListConstant(const DynamicType(), constant.entries);
-    ensureConstant(dataList);
+    bool lazy = ensureConstant(dataList)?.isLazy ?? false;
 
     ClassInfo info = translator.classInfo[translator.immutableSetClass]!;
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
-    return createConstant(constant, type, (function, b) {
+    return createConstant(constant, type, lazy: lazy, (function, b) {
       w.RefType indexType =
           info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
       w.RefType dataType =
@@ -682,10 +606,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    w.DefinedFunction closureFunction =
-        translator.getTearOffFunction(constant.targetReference.asProcedure);
-    int parameterCount = closureFunction.type.inputs.length - 1;
-    w.StructType struct = translator.closureStructType(parameterCount);
+    Procedure member = constant.targetReference.asProcedure;
+    Constant functionTypeConstant = TypeLiteralConstant(
+        member.function.computeThisFunctionType(Nullability.nonNullable));
+    ensureConstant(functionTypeConstant);
+    ClosureImplementation closure = translator.getTearOffClosure(member);
+    w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
     return createConstant(constant, type, (function, b) {
       ClassInfo info = translator.classInfo[translator.functionClass]!;
@@ -694,13 +620,98 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.global_get(translator.globals.dummyGlobal); // Dummy context
-      if (lazyConstants) {
-        w.DefinedGlobal global = translator.makeFunctionRef(closureFunction);
-        b.global_get(global);
-      } else {
-        b.ref_func(closureFunction);
+      b.global_get(closure.vtable);
+      constants.instantiateConstant(
+          function, b, functionTypeConstant, this.types.nonNullableTypeType);
+      b.struct_new(struct);
+    });
+  }
+
+  @override
+  ConstantInfo? visitInstantiationConstant(InstantiationConstant constant) {
+    TearOffConstant tearOffConstant =
+        constant.tearOffConstant as TearOffConstant;
+    List<ConstantInfo> types = constant.types
+        .map((c) => ensureConstant(TypeLiteralConstant(c))!)
+        .toList();
+    Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
+    FunctionType tearOffFunctionType = tearOffProcedure.function
+        .computeThisFunctionType(Nullability.nonNullable);
+    FunctionType instantiatedFunctionType = Substitution.fromPairs(
+            tearOffFunctionType.typeParameters, constant.types)
+        .substituteType(tearOffFunctionType) as FunctionType;
+    Constant functionTypeConstant =
+        TypeLiteralConstant(instantiatedFunctionType);
+    ensureConstant(functionTypeConstant);
+    ClosureImplementation tearOffClosure =
+        translator.getTearOffClosure(tearOffProcedure);
+    int positionalCount = tearOffConstant.function.positionalParameters.length;
+    List<String> names =
+        tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
+    ClosureRepresentation representation = translator.closureLayouter
+        .getClosureRepresentation(0, positionalCount, names)!;
+    w.StructType struct = representation.closureStruct;
+    w.RefType type = w.RefType.def(struct, nullable: false);
+    return createConstant(constant, type, (function, b) {
+      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      translator.functions.allocateClass(info.classId);
+
+      w.DefinedFunction makeTrampoline(
+          w.FunctionType signature, w.DefinedFunction tearOffFunction) {
+        assert(tearOffFunction.type.inputs.length ==
+            signature.inputs.length + types.length);
+        w.DefinedFunction function =
+            m.addFunction(signature, "instantiation constant trampoline");
+        w.Instructions b = function.body;
+        b.local_get(function.locals[0]);
+        for (ConstantInfo typeInfo in types) {
+          b.global_get(typeInfo.global);
+        }
+        for (int i = 1; i < signature.inputs.length; i++) {
+          b.local_get(function.locals[i]);
+        }
+        b.call(tearOffFunction);
+        b.end();
+        return function;
       }
-      b.struct_new(translator.closureStructType(parameterCount));
+
+      void fillVtableEntry(int posArgCount, List<String> argNames) {
+        int fieldIndex =
+            representation.fieldIndexForSignature(posArgCount, argNames);
+        int tearOffFieldIndex = tearOffClosure.representation
+            .fieldIndexForSignature(posArgCount, argNames);
+
+        w.FunctionType signature =
+            (representation.vtableStruct.fields[fieldIndex].type as w.RefType)
+                .heapType as w.FunctionType;
+        w.DefinedFunction tearOffFunction = tearOffClosure.functions[
+            tearOffFieldIndex - tearOffClosure.representation.vtableBaseIndex];
+        w.DefinedFunction function =
+            translator.globals.isDummyFunction(tearOffFunction)
+                ? translator.globals.getDummyFunction(signature)
+                : makeTrampoline(signature, tearOffFunction);
+        b.ref_func(function);
+      }
+
+      void makeVtable() {
+        for (int posArgCount = 0;
+            posArgCount <= positionalCount;
+            posArgCount++) {
+          fillVtableEntry(posArgCount, const []);
+        }
+        for (NameCombination combination in representation.nameCombinations) {
+          fillVtableEntry(positionalCount, combination.names);
+        }
+        b.struct_new(representation.vtableStruct);
+      }
+
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      b.global_get(translator.globals.dummyGlobal); // Dummy context
+      makeVtable();
+      constants.instantiateConstant(
+          function, b, functionTypeConstant, this.types.nonNullableTypeType);
+      b.struct_new(struct);
     });
   }
 
@@ -829,8 +840,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     w.RefType stringType =
         translator.classInfo[translator.coreTypes.stringClass]!.nonNullableType;
     StringConstant nameConstant = StringConstant(constant.name);
-    ensureConstant(nameConstant);
-    return createConstant(constant, info.nonNullableType, (function, b) {
+    bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
+    return createConstant(constant, info.nonNullableType, lazy: lazy,
+        (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       constants.instantiateConstant(function, b, nameConstant, stringType);

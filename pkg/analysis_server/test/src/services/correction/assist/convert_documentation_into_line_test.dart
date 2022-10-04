@@ -49,6 +49,97 @@ class A {
 ''');
   }
 
+  Future<void> test_indentation_last() async {
+    await resolveTestCode('''
+/**
+ * AAAAAAA
+  */
+class A {}
+''');
+    await assertHasAssistAt('AAAAAAA', '''
+/// AAAAAAA
+class A {}
+''');
+  }
+
+  Future<void> test_indentation_middle() async {
+    await resolveTestCode('''
+/**
+  * AAAAAAA
+ */
+class A {}
+''');
+    await assertHasAssistAt('AAAAAAA', '''
+/// AAAAAAA
+class A {}
+''');
+  }
+
+  Future<void> test_multiLine() async {
+    await resolveTestCode('''
+class A {
+  /**
+   * AAAAAAA
+   *
+   *    while (i < 100) {
+   *      i++;
+   *    }
+   */
+  mmm() {}
+}
+''');
+    await assertHasAssistAt('AAA', '''
+class A {
+  /// AAAAAAA
+  ///
+  ///    while (i < 100) {
+  ///      i++;
+  ///    }
+  mmm() {}
+}
+''');
+  }
+
+  Future<void> test_multiLine_lastLine() async {
+    await resolveTestCode('''
+class A {
+  /**
+   * AAAAAAA
+   *
+   *    while (i < 100) {
+   *      i++;
+   *    }  */
+  mmm() {}
+}
+''');
+    await assertHasAssistAt('AAA', '''
+class A {
+  /// AAAAAAA
+  ///
+  ///    while (i < 100) {
+  ///      i++;
+  ///    }
+  mmm() {}
+}
+''');
+  }
+
+  Future<void> test_multipleLines() async {
+    await resolveTestCode('''
+class A {
+  /**
+   * AAAAAAA */
+  mmm() {}
+}
+''');
+    await assertHasAssistAt('AAA', '''
+class A {
+  /// AAAAAAA
+  mmm() {}
+}
+''');
+  }
+
   Future<void> test_notDocumentation() async {
     await resolveTestCode('''
 /* AAAA */
@@ -144,6 +235,21 @@ class A {
   ///     Indented line.
   /// Last line.
   m() {}
+}
+''');
+  }
+
+  Future<void> test_singleLine() async {
+    await resolveTestCode('''
+class A {
+  /** AAAAAAA */
+  mmm() {}
+}
+''');
+    await assertHasAssistAt('AAA', '''
+class A {
+  /// AAAAAAA
+  mmm() {}
 }
 ''');
   }

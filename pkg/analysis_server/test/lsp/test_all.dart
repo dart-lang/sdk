@@ -31,6 +31,7 @@ import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
+import 'inlay_hint_test.dart' as inlay_hint;
 import 'mapping_test.dart' as mapping;
 import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
@@ -77,6 +78,7 @@ void main() {
     hover.main();
     implementation.main();
     initialization.main();
+    inlay_hint.main();
     lsp_packet_transformer.main();
     mapping.main();
     outline.main();

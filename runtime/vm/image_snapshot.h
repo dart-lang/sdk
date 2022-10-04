@@ -22,6 +22,10 @@
 #include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
 
+#if defined(DEBUG)
+#define SNAPSHOT_BACKTRACE
+#endif
+
 namespace dart {
 
 // Forward declarations.
@@ -40,7 +44,7 @@ class Image : ValueObject {
       : raw_memory_(raw_memory),
         snapshot_size_(FieldValue(raw_memory, HeaderField::ImageSize)),
         extra_info_(ExtraInfo(raw_memory_, snapshot_size_)) {
-    ASSERT(Utils::IsAligned(raw_memory, kMaxObjectAlignment));
+    ASSERT(Utils::IsAligned(raw_memory, kObjectStartAlignment));
   }
 
   // Even though an Image is read-only memory, we must return a void* here.
@@ -113,12 +117,12 @@ class Image : ValueObject {
   //
   // Note: Image::kHeaderSize is _not_ an architecture-dependent constant,
   // and so there is no compiler::target::Image::kHeaderSize.
-  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
+  static constexpr intptr_t kHeaderSize = kObjectStartAlignment;
   // Explicitly double-checking kHeaderSize is never changed. Increasing the
   // Image header size would mean objects would not start at a place expected
-  // by parts of the VM (like the GC) that use Image pages as HeapPages.
-  static_assert(kHeaderSize == kMaxObjectAlignment,
-                "Image page cannot be used as HeapPage");
+  // by parts of the VM (like the GC) that use Image pages as Pages.
+  static_assert(kHeaderSize == kObjectStartAlignment,
+                "Image page cannot be used as Page");
   // Make sure that the number of fields in the Image header fit both on the
   // host and target architectures.
   static_assert(kHeaderFields * kWordSize <= kHeaderSize,
@@ -239,10 +243,10 @@ class ImageWriter : public ValueObject {
   // BSS sections contain word-sized data.
   static constexpr intptr_t kBssAlignment = compiler::target::kWordSize;
   // ROData sections contain objects wrapped in an Image object.
-  static constexpr intptr_t kRODataAlignment = kMaxObjectAlignment;
+  static constexpr intptr_t kRODataAlignment = kObjectStartAlignment;
   // Text sections contain objects (even in bare instructions mode) wrapped
   // in an Image object.
-  static constexpr intptr_t kTextAlignment = kMaxObjectAlignment;
+  static constexpr intptr_t kTextAlignment = kObjectStartAlignment;
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
@@ -270,7 +274,11 @@ class ImageWriter : public ValueObject {
            offset_space_ == IdSpace::kIsolateText;
   }
   int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
+#if defined(SNAPSHOT_BACKTRACE)
+  uint32_t GetDataOffsetFor(ObjectPtr raw_object, ObjectPtr raw_parent);
+#else
   uint32_t GetDataOffsetFor(ObjectPtr raw_object);
+#endif
 
   uint32_t AddBytesToData(uint8_t* bytes, intptr_t length);
 
@@ -356,10 +364,27 @@ class ImageWriter : public ValueObject {
   };
 
   struct ObjectData {
-    explicit ObjectData(ObjectPtr raw_obj)
-        : raw_obj(raw_obj), is_object(true) {}
+#if defined(SNAPSHOT_BACKTRACE)
+    explicit ObjectData(ObjectPtr raw_obj, ObjectPtr raw_parent)
+        : raw_obj(raw_obj),
+          raw_parent(raw_parent),
+          flags(IsObjectField::encode(true) |
+                IsOriginalObjectField::encode(true)) {}
     ObjectData(uint8_t* buf, intptr_t length)
-        : bytes({buf, length}), is_object(false) {}
+        : bytes({buf, length}),
+          raw_parent(Object::null()),
+          flags(IsObjectField::encode(false) |
+                IsOriginalObjectField::encode(false)) {}
+#else
+    explicit ObjectData(ObjectPtr raw_obj)
+        : raw_obj(raw_obj),
+          flags(IsObjectField::encode(true) |
+                IsOriginalObjectField::encode(true)) {}
+    ObjectData(uint8_t* buf, intptr_t length)
+        : bytes({buf, length}),
+          flags(IsObjectField::encode(false) |
+                IsOriginalObjectField::encode(false)) {}
+#endif
 
     union {
       struct {
@@ -369,7 +394,28 @@ class ImageWriter : public ValueObject {
       ObjectPtr raw_obj;
       const Object* obj;
     };
-    bool is_object;
+#if defined(SNAPSHOT_BACKTRACE)
+    union {
+      ObjectPtr raw_parent;
+      const Object* parent;
+    };
+#endif
+    uint8_t flags;
+
+    bool is_object() const {
+      return IsObjectField::decode(flags);
+    }
+    bool is_original_object() const {
+      return IsOriginalObjectField::decode(flags);
+    }
+
+    void set_is_object(bool value) {
+      flags = IsObjectField::update(value, flags);
+    }
+
+    using IsObjectField = BitField<uint8_t, bool, 0, 1>;
+    using IsOriginalObjectField =
+        BitField<uint8_t, bool, IsObjectField::kNextBit, 1>;
   };
 
   // Methods abstracting out the particulars of the underlying concrete writer.
@@ -379,7 +425,8 @@ class ImageWriter : public ValueObject {
   // this section should not be written.
   virtual bool EnterSection(ProgramSection name,
                             bool vm,
-                            intptr_t alignment) = 0;
+                            intptr_t alignment,
+                            intptr_t* alignment_padding = nullptr) = 0;
   // Marks the exit from a particular ProgramSection, allowing subclasses to
   // do any post-writing work.
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size) = 0;
@@ -415,6 +462,10 @@ class ImageWriter : public ValueObject {
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
                              intptr_t section_offset) = 0;
+  // Creates a static symbol for a read-only data object when appropriate.
+  virtual void AddDataSymbol(const char* symbol,
+                             intptr_t section_offset,
+                             size_t size) = 0;
 
   // Overloaded convenience versions of the above virtual methods.
 
@@ -442,6 +493,47 @@ class ImageWriter : public ValueObject {
   GrowableArray<ObjectData> objects_;
   GrowableArray<InstructionsData> instructions_;
 
+#if defined(DART_PRECOMPILER)
+  class SnapshotTextObjectNamer : ValueObject {
+   public:
+    explicit SnapshotTextObjectNamer(Zone* zone)
+        : zone_(ASSERT_NOTNULL(zone)),
+          owner_(Object::Handle(zone)),
+          string_(String::Handle(zone)),
+          insns_(Instructions::Handle(zone)),
+          store_(IsolateGroup::Current()->object_store()) {}
+
+    const char* StubNameForType(const AbstractType& type) const;
+
+    // Returns a unique assembly-safe name for text data to use in symbols.
+    // Assumes that code in the InstructionsData has been allocated a handle.
+    const char* SnapshotNameFor(const InstructionsData& data);
+    // Returns a unique assembly-safe name for read-only data to use in symbols.
+    // Assumes that the ObjectData has already been converted to object handles.
+    const char* SnapshotNameFor(const ObjectData& data);
+
+   private:
+    // Returns a unique assembly-safe name for the given code or read-only
+    // data object for use in symbols.
+    const char* SnapshotNameFor(const Object& object);
+    // Adds a non-unique assembly-safe name for the given object to the given
+    // buffer.
+    void AddNonUniqueNameFor(BaseTextBuffer* buffer, const Object& object);
+
+    Zone* const zone_;
+    Object& owner_;
+    String& string_;
+    Instructions& insns_;
+    ObjectStore* const store_;
+    TypeTestingStubNamer namer_;
+    intptr_t nonce_ = 0;
+
+    DISALLOW_COPY_AND_ASSIGN(SnapshotTextObjectNamer);
+  };
+
+  SnapshotTextObjectNamer namer_;
+#endif
+
   IdSpace offset_space_ = IdSpace::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
   const char* const image_type_;
@@ -449,12 +541,8 @@ class ImageWriter : public ValueObject {
   const char* const instructions_type_;
   const char* const trampoline_type_;
 
-  // Used to make sure Code symbols are unique across text sections.
-  intptr_t unique_symbol_counter_ = 0;
-
   template <class T>
   friend class TraceImageObjectScope;
-  friend class SnapshotTextObjectNamer;  // For InstructionsData.
 
  private:
   static intptr_t SizeInSnapshotForBytes(intptr_t length);
@@ -503,32 +591,6 @@ class TraceImageObjectScope : ValueObject {
   DISALLOW_COPY_AND_ASSIGN(TraceImageObjectScope);
 };
 
-class SnapshotTextObjectNamer : ValueObject {
- public:
-  explicit SnapshotTextObjectNamer(Zone* zone)
-      : zone_(ASSERT_NOTNULL(zone)),
-        owner_(Object::Handle(zone)),
-        string_(String::Handle(zone)),
-        insns_(Instructions::Handle(zone)),
-        store_(IsolateGroup::Current()->object_store()) {}
-
-  const char* StubNameForType(const AbstractType& type) const;
-
-  const char* SnapshotNameFor(intptr_t code_index, const Code& code);
-  const char* SnapshotNameFor(intptr_t index,
-                              const ImageWriter::InstructionsData& data);
-
- private:
-  Zone* const zone_;
-  Object& owner_;
-  String& string_;
-  Instructions& insns_;
-  ObjectStore* const store_;
-  TypeTestingStubNamer namer_;
-
-  DISALLOW_COPY_AND_ASSIGN(SnapshotTextObjectNamer);
-};
-
 class AssemblyImageWriter : public ImageWriter {
  public:
   AssemblyImageWriter(Thread* thread,
@@ -543,7 +605,8 @@ class AssemblyImageWriter : public ImageWriter {
 
   virtual bool EnterSection(ProgramSection section,
                             bool vm,
-                            intptr_t alignment);
+                            intptr_t alignment,
+                            intptr_t* alignment_padding = nullptr);
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
   virtual intptr_t WriteTargetWord(word value);
   virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
@@ -563,6 +626,7 @@ class AssemblyImageWriter : public ImageWriter {
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
                              intptr_t offset);
+  virtual void AddDataSymbol(const char* symbol, intptr_t offset, size_t size);
 
   BaseWriteStream* const assembly_stream_;
   Dwarf* const assembly_dwarf_;
@@ -571,8 +635,8 @@ class AssemblyImageWriter : public ImageWriter {
   // Used in Relocation to output "(.)" for relocations involving the current
   // section position and creating local symbols in AddCodeSymbol.
   const char* current_section_symbol_ = nullptr;
-  // Used for creating local symbols for code objects in the debugging info,
-  // if separately written.
+  // Used for creating local symbols for code and data objects in the
+  // debugging info, if separately written.
   ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
@@ -593,7 +657,8 @@ class BlobImageWriter : public ImageWriter {
 
   virtual bool EnterSection(ProgramSection section,
                             bool vm,
-                            intptr_t alignment);
+                            intptr_t alignment,
+                            intptr_t* alignment_padding = nullptr);
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
   virtual intptr_t WriteTargetWord(word value);
   virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
@@ -616,6 +681,7 @@ class BlobImageWriter : public ImageWriter {
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
                              intptr_t offset);
+  virtual void AddDataSymbol(const char* symbol, intptr_t offset, size_t size);
 
   // Set on section entrance to a new array containing the relocations for the
   // current section.

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
+import 'package:analyzer/dart/ast/token.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
@@ -205,6 +206,15 @@ Location newLocation_fromNode(engine.AstNode node) {
   return _locationForArgs(unitElement, range);
 }
 
+/// Create a Location based on an [engine.AstNode].
+Location newLocation_fromToken({
+  required engine.CompilationUnitElement unitElement,
+  required engine.Token token,
+}) {
+  var range = engine.SourceRange(token.offset, token.length);
+  return _locationForArgs(unitElement, range);
+}
+
 /// Create a Location based on an [engine.CompilationUnit].
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
@@ -215,7 +225,7 @@ Location newLocation_fromUnit(
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member,
     {required bool withNullability}) {
   var element = convertElement(member, withNullability: withNullability);
-  var className = member.enclosingElement3!.displayName;
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -262,7 +272,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
 
   if (element is engine.PrefixElement) {
-    element = element.enclosingElement3.definingCompilationUnit;
+    element = element.enclosingElement.definingCompilationUnit;
   }
 
   var withNullability = element.library?.isNonNullableByDefault ?? false;
@@ -277,7 +287,7 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
     return element;
   }
 
-  var enclosingElement = element.enclosingElement3;
+  var enclosingElement = element.enclosingElement;
   if (enclosingElement is engine.LibraryElement) {
     element = enclosingElement;
   }

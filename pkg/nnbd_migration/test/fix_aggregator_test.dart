@@ -1790,7 +1790,7 @@ int f() => null;
     var methodInvocation = findNode.methodInvocation('?.');
     var previewInfo = run({
       methodInvocation: NodeChangeForMethodInvocation()
-        ..removeNullAwareness = true
+        ..nullAwarenessRemoval = NullAwarenessRemovalType.strong
     })!;
     expect(previewInfo.applyTo(code!), 'f(x) => x.m();');
   }
@@ -1802,7 +1802,7 @@ int f() => null;
     var argument = findNode.simple('x);');
     var previewInfo = run({
       methodInvocation: NodeChangeForMethodInvocation()
-        ..removeNullAwareness = true,
+        ..nullAwarenessRemoval = NullAwarenessRemovalType.strong,
       argument: NodeChangeForExpression()
         ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
     })!;
@@ -1816,7 +1816,7 @@ int f() => null;
     var cast = findNode.as_('as');
     var previewInfo = run({
       methodInvocation: NodeChangeForMethodInvocation()
-        ..removeNullAwareness = true,
+        ..nullAwarenessRemoval = NullAwarenessRemovalType.strong,
       cast: NodeChangeForAsExpression()..removeAs = true
     })!;
     expect(previewInfo.applyTo(code!), 'f(x) => x.m();');
@@ -1829,7 +1829,7 @@ int f() => null;
     var typeAnnotation = findNode.typeAnnotation('int');
     var previewInfo = run({
       methodInvocation: NodeChangeForMethodInvocation()
-        ..removeNullAwareness = true,
+        ..nullAwarenessRemoval = NullAwarenessRemovalType.strong,
       typeAnnotation: NodeChangeForTypeAnnotation()
         ..recordNullability(
             MockDecoratedType(
@@ -1843,7 +1843,8 @@ int f() => null;
     await analyze('f(x) => x?.y;');
     var propertyAccess = findNode.propertyAccess('?.');
     var previewInfo = run({
-      propertyAccess: NodeChangeForPropertyAccess()..removeNullAwareness = true
+      propertyAccess: NodeChangeForPropertyAccess()
+        ..nullAwarenessRemoval = NullAwarenessRemovalType.strong
     })!;
     expect(previewInfo.applyTo(code!), 'f(x) => x.y;');
   }
@@ -1853,7 +1854,8 @@ int f() => null;
     var propertyAccess = findNode.propertyAccess('?.');
     var cast = findNode.as_('as');
     var previewInfo = run({
-      propertyAccess: NodeChangeForPropertyAccess()..removeNullAwareness = true,
+      propertyAccess: NodeChangeForPropertyAccess()
+        ..nullAwarenessRemoval = NullAwarenessRemovalType.strong,
       cast: NodeChangeForAsExpression()..removeAs = true
     })!;
     expect(previewInfo.applyTo(code!), 'f(x) => x.y;');
@@ -2057,7 +2059,7 @@ f(int i) {
     await analyze(content);
     var previewInfo = run({
       findNode.propertyAccess('?.'): NodeChangeForPropertyAccess()
-        ..removeNullAwareness = true
+        ..nullAwarenessRemoval = NullAwarenessRemovalType.weak
     }, warnOnWeakCode: true)!;
     expect(previewInfo.applyTo(code!), content);
     expect(previewInfo, hasLength(1));

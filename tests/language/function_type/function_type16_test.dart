@@ -101,7 +101,7 @@ class U16<T> {
   late Function<A>(A x) Function() x22;
   late void Function<A>(List<A> x) Function() x23;
 
-  U16({this.tIsBool: false, this.tIsInt: false})
+  U16({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0([Function x0 = _voidFunction]) => throw 'uncalled';

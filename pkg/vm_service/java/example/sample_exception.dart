@@ -8,7 +8,7 @@ void main(List<String> args) {
   if (true) local1 = 'abcd';
 
   int local2 = 2;
-  var longList = [1, "hello", 3, 5, 7, 11, 13, 14, 15, 16, 17, 18, 19, 20];
+  var longList = [1, 'hello', 3, 5, 7, 11, 13, 14, 15, 16, 17, 18, 19, 20];
   var deepList = [
     Bar(),
     [
@@ -18,7 +18,7 @@ void main(List<String> args) {
             [7]
           ]
         ],
-        "end"
+        'end'
       ]
     ]
   ];
@@ -45,7 +45,7 @@ void foo(int val) {
 }
 
 class Bar extends FooBar {
-  String field1 = "my string";
+  String field1 = 'my string';
 }
 
 class FooBar {

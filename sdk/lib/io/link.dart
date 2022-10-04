@@ -168,10 +168,8 @@ class _Link extends FileSystemEntity implements Link {
         .then((_) => _File._dispatchWithNamespace(
             _IOService.fileCreateLink, [null, _rawPath, target]))
         .then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(
-            response, "Cannot create link to target '$target'", path);
-      }
+      _checkForErrorResponse(
+          response, "Cannot create link to target '$target'", path);
       return this;
     });
   }
@@ -209,9 +207,7 @@ class _Link extends FileSystemEntity implements Link {
     }
     return _File._dispatchWithNamespace(
         _IOService.fileDeleteLink, [null, _rawPath]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Cannot delete link", path);
-      }
+      _checkForErrorResponse(response, "Cannot delete link", path);
       return this;
     });
   }
@@ -227,10 +223,8 @@ class _Link extends FileSystemEntity implements Link {
   Future<Link> rename(String newPath) {
     return _File._dispatchWithNamespace(
         _IOService.fileRenameLink, [null, _rawPath, newPath]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(
-            response, "Cannot rename link to '$newPath'", path);
-      }
+      _checkForErrorResponse(
+          response, "Cannot rename link to '$newPath'", path);
       return new Link(newPath);
     });
   }
@@ -244,11 +238,8 @@ class _Link extends FileSystemEntity implements Link {
   Future<String> target() {
     return _File._dispatchWithNamespace(
         _IOService.fileLinkTarget, [null, _rawPath]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(
-            response, "Cannot get target of link", path);
-      }
-      return response;
+      _checkForErrorResponse(response, "Cannot get target of link", path);
+      return response as String;
     });
   }
 
@@ -264,21 +255,19 @@ class _Link extends FileSystemEntity implements Link {
     }
   }
 
-  bool _isErrorResponse(response) {
-    return response is List && response[0] != _successResponse;
-  }
-
-  _exceptionFromResponse(response, String message, String path) {
-    assert(_isErrorResponse(response));
-    switch (response[_errorResponseErrorType]) {
-      case _illegalArgumentResponse:
-        return new ArgumentError();
-      case _osErrorResponse:
-        var err = new OSError(response[_osErrorResponseMessage],
-            response[_osErrorResponseErrorCode]);
-        return new FileSystemException(message, path, err);
-      default:
-        return new Exception("Unknown error");
+  /// If the [response] is an error, throws an [Exception] or an [Error].
+  void _checkForErrorResponse(Object? response, String message, String path) {
+    if (response is List<Object?> && response[0] != _successResponse) {
+      switch (response[_errorResponseErrorType]) {
+        case _illegalArgumentResponse:
+          throw ArgumentError();
+        case _osErrorResponse:
+          var err = OSError(response[_osErrorResponseMessage] as String,
+              response[_osErrorResponseErrorCode] as int);
+          throw FileSystemException(message, path, err);
+        default:
+          throw AssertionError("Unknown error");
+      }
     }
   }
 }

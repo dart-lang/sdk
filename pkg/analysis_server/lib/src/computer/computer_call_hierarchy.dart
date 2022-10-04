@@ -104,7 +104,7 @@ class CallHierarchyItem {
         codeRange = _codeRangeForElement(element),
         file = element.source!.fullName,
         kind = CallHierarchyKind.forElement(element) {
-    final enclosingElement = element.enclosingElement3;
+    final enclosingElement = element.enclosingElement;
     final container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
     containerName = container != null ? _getDisplayName(container) : null;
@@ -204,8 +204,8 @@ class DartCallHierarchyComputer {
     // `constructor`, because we need to locate them using an `offset`, which
     // implicit constructors do not have.
     // Here, we map them back to the synthetic constructor element.
-    final isImplicitConstructor =
-        element is ClassElement && target.kind == CallHierarchyKind.constructor;
+    final isImplicitConstructor = element is InterfaceElement &&
+        target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
       element = element.unnamedConstructor;
     }
@@ -330,7 +330,7 @@ class DartCallHierarchyComputer {
         }
       }
     } else if (node is ConstructorDeclaration) {
-      final name = node.name2;
+      final name = node.name;
       if (name != null && offset < name.offset) {
         return null;
       }

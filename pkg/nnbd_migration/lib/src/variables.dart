@@ -125,7 +125,7 @@ class Variables {
   /// nullabilities.
   DecoratedType? decoratedTypeParameterBound(TypeParameterElement typeParameter,
       {bool allowNullUnparentedBounds = false}) {
-    var enclosingElement = typeParameter.enclosingElement3;
+    var enclosingElement = typeParameter.enclosingElement;
     var decoratedType =
         DecoratedTypeParameterBounds.current!.get(typeParameter);
     if (enclosingElement == null) {
@@ -349,7 +349,7 @@ class Variables {
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
-        element: type.element2,
+        element2: type.element2,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -431,7 +431,7 @@ class Variables {
   bool _isLoadLibraryElement(Element element) =>
       element.isSynthetic &&
       element is FunctionElement &&
-      element.enclosingElement3 is LibraryElement &&
+      element.enclosingElement is LibraryElement &&
       element.name == 'loadLibrary';
 
   /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)

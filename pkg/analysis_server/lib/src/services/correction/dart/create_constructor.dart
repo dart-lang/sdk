@@ -43,8 +43,7 @@ class CreateConstructor extends CorrectionProducer {
       }
       var parent = node.thisOrAncestorOfType<EnumConstantDeclaration>();
       if (parent != null) {
-        await _proposeFromEnumConstantDeclaration(
-            builder, parent.name2, parent);
+        await _proposeFromEnumConstantDeclaration(builder, parent.name, parent);
       }
     }
   }
@@ -109,7 +108,7 @@ class CreateConstructor extends CorrectionProducer {
     if (grandParent is! EnumDeclaration) {
       return;
     }
-    var targetElement = grandParent.declaredElement2;
+    var targetElement = grandParent.declaredElement;
     if (targetElement == null) {
       return;
     }
@@ -139,7 +138,7 @@ class CreateConstructor extends CorrectionProducer {
 
     var arguments = parent.arguments;
     _constructorName =
-        '${targetNode.name2.lexeme}${arguments?.constructorSelector ?? ''}';
+        '${targetNode.name.lexeme}${arguments?.constructorSelector ?? ''}';
 
     await _write(
       builder,
@@ -165,7 +164,7 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = constructorElement.enclosingElement3;
+    var targetElement = constructorElement.enclosingElement;
     var targetResult = await sessionHelper.getElementDeclaration(targetElement);
     if (targetResult == null) {
       return;

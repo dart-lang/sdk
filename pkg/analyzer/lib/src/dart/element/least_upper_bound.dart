@@ -71,9 +71,6 @@ class InstantiatedClass {
   /// the class 'Object'.
   InstantiatedClass? get superclass {
     final element = this.element;
-    if (element is! ClassElement) {
-      return null;
-    }
 
     var supertype = element.supertype;
     if (supertype == null) return null;
@@ -708,6 +705,16 @@ class LeastUpperBoundHelper {
     // UP(T1, T Function<...>(...)) = UP(T1, Object)
     if (T2 is FunctionType) {
       return getLeastUpperBound(T1, _typeSystem.objectNone);
+    }
+
+    // UP((...), Record) = Record
+    if (T1 is RecordType && T2.isDartCoreRecord) {
+      return T2;
+    }
+
+    // UP(Record, (...)) = Record
+    if (T1.isDartCoreRecord && T2 is RecordType) {
+      return T1;
     }
 
     // Record types.

@@ -35,6 +35,7 @@ import '../kernel/late_lowering.dart' as late_lowering;
 import '../names.dart';
 import '../problems.dart' show unhandled;
 import '../source/source_library_builder.dart';
+import '../uri_offset.dart';
 import 'closure_context.dart';
 import 'for_in.dart';
 import 'inference_helper.dart';
@@ -233,7 +234,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   /// Computes uri and offset for [node] for internal errors in a way that is
   /// safe for both top-level and full inference.
-  _UriOffset _computeUriOffset(TreeNode node) {
+  UriOffset _computeUriOffset(TreeNode node) {
     Uri uri;
     int fileOffset;
     if (!isTopLevel) {
@@ -252,12 +253,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         fileOffset = TreeNode.noOffset;
       }
     }
-    return new _UriOffset(uri, fileOffset);
+    return new UriOffset(uri, fileOffset);
   }
 
   ExpressionInferenceResult _unhandledExpression(
       Expression node, DartType typeContext) {
-    _UriOffset uriOffset = _computeUriOffset(node);
+    UriOffset uriOffset = _computeUriOffset(node);
     unhandled("${node.runtimeType}", "InferenceVisitor", uriOffset.fileOffset,
         uriOffset.uri);
   }
@@ -479,7 +480,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult _unhandledStatement(Statement node) {
-    _UriOffset uriOffset = _computeUriOffset(node);
+    UriOffset uriOffset = _computeUriOffset(node);
     return unhandled("${node.runtimeType}", "InferenceVisitor",
         uriOffset.fileOffset, uriOffset.uri);
   }
@@ -868,7 +869,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitConstructorInvocation(
       ConstructorInvocation node, DartType typeContext) {
-    inferConstructorParameterTypes(node.target);
+    ensureMemberType(node.target);
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
     FunctionType functionType = node.target.function
         .computeThisFunctionType(libraryBuilder.nonNullable);
@@ -1182,12 +1183,50 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         result.inferredType, result.applyResult(resultNode));
   }
 
+  /// Returns the function type of [constructor] when called through [typedef].
+  FunctionType _computeAliasedConstructorFunctionType(
+      Constructor constructor, Typedef typedef) {
+    ensureMemberType(constructor);
+    FunctionNode function = constructor.function;
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    List<TypeParameter> classTypeParametersCopy =
+        new List.of(constructor.enclosingClass.typeParameters);
+    List<TypeParameter> typedefTypeParametersCopy =
+        new List.of(typedef.typeParameters);
+    List<DartType> asTypeArguments =
+        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    TypedefType typedefType = new TypedefType(
+        typedef, libraryBuilder.library.nonNullable, asTypeArguments);
+    DartType unaliasedTypedef = typedefType.unalias;
+    assert(unaliasedTypedef is InterfaceType,
+        "[typedef] is assumed to resolve to an interface type");
+    InterfaceType targetType = unaliasedTypedef as InterfaceType;
+    Substitution substitution = Substitution.fromPairs(
+        classTypeParametersCopy, targetType.typeArguments);
+    List<DartType> positional = function.positionalParameters
+        .map((VariableDeclaration decl) =>
+            substitution.substituteType(decl.type))
+        .toList(growable: false);
+    List<NamedType> named = function.namedParameters
+        .map((VariableDeclaration decl) => new NamedType(
+            decl.name!, substitution.substituteType(decl.type),
+            isRequired: decl.isRequired))
+        .toList(growable: false);
+    named.sort();
+    return new FunctionType(
+        positional, typedefType.unalias, libraryBuilder.library.nonNullable,
+        namedParameters: named,
+        typeParameters: typedefTypeParametersCopy,
+        requiredParameterCount: function.requiredParameterCount);
+  }
+
   ExpressionInferenceResult visitTypeAliasedConstructorInvocation(
       TypeAliasedConstructorInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
-    FunctionType calleeType = node.target.function
-        .computeAliasedConstructorFunctionType(typedef, libraryBuilder.library);
+    FunctionType calleeType =
+        _computeAliasedConstructorFunctionType(node.target, typedef);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
@@ -1206,12 +1245,51 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         result.inferredType, result.applyResult(resultNode));
   }
 
+  /// Returns the function type of [factory] when called through [typedef].
+  FunctionType _computeAliasedFactoryFunctionType(
+      Procedure factory, Typedef typedef) {
+    assert(factory.isFactory, "Only run this method on a factory");
+    ensureMemberType(factory);
+    FunctionNode function = factory.function;
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    List<TypeParameter> classTypeParametersCopy =
+        new List.of(function.typeParameters);
+    List<TypeParameter> typedefTypeParametersCopy =
+        new List.of(typedef.typeParameters);
+    List<DartType> asTypeArguments =
+        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    TypedefType typedefType = new TypedefType(
+        typedef, libraryBuilder.library.nonNullable, asTypeArguments);
+    DartType unaliasedTypedef = typedefType.unalias;
+    assert(unaliasedTypedef is InterfaceType,
+        "[typedef] is assumed to resolve to an interface type");
+    InterfaceType targetType = unaliasedTypedef as InterfaceType;
+    Substitution substitution = Substitution.fromPairs(
+        classTypeParametersCopy, targetType.typeArguments);
+    List<DartType> positional = function.positionalParameters
+        .map((VariableDeclaration decl) =>
+            substitution.substituteType(decl.type))
+        .toList(growable: false);
+    List<NamedType> named = function.namedParameters
+        .map((VariableDeclaration decl) => new NamedType(
+            decl.name!, substitution.substituteType(decl.type),
+            isRequired: decl.isRequired))
+        .toList(growable: false);
+    named.sort();
+    return new FunctionType(
+        positional, typedefType.unalias, libraryBuilder.library.nonNullable,
+        namedParameters: named,
+        typeParameters: typedefTypeParametersCopy,
+        requiredParameterCount: function.requiredParameterCount);
+  }
+
   ExpressionInferenceResult visitTypeAliasedFactoryInvocation(
       TypeAliasedFactoryInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
-    FunctionType calleeType = node.target.function
-        .computeAliasedFactoryFunctionType(typedef, libraryBuilder.library);
+    FunctionType calleeType =
+        _computeAliasedFactoryFunctionType(node.target, typedef);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
@@ -1364,7 +1442,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
     } else {
-      _UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
+      UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
       return unhandled(
           "${syntheticAssignment.runtimeType}",
           "handleForInStatementWithoutVariable",
@@ -6180,7 +6258,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult visitRedirectingInitializer(
       RedirectingInitializer node) {
-    inferConstructorParameterTypes(node.target);
+    ensureMemberType(node.target);
     List<TypeParameter> classTypeParameters =
         node.target.enclosingClass.typeParameters;
     List<DartType> typeArguments = new List<DartType>.generate(
@@ -6404,7 +6482,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
-    inferConstructorParameterTypes(node.target);
+    ensureMemberType(node.target);
     Substitution substitution = Substitution.fromSupertype(
         classHierarchy.getClassAsInstanceOf(
             thisType!.classNode, node.target.enclosingClass)!);
@@ -6525,7 +6603,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int caseIndex = 0; caseIndex < node.cases.length; ++caseIndex) {
       SwitchCaseImpl switchCase = node.cases[caseIndex] as SwitchCaseImpl;
       hasDefault = hasDefault || switchCase.isDefault;
-      flowAnalysis.switchStatement_beginCase(switchCase.hasLabel, node);
+      flowAnalysis.switchStatement_beginCase();
+      flowAnalysis.switchStatement_beginAlternatives();
+      flowAnalysis.switchStatement_endAlternative();
+      flowAnalysis.switchStatement_endAlternatives(node,
+          hasLabels: switchCase.hasLabel);
       for (int index = 0; index < switchCase.expressions.length; index++) {
         ExpressionInferenceResult caseExpressionResult = inferExpression(
             switchCase.expressions[index], expressionType, true,
@@ -7285,6 +7367,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<Object> originalElementOrder = node.originalElementOrder;
     List<VariableDeclaration>? hoistedExpressions;
 
+    List<DartType>? positionalTypeContexts;
+    Map<String, DartType>? namedTypeContexts;
+    if (typeContext is RecordType &&
+        typeContext.positional.length == positional.length &&
+        typeContext.named.length == named.length) {
+      bool sameNames = true;
+      for (int i = 0; sameNames && i < named.length; i++) {
+        if (typeContext.named[i].name != named[i].name) {
+          sameNames = false;
+        }
+      }
+      if (sameNames) {
+        positionalTypeContexts = typeContext.positional;
+        namedTypeContexts = <String, DartType>{};
+        for (NamedType namedType in typeContext.named) {
+          namedTypeContexts[namedType.name] = namedType.type;
+        }
+      }
+    }
+
     List<DartType> positionalTypes;
     // ignore: UNUSED_LOCAL_VARIABLE
     List<NamedType> namedTypes;
@@ -7294,11 +7396,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       namedTypes = [];
       for (int index = 0; index < positional.length; index++) {
         Expression expression = positional[index];
-        ExpressionInferenceResult expressionResult = inferExpression(
-            expression,
-            // TODO(johnniwinther,cstefantsova): Provide the right type context.
-            const UnknownType(),
-            true);
+        ExpressionInferenceResult expressionResult = inferExpression(expression,
+            positionalTypeContexts?[index] ?? const UnknownType(), true);
         positionalTypes.add(expressionResult.inferredType);
         positional[index] = expressionResult.expression;
       }
@@ -7317,6 +7416,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Index into [positional] of the positional element we find next.
       int positionalIndex = positional.length - 1;
 
+      // For const literals we don't hoist to avoid using let variables in
+      // inside constants. Since the elements of the literal must be constant
+      // themselves, we know that there is no side effects of performing
+      // constant evaluation out of order.
+      final bool enableHoisting = !node.isConst;
+
       // Set to `true` if we need to hoist all preceding elements.
       bool needsHoisting = false;
 
@@ -7333,9 +7438,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (element is NamedExpression) {
           ExpressionInferenceResult expressionResult = inferExpression(
               element.value,
-              // TODO(johnniwinther,cstefantsova): Provide the right type
-              //  context.
-              const UnknownType(),
+              namedTypeContexts?[element.name] ?? const UnknownType(),
               true);
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.inferredType;
@@ -7355,15 +7458,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (!namedNeedsSorting && element.name != sortedNames[nameIndex]) {
             // Named elements are not sorted, so we need to hoist and sort them.
             namedNeedsSorting = true;
-            needsHoisting = true;
+            needsHoisting = enableHoisting;
           }
           nameIndex--;
         } else {
           ExpressionInferenceResult expressionResult = inferExpression(
               element as Expression,
-              // TODO(johnniwinther,cstefantsova): Provide the right type
-              //  context.
-              const UnknownType(),
+              positionalTypeContexts?[positionalIndex] ?? const UnknownType(),
               true);
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.inferredType;
@@ -7381,7 +7482,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (nameIndex >= 0) {
               // We have not seen all named elements yet, so we must hoist the
               // remaining named elements and the preceding positional elements.
-              needsHoisting = true;
+              needsHoisting = enableHoisting;
             }
           }
           positionalTypes[positionalIndex] = type;
@@ -7418,8 +7519,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           named,
           type = new RecordType(
               positionalTypes, namedTypes, libraryBuilder.nonNullable),
-          // TODO(johnniwinther): Support const literals.
-          isConst: false)
+          isConst: node.isConst)
         ..fileOffset = node.fileOffset;
     }
     if (hoistedExpressions != null) {
@@ -7444,13 +7544,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
   }
-}
-
-class _UriOffset {
-  final Uri uri;
-  final int fileOffset;
-
-  _UriOffset(this.uri, this.fileOffset);
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].

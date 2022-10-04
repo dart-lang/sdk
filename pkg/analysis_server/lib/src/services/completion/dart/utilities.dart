@@ -6,6 +6,7 @@
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -165,7 +166,8 @@ protocol.Element createLocalElement(
 }
 
 /// Return a default argument value for the given [parameter].
-DefaultArgument? getDefaultStringParameterValue(ParameterElement parameter,
+DefaultArgument? getDefaultStringParameterValue(
+    ParameterElement parameter, CodeStyleOptions codeStyleOptions,
     {required bool withNullability}) {
   var type = parameter.type;
   if (type is InterfaceType) {
@@ -174,7 +176,8 @@ DefaultArgument? getDefaultStringParameterValue(ParameterElement parameter,
     } else if (type.isDartCoreMap) {
       return DefaultArgument('{}', cursorPosition: 1);
     } else if (type.isDartCoreString) {
-      return DefaultArgument("''", cursorPosition: 1);
+      var quote = codeStyleOptions.preferredQuoteForStrings;
+      return DefaultArgument('$quote$quote', cursorPosition: 1);
     }
   } else if (type is FunctionType) {
     var params = type.parameters
@@ -226,9 +229,9 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     }
     type = element.returnType;
   } else if (element is TypeAliasElement) {
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement is GenericFunctionTypeElement) {
-      type = aliasedElement.returnType;
+    final aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      type = aliasedType.returnType;
     } else {
       return null;
     }

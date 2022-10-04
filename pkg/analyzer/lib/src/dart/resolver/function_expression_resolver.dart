@@ -162,7 +162,7 @@ class FunctionExpressionResolver {
     }
 
     return type.instantiate(typeParameters.map((typeParameter) {
-      return typeParameter.declaredElement2!.instantiate(
+      return typeParameter.declaredElement!.instantiate(
         nullabilitySuffix: _resolver.noneOrStarSuffix,
       );
     }).toList());

@@ -93,48 +93,45 @@ class ReadOnlyHandles {
   DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
 };
 
-class DartInitializationState {
+class DartInitializationState : public AllStatic {
  public:
-  uint8_t kUnInitialized = 0;
-  uint8_t kInitializing = 1;
-  uint8_t kInitialized = 2;
-  uint8_t kCleaningup = 3;
-
-  DartInitializationState() : state_(0), in_use_count_(0) {}
-  ~DartInitializationState() {}
-
-  bool SetInitializing() {
+  static bool SetInitializing() {
     ASSERT(in_use_count_.load() == 0);
-    return state_.compare_exchange_strong(kUnInitialized, kInitializing);
+    uint8_t expected = kUnInitialized;
+    return state_.compare_exchange_strong(expected, kInitializing);
   }
 
-  void ResetInitializing() {
+  static void ResetInitializing() {
     ASSERT(in_use_count_.load() == 0);
-    bool result = state_.compare_exchange_strong(kInitializing, kUnInitialized);
+    uint8_t expected = kInitializing;
+    bool result = state_.compare_exchange_strong(expected, kUnInitialized);
     ASSERT(result);
   }
 
-  void SetInitialized() {
+  static void SetInitialized() {
     ASSERT(in_use_count_.load() == 0);
-    bool result = state_.compare_exchange_strong(kInitializing, kInitialized);
+    uint8_t expected = kInitializing;
+    bool result = state_.compare_exchange_strong(expected, kInitialized);
     ASSERT(result);
   }
 
-  bool IsInitialized() const { return state_.load() == kInitialized; }
+  static bool IsInitialized() { return state_.load() == kInitialized; }
 
-  bool SetCleaningup() {
-    return state_.compare_exchange_strong(kInitialized, kCleaningup);
+  static bool SetCleaningup() {
+    uint8_t expected = kInitialized;
+    return state_.compare_exchange_strong(expected, kCleaningup);
   }
 
-  void SetUnInitialized() {
+  static void SetUnInitialized() {
     while (in_use_count_.load() > 0) {
       OS::Sleep(1);  // Sleep for 1 millis waiting for it to not be in use.
     }
-    bool result = state_.compare_exchange_strong(kCleaningup, kUnInitialized);
+    uint8_t expected = kCleaningup;
+    bool result = state_.compare_exchange_strong(expected, kUnInitialized);
     ASSERT(result);
   }
 
-  bool SetInUse() {
+  static bool SetInUse() {
     if (state_.load() != kInitialized) {
       return false;
     }
@@ -142,17 +139,23 @@ class DartInitializationState {
     return true;
   }
 
-  void ResetInUse() {
+  static void ResetInUse() {
     uint8_t value = state_.load();
     ASSERT((value == kInitialized) || (value == kCleaningup));
     in_use_count_ -= 1;
   }
 
  private:
-  std::atomic<uint8_t> state_;
-  std::atomic<uint64_t> in_use_count_;
+  static constexpr uint8_t kUnInitialized = 0;
+  static constexpr uint8_t kInitializing = 1;
+  static constexpr uint8_t kInitialized = 2;
+  static constexpr uint8_t kCleaningup = 3;
+
+  static std::atomic<uint8_t> state_;
+  static std::atomic<uint64_t> in_use_count_;
 };
-static DartInitializationState init_state_;
+std::atomic<uint8_t> DartInitializationState::state_ = {kUnInitialized};
+std::atomic<uint64_t> DartInitializationState::in_use_count_ = {0};
 
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 static void CheckOffsets() {
@@ -323,7 +326,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Api::Init();
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
-  SemiSpace::Init();
+  Page::Init();
   NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -518,7 +521,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 }
 
 char* Dart::Init(const Dart_InitializeParams* params) {
-  if (!init_state_.SetInitializing()) {
+  if (!DartInitializationState::SetInitializing()) {
     return Utils::StrDup(
         "Bad VM initialization state, "
         "already initialized or "
@@ -526,10 +529,10 @@ char* Dart::Init(const Dart_InitializeParams* params) {
   }
   char* retval = DartInit(params);
   if (retval != NULL) {
-    init_state_.ResetInitializing();
+    DartInitializationState::ResetInitializing();
     return retval;
   }
-  init_state_.SetInitialized();
+  DartInitializationState::SetInitialized();
   return NULL;
 }
 
@@ -622,7 +625,7 @@ void Dart::WaitForIsolateShutdown() {
 
 char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
-  if (!init_state_.SetCleaningup()) {
+  if (!DartInitializationState::SetCleaningup()) {
     return Utils::StrDup("VM already terminated.");
   }
   ASSERT(vm_isolate_ != NULL);
@@ -714,7 +717,7 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
                  UptimeMillis());
   }
-  init_state_.SetUnInitialized();
+  DartInitializationState::SetUnInitialized();
   thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = NULL;
@@ -770,7 +773,7 @@ char* Dart::Cleanup() {
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();
   Object::Cleanup();
-  SemiSpace::Cleanup();
+  Page::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {
@@ -812,15 +815,15 @@ char* Dart::Cleanup() {
 }
 
 bool Dart::IsInitialized() {
-  return init_state_.IsInitialized();
+  return DartInitializationState::IsInitialized();
 }
 
 bool Dart::SetActiveApiCall() {
-  return init_state_.SetInUse();
+  return DartInitializationState::SetInUse();
 }
 
 void Dart::ResetActiveApiCall() {
-  init_state_.ResetInUse();
+  DartInitializationState::ResetInUse();
 }
 
 Isolate* Dart::CreateIsolate(const char* name_prefix,

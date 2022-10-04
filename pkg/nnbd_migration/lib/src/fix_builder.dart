@@ -266,6 +266,20 @@ class FixBuilder {
     }
   }
 
+  /// If [node] is a property access or method invocation, returns the element
+  /// it invokes.  Otherwise returns `null`.
+  Element? _findPropertyOrMethodElement(Expression node) {
+    if (node is PrefixedIdentifier) {
+      return node.identifier.staticElement;
+    } else if (node is PropertyAccess) {
+      return node.propertyName.staticElement;
+    } else if (node is MethodInvocation) {
+      return node.methodName.staticElement;
+    } else {
+      return null;
+    }
+  }
+
   /// Returns the [NodeChange] object accumulating changes for the given [node],
   /// creating it if necessary.
   NodeChange _getChange(AstNode node) =>
@@ -284,7 +298,18 @@ class FixBuilder {
       throw StateError('Unexpected expression type: ${node.runtimeType}');
     }
     if (!_typeSystem.isPotentiallyNullable(target!.staticType!)) {
-      (_getChange(node) as NodeChangeForNullAware).removeNullAwareness = true;
+      var element = _findPropertyOrMethodElement(target);
+      if (element != null) {
+        var library = element.library;
+        if (library!.isNonNullableByDefault &&
+            !_graph.isBeingMigrated(library.source)) {
+          (_getChange(node) as NodeChangeForNullAware).nullAwarenessRemoval =
+              NullAwarenessRemovalType.strong;
+          return false;
+        }
+      }
+      (_getChange(node) as NodeChangeForNullAware).nullAwarenessRemoval =
+          NullAwarenessRemovalType.weak;
       return false;
     }
     return true;
@@ -467,7 +492,7 @@ class MigrationResolutionHooksImpl
           return variable.typeInternal;
         }
         if (variable is ParameterElement) {
-          var enclosingElement = variable.enclosingElement3;
+          var enclosingElement = variable.enclosingElement;
           if (enclosingElement is PropertyAccessorElement &&
               enclosingElement.isSynthetic) {
             // This is the parameter of a synthetic getter, so it has the same
@@ -502,7 +527,7 @@ class MigrationResolutionHooksImpl
   /// on a nullable type without introducing a null check).
   bool isNullableExtensionMember(Element? element) {
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ExtensionElement) {
         return _fixBuilder._typeSystem
             .isPotentiallyNullable(enclosingElement.extendedType);
@@ -701,7 +726,7 @@ class MigrationResolutionHooksImpl
   }
 
   InterfaceType _getClassInterface(
-      ClassElement class_, InterfaceElement superclass) {
+      InterfaceElement class_, InterfaceElement superclass) {
     var decoratedSupertype = _fixBuilder._decoratedClassHierarchy!
         .getDecoratedSupertype(class_, superclass);
     var finalType = _fixBuilder._variables!.toFinalType(decoratedSupertype);
@@ -1139,7 +1164,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       bool explicitTypeNeeded = false;
       for (var variableDeclaration in node.variables) {
         var neededType = _fixBuilder
-            ._computeMigratedType(variableDeclaration.declaredElement2!);
+            ._computeMigratedType(variableDeclaration.declaredElement!);
         neededTypes.add(neededType);
         var inferredType = variableDeclaration.initializer?.staticType ??
             _fixBuilder.typeProvider.dynamicType;
@@ -1177,7 +1202,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
     // Check if the nullability node for a single variable declaration has been
     // declared to be late.
     if (node.variables.length == 1) {
-      var variableElement = node.variables.single.declaredElement2!;
+      var variableElement = node.variables.single.declaredElement!;
       var lateCondition = _fixBuilder._variables!
           .decoratedElementType(variableElement)
           .node!
@@ -1253,7 +1278,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       var nullabilityNode =
           _fixBuilder._variables!.decoratedElementType(element!).node!;
       if (!nullabilityNode.isNullable) {
-        var enclosingElement = element.enclosingElement3;
+        var enclosingElement = element.enclosingElement;
         if (enclosingElement is ConstructorElement &&
             enclosingElement.isFactory &&
             enclosingElement.redirectedConstructor != null &&
@@ -1366,8 +1391,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     // Change an existing `@required` annotation into a `required` keyword if
     // possible.
     final element = parameter.declaredElement!;
-    final method = element.enclosingElement3!;
-    final cls = method.enclosingElement3!;
+    final method = element.enclosingElement!;
+    final cls = method.enclosingElement!;
     var info = AtomicEditInfo(
         NullabilityFixDescription.addRequired(
             cls.name, method.name, element.name),

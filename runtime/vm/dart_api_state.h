@@ -6,13 +6,13 @@
 #define RUNTIME_VM_DART_API_STATE_H_
 
 #include "include/dart_api.h"
-
 #include "platform/utils.h"
 #include "vm/bitfield.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
+#include "vm/handles_impl.h"
 #include "vm/heap/weak_table.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -20,8 +20,6 @@
 #include "vm/raw_object.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
-
-#include "vm/handles_impl.h"
 
 namespace dart {
 
@@ -223,14 +221,19 @@ class FinalizablePersistentHandle {
     return ExternalSizeInWordsBits::decode(external_data_) * kWordSize;
   }
 
-  void SetExternalSize(intptr_t size, IsolateGroup* isolate_group) {
-    ASSERT(size >= 0);
+  bool SetExternalSize(intptr_t size, IsolateGroup* isolate_group) {
+    // This method only behaves correctly when external_size() has not been
+    // previously modified.
+    ASSERT(external_size() == 0);
+    if (size < 0 || (size >> kWordSizeLog2) > kMaxAddrSpaceInWords) {
+      return false;
+    }
     set_external_size(size);
     if (SpaceForExternal() == Heap::kNew) {
       SetExternalNewSpaceBit();
     }
-    isolate_group->heap()->AllocatedExternal(external_size(),
-                                             SpaceForExternal());
+    return isolate_group->heap()->AllocatedExternal(external_size(),
+                                                    SpaceForExternal());
   }
   void UpdateExternalSize(intptr_t size, IsolateGroup* isolate_group) {
     ASSERT(size >= 0);
@@ -803,14 +806,17 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     intptr_t external_size,
     bool auto_delete) {
   ApiState* state = isolate_group->api_state();
-  ASSERT(state != NULL);
+  ASSERT(state != nullptr);
   FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
   ref->set_ptr(object);
   ref->set_peer(peer);
   ref->set_callback(callback);
   ref->set_auto_delete(auto_delete);
   // This may trigger GC, so it must be called last.
-  ref->SetExternalSize(external_size, isolate_group);
+  if (!(ref->SetExternalSize(external_size, isolate_group))) {
+    state->FreeWeakPersistentHandle(ref);
+    return nullptr;
+  }
   return ref;
 }
 

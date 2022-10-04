@@ -12,8 +12,8 @@ class C {
   var field;
   C.c1(int this.field()?);
   C.c2({int this.field()?});
-  C.c3({int field()?: null});
-  C.c4({int this.field()?: null});
+  C.c3({int field()? = null});
+  C.c4({int this.field()? = null});
   C.c5([int this.field()?]);
   C.c6([int field()? = null]);
   C.c7([int this.field()? = null]);

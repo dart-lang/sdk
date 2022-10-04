@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -214,7 +215,7 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
-      var enclosing = constant.enclosingElement3;
+      var enclosing = constant.enclosingElement;
       if (enclosing is EnumElementImpl) {
         if (enclosing.name == 'values') {
           return;
@@ -274,7 +275,7 @@ class ConstantEvaluationEngine {
             }
           }
         }
-        for (FieldElement field in constant.enclosingElement3.fields) {
+        for (FieldElement field in constant.enclosingElement.fields) {
           // Note: non-static const isn't allowed but we handle it anyway so
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) &&
@@ -388,7 +389,7 @@ class ConstantEvaluationEngine {
       return null;
     }
     var typeProvider = constructor.library.typeProvider;
-    if (constructor.enclosingElement3 == typeProvider.symbolElement) {
+    if (constructor.enclosingElement == typeProvider.symbolElement) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
@@ -412,7 +413,7 @@ class ConstantEvaluationEngine {
 
   static _EnumConstant? _enumConstant(VariableElementImpl element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
-      var enum_ = element.enclosingElement3;
+      var enum_ = element.enclosingElement;
       if (enum_ is EnumElementImpl) {
         var index = enum_.constants.indexOf(element);
         assert(index >= 0);
@@ -889,7 +890,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (element.name == "identical") {
         NodeList<Expression> arguments = node.argumentList.arguments;
         if (arguments.length == 2) {
-          var enclosingElement = element.enclosingElement3;
+          var enclosingElement = element.enclosingElement;
           if (enclosingElement is CompilationUnitElement) {
             LibraryElement library = enclosingElement.library;
             if (library.isDartCore) {
@@ -958,7 +959,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var prefixElement = prefixNode.staticElement;
     // String.length
     if (prefixElement is! PrefixElement &&
-        prefixElement is! ClassElement &&
+        prefixElement is! InterfaceElement &&
         prefixElement is! ExtensionElement) {
       var prefixResult = prefixNode.accept(this);
       if (prefixResult != null &&
@@ -1014,13 +1015,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitRecordLiteral(RecordLiteral node) {
-    if (!node.isConst) {
-      // TODO(brianwilkerson) Merge the error codes into a single error code or
-      //  declare a new error code specific to records.
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
-      return null;
-    }
     var nodeType = node.staticType;
     if (nodeType == null) {
       return null;
@@ -1360,7 +1354,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         );
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
-    } else if (variableElement is ClassElement) {
+    } else if (variableElement is InterfaceElement) {
       var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
             .map((t) => _typeProvider.dynamicType)
@@ -1480,7 +1474,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return false;
     }
     return identifier.name == 'length' &&
-        identifier.staticElement?.enclosingElement3 is! ExtensionElement;
+        identifier.staticElement?.enclosingElement is! ExtensionElement;
   }
 
   void _reportNotPotentialConstants(AstNode node) {
@@ -2181,7 +2175,7 @@ class _InstanceCreationEvaluator {
     List<Expression> arguments, {
     required bool isNullSafe,
   }) {
-    final definingClass = _constructor.enclosingElement3;
+    final definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
@@ -2192,6 +2186,14 @@ class _InstanceCreationEvaluator {
       String? variableName =
           argumentCount < 1 ? null : firstArgument?.toStringValue();
       if (definingClass == typeProvider.boolElement) {
+        // Special case: https://github.com/dart-lang/sdk/issues/50045
+        if (variableName == 'dart.library.js_util') {
+          return DartObjectImpl(
+            typeSystem,
+            typeProvider.boolType,
+            BoolState.UNKNOWN_VALUE,
+          );
+        }
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
             .getBool2(variableName, _namedValues, _constructor);
       } else if (definingClass == typeProvider.intElement) {
@@ -2268,14 +2270,14 @@ class _InstanceCreationEvaluator {
           superArguments.insert(positionalIndex++, value);
         } else {
           superArguments.add(
-            astFactory.namedExpression(
-              astFactory.label(
-                astFactory.simpleIdentifier(
+            NamedExpressionImpl(
+              name: LabelImpl(
+                label: astFactory.simpleIdentifier(
                   StringToken(TokenType.STRING, parameter.name, -1),
                 )..staticElement = parameter,
-                StringToken(TokenType.COLON, ':', -1),
+                colon: StringToken(TokenType.COLON, ':', -1),
               ),
-              value,
+              expression: value,
             )..staticType = value.typeOrThrow,
           );
         }
@@ -2284,7 +2286,7 @@ class _InstanceCreationEvaluator {
   }
 
   void _checkFields() {
-    var fields = _constructor.enclosingElement3.fields;
+    var fields = _constructor.enclosingElement.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) &&
           !field.isStatic &&
@@ -2573,7 +2575,7 @@ class _InstanceCreationEvaluator {
   }
 
   void _checkTypeParameters() {
-    var typeParameters = _constructor.enclosingElement3.typeParameters;
+    var typeParameters = _constructor.enclosingElement.typeParameters;
     var typeArguments = _typeArguments;
     if (typeParameters.isNotEmpty &&
         typeArguments != null &&

@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-// Test Parameter Intializer.
+// Test Parameter Initializer.
 
 class ParameterInitializer2Test {
   static testMain() {

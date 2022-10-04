@@ -127,7 +127,7 @@ class U10<T> {
   late Function<A>(List<T> x) Function<B extends core.int>() x22;
   late void Function<A>() Function<B extends core.int>() x23;
 
-  U10({this.tIsBool: false, this.tIsInt: false})
+  U10({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int y, {int x = -1}) => throw 'uncalled';

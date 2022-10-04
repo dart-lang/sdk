@@ -1942,7 +1942,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   }
 }
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                Register value,
                                                MemoryOrder memory_order) {
@@ -1960,7 +1960,7 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
   }
 }
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                const Object& value,
                                                MemoryOrder memory_order) {
@@ -2311,6 +2311,7 @@ OperandSize Address::OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kRecordCid:
     case kTypeArgumentsCid:
       return kFourBytes;
     case kOneByteStringCid:
@@ -3035,77 +3036,6 @@ void Assembler::StoreMultipleDToOffset(DRegister first,
   vstmd(IA, IP, first, count);
 }
 
-void Assembler::CopyDoubleField(Register dst,
-                                Register src,
-                                Register tmp1,
-                                Register tmp2,
-                                DRegister dtmp) {
-    LoadDFromOffset(dtmp, src, target::Double::value_offset() - kHeapObjectTag);
-    StoreDToOffset(dtmp, dst, target::Double::value_offset() - kHeapObjectTag);
-}
-
-void Assembler::CopyFloat32x4Field(Register dst,
-                                   Register src,
-                                   Register tmp1,
-                                   Register tmp2,
-                                   DRegister dtmp) {
-  if (TargetCPUFeatures::neon_supported()) {
-    LoadMultipleDFromOffset(dtmp, 2, src,
-                            target::Float32x4::value_offset() - kHeapObjectTag);
-    StoreMultipleDToOffset(dtmp, 2, dst,
-                           target::Float32x4::value_offset() - kHeapObjectTag);
-  } else {
-    LoadFieldFromOffset(
-        tmp1, src, target::Float32x4::value_offset() + 0 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float32x4::value_offset() + 1 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float32x4::value_offset() + 0 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float32x4::value_offset() + 1 * target::kWordSize);
-
-    LoadFieldFromOffset(
-        tmp1, src, target::Float32x4::value_offset() + 2 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float32x4::value_offset() + 3 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float32x4::value_offset() + 2 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float32x4::value_offset() + 3 * target::kWordSize);
-  }
-}
-
-void Assembler::CopyFloat64x2Field(Register dst,
-                                   Register src,
-                                   Register tmp1,
-                                   Register tmp2,
-                                   DRegister dtmp) {
-  if (TargetCPUFeatures::neon_supported()) {
-    LoadMultipleDFromOffset(dtmp, 2, src,
-                            target::Float64x2::value_offset() - kHeapObjectTag);
-    StoreMultipleDToOffset(dtmp, 2, dst,
-                           target::Float64x2::value_offset() - kHeapObjectTag);
-  } else {
-    LoadFieldFromOffset(
-        tmp1, src, target::Float64x2::value_offset() + 0 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float64x2::value_offset() + 1 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float64x2::value_offset() + 0 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float64x2::value_offset() + 1 * target::kWordSize);
-
-    LoadFieldFromOffset(
-        tmp1, src, target::Float64x2::value_offset() + 2 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float64x2::value_offset() + 3 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float64x2::value_offset() + 2 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float64x2::value_offset() + 3 * target::kWordSize);
-  }
-}
-
 void Assembler::AddImmediate(Register rd,
                              Register rn,
                              int32_t value,
@@ -3592,25 +3522,22 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
                                      Register temp_reg,
                                      JumpDistance distance) {
-  LoadAllocationStatsAddress(temp_reg, cid);
+  LoadAllocationTracingStateAddress(temp_reg, cid);
   MaybeTraceAllocation(temp_reg, trace);
 }
 
-void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
+void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
   ASSERT(cid > 0);
 
-  const intptr_t shared_table_offset =
-      target::IsolateGroup::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
-
   LoadIsolateGroup(dest);
-  ldr(dest, Address(dest, shared_table_offset));
-  ldr(dest, Address(dest, table_offset));
-  AddImmediate(dest, class_offset);
+  ldr(dest, Address(dest, target::IsolateGroup::class_table_offset()));
+  ldr(dest,
+      Address(dest,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddImmediate(dest,
+               target::ClassTable::AllocationTracingStateSlotOffsetFor(cid));
 }
 #endif  // !PRODUCT
 
@@ -3631,7 +3558,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                           target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cid));
+    NOT_IN_PRODUCT(LoadAllocationTracingStateAddress(temp_reg, cid));
     ldr(instance_reg, Address(THR, target::Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
     AddImmediate(instance_reg, instance_size);
@@ -3669,7 +3596,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp2) {
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp1, cid));
+    NOT_IN_PRODUCT(LoadAllocationTracingStateAddress(temp1, cid));
     // Potential new object start.
     ldr(instance, Address(THR, target::Thread::top_offset()));
     AddImmediateSetFlags(end_address, instance, instance_size);

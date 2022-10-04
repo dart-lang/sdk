@@ -8,6 +8,7 @@
 #include "platform/atomic.h"
 #include "vm/globals.h"
 #include "vm/heap/freelist.h"
+#include "vm/heap/page.h"
 #include "vm/heap/spaces.h"
 #include "vm/lockers.h"
 #include "vm/ring_buffer.h"
@@ -25,196 +26,6 @@ class ObjectPointerVisitor;
 class ObjectSet;
 class ForwardingPage;
 class GCMarker;
-
-static constexpr intptr_t kOldPageSize = 512 * KB;
-static constexpr intptr_t kOldPageSizeInWords = kOldPageSize / kWordSize;
-static constexpr intptr_t kOldPageMask = ~(kOldPageSize - 1);
-
-static constexpr intptr_t kBitVectorWordsPerBlock = 1;
-static constexpr intptr_t kBlockSize =
-    kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
-static constexpr intptr_t kBlockMask = ~(kBlockSize - 1);
-static constexpr intptr_t kBlocksPerPage = kOldPageSize / kBlockSize;
-
-// A page containing old generation objects.
-class OldPage {
- public:
-  enum PageType { kExecutable = 0, kData };
-
-  OldPage* next() const { return next_; }
-  void set_next(OldPage* next) { next_ = next; }
-
-  bool Contains(uword addr) const { return memory_->Contains(addr); }
-  intptr_t AliasOffset() const { return memory_->AliasOffset(); }
-
-  uword object_start() const { return memory_->start() + ObjectStartOffset(); }
-  uword object_end() const { return object_end_; }
-  uword used_in_bytes() const { return used_in_bytes_; }
-  void set_used_in_bytes(uword value) {
-    ASSERT(Utils::IsAligned(value, kObjectAlignment));
-    used_in_bytes_ = value;
-  }
-
-  ForwardingPage* forwarding_page() const { return forwarding_page_; }
-  void AllocateForwardingPage();
-
-  PageType type() const { return type_; }
-
-  bool is_image_page() const { return !memory_->vm_owns_region(); }
-
-  void VisitObjects(ObjectVisitor* visitor) const;
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
-
-  ObjectPtr FindObject(FindObjectVisitor* visitor) const;
-
-  void WriteProtect(bool read_only);
-
-  static intptr_t ObjectStartOffset() {
-    return Utils::RoundUp(sizeof(OldPage), kMaxObjectAlignment);
-  }
-
-  // Warning: This does not work for objects on image pages because image pages
-  // are not aligned. However, it works for objects on large pages, because
-  // only one object is allocated per large page.
-  static OldPage* Of(ObjectPtr obj) {
-    ASSERT(obj->IsHeapObject());
-    ASSERT(obj->IsOldObject());
-    return reinterpret_cast<OldPage*>(static_cast<uword>(obj) & kOldPageMask);
-  }
-
-  // Warning: This does not work for addresses on image pages or on large pages.
-  static OldPage* Of(uword addr) {
-    return reinterpret_cast<OldPage*>(addr & kOldPageMask);
-  }
-
-  // Warning: This does not work for objects on image pages.
-  static ObjectPtr ToExecutable(ObjectPtr obj) {
-    OldPage* page = Of(obj);
-    VirtualMemory* memory = page->memory_;
-    const intptr_t alias_offset = memory->AliasOffset();
-    if (alias_offset == 0) {
-      return obj;  // Not aliased.
-    }
-    uword addr = UntaggedObject::ToAddr(obj);
-    if (memory->Contains(addr)) {
-      return UntaggedObject::FromAddr(addr + alias_offset);
-    }
-    // obj is executable.
-    ASSERT(memory->ContainsAlias(addr));
-    return obj;
-  }
-
-  // Warning: This does not work for objects on image pages.
-  static ObjectPtr ToWritable(ObjectPtr obj) {
-    OldPage* page = Of(obj);
-    VirtualMemory* memory = page->memory_;
-    const intptr_t alias_offset = memory->AliasOffset();
-    if (alias_offset == 0) {
-      return obj;  // Not aliased.
-    }
-    uword addr = UntaggedObject::ToAddr(obj);
-    if (memory->ContainsAlias(addr)) {
-      return UntaggedObject::FromAddr(addr - alias_offset);
-    }
-    // obj is writable.
-    ASSERT(memory->Contains(addr));
-    return obj;
-  }
-
-  // 1 card = 128 slots.
-  static const intptr_t kSlotsPerCardLog2 = 7;
-  static const intptr_t kBytesPerCardLog2 =
-      kCompressedWordSizeLog2 + kSlotsPerCardLog2;
-
-  intptr_t card_table_size() const {
-    return memory_->size() >> kBytesPerCardLog2;
-  }
-
-  static intptr_t card_table_offset() {
-    return OFFSET_OF(OldPage, card_table_);
-  }
-
-  void RememberCard(ObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
-      card_table_ = reinterpret_cast<uint8_t*>(
-          calloc(card_table_size(), sizeof(uint8_t)));
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    card_table_[index] = 1;
-  }
-  bool IsCardRemembered(ObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
-      return false;
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    return card_table_[index] != 0;
-  }
-#if defined(DART_COMPRESSED_POINTERS)
-  void RememberCard(CompressedObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
-      card_table_ = reinterpret_cast<uint8_t*>(
-          calloc(card_table_size(), sizeof(uint8_t)));
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    card_table_[index] = 1;
-  }
-  bool IsCardRemembered(CompressedObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
-      return false;
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    return card_table_[index] != 0;
-  }
-#endif
-  void VisitRememberedCards(ObjectPointerVisitor* visitor);
-  void ResetProgressBar();
-
- private:
-  void set_object_end(uword value) {
-    ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
-    object_end_ = value;
-  }
-
-  // Returns NULL on OOM.
-  static OldPage* Allocate(intptr_t size_in_words,
-                           PageType type,
-                           const char* name);
-
-  // Deallocate the virtual memory backing this page. The page pointer to this
-  // page becomes immediately inaccessible.
-  void Deallocate();
-
-  VirtualMemory* memory_;
-  OldPage* next_;
-  uword object_end_;
-  uword used_in_bytes_;
-  ForwardingPage* forwarding_page_;
-  uint8_t* card_table_;  // Remembered set, not marking.
-  RelaxedAtomic<intptr_t> progress_bar_;
-  PageType type_;
-
-  friend class PageSpace;
-  friend class GCCompactor;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(OldPage);
-};
 
 // The history holds the timing information of the last garbage collection
 // runs.
@@ -328,10 +139,9 @@ class PageSpace {
   ~PageSpace();
 
   uword TryAllocate(intptr_t size,
-                    OldPage::PageType type = OldPage::kData,
+                    Page::PageType type = Page::kData,
                     GrowthPolicy growth_policy = kControlGrowth) {
-    bool is_protected =
-        (type == OldPage::kExecutable) && FLAG_write_protect_code;
+    bool is_protected = (type == Page::kExecutable) && FLAG_write_protect_code;
     bool is_locked = false;
     return TryAllocateInternal(size, &freelists_[type], type, growth_policy,
                                is_protected, is_locked);
@@ -381,7 +191,7 @@ class PageSpace {
   int64_t ImageInWords() const {
     int64_t size = 0;
     MutexLocker ml(&pages_lock_);
-    for (OldPage* page = image_pages_; page != nullptr; page = page->next()) {
+    for (Page* page = image_pages_; page != nullptr; page = page->next()) {
       size += page->memory_->size();
     }
     return size >> kWordSizeLog2;
@@ -389,7 +199,7 @@ class PageSpace {
 
   bool Contains(uword addr) const;
   bool ContainsUnsafe(uword addr) const;
-  bool Contains(uword addr, OldPage::PageType type) const;
+  bool Contains(uword addr, Page::PageType type) const;
   bool DataContains(uword addr) const;
   bool IsValidAddress(uword addr) const { return Contains(addr); }
 
@@ -401,8 +211,7 @@ class PageSpace {
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
   void ResetProgressBars() const;
 
-  ObjectPtr FindObject(FindObjectVisitor* visitor,
-                       OldPage::PageType type) const;
+  ObjectPtr FindObject(FindObjectVisitor* visitor, Page::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
   void CollectGarbage(Thread* thread, bool compact, bool finalize);
@@ -438,10 +247,19 @@ class PageSpace {
     allocated_black_in_words_.fetch_add(size >> kWordSizeLog2);
   }
 
-  void AllocatedExternal(intptr_t size) {
+  // Tracks an external allocation by incrementing the old space's total
+  // external size tracker. Returns false without incrementing the tracker if
+  // this allocation will make it exceed kMaxAddrSpaceInWords.
+  bool AllocatedExternal(intptr_t size) {
     ASSERT(size >= 0);
     intptr_t size_in_words = size >> kWordSizeLog2;
-    usage_.external_in_words += size_in_words;
+    intptr_t next_external_in_words = usage_.external_in_words + size_in_words;
+    if (next_external_in_words < 0 ||
+        next_external_in_words > kMaxAddrSpaceInWords) {
+      return false;
+    }
+    usage_.external_in_words = next_external_in_words;
+    return true;
   }
   void FreedExternal(intptr_t size) {
     ASSERT(size >= 0);
@@ -451,7 +269,7 @@ class PageSpace {
 
   // Bulk data allocation.
   FreeList* DataFreeList(intptr_t i = 0) {
-    return &freelists_[OldPage::kData + i];
+    return &freelists_[Page::kData + i];
   }
   void AcquireLock(FreeList* freelist);
   void ReleaseLock(FreeList* freelist);
@@ -461,7 +279,7 @@ class PageSpace {
                               GrowthPolicy growth_policy) {
     bool is_protected = false;
     bool is_locked = true;
-    return TryAllocateInternal(size, freelist, OldPage::kData, growth_policy,
+    return TryAllocateInternal(size, freelist, Page::kData, growth_policy,
                                is_protected, is_locked);
   }
 
@@ -481,7 +299,7 @@ class PageSpace {
 
   // Attempt to allocate from bump block rather than normal freelist.
   uword TryAllocateDataBumpLocked(intptr_t size) {
-    return TryAllocateDataBumpLocked(&freelists_[OldPage::kData], size);
+    return TryAllocateDataBumpLocked(&freelists_[Page::kData], size);
   }
   uword TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size);
   DART_FORCE_INLINE
@@ -523,36 +341,36 @@ class PageSpace {
 
   uword TryAllocateInternal(intptr_t size,
                             FreeList* freelist,
-                            OldPage::PageType type,
+                            Page::PageType type,
                             GrowthPolicy growth_policy,
                             bool is_protected,
                             bool is_locked);
   uword TryAllocateInFreshPage(intptr_t size,
                                FreeList* freelist,
-                               OldPage::PageType type,
+                               Page::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
   uword TryAllocateInFreshLargePage(intptr_t size,
-                                    OldPage::PageType type,
+                                    Page::PageType type,
                                     GrowthPolicy growth_policy);
 
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
 
-  void AddPageLocked(OldPage* page);
-  void AddLargePageLocked(OldPage* page);
-  void AddExecPageLocked(OldPage* page);
-  void RemovePageLocked(OldPage* page, OldPage* previous_page);
-  void RemoveLargePageLocked(OldPage* page, OldPage* previous_page);
-  void RemoveExecPageLocked(OldPage* page, OldPage* previous_page);
+  void AddPageLocked(Page* page);
+  void AddLargePageLocked(Page* page);
+  void AddExecPageLocked(Page* page);
+  void RemovePageLocked(Page* page, Page* previous_page);
+  void RemoveLargePageLocked(Page* page, Page* previous_page);
+  void RemoveExecPageLocked(Page* page, Page* previous_page);
 
-  OldPage* AllocatePage(OldPage::PageType type, bool link = true);
-  OldPage* AllocateLargePage(intptr_t size, OldPage::PageType type);
+  Page* AllocatePage(Page::PageType type, bool link = true);
+  Page* AllocateLargePage(intptr_t size, Page::PageType type);
 
-  void TruncateLargePage(OldPage* page, intptr_t new_object_size_in_bytes);
-  void FreePage(OldPage* page, OldPage* previous_page);
-  void FreeLargePage(OldPage* page, OldPage* previous_page);
-  void FreePages(OldPage* pages);
+  void TruncateLargePage(Page* page, intptr_t new_object_size_in_bytes);
+  void FreePage(Page* page, Page* previous_page);
+  void FreeLargePage(Page* page, Page* previous_page);
+  void FreePages(Page* pages, bool can_use_cache);
 
   void CollectGarbageHelper(Thread* thread, bool compact, bool finalize);
   void SweepLarge();
@@ -575,9 +393,9 @@ class PageSpace {
 
   Heap* const heap_;
 
-  // One list for executable pages at freelists_[OldPage::kExecutable].
+  // One list for executable pages at freelists_[Page::kExecutable].
   // FLAG_scavenger_tasks count of lists for data pages starting at
-  // freelists_[OldPage::kData]. The sweeper inserts into the data page
+  // freelists_[Page::kData]. The sweeper inserts into the data page
   // freelists round-robin. The scavenger workers each use one of the data
   // page freelists without locking.
   const intptr_t num_freelists_;
@@ -587,15 +405,15 @@ class PageSpace {
 
   // Use ExclusivePageIterator for safe access to these.
   mutable Mutex pages_lock_;
-  OldPage* pages_ = nullptr;
-  OldPage* pages_tail_ = nullptr;
-  OldPage* exec_pages_ = nullptr;
-  OldPage* exec_pages_tail_ = nullptr;
-  OldPage* large_pages_ = nullptr;
-  OldPage* large_pages_tail_ = nullptr;
-  OldPage* image_pages_ = nullptr;
-  OldPage* sweep_regular_ = nullptr;
-  OldPage* sweep_large_ = nullptr;
+  Page* pages_ = nullptr;
+  Page* pages_tail_ = nullptr;
+  Page* exec_pages_ = nullptr;
+  Page* exec_pages_tail_ = nullptr;
+  Page* large_pages_ = nullptr;
+  Page* large_pages_tail_ = nullptr;
+  Page* image_pages_ = nullptr;
+  Page* sweep_regular_ = nullptr;
+  Page* sweep_large_ = nullptr;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;

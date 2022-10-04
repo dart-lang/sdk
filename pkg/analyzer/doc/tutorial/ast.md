@@ -90,19 +90,19 @@ it might look something like this:
 void printMembers(CompilationUnit unit) {
   for (CompilationUnitMember unitMember in unit.declarations) {
     if (unitMember is ClassDeclaration) {
-      print(unitMember.name2.lexeme);
+      print(unitMember.name.lexeme);
       for (ClassMember classMember in unitMember.members) {
         if (classMember is MethodDeclaration) {
-          print('  ${classMember.name2.lexeme}');
+          print('  ${classMember.name.lexeme}');
         } else if (classMember is FieldDeclaration) {
           for (VariableDeclaration field in classMember.fields.variables) {
-            print('  ${field.name2.lexeme}');
+            print('  ${field.name.lexeme}');
           }
         } else if (classMember is ConstructorDeclaration) {
-          if (classMember.name2 == null) {
-            print('  ${unitMember.name2.lexeme}');
+          if (classMember.name == null) {
+            print('  ${unitMember.name.lexeme}');
           } else {
-            print('  ${unitMember.name2.lexeme}.${classMember.name2.lexeme}');
+            print('  ${unitMember.name.lexeme}.${classMember.name.lexeme}');
           }
         }
       }

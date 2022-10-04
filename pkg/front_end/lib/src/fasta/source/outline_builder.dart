@@ -436,9 +436,6 @@ class OutlineBuilder extends StackListenerImpl {
 
   String? nativeMethodName;
 
-  /// Counter used for naming unnamed extension declarations.
-  int unnamedExtensionCounter = 0;
-
   Link<DeclarationContext> _declarationContext = const Link();
 
   OutlineBuilder(SourceLibraryBuilder library)
@@ -835,14 +832,20 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     debugEvent("endLibraryName");
-    popCharOffset();
-    Object? name = pop();
+    Object? name = null;
+    if (hasName) {
+      popCharOffset();
+      name = pop();
+    }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    if (name is! ParserRecovery) {
+    if (name != null && name is! ParserRecovery) {
       libraryBuilder.name =
-          flattenName(name!, offsetForToken(libraryKeyword), uri);
+          flattenName(name, offsetForToken(libraryKeyword), uri);
+    } else {
+      reportIfNotEnabled(
+          libraryFeatures.unnamedLibraries, semicolon.charOffset, noLength);
     }
     libraryBuilder.metadata = metadata;
   }
@@ -1328,14 +1331,11 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
-    String name = nameToken?.lexeme ??
-        // Synthesized name used internally.
-        '_extension#${unnamedExtensionCounter++}';
-    push(name);
+    push(nameToken?.lexeme ?? NullValue.Name);
     push(offset);
     push(typeVariables ?? NullValue.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
-        .markAsExtensionDeclaration(name, offset, typeVariables);
+        .markAsExtensionDeclaration(nameToken?.lexeme, offset, typeVariables);
   }
 
   @override
@@ -1401,7 +1401,6 @@ class OutlineBuilder extends StackListenerImpl {
     String? name = pop(NullValue.Name) as String?;
     if (name == null) {
       nameOffset = extensionKeyword.charOffset;
-      name = '$nameOffset';
     }
     List<MetadataBuilder>? metadata =
         pop(NullValue.Metadata) as List<MetadataBuilder>?;

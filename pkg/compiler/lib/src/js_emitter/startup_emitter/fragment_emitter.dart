@@ -270,7 +270,7 @@ function tearOffParameters(
     #tpIsStatic: isStatic,
     #tpIsIntercepted: isIntercepted,
     #tpRequiredParameterCount: requiredParameterCount,
-    #tpOptionalParamaterDefaultValues: optionalParameterDefaultValues,
+    #tpOptionalParameterDefaultValues: optionalParameterDefaultValues,
     #tpCallNames: callNames,
     #tpFunctionsOrNames: funsOrNames,
     #tpFunctionType: funType,
@@ -628,8 +628,7 @@ class FragmentEmitter {
             : RuntimeTypesImpl(_closedWorld),
         _closedWorld.nativeData,
         _closedWorld.commonElements);
-    _rulesetEncoder =
-        RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
+    _rulesetEncoder = RulesetEncoder(_emitter, _recipeEncoder);
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
@@ -740,7 +739,7 @@ class FragmentEmitter {
           js.string(TearOffParametersPropertyNames.isIntercepted),
       'tpRequiredParameterCount':
           js.string(TearOffParametersPropertyNames.requiredParameterCount),
-      'tpOptionalParamaterDefaultValues': js.string(
+      'tpOptionalParameterDefaultValues': js.string(
           TearOffParametersPropertyNames.optionalParameterDefaultValues),
       'tpCallNames': js.string(TearOffParametersPropertyNames.callNames),
       'tpFunctionsOrNames':
@@ -1173,7 +1172,7 @@ class FragmentEmitter {
   js.Statement emitInheritance(Fragment fragment) {
     List<js.Statement> inheritCalls = [];
     List<js.Statement> mixinCalls = [];
-    // local caches of functions to allow minifaction of function name in call.
+    // local caches of functions to allow minification of function name in call.
     LocalAliases locals = LocalAliases();
 
     Set<Class> classesInFragment = Set();
@@ -1184,7 +1183,7 @@ class FragmentEmitter {
     Map<Class, List<Class>> subclasses = {};
     Set<Class> seen = Set();
 
-    void collect(cls) {
+    void collect(Class cls) {
       if (cls == null || seen.contains(cls)) return;
 
       Class superclass = cls.superclass;
@@ -1530,7 +1529,8 @@ class FragmentEmitter {
         }
       }
       for (Class cls in library.classes) {
-        var methods = cls.methods.where((dynamic m) => m.needsTearOff).toList();
+        var methods =
+            cls.methods.where((m) => (m as DartMethod).needsTearOff).toList();
         js.Expression container = js.js("#.prototype", classReference(cls));
         js.Expression reference = container;
         if (methods.length > 1) {
@@ -1911,7 +1911,7 @@ class FragmentEmitter {
     Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
 
-    Ruleset ruleset = Ruleset.empty();
+    Ruleset ruleset = Ruleset.empty(_dartTypes);
     Map<ClassEntity, int> erasedTypes = {};
     Iterable<ClassTypeData> classTypeData =
         fragment.libraries.expand((Library library) => library.classTypeData);

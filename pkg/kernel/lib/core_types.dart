@@ -85,6 +85,9 @@ class CoreTypes {
   InterfaceType? _functionLegacyRawType;
   InterfaceType? _functionNullableRawType;
   InterfaceType? _functionNonNullableRawType;
+  InterfaceType? _recordLegacyRawType;
+  InterfaceType? _recordNullableRawType;
+  InterfaceType? _recordNonNullableRawType;
   InterfaceType? _invocationLegacyRawType;
   InterfaceType? _invocationNullableRawType;
   InterfaceType? _invocationNonNullableRawType;
@@ -133,6 +136,8 @@ class CoreTypes {
   late final Class doubleClass = index.getClass('dart:core', 'double');
 
   late final Class functionClass = index.getClass('dart:core', 'Function');
+
+  late final Class recordClass = index.getClass('dart:core', 'Record');
 
   late final Class futureClass = index.getClass('dart:core', 'Future');
 
@@ -196,9 +201,9 @@ class CoreTypes {
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   late final Library? mirrorsLibrary = index.tryGetLibrary('dart:mirrors');
 
-  late final Constructor noSuchMethodErrorDefaultConstructor =
+  late final Procedure noSuchMethodErrorDefaultConstructor =
       // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
-      index.getConstructor('dart:core', 'NoSuchMethodError', 'withInvocation');
+      index.getProcedure('dart:core', 'NoSuchMethodError', 'withInvocation');
 
   late final Class deprecatedNullClass = index.getClass('dart:core', 'Null');
 
@@ -785,6 +790,38 @@ class CoreTypes {
         return functionNullableRawType;
       case Nullability.nonNullable:
         return functionNonNullableRawType;
+      case Nullability.undetermined:
+      default:
+        throw new StateError(
+            "Unsupported nullability $nullability on an InterfaceType.");
+    }
+  }
+
+  InterfaceType get recordLegacyRawType {
+    return _recordLegacyRawType ??= _legacyRawTypes[recordClass] ??=
+        new InterfaceType(recordClass, Nullability.legacy, const <DartType>[]);
+  }
+
+  InterfaceType get recordNullableRawType {
+    return _recordNullableRawType ??= _nullableRawTypes[recordClass] ??=
+        new InterfaceType(
+            recordClass, Nullability.nullable, const <DartType>[]);
+  }
+
+  InterfaceType get recordNonNullableRawType {
+    return _recordNonNullableRawType ??= _nonNullableRawTypes[recordClass] ??=
+        new InterfaceType(
+            recordClass, Nullability.nonNullable, const <DartType>[]);
+  }
+
+  InterfaceType recordRawType(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.legacy:
+        return recordLegacyRawType;
+      case Nullability.nullable:
+        return recordNullableRawType;
+      case Nullability.nonNullable:
+        return recordNonNullableRawType;
       case Nullability.undetermined:
       default:
         throw new StateError(

@@ -1598,6 +1598,29 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       stream_->WriteBytes(latin1, length);
       break;
     }
+    case kRecordCid: {
+      ASSERT(x.IsCanonical());
+      const auto& record = Record::Cast(x);
+      const intptr_t num_fields = record.num_fields();
+      Write<intptr_t>(num_fields);
+      Write<const Array&>(Array::Handle(Z, record.field_names()));
+      auto& field = Object::Handle(Z);
+      for (intptr_t i = 0; i < num_fields; ++i) {
+        field = record.FieldAt(i);
+        Write<const Object&>(field);
+      }
+      break;
+    }
+    case kRecordTypeCid: {
+      const auto& rec = RecordType::Cast(x);
+      ASSERT(rec.IsFinalized());
+      TypeScope type_scope(this, rec.IsRecursive());
+      Write<int8_t>(static_cast<int8_t>(rec.nullability()));
+      Write<const Array&>(Array::Handle(Z, rec.field_names()));
+      Write<const Array&>(Array::Handle(Z, rec.field_types()));
+      Write<bool>(type_scope.CanBeCanonicalized());
+      break;
+    }
     case kSentinelCid:
       if (x.ptr() == Object::sentinel().ptr()) {
         Write<bool>(true);
@@ -1685,7 +1708,7 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
         const auto& cls =
             Class::Handle(Z, isolate_group()->class_table()->At(cid));
         const auto unboxed_fields_bitmap =
-            isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid);
+            isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid);
         const intptr_t next_field_offset = cls.host_next_field_offset();
         auto& obj = Object::Handle(Z);
         for (intptr_t offset = Instance::NextFieldOffset();
@@ -1858,6 +1881,27 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       return String::ZoneHandle(Z,
                                 Symbols::FromLatin1(thread(), latin1, length));
     }
+    case kRecordCid: {
+      const intptr_t num_fields = Read<intptr_t>();
+      const auto& field_names = Read<const Array&>();
+      auto& record =
+          Record::ZoneHandle(Z, Record::New(num_fields, field_names));
+      for (intptr_t i = 0; i < num_fields; ++i) {
+        record.SetFieldAt(i, Read<const Object&>());
+      }
+      record ^= record.Canonicalize(thread());
+      return record;
+    }
+    case kRecordTypeCid: {
+      const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
+      const Array& field_names = Read<const Array&>();
+      const Array& field_types = Read<const Array&>();
+      RecordType& rec = RecordType::ZoneHandle(
+          Z, RecordType::New(field_types, field_names, nullability));
+      rec.SetIsFinalized();
+      rec ^= MaybeCanonicalize(rec, object_index, Read<bool>());
+      return rec;
+    }
     case kSentinelCid:
       return Read<bool>() ? Object::sentinel() : Object::transition_sentinel();
     case kSmiCid:
@@ -1939,7 +1983,7 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid)) {
         const auto& cls = Class::Handle(Z, GetClassById(cid));
         const auto unboxed_fields_bitmap =
-            isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid);
+            isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid);
         const intptr_t next_field_offset = cls.host_next_field_offset();
         auto& instance = Instance::ZoneHandle(Z, Instance::New(cls));
         for (intptr_t offset = Instance::NextFieldOffset();
@@ -2161,6 +2205,9 @@ void Slot::Write(FlowGraphSerializer* s) const {
     case Kind::kArrayElement:
       s->Write<intptr_t>(offset_in_bytes_);
       break;
+    case Kind::kRecordField:
+      s->Write<intptr_t>(offset_in_bytes_);
+      break;
     case Kind::kCapturedVariable:
       s->Write<int8_t>(flags_);
       s->Write<intptr_t>(offset_in_bytes_);
@@ -2203,6 +2250,12 @@ const Slot& Slot::Read(FlowGraphDeserializer* d) {
               IsCompressedBit::encode(Array::ContainsCompressedPointers());
       offset = d->Read<intptr_t>();
       data = ":array_element";
+      break;
+    case Kind::kRecordField:
+      flags = IsNullableBit::encode(true) |
+              IsCompressedBit::encode(Record::ContainsCompressedPointers());
+      offset = d->Read<intptr_t>();
+      data = ":record_field";
       break;
     case Kind::kCapturedVariable:
       flags = d->Read<int8_t>();

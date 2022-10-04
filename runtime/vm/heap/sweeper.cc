@@ -15,20 +15,20 @@
 
 namespace dart {
 
-bool GCSweeper::SweepPage(OldPage* page, FreeList* freelist, bool locked) {
+bool GCSweeper::SweepPage(Page* page, FreeList* freelist, bool locked) {
   ASSERT(!page->is_image_page());
 
   // Keep track whether this page is still in use.
   intptr_t used_in_bytes = 0;
 
-  bool is_executable = (page->type() == OldPage::kExecutable);
+  bool is_executable = (page->type() == Page::kExecutable);
   uword start = page->object_start();
   uword end = page->object_end();
   uword current = start;
 
   while (current < end) {
     ObjectPtr raw_obj = UntaggedObject::FromAddr(current);
-    ASSERT(OldPage::Of(raw_obj) == page);
+    ASSERT(Page::Of(raw_obj) == page);
     // These acquire operations balance release operations in array
     // truncaton, ensuring the writes creating the filler object are ordered
     // before the writes inserting the filler object into the freelist.
@@ -76,16 +76,15 @@ bool GCSweeper::SweepPage(OldPage* page, FreeList* freelist, bool locked) {
   }
   ASSERT(current == end);
 
-  page->set_used_in_bytes(used_in_bytes);
   return used_in_bytes != 0;  // In use.
 }
 
-intptr_t GCSweeper::SweepLargePage(OldPage* page) {
+intptr_t GCSweeper::SweepLargePage(Page* page) {
   ASSERT(!page->is_image_page());
 
   intptr_t words_to_end = 0;
   ObjectPtr raw_obj = UntaggedObject::FromAddr(page->object_start());
-  ASSERT(OldPage::Of(raw_obj) == page);
+  ASSERT(Page::Of(raw_obj) == page);
   if (raw_obj->untag()->IsMarked()) {
     raw_obj->untag()->ClearMarkBit();
     words_to_end = (raw_obj->untag()->HeapSize() >> kWordSizeLog2);

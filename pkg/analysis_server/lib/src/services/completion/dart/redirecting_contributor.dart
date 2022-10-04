@@ -23,8 +23,8 @@ class RedirectingContributor extends DartCompletionContributor {
         // C() : this.^
         var containingConstructor =
             parent.thisOrAncestorOfType<ConstructorDeclaration>();
-        var constructorElement = containingConstructor?.declaredElement2;
-        var classElement = constructorElement?.enclosingElement3;
+        var constructorElement = containingConstructor?.declaredElement;
+        var classElement = constructorElement?.enclosingElement;
         if (classElement != null) {
           for (var constructor in classElement.constructors) {
             if (constructor != constructorElement) {
@@ -51,8 +51,8 @@ class RedirectingContributor extends DartCompletionContributor {
         // factory C() = ^
         var containingConstructor =
             parent.thisOrAncestorOfType<ConstructorDeclaration>();
-        var constructorElement = containingConstructor?.declaredElement2;
-        var classElement = constructorElement?.enclosingElement3;
+        var constructorElement = containingConstructor?.declaredElement;
+        var classElement = constructorElement?.enclosingElement;
         var libraryElement = request.libraryElement;
         if (classElement == null) {
           return;

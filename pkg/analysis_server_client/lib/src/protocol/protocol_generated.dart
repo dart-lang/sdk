@@ -5180,7 +5180,7 @@ class CompletionMode implements Enum {
 class CompletionRegisterLibraryPathsParams implements RequestParams {
   /// A list of objects each containing a path and the additional libraries
   /// from which the client is interested in receiving completion suggestions.
-  /// If one configured path is beneath another, the descendent will override
+  /// If one configured path is beneath another, the descendant will override
   /// the ancestors' configured libraries of interest.
   List<LibraryPathSet> paths;
 

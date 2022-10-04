@@ -25,6 +25,7 @@ activated
 actively
 adequate
 adi
+adjusts
 advantage
 affecting
 affords
@@ -43,6 +44,7 @@ alive
 allocate
 allocator
 altered
+ambiguities
 analogous
 analogy
 analyzes
@@ -125,6 +127,7 @@ biased
 bin
 binder
 binders
+bindings
 binds
 bj
 bk
@@ -205,6 +208,7 @@ claims
 clamp
 clamped
 clarification
+clarify
 clashes
 class's
 clazz
@@ -213,6 +217,7 @@ client's
 clil
 clock
 cls
+cm
 cn
 cnt
 co
@@ -245,6 +250,7 @@ compression
 comprise
 concat
 concatenate
+conceptual
 concerned
 conciser
 cond
@@ -253,11 +259,15 @@ config
 configs
 configured
 connectivity
+consecutive
+considerable
 consideration
 considering
+constant's
 constness
 constraining
 consult
+consulted
 consumers
 container
 containers
@@ -356,6 +366,7 @@ destructure
 destructuring
 deterministic
 dev
+developed
 device
 dictates
 diff
@@ -376,11 +387,13 @@ disambiguating
 disambiguation
 disambiguator
 discovers
+discussion
 disjoint
 dispatched
 distribute
 diverged
 divided
+dm
 doc
 docs
 doesn\'t
@@ -445,6 +458,7 @@ es
 escalate
 establish
 established
+establishes
 estimate
 et
 eval
@@ -463,6 +477,7 @@ expando
 expense
 experimentation
 explaining
+explicitness
 explore
 exportable
 exportee
@@ -478,6 +493,7 @@ faced
 factor
 factored
 fairly
+falsity
 fangorn
 fasta
 favored
@@ -527,6 +543,7 @@ fortunately
 fourth
 framework
 freed
+freedom
 freely
 freshly
 frontend
@@ -578,12 +595,15 @@ h
 hacky
 hadn't
 hang
+happening
 happy
 hardcode
+harmonize
 harness
 hashes
 hashing
 havoc
+heads
 heap
 height
 hello
@@ -598,6 +618,8 @@ histogram
 history
 hit
 hoc
+holes
+hook
 hopefully
 horizontal
 href
@@ -617,6 +639,8 @@ ids
 idx
 iff
 il
+illegally
+illustrating
 imitate
 immutability
 impl
@@ -690,6 +714,7 @@ ints
 invariants
 io
 ipv
+irrefutable
 isolate
 isolated
 isolates
@@ -747,6 +772,7 @@ ld
 leafp
 leeway
 left's
+legitimately
 len
 lets
 letting
@@ -806,11 +832,13 @@ masking
 masks
 master
 materialize
+matters
 mature
 mb
 mc
 md
 me
+meanings
 meeting
 merely
 meta
@@ -821,6 +849,7 @@ migrated
 migration
 mime
 min
+mini
 misuse
 mixers
 mk
@@ -857,6 +886,7 @@ nil
 nine
 nj
 nk
+nm
 nnbd
 node's
 nomenclature
@@ -915,6 +945,7 @@ outputs
 outputting
 overlap
 overlapping
+overlaps
 overloader
 overlooked
 overshadowed
@@ -935,6 +966,7 @@ paren
 parens
 parenteses
 parity
+participates
 particularly
 partof
 patchup
@@ -951,6 +983,7 @@ perf
 permanently
 permit
 permits
+pertinent
 physically
 pi
 picking
@@ -983,6 +1016,7 @@ precompiled
 precompiling
 preexisted
 preexisting
+preferably
 prefixing
 premark
 preorder
@@ -995,6 +1029,7 @@ presuming
 prev
 primarily
 prime
+principal
 printer
 printf
 println
@@ -1102,6 +1137,7 @@ refined
 reflect
 reflectee
 reflective
+refutable
 reg
 regenerations
 regis
@@ -1137,6 +1173,7 @@ replicated
 repo
 repositories
 repurposed
+repurposing
 requesting
 requests
 requirement
@@ -1153,6 +1190,7 @@ ret
 reusage
 reversible
 rewinds
+rework
 rewrites
 rewrote
 rf
@@ -1187,6 +1225,8 @@ scc
 scheglov
 scoped
 scoping
+scrutinee
+scrutinee's
 sdk's
 seconds
 sections
@@ -1215,6 +1255,7 @@ sh
 sha
 shadowed
 shallow
+shares
 shas
 shelf
 shifts
@@ -1265,6 +1306,7 @@ spawns
 spec
 spec'ed
 specialization
+specializations
 specially
 specifications
 specifics
@@ -1280,6 +1322,7 @@ src
 ssa
 st
 stability
+stacks
 stacktrace
 stacktraces
 stages
@@ -1324,6 +1367,7 @@ subgraph
 subname
 subnode
 subnodes
+subpatterns
 subscription
 subsection
 subsections
@@ -1333,6 +1377,7 @@ subst
 substed
 substitutes
 substitutor
+substructure
 subtracted
 subtracting
 subtraction
@@ -1349,6 +1394,7 @@ superinterfaces
 supernode
 supers
 suppose
+surprising
 suspended
 svg
 sw
@@ -1391,6 +1437,7 @@ textualize
 textualized
 th
 therein
+thereof
 they'll
 thought
 ti
@@ -1398,6 +1445,7 @@ tick
 ticker
 tid
 ties
+tighter
 tiki
 tilde
 till
@@ -1505,11 +1553,13 @@ unsortable
 unsound
 unsubstituted
 untouched
+unusual
 unwrapper
 unwraps
 unwritten
 unzip
 upcast
+updatable
 ur
 uri's
 url

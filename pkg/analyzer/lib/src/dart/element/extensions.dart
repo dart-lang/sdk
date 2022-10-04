@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
 
 extension ElementAnnotationExtensions on ElementAnnotation {
@@ -25,7 +26,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement3;
+      interfaceElement = element.enclosingElement;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -68,21 +69,21 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement3;
-    if (ancestor is ClassElement) {
+    var ancestor = enclosingElement;
+    if (ancestor is InterfaceElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement3;
+      ancestor = ancestor.enclosingElement;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement3;
+      ancestor = ancestor.enclosingElement;
     }
 
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement3.hasDoNotStore;
+        ancestor.enclosingElement.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -94,8 +95,8 @@ extension ElementExtension on Element {
   /// [PropertyAccessorElement]s.
   bool get isInstanceMember {
     var this_ = this;
-    var enclosing = this_.enclosingElement3;
-    if (enclosing is ClassElement) {
+    var enclosing = this_.enclosingElement;
+    if (enclosing is InterfaceElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
     }
@@ -105,7 +106,17 @@ extension ElementExtension on Element {
 
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement3 is EnumElementImpl;
+    return this is ConstructorElement && enclosingElement is EnumElementImpl;
+  }
+}
+
+extension ExecutableElementExtensionQuestion on ExecutableElement? {
+  DartType? get firstParameterType {
+    final self = this;
+    if (self is MethodElement) {
+      return self.parameters.firstOrNull?.type;
+    }
+    return null;
   }
 }
 
@@ -126,10 +137,39 @@ extension ParameterElementExtensions on ParameterElement {
 }
 
 extension RecordTypeExtension on RecordType {
+  /// A regular expression used to match positional field names.
+  static final RegExp _positionalName = RegExp(r'^\$(([0-9])|([1-9][0-9]*))$');
+
+  /// The [name] is either an actual name like `foo` in `({int foo})`, or
+  /// the name of a positional field like `$0` in `(int, String)`.
+  RecordTypeField? fieldByName(String name) {
+    return namedField(name) ?? positionalField(name);
+  }
+
   RecordTypeNamedField? namedField(String name) {
     for (final field in namedFields) {
       if (field.name == name) {
         return field;
+      }
+    }
+    return null;
+  }
+
+  RecordTypePositionalField? positionalField(String name) {
+    final index = positionalFieldIndex(name);
+    if (index != null && index < positionalFields.length) {
+      return positionalFields[index];
+    }
+    return null;
+  }
+
+  /// Attempt to parse `$0`, `$1`, etc.
+  static int? positionalFieldIndex(String name) {
+    final match = _positionalName.firstMatch(name);
+    if (match != null) {
+      final indexStr = match.group(1);
+      if (indexStr != null) {
+        return int.tryParse(indexStr);
       }
     }
     return null;

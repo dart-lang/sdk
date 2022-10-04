@@ -323,34 +323,48 @@ EmptyNamedParameterList:
       foo();
     }
 
-EmptyRecordTypeFieldsList:
-  problemMessage: "Record type fields list cannot be empty."
-  correctionMessage: "Try adding a record type field to the list."
-  analyzerCode: "MISSING_IDENTIFIER"
+RecordLiteralOnePositionalFieldNoTrailingComma:
+  problemMessage: "Record literal with one field requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+  index: 127
   experiments: records
   script: >
     main() {
-      (/*missing*/) record = (1, 2,);
+      var record = const (1);
+    }
+
+RecordLiteralEmpty:
+  problemMessage: "Record literal can't be empty."
+  correctionMessage: "Try adding elements or use 'Record.empty()' instead."
+  analyzerCode: ParserErrorCode.RECORD_LITERAL_EMPTY
+  index: 128
+  experiments: records
+  script: >
+    main() {
+      var record = const ();
     }
 
 EmptyRecordTypeNamedFieldsList:
-  problemMessage: "Record type named fields list cannot be empty."
+  problemMessage: "Record type named fields list can't be empty."
   correctionMessage: "Try adding a record type named field to the list."
-  analyzerCode: "MISSING_IDENTIFIER"
+  analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
+  index: 129
   experiments: records
   script: >
     main() {
       (int, int, {/*missing*/}) record = (1, 2,);
     }
 
-OnlyOneRecordTypeFieldsList:
-  problemMessage: "Record type fields list cannot contain only one element without a named field."
-  correctionMessage: "Try adding another record type field to the list or add a named field."
-  analyzerCode: "MISSING_IDENTIFIER"
+RecordTypeOnePositionalFieldNoTrailingComma:
+  problemMessage: "Record type with one entry requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
+  index: 130
   experiments: records
   script: >
     main() {
-      (int /*missing*/) record = (1, 2,);
+      (int /* missing trailing comma */) record = const (1, );
     }
 
 DuplicatedRecordTypeFieldName:
@@ -5217,6 +5231,26 @@ JsInteropOperatorsNotSupported:
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
+JsInteropStaticInteropMockExternalExtensionMemberConflict:
+  problemMessage: "External extension member with name '#name' is defined in the following extensions and none are more specific: #string."
+  correctionMessage: "Try using the `@JS` annotation to rename conflicting members."
+
+JsInteropStaticInteropMockMemberNotSubtype:
+  problemMessage: "Dart class member '#name.#name2' with type '#type' is not a subtype of `@staticInterop` external extension member '#name3.#name4' with type '#type2'."
+  correctionMessage: "Change '#name.#name2' to be a subtype of '#name3.#name4'."
+
+JsInteropStaticInteropMockMissingOverride:
+  problemMessage: "`@staticInterop` class '#name' has external extension member '#name2', but Dart class '#name3' does not have an overriding instance member."
+  correctionMessage: "Add a Dart instance member in '#name3' that overrides '#name.#name2'."
+
+JsInteropStaticInteropMockNotDartInterfaceType:
+  problemMessage: "Second type argument '#type' is not a Dart interface type."
+  correctionMessage: "Use a Dart class instead."
+
+JsInteropStaticInteropMockNotStaticInteropType:
+  problemMessage: "First type argument '#type' is not a `@staticInterop` type."
+  correctionMessage: "Use a `@staticInterop` class instead."
+
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
@@ -5503,14 +5537,14 @@ UnexpectedModifierInNonNnbd:
     late int x;
 
 CompilingWithSoundNullSafety:
-  problemMessage: "Compiling with sound null safety"
+  problemMessage: "Compiling with sound null safety."
   configuration: nnbd-strong,compile
   severity: INFO
   script: |
     main() {}
 
 CompilingWithoutSoundNullSafety:
-  problemMessage: "Compiling without sound null safety"
+  problemMessage: "Compiling without sound null safety!\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
   configuration: nnbd-weak,compile
   severity: INFO
   script: |

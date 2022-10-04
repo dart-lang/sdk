@@ -24,13 +24,17 @@ class RemoveConstructorName extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final identifier = node;
-    if (identifier is! SimpleIdentifier) return;
-
-    // The '.' in ".new"
-    var dotToken = identifier.token.previous!;
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.startStart(dotToken, identifier.token.next!));
-    });
+    final node = this.node;
+    if (node is ConstructorDeclaration) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.startStart(node.period!, node.name!.next!));
+      });
+    } else if (node is SimpleIdentifier) {
+      // The '.' in ".new"
+      var dotToken = node.token.previous!;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.startStart(dotToken, node.token.next!));
+      });
+    }
   }
 }

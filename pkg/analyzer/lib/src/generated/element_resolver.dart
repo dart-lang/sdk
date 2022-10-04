@@ -128,7 +128,7 @@ class ElementResolver {
   }
 
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorElement element = node.declaredElement2!;
+    ConstructorElement element = node.declaredElement!;
     if (element is ConstructorElementImpl) {
       var redirectedNode = node.redirectedConstructor;
       if (redirectedNode != null) {
@@ -299,10 +299,22 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! ClassElement) {
+    if (enclosingClass is! InterfaceElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -336,7 +348,7 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! ClassElement) {
+    if (enclosingClass is! InterfaceElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -365,7 +377,7 @@ class ElementResolver {
     } else {
       if (element.isFactory &&
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
-          !element.enclosingElement3.constructors
+          !element.enclosingElement.constructors
               .every((constructor) => constructor.isFactory)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, [element]);
@@ -488,7 +500,7 @@ class ElementResolver {
   static InterfaceElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var element = expression.staticElement;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         return element;
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;

@@ -167,7 +167,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_goma = False
-    command = ['ninja', '-C', out_dir]
+    command = ['buildtools/ninja/ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
     if UseGoma(out_dir):

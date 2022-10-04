@@ -102,7 +102,7 @@ class U48<T> {
   late A Function<A>(A x) Function() x22;
   late B Function() Function<B extends core.int>() x23;
 
-  U48({this.tIsBool: false, this.tIsInt: false})
+  U48({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(List<T> x0) => throw 'uncalled';

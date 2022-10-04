@@ -138,6 +138,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add EOL at end of file',
   );
+  static const ADD_EXTENSION_OVERRIDE = FixKind(
+    'dart.fix.add.extensionOverride',
+    DartFixKindPriority.DEFAULT,
+    "Add an extension override for '{0}'",
+  );
   static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
     'dart.fix.add.fieldFormalParameters',
     70,
@@ -1569,6 +1574,16 @@ class DartFixKind {
     'dart.fix.sort.childPropertyLast.multi',
     DartFixKindPriority.IN_FILE,
     'Move child properties to ends of arguments everywhere in file',
+  );
+  static const SORT_COMBINATORS = FixKind(
+    'dart.fix.sort.combinators',
+    DartFixKindPriority.DEFAULT,
+    'Sort combinators',
+  );
+  static const SORT_COMBINATORS_MULTI = FixKind(
+    'dart.fix.sort.combinators.multi',
+    DartFixKindPriority.IN_FILE,
+    'Sort combinators everywhere in file',
   );
   static const SORT_CONSTRUCTOR_FIRST = FixKind(
     'dart.fix.sort.sortConstructorFirst',

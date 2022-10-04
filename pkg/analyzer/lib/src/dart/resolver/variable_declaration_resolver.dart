@@ -33,13 +33,13 @@ class VariableDeclarationResolver {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           node,
-          [node.name2.lexeme],
+          [node.name.lexeme],
         );
       }
       return;
     }
 
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 
@@ -50,7 +50,7 @@ class VariableDeclarationResolver {
     }
 
     _resolver.analyzeExpression(initializer, element.type);
-    initializer = node.initializer!;
+    initializer = _resolver.popRewrite()!;
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
 

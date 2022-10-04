@@ -38,9 +38,10 @@ class SelectorInfo {
 
   w.Module get m => translator.m;
 
-  String get name => paramInfo.member.name.text;
+  String get name => paramInfo.member!.name.text;
 
-  bool get alive => callCount > 0 && targetCount > 1 || calledDynamically;
+  bool get alive =>
+      calledDynamically ? targetCount > 0 : callCount > 0 && targetCount > 1;
 
   int get sortWeight => classIds.length * 10 + callCount;
 
@@ -60,6 +61,7 @@ class SelectorInfo {
         List.generate(1 + paramInfo.paramCount, (_) => {});
     List<Set<ClassInfo>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> inputNullable = List.filled(1 + paramInfo.paramCount, false);
+    List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
     List<bool> outputNullable = List.filled(returnCount, false);
     targets.forEach((id, target) {
       ClassInfo receiver = translator.classes[id];
@@ -99,11 +101,14 @@ class SelectorInfo {
       }
       assert(returns.length <= outputSets.length);
       inputSets[0].add(receiver);
+      ensureBoxed[0] = true;
       for (int i = 0; i < positional.length; i++) {
         DartType type = positional[i];
         inputSets[1 + i]
             .add(translator.classInfo[translator.classForType(type)]!);
         inputNullable[1 + i] |= type.isPotentiallyNullable;
+        ensureBoxed[1 + i] |=
+            paramInfo.positional[i] == ParameterInfo.defaultValueSentinel;
       }
       for (String name in named.keys) {
         int i = nameIndex[name]!;
@@ -111,6 +116,8 @@ class SelectorInfo {
         inputSets[1 + i]
             .add(translator.classInfo[translator.classForType(type)]!);
         inputNullable[1 + i] |= type.isPotentiallyNullable;
+        ensureBoxed[1 + i] |=
+            paramInfo.named[name] == ParameterInfo.defaultValueSentinel;
       }
       for (int i = 0; i < returnCount; i++) {
         if (i < returns.length) {
@@ -128,8 +135,8 @@ class SelectorInfo {
     List<w.ValueType> inputs = List.generate(
         inputSets.length,
         (i) => translator.typeForInfo(
-                upperBound(inputSets[i]), inputNullable[i], ensureBoxed: i == 0)
-            as w.ValueType);
+            upperBound(inputSets[i]), inputNullable[i],
+            ensureBoxed: ensureBoxed[i]) as w.ValueType);
     if (name == '==') {
       // == can't be called with null
       inputs[1] = inputs[1].withNullability(false);

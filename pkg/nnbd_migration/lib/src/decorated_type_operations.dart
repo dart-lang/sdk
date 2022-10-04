@@ -67,6 +67,13 @@ class DecoratedTypeOperations
   }
 
   @override
+  bool isPropertyPromotable(Object property) {
+    // TODO(paulberry): research whether we would get higher quality migrations
+    // if we returned `true` instead.
+    return false;
+  }
+
+  @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {
     return type1 == type2;
   }

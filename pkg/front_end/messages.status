@@ -217,10 +217,6 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 DuplicatedRecordLiteralFieldName/analyzerCode: Fail
 DuplicatedRecordTypeFieldName/analyzerCode: Fail
-EmptyRecordTypeFieldsList/part_wrapped_script: Crash # Missing subtyping for record types
-EmptyRecordTypeFieldsList/script: Crash # Missing subtyping for record types
-EmptyRecordTypeNamedFieldsList/part_wrapped_script: Crash # Missing subtyping for record types
-EmptyRecordTypeNamedFieldsList/script: Crash # Missing subtyping for record types
 Encoding/analyzerCode: Fail
 EnumAbstractMember/analyzerCode: Fail
 EnumAbstractMember/example: Fail
@@ -583,6 +579,20 @@ JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
+JsInteropStaticInteropMockExternalExtensionMemberConflict/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockExternalExtensionMemberConflict/example: Fail # Web compiler specific
+JsInteropStaticInteropMockMemberNotSubtype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockMemberNotSubtype/example: Fail # Web compiler specific
+JsInteropStaticInteropMockMissingOverride/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockMissingOverride/example: Fail # Web compiler specific
+JsInteropStaticInteropMockNotDartInterfaceType/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockNotDartInterfaceType/example: Fail # Web compiler specific
+JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockNotStaticInteropType/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
@@ -752,8 +762,6 @@ NullableTearoffError/analyzerCode: Fail
 NullableTearoffError/example: Fail
 NullableTearoffWarning/analyzerCode: Fail
 NullableTearoffWarning/example: Fail
-OnlyOneRecordTypeFieldsList/part_wrapped_script: Crash # Missing subtyping for record types
-OnlyOneRecordTypeFieldsList/script: Crash # Missing subtyping for record types
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail

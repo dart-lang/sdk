@@ -11,7 +11,7 @@ import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show suffixForGetInterceptor;
 import '../tracer.dart';
-import '../world.dart' show JClosedWorld;
+import '../world_interfaces.dart' show JClosedWorld;
 import 'nodes.dart';
 
 /// Outputs SSA code in a format readable by Hydra IR.

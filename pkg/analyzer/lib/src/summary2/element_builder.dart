@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
@@ -88,7 +89,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = ClassElementImpl(name, nameToken.offset);
@@ -98,7 +99,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
@@ -121,7 +122,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = ClassElementImpl(name, nameToken.offset);
@@ -132,7 +133,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
@@ -156,8 +157,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitConstructorDeclaration(
     covariant ConstructorDeclarationImpl node,
   ) {
-    var nameNode = node.name2 ?? node.returnType;
-    var name = node.name2?.lexeme ?? '';
+    var nameNode = node.name ?? node.returnType;
+    var name = node.name?.lexeme ?? '';
     if (name == 'new') {
       // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
@@ -178,7 +179,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.constantInitializers = node.initializers;
     }
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addConstructor(element);
@@ -196,7 +197,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var nameNode = node.name2;
+    var nameNode = node.name;
     var name = nameNode.lexeme;
     var nameOffset = nameNode.offset;
 
@@ -205,7 +206,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addEnum(name, element);
@@ -221,9 +222,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var constants = node.constants;
     var valuesElements = <Expression>[];
     for (var i = 0; i < constants.length; ++i) {
-      var constant = constants[i];
-      var name = constant.name2.lexeme;
-      var field = ConstFieldElementImpl(name, constant.name2.offset)
+      var constant = constants[i] as EnumConstantDeclarationImpl;
+      var name = constant.name.lexeme;
+      var field = ConstFieldElementImpl(name, constant.name.offset)
         ..hasImplicitType = true
         ..hasInitializer = true
         ..isConst = true
@@ -243,11 +244,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var initializer = astFactory.instanceCreationExpression(
         null,
         ConstructorNameImpl(
-          type: astFactory.namedType(
+          type: NamedTypeImpl(
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
             ),
             typeArguments: constant.arguments?.typeArguments,
+            question: null,
           ),
           period: constructorName != null ? Tokens.period() : null,
           name: constructorName != null
@@ -266,9 +268,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
 
       var variableDeclaration = VariableDeclarationImpl(
-        name: astFactory.simpleIdentifier(
-          StringToken(TokenType.STRING, name, -1),
-        ),
+        name: StringToken(TokenType.STRING, name, -1),
         equals: Tokens.eq(),
         initializer: initializer,
       );
@@ -309,27 +309,28 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       valuesField.constantInitializer = initializer;
 
       var variableDeclaration = VariableDeclarationImpl(
-        name: astFactory.simpleIdentifier(
-          StringToken(TokenType.STRING, 'values', -1),
-        ),
+        name: StringToken(TokenType.STRING, 'values', -1),
         equals: Tokens.eq(),
         initializer: initializer,
       );
-      valuesTypeNode = astFactory.namedType(
+      valuesTypeNode = NamedTypeImpl(
         name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, 'List', -1),
         ),
         typeArguments: astFactory.typeArgumentList(
           Tokens.lt(),
           [
-            astFactory.namedType(
+            NamedTypeImpl(
               name: astFactory.simpleIdentifier(
                 StringToken(TokenType.STRING, element.name, -1),
               )..staticElement = element,
+              typeArguments: null,
+              question: null,
             )
           ],
           Tokens.gt(),
         ),
+        question: null,
       );
       VariableDeclarationListImpl(
         comment: null,
@@ -397,7 +398,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken?.lexeme;
     var nameOffset = nameToken?.offset ?? -1;
 
@@ -406,7 +407,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var refName = name ?? '${_nextUnnamedExtensionId++}';
@@ -446,7 +447,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
       variable as VariableDeclarationImpl;
-      var nameToken = variable.name2;
+      var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
 
@@ -478,7 +479,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addNonSyntheticField(element);
 
       _linker.elementNodes[element] = variable;
-      variable.declaredElement2 = element;
+      variable.declaredElement = element;
     }
     _buildType(node.fields.type);
   }
@@ -543,7 +544,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var nameOffset = nameToken.offset;
 
@@ -585,7 +586,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(executableElement, node);
     _setDocumentation(executableElement, node);
 
-    node.declaredElement2 = executableElement;
+    node.declaredElement = executableElement;
     _linker.elementNodes[executableElement] = node;
 
     _buildExecutableElementChildren(
@@ -606,7 +607,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = TypeAliasElementImpl(name, nameToken.offset);
@@ -615,7 +616,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
@@ -715,7 +716,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = TypeAliasElementImpl(name, nameToken.offset);
@@ -723,7 +724,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
@@ -777,7 +778,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var nameOffset = nameToken.offset;
 
@@ -836,7 +837,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(executableElement, node);
     _setDocumentation(executableElement, node);
 
-    node.declaredElement2 = executableElement;
+    node.declaredElement = executableElement;
     _linker.elementNodes[executableElement] = node;
 
     _buildExecutableElementChildren(
@@ -851,7 +852,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = MixinElementImpl(name, nameToken.offset);
@@ -859,7 +860,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
@@ -1036,7 +1037,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
       variable as VariableDeclarationImpl;
-      var nameToken = variable.name2;
+      var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
 
@@ -1065,7 +1066,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       _linker.elementNodes[element] = variable;
       _enclosingContext.addTopLevelVariable(name, element);
-      variable.declaredElement2 = element;
+      variable.declaredElement = element;
 
       var getter = element.getter;
       if (getter is PropertyAccessorElementImpl) {
@@ -1090,14 +1091,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = TypeParameterElementImpl(name, nameToken.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
     _enclosingContext.addTypeParameter(name, element);
 
@@ -1119,7 +1120,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _buildClass(ClassDeclaration node) {
-    var element = node.declaredElement2 as ClassElementImpl;
+    var element = node.declaredElement as ClassElementImpl;
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -1164,7 +1165,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _buildMixin(MixinDeclaration node) {
-    var element = node.declaredElement2 as MixinElementImpl;
+    var element = node.declaredElement as MixinElementImpl;
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -1359,7 +1360,9 @@ class _EnclosingContext {
 
   Reference addConstructor(ConstructorElementImpl element) {
     constructors.add(element);
-    return _bindReference('@constructor', element.name, element);
+
+    final referenceName = element.name.ifNotEmptyOrElse('new');
+    return _bindReference('@constructor', referenceName, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {

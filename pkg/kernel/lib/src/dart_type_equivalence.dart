@@ -88,7 +88,12 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         if (!nodeNamedParameters.containsKey(otherName) ||
             !nodeNamedParameters[otherName]!.accept1(this, otherType)) {
           result = false;
+        } else {
+          nodeNamedParameters.remove(otherName);
         }
+      }
+      if (nodeNamedParameters.isNotEmpty) {
+        result = false;
       }
       if (!node.returnType.accept1(this, other.returnType)) {
         result = false;
@@ -131,20 +136,10 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
       while (result && nodeIndex < node.named.length) {
         NamedType nodeNamedType = node.named[nodeIndex];
         NamedType otherNamedType = other.named[otherIndex];
-        int comparisonResult =
-            nodeNamedType.name.compareTo(otherNamedType.name);
-        if (comparisonResult == 0) {
-          // nodeNamedType.name == otherNamedType.name
-          result = nodeNamedType.type.accept1(this, otherNamedType.type);
-          otherIndex++;
-          nodeIndex++;
-        } else if (comparisonResult < 0) {
-          // nodeNamedType.name < otherNamedType.name
-          nodeIndex++;
-        } else {
-          // nodeNamedType.name > otherNamedType.name
-          // 'otherNamedType.name' is not found in 'node.named'.
+        if (nodeNamedType.name != otherNamedType.name) {
           result = false;
+        } else {
+          result = nodeNamedType.type.accept1(this, otherNamedType.type);
         }
       }
 

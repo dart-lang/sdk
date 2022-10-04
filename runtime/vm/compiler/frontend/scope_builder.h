@@ -40,12 +40,15 @@ class ScopeBuilder {
   void VisitInitializer();
   void VisitExpression();
   void VisitStatement();
+  void VisitListOfExpressions();
+  void VisitListOfNamedExpressions();
   void VisitArguments();
   void VisitVariableDeclaration();
   void VisitVariableGet(intptr_t declaration_binary_offset);
   void VisitDartType();
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
+  void VisitRecordType();
   void VisitTypeParameterType();
   void VisitIntersectionType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);

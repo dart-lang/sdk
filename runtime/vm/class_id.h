@@ -68,13 +68,14 @@ typedef uint16_t ClassIdTagType;
   V(TypeArguments)                                                             \
   V(AbstractType)                                                              \
   V(Type)                                                                      \
+  V(FunctionType)                                                              \
+  V(RecordType)                                                                \
+  V(TypeRef)                                                                   \
+  V(TypeParameter)                                                             \
   V(FinalizerBase)                                                             \
   V(Finalizer)                                                                 \
   V(NativeFinalizer)                                                           \
   V(FinalizerEntry)                                                            \
-  V(FunctionType)                                                              \
-  V(TypeRef)                                                                   \
-  V(TypeParameter)                                                             \
   V(Closure)                                                                   \
   V(Number)                                                                    \
   V(Integer)                                                                   \
@@ -85,6 +86,7 @@ typedef uint16_t ClassIdTagType;
   V(Float32x4)                                                                 \
   V(Int32x4)                                                                   \
   V(Float64x2)                                                                 \
+  V(Record)                                                                    \
   V(TypedDataBase)                                                             \
   V(TypedData)                                                                 \
   V(ExternalTypedData)                                                         \
@@ -358,8 +360,10 @@ inline bool IsBuiltinListClassId(intptr_t index) {
 }
 
 inline bool IsTypeClassId(intptr_t index) {
-  // Only Type and FunctionType can be encountered as instance types at runtime.
-  return index == kTypeCid || index == kFunctionTypeCid;
+  // Only Type, FunctionType and RecordType can be encountered as instance
+  // types at runtime.
+  return index == kTypeCid || index == kFunctionTypeCid ||
+         index == kRecordTypeCid;
 }
 
 inline bool IsTypedDataBaseClassId(intptr_t index) {

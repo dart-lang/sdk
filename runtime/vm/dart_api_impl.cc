@@ -1036,7 +1036,9 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
       FinalizablePersistentHandle::New(thread->isolate_group(), ref, peer,
                                        callback, external_allocation_size,
                                        /*auto_delete=*/false);
-  return finalizable_ref->ApiWeakPersistentHandle();
+  return finalizable_ref == nullptr
+             ? nullptr
+             : finalizable_ref->ApiWeakPersistentHandle();
 }
 
 static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
@@ -1070,7 +1072,8 @@ static Dart_FinalizableHandle AllocateFinalizableHandle(
       FinalizablePersistentHandle::New(thread->isolate_group(), ref, peer,
                                        callback, external_allocation_size,
                                        /*auto_delete=*/true);
-  return finalizable_ref->ApiFinalizableHandle();
+  return finalizable_ref == nullptr ? nullptr
+                                    : finalizable_ref->ApiFinalizableHandle();
 }
 
 static Dart_FinalizableHandle AllocateFinalizableHandle(
@@ -1817,7 +1820,7 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
 
 DART_EXPORT void Dart_NotifyLowMemory() {
   API_TIMELINE_BEGIN_END(Thread::Current());
-  SemiSpace::ClearCache();
+  Page::ClearCache();
   Zone::ClearCache();
 
   // For each isolate's global variables, we might also clear:
@@ -6418,6 +6421,13 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
     event->Complete();
   }
   Dart::ResetActiveApiCall();
+#endif
+}
+
+DART_EXPORT void Dart_SetTimelineRecorderCallback(
+    Dart_TimelineRecorderCallback callback) {
+#if defined(SUPPORT_TIMELINE)
+  Timeline::set_callback(callback);
 #endif
 }
 

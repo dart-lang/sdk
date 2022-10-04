@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -20,12 +21,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:collection/collection.dart';
 
 class PropertyElementResolver with ScopeHelpers {
-  /// A regular expression used to match positional field names.
-  static final RegExp _recordPositionalFieldName = RegExp(r'^\$([0-9]+)$');
-
   final ResolverVisitor _resolver;
 
   PropertyElementResolver(this._resolver);
@@ -70,7 +67,11 @@ class PropertyElementResolver with ScopeHelpers {
         );
       }
 
-      return _toIndexResult(result);
+      return _toIndexResult(
+        result,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
     }
 
     var targetType = target.typeOrThrow;
@@ -130,7 +131,11 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    return _toIndexResult(result);
+    return _toIndexResult(
+      result,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
   }
 
   PropertyElementResolverResult resolvePrefixedIdentifier({
@@ -233,6 +238,21 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead) {
       var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
+
+      final callFunctionType = readLookup?.callFunctionType;
+      if (callFunctionType != null) {
+        return PropertyElementResolverResult(
+          functionTypeCallType: callFunctionType,
+        );
+      }
+
+      final recordField = readLookup?.recordField;
+      if (recordField != null) {
+        return PropertyElementResolverResult(
+          recordField: recordField,
+        );
+      }
+
       readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
@@ -295,7 +315,7 @@ class PropertyElementResolver with ScopeHelpers {
           propertyName,
         );
       } else {
-        var enclosingElement = element.enclosingElement3;
+        var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name == null) {
           _resolver.errorReporter.reportErrorForNode(
@@ -323,20 +343,6 @@ class PropertyElementResolver with ScopeHelpers {
         }
       }
     }
-  }
-
-  DartType? _computeIndexContextType({
-    required ExecutableElement? readElement,
-    required ExecutableElement? writeElement,
-  }) {
-    var method = writeElement ?? readElement;
-    var parameters = method is MethodElement ? method.parameters : null;
-
-    if (parameters != null && parameters.isNotEmpty) {
-      return parameters[0].type;
-    }
-
-    return null;
   }
 
   bool _isAccessible(ExecutableElement element) {
@@ -373,7 +379,7 @@ class PropertyElementResolver with ScopeHelpers {
     //
     if (target is Identifier) {
       var targetElement = target.staticElement;
-      if (targetElement is ClassElement) {
+      if (targetElement is InterfaceElement) {
         return _resolveTargetInterfaceElement(
           typeReference: targetElement,
           isCascaded: isCascaded,
@@ -453,16 +459,6 @@ class PropertyElementResolver with ScopeHelpers {
       return PropertyElementResolverResult();
     }
 
-    if (targetType is RecordType) {
-      final result = _resolveTargetRecordType(
-        targetType: targetType,
-        propertyName: propertyName,
-      );
-      if (result != null) {
-        return result;
-      }
-    }
-
     var result = _resolver.typePropertyResolver.resolve(
       receiver: target,
       receiverType: targetType,
@@ -506,6 +502,7 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRecovery: result.setter,
       writeElementRequested: result.setter,
       writeElementRecovery: result.getter,
+      recordField: result.recordField,
     );
   }
 
@@ -750,32 +747,6 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  PropertyElementResolverResult? _resolveTargetRecordType({
-    required RecordType targetType,
-    required SimpleIdentifier propertyName,
-  }) {
-    final namedField = targetType.namedFields.firstWhereOrNull(
-      (field) => field.name == propertyName.name,
-    );
-    if (namedField != null) {
-      return PropertyElementResolverResult(
-        recordField: namedField,
-      );
-    }
-
-    final match = _recordPositionalFieldName.firstMatch(propertyName.name);
-    if (match != null) {
-      final index = int.tryParse(match.group(1)!);
-      if (index != null && index < targetType.positionalFields.length) {
-        return PropertyElementResolverResult(
-          recordField: targetType.positionalFields[index],
-        );
-      }
-    }
-
-    return null;
-  }
-
   PropertyElementResolverResult _resolveTargetSuperExpression({
     required Expression node,
     required SuperExpression target,
@@ -871,17 +842,22 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  PropertyElementResolverResult _toIndexResult(ResolutionResult result) {
+  PropertyElementResolverResult _toIndexResult(
+    ResolutionResult result, {
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
     var readElement = result.getter;
     var writeElement = result.setter;
+
+    final contextType = hasRead
+        ? readElement.firstParameterType
+        : writeElement.firstParameterType;
 
     return PropertyElementResolverResult(
       readElementRequested: readElement,
       writeElementRequested: writeElement,
-      indexContextType: _computeIndexContextType(
-        readElement: readElement,
-        writeElement: writeElement,
-      ),
+      indexContextType: contextType,
     );
   }
 }

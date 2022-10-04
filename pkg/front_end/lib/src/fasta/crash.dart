@@ -10,6 +10,7 @@ import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 
 import 'problems.dart' show DebugAbort;
+import 'uri_offset.dart';
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
@@ -35,11 +36,20 @@ class Crash {
 
   @override
   String toString() {
-    return """
-Crash when compiling $uri,
-at character offset $charOffset:
-$error${trace == null ? '' : '\n$trace'}
-""";
+    StringBuffer sb = new StringBuffer();
+    if (uri != null) {
+      sb.write("Crash when compiling $uri");
+      if (charOffset != null && charOffset != -1) {
+        sb.write(" at character offset $charOffset:\n");
+      } else {
+        sb.write(":\n");
+      }
+    } else {
+      sb.write("Crash when compiling:\n");
+    }
+    sb.write(error);
+    sb.write("\n");
+    return sb.toString();
   }
 }
 
@@ -116,7 +126,7 @@ String safeToString(Object object) {
 }
 
 Future<T> withCrashReporting<T>(
-    Future<T> Function() action, Uri? Function() currentUri) async {
+    Future<T> Function() action, UriOffset? Function() currentUriOffset) async {
   resetCrashReporting();
   try {
     return await action();
@@ -125,6 +135,7 @@ Future<T> withCrashReporting<T>(
   } on DebugAbort {
     rethrow;
   } catch (e, s) {
-    return reportCrash(e, s, currentUri());
+    UriOffset? uriOffset = currentUriOffset();
+    return reportCrash(e, s, uriOffset?.uri, uriOffset?.fileOffset);
   }
 }

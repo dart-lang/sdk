@@ -97,8 +97,14 @@ class WasmI16 extends _WasmInt {}
 @pragma("wasm:entry-point")
 class WasmI32 extends _WasmInt {
   external factory WasmI32.fromInt(int value);
+  external factory WasmI32.int8FromInt(int value);
+  external factory WasmI32.uint8FromInt(int value);
+  external factory WasmI32.int16FromInt(int value);
+  external factory WasmI32.uint16FromInt(int value);
+  external factory WasmI32.fromBool(bool value);
   external int toIntSigned();
   external int toIntUnsigned();
+  external bool toBool();
 }
 
 /// The Wasm `i64` type.

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -28,6 +28,15 @@ class EnumTest2 extends AbstractCompletionDriverTest with EnumTestCases {
 }
 
 mixin EnumTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) => true,
+    );
+  }
+
   Future<void> test_enumConstantName() async {
     await _check_locations(
       declaration: '''
@@ -36,27 +45,30 @@ enum OtherEnum { foo02 }
 ''',
       declarationForContextType: 'void useMyEnum(MyEnum _) {}',
       codeAtCompletion: 'useMyEnum(foo0^);',
-      validator: (response) {
-        check(response).hasReplacement(left: 4);
-
+      validator: (response, context) {
         if (isProtocolVersion2) {
-          check(response).suggestions.matches([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('MyEnum.foo01')
-              ..isEnumConstant,
-          ]);
-          // No other suggestions.
+          assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  MyEnum.foo01
+    kind: enumConstant
+''');
         } else {
-          check(response).suggestions.includesAll([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('MyEnum.foo01')
-              ..isEnumConstant,
-            // The response includes much more, such as `MyEnum` itself.
-            // We don't expect though that the client will show it.
-            (suggestion) => suggestion
-              ..completion.isEqualTo('MyEnum')
-              ..isEnum,
-          ]);
+          _configureWithMyEnum();
+          // The response includes much more, such as `MyEnum` itself.
+          // We don't expect though that the client will show it.
+          if (context == _Context.local) {
+            assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+''');
+          }
         }
       },
     );
@@ -82,21 +94,28 @@ void f() {
 }
 ''');
 
-    check(response).hasReplacement(left: 4);
-
     if (isProtocolVersion2) {
-      check(response).suggestions.matches([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('prefix.MyEnum.foo01')
-          ..isEnumConstant,
-      ]);
+      assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  prefix.MyEnum.foo01
+    kind: enumConstant
+''');
     } else {
+      _configureWithMyEnum();
       // TODO(scheglov) This is wrong.
-      check(response).suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('MyEnum.foo01')
-          ..isEnumConstant,
-      ]);
+      assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+  OtherEnum.foo02
+    kind: enumConstant
+''');
     }
   }
 
@@ -104,22 +123,41 @@ void f() {
     await _check_locations(
       declaration: 'enum MyEnum { foo01 }',
       codeAtCompletion: 'MyEnu^',
-      validator: (response) {
-        check(response).hasReplacement(left: 5);
-
+      validator: (response, context) {
         if (isProtocolVersion2) {
-          check(response).suggestions.matches([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('MyEnum')
-              ..isEnum,
-          ]);
           // No enum constants.
+          assertResponseText(response, r'''
+replacement
+  left: 5
+suggestions
+  MyEnum
+    kind: enum
+''');
         } else {
-          check(response).suggestions.includesAll([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('MyEnum')
-              ..isEnum,
-          ]);
+          _configureWithMyEnum();
+          switch (context) {
+            case _Context.local:
+              assertResponseText(response, r'''
+replacement
+  left: 5
+suggestions
+  MyEnum
+    kind: enum
+''');
+              break;
+            case _Context.imported:
+            case _Context.notImported:
+              assertResponseText(response, r'''
+replacement
+  left: 5
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+''');
+              break;
+          }
         }
       },
     );
@@ -142,25 +180,29 @@ void f() {
 }
 ''');
 
-    check(response).hasReplacement(left: 5);
-
     if (isProtocolVersion2) {
-      check(response).suggestions.matches([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('prefix.MyEnum')
-          ..isEnum,
-      ]);
+      assertResponseText(response, r'''
+replacement
+  left: 5
+suggestions
+  prefix.MyEnum
+    kind: enum
+''');
     } else {
+      _configureWithMyEnum();
       // TODO(scheglov) This is wrong.
-      check(response).suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('MyEnum')
-          ..isEnum,
-      ]);
+      assertResponseText(response, r'''
+replacement
+  left: 5
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+''');
     }
   }
 
-  @FailingTest(reason: 'element.kind is LIBRARY')
   Future<void> test_importPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
@@ -178,20 +220,27 @@ void f() {
 }
 ''');
 
-    check(response).hasReplacement(left: 7);
-
     if (isProtocolVersion2) {
-      check(response).suggestions.matches([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('prefix01')
-          ..isImportPrefix,
-      ]);
+      // TODO(scheglov) The kind should be a prefix.
+      assertResponseText(response, r'''
+replacement
+  left: 7
+suggestions
+  prefix01
+    kind: library
+''');
     } else {
-      check(response).suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('prefix01')
-          ..isImportPrefix,
-      ]);
+      _configureWithMyEnum();
+      // TODO(scheglov) This is wrong.
+      assertResponseText(response, r'''
+replacement
+  left: 7
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.v
+    kind: enumConstant
+''');
     }
   }
 
@@ -212,55 +261,66 @@ void f() {
 }
 ''');
 
-    check(response).hasEmptyReplacement();
-
-    check(response).suggestions
-      ..includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('MyEnum')
-          ..isEnum,
-      ])
-      // TODO(scheglov) This is wrong.
-      // Should include constants, as [test_nothing_imported_withPrefix] does.
-      ..excludesAll([
-        (suggestion) => suggestion.isEnumConstant,
-      ]);
+    // TODO(scheglov) This is wrong.
+    // Should include constants, as [test_nothing_imported_withPrefix] does.
+    assertResponseText(response, r'''
+suggestions
+  MyEnum
+    kind: enum
+''');
   }
 
   Future<void> test_nothing() async {
+    _configureWithMyEnum();
+
     await _check_locations(
-      declaration: 'enum MyEnum { v }',
+      declaration: 'enum MyEnum { foo01 }',
       declarationForContextType: 'void useMyEnum(MyEnum _) {}',
       codeAtCompletion: 'useMyEnum(^);',
-      validator: (response) {
-        check(response).hasEmptyReplacement();
-
-        check(response).suggestions
-          ..includesAll([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('MyEnum')
-              ..isEnum,
-            (suggestion) => suggestion
-              ..completion.isEqualTo('MyEnum.v')
-              ..isEnumConstant,
-          ])
-          ..excludesAll([
-            (suggestion) => suggestion
-              ..completion.startsWith('MyEnum')
-              ..isConstructorInvocation,
-          ]);
+      validator: (response, context) {
+        if (isProtocolVersion2) {
+          assertResponseText(response, r'''
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+''');
+        } else {
+          switch (context) {
+            case _Context.local:
+            case _Context.imported:
+              assertResponseText(response, r'''
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+''');
+              break;
+            case _Context.notImported:
+              assertResponseText(response, r'''
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+  useMyEnum
+    kind: functionInvocation
+''');
+              break;
+          }
+        }
       },
     );
   }
 
   Future<void> test_nothing_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-enum MyEnum { v }
-''');
+    _configureWithMyEnum();
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
+    newFile('$testPackageLibPath/a.dart', r'''
+enum MyEnum { foo01 }
+''');
 
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix;
@@ -272,27 +332,23 @@ void f() {
 }
 ''');
 
-    check(response).hasEmptyReplacement();
-
     if (isProtocolVersion2) {
-      check(response).suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('prefix.MyEnum')
-          ..isEnum,
-        (suggestion) => suggestion
-          ..completion.isEqualTo('prefix.MyEnum.v')
-          ..isEnumConstant,
-      ]);
+      assertResponseText(response, r'''
+suggestions
+  prefix.MyEnum
+    kind: enum
+  prefix.MyEnum.foo01
+    kind: enumConstant
+''');
     } else {
       // TODO(scheglov) This is wrong.
-      check(response).suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('MyEnum')
-          ..isEnum,
-        (suggestion) => suggestion
-          ..completion.isEqualTo('MyEnum.v')
-          ..isEnumConstant,
-      ]);
+      assertResponseText(response, r'''
+suggestions
+  MyEnum
+    kind: enum
+  MyEnum.foo01
+    kind: enumConstant
+''');
     }
   }
 
@@ -300,7 +356,11 @@ void f() {
     required String declaration,
     String declarationForContextType = '',
     required String codeAtCompletion,
-    required void Function(CompletionResponseForTesting response) validator,
+    required void Function(
+      CompletionResponseForTesting response,
+      _Context context,
+    )
+        validator,
   }) async {
     // local
     {
@@ -311,7 +371,7 @@ void f() {
   $codeAtCompletion
 }
 ''');
-      validator(response);
+      validator(response, _Context.local);
     }
 
     // imported
@@ -329,7 +389,7 @@ void f() {
   $codeAtCompletion
 }
 ''');
-      validator(response);
+      validator(response, _Context.imported);
     }
 
     // not imported
@@ -350,7 +410,16 @@ void f() {
   $codeAtCompletion
 }
 ''');
-      validator(response);
+      validator(response, _Context.notImported);
     }
   }
+
+  void _configureWithMyEnum() {
+    printerConfiguration.filter = (suggestion) {
+      final completion = suggestion.completion;
+      return completion.contains('MyEnum') || completion.contains('foo0');
+    };
+  }
 }
+
+enum _Context { local, imported, notImported }

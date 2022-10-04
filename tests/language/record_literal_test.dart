@@ -21,4 +21,14 @@ main() {
   // With function inside.
   var record5 = ((foo, bar) => 42, 42);
   print(record5);
+
+  // 1 record entry with trailing comma.
+  var record6 = (42, );
+  print(record6);
+
+  // Const records.
+  var record7 = const (42, );
+  print(record7);
+  var record8 = const (42, foo: "bar");
+  print(record8);
 }

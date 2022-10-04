@@ -776,22 +776,25 @@ class Thread : public ThreadState {
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
   int64_t unboxed_int64_runtime_arg() const {
-    return unboxed_int64_runtime_arg_;
+    return unboxed_runtime_arg_.int64_storage[0];
   }
   void set_unboxed_int64_runtime_arg(int64_t value) {
-    unboxed_int64_runtime_arg_ = value;
-  }
-  static intptr_t unboxed_int64_runtime_arg_offset() {
-    return OFFSET_OF(Thread, unboxed_int64_runtime_arg_);
+    unboxed_runtime_arg_.int64_storage[0] = value;
   }
   double unboxed_double_runtime_arg() const {
-    return unboxed_double_runtime_arg_;
+    return unboxed_runtime_arg_.double_storage[0];
   }
   void set_unboxed_double_runtime_arg(double value) {
-    unboxed_double_runtime_arg_ = value;
+    unboxed_runtime_arg_.double_storage[0] = value;
   }
-  static intptr_t unboxed_double_runtime_arg_offset() {
-    return OFFSET_OF(Thread, unboxed_double_runtime_arg_);
+  simd128_value_t unboxed_simd128_runtime_arg() const {
+    return unboxed_runtime_arg_;
+  }
+  void set_unboxed_simd128_runtime_arg(simd128_value_t value) {
+    unboxed_runtime_arg_ = value;
+  }
+  static intptr_t unboxed_runtime_arg_offset() {
+    return OFFSET_OF(Thread, unboxed_runtime_arg_);
   }
 
   static intptr_t global_object_pool_offset() {
@@ -1176,8 +1179,7 @@ class Thread : public ThreadState {
   // values from generated code to runtime.
   // TODO(dartbug.com/33549): Clean this up when unboxed values
   // could be passed as arguments.
-  ALIGN8 int64_t unboxed_int64_runtime_arg_;
-  ALIGN8 double unboxed_double_runtime_arg_;
+  ALIGN8 simd128_value_t unboxed_runtime_arg_;
 
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \

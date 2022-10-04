@@ -285,10 +285,15 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructorScope.forEach((String name, Builder constructor) {
+    NameIterator<MemberBuilder> iterator =
+        constructorScope.filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      String name = iterator.name;
+      MemberBuilder constructor = iterator.current;
       Builder? member = scope.lookupLocalMember(name, setter: false);
-      if (member == null) return;
-      if (!member.isStatic) return;
+      if (member == null) continue;
+      if (!member.isStatic) continue;
       // TODO(ahe): Revisit these messages. It seems like the last two should
       // be `context` parameter to this message.
       addProblem(templateConflictsWithMember.withArguments(name),
@@ -305,7 +310,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             member.charOffset,
             noLength);
       }
-    });
+    }
 
     scope.forEachLocalSetter((String name, Builder setter) {
       Builder? constructor = constructorScope.lookupLocalMember(name);
@@ -1478,8 +1483,12 @@ class SourceClassBuilder extends ClassBuilderImpl
             _transformProcedureToNoSuchMethodForwarder(
                 noSuchMethod, target, member as Procedure);
           } else {
-            Procedure memberSignature =
-                combinedMemberSignature.createMemberFromSignature()!;
+            // The reason we don't copy the location is to ensure that the stack
+            // trace for throwing no-such-method forwarders point to the class
+            // in which they are inserted and not to the declaration of the
+            // missing member.
+            Procedure memberSignature = combinedMemberSignature
+                .createMemberFromSignature(copyLocation: false)!;
             _transformProcedureToNoSuchMethodForwarder(
                 noSuchMethod, target, memberSignature);
             cls.procedures.add(memberSignature);
@@ -1588,31 +1597,56 @@ class SourceClassBuilder extends ClassBuilderImpl
       Procedure noSuchMethodInterface,
       KernelTarget target,
       Procedure procedure) {
+    bool shouldThrow = false;
+    Name procedureName = procedure.name;
+    if (procedureName.isPrivate) {
+      Library procedureNameLibrary = procedureName.library!;
+      // If the name is defined in a different library than the library we're
+      // synthesizing a forwarder for, then the forwarder must throw.  This
+      // avoids surprising users by ensuring that all non-throwing
+      // implementations of a private name can be found solely by looking at the
+      // library in which the name is defined; it also avoids soundness holes in
+      // field promotion.
+      if (procedureNameLibrary.compareTo(procedure.enclosingLibrary) != 0) {
+        shouldThrow = true;
+      }
+    }
+    Expression result;
     String prefix = procedure.isGetter
         ? 'get:'
         : procedure.isSetter
             ? 'set:'
             : '';
-    String invocationName = prefix + procedure.name.text;
+    String invocationName = prefix + procedureName.text;
     if (procedure.isSetter) invocationName += '=';
+    CoreTypes coreTypes = target.loader.coreTypes;
     Expression invocation = target.backendTarget.instantiateInvocation(
-        target.loader.coreTypes,
+        coreTypes,
         new ThisExpression(),
         invocationName,
         new Arguments.forwarded(procedure.function, libraryBuilder.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
-    Expression result = new InstanceInvocation(InstanceAccessKind.Instance,
-        new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
-        functionType: noSuchMethodInterface.getterType as FunctionType,
-        interfaceTarget: noSuchMethodInterface)
-      ..fileOffset = procedure.fileOffset;
-    if (procedure.function.returnType is! VoidType) {
-      result = new AsExpression(result, procedure.function.returnType)
-        ..isTypeError = true
-        ..isForDynamic = true
-        ..isForNonNullableByDefault = libraryBuilder.isNonNullableByDefault
+    if (shouldThrow) {
+      // Build `throw new NoSuchMethodError(this, invocation)`.
+      result = new Throw(new StaticInvocation(
+          coreTypes.noSuchMethodErrorDefaultConstructor,
+          new Arguments([new ThisExpression(), invocation])))
         ..fileOffset = procedure.fileOffset;
+    } else {
+      // Build `this.noSuchMethod(invocation)`.
+      result = new InstanceInvocation(InstanceAccessKind.Instance,
+          new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
+          functionType: noSuchMethodInterface.getterType as FunctionType,
+          interfaceTarget: noSuchMethodInterface)
+        ..fileOffset = procedure.fileOffset;
+      if (procedure.function.returnType is! VoidType) {
+        result = new AsExpression(result, procedure.function.returnType)
+          ..isTypeError = true
+          ..isForDynamic = true
+          ..isForNonNullableByDefault = libraryBuilder.isNonNullableByDefault
+          ..fileOffset = procedure.fileOffset;
+      }
     }
     procedure.function.body = new ReturnStatement(result)
       ..fileOffset = procedure.fileOffset
@@ -1674,10 +1708,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     int count = constructorReferences!.length;
     if (count != 0) {
-      constructorScope
-          .filteredIterator(
-              parent: this, includeDuplicates: true, includeAugmentations: true)
-          .forEach((MemberBuilder declaration) {
+      Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
+          parent: this, includeDuplicates: true, includeAugmentations: true);
+      while (iterator.moveNext()) {
+        MemberBuilder declaration = iterator.current;
         if (declaration.parent?.origin != origin) {
           unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
               fileUri);
@@ -1792,7 +1826,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             }
           }
         }
-      });
+      }
     }
     return count;
   }

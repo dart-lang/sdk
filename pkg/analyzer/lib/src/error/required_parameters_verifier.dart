@@ -39,7 +39,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     _check(
       parameters: node.constructorElement?.parameters,
       arguments: node.arguments?.argumentList.arguments ?? <Expression>[],
-      errorNode: node.name2,
+      errorNode: node.name,
     );
   }
 
@@ -259,7 +259,7 @@ extension _InstantiatedAnnotation on Annotation {
   }
 
   static SimpleIdentifier? _ifClassElement(SimpleIdentifier? node) {
-    return node?.staticElement is ClassElement ? node : null;
+    return node?.staticElement is InterfaceElement ? node : null;
   }
 
   static SimpleIdentifier? _ifConstructorElement(SimpleIdentifier? node) {

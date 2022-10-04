@@ -1777,7 +1777,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_FieldFormalParameter_in_non_constructor() async {
-    // SimpleIdentifer  FieldFormalParameter  FormalParameterList
+    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('class A {B(this.^foo) {}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);

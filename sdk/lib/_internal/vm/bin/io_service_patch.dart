@@ -53,7 +53,7 @@ class _IOService {
   static int _id = 0;
 
   @patch
-  static Future _dispatch(int request, List data) {
+  static Future<Object?> _dispatch(int request, List data) {
     int id;
     do {
       id = _getNextId();

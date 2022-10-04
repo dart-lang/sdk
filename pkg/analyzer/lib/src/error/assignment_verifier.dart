@@ -56,8 +56,8 @@ class AssignmentVerifier {
       return;
     }
 
-    if (recovery is ClassElement ||
-        recovery is DynamicElementImpl ||
+    if (recovery is DynamicElementImpl ||
+        recovery is InterfaceElement ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
       _errorReporter.reportErrorForNode(
@@ -91,7 +91,7 @@ class AssignmentVerifier {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
           node,
-          [variable.name, variable.enclosingElement3.displayName],
+          [variable.name, variable.enclosingElement.displayName],
         );
       } else {
         _errorReporter.reportErrorForNode(

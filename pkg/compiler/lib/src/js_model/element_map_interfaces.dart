@@ -9,20 +9,32 @@ import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/closure.dart';
 import '../ir/element_map.dart';
+import '../native/behavior.dart';
+import '../universe/selector.dart';
+import 'closure_migrated.dart';
 
 // TODO(48820): Remove this interface when nnbd migration is done.
 abstract class JsToElementMap {
+  JCommonElements get commonElements;
   JElementEnvironment get elementEnvironment;
   DartTypes get types;
-  ConstantValue getConstantValue(
-      ir.Member memberContext, ir.Expression expression,
+  ConstantValue? getConstantValue(
+      ir.Member memberContext, ir.Expression? expression,
       {bool requireConstant = true, bool implicitNull = false});
   DartType getDartType(ir.DartType type);
 
+  Selector getSelector(ir.Expression node);
+  ConstructorEntity getConstructor(ir.Member node);
+  FunctionEntity getMethod(ir.Procedure node);
   MemberEntity getMember(ir.Member node);
   MemberDefinition getMemberDefinition(MemberEntity member);
   ConstantValue getRequiredSentinelConstantValue();
+
+  Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member);
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 }
 
 abstract class JsKernelToElementMap implements JsToElementMap, IrToElementMap {}

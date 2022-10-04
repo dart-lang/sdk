@@ -65,7 +65,7 @@ class _LocalNameScope {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     for (Statement statement in node.statements) {
       if (statement is FunctionDeclarationStatement) {
-        scope.add(statement.functionDeclaration.name2);
+        scope.add(statement.functionDeclaration.name);
       } else if (statement is VariableDeclarationStatement) {
         scope.addVariableNames(statement.variables);
       }
@@ -81,7 +81,7 @@ class _LocalNameScope {
       if (member is FieldDeclaration) {
         scope.addVariableNames(member.fields);
       } else if (member is MethodDeclaration) {
-        scope.add(member.name2);
+        scope.add(member.name);
       }
     }
     return scope;
@@ -128,7 +128,7 @@ class _LocalNameScope {
     _LocalNameScope scope = _LocalNameScope(null);
     for (CompilationUnitMember declaration in node.declarations) {
       if (declaration is NamedCompilationUnitMember) {
-        scope.add(declaration.name2);
+        scope.add(declaration.name);
       } else if (declaration is TopLevelVariableDeclaration) {
         scope.addVariableNames(declaration.variables);
       }
@@ -152,13 +152,13 @@ class _LocalNameScope {
 
   void addTypeParameters(TypeParameterList? typeParameterList) {
     if (typeParameterList != null) {
-      typeParameterList.typeParameters.map((p) => p.name2).forEach(add);
+      typeParameterList.typeParameters.map((p) => p.name).forEach(add);
     }
   }
 
   void addVariableNames(VariableDeclarationList variableList) {
     for (VariableDeclaration variable in variableList.variables) {
-      add(variable.name2);
+      add(variable.name);
     }
   }
 

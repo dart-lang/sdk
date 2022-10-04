@@ -20,6 +20,9 @@ namespace dart {
   V(_List, []=, ObjectArraySetIndexed, 0x050cd2ba)                             \
   V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0x1947d8a1)      \
   V(_GrowableList, []=, GrowableArraySetIndexed, 0x050cd2ba)                   \
+  V(_Record, get:_fieldNames, Record_fieldNames, 0x68e5459d)                   \
+  V(_Record, get:_numFields, Record_numFields, 0x7bc20792)                     \
+  V(_Record, _fieldAt, Record_fieldAt, 0xb49cb873)                             \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x1623dc34)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0x177ffe2a)                  \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 0x2e40964f)                  \
@@ -241,8 +244,8 @@ namespace dart {
   V(_Int32x4, _withFlagW, Int32x4WithFlagW, 0xb333f958)                        \
   V(_HashVMBase, get:_index, LinkedHashBase_getIndex, 0x882671dc)              \
   V(_HashVMBase, set:_index, LinkedHashBase_setIndex, 0xa2be9418)              \
-  V(_HashVMBase, get:_data, LinkedHashBase_getData, 0x780e14ad)                \
-  V(_HashVMBase, set:_data, LinkedHashBase_setData, 0xb6a5c369)                \
+  V(_HashVMBase, get:_data, LinkedHashBase_getData, 0x2c8b5e83)                \
+  V(_HashVMBase, set:_data, LinkedHashBase_setData, 0x40f7efbf)                \
   V(_HashVMBase, get:_usedData, LinkedHashBase_getUsedData, 0x470893ed)        \
   V(_HashVMBase, set:_usedData, LinkedHashBase_setUsedData, 0xb3c887a9)        \
   V(_HashVMBase, get:_hashMask, LinkedHashBase_getHashMask, 0x4f0ec79c)        \
@@ -250,7 +253,7 @@ namespace dart {
   V(_HashVMBase, get:_deletedKeys, LinkedHashBase_getDeletedKeys, 0x510dc4a0)  \
   V(_HashVMBase, set:_deletedKeys, LinkedHashBase_setDeletedKeys, 0xbdcdb85c)  \
   V(_HashVMImmutableBase, get:_data, ImmutableLinkedHashBase_getData,          \
-    0x780e14ad)                                                                \
+    0x2c8b5e83)                                                                \
   V(_HashVMImmutableBase, get:_indexNullable,                                  \
     ImmutableLinkedHashBase_getIndex, 0xfd877bfb)                              \
   V(_HashVMImmutableBase, set:_index,                                          \
@@ -362,10 +365,10 @@ namespace dart {
     OneByteString_substringUnchecked,  0x9b18195e)                             \
   V(_OneByteString, ==, OneByteString_equality, 0xb5003d69)                    \
   V(_TwoByteString, ==, TwoByteString_equality, 0xb5003d69)                    \
+  V(_AbstractType, get:hashCode, AbstractType_getHashCode, 0x75e0d454)         \
+  V(_AbstractType, ==, AbstractType_equality, 0x465868ae)                      \
   V(_Type, get:hashCode, Type_getHashCode, 0x75e0d454)                         \
   V(_Type, ==, Type_equality, 0x465868ae)                                      \
-  V(_FunctionType, get:hashCode, FunctionType_getHashCode, 0x75e0d454)         \
-  V(_FunctionType, ==, FunctionType_equality, 0x465868ae)                      \
   V(::, _getHash, Object_getHash, 0xc60ff758)                                  \
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \

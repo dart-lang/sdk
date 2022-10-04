@@ -34,6 +34,7 @@ class VmTarget extends Target {
   Class? _internalImmutableLinkedHashSet;
   Class? _internalLinkedHashMap;
   Class? _internalLinkedHashSet;
+  Class? _record;
   Class? _oneByteString;
   Class? _twoByteString;
   Class? _smi;
@@ -292,7 +293,7 @@ class VmTarget extends Target {
         isStatic: isStatic,
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
-    return new ConstructorInvocation(
+    return new StaticInvocation(
         coreTypes.noSuchMethodErrorDefaultConstructor,
         new Arguments(<Expression>[
           receiver,
@@ -442,14 +443,23 @@ class VmTarget extends Target {
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
     return _internalLinkedHashSet ??=
-        coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet');
+        coreTypes.index.getClass('dart:collection', '_InternalLinkedHashSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
     return _internalImmutableLinkedHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_CompactImmutableLinkedHashSet');
+        .getClass('dart:collection', '_InternalImmutableLinkedHashSet');
   }
+
+  @override
+  Class concreteRecordLiteralClass(CoreTypes coreTypes) {
+    return _record ??= coreTypes.index.getClass('dart:core', '_Record');
+  }
+
+  @override
+  Class concreteConstRecordLiteralClass(CoreTypes coreTypes) =>
+      concreteRecordLiteralClass(coreTypes);
 
   @override
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) {

@@ -78,6 +78,8 @@ class RangeFactory {
               type == TokenType.MULTI_LINE_COMMENT)) {
         var firstToken = node.firstTokenAfterCommentAndMetadata;
         startOffset = firstToken.previous!.end;
+      } else if (begin.previous!.isEof) {
+        startOffset = begin.offset;
       } else {
         startOffset = begin.previous!.end;
       }

@@ -427,12 +427,12 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, Token? case_) {
     debugEvent("handleParenthesizedCondition");
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
     debugEvent("RecordLiteral");
   }
 

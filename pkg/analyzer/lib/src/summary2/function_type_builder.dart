@@ -61,7 +61,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  Element? get element => null;
+  Element? get element2 => null;
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -208,6 +208,6 @@ class FunctionTypeBuilder extends TypeBuilder {
     TypeParameterList? node,
   ) {
     if (node == null) return const [];
-    return node.typeParameters.map((n) => n.declaredElement2!).toList();
+    return node.typeParameters.map((n) => n.declaredElement!).toList();
   }
 }

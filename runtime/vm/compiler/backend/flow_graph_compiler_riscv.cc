@@ -211,31 +211,6 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   __ Bind(&fall_through);
 }
 
-void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) {
-    return;
-  }
-  Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->HasTemp()) {
-    const Location value = defn->locs()->out(0);
-    if (value.IsRegister()) {
-      __ PushRegister(value.reg());
-    } else if (value.IsFpuRegister()) {
-      ASSERT(instr->representation() == kUnboxedDouble);
-      // In unoptimized code at instruction epilogue the only
-      // live register is an output register.
-      instr->locs()->live_registers()->Clear();
-      __ MoveUnboxedDouble(BoxDoubleStubABI::kValueReg, value.fpu_reg());
-      GenerateNonLazyDeoptableStubCall(
-          InstructionSource(),  // No token position.
-          StubCode::BoxDouble(), UntaggedPcDescriptors::kOther, instr->locs());
-      __ PushRegister(BoxDoubleStubABI::kResultReg);
-    } else {
-      UNREACHABLE();
-    }
-  }
-}
-
 void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
     const Function& extracted_method,
     intptr_t type_arguments_field_offset) {
@@ -666,7 +641,7 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   if (!arguments_descriptor.IsNull()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   }
-  const intptr_t offset = selector_offset - DispatchTable::OriginElement();
+  const intptr_t offset = selector_offset - DispatchTable::kOriginElement;
   // Would like cid_reg to be available on entry to the target function
   // for checking purposes.
   ASSERT(cid_reg != TMP);

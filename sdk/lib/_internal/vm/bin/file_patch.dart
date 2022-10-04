@@ -18,6 +18,9 @@ class _File {
   external static _createLink(
       _Namespace namespace, Uint8List rawPath, String target);
   @patch
+  @pragma("vm:external-name", "File_CreatePipe")
+  external static List<dynamic> _createPipe(_Namespace namespace);
+  @patch
   @pragma("vm:external-name", "File_LinkTarget")
   external static _linkTarget(_Namespace namespace, Uint8List rawPath);
   @patch

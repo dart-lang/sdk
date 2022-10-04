@@ -64,6 +64,7 @@ class AstResolver {
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node, null);
     node.accept(_resolverVisitor);
+    _resolverVisitor.checkIdle();
     _flowAnalysis.topLevelDeclaration_exit();
   }
 
@@ -83,6 +84,7 @@ class AstResolver {
     _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
         visit: visit);
     visit(_resolverVisitor);
+    _resolverVisitor.checkIdle();
     _flowAnalysis.topLevelDeclaration_exit();
   }
 
@@ -98,6 +100,8 @@ class AstResolver {
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
     _resolverVisitor.analyzeExpression(node, contextType);
+    _resolverVisitor.popRewrite();
+    _resolverVisitor.checkIdle();
     _flowAnalysis.topLevelDeclaration_exit();
   }
 

@@ -125,10 +125,9 @@ class TypeWriter {
   final Map<String, String> _methods = Map<String, String>();
   final String scriptLocation;
 
-  TypeWriter(String typeName, scriptLocation)
-      : this.pkgName = pkgNameFor(typeName),
-        this.className = classNameFor(typeName),
-        this.scriptLocation = scriptLocation;
+  TypeWriter(String typeName, this.scriptLocation)
+      : pkgName = pkgNameFor(typeName),
+        className = classNameFor(typeName);
 
   String get kind {
     if (isInterface) return 'interface';

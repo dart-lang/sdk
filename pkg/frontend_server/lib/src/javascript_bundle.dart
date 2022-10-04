@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
 import 'dart:convert';
 import 'dart:io';
 
@@ -33,7 +32,7 @@ class IncrementalJavaScriptBundler {
     this.emitDebugMetadata = false,
     this.emitDebugSymbols = false,
     this.soundNullSafety = false,
-    String moduleFormat,
+    String? moduleFormat,
   }) : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd');
 
   final bool useDebuggerModuleNames;
@@ -41,7 +40,7 @@ class IncrementalJavaScriptBundler {
   final bool emitDebugSymbols;
   final ModuleFormat _moduleFormat;
   final bool soundNullSafety;
-  final FileSystem _fileSystem;
+  final FileSystem? _fileSystem;
   final Set<Library> _loadedLibraries;
   final Map<Uri, Component> _uriToComponent = <Uri, Component>{};
   final _importToSummary = Map<Library, Component>.identity();
@@ -50,12 +49,13 @@ class IncrementalJavaScriptBundler {
   final Map<Uri, String> _moduleImportNameForSummary = <Uri, String>{};
   final String _fileSystemScheme;
 
-  Component _lastFullComponent;
-  Component _currentComponent;
-  StrongComponents _strongComponents;
+  late Component _lastFullComponent;
+  late Component _currentComponent;
+  late StrongComponents _strongComponents;
 
   /// Initialize the incremental bundler from a full component.
-  Future<void> initialize(Component fullComponent, Uri mainUri) async {
+  Future<void> initialize(
+      Component fullComponent, Uri mainUri, PackageConfig packageConfig) async {
     _lastFullComponent = fullComponent;
     _currentComponent = fullComponent;
     _strongComponents = StrongComponents(
@@ -65,13 +65,16 @@ class IncrementalJavaScriptBundler {
       _fileSystem,
     );
     await _strongComponents.computeModules();
-    _updateSummaries(_strongComponents.modules.keys);
+    _updateSummaries(_strongComponents.modules.keys, packageConfig);
   }
 
   /// Update the incremental bundler from a partial component and the last full
   /// component.
-  Future<void> invalidate(Component partialComponent,
-      Component lastFullComponent, Uri mainUri) async {
+  Future<void> invalidate(
+      Component partialComponent,
+      Component lastFullComponent,
+      Uri mainUri,
+      PackageConfig packageConfig) async {
     _currentComponent = partialComponent;
     _updateFullComponent(lastFullComponent, partialComponent);
     _strongComponents = StrongComponents(
@@ -87,9 +90,9 @@ class IncrementalJavaScriptBundler {
     });
     var invalidated = <Uri>{
       for (Library library in partialComponent.libraries)
-        _strongComponents.moduleAssignment[library.importUri],
+        _strongComponents.moduleAssignment[library.importUri]!,
     };
-    _updateSummaries(invalidated);
+    _updateSummaries(invalidated, packageConfig);
   }
 
   void _updateFullComponent(Component lastKnownGood, Component candidate) {
@@ -115,9 +118,9 @@ class IncrementalJavaScriptBundler {
   }
 
   /// Update the summaries [moduleKeys].
-  void _updateSummaries(Iterable<Uri> moduleKeys) {
+  void _updateSummaries(Iterable<Uri> moduleKeys, PackageConfig packageConfig) {
     for (Uri uri in moduleKeys) {
-      final List<Library> libraries = _strongComponents.modules[uri].toList();
+      final List<Library> libraries = _strongComponents.modules[uri]!.toList();
       final Component summaryComponent = Component(
         libraries: libraries,
         nameRoot: _lastFullComponent.root,
@@ -126,17 +129,13 @@ class IncrementalJavaScriptBundler {
       summaryComponent.setMainMethodAndMode(
           null, false, _currentComponent.mode);
 
-      var baseName = urlForComponentUri(uri);
+      var baseName = urlForComponentUri(uri, packageConfig);
       _moduleImportForSummary[uri] = '$baseName.lib.js';
-      if (useDebuggerModuleNames) {
-        _moduleImportNameForSummary[uri] = makeDebuggerModuleName(baseName);
-      }
+      _moduleImportNameForSummary[uri] = makeModuleName(baseName);
 
       _uriToComponent[uri] = summaryComponent;
-      // debugger loads modules by modules names, not paths
-      var moduleImport = useDebuggerModuleNames
-          ? _moduleImportNameForSummary[uri]
-          : _moduleImportForSummary[uri];
+      // module loaders loads modules by modules names, not paths
+      var moduleImport = _moduleImportNameForSummary[uri]!;
 
       var oldSummaries = <Component>[];
       for (Component summary in _summaryToModule.keys) {
@@ -166,8 +165,8 @@ class IncrementalJavaScriptBundler {
     IOSink codeSink,
     IOSink manifestSink,
     IOSink sourceMapsSink,
-    IOSink metadataSink,
-    IOSink symbolsSink,
+    IOSink? metadataSink,
+    IOSink? symbolsSink,
   ) async {
     var codeOffset = 0;
     var sourceMapOffset = 0;
@@ -183,24 +182,18 @@ class IncrementalJavaScriptBundler {
         continue;
       }
       final Uri moduleUri =
-          _strongComponents.moduleAssignment[library.importUri];
+          _strongComponents.moduleAssignment[library.importUri]!;
       if (visited.contains(moduleUri)) {
         continue;
       }
       visited.add(moduleUri);
 
-      final summaryComponent = _uriToComponent[moduleUri];
+      final summaryComponent = _uriToComponent[moduleUri]!;
 
       // module name to use in trackLibraries
       // use full path for tracking if module uri is not a package uri.
-      String moduleName = urlForComponentUri(moduleUri);
-      if (useDebuggerModuleNames) {
-        // Skip the leading '/' as module names are used to require
-        // modules using module paths mape in RequireJS, which treats
-        // names with leading '/' or '.js' extensions specially
-        // and tries to load them without mapping.
-        moduleName = makeDebuggerModuleName(moduleName);
-      }
+      final moduleUrl = urlForComponentUri(moduleUri, packageConfig);
+      final moduleName = makeModuleName(moduleUrl);
 
       var compiler = ProgramCompiler(
         _currentComponent,
@@ -223,13 +216,12 @@ class IncrementalJavaScriptBundler {
       // Save program compiler to reuse for expression evaluation.
       kernel2JsCompilers[moduleName] = compiler;
 
-      final moduleUrl = urlForComponentUri(moduleUri);
-      String sourceMapBase;
+      String? sourceMapBase;
       if (moduleUri.isScheme('package')) {
         // Source locations come through as absolute file uris. In order to
         // make relative paths in the source map we get the absolute uri for
         // the module and make them relative to that.
-        sourceMapBase = p.dirname((packageConfig.resolve(moduleUri)).path);
+        sourceMapBase = p.dirname((packageConfig.resolve(moduleUri))!.path);
       }
 
       final code = jsProgramToCode(
@@ -256,12 +248,12 @@ class IncrementalJavaScriptBundler {
       codeSink.add(codeBytes);
       sourceMapsSink.add(sourceMapBytes);
       if (emitDebugMetadata) {
-        metadataSink.add(metadataBytes);
+        metadataSink!.add(metadataBytes!);
       }
       if (emitDebugSymbols) {
-        symbolsSink.add(symbolsBytes);
+        symbolsSink!.add(symbolsBytes!);
       }
-      final String moduleKey = _moduleImportForSummary[moduleUri];
+      final String moduleKey = _moduleImportForSummary[moduleUri]!;
       manifest[moduleKey] = {
         'code': <int>[codeOffset, codeOffset += codeBytes.length],
         'sourcemap': <int>[
@@ -271,12 +263,12 @@ class IncrementalJavaScriptBundler {
         if (emitDebugMetadata)
           'metadata': <int>[
             metadataOffset,
-            metadataOffset += metadataBytes.length
+            metadataOffset += metadataBytes!.length
           ],
         if (emitDebugSymbols)
           'symbols': <int>[
             symbolsOffset,
-            symbolsOffset += symbolsBytes.length,
+            symbolsOffset += symbolsBytes!.length,
           ],
       };
     }
@@ -284,12 +276,42 @@ class IncrementalJavaScriptBundler {
 
     return kernel2JsCompilers;
   }
-}
 
-String urlForComponentUri(Uri componentUri) => componentUri.isScheme('package')
-    ? '/packages/${componentUri.path}'
-    : componentUri.path;
+  /// Module name used in the browser to load modules.
+  ///
+  /// Module names are used to load modules using module
+  /// paths maps in RequireJS, which treats names with
+  /// leading '/' or '.js' extensions specially, and tries
+  /// to load them without mapping.
+  /// Skip the leading '/' to always load modules via module
+  /// path maps.
+  String makeModuleName(String name) {
+    return name.startsWith('/') ? name.substring(1) : name;
+  }
 
-String makeDebuggerModuleName(String name) {
-  return name.startsWith('/') ? name.substring(1) : name;
+  /// Create component url.
+  ///
+  /// Used as a server path in the browser for the module created
+  /// from the component.
+  String urlForComponentUri(Uri componentUri, PackageConfig packageConfig) {
+    if (!componentUri.isScheme('package')) {
+      return componentUri.path;
+    }
+    if (!useDebuggerModuleNames) {
+      return '/packages/${componentUri.path}';
+    }
+    // Match relative directory structure of server paths to the
+    // actual directory structure, so the sourcemaps relative paths
+    // can be resolved by the browser.
+    final resolvedUri = packageConfig.resolve(componentUri)!;
+    final package = packageConfig.packageOf(resolvedUri)!;
+    final root = package.root;
+    final relativeRoot = root.pathSegments
+        .lastWhere((segment) => segment.isNotEmpty, orElse: null);
+    final relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
+
+    // Relative component url (used as server path in the browser):
+    // `packages/<package directory>/<path to file.dart>`
+    return 'packages/$relativeRoot/$relativeUrl';
+  }
 }

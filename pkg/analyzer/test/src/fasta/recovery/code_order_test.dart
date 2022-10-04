@@ -199,9 +199,18 @@ part 'foo.dart';
   }
 
   CompilationUnitImpl _moveFirstDirectiveToEnd(CompilationUnitImpl unit) {
-    unit.directives.add(unit.directives.removeAt(0));
-    unit.beginToken = unit.directives[0].beginToken;
-    return unit;
+    return CompilationUnitImpl(
+      unit.directives.skip(1).first.beginToken,
+      unit.scriptTag,
+      [
+        ...unit.directives.skip(1),
+        unit.directives.first,
+      ],
+      unit.declarations,
+      unit.endToken,
+      unit.featureSet,
+      unit.lineInfo,
+    );
   }
 
   CompilationUnitImpl _updateBeginToken(CompilationUnitImpl unit) {

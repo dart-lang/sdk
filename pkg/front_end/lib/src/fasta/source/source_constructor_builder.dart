@@ -52,6 +52,7 @@ import '../source/source_member_builder.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'name_scheme.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 
@@ -76,8 +77,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   @override
   final OmittedTypeBuilder returnType;
 
-  final Constructor _constructor;
-  final Procedure? _constructorTearOff;
+  late final Constructor _constructor;
+  late final Procedure? _constructorTearOff;
 
   Set<SourceFieldBuilder>? _initializedFields;
 
@@ -131,25 +132,25 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       Reference? tearOffReference,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnum})
-      : _constructor = new Constructor(new FunctionNode(null),
-            name: new Name(name, compilationUnit.library),
-            fileUri: compilationUnit.fileUri,
-            reference: constructorReference)
-          ..startFileOffset = startCharOffset
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
-        _constructorTearOff = createConstructorTearOffProcedure(
-            name,
-            compilationUnit,
-            compilationUnit.fileUri,
-            charOffset,
-            tearOffReference,
-            forAbstractClassOrEnum: forAbstractClassOrEnum),
-        _hasSuperInitializingFormals =
+      : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(metadata, modifiers, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName) {
+    _constructor = new Constructor(new FunctionNode(null),
+        name: dummyName,
+        fileUri: compilationUnit.fileUri,
+        reference: constructorReference)
+      ..startFileOffset = startCharOffset
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault;
+    MemberName constructorName =
+        new MemberName(compilationUnit.libraryName, name);
+    constructorName.attachMember(_constructor);
+    _constructorTearOff = createConstructorTearOffProcedure(name,
+        compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
+        forAbstractClassOrEnum: forAbstractClassOrEnum);
+
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
@@ -265,7 +266,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       _constructor.function.typeParameters = const <TypeParameter>[];
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
-      updatePrivateMemberName(_constructor, libraryBuilder);
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(
@@ -315,29 +315,31 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is InferableTypeBuilder) {
-          if (formal.isInitializingFormal) {
-            formal.finalizeInitializingFormal(classBuilder, hierarchy);
+      libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset, () {
+        for (FormalParameterBuilder formal in formals!) {
+          if (formal.type is InferableTypeBuilder) {
+            if (formal.isInitializingFormal) {
+              formal.finalizeInitializingFormal(classBuilder, hierarchy);
+            }
           }
         }
-      }
 
-      if (_hasSuperInitializingFormals) {
-        List<Initializer>? initializers;
-        if (beginInitializers != null) {
-          BodyBuilder bodyBuilder = libraryBuilder.loader
-              .createBodyBuilderForOutlineExpression(libraryBuilder,
-                  classBuilder, this, classBuilder.scope, fileUri);
-          if (isConst) {
-            bodyBuilder.constantContext = ConstantContext.required;
+        if (_hasSuperInitializingFormals) {
+          List<Initializer>? initializers;
+          if (beginInitializers != null) {
+            BodyBuilder bodyBuilder = libraryBuilder.loader
+                .createBodyBuilderForOutlineExpression(libraryBuilder,
+                    classBuilder, this, classBuilder.scope, fileUri);
+            if (isConst) {
+              bodyBuilder.constantContext = ConstantContext.required;
+            }
+            initializers = bodyBuilder.parseInitializers(beginInitializers!,
+                doFinishConstructor: false);
           }
-          initializers = bodyBuilder.parseInitializers(beginInitializers!,
-              doFinishConstructor: false);
+          finalizeSuperInitializingFormals(
+              hierarchy, _superParameterDefaultValueCloners, initializers);
         }
-        finalizeSuperInitializingFormals(
-            hierarchy, _superParameterDefaultValueCloners, initializers);
-      }
+      });
     }
     _hasFormalsInferred = true;
   }
@@ -400,7 +402,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     void performRecoveryForErroneousCase() {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isSuperInitializingFormal) {
-          formal.variable!.type = const DynamicType();
+          formal.type.registerInferredType(const InvalidType());
         }
       }
     }

@@ -81,9 +81,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Future<bool> exists() {
     return _File._dispatchWithNamespace(
         _IOService.directoryExists, [null, _rawPath]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response, "Exists failed");
-      }
+      _checkForErrorResponse(response, "Exists failed");
       return response == 1;
     });
   }
@@ -113,9 +111,7 @@ class _Directory extends FileSystemEntity implements Directory {
     } else {
       return _File._dispatchWithNamespace(
           _IOService.directoryCreate, [null, _rawPath]).then((response) {
-        if (_isErrorResponse(response)) {
-          throw _exceptionOrErrorFromResponse(response, "Creation failed");
-        }
+        _checkForErrorResponse(response, "Creation failed");
         return this;
       });
     }
@@ -153,11 +149,9 @@ class _Directory extends FileSystemEntity implements Directory {
     }
     return _File._dispatchWithNamespace(_IOService.directoryCreateTemp,
         [null, FileSystemEntity._toUtf8Array(fullPrefix)]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(
-            response, "Creation of temporary directory failed");
-      }
-      return new Directory(response);
+      _checkForErrorResponse(
+          response, "Creation of temporary directory failed");
+      return Directory(response as String);
     });
   }
 
@@ -188,9 +182,7 @@ class _Directory extends FileSystemEntity implements Directory {
     return _File._dispatchWithNamespace(
             _IOService.directoryDelete, [null, _rawPath, recursive])
         .then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response, "Deletion failed");
-      }
+      _checkForErrorResponse(response, "Deletion failed");
       return this;
     });
   }
@@ -205,9 +197,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Future<Directory> rename(String newPath) {
     return _File._dispatchWithNamespace(
         _IOService.directoryRename, [null, _rawPath, newPath]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response, "Rename failed");
-      }
+      _checkForErrorResponse(response, "Rename failed");
       return new Directory(newPath);
     });
   }
@@ -254,20 +244,19 @@ class _Directory extends FileSystemEntity implements Directory {
 
   String toString() => "Directory: '$path'";
 
-  bool _isErrorResponse(response) =>
-      response is List && response[0] != _successResponse;
-
-  _exceptionOrErrorFromResponse(response, String message) {
-    assert(_isErrorResponse(response));
-    switch (response[_errorResponseErrorType]) {
-      case _illegalArgumentResponse:
-        return new ArgumentError();
-      case _osErrorResponse:
-        var err = new OSError(response[_osErrorResponseMessage],
-            response[_osErrorResponseErrorCode]);
-        return new FileSystemException(message, path, err);
-      default:
-        return new Exception("Unknown error");
+  /// If the [response] is an error, throws an [Exception] or an [Error].
+  void _checkForErrorResponse(Object? response, String message) {
+    if (response is List<Object?> && response[0] != _successResponse) {
+      switch (response[_errorResponseErrorType]) {
+        case _illegalArgumentResponse:
+          throw ArgumentError();
+        case _osErrorResponse:
+          var err = OSError(response[_osErrorResponseMessage] as String,
+              response[_osErrorResponseErrorCode] as int);
+          throw FileSystemException(message, path, err);
+        default:
+          throw AssertionError("Unknown error");
+      }
     }
   }
 
@@ -335,7 +324,7 @@ class _AsyncDirectoryLister {
         controller.addError(response, response.stackTrace);
         close();
       } else {
-        error(response);
+        error(response as List<Object?>);
         close();
       }
     });
@@ -426,22 +415,23 @@ class _AsyncDirectoryLister {
     }
   }
 
-  void error(message) {
-    var errorType = message[responseError][_errorResponseErrorType];
+  void error(List<Object?> message) {
+    var errorResponseInfo = message[responseError]! as List<Object?>;
+    var errorType = errorResponseInfo[_errorResponseErrorType];
     if (errorType == _illegalArgumentResponse) {
       controller.addError(new ArgumentError());
     } else if (errorType == _osErrorResponse) {
-      var responseErrorInfo = message[responseError];
-      var err = new OSError(responseErrorInfo[_osErrorResponseMessage],
-          responseErrorInfo[_osErrorResponseErrorCode]);
+      var err = new OSError(
+          errorResponseInfo[_osErrorResponseMessage] as String,
+          errorResponseInfo[_osErrorResponseErrorCode] as int);
       var errorPath = message[responsePath];
       if (errorPath == null) {
         errorPath = utf8.decode(rawPath, allowMalformed: true);
       } else if (errorPath is Uint8List) {
-        errorPath = utf8.decode(message[responsePath], allowMalformed: true);
+        errorPath = utf8.decode(errorPath, allowMalformed: true);
       }
-      controller.addError(
-          new FileSystemException("Directory listing failed", errorPath, err));
+      controller.addError(new FileSystemException(
+          "Directory listing failed", errorPath as String, err));
     } else {
       controller.addError(new FileSystemException("Internal error"));
     }

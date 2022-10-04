@@ -3171,7 +3171,7 @@ class C {
 }
 ''');
     var xType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -4676,7 +4676,7 @@ main() {
 }
 ''');
     var xType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -8027,7 +8027,7 @@ int f() => 1;
 var x = f();
 ''');
     var xType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 

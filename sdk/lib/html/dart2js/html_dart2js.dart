@@ -5434,19 +5434,18 @@ class CssStyleDeclaration extends JavaScriptObject
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration>? _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
-  _CssStyleDeclarationSet(this._elementIterable) {
-    _elementCssStyleDeclarationSetIterable =
-        new List.from(_elementIterable).map((e) => e.style);
-  }
+  _CssStyleDeclarationSet(this._elementIterable)
+      : _elementCssStyleDeclarationSetIterable =
+            new List.of(_elementIterable).map((e) => e.style);
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable!.first
+      _elementCssStyleDeclarationSetIterable.first
           .getPropertyValue(propertyName);
 
   void setProperty(String propertyName, String? value, [String? priority]) {
-    _elementCssStyleDeclarationSetIterable!
+    _elementCssStyleDeclarationSetIterable
         .forEach((e) => e.setProperty(propertyName, value, priority));
   }
 
@@ -34638,6 +34637,7 @@ abstract class _DocumentType extends Node implements ChildNode {
   }
 
   // From ChildNode
+
 }
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35752,6 +35752,7 @@ abstract class _WorkerLocation extends JavaScriptObject
   }
 
   // From URLUtilsReadOnly
+
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35769,6 +35770,7 @@ abstract class _WorkerNavigator extends NavigatorConcurrentHardware
   // From NavigatorID
 
   // From NavigatorOnLine
+
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37321,10 +37323,6 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   bool get isBroadcast => true;
 }
 
-// We would like this to just be EventListener<T> but that typdef cannot
-// use generics until dartbug/26276 is fixed.
-typedef _EventListener<T extends Event>(T event);
-
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget? _target;
@@ -37332,19 +37330,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   EventListener? _onData;
   final bool _useCapture;
 
-  // TODO(leafp): It would be better to write this as
-  // _onData = onData == null ? null :
-  //   onData is void Function(Event)
-  //     ? _wrapZone<Event>(onData)
-  //     : _wrapZone<Event>((e) => onData(e as T))
-  // In order to support existing tests which pass the wrong type of events but
-  // use a more general listener, without causing as much slowdown for things
-  // which are typed correctly.  But this currently runs afoul of restrictions
-  // on is checks for compatibility with the VM.
   _EventStreamSubscription(
       this._target, this._eventType, void onData(T event)?, this._useCapture)
       : _onData = onData == null
             ? null
+            // If removed, we would need an `is` check on a function type which
+            // is ultimately more expensive.
+            // ignore: avoid_dynamic_calls
             : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
@@ -37369,6 +37361,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _unlisten();
     _onData = handleData == null
         ? null
+        // If removed, we would need an `is` check on a function type which is
+        // ultimately more expensive.
+        // ignore: avoid_dynamic_calls
         : _wrapZone<Event>((e) => (handleData as dynamic)(e));
     _tryResume();
   }
@@ -40155,15 +40150,16 @@ _callConstructor(constructor, interceptor) {
   };
 }
 
-_callAttached(receiver) {
+_callAttached(Element receiver) {
   return receiver.attached();
 }
 
-_callDetached(receiver) {
+_callDetached(Element receiver) {
   return receiver.detached();
 }
 
-_callAttributeChanged(receiver, name, oldValue, newValue) {
+_callAttributeChanged(
+    Element receiver, String name, String oldValue, String newValue) {
   return receiver.attributeChanged(name, oldValue, newValue);
 }
 
@@ -40205,7 +40201,8 @@ void _checkExtendsNativeClassOrTemplate(
   }
 }
 
-Function _registerCustomElement(context, document, String tag, [Map? options]) {
+Function _registerCustomElement(context, Document document, String tag,
+    [Map? options]) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -40596,7 +40593,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       view = window;
     }
 
-    dynamic eventObj;
+    KeyboardEvent eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"
@@ -40607,7 +40604,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     // initialize initKeyEvent.
 
     eventObj = new Event.eventType('KeyboardEvent', type,
-        canBubble: canBubble, cancelable: cancelable);
+        canBubble: canBubble, cancelable: cancelable) as KeyboardEvent;
 
     // Chromium Hack
     JS(
@@ -41130,7 +41127,11 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     var isAttr;
     try {
       // If getting/indexing attributes throws, count that as corrupt.
+      // Don't remove dynamic calls in sanitizing code.
+      // ignore: avoid_dynamic_calls
       attrs = element.attributes;
+      // Don't remove dynamic calls in sanitizing code.
+      // ignore: avoid_dynamic_calls
       isAttr = attrs['is'];
       var corruptedTest1 = Element._hasCorruptedAttributes(element);
 
@@ -41191,7 +41192,11 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     for (var i = attrs.length - 1; i >= 0; --i) {
       var name = keys[i];
       if (!validator.allowsAttribute(
-          element, name.toLowerCase(), attrs[name])) {
+          element,
+          // Don't remove dynamic calls in sanitizing code.
+          // ignore: avoid_dynamic_calls
+          name.toLowerCase(),
+          attrs[name])) {
         window.console.warn('Removing disallowed attribute '
             '<$tag $name="${attrs[name]}">');
         attrs.remove(name);

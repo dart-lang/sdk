@@ -158,3 +158,10 @@ class _DuplicatedFieldInitializerError extends Error {
 
   toString() => "Error: field '$_name' is already initialized.";
 }
+
+@patch
+class StateError {
+  static _throwNew(String msg) {
+    throw new StateError(msg);
+  }
+}

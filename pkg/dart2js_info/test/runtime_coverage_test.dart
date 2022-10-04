@@ -14,10 +14,10 @@
 import 'dart:io';
 
 import 'package:dart2js_info/binary_serialization.dart';
+import 'package:dart2js_info/src/runtime_coverage_utils.dart';
 import 'package:dart2js_info/src/util.dart';
-import 'package:test/test.dart';
 
-import '../bin/src/runtime_coverage_analysis.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('runtime coverage', () {

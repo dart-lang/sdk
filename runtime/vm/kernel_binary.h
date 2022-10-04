@@ -125,9 +125,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 86;
   V(AsyncForInStatement, 80)                                                   \
   V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
-  V(NeverType, 98)                                                             \
-  V(IntersectionType, 99)                                                      \
-  V(RecordType, 100)                                                           \
   V(InvalidType, 90)                                                           \
   V(DynamicType, 91)                                                           \
   V(VoidType, 92)                                                              \
@@ -136,6 +133,9 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 86;
   V(TypeParameterType, 95)                                                     \
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
+  V(NeverType, 98)                                                             \
+  V(IntersectionType, 99)                                                      \
+  V(RecordType, 100)                                                           \
   V(ConstantExpression, 106)                                                   \
   V(InstanceGet, 118)                                                          \
   V(InstanceSet, 119)                                                          \

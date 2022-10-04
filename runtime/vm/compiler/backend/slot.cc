@@ -46,61 +46,6 @@ class SlotCache : public ZoneAllocated {
   PointerSet<const Slot> fields_;
 };
 
-#define NATIVE_SLOT_NAME(C, F) Kind::k##C##_##F
-#define NATIVE_TO_STR(C, F) #C "_" #F
-
-const char* Slot::KindToCString(Kind k) {
-  switch (k) {
-#define NATIVE_CASE(C, __, F, ___, ____)                                       \
-  case NATIVE_SLOT_NAME(C, F):                                                 \
-    return NATIVE_TO_STR(C, F);
-    NATIVE_SLOTS_LIST(NATIVE_CASE)
-#undef NATIVE_CASE
-    case Kind::kTypeArguments:
-      return "TypeArguments";
-    case Kind::kArrayElement:
-      return "ArrayElement";
-    case Kind::kCapturedVariable:
-      return "CapturedVariable";
-    case Kind::kDartField:
-      return "DartField";
-    default:
-      UNREACHABLE();
-      return nullptr;
-  }
-}
-
-bool Slot::ParseKind(const char* str, Kind* out) {
-  ASSERT(str != nullptr && out != nullptr);
-#define NATIVE_CASE(C, __, F, ___, ____)                                       \
-  if (strcmp(str, NATIVE_TO_STR(C, F)) == 0) {                                 \
-    *out = NATIVE_SLOT_NAME(C, F);                                             \
-    return true;                                                               \
-  }
-  NATIVE_SLOTS_LIST(NATIVE_CASE)
-#undef NATIVE_CASE
-  if (strcmp(str, "TypeArguments") == 0) {
-    *out = Kind::kTypeArguments;
-    return true;
-  }
-  if (strcmp(str, "ArrayElement") == 0) {
-    *out = Kind::kArrayElement;
-    return true;
-  }
-  if (strcmp(str, "CapturedVariable") == 0) {
-    *out = Kind::kCapturedVariable;
-    return true;
-  }
-  if (strcmp(str, "DartField") == 0) {
-    *out = Kind::kDartField;
-    return true;
-  }
-  return false;
-}
-
-#undef NATIVE_TO_STR
-#undef NATIVE_SLOT_NAME
-
 static classid_t GetUnboxedNativeSlotCid(Representation rep) {
   // Currently we only support integer unboxed fields.
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
@@ -243,6 +188,8 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kFunctionType_named_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
+    case Slot::Kind::kRecordField:
+    case Slot::Kind::kRecord_field_names:
     case Slot::Kind::kSuspendState_function_data:
     case Slot::Kind::kSuspendState_then_callback:
     case Slot::Kind::kSuspendState_error_callback:
@@ -345,6 +292,15 @@ const Slot& Slot::GetArrayElementSlot(Thread* thread,
       /*static_type=*/nullptr, kTagged);
 }
 
+const Slot& Slot::GetRecordFieldSlot(Thread* thread, intptr_t offset_in_bytes) {
+  return GetCanonicalSlot(
+      thread, Kind::kRecordField,
+      IsNullableBit::encode(true) |
+          IsCompressedBit::encode(Record::ContainsCompressedPointers()),
+      kDynamicCid, offset_in_bytes, ":record_field",
+      /*static_type=*/nullptr, kTagged);
+}
+
 const Slot& Slot::GetCanonicalSlot(Thread* thread,
                                    Slot::Kind kind,
                                    int8_t flags,
@@ -361,41 +317,7 @@ const Slot& Slot::GetCanonicalSlot(Thread* thread,
 
 FieldGuardState::FieldGuardState(const Field& field)
     : state_(GuardedCidBits::encode(field.guarded_cid()) |
-             IsNonNullableIntegerBit::encode(field.is_non_nullable_integer()) |
-             IsUnboxingCandidateBit::encode(field.is_unboxing_candidate()) |
              IsNullableBit::encode(field.is_nullable())) {}
-
-bool FieldGuardState::IsUnboxed() const {
-  ASSERT(!is_non_nullable_integer() || FLAG_precompiled_mode);
-  const bool valid_class = ((FlowGraphCompiler::SupportsUnboxedDoubles() &&
-                             (guarded_cid() == kDoubleCid)) ||
-                            (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                             (guarded_cid() == kFloat32x4Cid)) ||
-                            (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                             (guarded_cid() == kFloat64x2Cid)) ||
-                            is_non_nullable_integer());
-  return is_unboxing_candidate() && !is_nullable() && valid_class;
-}
-
-bool FieldGuardState::IsPotentialUnboxed() const {
-  if (FLAG_precompiled_mode) {
-    // kernel_loader.cc:ReadInferredType sets the guarded cid for fields based
-    // on inferred types from TFA (if available). The guarded cid is therefore
-    // proven to be correct.
-    return IsUnboxed();
-  }
-
-  return is_unboxing_candidate() &&
-         (IsUnboxed() || (guarded_cid() == kIllegalCid));
-}
-
-bool Slot::IsUnboxed() const {
-  return field_guard_state().IsUnboxed();
-}
-
-bool Slot::IsPotentialUnboxed() const {
-  return field_guard_state().IsPotentialUnboxed();
-}
 
 Representation Slot::UnboxedRepresentation() const {
   switch (field_guard_state().guarded_cid()) {
@@ -406,7 +328,6 @@ Representation Slot::UnboxedRepresentation() const {
     case kFloat64x2Cid:
       return kUnboxedFloat64x2;
     default:
-      RELEASE_ASSERT(field_guard_state().is_non_nullable_integer());
       return kUnboxedInt64;
   }
 }
@@ -459,11 +380,22 @@ const Slot& Slot::Get(const Field& field,
     used_guarded_state = false;
   }
 
-  if (field_guard_state.is_non_nullable_integer()) {
-    ASSERT(FLAG_precompiled_mode);
+  const bool is_unboxed = field.is_unboxed();
+  if (is_unboxed) {
     is_nullable = false;
-    if (field_guard_state.IsUnboxed()) {
-      rep = kUnboxedInt64;
+    switch (field_guard_state.guarded_cid()) {
+      case kDoubleCid:
+        rep = kUnboxedDouble;
+        break;
+      case kFloat32x4Cid:
+        rep = kUnboxedFloat32x4;
+        break;
+      case kFloat64x2Cid:
+        rep = kUnboxedFloat64x2;
+        break;
+      default:
+        rep = kUnboxedInt64;
+        break;
     }
   }
 
@@ -477,7 +409,8 @@ const Slot& Slot::Get(const Field& field,
           IsCompressedBit::encode(
               compiler::target::Class::HasCompressedPointers(owner)) |
           IsSentinelVisibleBit::encode(field.is_late() && field.is_final() &&
-                                       !field.has_initializer()),
+                                       !field.has_initializer()) |
+          IsUnboxedBit::encode(is_unboxed),
       nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type,
       rep, field_guard_state);
 
@@ -567,6 +500,7 @@ bool Slot::Equals(const Slot& other) const {
     case Kind::kTypeArguments:
     case Kind::kTypeArgumentsIndex:
     case Kind::kArrayElement:
+    case Kind::kRecordField:
       return true;
 
     case Kind::kCapturedVariable:

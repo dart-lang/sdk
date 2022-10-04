@@ -1,5 +1,28 @@
-## 4.7.0-dev
+## 5.2.0-dev
+* Deprecated `Element.enclosingElement3`, use `enclosingElement` instead.
+
+## 5.1.0
+* Deprecated `AstNode.name2`, use `name` instead.
+* Deprecated `AstNode.declaredElement2`, use `declaredElement` instead.
+
+## 5.0.0
+* Removed deprecated methods from AST.
+* Removed deprecated `DiagnosticMessage.message`.
+* Removed deprecated `LibraryElement.getImportsWithPrefix()`.
+* Removed deprecated `ParameterElement.isNotOptional`.
+* Removed deprecated `DartType.displayName`.
+* Removed deprecated methods from `AnalysisDriver`.
+* Removed deprecated `ClassOrMixinDeclaration`.
+* Removed deprecated `Declaration.declaredElement`.
+* Removed deprecated `Element.enclosingElement` and `enclosingElement2`.
+* Removed deprecated `ExportElement`, `ImportElement`.
+* Removed deprecated `NamedCompilationUnitMember.name`.
+* Removed deprecated `Declaration.declaredElement`.
+* Removed deprecated `DartType.element`.
+
+## 4.7.0
 * Add missing `addXyz` to `NodeLintRegistry`.
+* Add `lookUpInheritedConcreteX()` to `InterfaceElement`.
 
 ## 4.6.0
 * Added `DartType.element2`, so that `InterfaceType.element2` overrides it.

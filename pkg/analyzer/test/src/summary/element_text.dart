@@ -199,12 +199,12 @@ class _ElementWriter {
 
     expect(accessor.variable, same(property));
 
-    var propertyEnclosing = property.enclosingElement3;
-    expect(accessor.enclosingElement3, same(propertyEnclosing));
+    var propertyEnclosing = property.enclosingElement;
+    expect(accessor.enclosingElement, same(propertyEnclosing));
 
     if (propertyEnclosing is CompilationUnitElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
-    } else if (propertyEnclosing is ClassElement) {
+    } else if (propertyEnclosing is InterfaceElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
     }
   }
@@ -318,12 +318,7 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
 
-      InterfaceType? supertype;
-      if (e is ClassElement) {
-        supertype = e.supertype;
-      } else if (e is EnumElement) {
-        supertype = e.supertype;
-      }
+      final supertype = e.supertype;
       if (supertype != null &&
           (supertype.element2.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
@@ -388,7 +383,7 @@ class _ElementWriter {
       var classReference = reference.parent!.parent!;
       // We need this `if` for duplicate declarations.
       // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement3)) {
+      if (identical(classReference.element, e.enclosingElement)) {
         expect(reference.element, same(e));
       }
     }
@@ -425,7 +420,7 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        final enclosingElement = superConstructor.enclosingElement3;
+        final enclosingElement = superConstructor.enclosingElement;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
@@ -445,7 +440,7 @@ class _ElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement3));
+      expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -695,9 +690,9 @@ class _ElementWriter {
       _writeNonSyntheticElement(e);
     });
 
-    if (e.isSynthetic && e.enclosingElement3 is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement3));
+      expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -802,10 +797,10 @@ class _ElementWriter {
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
-    var variableEnclosing = variable.enclosingElement3;
+    var variableEnclosing = variable.enclosingElement;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
-    } else if (variableEnclosing is ClassElement) {
+    } else if (variableEnclosing is InterfaceElement) {
       expect(variableEnclosing.fields, contains(variable));
     }
 

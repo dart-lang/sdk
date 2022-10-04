@@ -160,6 +160,7 @@ class LibraryAnalyzer {
         var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
         if (canResolveNode) {
           nodeToResolve.accept(resolverVisitor);
+          resolverVisitor.checkIdle();
           return AnalysisForCompletionResult(
             parsedUnit: parsedUnit,
             resolvedNodes: [nodeToResolve],
@@ -580,14 +581,6 @@ class LibraryAnalyzer {
   }) {
     directive.element = element;
 
-    final uriState = state.uri;
-    if (uriState is DirectiveUriWithString) {
-      // ignore: deprecated_member_use_from_same_package
-      directive.uriContent = uriState.relativeUriStr;
-      // ignore: deprecated_member_use_from_same_package
-      directive.uriSource = uriState.source;
-    }
-
     final AugmentationFileKind? importedAugmentationKind;
     if (state is AugmentationImportWithFile) {
       importedAugmentationKind = state.importedAugmentation;
@@ -643,8 +636,6 @@ class LibraryAnalyzer {
     units[augmentationFile] = augmentationUnit;
 
     final importedAugmentation = element.importedAugmentation!;
-    // ignore: deprecated_member_use_from_same_package
-    directive.uriSource = importedAugmentation.source;
     augmentationUnit.element = importedAugmentation.definingCompilationUnit;
 
     for (final directive in augmentationUnit.directives) {
@@ -713,7 +704,7 @@ class LibraryAnalyzer {
         directive.element = containerElement;
       } else if (directive is LibraryDirectiveImpl) {
         directive.element = containerElement;
-        libraryNameNode = directive.name;
+        libraryNameNode = directive.name2;
       } else if (directive is PartDirectiveImpl) {
         if (containerKind is LibraryFileKind &&
             containerElement is LibraryElementImpl) {
@@ -899,20 +890,6 @@ class LibraryAnalyzer {
       final node = configurationNodes[i] as ConfigurationImpl;
       node.resolvedUri = configurationUris[i].asDirectiveUri;
     }
-
-    if (primaryUriState is DirectiveUriWithString) {
-      // ignore: deprecated_member_use_from_same_package
-      directive.uriContent = primaryUriState.relativeUriStr;
-      // ignore: deprecated_member_use_from_same_package
-      directive.uriSource = primaryUriState.source;
-    }
-
-    if (selectedUriState is DirectiveUriWithString) {
-      // ignore: deprecated_member_use_from_same_package
-      directive.selectedUriContent = selectedUriState.relativeUriStr;
-      // ignore: deprecated_member_use_from_same_package
-      directive.selectedSource = selectedUriState.source;
-    }
   }
 
   void _resolvePartDirective({
@@ -926,8 +903,6 @@ class LibraryAnalyzer {
   }) {
     StringLiteral partUri = directive.uri;
 
-    // ignore: deprecated_member_use_from_same_package
-    directive.uriSource = partState.includedSource;
     directive.element = partElement;
 
     if (partState is! PartWithUriStr) {
@@ -1012,8 +987,6 @@ class LibraryAnalyzer {
     }
 
     final partSource = includedKind.file.source;
-    // ignore: deprecated_member_use_from_same_package
-    directive.uriSource = partSource;
 
     for (final directive in partUnit.directives) {
       if (directive is PartOfDirectiveImpl) {

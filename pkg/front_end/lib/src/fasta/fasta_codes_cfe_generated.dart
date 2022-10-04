@@ -3661,6 +3661,154 @@ Message _withArgumentsInvalidReturnPartNullability(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
+            String name,
+            String name2,
+            DartType _type,
+            String name3,
+            String name4,
+            DartType _type2,
+            bool isNonNullableByDefault)>
+    templateJsInteropStaticInteropMockMemberNotSubtype = const Template<
+            Message Function(
+                String name,
+                String name2,
+                DartType _type,
+                String name3,
+                String name4,
+                DartType _type2,
+                bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Dart class member '#name.#name2' with type '#type' is not a subtype of `@staticInterop` external extension member '#name3.#name4' with type '#type2'.""",
+        correctionMessageTemplate:
+            r"""Change '#name.#name2' to be a subtype of '#name3.#name4'.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockMemberNotSubtype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name,
+            String name2,
+            DartType _type,
+            String name3,
+            String name4,
+            DartType _type2,
+            bool isNonNullableByDefault)>
+    codeJsInteropStaticInteropMockMemberNotSubtype = const Code<
+        Message Function(
+            String name,
+            String name2,
+            DartType _type,
+            String name3,
+            String name4,
+            DartType _type2,
+            bool isNonNullableByDefault)>(
+  "JsInteropStaticInteropMockMemberNotSubtype",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockMemberNotSubtype(
+    String name,
+    String name2,
+    DartType _type,
+    String name3,
+    String name4,
+    DartType _type2,
+    bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  if (name4.isEmpty) throw 'No name provided';
+  name4 = demangleMixinApplicationName(name4);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeJsInteropStaticInteropMockMemberNotSubtype,
+      problemMessage:
+          """Dart class member '${name}.${name2}' with type '${type}' is not a subtype of `@staticInterop` external extension member '${name3}.${name4}' with type '${type2}'.""" +
+              labeler.originMessages,
+      correctionMessage:
+          """Change '${name}.${name2}' to be a subtype of '${name3}.${name4}'.""",
+      arguments: {
+        'name': name,
+        'name2': name2,
+        'type': _type,
+        'name3': name3,
+        'name4': name4,
+        'type2': _type2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropStaticInteropMockNotDartInterfaceType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Second type argument '#type' is not a Dart interface type.""",
+        correctionMessageTemplate: r"""Use a Dart class instead.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockNotDartInterfaceType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropStaticInteropMockNotDartInterfaceType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropStaticInteropMockNotDartInterfaceType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockNotDartInterfaceType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropStaticInteropMockNotDartInterfaceType,
+      problemMessage:
+          """Second type argument '${type}' is not a Dart interface type.""" +
+              labeler.originMessages,
+      correctionMessage: """Use a Dart class instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropStaticInteropMockNotStaticInteropType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""First type argument '#type' is not a `@staticInterop` type.""",
+        correctionMessageTemplate: r"""Use a `@staticInterop` class instead.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockNotStaticInteropType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropStaticInteropMockNotStaticInteropType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropStaticInteropMockNotStaticInteropType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropStaticInteropMockNotStaticInteropType,
+      problemMessage:
+          """First type argument '${type}' is not a `@staticInterop` type.""" +
+              labeler.originMessages,
+      correctionMessage: """Use a `@staticInterop` class instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateMainWrongParameterType = const Template<
             Message Function(

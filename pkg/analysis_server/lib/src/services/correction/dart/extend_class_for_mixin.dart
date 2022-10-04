@@ -34,7 +34,7 @@ class ExtendClassForMixin extends CorrectionProducer {
       _typeName = message.substring(startIndex, endIndex);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(
-            declaration.typeParameters?.end ?? declaration.name2.end,
+            declaration.typeParameters?.end ?? declaration.name.end,
             ' extends $_typeName');
       });
     }

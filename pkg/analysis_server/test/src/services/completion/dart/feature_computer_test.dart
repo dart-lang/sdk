@@ -660,6 +660,162 @@ void g(C c) {
 ''', 'int');
   }
 
+  Future<void> test_recordLiteral_named_afterPositional_1() async {
+    await assertContextType('''
+(int a, {String b}) f() => (0, b: ^);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_named_afterPositional_2() async {
+    await assertContextType('''
+(int a, int b, {String c}) f() => (0, c: ^, 1);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_named_first_afterColon_1() async {
+    await assertContextType('''
+({int a, String b}) f() => (b: ^);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_named_first_afterColon_2() async {
+    await assertContextType('''
+({int a, String b}) f() => (b:^);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_named_first_afterColon_3() async {
+    await assertContextType('''
+({int a, String b}) f() => (b: x^);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_named_first_inName() async {
+    await assertContextType('''
+({int a, String b}) f() => (b^:);
+''');
+  }
+
+  Future<void> test_recordLiteral_positional_afterNamed_existing_1() async {
+    await assertContextType('''
+(int, String, {int foo}) f() => (foo: 0, ^);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_afterNamed_existing_2() async {
+    await assertContextType('''
+(int, String, {int foo}) f() => (0, foo: 0, ^);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_afterNamed_notExisting() async {
+    await assertContextType('''
+(int, String) f() => (foo: 0, ^);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_afterPositional_1() async {
+    await assertContextType('''
+(int, String) f() => (0, ^);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_afterPositional_2() async {
+    await assertContextType('''
+(int, String) f() => (0, x^);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_afterPositional_3() async {
+    await assertContextType('''
+(int, String) f() => (0, ^x);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_afterPositional_4() async {
+    await assertContextType('''
+(int, String) f() => (0, x^y);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_afterPositional_hasNext_1() async {
+    await assertContextType('''
+(int, String) f() => (0, ^, 42);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_afterPositional_hasNext_2() async {
+    await assertContextType('''
+(int, String) f() => (0, x^, 42);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_afterPositional_hasNext_3() async {
+    await assertContextType('''
+(int, String) f() => (0, ^x, 42);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_asNamed() async {
+    await assertContextType('''
+(int a, String b) f() => (b: ^);
+''');
+  }
+
+  Future<void> test_recordLiteral_positional_beforeNamed_noComma_1() async {
+    await assertContextType('''
+(int, String) f() => (^ foo: 0);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_beforeNamed_noComma_2() async {
+    await assertContextType('''
+(int, String) f() => (0, ^ foo: 0);
+''', 'String');
+  }
+
+  Future<void> test_recordLiteral_positional_first_1() async {
+    await assertContextType('''
+(int, String) f() => (^);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_first_2() async {
+    await assertContextType('''
+(int, String) f() => (x^);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_first_3() async {
+    await assertContextType('''
+(int, String) f() => (^x);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_first_4() async {
+    await assertContextType('''
+(int, String) f() => (x^y);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_first_5() async {
+    await assertContextType('''
+(int, String) f() => (^,);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_first_6() async {
+    await assertContextType('''
+(int, String) f() => ( ^ ,);
+''', 'int');
+  }
+
+  Future<void> test_recordLiteral_positional_tooMany() async {
+    await assertContextType('''
+(int, double) f() => (0, 1, ^);
+''');
+  }
+
   Future<void> test_setOrMapLiteral_map_beforeTypeParameter() async {
     await assertContextType('''
 void f() {

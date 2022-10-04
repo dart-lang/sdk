@@ -288,7 +288,7 @@ class FunctionType implements TypeLike {
   }
 
   /// Writes this type as if it was a function.
-  void writeFunction(StringBuffer buffer, String name, {bool replaceT: true}) {
+  void writeFunction(StringBuffer buffer, String name, {bool replaceT = true}) {
     shouldReplaceTWithInt = replaceT;
     parameterNameCounter = 0;
 

@@ -41,12 +41,12 @@ class InheritedReferenceContributor
       return;
     }
     var classDecl = _enclosingClass(target);
-    if (classDecl == null || classDecl.declaredElement2 == null) {
+    if (classDecl == null || classDecl.declaredElement == null) {
       return;
     }
     containingLibrary = request.result.libraryElement;
     _computeSuggestionsForClass2(
-        collector, target, classDecl.declaredElement2!, optype);
+        collector, target, classDecl.declaredElement!, optype);
   }
 
   /// Clients should not overload this function.
@@ -67,10 +67,10 @@ class InheritedReferenceContributor
     }
     if (classElement == null) {
       var classDecl = _enclosingClass(target);
-      if (classDecl == null || classDecl.declaredElement2 == null) {
+      if (classDecl == null || classDecl.declaredElement == null) {
         return;
       }
-      classElement = classDecl.declaredElement2;
+      classElement = classDecl.declaredElement;
     }
     containingLibrary = request.result.libraryElement;
     _computeSuggestionsForClass2(collector, target, classElement!, optype,

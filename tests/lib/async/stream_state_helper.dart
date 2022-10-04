@@ -61,7 +61,7 @@ class StreamProtocolTest {
   int _subscriptionIdCounter = 0;
   Function? _onComplete;
 
-  StreamProtocolTest.broadcast({bool sync: false})
+  StreamProtocolTest.broadcast({bool sync = false})
       : isBroadcast = true,
         isAsBroadcast = false {
     _controller = new StreamController.broadcast(
@@ -72,7 +72,7 @@ class StreamProtocolTest {
     });
   }
 
-  StreamProtocolTest({bool sync: false})
+  StreamProtocolTest({bool sync = false})
       : isBroadcast = false,
         isAsBroadcast = false {
     _controller = new StreamController(
@@ -87,7 +87,7 @@ class StreamProtocolTest {
     });
   }
 
-  StreamProtocolTest.asBroadcast({bool sync: false})
+  StreamProtocolTest.asBroadcast({bool sync = false})
       : isBroadcast = false,
         isAsBroadcast = true {
     _controller = new StreamController(
@@ -116,7 +116,7 @@ class StreamProtocolTest {
     _controller.close();
   }
 
-  SubscriptionProtocolTest listen({bool cancelOnError: false}) {
+  SubscriptionProtocolTest listen({bool cancelOnError = false}) {
     int subscriptionId = _subscriptionIdCounter++;
 
     StreamSubscription subscription = _controllerStream.listen((var data) {

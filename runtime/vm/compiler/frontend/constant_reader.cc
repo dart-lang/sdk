@@ -312,6 +312,48 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       instance = map.ptr();
       break;
     }
+    case kRecordConstant: {
+      const intptr_t num_positional = reader.ReadListLength();
+      intptr_t num_named = 0;
+      const Array* field_names = &Array::empty_array();
+      {
+        AlternativeReadingScope alt(&reader.reader_);
+        for (intptr_t j = 0; j < num_positional; ++j) {
+          reader.ReadUInt();
+        }
+        num_named = reader.ReadListLength();
+        if (num_named > 0) {
+          auto& names = Array::Handle(Z, Array::New(num_named));
+          for (intptr_t j = 0; j < num_named; ++j) {
+            String& name = H.DartSymbolObfuscate(reader.ReadStringReference());
+            names.SetAt(j, name);
+            reader.ReadUInt();
+          }
+          names ^= H.Canonicalize(names);
+          field_names = &names;
+        }
+      }
+      const intptr_t num_fields = num_positional + num_named;
+      const auto& record =
+          Record::Handle(Z, Record::New(num_fields, *field_names));
+      intptr_t pos = 0;
+      for (intptr_t j = 0; j < num_positional; ++j) {
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        instance = ReadConstant(entry_index);
+        record.SetFieldAt(pos++, instance);
+      }
+      reader.ReadListLength();
+      for (intptr_t j = 0; j < num_named; ++j) {
+        reader.ReadStringReference();
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        instance = ReadConstant(entry_index);
+        record.SetFieldAt(pos++, instance);
+      }
+      instance = record.ptr();
+      break;
+    }
     case kSetConstant: {
       const auto& set_class = Class::Handle(
           Z,

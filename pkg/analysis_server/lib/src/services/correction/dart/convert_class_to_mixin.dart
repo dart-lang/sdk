@@ -22,7 +22,7 @@ class ConvertClassToMixin extends CorrectionProducer {
     if (classDeclaration == null) {
       return;
     }
-    if (selectionOffset > classDeclaration.name2.end ||
+    if (selectionOffset > classDeclaration.name.end ||
         selectionEnd < classDeclaration.classKeyword.offset) {
       return;
     }
@@ -36,7 +36,7 @@ class ConvertClassToMixin extends CorrectionProducer {
     var superclassConstraints = <InterfaceType>[];
     var interfaces = <InterfaceType>[];
 
-    var classElement = classDeclaration.declaredElement2!;
+    var classElement = classDeclaration.declaredElement!;
     for (var type in classElement.mixins) {
       if (referencedClasses.contains(type.element2)) {
         superclassConstraints.add(type);
@@ -61,7 +61,7 @@ class ConvertClassToMixin extends CorrectionProducer {
               classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
               classDeclaration.leftBracket), (builder) {
         builder.write('mixin ');
-        builder.write(classDeclaration.name2.lexeme);
+        builder.write(classDeclaration.name.lexeme);
         builder.writeTypeParameters(classElement.typeParameters);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
         builder.writeTypes(interfaces, prefix: ' implements ');
@@ -97,7 +97,7 @@ class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
 
   void _addElement(Element? element) {
     if (element is ExecutableElement) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement) {
         referencedClasses.add(enclosingElement);
       }

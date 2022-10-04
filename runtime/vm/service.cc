@@ -2869,6 +2869,11 @@ static void CollectStringifiedType(Zone* zone,
     output.Add(instance);
     return;
   }
+  if (type.IsRecordType()) {
+    // _Record class is not useful for the CFE. We use null instead.
+    output.Add(instance);
+    return;
+  }
   if (type.IsDynamicType()) {
     // Dynamic is weird in that it seems to have a class with no name and a
     // library called something like '7189777121420'. We use null instead.
@@ -3397,7 +3402,7 @@ static void MarkClasses(const Class& root,
                         bool include_implementors) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
-  SharedClassTable* table = thread->isolate()->group()->shared_class_table();
+  ClassTable* table = thread->isolate()->group()->class_table();
   GrowableArray<const Class*> worklist;
   table->SetCollectInstancesFor(root.id(), true);
   worklist.Add(&root);
@@ -3437,7 +3442,7 @@ static void MarkClasses(const Class& root,
 }
 
 static void UnmarkClasses() {
-  SharedClassTable* table = IsolateGroup::Current()->shared_class_table();
+  ClassTable* table = IsolateGroup::Current()->class_table();
   for (intptr_t i = 1; i < table->NumCids(); i++) {
     table->SetCollectInstancesFor(i, false);
   }
@@ -3447,7 +3452,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
   GetInstancesVisitor(ZoneGrowableHandlePtrArray<Object>* storage,
                       intptr_t limit)
-      : table_(IsolateGroup::Current()->shared_class_table()),
+      : table_(IsolateGroup::Current()->class_table()),
         storage_(storage),
         limit_(limit),
         count_(0) {}
@@ -3469,7 +3474,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
   intptr_t count() const { return count_; }
 
  private:
-  SharedClassTable* const table_;
+  ClassTable* const table_;
   ZoneGrowableHandlePtrArray<Object>* storage_;
   const intptr_t limit_;
   intptr_t count_;
@@ -4587,10 +4592,8 @@ static void AddVMMappings(JSONArray* rss_children) {
       // [anon:dart-*] - as labelled (Android)
       if ((strcmp(property, "Rss:") == 0) && (size != 0) &&
           (strcmp(path, "(deleted)") != 0) && (strcmp(path, "[heap]") != 0) &&
-          (strcmp(path, "") != 0) &&
-          (strcmp(path, "[anon:dart-newspace]") != 0) &&
-          (strcmp(path, "[anon:dart-oldspace]") != 0) &&
-          (strcmp(path, "[anon:dart-codespace]") != 0) &&
+          (strcmp(path, "") != 0) && (strcmp(path, "[anon:dart-heap]") != 0) &&
+          (strcmp(path, "[anon:dart-code]") != 0) &&
           (strcmp(path, "[anon:dart-profiler]") != 0) &&
           (strcmp(path, "[anon:dart-timeline]") != 0) &&
           (strcmp(path, "[anon:dart-zone]") != 0)) {
@@ -4675,9 +4678,9 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
 
       {
         JSONObject semi(&vm_children);
-        semi.AddProperty("name", "SemiSpace Cache");
+        semi.AddProperty("name", "Page Cache");
         semi.AddProperty("description", "Cached heap regions");
-        intptr_t size = SemiSpace::CachedSize();
+        intptr_t size = Page::CachedSize();
         vm_size += size;
         semi.AddProperty64("size", size);
         JSONArray(&semi, "children");

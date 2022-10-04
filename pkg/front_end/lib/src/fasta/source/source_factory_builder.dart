@@ -45,8 +45,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   final TypeBuilder returnType;
 
-  final Procedure _procedureInternal;
-  final Procedure? _factoryTearOff;
+  late final Procedure _procedureInternal;
+  late final Procedure? _factoryTearOff;
 
   SourceFactoryBuilder? actualOrigin;
 
@@ -69,20 +69,20 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       AsyncMarker asyncModifier,
       NameScheme nameScheme,
       {String? nativeMethodName})
-      : _procedureInternal = new Procedure(
-            nameScheme.getProcedureName(ProcedureKind.Factory, name),
-            ProcedureKind.Factory,
-            new FunctionNode(null),
-            fileUri: libraryBuilder.fileUri,
-            reference: procedureReference)
-          ..fileStartOffset = startCharOffset
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
-        _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
-            libraryBuilder.fileUri, charOffset, tearOffReference),
-        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+      : super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
+    _procedureInternal = new Procedure(
+        dummyName, ProcedureKind.Factory, new FunctionNode(null),
+        fileUri: libraryBuilder.fileUri, reference: procedureReference)
+      ..fileStartOffset = startCharOffset
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+    nameScheme
+        .getProcedureMemberName(ProcedureKind.Factory, name)
+        .attachMember(_procedureInternal);
+    _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
+        libraryBuilder.fileUri, charOffset, tearOffReference);
     this.asyncModifier = asyncModifier;
   }
 
@@ -148,7 +148,6 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _procedureInternal.isAbstract = isAbstract;
     _procedureInternal.isExternal = isExternal;
     _procedureInternal.isConst = isConst;
-    updatePrivateMemberName(_procedureInternal, libraryBuilder);
     _procedureInternal.isStatic = isStatic;
 
     if (_factoryTearOff != null) {
@@ -364,7 +363,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
               .build(libraryBuilder, TypeUse.redirectionTypeArgument),
           growable: false);
     }
-    updatePrivateMemberName(_procedureInternal, libraryBuilder);
     if (_factoryTearOff != null) {
       _tearOffTypeParameters =
           buildRedirectingFactoryTearOffProcedureParameters(

@@ -1335,6 +1335,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (node.isExtensionTypeDeclaration) {
       writeWord('type');
     }
+    if (node.isUnnamedExtension) {
+      writeWord('/* unnamed */');
+    }
     writeWord(getExtensionName(node));
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
@@ -2893,6 +2896,26 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       writeConstantReference(entry.value);
     });
     endLine('}');
+  }
+
+  @override
+  void visitRecordConstant(RecordConstant node) {
+    writeWord('const');
+    writeSpace();
+    writeSymbol('(');
+    writeList(node.positional, writeConstantReference);
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) writeComma();
+      writeSymbol('{');
+      writeList(node.named.entries, (MapEntry<String, Constant> entry) {
+        writeWord(entry.key);
+        writeSymbol(':');
+        writeConstantReference(entry.value);
+      });
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+    endLine();
   }
 
   @override

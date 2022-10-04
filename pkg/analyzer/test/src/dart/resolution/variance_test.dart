@@ -83,7 +83,7 @@ InstanceCreationExpression
         staticType: null
       type: B<num>
     staticElement: ConstructorMember
-      base: self::@class::B::@constructor::•
+      base: self::@class::B::@constructor::new
       substitution: {T: num}
   staticType: B<num>
 ''',

@@ -20,7 +20,7 @@ class MustCallSuperVerifier {
     if (node.isStatic || node.isAbstract) {
       return;
     }
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     var overridden = _findOverriddenMemberWithMustCallSuper(element);
     if (overridden == null) {
       return;
@@ -28,17 +28,21 @@ class MustCallSuperVerifier {
 
     if (element is MethodElement && _hasConcreteSuperMethod(element)) {
       _verifySuperIsCalled(
-          node, overridden.name, overridden.enclosingElement3.name);
+          node, overridden.name, overridden.enclosingElement.name);
       return;
     }
 
-    var enclosingElement = element.enclosingElement3 as ClassElement;
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is! ClassElement) {
+      return;
+    }
+
     if (element is PropertyAccessorElement && element.isGetter) {
       var inheritedConcreteGetter = enclosingElement
           .lookUpInheritedConcreteGetter(element.name, element.library);
       if (inheritedConcreteGetter != null) {
         _verifySuperIsCalled(
-            node, overridden.name, overridden.enclosingElement3.name);
+            node, overridden.name, overridden.enclosingElement.name);
       }
       return;
     }
@@ -53,7 +57,7 @@ class MustCallSuperVerifier {
         if (name.endsWith('=')) {
           name = name.substring(0, name.length - 1);
         }
-        _verifySuperIsCalled(node, name, overridden.enclosingElement3.name);
+        _verifySuperIsCalled(node, name, overridden.enclosingElement.name);
       }
     }
   }
@@ -69,10 +73,10 @@ class MustCallSuperVerifier {
   ExecutableElement? _findOverriddenMemberWithMustCallSuper(
       ExecutableElement element) {
     //Element member = node.declaredElement;
-    if (element.enclosingElement3 is! ClassElement) {
+    if (element.enclosingElement is! InterfaceElement) {
       return null;
     }
-    var classElement = element.enclosingElement3 as InterfaceElement;
+    var classElement = element.enclosingElement as InterfaceElement;
     String name = element.name;
 
     // Walk up the type hierarchy from [classElement], ignoring direct
@@ -81,9 +85,7 @@ class MustCallSuperVerifier {
 
     void addToQueue(InterfaceElement element) {
       superclasses.addAll(element.mixins.map((i) => i.element2));
-      if (element is ClassElement) {
-        superclasses.add(element.supertype?.element2);
-      }
+      superclasses.add(element.supertype?.element2);
       if (element is MixinElement) {
         superclasses
             .addAll(element.superclassConstraints.map((i) => i.element2));
@@ -116,7 +118,7 @@ class MustCallSuperVerifier {
 
   /// Returns whether [node] overrides a concrete method.
   bool _hasConcreteSuperMethod(ExecutableElement element) {
-    var classElement = element.enclosingElement3 as ClassElement;
+    var classElement = element.enclosingElement as InterfaceElement;
     String name = element.name;
 
     if (classElement.supertype.isConcrete(name)) {
@@ -127,7 +129,8 @@ class MustCallSuperVerifier {
       return true;
     }
 
-    if (classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
+    if (classElement is MixinElement &&
+        classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
       return true;
     }
 
@@ -136,12 +139,12 @@ class MustCallSuperVerifier {
 
   void _verifySuperIsCalled(MethodDeclaration node, String methodName,
       String? overriddenEnclosingName) {
-    var declaredElement = node.declaredElement2 as ExecutableElementImpl;
+    var declaredElement = node.declaredElement as ExecutableElementImpl;
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _errorReporter.reportErrorForToken(
-          HintCode.MUST_CALL_SUPER, node.name2, [overriddenEnclosingName!]);
+          HintCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName!]);
     }
     return;
   }

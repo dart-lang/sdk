@@ -44,7 +44,11 @@ static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
 typedef uintptr_t compressed_uword;
 typedef intptr_t compressed_word;
 #endif
-const int kMaxAddrSpaceMB = (kWordSize <= 4) ? 4096 : kMaxInt;
+// 32-bit: 2^32 addresses => kMaxAddrSpaceMB = 2^(32 - MBLog2) = 2^12 MB
+// 64-bit: 2^48 addresses => kMaxAddrSpaceMB = 2^(48 - MBLog2) = 2^28 MB
+const intptr_t kMaxAddrSpaceMB = (kWordSize <= 4) ? 4096 : 268435456;
+const intptr_t kMaxAddrSpaceInWords = kMaxAddrSpaceMB >> kWordSizeLog2
+                                                             << MBLog2;
 
 // Number of bytes per BigInt digit.
 const intptr_t kBytesPerBigIntDigit = 4;
@@ -52,7 +56,7 @@ const intptr_t kBytesPerBigIntDigit = 4;
 // The default old gen heap size in MB, where 0 -- unlimited.
 // 32-bit: OS limit is 2 or 3 GB
 // 64-bit: Linux's limit is
-//   sysctl vm.max_map_count (default 2^16) * 512 KB OldPages = 32 GB
+//   sysctl vm.max_map_count (default 2^16) * 512 KB Pages = 32 GB
 // Set the VM limit below the OS limit to increase the likelihood of failing
 // gracefully with a Dart OutOfMemory exception instead of SIGABORT.
 const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
@@ -109,8 +113,9 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define NOT_IN_PRECOMPILED_RUNTIME(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(PRODUCT) || defined(DART_HOST_OS_FUCHSIA) ||                      \
-    defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
+#if defined(DART_ENABLE_TIMELINE) || !defined(PRODUCT) ||                      \
+    defined(DART_HOST_OS_FUCHSIA) || defined(DART_TARGET_OS_FUCHSIA) ||        \
+    defined(DART_TARGET_OS_ANDROID)
 #define SUPPORT_TIMELINE 1
 #endif
 

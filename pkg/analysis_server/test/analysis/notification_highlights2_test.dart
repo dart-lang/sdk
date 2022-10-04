@@ -451,6 +451,18 @@ AAA aaa;
     assertHasRegion(HighlightRegionType.CLASS, 'AAA aaa');
   }
 
+  Future<void> test_class_constructor_fieldFormalParameter() async {
+    addTestFile('''
+class A {
+  final int foo;
+  A(this.foo);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'this.');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'foo);');
+  }
+
   Future<void> test_CLASS_notDynamic() async {
     addTestFile('''
 dynamic f() {}
@@ -712,7 +724,7 @@ void f(E e) {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.CLASS, 'int ');
     assertHasRegion(HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'a = 0');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a);');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'a);');
     assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'a;');
   }
 
@@ -1325,6 +1337,19 @@ void f(p) {
     assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'add(null)');
   }
 
+  Future<void> test_namedExpression_namedParameter() async {
+    addTestFile('''
+void f({int a}) {}
+
+void g() {
+  f(a: 0);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a})');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'a: 0');
+  }
+
   Future<void> test_PARAMETER() async {
     addTestFile('''
 void f(int p) {
@@ -1411,6 +1436,41 @@ class B extends A {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
     assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
+  }
+
+  Future<void> test_recordTypeAnnotation_named() async {
+    addTestFile('''
+({int f1, String f2})? r;
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int f1');
+    assertHasRegion(HighlightRegionType.FIELD, 'f1');
+    assertHasRegion(HighlightRegionType.CLASS, 'String f2');
+    assertHasRegion(HighlightRegionType.FIELD, 'f2');
+  }
+
+  Future<void> test_recordTypeAnnotation_positional() async {
+    addTestFile('''
+(int, String f2)? r;
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int, ');
+    assertHasRegion(HighlightRegionType.CLASS, 'String f2)');
+    assertHasRegion(HighlightRegionType.FIELD, 'f2)');
+  }
+
+  Future<void> test_recordTypeLiteral_named() async {
+    final code = '(0, f1: 1, f2: 2)';
+    addTestFile('''
+final r = $code;
+''');
+    await prepareHighlights();
+    assertHasStringRegion(HighlightRegionType.LITERAL_RECORD, code);
+    assertHasRegion(HighlightRegionType.LITERAL_INTEGER, '0,');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'f1:');
+    assertHasRegion(HighlightRegionType.LITERAL_INTEGER, '1,');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'f2:');
+    assertHasRegion(HighlightRegionType.LITERAL_INTEGER, '2)');
   }
 
   Future<void> test_SETTER_DECLARATION() async {

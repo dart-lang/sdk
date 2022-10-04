@@ -180,9 +180,9 @@ class DiagnosticFactory {
     return AnalysisError(
         source, errorNode.offset, errorNode.length, errorCode, [
       member.name,
-      member.enclosingElement3.name!,
+      member.enclosingElement.name!,
       member.type,
-      superMember.enclosingElement3.name!,
+      superMember.enclosingElement.name!,
       superMember.type,
     ], [
       // Only include the context location for INVALID_OVERRIDE because for

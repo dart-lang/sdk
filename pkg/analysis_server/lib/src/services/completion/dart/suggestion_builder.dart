@@ -223,7 +223,7 @@ class SuggestionBuilder {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
-          _cachedContainingMemberName = containingMethod.name2.lexeme;
+          _cachedContainingMemberName = containingMethod.name.lexeme;
         }
       }
     }
@@ -394,7 +394,7 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement3;
+    var enclosingClass = constructor.enclosingElement;
     var className = enclosingClass.name;
     if (className.isEmpty) {
       return;
@@ -435,17 +435,17 @@ class SuggestionBuilder {
   /// will be used as the kind for the suggestion.
   void suggestElement(Element element,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       suggestInterface(element);
     } else if (element is ConstructorElement) {
       suggestConstructor(element, kind: kind);
     } else if (element is ExtensionElement) {
       suggestExtension(element, kind: kind);
     } else if (element is FunctionElement &&
-        element.enclosingElement3 is CompilationUnitElement) {
+        element.enclosingElement is CompilationUnitElement) {
       suggestTopLevelFunction(element, kind: kind);
     } else if (element is PropertyAccessorElement &&
-        element.enclosingElement3 is CompilationUnitElement) {
+        element.enclosingElement is CompilationUnitElement) {
       suggestTopLevelPropertyAccessor(element);
     } else if (element is TypeAliasElement) {
       suggestTypeAlias(element);
@@ -458,7 +458,7 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestEnumConstant(FieldElement constant, {String? prefix}) {
     var constantName = constant.name;
-    var enumElement = constant.enclosingElement3;
+    var enumElement = constant.enclosingElement;
     var enumName = enumElement.name;
     var completion = '$enumName.$constantName';
     var relevance =
@@ -706,7 +706,7 @@ class SuggestionBuilder {
       inheritanceDistance: inheritanceDistance,
     );
 
-    var enclosingElement = method.enclosingElement3;
+    var enclosingElement = method.enclosingElement;
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
         flutter.isExactState(enclosingElement)) {
@@ -778,13 +778,16 @@ class SuggestionBuilder {
 
     // Optionally add Flutter child widget details.
     // todo (pq): revisit this special casing; likely it can be generalized away
-    var element = parameter.enclosingElement3;
+    var element = parameter.enclosingElement;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.instance.isWidget(element.enclosingElement3)) {
+      if (Flutter.instance.isWidget(element.enclosingElement)) {
+        var codeStyleOptions = request
+            .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
-        var defaultValue =
-            getDefaultStringParameterValue(parameter, withNullability: false);
+        var defaultValue = getDefaultStringParameterValue(
+            parameter, codeStyleOptions,
+            withNullability: false);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
         if (defaultValue != null && defaultValue.text == '[]') {
@@ -827,6 +830,45 @@ class SuggestionBuilder {
     }
 
     _addSuggestion(suggestion);
+  }
+
+  /// Add a suggestion to add a named argument corresponding to the [field].
+  /// If [appendColon] is `true` then a colon will be added after the name. If
+  /// [appendComma] is `true` then a comma will be included at the end of the
+  /// completion text.
+  void suggestNamedRecordField(RecordTypeNamedField field,
+      {required bool appendColon,
+      required bool appendComma,
+      int? replacementLength}) {
+    final name = field.name;
+    final type = field.type.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+
+    var completion = name;
+    if (appendColon) {
+      completion += ': ';
+    }
+    final selectionOffset = completion.length;
+
+    if (appendComma) {
+      completion += ',';
+    }
+
+    _addSuggestion(
+      CompletionSuggestion(
+        CompletionSuggestionKind.NAMED_ARGUMENT,
+        Relevance.requiredNamedArgument,
+        completion,
+        selectionOffset,
+        0,
+        false,
+        false,
+        parameterName: name,
+        parameterType: type,
+        replacementLength: replacementLength,
+      ),
+    );
   }
 
   /// Add a suggestion to replace the [targetId] with an override of the given
@@ -937,6 +979,36 @@ class SuggestionBuilder {
     );
   }
 
+  void suggestRecordField({
+    required RecordTypeField field,
+    required String name,
+  }) {
+    final type = field.type;
+    final featureComputer = request.featureComputer;
+    final contextType =
+        featureComputer.contextTypeFeature(request.contextType, type);
+    final relevance = _computeRelevance(
+      contextType: contextType,
+    );
+
+    final returnType = field.type.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+
+    _addSuggestion(
+      CompletionSuggestion(
+        CompletionSuggestionKind.IDENTIFIER,
+        relevance,
+        name,
+        name.length,
+        0,
+        false,
+        false,
+        returnType: returnType,
+      ),
+    );
+  }
+
   /// Add a suggestion for a static field declared within a class or extension.
   /// If the field is synthetic, add the corresponding getter instead.
   ///
@@ -1010,9 +1082,9 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {String? prefix}) {
     assert(
-        accessor.enclosingElement3 is CompilationUnitElement,
+        accessor.enclosingElement is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
-        '${accessor.enclosingElement3.runtimeType}.');
+        '${accessor.enclosingElement.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
@@ -1062,7 +1134,7 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {String? prefix}) {
-    assert(variable.enclosingElement3 is CompilationUnitElement);
+    assert(variable.enclosingElement is CompilationUnitElement);
     var relevance =
         _computeTopLevelRelevance(variable, elementType: variable.type);
     _addBuilder(
@@ -1295,10 +1367,10 @@ class SuggestionBuilder {
       withNullability: _isNonNullableByDefault,
     );
 
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement;
 
     String? declaringType;
-    if (enclosingElement is ClassElement) {
+    if (enclosingElement is InterfaceElement) {
       declaringType = enclosingElement.displayName;
     }
 
@@ -1354,8 +1426,8 @@ class SuggestionBuilder {
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
-    var enclosing = element.enclosingElement3;
-    if (enclosing is ClassElement) {
+    var enclosing = element.enclosingElement;
+    if (enclosing is InterfaceElement) {
       return enclosing.name;
     } else if (enclosing is ExtensionElement) {
       return enclosing.name;

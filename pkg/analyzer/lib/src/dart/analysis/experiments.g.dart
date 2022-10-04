@@ -33,12 +33,14 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.non_nullable: ExperimentalFeatures.non_nullable,
   EnableString.nonfunction_type_aliases:
       ExperimentalFeatures.nonfunction_type_aliases,
+  EnableString.patterns: ExperimentalFeatures.patterns,
   EnableString.records: ExperimentalFeatures.records,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
+  EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
   EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
 };
@@ -88,6 +90,9 @@ class EnableString {
   /// String to enable the experiment "nonfunction-type-aliases"
   static const String nonfunction_type_aliases = 'nonfunction-type-aliases';
 
+  /// String to enable the experiment "patterns"
+  static const String patterns = 'patterns';
+
   /// String to enable the experiment "records"
   static const String records = 'records';
 
@@ -105,6 +110,9 @@ class EnableString {
 
   /// String to enable the experiment "triple-shift"
   static const String triple_shift = 'triple-shift';
+
+  /// String to enable the experiment "unnamed-libraries"
+  static const String unnamed_libraries = 'unnamed-libraries';
 
   /// String to enable the experiment "value-class"
   static const String value_class = 'value-class';
@@ -258,8 +266,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.13.0'),
   );
 
-  static final records = ExperimentalFeature(
+  static final patterns = ExperimentalFeature(
     index: 14,
+    enableString: EnableString.patterns,
+    isEnabledByDefault: IsEnabledByDefault.patterns,
+    isExpired: IsExpired.patterns,
+    documentation: 'Patterns',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final records = ExperimentalFeature(
+    index: 15,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -269,7 +287,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 15,
+    index: 16,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -279,7 +297,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 16,
+    index: 17,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -289,7 +307,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 17,
+    index: 18,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -299,7 +317,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 18,
+    index: 19,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -310,7 +328,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -319,8 +337,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.14.0'),
   );
 
+  static final unnamed_libraries = ExperimentalFeature(
+    index: 21,
+    enableString: EnableString.unnamed_libraries,
+    isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
+    isExpired: IsExpired.unnamed_libraries,
+    documentation: 'Unnamed libraries',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
   static final value_class = ExperimentalFeature(
-    index: 20,
+    index: 22,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -330,7 +358,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 21,
+    index: 23,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -385,6 +413,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
 
+  /// Default state of the experiment "patterns"
+  static const bool patterns = false;
+
   /// Default state of the experiment "records"
   static const bool records = false;
 
@@ -402,6 +433,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = true;
+
+  /// Default state of the experiment "unnamed-libraries"
+  static const bool unnamed_libraries = false;
 
   /// Default state of the experiment "value-class"
   static const bool value_class = false;
@@ -456,6 +490,9 @@ class IsExpired {
   /// Expiration status of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
 
+  /// Expiration status of the experiment "patterns"
+  static const bool patterns = false;
+
   /// Expiration status of the experiment "records"
   static const bool records = false;
 
@@ -473,6 +510,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = true;
+
+  /// Expiration status of the experiment "unnamed-libraries"
+  static const bool unnamed_libraries = false;
 
   /// Expiration status of the experiment "value-class"
   static const bool value_class = false;
@@ -532,6 +572,9 @@ mixin _CurrentState {
   bool get nonfunction_type_aliases =>
       isEnabled(ExperimentalFeatures.nonfunction_type_aliases);
 
+  /// Current state for the flag "patterns"
+  bool get patterns => isEnabled(ExperimentalFeatures.patterns);
+
   /// Current state for the flag "records"
   bool get records => isEnabled(ExperimentalFeatures.records);
 
@@ -550,6 +593,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "triple-shift"
   bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);
+
+  /// Current state for the flag "unnamed-libraries"
+  bool get unnamed_libraries =>
+      isEnabled(ExperimentalFeatures.unnamed_libraries);
 
   /// Current state for the flag "value-class"
   bool get value_class => isEnabled(ExperimentalFeatures.value_class);

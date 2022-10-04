@@ -659,6 +659,11 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
             AbstractType& unfinalized_type = AbstractType::Handle(zone);
             if (super_type_arg.IsTypeRef()) {
               unfinalized_type = TypeRef::Cast(super_type_arg).type();
+              if (unfinalized_type.IsFinalized()) {
+                super_type_arg.SetIsFinalized();
+                arguments.SetTypeAt(i, super_type_arg);
+                continue;
+              }
             } else {
               ASSERT(super_type_arg.IsType());
               unfinalized_type = super_type_arg.ptr();
@@ -755,10 +760,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       // is_being_finalized mark bit.
       return type.ptr();
     }
+    type.SetIsBeingFinalized();
     AbstractType& ref_type =
         AbstractType::Handle(zone, TypeRef::Cast(type).type());
     ref_type = FinalizeType(ref_type, finalization, pending_types);
+    ASSERT(ref_type.IsFinalized());
     TypeRef::Cast(type).set_type(ref_type);
+    ASSERT(type.IsFinalized());
     return type.ptr();
   }
 
@@ -820,6 +828,11 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
   if (type.IsFunctionType()) {
     return FinalizeSignature(zone, FunctionType::Cast(type), finalization,
                              pending_types);
+  }
+
+  if (type.IsRecordType()) {
+    return FinalizeRecordType(zone, RecordType::Cast(type), finalization,
+                              pending_types);
   }
 
   // This type is the root type of the type graph if no pending types queue is
@@ -904,6 +917,40 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
     return signature.Canonicalize(Thread::Current(), nullptr);
   }
   return signature.ptr();
+}
+
+AbstractTypePtr ClassFinalizer::FinalizeRecordType(
+    Zone* zone,
+    const RecordType& record,
+    FinalizationKind finalization,
+    PendingTypes* pending_types) {
+  AbstractType& type = AbstractType::Handle(zone);
+  AbstractType& finalized_type = AbstractType::Handle(zone);
+  // Finalize record field types.
+  const intptr_t num_fields = record.NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type = record.FieldTypeAt(i);
+    finalized_type = FinalizeType(type, kFinalize, pending_types);
+    if (type.ptr() != finalized_type.ptr()) {
+      record.SetFieldTypeAt(i, finalized_type);
+    }
+  }
+  // Canonicalize field names so they can be compared with pointer comparison.
+  // The field names are already sorted in the front-end.
+  Array& field_names = Array::Handle(zone, record.field_names());
+  field_names ^= field_names.Canonicalize(Thread::Current());
+  record.set_field_names(field_names);
+
+  if (FLAG_trace_type_finalization) {
+    THR_Print("Marking record type '%s' as finalized\n",
+              String::Handle(zone, record.Name()).ToCString());
+  }
+  record.SetIsFinalized();
+
+  if (finalization >= kCanonicalize) {
+    return record.Canonicalize(Thread::Current(), nullptr);
+  }
+  return record.ptr();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1524,7 +1571,7 @@ class CidRewriteVisitor : public ObjectVisitor {
           Map(param->untag()->parameterized_class_id_);
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
-      type->untag()->type_class_id_ = Map(type->untag()->type_class_id_);
+      type->untag()->set_type_class_id(Map(type->untag()->type_class_id()));
     } else {
       intptr_t old_cid = obj->GetClassId();
       intptr_t new_cid = Map(old_cid);
@@ -1551,12 +1598,10 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
 
-    IG->shared_class_table()->Remap(old_to_new_cid);
-    IG->set_remapping_cids(true);
-
     // Update the class table. Do it before rewriting cids in headers, as
     // the heap walkers load an object's size *after* calling the visitor.
     IG->class_table()->Remap(old_to_new_cid);
+    IG->set_remapping_cids(true);
 
     // Rewrite cids in headers and cids in Classes, Fields, Types and
     // TypeParameters.
@@ -1582,7 +1627,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // In the Dart VM heap the following instances directly use cids for the
 // computation of canonical hash codes:
 //
-//    * TypePtr (due to UntaggedType::type_class_id_)
+//    * TypePtr (due to UntaggedType::type_class_id)
 //    * TypeParameterPtr (due to UntaggedTypeParameter::parameterized_class_id_)
 //
 // The following instances use cids for the computation of canonical hash codes
@@ -1599,6 +1644,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //
 //    * UntaggedType::hash_
 //    * UntaggedFunctionType::hash_
+//    * UntaggedRecordType::hash_
 //    * UntaggedTypeParameter::hash_
 //    * UntaggedTypeArguments::hash_
 //    * InstancePtr (weak table)
@@ -1613,6 +1659,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //
 //   * ObjectStore::canonical_types()
 //   * ObjectStore::canonical_function_types()
+//   * ObjectStore::canonical_record_types()
 //   * ObjectStore::canonical_type_parameters()
 //   * ObjectStore::canonical_type_arguments()
 //   * Class::constants()
@@ -1623,6 +1670,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
       : type_param_(TypeParameter::Handle(zone)),
         type_(Type::Handle(zone)),
         function_type_(FunctionType::Handle(zone)),
+        record_type_(RecordType::Handle(zone)),
         type_args_(TypeArguments::Handle(zone)) {}
 
   void VisitObject(ObjectPtr obj) {
@@ -1635,6 +1683,9 @@ class ClearTypeHashVisitor : public ObjectVisitor {
     } else if (obj->IsFunctionType()) {
       function_type_ ^= obj;
       function_type_.SetHash(0);
+    } else if (obj->IsRecordType()) {
+      record_type_ ^= obj;
+      record_type_.SetHash(0);
     } else if (obj->IsTypeArguments()) {
       type_args_ ^= obj;
       type_args_.SetHash(0);
@@ -1645,6 +1696,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
   TypeParameter& type_param_;
   Type& type_;
   FunctionType& function_type_;
+  RecordType& record_type_;
   TypeArguments& type_args_;
 };
 
@@ -1701,6 +1753,27 @@ void ClassFinalizer::RehashTypes() {
     ASSERT(!present || function_type.IsRecursive());
   }
   object_store->set_canonical_function_types(function_types_table.Release());
+
+  // Rehash the canonical RecordTypes table.
+  Array& record_types = Array::Handle(Z);
+  RecordType& record_type = RecordType::Handle(Z);
+  {
+    CanonicalRecordTypeSet record_types_table(
+        Z, object_store->canonical_record_types());
+    record_types = HashTables::ToArray(record_types_table, false);
+    record_types_table.Release();
+  }
+
+  dict_size = Utils::RoundUpToPowerOfTwo(record_types.Length() * 4 / 3);
+  CanonicalRecordTypeSet record_types_table(
+      Z, HashTables::New<CanonicalRecordTypeSet>(dict_size, Heap::kOld));
+  for (intptr_t i = 0; i < record_types.Length(); i++) {
+    record_type ^= record_types.At(i);
+    bool present = record_types_table.Insert(record_type);
+    // Two recursive types with different topology (and hashes) may be equal.
+    ASSERT(!present || record_type.IsRecursive());
+  }
+  object_store->set_canonical_record_types(record_types_table.Release());
 
   // Rehash the canonical TypeParameters table.
   Array& typeparams = Array::Handle(Z);

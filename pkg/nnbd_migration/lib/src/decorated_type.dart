@@ -173,7 +173,7 @@ class DecoratedType implements DecoratedTypeInfo {
   /// during comparison of generic function types.
   DecoratedType._forTypeParameterSubstitution(TypeParameterElement parameter)
       : type = TypeParameterTypeImpl(
-          element: parameter,
+          element2: parameter,
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         node = null,
@@ -184,8 +184,8 @@ class DecoratedType implements DecoratedTypeInfo {
     // We'll be storing the type parameter bounds in
     // [_decoratedTypeParameterBounds] so the type parameter needs to have an
     // enclosing element of `null`.
-    assert(parameter.enclosingElement3 == null,
-        '$parameter should not have parent ${parameter.enclosingElement3}');
+    assert(parameter.enclosingElement == null,
+        '$parameter should not have parent ${parameter.enclosingElement}');
   }
 
   /// If `this` represents an interface type, returns the substitution necessary
@@ -414,7 +414,7 @@ class DecoratedType implements DecoratedTypeInfo {
             Map<TypeParameterElement, DecoratedType>.from(substitution);
         for (int i = 0; i < typeFormals.length; i++) {
           // Check if it's a fresh type variable.
-          if (undecoratedResult.typeFormals[i].enclosingElement3 == null) {
+          if (undecoratedResult.typeFormals[i].enclosingElement == null) {
             substitution[typeFormals[i]] =
                 DecoratedType._forTypeParameterSubstitution(
                     undecoratedResult.typeFormals[i]);
@@ -541,7 +541,7 @@ class DecoratedTypeParameterBounds {
   final _parentedBounds = <TypeParameterElement, DecoratedType?>{};
 
   DecoratedType? get(TypeParameterElement element) {
-    if (element.enclosingElement3 == null) {
+    if (element.enclosingElement == null) {
       return _orphanBounds[element];
     } else {
       return _parentedBounds[element];
@@ -549,7 +549,7 @@ class DecoratedTypeParameterBounds {
   }
 
   void put(TypeParameterElement element, DecoratedType? bounds) {
-    if (element.enclosingElement3 == null) {
+    if (element.enclosingElement == null) {
       _orphanBounds[element] = bounds;
     } else {
       _parentedBounds[element] = bounds;

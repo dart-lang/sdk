@@ -448,7 +448,7 @@ class JsInteropChecks extends RecursiveVisitor {
     return _checkExtensionMember(member, _nativeClasses.containsValue);
   }
 
-  /// Returns whether given extension [member] is on a class that passses the
+  /// Returns whether given extension [member] is on a class that passes the
   /// given [validateExtensionClass].
   bool _checkExtensionMember(Member member, Function validateExtensionClass) {
     assert(member.isExtensionMember);

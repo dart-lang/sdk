@@ -36,6 +36,11 @@ class VariableNameContributor extends DartCompletionContributor {
         if (expression is Identifier) {
           strName = _getStringName(expression);
         }
+      } else if (node is RecordTypeAnnotationField) {
+        final identifier = _typeAnnotationIdentifier(node.type);
+        if (identifier != null) {
+          strName = _getStringName(identifier);
+        }
       } else if (node is SimpleFormalParameter) {
         var identifier = _formalParameterTypeIdentifier2(node);
         if (identifier != null) {
@@ -61,7 +66,7 @@ class VariableNameContributor extends DartCompletionContributor {
           var varDeclarations = varDeclarationList.variables;
           if (varDeclarations.length == 1) {
             var declaration = varDeclarations.first;
-            strName = declaration.name2.lexeme;
+            strName = declaration.name.lexeme;
           }
         }
       }

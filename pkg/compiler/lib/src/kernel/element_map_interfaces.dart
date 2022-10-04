@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart' as ir
         Expression,
         Field,
         InterfaceType,
+        Library,
         LibraryDependency,
         LocalFunction,
         Member,
@@ -31,18 +32,28 @@ import '../elements/entities.dart'
         ConstructorEntity,
         FieldEntity,
         FunctionEntity,
+        LibraryEntity,
         Local,
         MemberEntity,
         ImportEntity;
 import '../constants/values.dart';
-import '../elements/indexed.dart' show IndexedClass;
+import '../elements/indexed.dart'
+    show
+        EntityDataEnvMap,
+        EntityDataMap,
+        IndexedClass,
+        IndexedMember,
+        IndexedLibrary,
+        IndexedTypeVariable;
 import '../elements/names.dart' show Name;
 import '../elements/types.dart' show DartType, DartTypes, InterfaceType;
 import '../ir/constants.dart' show Dart2jsConstantEvaluator;
+import '../ir/element_map.dart' show IrToElementMap;
 import '../native/behavior.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../options.dart';
 import '../universe/selector.dart';
+import 'env_interfaces.dart';
 
 enum ForeignKind {
   JS,
@@ -97,7 +108,7 @@ abstract class KernelToElementMapForDeferredLoading {
       {bool requireConstant = true,
       bool implicitNull = false,
       bool checkCasts = true});
-  ImportEntity getImport(ir.LibraryDependency? node);
+  ImportEntity? getImport(ir.LibraryDependency? node);
   ir.Member getMemberNode(MemberEntity member);
   ir.StaticTypeContext getStaticTypeContext(MemberEntity member);
 }
@@ -142,6 +153,26 @@ abstract class KernelToElementMapForKernelImpact {
       {required bool isJsInterop});
   Selector getInvocationSelector(ir.Name irName, int positionalArguments,
       List<String> namedArguments, int typeArguments);
+}
+
+abstract class KernelToElementMapForJsModel implements IrToElementMap {
+  CompilerOptions get options;
+  EntityDataEnvMap<IndexedLibrary, KLibraryData, KLibraryEnv> get libraries;
+
+  EntityDataEnvMap<IndexedClass, KClassData, KClassEnv> get classes;
+  EntityDataMap<IndexedMember, KMemberData> get members;
+  EntityDataMap<IndexedTypeVariable, KTypeVariableData> get typeVariables;
+
+  KProgramEnv get env;
+  bool get envIsClosed;
+  set envIsClosed(bool v);
+}
+
+abstract class KernelToElementMapForEnv implements IrToElementMap {
+  ir.TypeEnvironment get typeEnvironment;
+  LibraryEntity getLibrary(ir.Library node);
+  List<ConstantValue> getMetadata(
+      ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations);
 }
 
 // Members which dart2js ignores.

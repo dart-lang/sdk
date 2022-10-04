@@ -24,12 +24,13 @@ const int RELATIONAL_PRECEDENCE = 8;
 const int BITWISE_OR_PRECEDENCE = 9;
 const int BITWISE_XOR_PRECEDENCE = 10;
 const int BITWISE_AND_PRECEDENCE = 11;
-const int SHIFT_PRECEDENCE = 12;
-const int ADDITIVE_PRECEDENCE = 13;
-const int MULTIPLICATIVE_PRECEDENCE = 14;
-const int PREFIX_PRECEDENCE = 15;
-const int POSTFIX_PRECEDENCE = 16;
-const int SELECTOR_PRECEDENCE = 17;
+const int CAST_PATTERN_PRECEDENCE = 12;
+const int SHIFT_PRECEDENCE = 13;
+const int ADDITIVE_PRECEDENCE = 14;
+const int MULTIPLICATIVE_PRECEDENCE = 15;
+const int PREFIX_PRECEDENCE = 16;
+const int POSTFIX_PRECEDENCE = 17;
+const int SELECTOR_PRECEDENCE = 18;
 
 /**
  * The opening half of a grouping pair of tokens. This is used for curly
@@ -516,7 +517,7 @@ class SimpleToken implements Token {
    * token.
    */
   @override
-  int get offset => _typeAndOffset >> 8;
+  int get offset => (_typeAndOffset >> 8) - 1;
 
   /**
    * Set the offset from the beginning of the file to the first character in
@@ -525,7 +526,9 @@ class SimpleToken implements Token {
   @override
   void set offset(int value) {
     assert(_tokenTypesByIndex.length < 256);
-    _typeAndOffset = (value << 8) | (_typeAndOffset & 0xff);
+    // See https://github.com/dart-lang/sdk/issues/50048 for details.
+    assert(value >= -1);
+    _typeAndOffset = ((value + 1) << 8) | (_typeAndOffset & 0xff);
   }
 
   /**
@@ -551,7 +554,10 @@ class SimpleToken implements Token {
    * Initialize a newly created token to have the given [type] and [offset].
    */
   SimpleToken(TokenType type, int offset, [this._precedingComment])
-      : _typeAndOffset = ((offset << 8) | type.index) {
+      : _typeAndOffset = (((offset + 1) << 8) | type.index) {
+    // See https://github.com/dart-lang/sdk/issues/50048 for details.
+    assert(offset >= -1);
+
     // Assert the encoding of the [type] is fully reversible.
     assert(type.index < 256 && _tokenTypesByIndex.length < 256);
     assert(identical(offset, this.offset));

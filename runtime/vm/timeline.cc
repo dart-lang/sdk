@@ -24,6 +24,15 @@
 
 namespace dart {
 
+#if defined(PRODUCT)
+#define DEFAULT_TIMELINE_RECORDER "none"
+#define SUPPORTED_TIMELINE_RECORDERS "systrace, file, callback"
+#else
+#define DEFAULT_TIMELINE_RECORDER "ring"
+#define SUPPORTED_TIMELINE_RECORDERS                                           \
+  "ring, endless, startup, systrace, file, callback"
+#endif
+
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
 DEFINE_FLAG(
@@ -45,9 +54,9 @@ DEFINE_FLAG(charp,
             "Debugger, Embedder, GC, Isolate, and VM.");
 DEFINE_FLAG(charp,
             timeline_recorder,
-            "ring",
+            DEFAULT_TIMELINE_RECORDER,
             "Select the timeline recorder used. "
-            "Valid values: ring, endless, startup, and systrace.")
+            "Valid values: none, " SUPPORTED_TIMELINE_RECORDERS)
 
 // Implementation notes:
 //
@@ -94,56 +103,81 @@ DEFINE_FLAG(charp,
 std::atomic<bool> RecorderLock::shutdown_lock_ = {false};
 std::atomic<intptr_t> RecorderLock::outstanding_event_writes_ = {0};
 
+static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
+#if defined(PRODUCT)
+  return new TimelineEventNopRecorder();
+#else
+  return new TimelineEventRingRecorder();
+#endif
+}
+
 static TimelineEventRecorder* CreateTimelineRecorder() {
   // Some flags require that we use the endless recorder.
-  const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_complete_timeline;
 
-  const bool use_startup_recorder = FLAG_startup_timeline;
-  const bool use_systrace_recorder = FLAG_systrace_timeline;
-  const char* flag = FLAG_timeline_recorder;
+  const char* flag =
+      FLAG_timeline_recorder != nullptr ? FLAG_timeline_recorder : "";
 
-  if (use_systrace_recorder || (flag != NULL)) {
-    if (use_systrace_recorder || (strcmp("systrace", flag) == 0)) {
+  if (FLAG_systrace_timeline) {
+    flag = "systrace";
+  } else if (FLAG_timeline_dir != nullptr || FLAG_complete_timeline) {
+    flag = "endless";
+  } else if (FLAG_startup_timeline) {
+    flag = "startup";
+  }
+
+  if (strcmp("none", flag) == 0) {
+    return new TimelineEventNopRecorder();
+  }
+
+  // Systrace recorder.
+  if (strcmp("systrace", flag) == 0) {
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-      return new TimelineEventSystraceRecorder();
+    return new TimelineEventSystraceRecorder();
 #elif defined(DART_HOST_OS_MACOS)
-      if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
-        return new TimelineEventMacosRecorder();
-      }
+    if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
+      return new TimelineEventMacosRecorder();
+    }
 #elif defined(DART_HOST_OS_FUCHSIA)
-      return new TimelineEventFuchsiaRecorder();
+    return new TimelineEventFuchsiaRecorder();
 #else
-      OS::PrintErr(
-          "Warning: The systrace timeline recorder is equivalent to the"
-          "ring recorder on this platform.");
-      return new TimelineEventRingRecorder();
+    // Not supported. A warning will be emitted below.
 #endif
-    }
   }
 
-  if (use_endless_recorder || (flag != NULL)) {
-    if (use_endless_recorder || (strcmp("endless", flag) == 0)) {
-      return new TimelineEventEndlessRecorder();
-    }
+  if (Utils::StrStartsWith(flag, "file") &&
+      (flag[4] == '\0' || flag[4] == ':' || flag[4] == '=')) {
+    const char* filename = flag[4] == '\0' ? "dart-timeline.json" : &flag[5];
+    return new TimelineEventFileRecorder(filename);
   }
 
-  if (use_startup_recorder || (flag != NULL)) {
-    if (use_startup_recorder || (strcmp("startup", flag) == 0)) {
-      return new TimelineEventStartupRecorder();
-    }
+  if (strcmp("callback", flag) == 0) {
+    return new TimelineEventEmbedderCallbackRecorder();
   }
 
-  if (strcmp("file", flag) == 0) {
-    return new TimelineEventFileRecorder("dart-timeline.json");
-  }
-  if (Utils::StrStartsWith(flag, "file:") ||
-      Utils::StrStartsWith(flag, "file=")) {
-    return new TimelineEventFileRecorder(&flag[5]);
+#if !defined(PRODUCT)
+  // Recorders below do nothing useful in PRODUCT mode. You can't extract
+  // information available in them without vm-service.
+  if (strcmp("endless", flag) == 0) {
+    return new TimelineEventEndlessRecorder();
   }
 
-  // Always fall back to the ring recorder.
-  return new TimelineEventRingRecorder();
+  if (strcmp("startup", flag) == 0) {
+    return new TimelineEventStartupRecorder();
+  }
+
+  if (strcmp("ring", flag) == 0) {
+    return new TimelineEventRingRecorder();
+  }
+#endif
+
+  if (strlen(flag) > 0 && strcmp(flag, DEFAULT_TIMELINE_RECORDER) != 0) {
+    OS::PrintErr(
+        "Warning: requested %s timeline recorder which is not supported, "
+        "defaulting to " DEFAULT_TIMELINE_RECORDER " recorder\n",
+        flag);
+  }
+
+  return CreateDefaultTimelineRecorder();
 }
 
 // Returns a caller freed array of stream names in FLAG_timeline_streams.
@@ -206,6 +240,7 @@ void Timeline::Init() {
   stream_##name##_.set_enabled(HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
+  RecorderLock::Init();
 }
 
 void Timeline::Cleanup() {
@@ -399,6 +434,7 @@ void TimelineEventArguments::Free() {
 }
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
+Dart_TimelineRecorderCallback Timeline::callback_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 bool Timeline::recorder_discards_clock_values_ = false;
 
@@ -417,8 +453,8 @@ TimelineEvent::TimelineEvent()
       label_(NULL),
       stream_(NULL),
       thread_(OSThread::kInvalidThreadId),
-      isolate_id_(ILLEGAL_PORT),
-      isolate_group_id_(0) {}
+      isolate_id_(ILLEGAL_ISOLATE_ID),
+      isolate_group_id_(ILLEGAL_ISOLATE_GROUP_ID) {}
 
 TimelineEvent::~TimelineEvent() {
   Reset();
@@ -698,13 +734,13 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   if (pre_serialized_args()) {
     ASSERT(arguments_.length() == 1);
     writer->AppendSerializedObject("args", arguments_[0].value);
-    if (isolate_id_ != ILLEGAL_PORT) {
+    if (HasIsolateId()) {
       writer->UncloseObject();
       writer->PrintfProperty("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                              static_cast<int64_t>(isolate_id_));
       writer->CloseObject();
     }
-    if (isolate_group_id_ != 0) {
+    if (HasIsolateGroupId()) {
       writer->UncloseObject();
       writer->PrintfProperty("isolateGroupId",
                              ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
@@ -719,11 +755,11 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
       const TimelineEventArgument& arg = arguments_[i];
       writer->PrintProperty(arg.name, arg.value);
     }
-    if (isolate_id_ != ILLEGAL_PORT) {
+    if (HasIsolateId()) {
       writer->PrintfProperty("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                              static_cast<int64_t>(isolate_id_));
     }
-    if (isolate_group_id_ != 0) {
+    if (HasIsolateGroupId()) {
       writer->PrintfProperty("isolateGroupId",
                              ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
                              isolate_group_id_);
@@ -771,6 +807,36 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
     return OS::GetCurrentThreadCPUMicros() - thread_timestamp0_;
   }
   return thread_timestamp1_ - thread_timestamp0_;
+}
+
+bool TimelineEvent::HasIsolateId() const {
+  return isolate_id_ != ILLEGAL_ISOLATE_ID;
+}
+
+bool TimelineEvent::HasIsolateGroupId() const {
+  return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
+}
+
+const char* TimelineEvent::GetFormattedIsolateId() const {
+  ASSERT(HasIsolateId());
+  intptr_t formatted_isolate_id_len =
+      Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
+  char* formatted_isolate_id =
+      reinterpret_cast<char*>(malloc(formatted_isolate_id_len + 1));
+  Utils::SNPrint(formatted_isolate_id, formatted_isolate_id_len + 1,
+                 ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
+  return formatted_isolate_id;
+}
+
+const char* TimelineEvent::GetFormattedIsolateGroupId() const {
+  ASSERT(HasIsolateGroupId());
+  intptr_t formatted_isolate_group_id_len = Utils::SNPrint(
+      nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
+  char* formatted_isolate_group_id =
+      reinterpret_cast<char*>(malloc(formatted_isolate_group_id_len + 1));
+  Utils::SNPrint(formatted_isolate_group_id, formatted_isolate_group_id_len + 1,
+                 ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
+  return formatted_isolate_group_id;
 }
 
 TimelineStream::TimelineStream(const char* name,
@@ -1326,6 +1392,71 @@ void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
   delete event;
 }
 
+void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
+  Dart_TimelineRecorderCallback callback = Timeline::callback();
+  if (callback == NULL) {
+    return;
+  }
+
+  Dart_TimelineRecorderEvent recorder_event;
+  recorder_event.version = DART_TIMELINE_RECORDER_CURRENT_VERSION;
+  switch (event->event_type()) {
+    case TimelineEvent::kBegin:
+      recorder_event.type = Dart_Timeline_Event_Begin;
+      break;
+    case TimelineEvent::kEnd:
+      recorder_event.type = Dart_Timeline_Event_End;
+      break;
+    case TimelineEvent::kInstant:
+      recorder_event.type = Dart_Timeline_Event_Instant;
+      break;
+    case TimelineEvent::kDuration:
+      recorder_event.type = Dart_Timeline_Event_Duration;
+      break;
+    case TimelineEvent::kAsyncBegin:
+      recorder_event.type = Dart_Timeline_Event_Async_Begin;
+      break;
+    case TimelineEvent::kAsyncEnd:
+      recorder_event.type = Dart_Timeline_Event_Async_End;
+      break;
+    case TimelineEvent::kAsyncInstant:
+      recorder_event.type = Dart_Timeline_Event_Async_Instant;
+      break;
+    case TimelineEvent::kCounter:
+      recorder_event.type = Dart_Timeline_Event_Counter;
+      break;
+    case TimelineEvent::kFlowBegin:
+      recorder_event.type = Dart_Timeline_Event_Flow_Begin;
+      break;
+    case TimelineEvent::kFlowStep:
+      recorder_event.type = Dart_Timeline_Event_Flow_Step;
+      break;
+    case TimelineEvent::kFlowEnd:
+      recorder_event.type = Dart_Timeline_Event_Flow_End;
+      break;
+    default:
+      // Type not expressible as Dart_Timeline_Event_Type: drop event.
+      return;
+  }
+  recorder_event.timestamp0 = event->timestamp0();
+  recorder_event.timestamp1_or_async_id = event->timestamp1();
+  recorder_event.isolate = event->isolate_id();
+  recorder_event.isolate_group = event->isolate_group_id();
+  recorder_event.label = event->label();
+  recorder_event.stream = event->stream()->name();
+  recorder_event.argument_count = event->GetNumArguments();
+  recorder_event.arguments =
+      reinterpret_cast<Dart_TimelineRecorderEvent_Argument*>(
+          event->arguments());
+
+  NoActiveIsolateScope no_active_isolate_scope;
+  callback(&recorder_event);
+}
+
+void TimelineEventNopRecorder::OnEvent(TimelineEvent* event) {
+  // Do nothing.
+}
+
 TimelineEventPlatformRecorder::TimelineEventPlatformRecorder() {}
 
 TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
@@ -1680,77 +1811,44 @@ void TimelineEventBlock::Finish() {
 #endif
 }
 
-void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
-                                               TimelineEvent* event,
+void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
                                                int64_t id,
-                                               const char* phase,
-                                               const char* category,
+                                               intptr_t type,
                                                char* name,
                                                char* args) {
-  ASSERT(phase != NULL);
-  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e') ||
-         (phase[0] == 'B') || (phase[0] == 'E'));
-  ASSERT(phase[1] == '\0');
   const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   const int64_t start_cpu = OS::GetCurrentThreadCPUMicrosForTimeline();
-  switch (phase[0]) {
-    case 'n':
+  switch (static_cast<TimelineEvent::EventType>(type)) {
+    case TimelineEvent::kAsyncInstant:
       event->AsyncInstant(name, id, start);
       break;
-    case 'b':
+    case TimelineEvent::kAsyncBegin:
       event->AsyncBegin(name, id, start);
       break;
-    case 'e':
+    case TimelineEvent::kAsyncEnd:
       event->AsyncEnd(name, id, start);
       break;
-    case 'B':
+    case TimelineEvent::kBegin:
       event->Begin(name, id, start, start_cpu);
       break;
-    case 'E':
+    case TimelineEvent::kEnd:
       event->End(name, id, start, start_cpu);
       break;
-    default:
-      UNREACHABLE();
-  }
-  event->set_owns_label(true);
-  event->CompleteWithPreSerializedArgs(args);
-}
-
-void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
-                                               TimelineEvent* event,
-                                               const char* category,
-                                               char* name,
-                                               int64_t type,
-                                               int64_t flow_id,
-                                               char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
-  TimelineEvent::EventType event_type =
-      static_cast<TimelineEvent::EventType>(type);
-  switch (event_type) {
     case TimelineEvent::kFlowBegin:
-      event->FlowBegin(name, flow_id, start);
+      event->FlowBegin(name, id, start);
       break;
     case TimelineEvent::kFlowStep:
-      event->FlowStep(name, flow_id, start);
+      event->FlowStep(name, id, start);
       break;
     case TimelineEvent::kFlowEnd:
-      event->FlowEnd(name, flow_id, start);
+      event->FlowEnd(name, id, start);
+      break;
+    case TimelineEvent::kInstant:
+      event->Instant(name, start);
       break;
     default:
       UNREACHABLE();
-      break;
   }
-  event->set_owns_label(true);
-  event->CompleteWithPreSerializedArgs(args);
-}
-
-void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
-                                                  TimelineEvent* event,
-                                                  const char* category,
-                                                  char* name,
-                                                  char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
-  event->Instant(name, start);
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);
 }

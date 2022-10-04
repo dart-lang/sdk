@@ -51,17 +51,15 @@ class WorkspaceSymbolHandler
 
     var workspaceSymbols = search.WorkspaceSymbols();
     var analysisDrivers = server.driverMap.values.toList();
-    for (var analysisDriver in analysisDrivers) {
-      await analysisDriver.search.declarations(
-        workspaceSymbols,
-        regex,
-        remainingResults,
-        cancellationToken: token,
-      );
+    await search.FindDeclarations(
+      analysisDrivers,
+      workspaceSymbols,
+      regex,
+      remainingResults,
+    ).compute(token);
 
-      if (workspaceSymbols.cancelled) {
-        return cancelled();
-      }
+    if (workspaceSymbols.cancelled) {
+      return cancelled();
     }
 
     // Map the results to SymbolInformations and flatten the list of lists.
@@ -93,7 +91,7 @@ class WorkspaceSymbolHandler
       declaration.codeLength,
     );
     final location = Location(
-      uri: Uri.file(filePath).toString(),
+      uri: Uri.file(filePath),
       range: range,
     );
 

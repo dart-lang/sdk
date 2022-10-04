@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'common.dart';
 import 'elements/entities.dart';
 import 'js_model/closure.dart';
-import 'js_model/element_map.dart';
+import 'js_model/element_map_interfaces.dart';
+import 'js_model/element_map_migrated.dart';
 import 'serialization/serialization.dart';
 
 export 'closure_migrated.dart'
@@ -88,7 +87,6 @@ class ScopeInfo {
       case ScopeInfoKind.closureRepresentationInfo:
         return JsClosureClassInfo.readFromDataSource(source);
     }
-    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// Serializes this [ScopeInfo] to [sink].
@@ -98,7 +96,7 @@ class ScopeInfo {
 
   /// Convenience reference pointer to the element representing `this`.
   /// If this scope is not in an instance member, it will be null.
-  Local get thisLocal => null;
+  Local? get thisLocal => null;
 
   /// Returns true if this [variable] is used inside a `try` block or a `sync*`
   /// generator (this is important to know because boxing/redirection needs to
@@ -147,7 +145,6 @@ class CapturedScope extends ScopeInfo {
       case ScopeInfoKind.capturedLoopScope:
         return JsCapturedLoopScope.readFromDataSource(source);
     }
-    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// If true, this closure accesses a variable that was defined in an outside
@@ -161,7 +158,7 @@ class CapturedScope extends ScopeInfo {
   /// executed. This will encapsulate the value of any variables that have been
   /// scoped into this context from outside. This is an accessor to the
   /// contextBox that [requiresContextBox] is testing is required.
-  Local get contextBox => null;
+  Local? get contextBox => null;
 }
 
 /// Class that describes the actual mechanics of how values of variables
@@ -193,7 +190,6 @@ class CapturedLoopScope extends CapturedScope {
       case ScopeInfoKind.capturedLoopScope:
         return JsCapturedLoopScope.readFromDataSource(source);
     }
-    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// True if this loop scope declares in the first part of the loop
@@ -263,27 +259,26 @@ class ClosureRepresentationInfo extends ScopeInfo {
       case ScopeInfoKind.closureRepresentationInfo:
         return JsClosureClassInfo.readFromDataSource(source);
     }
-    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// The original local function before any translation.
   ///
   /// Will be null for methods.
-  Local getClosureEntity(KernelToLocalsMap localsMap) => null;
+  Local? getClosureEntity(KernelToLocalsMap localsMap) => null;
 
   /// The entity for the class used to represent the rewritten closure in the
   /// emitted JavaScript.
   ///
   /// Closures are rewritten in the form of classes that have fields to control
   /// the redirection and editing of captured variables.
-  ClassEntity get closureClassEntity => null;
+  ClassEntity? get closureClassEntity => null;
 
   /// The function that implements the [local] function as a `call` method on
   /// the closure class.
-  FunctionEntity get callMethod => null;
+  FunctionEntity? get callMethod => null;
 
   /// The signature method for [callMethod] if needed.
-  FunctionEntity get signatureMethod => null;
+  FunctionEntity? get signatureMethod => null;
 
   /// List of locals that this closure class has created corresponding field
   /// entities for.
@@ -301,7 +296,7 @@ class ClosureRepresentationInfo extends ScopeInfo {
 
   /// Convenience pointer to the field entity representation in the closure
   /// class of the element representing `this`.
-  FieldEntity get thisFieldEntity => null;
+  FieldEntity? get thisFieldEntity => null;
 
   /// Loop through each variable that has been boxed in this closure class. Only
   /// captured variables that are mutated need to be "boxed" (which basically

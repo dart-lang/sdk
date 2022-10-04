@@ -1356,7 +1356,6 @@ int x = E(^);
     await assertOpType();
   }
 
-//
   Future<void> test_forStatement_initializer_type() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (i^ v = 0;)}');
@@ -2222,6 +2221,145 @@ void f(int a, {int b}) {}
         returnValue: true,
         typeNames: true,
         voidReturn: true);
+  }
+
+  Future<void> test_recordLiteral_fieldName() async {
+    addTestSource('final x = (foo^: 0)');
+    await assertOpType(
+      completionLocation: 'RecordLiteral_fields',
+    );
+  }
+
+  Future<void> test_recordLiteral_fields() async {
+    addTestSource('final x = (0, ^)');
+    await assertOpType(
+      completionLocation: 'RecordLiteral_fields',
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_recordTypeAnnotation_named_comma_prefix_x_right() async {
+    addTestSource('({int f01, Str^}) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationNamedFields_fields',
+      typeNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_named_comma_prefix_x_suffix_right() async {
+    addTestSource('({int f01, Str^ng}) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationNamedFields_fields',
+      typeNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_named_comma_type_space_prefix_x_right() async {
+    addTestSource('({int f01, String ^}) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationNamedField_name',
+      varNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_named_comma_type_x_space_name_right() async {
+    addTestSource('({int foo, String^ str}) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationNamedFields_fields',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_recordTypeAnnotation_named_comma_x_right() async {
+    addTestSource('({int f01, ^}) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationNamedFields_fields',
+      typeNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_named_comma_x_space_named_right() async {
+    addTestSource('({int f01, ^ f02}) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationNamedFields_fields',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_recordTypeAnnotation_named_comma_x_space_right() async {
+    addTestSource('({int f01, ^ }) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationNamedFields_fields',
+      typeNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_positional_comma_prefix_x_right() async {
+    addTestSource('(int, Str^) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotation_positionalFields',
+      typeNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_positional_comma_type_space_prefix_x_right() async {
+    addTestSource('(int, String str^) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotationPositionalField_name',
+      varNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_positional_comma_type_space_x_right() async {
+    addTestSource('(int, String ^) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotation_positionalFields',
+      varNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_positional_comma_type_space_x_space_right() async {
+    addTestSource('(int, String ^ ) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotation_positionalFields',
+      varNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_positional_comma_type_x_space_name_right() async {
+    addTestSource('(int, String^ str) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotation_positionalFields',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_recordTypeAnnotation_positional_comma_x_right() async {
+    addTestSource('(int, ^) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotation_positionalFields',
+      typeNames: true,
+    );
+  }
+
+  Future<void>
+      test_recordTypeAnnotation_positional_comma_x_space_name_right() async {
+    addTestSource('(int, ^ str) f() {}');
+    await assertOpType(
+      completionLocation: 'RecordTypeAnnotation_positionalFields',
+      typeNames: true,
+    );
   }
 
   Future<void> test_returnStatement_empty_noSemicolon() async {

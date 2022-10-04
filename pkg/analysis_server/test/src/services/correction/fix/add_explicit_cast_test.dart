@@ -20,6 +20,27 @@ class AddExplicitCastTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST;
 
+  Future<void> test_argument() async {
+    await resolveTestCode('''
+void g(B b) {
+}
+void f(A a) {
+  g(a);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+void g(B b) {
+}
+void f(A a) {
+  g(a as B);
+}
+class A {}
+class B {}
+''');
+  }
+
   Future<void> test_as() async {
     await resolveTestCode('''
 f(A a) {
@@ -70,6 +91,27 @@ f(A a) {
   B b, b2;
   b = a as B;
   b2 = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_iterable_to_set() async {
+    await resolveTestCode('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.where((e) => e is B).toSet();
+  print(b);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.where((e) => e is B).cast<B>().toSet();
+  print(b);
 }
 class A {}
 class B {}

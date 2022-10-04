@@ -376,7 +376,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   static bool TryAcquireMarkBit(ObjectPtr raw_obj) {
     if (FLAG_write_protect_code && raw_obj->IsInstructions()) {
       // A non-writable alias mapping may exist for instruction pages.
-      raw_obj = OldPage::ToWritable(raw_obj);
+      raw_obj = Page::ToWritable(raw_obj);
     }
     if (!sync) {
       raw_obj->untag()->SetMarkBitUnsynchronized();
@@ -460,7 +460,7 @@ class MarkingWeakVisitor : public HandleVisitor {
  public:
   explicit MarkingWeakVisitor(Thread* thread)
       : HandleVisitor(thread),
-        class_table_(thread->isolate_group()->shared_class_table()) {}
+        class_table_(thread->isolate_group()->class_table()) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -472,7 +472,7 @@ class MarkingWeakVisitor : public HandleVisitor {
   }
 
  private:
-  SharedClassTable* class_table_;
+  ClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
@@ -495,7 +495,7 @@ void GCMarker::ResetSlices() {
   root_slices_finished_ = 0;
   root_slices_count_ = kNumFixedRootSlices;
   new_page_ = heap_->new_space()->head();
-  for (NewPage* p = new_page_; p != nullptr; p = p->next()) {
+  for (Page* p = new_page_; p != nullptr; p = p->next()) {
     root_slices_count_++;
   }
 
@@ -518,7 +518,7 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
         break;
       }
       default: {
-        NewPage* page;
+        Page* page;
         {
           MonitorLocker ml(&root_slices_monitor_);
           page = new_page_;

@@ -7,6 +7,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
@@ -29,6 +30,25 @@ class DartUnitHoverComputer {
     if (node == null) {
       return null;
     }
+
+    SyntacticEntity? locationEntity;
+    if (node is NamedCompilationUnitMember) {
+      locationEntity = node.name;
+    } else if (node is Expression) {
+      locationEntity = node;
+    } else if (node is ExtensionDeclaration) {
+      locationEntity = node.name;
+    } else if (node is FormalParameter) {
+      locationEntity = node.name;
+    } else if (node is MethodDeclaration) {
+      locationEntity = node.name;
+    } else if (node is VariableDeclaration) {
+      locationEntity = node.name;
+    }
+    if (locationEntity == null) {
+      return null;
+    }
+
     var parent = node.parent;
     var grandParent = parent?.parent;
     if (parent is NamedType &&
@@ -39,19 +59,23 @@ class DartUnitHoverComputer {
         grandParent is InstanceCreationExpression) {
       node = grandParent;
     }
-    if (node is Expression) {
-      var expression = node;
+    if (node != null &&
+        (node is CompilationUnitMember ||
+            node is Expression ||
+            node is FormalParameter ||
+            node is MethodDeclaration ||
+            node is VariableDeclaration)) {
       // For constructor calls the whole expression is selected (above) but this
       // results in the range covering the whole call so narrow it to just the
       // ConstructorName.
-      var hover = expression is InstanceCreationExpression
+      var hover = node is InstanceCreationExpression
           ? HoverInformation(
-              expression.constructorName.offset,
-              expression.constructorName.length,
+              node.constructorName.offset,
+              node.constructorName.length,
             )
-          : HoverInformation(expression.offset, expression.length);
+          : HoverInformation(locationEntity.offset, locationEntity.length);
       // element
-      var element = ElementLocator.locate(expression);
+      var element = ElementLocator.locate(node);
       if (element != null) {
         // variable, if synthetic accessor
         if (element is PropertyAccessorElement) {
@@ -71,9 +95,10 @@ class DartUnitHoverComputer {
         hover.elementKind = element.kind.displayName;
         hover.isDeprecated = element.hasDeprecated;
         // not local element
-        if (element.enclosingElement3 is! ExecutableElement) {
+        if (element.enclosingElement is! ExecutableElement) {
           // containing class
-          var containingClass = element.thisOrAncestorOfType<ClassElement>();
+          var containingClass =
+              element.thisOrAncestorOfType<InterfaceElement>();
           if (containingClass != null && containingClass != element) {
             hover.containingClassDescription = containingClass.displayName;
           }
@@ -105,17 +130,24 @@ class DartUnitHoverComputer {
         hover.dartdoc = computeDocumentation(_dartdocInfo, element)?.full;
       }
       // parameter
-      hover.parameter = _elementDisplayString(
-        expression.staticParameterElement,
-      );
+      if (node is Expression) {
+        hover.parameter = _elementDisplayString(
+          node.staticParameterElement,
+        );
+      }
       // types
       {
-        var parent = expression.parent;
+        var parent = node.parent;
         DartType? staticType;
-        if (element == null || element is VariableElement) {
-          staticType = _getTypeOfDeclarationOrReference(node);
+        if (element is VariableElement) {
+          staticType = element.type;
         }
-        if (parent is MethodInvocation && parent.methodName == expression) {
+        if (node is Expression) {
+          if (element == null || element is VariableElement) {
+            staticType = _getTypeOfDeclarationOrReference(node);
+          }
+        }
+        if (parent is MethodInvocation && parent.methodName == node) {
           staticType = parent.staticInvokeType;
           if (staticType != null && staticType.isDynamic) {
             staticType = null;
@@ -152,7 +184,7 @@ class DartUnitHoverComputer {
       element = element.field;
     }
     if (element is ParameterElement) {
-      element = element.enclosingElement3;
+      element = element.enclosingElement;
     }
     if (element == null) {
       // This can happen when the code is invalid, such as having a field formal
@@ -197,9 +229,9 @@ class DartUnitHoverComputer {
     var result =
         dartdocInfo.processDartdoc(rawDoc, includeSummary: includeSummary);
 
-    var documentedElementClass = documentedElement.enclosingElement3;
+    var documentedElementClass = documentedElement.enclosingElement;
     if (documentedElementClass != null &&
-        documentedElementClass != element.enclosingElement3) {
+        documentedElementClass != element.enclosingElement) {
       var documentedClass = documentedElementClass.displayName;
       result.full = '${result.full}\n\nCopied from `$documentedClass`.';
     }

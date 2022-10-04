@@ -20,7 +20,7 @@ List<Element> getChildren(Element parent, [String? name]) {
   return children;
 }
 
-/// Returns direct non-synthetic children of the given [ClassElement].
+/// Returns direct non-synthetic children of the given [InterfaceElement].
 ///
 /// Includes: fields, accessors and methods.
 /// Excludes: constructors and synthetic elements.
@@ -48,10 +48,10 @@ List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
 }
 
 /// Returns a [Set] with direct subclasses of [seed].
-Future<Set<ClassElement>> getDirectSubClasses(
+Future<Set<InterfaceElement>> getDirectSubClasses(
     SearchEngine searchEngine, InterfaceElement seed) async {
   var matches = await searchEngine.searchSubtypes(seed);
-  return matches.map((match) => match.element).cast<ClassElement>().toSet();
+  return matches.map((match) => match.element).cast<InterfaceElement>().toSet();
 }
 
 /// Return the non-synthetic children of the given [extension]. This includes
@@ -82,7 +82,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) async {
   Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
-  var enclosingElement = member.enclosingElement3;
+  var enclosingElement = member.enclosingElement;
   if (enclosingElement is ExtensionElement) {
     result.add(member);
     return Future.value(result);
@@ -90,10 +90,10 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   // static elements
   if (member.isStatic || member is ConstructorElement) {
     result.add(member);
-    return Future.value(result);
+    return result;
   }
   // method, field, etc
-  if (enclosingElement is ClassElement) {
+  if (enclosingElement is InterfaceElement) {
     var name = member.displayName;
     var searchClasses = [
       ...enclosingElement.allSupertypes.map((e) => e.element2),
@@ -126,7 +126,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
 Future<List<ParameterElement>> getHierarchyNamedParameters(
     SearchEngine searchEngine, ParameterElement element) async {
   if (element.isNamed) {
-    var method = element.enclosingElement3;
+    var method = element.enclosingElement;
     if (method is MethodElement) {
       var hierarchyParameters = <ParameterElement>[];
       var hierarchyMembers = await getHierarchyMembers(searchEngine, method);
@@ -147,7 +147,7 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
   return [element];
 }
 
-/// Returns non-synthetic members of the given [ClassElement] and its super
+/// Returns non-synthetic members of the given [InterfaceElement] and its super
 /// classes.
 ///
 /// Includes: fields, accessors and methods.

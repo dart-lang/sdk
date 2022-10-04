@@ -51,13 +51,15 @@ class JsUtilWasmOptimizer extends Transformer {
   final Procedure _newObjectTarget;
   final Procedure _wrapDartFunctionTarget;
   final Procedure _allowInteropTarget;
-  final Class _wasmAnyRefClass;
+  final Procedure _numToInt;
+  final Class _wasmExternRefClass;
   final Class _objectClass;
   final Class _pragmaClass;
   final Field _pragmaName;
   final Field _pragmaOptions;
   final Member _globalThisMember;
   int _functionTrampolineN = 1;
+  late Library _library;
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
@@ -83,7 +85,12 @@ class JsUtilWasmOptimizer extends Transformer {
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'newObject'),
         _allowInteropTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
-        _wasmAnyRefClass = _coreTypes.index.getClass('dart:wasm', 'WasmAnyRef'),
+        _wasmExternRefClass =
+            _coreTypes.index.getClass('dart:wasm', 'WasmExternRef'),
+        _numToInt = _coreTypes.index
+            .getClass('dart:core', 'num')
+            .procedures
+            .firstWhere((p) => p.name.text == 'toInt'),
         _objectClass = _coreTypes.objectClass,
         _pragmaClass = _coreTypes.pragmaClass,
         _pragmaName = _coreTypes.pragmaName,
@@ -93,6 +100,7 @@ class JsUtilWasmOptimizer extends Transformer {
 
   @override
   Library visitLibrary(Library lib) {
+    _library = lib;
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
@@ -131,10 +139,9 @@ class JsUtilWasmOptimizer extends Transformer {
           if (hasAnonymousAnnotation(cls)) {
             transformedBody = _getExternalAnonymousConstructorBody(node);
           } else {
-            String jsName = getJSName(cls);
-            String constructorName = jsName == '' ? cls.name : jsName;
-            transformedBody =
-                _getExternalCallConstructorBody(node, constructorName);
+            _JSMemberSelector selector = _processJSName(cls, cls.name, node);
+            transformedBody = _getExternalCallConstructorBody(
+                node, selector.target, selector.member);
           }
         }
       } else if (node.isExtensionMember) {
@@ -153,23 +160,9 @@ class JsUtilWasmOptimizer extends Transformer {
           }
         }
       } else if (hasJSInteropAnnotation(node)) {
-        String selectorString = getJSName(node);
-        late Expression target;
-        late String name;
-        if (selectorString.isEmpty) {
-          target = _globalThis;
-          name = node.name.text;
-        } else {
-          List<String> selectors = selectorString.split('.');
-          if (selectors.length == 1) {
-            target = _globalThis;
-            name = selectors.single;
-          } else {
-            target = getObjectOffGlobalThis(
-                node, selectors.sublist(0, selectors.length - 1));
-            name = selectors.last;
-          }
-        }
+        _JSMemberSelector selector = _processJSName(node, node.name.text, node);
+        Expression target = selector.target;
+        String name = selector.member;
         if (node.isGetter) {
           transformedBody = _getExternalGetterBody(node, target, name);
         } else if (node.isSetter) {
@@ -190,6 +183,28 @@ class JsUtilWasmOptimizer extends Transformer {
     }
     _staticTypeContext.leaveMember(node);
     return node;
+  }
+
+  _JSMemberSelector _processJSName(
+      Annotatable a, String nameOnEmpty, Procedure node) {
+    String selectorString = getJSName(a);
+    Expression target;
+    String name;
+    if (selectorString.isEmpty) {
+      target = _globalThis;
+      name = nameOnEmpty;
+    } else {
+      List<String> selectors = selectorString.split('.');
+      if (selectors.length == 1) {
+        target = _globalThis;
+        name = selectors.single;
+      } else {
+        target = getObjectOffGlobalThis(
+            node, selectors.sublist(0, selectors.length - 1));
+        name = selectors.last;
+      }
+    }
+    return _JSMemberSelector(target, name);
   }
 
   /// Returns and initializes `_extensionMemberIndex` to an index of the member
@@ -225,9 +240,9 @@ class JsUtilWasmOptimizer extends Transformer {
   /// [String] function name representing the name of the wrapping function.
   /// TODO(joshualitt): Share callback trampolines if the [FunctionType]
   /// matches.
-  String _createFunctionTrampoline(Procedure node, FunctionType function) {
+  String _createFunctionTrampoline(
+      Procedure node, FunctionType function, Expression argument) {
     int fileOffset = node.fileOffset;
-    Library library = node.enclosingLibrary;
 
     // Create arguments for each positional parameter in the function. These
     // arguments will be converted in JS to Dart objects. The generated wrapper
@@ -243,24 +258,67 @@ class JsUtilWasmOptimizer extends Transformer {
     List<Expression> callbackArguments = [];
     DartType nullableObjectType =
         _objectClass.getThisType(_coreTypes, Nullability.nullable);
-    for (DartType type in function.positionalParameters) {
+    for (int i = 0; i < function.positionalParameters.length; i++) {
+      DartType type = function.positionalParameters[i];
+      Expression? defaultExpression;
+      bool hasDefault = i >= function.requiredParameterCount;
+      if (hasDefault) {
+        // We can only generate default values if we have a statically typed
+        // function argument.
+        Expression? initializer;
+        if (argument is ConstantExpression) {
+          Procedure callbackTarget = (argument.constant as TearOffConstant)
+              .targetReference
+              .asProcedure;
+          initializer =
+              callbackTarget.function.positionalParameters[i].initializer;
+        } else if (argument is FunctionExpression) {
+          initializer = argument.function.positionalParameters[i].initializer;
+        } else if (argument is InstanceTearOff) {
+          initializer = argument.interfaceTargetReference.asProcedure.function
+              .positionalParameters[i].initializer;
+        } else {
+          throw 'Cannot pass default arguments.';
+        }
+
+        // The initializer for a default argument must be a
+        // [ConstantExpression].
+        ConstantExpression init = initializer as ConstantExpression;
+        defaultExpression = ConstantExpression(init.constant, init.type);
+      }
       VariableDeclaration variable =
           VariableDeclaration('x${parameterId++}', type: nullableObjectType);
       positionalParameters.add(variable);
-      callbackArguments.add(AsExpression(VariableGet(variable), type));
+      Expression body;
+      if (hasDefault) {
+        body = ConditionalExpression(
+            StaticInvocation(
+                _coreTypes.identicalProcedure,
+                Arguments([
+                  VariableGet(variable),
+                  ConstantExpression(NullConstant())
+                ])),
+            defaultExpression ?? ConstantExpression(NullConstant()),
+            VariableGet(variable),
+            nullableObjectType);
+      } else {
+        body = VariableGet(variable);
+      }
+      callbackArguments.add(AsExpression(body, type));
     }
 
     // Create a new procedure for the callback trampoline. This procedure will
     // be exported from Wasm to JS so it can be called from JS. The argument
     // returned from the supplied callback will be converted with `jsifyRaw` to
     // a native JS value before being returned to JS.
-    DartType nullableWasmAnyRefType =
-        _wasmAnyRefClass.getThisType(_coreTypes, Nullability.nullable);
+    DartType nullableWasmExternRefType =
+        _wasmExternRefClass.getThisType(_coreTypes, Nullability.nullable);
+    final String libraryName = _library.name ?? 'Unnamed';
     final functionTrampolineName =
-        '|_functionTrampoline${_functionTrampolineN++}';
+        '|_functionTrampoline${_functionTrampolineN++}For$libraryName';
     final functionTrampolineImportName = '\$$functionTrampolineName';
     final functionTrampoline = Procedure(
-        Name(functionTrampolineName, library),
+        Name(functionTrampolineName, _library),
         ProcedureKind.Method,
         FunctionNode(
             ReturnStatement(StaticInvocation(
@@ -273,7 +331,7 @@ class JsUtilWasmOptimizer extends Transformer {
                       functionType: function),
                 ]))),
             positionalParameters: positionalParameters,
-            returnType: nullableWasmAnyRefType)
+            returnType: nullableWasmExternRefType)
           ..fileOffset = fileOffset,
         isStatic: true,
         fileUri: node.fileUri)
@@ -285,7 +343,7 @@ class JsUtilWasmOptimizer extends Transformer {
       _pragmaOptions.fieldReference:
           StringConstant(functionTrampolineImportName)
     })));
-    library.addProcedure(functionTrampoline);
+    _library.addProcedure(functionTrampoline);
     return functionTrampolineImportName;
   }
 
@@ -293,11 +351,17 @@ class JsUtilWasmOptimizer extends Transformer {
   /// [_createFunctionTrampoline] followed by `_wrapDartFunction`.
   StaticInvocation _allowInterop(
       Procedure node, FunctionType type, Expression argument) {
-    String functionTrampolineName = _createFunctionTrampoline(node, type);
+    String functionTrampolineName =
+        _createFunctionTrampoline(node, type, argument);
     return StaticInvocation(
         _wrapDartFunctionTarget,
-        Arguments([argument, StringLiteral(functionTrampolineName)],
-            types: [type]));
+        Arguments([
+          argument,
+          StringLiteral(functionTrampolineName),
+          ConstantExpression(IntConstant(type.positionalParameters.length))
+        ], types: [
+          type
+        ]));
   }
 
   StaticGet get _globalThis => StaticGet(_globalThisMember);
@@ -340,12 +404,12 @@ class JsUtilWasmOptimizer extends Transformer {
   /// The new function body will call `js_util.callConstructor`
   /// for the given external method.
   ReturnStatement _getExternalCallConstructorBody(
-      Procedure node, String constructorName) {
+      Procedure node, Expression target, String constructorName) {
     var function = node.function;
     var callConstructorInvocation = StaticInvocation(
         _callConstructorTarget,
         Arguments([
-          _getProperty(node, _globalThis, constructorName),
+          _getProperty(node, target, constructorName),
           ListLiteral(
               function.positionalParameters
                   .map<Expression>((value) => VariableGet(value))
@@ -358,17 +422,59 @@ class JsUtilWasmOptimizer extends Transformer {
     return ReturnStatement(callConstructorInvocation);
   }
 
+  // Handles any necessary return type conversions. Today this is just for
+  // handling the case where a user wants us to coerce a JS number to an int
+  // instead of a double.
+  Expression _convertReturnType(DartType type, Expression expression) {
+    if (type == _coreTypes.intNullableRawType ||
+        type == _coreTypes.intNonNullableRawType) {
+      VariableDeclaration v =
+          VariableDeclaration('#var', initializer: expression);
+      return Let(
+          v,
+          ConditionalExpression(
+              StaticInvocation(
+                  _coreTypes.identicalProcedure,
+                  Arguments(
+                      [VariableGet(v), ConstantExpression(NullConstant())])),
+              ConstantExpression(NullConstant()),
+              InstanceInvocation(InstanceAccessKind.Instance, VariableGet(v),
+                  _numToInt.name, Arguments([]),
+                  interfaceTarget: _numToInt,
+                  functionType: _numToInt.function
+                      .computeFunctionType(Nullability.nonNullable)),
+              type));
+    } else {
+      return expression;
+    }
+  }
+
+  Expression _callAndConvertReturn(
+      DartType returnType, Expression generateCall(DartType type)) {
+    // Because we simply don't have enough information, we leave all JS numbers
+    // as doubles. However, in cases where we know the user expects an `int` we
+    // insert a cast.
+    DartType typeArgumentOverride = returnType == _coreTypes.intNullableRawType
+        ? _coreTypes.doubleNullableRawType
+        : returnType == _coreTypes.intNonNullableRawType
+            ? _coreTypes.doubleNonNullableRawType
+            : returnType;
+    return _convertReturnType(returnType, generateCall(typeArgumentOverride));
+  }
+
   /// Returns a new [Expression] for the given [node] external getter.
   ///
   /// The new [Expression] is equivalent to:
   /// `js_util.getProperty([object], [getterName])`.
   Expression _getProperty(Procedure node, Expression object, String getterName,
           {DartType? typeArgument}) =>
-      StaticInvocation(
-          _getPropertyTarget,
-          Arguments([object, StringLiteral(getterName)],
-              types: [typeArgument ?? node.function.returnType]))
-        ..fileOffset = node.fileOffset;
+      _callAndConvertReturn(
+          typeArgument ?? node.function.returnType,
+          (DartType typeArgumentOverride) => StaticInvocation(
+              _getPropertyTarget,
+              Arguments([object, StringLiteral(getterName)],
+                  types: [typeArgumentOverride]))
+            ..fileOffset = node.fileOffset);
 
   /// Returns a new function body for the given [node] external getter.
   ReturnStatement _getExternalGetterBody(
@@ -410,21 +516,23 @@ class JsUtilWasmOptimizer extends Transformer {
   /// The new function body is equivalent to:
   /// `js_util.callMethod([object], [methodName], [values])`.
   ReturnStatement _getExternalMethodBody(Procedure node, Expression object,
-      String methodName, List<VariableDeclaration> values) {
-    final callMethodInvocation = StaticInvocation(
-        _callMethodTarget,
-        Arguments([
-          object,
-          StringLiteral(methodName),
-          ListLiteral(
-              values.map<Expression>((value) => VariableGet(value)).toList(),
-              typeArgument: _nullableObjectType)
-        ], types: [
-          node.function.returnType
-        ]))
-      ..fileOffset = node.fileOffset;
-    return ReturnStatement(callMethodInvocation);
-  }
+          String methodName, List<VariableDeclaration> values) =>
+      ReturnStatement(_callAndConvertReturn(
+          node.function.returnType,
+          (DartType typeArgumentOverride) => StaticInvocation(
+              _callMethodTarget,
+              Arguments([
+                object,
+                StringLiteral(methodName),
+                ListLiteral(
+                    values
+                        .map<Expression>((value) => VariableGet(value))
+                        .toList(),
+                    typeArgument: _nullableObjectType)
+              ], types: [
+                typeArgumentOverride,
+              ]))
+            ..fileOffset = node.fileOffset));
 
   ReturnStatement _getExternalExtensionMethodBody(Procedure node) {
     final parameters = node.function.positionalParameters;
@@ -445,4 +553,11 @@ class JsUtilWasmOptimizer extends Transformer {
     }
     return _extensionMemberIndex![node.reference]!.name.text;
   }
+}
+
+class _JSMemberSelector {
+  final Expression target;
+  final String member;
+
+  _JSMemberSelector(this.target, this.member);
 }

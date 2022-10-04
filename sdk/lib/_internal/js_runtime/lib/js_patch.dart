@@ -328,6 +328,9 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   @patch
   E removeAt(int index) {
     _checkIndex(index);
+    // Avoid optimizing. Static type of [callMethod] is dynamic which makes
+    // indexing dynamic.
+    // ignore: avoid_dynamic_calls
     return callMethod('splice', [index, 1])[0];
   }
 

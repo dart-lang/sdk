@@ -46,7 +46,7 @@ class LinkedHashSet<E> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _CompactLinkedHashSet<E>();
+          return new _InternalLinkedHashSet<E>();
         }
         hashCode = _defaultHashCode;
       } else {

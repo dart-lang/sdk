@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
 import 'dart:async';
 import 'dart:io' show Directory, File, InternetAddress, stdin;
 
@@ -21,11 +20,11 @@ import 'src/resident_frontend_server.dart';
 /// version for testing.
 Future<int> starter(
   List<String> args, {
-  CompilerInterface compiler,
-  Stream<List<int>> input,
-  StringSink output,
-  IncrementalCompiler generator,
-  BinaryPrinterFactory binaryPrinterFactory,
+  CompilerInterface? compiler,
+  Stream<List<int>>? input,
+  StringSink? output,
+  IncrementalCompiler? generator,
+  BinaryPrinterFactory? binaryPrinterFactory,
 }) async {
   ArgResults options;
   try {
@@ -50,7 +49,7 @@ Future<int> starter(
 
     final String input = options.rest[0];
     final String sdkRoot = options['sdk-root'];
-    final String platform = options['platform'];
+    final String? platform = options['platform'];
     final Directory temp =
         Directory.systemTemp.createTempSync('train_frontend_server');
     try {

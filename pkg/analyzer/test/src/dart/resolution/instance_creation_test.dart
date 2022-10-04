@@ -139,7 +139,7 @@ InstanceCreationExpression
         staticType: null
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -147,7 +147,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::t
+          base: self::@class::A::@constructor::new::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -186,7 +186,7 @@ InstanceCreationExpression
         rightBracket: >
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -218,13 +218,13 @@ InstanceCreationExpression
         staticElement: self::@class::A
         staticType: null
       type: A
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::•::@parameter::a
+        parameter: self::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -256,7 +256,7 @@ InstanceCreationExpression
         staticType: null
       type: A<S>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: S}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -264,7 +264,7 @@ InstanceCreationExpression
       SimpleIdentifier
         token: s
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::t
+          base: self::@class::A::@constructor::new::@parameter::t
           substitution: {T: S}
         staticElement: self::@function::f::@parameter::s
         staticType: S & int
@@ -301,7 +301,7 @@ InstanceCreationExpression
         rightBracket: >
       type: Map<dynamic, dynamic>
     staticElement: ConstructorMember
-      base: dart:core::@class::Map::@constructor::•
+      base: dart:core::@class::Map::@constructor::new
       substitution: {K: dynamic, V: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -393,11 +393,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::Foo::@constructor::•
+        base: self::@class::Foo::@constructor::new
         substitution: {X: dynamic}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::Foo::@constructor::•
+      base: self::@class::Foo::@constructor::new
       substitution: {X: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -624,7 +624,7 @@ InstanceCreationExpression
         staticElement: self::@class::X
         staticType: null
       type: X
-    staticElement: self::@class::X::@constructor::•
+    staticElement: self::@class::X::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -636,7 +636,7 @@ InstanceCreationExpression
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: self::@class::X::@constructor::•::@parameter::a
+        parameter: self::@class::X::@constructor::new::@parameter::a
         staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
@@ -645,7 +645,7 @@ InstanceCreationExpression
         name: Label
           label: SimpleIdentifier
             token: c
-            staticElement: self::@class::X::@constructor::•::@parameter::c
+            staticElement: self::@class::X::@constructor::new::@parameter::c
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -660,7 +660,7 @@ InstanceCreationExpression
           staticType: C?
           typeArgumentTypes
             C?
-        parameter: self::@class::X::@constructor::•::@parameter::c
+        parameter: self::@class::X::@constructor::new::@parameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
@@ -669,7 +669,7 @@ InstanceCreationExpression
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: self::@class::X::@constructor::•::@parameter::b
+        parameter: self::@class::X::@constructor::new::@parameter::b
         staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
@@ -678,7 +678,7 @@ InstanceCreationExpression
         name: Label
           label: SimpleIdentifier
             token: d
-            staticElement: self::@class::X::@constructor::•::@parameter::d
+            staticElement: self::@class::X::@constructor::new::@parameter::d
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -693,7 +693,7 @@ InstanceCreationExpression
           staticType: D?
           typeArgumentTypes
             D?
-        parameter: self::@class::X::@constructor::•::@parameter::d
+        parameter: self::@class::X::@constructor::new::@parameter::d
     rightParenthesis: )
   staticType: X
 ''');
@@ -819,7 +819,7 @@ InstanceCreationExpression
         staticType: null
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -827,7 +827,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::t
+          base: self::@class::A::@constructor::new::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -859,7 +859,7 @@ InstanceCreationExpression
         staticType: null
       type: A<int, String>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -867,7 +867,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::t
+          base: self::@class::A::@constructor::new::@parameter::t
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -952,7 +952,7 @@ InstanceCreationExpression
         staticType: null
       type: A<String>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -960,7 +960,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::t
+          base: self::@class::A::@constructor::new::@parameter::t
           substitution: {T: String}
         staticType: int
     rightParenthesis: )
@@ -990,13 +990,13 @@ InstanceCreationExpression
         staticElement: self::@class::A
         staticType: null
       type: A
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::•::@parameter::a
+        parameter: self::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1028,15 +1028,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::•::@parameter::a
+        parameter: self::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1068,15 +1068,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::•::@parameter::a
+        parameter: self::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1115,15 +1115,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::•::@parameter::a
+        parameter: self::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A

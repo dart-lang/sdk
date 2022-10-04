@@ -1240,6 +1240,31 @@ void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "_RecordType");
+
+  {
+    JSONArray arr(&jsobj, "fields");
+    const intptr_t num_fields = NumFields();
+    const intptr_t num_positional_fields = NumPositionalFields();
+    AbstractType& type = AbstractType::Handle();
+    String& name = String::Handle();
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      JSONObject field(&arr);
+      type = FieldTypeAt(i);
+      field.AddProperty("type", type);
+      if (i >= num_positional_fields) {
+        name = FieldNameAt(i - num_positional_fields);
+        field.AddProperty("name", name.ToCString());
+      } else {
+        field.AddProperty("pos", i);
+      }
+    }
+  }
+}
+
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1617,6 +1642,46 @@ void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
+}
+
+void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "_Record");
+  jsobj.AddProperty("numFields", num_fields());
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(num_fields(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < num_fields()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= num_fields());
+  {
+    JSONArray jsarr(&jsobj, "fields");
+    Object& obj = Object::Handle();
+    String& name = String::Handle();
+    const intptr_t num_positional_fields = NumPositionalFields();
+    const Array& field_names = Array::Handle(this->field_names());
+    for (intptr_t index = offset; index < limit; ++index) {
+      JSONObject field(&jsarr);
+      obj = FieldAt(index);
+      field.AddProperty("value", obj);
+      if (index >= num_positional_fields) {
+        name ^= field_names.At(index - num_positional_fields);
+        field.AddProperty("name", name);
+      } else {
+        field.AddProperty("pos", index);
+      }
+    }
+  }
 }
 
 void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {

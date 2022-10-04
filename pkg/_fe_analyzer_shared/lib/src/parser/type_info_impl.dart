@@ -739,7 +739,8 @@ class ComplexTypeInfo implements TypeInfo {
         }
       } else {
         // Is it e.g. List<(int, int)> or Map<(int, int), (String, String)>?
-        if (!isOneOfOrEof(next, const [",", ">"])) {
+        // or List<List<(int, int)>> or List<List<List<(int, int)>>>.
+        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>>"])) {
           return noType;
         }
       }
@@ -769,6 +770,7 @@ class ComplexTypeInfo implements TypeInfo {
       Token token, final Token endGroup) {
     int parameterCount = 0;
     bool hasNamedFields = false;
+    bool hasComma = false;
     while (true) {
       Token next = token.next!;
       if (optional(')', next)) {
@@ -815,13 +817,14 @@ class ComplexTypeInfo implements TypeInfo {
           return;
         }
         break;
+      } else {
+        hasComma = true;
       }
       token = next;
     }
 
     if (!recovered &&
-        (parameterCount == 0 ||
-            (parameterCount == 1 && !hasNamedFields) ||
+        ((parameterCount == 1 && !hasNamedFields && !hasComma) ||
             token != endGroup)) {
       recovered = true;
       return;

@@ -72,7 +72,7 @@ class OverrideContributor extends DartCompletionContributor {
     var type = fields.type;
     if (variables.length == 1) {
       var variable = variables[0];
-      var targetId = variable.name2;
+      var targetId = variable.name;
       if (targetId.lexeme.isEmpty) {
         // analyzer parser
         // Actual: class C { foo^ }

@@ -131,9 +131,9 @@ class CovariantParametersVerifier {
             errorNode.length,
             [
               _thisMember.name,
-              _thisMember.enclosingElement3.name!,
+              _thisMember.enclosingElement.name!,
               _thisMember.type,
-              superMember.enclosingElement3.name!,
+              superMember.enclosingElement.name!,
               superMember.type,
             ],
           );
@@ -144,7 +144,7 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement3 as ClassElement;
+    var classElement = _thisMember.enclosingElement as InterfaceElement;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
@@ -272,6 +272,5 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement get member =>
-      element.enclosingElement3 as ExecutableElement;
+  ExecutableElement get member => element.enclosingElement as ExecutableElement;
 }

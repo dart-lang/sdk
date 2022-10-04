@@ -71,7 +71,7 @@ class CodegenImpactTransformer {
     }
     if (typeWithoutNullability is InterfaceType &&
         _nativeData.isNativeClass(typeWithoutNullability.element)) {
-      // We will neeed to add the "$is" and "$as" properties on the
+      // We will need to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
       _impacts.nativeTypeCheck.registerImpact(transformed, _elementEnvironment);
@@ -152,8 +152,7 @@ class CodegenImpactTransformer {
     }
 
     for (Set<ClassEntity> classes in impact.specializedGetInterceptors) {
-      _oneShotInterceptorData.registerSpecializedGetInterceptor(
-          classes, _namer);
+      _oneShotInterceptorData.registerSpecializedGetInterceptor(classes);
     }
 
     if (impact.usesInterceptor) {

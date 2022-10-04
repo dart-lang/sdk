@@ -82,7 +82,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
         !_isConstructorDeclarationReturnType(node)) {
       var nodeElement = node.writeOrReadElement;
       if (nodeElement != null &&
-          nodeElement.enclosingElement3 is CompilationUnitElement) {
+          nodeElement.enclosingElement is CompilationUnitElement) {
         var nodeLibrary = nodeElement.library;
         var path = nodeLibrary?.definingCompilationUnit.source.fullName;
         if (path == null) {

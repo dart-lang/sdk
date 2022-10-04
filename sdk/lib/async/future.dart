@@ -842,7 +842,7 @@ abstract class Future<T> {
   ///
   /// This method is equivalent to:
   /// ```dart
-  /// Future<T> whenComplete(action() {
+  /// Future<T> whenComplete(action()) {
   ///   return this.then((v) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) => v);
@@ -880,37 +880,72 @@ abstract class Future<T> {
   /// If the future never completes, the stream will not produce any events.
   Stream<T> asStream();
 
-  /// Time-out the future computation after [timeLimit] has passed.
+  /// Stop waiting for this future after [timeLimit] has passed.
   ///
-  /// Returns a new future that completes with the same value as this future,
-  /// if this future completes in time.
+  /// Creates a new _timeout future_ that completes
+  /// with the same result as this future, the _source future_,
+  /// *if* the source future completes in time.
   ///
-  /// If this future does not complete before `timeLimit` has passed,
-  /// the [onTimeout] action is executed instead, and its result (whether it
-  /// returns or throws) is used as the result of the returned future.
+  /// If the source future does not complete before [timeLimit] has passed,
+  /// the [onTimeout] action is executed,
+  /// and its result (whether it returns or throws)
+  /// is used as the result of the timeout future.
   /// The [onTimeout] function must return a [T] or a `Future<T>`.
+  /// If [onTimeout] returns a future, the _alternative result future_,
+  /// the eventual result of the alternative result future is used
+  /// to complete the timeout future,
+  /// even if the source future completes
+  /// before the alternative result future.
+  /// It only matters that the source future did not complete in time.
   ///
   /// If `onTimeout` is omitted, a timeout will cause the returned future to
   /// complete with a [TimeoutException].
   ///
-  /// Example:
+  /// In either case, the source future can still complete normally
+  /// at a later time.
+  /// It just won't be used as the result of the timeout future
+  /// unless it completes within the time bound.
+  ///
+  /// Examples:
   /// ```dart
   /// void main() async {
-  ///   var result = await waitTask()
-  ///       .timeout(const Duration(seconds: 10));
-  ///   print(result); // 'completed'
+  ///   var result =
+  ///       await waitTask("completed").timeout(const Duration(seconds: 10));
+  ///   print(result); // Prints "completed" after 5 seconds.
   ///
-  ///   result = await waitTask()
-  ///       .timeout(const Duration(seconds: 1), onTimeout: () => 'timeout');
-  ///   print(result); // 'timeout'
+  ///   result = await waitTask("completed")
+  ///       .timeout(const Duration(seconds: 1), onTimeout: () => "timeout");
+  ///   print(result); // Prints "timeout" after 1 second.
   ///
-  ///   result = await waitTask()
-  ///       .timeout(const Duration(seconds: 2)); // Throws.
+  ///   result = await waitTask("first").timeout(const Duration(seconds: 2),
+  ///       onTimeout: () => waitTask("second"));
+  ///   // Prints "second" after 7 seconds.
+  ///
+  ///   try {
+  ///     await waitTask("completed").timeout(const Duration(seconds: 2));
+  ///   } on TimeoutException {
+  ///     print("throws"); // Prints "throws" after 2 seconds.
+  ///   }
+  ///
+  ///   var printFuture = waitPrint();
+  ///   await printFuture.timeout(const Duration(seconds: 2), onTimeout: () {
+  ///     print("timeout");
+  ///   });
+  ///   // Prints "timeout" after 2 seconds.
+  ///   await printFuture;
+  ///   // Prints "printed" after additional 3 seconds.
   /// }
   ///
-  /// Future<String> waitTask() async {
+  /// // Returns [string] after five seconds.
+  /// Future<String> waitTask(String string) async {
   ///   await Future.delayed(const Duration(seconds: 5));
-  ///   return 'completed';
+  ///   return string;
+  /// }
+  ///
+  /// // Prints "printed" after five seconds.
+  /// Future<void> waitPrint() async {
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   print("printed");
   /// }
   /// ```
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
+import 'package:collection/collection.dart';
 
 /// A contributor that produces suggestions based on the instance members of a
 /// given type, whether declared by that type directly or inherited from a
@@ -30,7 +31,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
     if (expression is Identifier) {
       var elem = expression.staticElement;
-      if (elem is ClassElement) {
+      if (elem is InterfaceElement) {
         // Suggestions provided by StaticMemberContributor.
         return;
       }
@@ -89,6 +90,24 @@ class TypeMemberContributor extends DartCompletionContributor {
       var memberBuilder = _SuggestionBuilder(request, builder);
       memberBuilder.buildSuggestions(type,
           mixins: mixins, superclassConstraints: superclassConstraints);
+    } else if (type is RecordType) {
+      _suggestFromRecordType(type);
+    }
+  }
+
+  void _suggestFromRecordType(RecordType type) {
+    type.positionalFields.forEachIndexed((index, field) {
+      builder.suggestRecordField(
+        field: field,
+        name: '\$$index',
+      );
+    });
+
+    for (final field in type.namedFields) {
+      builder.suggestRecordField(
+        field: field,
+        name: field.name,
+      );
     }
   }
 }
@@ -108,7 +127,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (declaration.name2.lexeme == targetName) {
+    if (declaration.name.lexeme == targetName) {
       // no type
       finished();
     }
@@ -116,7 +135,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    if (declaration.name2.lexeme == targetName) {
+    if (declaration.name.lexeme == targetName) {
       // no type
       finished();
     }
@@ -124,7 +143,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (varDecl.name2.lexeme == targetName) {
+    if (varDecl.name.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }
@@ -132,7 +151,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (declaration.name2.lexeme == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -146,7 +165,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    if (declaration.name2.lexeme == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -160,7 +179,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
-    if (declaration.name2.lexeme == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.functionType?.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -194,7 +213,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    if (declaration.name2.lexeme == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -217,7 +236,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
-    if (varDecl.name2.lexeme == targetName) {
+    if (varDecl.name.lexeme == targetName) {
       // Type provided by the element in computeFull above.
       finished();
     }

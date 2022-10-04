@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.60.0';
+const String vmServiceVersion = '3.61.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2983,11 +2983,11 @@ class BoundVariable extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'value': value?.toJson(),
-      'declarationTokenPos': declarationTokenPos,
-      'scopeStartTokenPos': scopeStartTokenPos,
-      'scopeEndTokenPos': scopeEndTokenPos,
+      'declarationTokenPos': declarationTokenPos ?? -1,
+      'scopeStartTokenPos': scopeStartTokenPos ?? -1,
+      'scopeEndTokenPos': scopeEndTokenPos ?? -1,
     });
     return json;
   }
@@ -3055,9 +3055,9 @@ class Breakpoint extends Obj {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'breakpointNumber': breakpointNumber,
-      'enabled': enabled,
-      'resolved': resolved,
+      'breakpointNumber': breakpointNumber ?? -1,
+      'enabled': enabled ?? false,
+      'resolved': resolved ?? false,
       'location': location?.toJson(),
     });
     _setIfNotNull(
@@ -3126,7 +3126,7 @@ class ClassRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'library': library?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
@@ -3272,11 +3272,11 @@ class Class extends Obj implements ClassRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'library': library?.toJson(),
-      'abstract': isAbstract,
-      'const': isConst,
-      'traceAllocations': traceAllocations,
+      'abstract': isAbstract ?? false,
+      'const': isConst ?? false,
+      'traceAllocations': traceAllocations ?? false,
       'interfaces': interfaces?.map((f) => f.toJson()).toList(),
       'fields': fields?.map((f) => f.toJson()).toList(),
       'functions': functions?.map((f) => f.toJson()).toList(),
@@ -3346,10 +3346,10 @@ class ClassHeapStats extends Response {
     json['type'] = type;
     json.addAll({
       'class': classRef?.toJson(),
-      'accumulatedSize': accumulatedSize,
-      'bytesCurrent': bytesCurrent,
-      'instancesAccumulated': instancesAccumulated,
-      'instancesCurrent': instancesCurrent,
+      'accumulatedSize': accumulatedSize ?? -1,
+      'bytesCurrent': bytesCurrent ?? -1,
+      'instancesAccumulated': instancesAccumulated ?? -1,
+      'instancesCurrent': instancesCurrent ?? -1,
     });
     return json;
   }
@@ -3423,8 +3423,8 @@ class CodeRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
-      'kind': kind,
+      'name': name ?? '',
+      'kind': kind ?? '',
     });
     return json;
   }
@@ -3468,8 +3468,8 @@ class Code extends Obj implements CodeRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
-      'kind': kind,
+      'name': name ?? '',
+      'kind': kind ?? '',
     });
     return json;
   }
@@ -3507,7 +3507,7 @@ class ContextRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'length': length,
+      'length': length ?? -1,
     });
     return json;
   }
@@ -3562,7 +3562,7 @@ class Context extends Obj implements ContextRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'length': length,
+      'length': length ?? -1,
       'variables': variables?.map((f) => f.toJson()).toList(),
     });
     _setIfNotNull(json, 'parent', parent?.toJson());
@@ -3682,13 +3682,13 @@ class CpuSamples extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'samplePeriod': samplePeriod,
-      'maxStackDepth': maxStackDepth,
-      'sampleCount': sampleCount,
-      'timeSpan': timeSpan,
-      'timeOriginMicros': timeOriginMicros,
-      'timeExtentMicros': timeExtentMicros,
-      'pid': pid,
+      'samplePeriod': samplePeriod ?? -1,
+      'maxStackDepth': maxStackDepth ?? -1,
+      'sampleCount': sampleCount ?? -1,
+      'timeSpan': timeSpan ?? -1,
+      'timeOriginMicros': timeOriginMicros ?? -1,
+      'timeExtentMicros': timeExtentMicros ?? -1,
+      'pid': pid ?? -1,
       'functions': functions?.map((f) => f.toJson()).toList(),
       'samples': samples?.map((f) => f.toJson()).toList(),
     });
@@ -3768,13 +3768,13 @@ class CpuSamplesEvent {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'samplePeriod': samplePeriod,
-      'maxStackDepth': maxStackDepth,
-      'sampleCount': sampleCount,
-      'timeSpan': timeSpan,
-      'timeOriginMicros': timeOriginMicros,
-      'timeExtentMicros': timeExtentMicros,
-      'pid': pid,
+      'samplePeriod': samplePeriod ?? -1,
+      'maxStackDepth': maxStackDepth ?? -1,
+      'sampleCount': sampleCount ?? -1,
+      'timeSpan': timeSpan ?? -1,
+      'timeOriginMicros': timeOriginMicros ?? -1,
+      'timeExtentMicros': timeExtentMicros ?? -1,
+      'pid': pid ?? -1,
       'functions': functions?.map((f) => f.toJson()).toList(),
       'samples': samples?.map((f) => f.toJson()).toList(),
     });
@@ -3857,8 +3857,8 @@ class CpuSample {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'tid': tid,
-      'timestamp': timestamp,
+      'tid': tid ?? -1,
+      'timestamp': timestamp ?? -1,
       'stack': stack?.map((f) => f).toList(),
     });
     _setIfNotNull(json, 'vmTag', vmTag);
@@ -3905,8 +3905,8 @@ class ErrorRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'kind': kind,
-      'message': message,
+      'kind': kind ?? '',
+      'message': message ?? '',
     });
     return json;
   }
@@ -3968,8 +3968,8 @@ class Error extends Obj implements ErrorRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'kind': kind,
-      'message': message,
+      'kind': kind ?? '',
+      'message': message ?? '',
     });
     _setIfNotNull(json, 'exception', exception?.toJson());
     _setIfNotNull(json, 'stacktrace', stacktrace?.toJson());
@@ -4281,8 +4281,8 @@ class Event extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'kind': kind,
-      'timestamp': timestamp,
+      'kind': kind ?? '',
+      'timestamp': timestamp ?? -1,
     });
     _setIfNotNull(json, 'isolate', isolate?.toJson());
     _setIfNotNull(json, 'vm', vm?.toJson());
@@ -4390,12 +4390,12 @@ class FieldRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'owner': owner?.toJson(),
       'declaredType': declaredType?.toJson(),
-      'const': isConst,
-      'final': isFinal,
-      'static': isStatic,
+      'const': isConst ?? false,
+      'final': isFinal ?? false,
+      'static': isStatic ?? false,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -4490,12 +4490,12 @@ class Field extends Obj implements FieldRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'owner': owner?.toJson(),
       'declaredType': declaredType?.toJson(),
-      'const': isConst,
-      'final': isFinal,
-      'static': isStatic,
+      'const': isConst ?? false,
+      'final': isFinal ?? false,
+      'static': isStatic ?? false,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     _setIfNotNull(json, 'staticValue', staticValue?.toJson());
@@ -4548,9 +4548,9 @@ class Flag {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'name': name,
-      'comment': comment,
-      'modified': modified,
+      'name': name ?? '',
+      'comment': comment ?? '',
+      'modified': modified ?? false,
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
     return json;
@@ -4646,7 +4646,7 @@ class Frame extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'index': index,
+      'index': index ?? -1,
     });
     _setIfNotNull(json, 'function', function?.toJson());
     _setIfNotNull(json, 'code', code?.toJson());
@@ -4729,12 +4729,12 @@ class FuncRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'owner': owner?.toJson(),
-      'static': isStatic,
-      'const': isConst,
-      'implicit': implicit,
-      'abstract': isAbstract,
+      'static': isStatic ?? false,
+      'const': isConst ?? false,
+      'implicit': implicit ?? false,
+      'abstract': isAbstract ?? false,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -4831,12 +4831,12 @@ class Func extends Obj implements FuncRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'owner': owner?.toJson(),
-      'static': isStatic,
-      'const': isConst,
-      'implicit': implicit,
-      'abstract': isAbstract,
+      'static': isStatic ?? false,
+      'const': isConst ?? false,
+      'implicit': implicit ?? false,
+      'abstract': isAbstract ?? false,
       'signature': signature?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
@@ -5074,8 +5074,8 @@ class InstanceRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'kind': kind,
-      'identityHashCode': identityHashCode,
+      'kind': kind ?? '',
+      'identityHashCode': identityHashCode ?? -1,
       'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
@@ -5533,8 +5533,8 @@ class Instance extends Obj implements InstanceRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'kind': kind,
-      'identityHashCode': identityHashCode,
+      'kind': kind ?? '',
+      'identityHashCode': identityHashCode ?? -1,
       'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
@@ -5600,11 +5600,15 @@ class IsolateRef extends Response {
   /// internal use. If `false`, this isolate is likely running user code.
   bool? isSystemIsolate;
 
+  /// The id of the isolate group that this isolate belongs to.
+  String? isolateGroupId;
+
   IsolateRef({
     this.id,
     this.number,
     this.name,
     this.isSystemIsolate,
+    this.isolateGroupId,
   });
 
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -5612,6 +5616,7 @@ class IsolateRef extends Response {
     number = json['number'] ?? '';
     name = json['name'] ?? '';
     isSystemIsolate = json['isSystemIsolate'] ?? false;
+    isolateGroupId = json['isolateGroupId'] ?? '';
   }
 
   @override
@@ -5622,10 +5627,11 @@ class IsolateRef extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'id': id,
-      'number': number,
-      'name': name,
-      'isSystemIsolate': isSystemIsolate,
+      'id': id ?? '',
+      'number': number ?? '',
+      'name': name ?? '',
+      'isSystemIsolate': isSystemIsolate ?? false,
+      'isolateGroupId': isolateGroupId ?? '',
     });
     return json;
   }
@@ -5635,7 +5641,8 @@ class IsolateRef extends Response {
   bool operator ==(Object other) => other is IsolateRef && id == other.id;
 
   String toString() => '[IsolateRef ' //
-      'id: ${id}, number: ${number}, name: ${name}, isSystemIsolate: ${isSystemIsolate}]';
+      'id: ${id}, number: ${number}, name: ${name}, isSystemIsolate: ${isSystemIsolate}, ' //
+      'isolateGroupId: ${isolateGroupId}]';
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
@@ -5655,6 +5662,9 @@ class Isolate extends Response implements IsolateRef {
   /// Specifies whether the isolate was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate is likely running user code.
   bool? isSystemIsolate;
+
+  /// The id of the isolate group that this isolate belongs to.
+  String? isolateGroupId;
 
   /// The list of isolate flags provided to this isolate. See Dart_IsolateFlags
   /// in dart_api.h for the list of accepted isolate flags.
@@ -5709,6 +5719,7 @@ class Isolate extends Response implements IsolateRef {
     this.number,
     this.name,
     this.isSystemIsolate,
+    this.isolateGroupId,
     this.isolateFlags,
     this.startTime,
     this.runnable,
@@ -5728,6 +5739,7 @@ class Isolate extends Response implements IsolateRef {
     number = json['number'] ?? '';
     name = json['name'] ?? '';
     isSystemIsolate = json['isSystemIsolate'] ?? false;
+    isolateGroupId = json['isolateGroupId'] ?? '';
     isolateFlags = List<IsolateFlag>.from(
         createServiceObject(json['isolateFlags'], const ['IsolateFlag'])
                 as List? ??
@@ -5762,19 +5774,20 @@ class Isolate extends Response implements IsolateRef {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'id': id,
-      'number': number,
-      'name': name,
-      'isSystemIsolate': isSystemIsolate,
+      'id': id ?? '',
+      'number': number ?? '',
+      'name': name ?? '',
+      'isSystemIsolate': isSystemIsolate ?? false,
+      'isolateGroupId': isolateGroupId ?? '',
       'isolateFlags': isolateFlags?.map((f) => f.toJson()).toList(),
-      'startTime': startTime,
-      'runnable': runnable,
-      'livePorts': livePorts,
-      'pauseOnExit': pauseOnExit,
+      'startTime': startTime ?? -1,
+      'runnable': runnable ?? false,
+      'livePorts': livePorts ?? -1,
+      'pauseOnExit': pauseOnExit ?? false,
       'pauseEvent': pauseEvent?.toJson(),
       'libraries': libraries?.map((f) => f.toJson()).toList(),
       'breakpoints': breakpoints?.map((f) => f.toJson()).toList(),
-      'exceptionPauseMode': exceptionPauseMode,
+      'exceptionPauseMode': exceptionPauseMode ?? '',
     });
     _setIfNotNull(json, 'rootLib', rootLib?.toJson());
     _setIfNotNull(json, 'error', error?.toJson());
@@ -5813,8 +5826,8 @@ class IsolateFlag {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'name': name,
-      'valueAsString': valueAsString,
+      'name': name ?? '',
+      'valueAsString': valueAsString ?? '',
     });
     return json;
   }
@@ -5864,10 +5877,10 @@ class IsolateGroupRef extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'id': id,
-      'number': number,
-      'name': name,
-      'isSystemIsolateGroup': isSystemIsolateGroup,
+      'id': id ?? '',
+      'number': number ?? '',
+      'name': name ?? '',
+      'isSystemIsolateGroup': isSystemIsolateGroup ?? false,
     });
     return json;
   }
@@ -5928,10 +5941,10 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'id': id,
-      'number': number,
-      'name': name,
-      'isSystemIsolateGroup': isSystemIsolateGroup,
+      'id': id ?? '',
+      'number': number ?? '',
+      'name': name ?? '',
+      'isSystemIsolateGroup': isSystemIsolateGroup ?? false,
       'isolates': isolates?.map((f) => f.toJson()).toList(),
     });
     return json;
@@ -6057,7 +6070,7 @@ class InstanceSet extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'totalCount': totalCount,
+      'totalCount': totalCount ?? -1,
       'instances': instances?.map((f) => f.toJson()).toList(),
     });
     return json;
@@ -6099,8 +6112,8 @@ class LibraryRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
-      'uri': uri,
+      'name': name ?? '',
+      'uri': uri ?? '',
     });
     return json;
   }
@@ -6185,9 +6198,9 @@ class Library extends Obj implements LibraryRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
-      'uri': uri,
-      'debuggable': debuggable,
+      'name': name ?? '',
+      'uri': uri ?? '',
+      'debuggable': debuggable ?? false,
       'dependencies': dependencies?.map((f) => f.toJson()).toList(),
       'scripts': scripts?.map((f) => f.toJson()).toList(),
       'variables': variables?.map((f) => f.toJson()).toList(),
@@ -6251,9 +6264,9 @@ class LibraryDependency {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'isImport': isImport,
-      'isDeferred': isDeferred,
-      'prefix': prefix,
+      'isImport': isImport ?? false,
+      'isDeferred': isDeferred ?? false,
+      'prefix': prefix ?? '',
       'target': target?.toJson(),
     });
     _setIfNotNull(json, 'shows', shows?.map((f) => f).toList());
@@ -6333,9 +6346,9 @@ class LogRecord extends Response {
     json['type'] = type;
     json.addAll({
       'message': message?.toJson(),
-      'time': time,
-      'level': level,
-      'sequenceNumber': sequenceNumber,
+      'time': time ?? -1,
+      'level': level ?? -1,
+      'sequenceNumber': sequenceNumber ?? -1,
       'loggerName': loggerName?.toJson(),
       'zone': zone?.toJson(),
       'error': error?.toJson(),
@@ -6426,9 +6439,9 @@ class MemoryUsage extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'externalUsage': externalUsage,
-      'heapCapacity': heapCapacity,
-      'heapUsage': heapUsage,
+      'externalUsage': externalUsage ?? -1,
+      'heapCapacity': heapCapacity ?? -1,
+      'heapUsage': heapUsage ?? -1,
     });
     return json;
   }
@@ -6494,10 +6507,10 @@ class Message extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'index': index,
-      'name': name,
-      'messageObjectId': messageObjectId,
-      'size': size,
+      'index': index ?? -1,
+      'name': name ?? '',
+      'messageObjectId': messageObjectId ?? '',
+      'size': size ?? -1,
     });
     _setIfNotNull(json, 'handler', handler?.toJson());
     _setIfNotNull(json, 'location', location?.toJson());
@@ -6529,7 +6542,7 @@ class NativeFunction {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'name': name,
+      'name': name ?? '',
     });
     return json;
   }
@@ -6575,7 +6588,7 @@ class NullValRef extends InstanceRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'valueAsString': valueAsString,
+      'valueAsString': valueAsString ?? '',
     });
     return json;
   }
@@ -6627,7 +6640,7 @@ class NullVal extends Instance implements NullValRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'valueAsString': valueAsString,
+      'valueAsString': valueAsString ?? '',
     });
     return json;
   }
@@ -6674,7 +6687,7 @@ class ObjRef extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'id': id,
+      'id': id ?? '',
     });
     _setIfNotNull(json, 'fixedId', fixedId);
     return json;
@@ -6748,7 +6761,7 @@ class Obj extends Response implements ObjRef {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'id': id,
+      'id': id ?? '',
     });
     _setIfNotNull(json, 'fixedId', fixedId);
     _setIfNotNull(json, 'class', classRef?.toJson());
@@ -6804,7 +6817,7 @@ class Parameter {
     final json = <String, dynamic>{};
     json.addAll({
       'parameterType': parameterType?.toJson(),
-      'fixed': fixed,
+      'fixed': fixed ?? false,
     });
     _setIfNotNull(json, 'name', name);
     _setIfNotNull(json, 'required', required);
@@ -6894,10 +6907,10 @@ class ProfileFunction {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'kind': kind,
-      'inclusiveTicks': inclusiveTicks,
-      'exclusiveTicks': exclusiveTicks,
-      'resolvedUrl': resolvedUrl,
+      'kind': kind ?? '',
+      'inclusiveTicks': inclusiveTicks ?? -1,
+      'exclusiveTicks': exclusiveTicks ?? -1,
+      'resolvedUrl': resolvedUrl ?? '',
       'function': function?.toJson(),
     });
     return json;
@@ -6974,9 +6987,9 @@ class Protocol {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'protocolName': protocolName,
-      'major': major,
-      'minor': minor,
+      'protocolName': protocolName ?? '',
+      'major': major ?? -1,
+      'minor': minor ?? -1,
     });
     return json;
   }
@@ -7055,9 +7068,9 @@ class ProcessMemoryItem {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'name': name,
-      'description': description,
-      'size': size,
+      'name': name ?? '',
+      'description': description ?? '',
+      'size': size ?? -1,
       'children': children?.map((f) => f.toJson()).toList(),
     });
     return json;
@@ -7091,7 +7104,7 @@ class ReloadReport extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'success': success,
+      'success': success ?? false,
     });
     return json;
   }
@@ -7187,8 +7200,8 @@ class RetainingPath extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'length': length,
-      'gcRootType': gcRootType,
+      'length': length ?? -1,
+      'gcRootType': gcRootType ?? '',
       'elements': elements?.map((f) => f.toJson()).toList(),
     });
     return json;
@@ -7257,8 +7270,8 @@ class Sentinel extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'kind': kind,
-      'valueAsString': valueAsString,
+      'kind': kind ?? '',
+      'valueAsString': valueAsString ?? '',
     });
     return json;
   }
@@ -7294,7 +7307,7 @@ class ScriptRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'uri': uri,
+      'uri': uri ?? '',
     });
     return json;
   }
@@ -7423,7 +7436,7 @@ class Script extends Obj implements ScriptRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'uri': uri,
+      'uri': uri ?? '',
       'library': library?.toJson(),
     });
     _setIfNotNull(json, 'lineOffset', lineOffset);
@@ -7525,7 +7538,7 @@ class SourceLocation extends Response {
     json['type'] = type;
     json.addAll({
       'script': script?.toJson(),
-      'tokenPos': tokenPos,
+      'tokenPos': tokenPos ?? -1,
     });
     _setIfNotNull(json, 'endTokenPos', endTokenPos);
     _setIfNotNull(json, 'line', line);
@@ -7701,10 +7714,10 @@ class SourceReportRange {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'scriptIndex': scriptIndex,
-      'startPos': startPos,
-      'endPos': endPos,
-      'compiled': compiled,
+      'scriptIndex': scriptIndex ?? -1,
+      'startPos': startPos ?? -1,
+      'endPos': endPos ?? -1,
+      'compiled': compiled ?? false,
     });
     _setIfNotNull(json, 'error', error?.toJson());
     _setIfNotNull(json, 'coverage', coverage?.toJson());
@@ -7786,7 +7799,7 @@ class Stack extends Response {
     json.addAll({
       'frames': frames?.map((f) => f.toJson()).toList(),
       'messages': messages?.map((f) => f.toJson()).toList(),
-      'truncated': truncated,
+      'truncated': truncated ?? false,
     });
     _setIfNotNull(json, 'asyncCausalFrames',
         asyncCausalFrames?.map((f) => f.toJson()).toList());
@@ -7861,8 +7874,8 @@ class Timeline extends Response {
     json['type'] = type;
     json.addAll({
       'traceEvents': traceEvents?.map((f) => f.toJson()).toList(),
-      'timeOriginMicros': timeOriginMicros,
-      'timeExtentMicros': timeExtentMicros,
+      'timeOriginMicros': timeOriginMicros ?? -1,
+      'timeExtentMicros': timeExtentMicros ?? -1,
     });
     return json;
   }
@@ -7931,7 +7944,7 @@ class TimelineFlags extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'recorderName': recorderName,
+      'recorderName': recorderName ?? '',
       'availableStreams': availableStreams?.map((f) => f).toList(),
       'recordedStreams': recordedStreams?.map((f) => f).toList(),
     });
@@ -7966,7 +7979,7 @@ class Timestamp extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'timestamp': timestamp,
+      'timestamp': timestamp ?? -1,
     });
     return json;
   }
@@ -8002,7 +8015,7 @@ class TypeArgumentsRef extends ObjRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
     });
     return json;
   }
@@ -8052,7 +8065,7 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
     final json = super.toJson();
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
       'types': types?.map((f) => f.toJson()).toList(),
     });
     return json;
@@ -8245,8 +8258,8 @@ class Version extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'major': major,
-      'minor': minor,
+      'major': major ?? -1,
+      'minor': minor ?? -1,
     });
     return json;
   }
@@ -8278,7 +8291,7 @@ class VMRef extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'name': name,
+      'name': name ?? '',
     });
     return json;
   }
@@ -8376,14 +8389,14 @@ class VM extends Response implements VMRef {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'name': name,
-      'architectureBits': architectureBits,
-      'hostCPU': hostCPU,
-      'operatingSystem': operatingSystem,
-      'targetCPU': targetCPU,
-      'version': version,
-      'pid': pid,
-      'startTime': startTime,
+      'name': name ?? '',
+      'architectureBits': architectureBits ?? -1,
+      'hostCPU': hostCPU ?? '',
+      'operatingSystem': operatingSystem ?? '',
+      'targetCPU': targetCPU ?? '',
+      'version': version ?? '',
+      'pid': pid ?? -1,
+      'startTime': startTime ?? -1,
       'isolates': isolates?.map((f) => f.toJson()).toList(),
       'isolateGroups': isolateGroups?.map((f) => f.toJson()).toList(),
       'systemIsolates': systemIsolates?.map((f) => f.toJson()).toList(),

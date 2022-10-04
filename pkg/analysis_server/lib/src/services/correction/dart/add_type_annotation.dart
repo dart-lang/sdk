@@ -47,12 +47,9 @@ class AddTypeAnnotation extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is SimpleFormalParameter) {
-        await _forSimpleFormalParameter(builder, node, parent);
-        return;
-      }
+    if (node is SimpleFormalParameter) {
+      await _forSimpleFormalParameter(builder, node.name!, node);
+      return;
     }
 
     for (var node in this.node.withParents) {
@@ -104,7 +101,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       var targetClassDeclaration =
           target.thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassDeclaration != null) {
-        utils.targetClassElement = targetClassDeclaration.declaredElement2;
+        utils.targetClassElement = targetClassDeclaration.declaredElement;
       }
     }
   }
@@ -115,7 +112,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement2!.type;
+    var type = declaredIdentifier.declaredElement!.type;
     if (type is! InterfaceType && type is! FunctionType) {
       return;
     }
@@ -123,8 +120,8 @@ class AddTypeAnnotation extends CorrectionProducer {
         declaredIdentifier.name.offset, type);
   }
 
-  Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
-      SimpleIdentifier name, SimpleFormalParameter parameter) async {
+  Future<void> _forSimpleFormalParameter(ChangeBuilder builder, Token name,
+      SimpleFormalParameter parameter) async {
     // Ensure that there isn't already a type annotation.
     if (parameter.type != null) {
       return;
@@ -150,7 +147,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     final variables = declarationList.variables;
     final variable = variables[0];
     // Ensure that the selection is not after the name of the variable.
-    if (selectionOffset > variable.name2.end) {
+    if (selectionOffset > variable.name.end) {
       return;
     }
     // Ensure that there is an initializer to get the type from.
@@ -183,7 +180,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (statement is! VariableDeclarationStatement || block is! Block) {
       return null;
     }
-    var element = variable.declaredElement2;
+    var element = variable.declaredElement;
     if (element is! LocalVariableElement) {
       return null;
     }

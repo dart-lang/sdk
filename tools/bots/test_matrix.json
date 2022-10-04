@@ -181,6 +181,7 @@
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
+      "out/ReleaseX64/wasm/",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -206,8 +207,7 @@
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
-      "tools/",
-      "xcodebuild/ReleaseX64/dart"
+      "tools/"
     ],
     "front-end": [
       ".dart_tool/package_config.json",
@@ -1377,6 +1377,7 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
         "vm-kernel-precomp-nnbd-linux-debug-x64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64c",
@@ -1946,6 +1947,7 @@
     {
       "builders": [
         "vm-kernel-nnbd-linux-debug-ia32",
+        "vm-kernel-nnbd-linux-debug-simriscv64",
         "vm-kernel-nnbd-linux-debug-x64",
         "vm-kernel-nnbd-linux-debug-x64c",
         "vm-kernel-nnbd-linux-release-ia32",
@@ -1962,9 +1964,9 @@
         "vm-kernel-nnbd-mac-release-arm64",
         "vm-kernel-nnbd-mac-release-x64",
         "vm-kernel-nnbd-mac-release-x64c",
-        "vm-kernel-nnbd-win-release-ia32",
         "vm-kernel-nnbd-win-debug-x64",
         "vm-kernel-nnbd-win-debug-x64c",
+        "vm-kernel-nnbd-win-release-ia32",
         "vm-kernel-nnbd-win-release-x64",
         "vm-kernel-nnbd-win-release-x64c"
       ],
@@ -3148,9 +3150,10 @@
             "language",
             "corelib",
             "web/wasm",
-            "lib/js/static_interop_test"
+            "lib/lib/(async|collection|convert|js/static_interop_test|math|typed_data)/",
+            "co19/co19/(src/)?(Language|LanguageFeatures|LibTest/(async|collection|convert|core|math|typed_data))/"
           ],
-          "shards": 3,
+          "shards": 10,
           "fileset": "dart2wasm_hostasserts"
         }
       ]
@@ -3196,64 +3199,6 @@
           "script": "tools/bots/dart_sdk.py",
           "arguments": [
             "api_docs"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "dart-sdk-mac",
-        "dart-sdk-mac-arm64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the sdk-builders for MacOS."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--check-clean",
-            "create_sdk"
-          ],
-          "environment": {
-            "DART_GN_ARGS": "mac_use_goma_rbe=true"
-          }
-        },
-        {
-          "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "--arch=${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "dart-sdk-win"
-      ],
-      "meta": {
-        "description": "This configuration is used by the sdk-builders for Windows. It also adds CQ coverage for building on Windows."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=ia32,x64,arm64",
-            "--mode=release",
-            "--check-clean",
-            "create_sdk",
-            "runtime"
-          ]
-        },
-        {
-          "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "--arch=ia32,x64,arm64"
           ]
         }
       ]

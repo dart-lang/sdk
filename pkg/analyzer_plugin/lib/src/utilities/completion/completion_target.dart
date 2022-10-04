@@ -123,9 +123,9 @@ class CompletionTarget {
     final unitMember =
         containingNode.thisOrAncestorOfType<CompilationUnitMember>();
     if (unitMember is ClassDeclaration) {
-      return unitMember.declaredElement2;
+      return unitMember.declaredElement;
     } else if (unitMember is MixinDeclaration) {
-      return unitMember.declaredElement2;
+      return unitMember.declaredElement;
     } else {
       return null;
     }
@@ -134,7 +134,7 @@ class CompletionTarget {
   /// The enclosing [ExtensionElement], or `null` if not in an extension.
   late final ExtensionElement? enclosingExtensionElement = containingNode
       .thisOrAncestorOfType<ExtensionDeclaration>()
-      ?.declaredElement2;
+      ?.declaredElement;
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [entryPoint].
@@ -392,14 +392,8 @@ class CompletionTarget {
           token.type == TokenType.COMMA;
     }
 
-    var entity = this.entity;
-
-    Token token;
-    if (entity is AstNode) {
-      token = entity.endToken;
-    } else if (entity is Token) {
-      token = entity;
-    } else {
+    final token = lastTokenOfEntity;
+    if (token == null) {
       return false;
     }
 
@@ -407,6 +401,37 @@ class CompletionTarget {
       return isExistingComma(token.next);
     }
     return isExistingComma(token);
+  }
+
+  /// Return `true` if the [offset] is followed by a `)`.
+  bool get isFollowedByRightParenthesis {
+    bool isExistingRightParenthesis(Token? token) {
+      return token != null &&
+          !token.isSynthetic &&
+          token.type == TokenType.CLOSE_PAREN;
+    }
+
+    final token = lastTokenOfEntity;
+    if (token == null) {
+      return false;
+    }
+
+    if (isExistingRightParenthesis(token)) {
+      return true;
+    }
+
+    return isExistingRightParenthesis(token.next);
+  }
+
+  Token? get lastTokenOfEntity {
+    final entity = this.entity;
+    if (entity is AstNode) {
+      return entity.endToken;
+    } else if (entity is Token) {
+      return entity;
+    } else {
+      return null;
+    }
   }
 
   /// If the target is an argument in an argument list, and the invocation is

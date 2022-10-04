@@ -452,14 +452,6 @@ analyzer:
 ''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
   }
 
-  test_analyzer_strong_mode_deprecated_key() {
-    validate('''
-analyzer:
-  strong-mode:
-    declaration-casts: false
-''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED]);
-  }
-
   test_analyzer_strong_mode_error_code_supported() {
     validate('''
 analyzer:

@@ -77,6 +77,11 @@ abstract class LibraryBuilder implements ModifierBuilder {
   // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
   Iterator<Builder> get localMembersIterator;
 
+  /// Returns an iterator of all members of specified type
+  /// declared in this library, including duplicate declarations.
+  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
+  Iterator<T> localMembersIteratorOfType<T extends Builder>();
+
   /// Returns an iterator of all members (typedefs, classes and members)
   /// declared in this library, including duplicate declarations.
   ///
@@ -204,6 +209,12 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   Iterator<Builder> get localMembersIterator {
     return scope.filteredIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
+  }
+
+  @override
+  Iterator<T> localMembersIteratorOfType<T extends Builder>() {
+    return scope.filteredIterator<T>(
         parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -30,6 +29,18 @@ class NamedExpressionExpressionTest2 extends AbstractCompletionDriverTest
 }
 
 mixin NamedExpressionExpressionTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        final completion = suggestion.completion;
+        return const {'x'}.contains(completion);
+      },
+    );
+  }
+
   Future<void> test_beforePositional() async {
     var response = await getTestCodeSuggestions('''
 void f(int x) {
@@ -39,13 +50,11 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('x')
-          ..isParameter,
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  x
+    kind: parameter
+''');
   }
 
   Future<void> test_lastArgument() async {
@@ -57,13 +66,11 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('x')
-          ..isParameter,
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  x
+    kind: parameter
+''');
   }
 
   Future<void> test_onlyArgument() async {
@@ -75,12 +82,10 @@ void f(int x) {
 void g({required int a}) {}
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('x')
-          ..isParameter,
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  x
+    kind: parameter
+''');
   }
 }

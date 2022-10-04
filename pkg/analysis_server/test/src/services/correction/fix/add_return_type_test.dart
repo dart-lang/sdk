@@ -11,8 +11,8 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddReturnTypeLintTest);
     defineReflectiveTests(AddReturnTypeBulkTest);
+    defineReflectiveTests(AddReturnTypeLintTest);
   });
 }
 
@@ -174,6 +174,19 @@ class A {
     await assertHasFix('''
 class A {
   int get foo => 0;
+}
+''');
+  }
+
+  Future<void> test_operator() async {
+    await resolveTestCode('''
+class MyObject extends Object {
+  operator ==(Object other) => false;
+}
+''');
+    await assertHasFix('''
+class MyObject extends Object {
+  bool operator ==(Object other) => false;
 }
 ''');
   }

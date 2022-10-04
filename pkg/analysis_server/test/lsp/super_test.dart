@@ -31,10 +31,8 @@ class C^ extends B {}
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(Location(
-            uri: mainFileUri.toString(), range: rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
   }
 
   Future<void> test_insideClass() async {
@@ -54,10 +52,8 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(Location(
-            uri: mainFileUri.toString(), range: rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
   }
 
   Future<void> test_insideMethod() async {
@@ -82,10 +78,8 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(Location(
-            uri: mainFileUri.toString(), range: rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
   }
 
   Future<void> test_methodName() async {
@@ -110,10 +104,60 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(Location(
-            uri: mainFileUri.toString(), range: rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+  }
+
+  Future<void> test_methodName_startOfParameterList() async {
+    final content = '''
+class A {
+  void [[foo]]() {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  void foo^() {
+    // fooC
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getSuper(
+      mainFileUri,
+      positionFromMarker(content),
+    );
+
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+  }
+
+  Future<void> test_methodName_startOfTypeParameterList() async {
+    final content = '''
+class A {
+  void [[foo]]<T>() {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  void foo^<T>() {
+    // fooC
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getSuper(
+      mainFileUri,
+      positionFromMarker(content),
+    );
+
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
   }
 
   Future<void> test_methodReturnType() async {
@@ -138,9 +182,7 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(Location(
-            uri: mainFileUri.toString(), range: rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
   }
 }

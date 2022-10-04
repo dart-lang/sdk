@@ -869,17 +869,15 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
   if (FLAG_precompiled_mode) {
-    field.set_is_unboxing_candidate(
-        !field.is_late() && !field.is_static() &&
-        ((field.guarded_cid() == kDoubleCid &&
-          FlowGraphCompiler::SupportsUnboxedDoubles()) ||
-         (field.guarded_cid() == kFloat32x4Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
-         (field.guarded_cid() == kFloat64x2Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
-         type.IsInt()) &&
-        !field.is_nullable());
-    field.set_is_non_nullable_integer(!field.is_nullable() && type.IsInt());
+    field.set_is_unboxed(!field.is_late() && !field.is_static() &&
+                         !field.is_nullable() &&
+                         ((field.guarded_cid() == kDoubleCid &&
+                           FlowGraphCompiler::SupportsUnboxedDoubles()) ||
+                          (field.guarded_cid() == kFloat32x4Cid &&
+                           FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+                          (field.guarded_cid() == kFloat64x2Cid &&
+                           FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+                          type.IsInt()));
   }
 }
 
@@ -1177,11 +1175,10 @@ void KernelLoader::FinishTopLevelClassLoading(
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
 
     {
-      // GenerateFieldAccessors reads (some of) the initializer.
       AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
-      static_field_value_ =
-          GenerateFieldAccessors(toplevel_class, field, &field_helper);
+      static_field_value_ = ReadInitialFieldValue(field, &field_helper);
     }
+    GenerateFieldAccessors(toplevel_class, field, &field_helper);
     IG->RegisterStaticField(field, static_field_value_);
 
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
@@ -1560,11 +1557,10 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
 
       {
-        // GenerateFieldAccessors reads (some of) the initializer.
         AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
-        static_field_value_ =
-            GenerateFieldAccessors(klass, field, &field_helper);
+        static_field_value_ = ReadInitialFieldValue(field, &field_helper);
       }
+      GenerateFieldAccessors(klass, field, &field_helper);
       if (field.is_static()) {
         IG->RegisterStaticField(field, static_field_value_);
       }
@@ -2179,9 +2175,8 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   return script.ptr();
 }
 
-ObjectPtr KernelLoader::GenerateFieldAccessors(const Class& klass,
-                                               const Field& field,
-                                               FieldHelper* field_helper) {
+ObjectPtr KernelLoader::ReadInitialFieldValue(const Field& field,
+                                              FieldHelper* field_helper) {
   const Tag tag = helper_.PeekTag();
   const bool has_initializer = (tag == kSomething);
 
@@ -2193,14 +2188,7 @@ ObjectPtr KernelLoader::GenerateFieldAccessors(const Class& klass,
       if (field_helper->IsStatic()) {
         return converter.SimpleValue().ptr();
       } else {
-        // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-        // heuristics. See JitCallSpecializer::VisitStoreField for more
-        // details.
         field.RecordStore(converter.SimpleValue());
-        if (!converter.SimpleValue().IsNull() &&
-            converter.SimpleValue().IsDouble()) {
-          field.set_is_double_initialized(true);
-        }
       }
     }
   }
@@ -2208,45 +2196,64 @@ ObjectPtr KernelLoader::GenerateFieldAccessors(const Class& klass,
   if (field_helper->IsStatic()) {
     if (!has_initializer && !field_helper->IsLate()) {
       // Static fields without an initializer are implicitly initialized to
-      // null. We do not need a getter.
+      // null.
       return Instance::null();
     }
   }
   ASSERT(field.NeedsGetter());
 
-  const String& getter_name =
-      H.DartGetterName(field_helper->canonical_name_getter_);
+  // If static, we do need a getter that evaluates the initializer if necessary.
+  return field_helper->IsStatic() ? Object::sentinel().ptr() : Object::null();
+}
+
+void KernelLoader::GenerateFieldAccessors(const Class& klass,
+                                          const Field& field,
+                                          FieldHelper* field_helper) {
+  const bool needs_getter = field.NeedsGetter();
+  const bool needs_setter = field.NeedsSetter();
+
+  if (!needs_getter && !needs_setter) {
+    return;
+  }
+
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
-  const FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
-  Function& getter = Function::ZoneHandle(
-      Z,
-      Function::New(
-          signature, getter_name,
-          field_helper->IsStatic() ? UntaggedFunction::kImplicitStaticGetter
-                                   : UntaggedFunction::kImplicitGetter,
-          field_helper->IsStatic(),
-          // The functions created by the parser have is_const for static fields
-          // that are const (not just final) and they have is_const for
-          // non-static fields that are final.
-          field_helper->IsStatic() ? field_helper->IsConst()
-                                   : field_helper->IsFinal(),
-          false,  // is_abstract
-          false,  // is_external
-          false,  // is_native
-          script_class, field_helper->position_));
-  functions_.Add(&getter);
-  getter.set_end_token_pos(field_helper->end_position_);
-  getter.set_kernel_offset(field.kernel_offset());
   const AbstractType& field_type = AbstractType::Handle(Z, field.type());
-  signature.set_result_type(field_type);
-  getter.set_is_debuggable(false);
-  getter.set_accessor_field(field);
-  getter.set_is_extension_member(field.is_extension_member());
-  H.SetupFieldAccessorFunction(klass, getter, field_type);
-  T.SetupUnboxingInfoMetadataForFieldAccessors(getter, library_kernel_offset_);
 
-  if (field.NeedsSetter()) {
+  if (needs_getter) {
+    const String& getter_name =
+        H.DartGetterName(field_helper->canonical_name_getter_);
+    const FunctionType& signature =
+        FunctionType::Handle(Z, FunctionType::New());
+    Function& getter = Function::ZoneHandle(
+        Z,
+        Function::New(
+            signature, getter_name,
+            field_helper->IsStatic() ? UntaggedFunction::kImplicitStaticGetter
+                                     : UntaggedFunction::kImplicitGetter,
+            field_helper->IsStatic(),
+            // The functions created by the parser have is_const for static
+            // fields that are const (not just final) and they have is_const
+            // for non-static fields that are final.
+            field_helper->IsStatic() ? field_helper->IsConst()
+                                     : field_helper->IsFinal(),
+            false,  // is_abstract
+            false,  // is_external
+            false,  // is_native
+            script_class, field_helper->position_));
+    functions_.Add(&getter);
+    getter.set_end_token_pos(field_helper->end_position_);
+    getter.set_kernel_offset(field.kernel_offset());
+    signature.set_result_type(field_type);
+    getter.set_is_debuggable(false);
+    getter.set_accessor_field(field);
+    getter.set_is_extension_member(field.is_extension_member());
+    H.SetupFieldAccessorFunction(klass, getter, field_type);
+    T.SetupUnboxingInfoMetadataForFieldAccessors(getter,
+                                                 library_kernel_offset_);
+  }
+
+  if (needs_setter) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
     const String& setter_name =
@@ -2273,9 +2280,6 @@ ObjectPtr KernelLoader::GenerateFieldAccessors(const Class& klass,
     T.SetupUnboxingInfoMetadataForFieldAccessors(setter,
                                                  library_kernel_offset_);
   }
-
-  // If static, we do need a getter that evaluates the initializer if necessary.
-  return field_helper->IsStatic() ? Object::sentinel().ptr() : Object::null();
 }
 
 LibraryPtr KernelLoader::LookupLibraryOrNull(NameIndex library) {

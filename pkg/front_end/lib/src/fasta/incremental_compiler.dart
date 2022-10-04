@@ -128,6 +128,7 @@ import 'scope.dart' show Scope;
 
 import 'source/source_class_builder.dart' show SourceClassBuilder;
 
+import 'source/source_extension_builder.dart';
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
 import 'util/experiment_environment_getter.dart'
@@ -820,6 +821,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         NameIterator iterator = builder.localMembersNameIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
+          if (childBuilder is SourceExtensionBuilder &&
+              childBuilder.isUnnamedExtension) {
+            continue;
+          }
           String name = iterator.name;
           Map<String, Builder> map;
           if (childBuilder.isSetter) {
@@ -929,27 +934,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
           // TODO(johnniwinther): Should this include non-local (i.e. injected)
           // members?
-          Iterator<Builder> iterator = builder.localMembersIterator;
+          Iterator<SourceClassBuilder> iterator =
+              builder.localMembersIteratorOfType();
           while (iterator.moveNext()) {
-            Builder childBuilder = iterator.current;
-            if (childBuilder is SourceClassBuilder) {
-              TypeBuilder? typeBuilder = childBuilder.supertypeBuilder;
-              _replaceTypeBuilder(
-                  replacementMap, replacementSettersMap, typeBuilder);
-              typeBuilder = childBuilder.mixedInTypeBuilder;
-              _replaceTypeBuilder(
-                  replacementMap, replacementSettersMap, typeBuilder);
-              if (childBuilder.onTypes != null) {
-                for (typeBuilder in childBuilder.onTypes!) {
-                  _replaceTypeBuilder(
-                      replacementMap, replacementSettersMap, typeBuilder);
-                }
+            SourceClassBuilder childBuilder = iterator.current;
+            TypeBuilder? typeBuilder = childBuilder.supertypeBuilder;
+            _replaceTypeBuilder(
+                replacementMap, replacementSettersMap, typeBuilder);
+            typeBuilder = childBuilder.mixedInTypeBuilder;
+            _replaceTypeBuilder(
+                replacementMap, replacementSettersMap, typeBuilder);
+            if (childBuilder.onTypes != null) {
+              for (typeBuilder in childBuilder.onTypes!) {
+                _replaceTypeBuilder(
+                    replacementMap, replacementSettersMap, typeBuilder);
               }
-              if (childBuilder.interfaceBuilders != null) {
-                for (typeBuilder in childBuilder.interfaceBuilders!) {
-                  _replaceTypeBuilder(
-                      replacementMap, replacementSettersMap, typeBuilder);
-                }
+            }
+            if (childBuilder.interfaceBuilders != null) {
+              for (typeBuilder in childBuilder.interfaceBuilders!) {
+                _replaceTypeBuilder(
+                    replacementMap, replacementSettersMap, typeBuilder);
               }
             }
           }
@@ -1204,10 +1208,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
         // TODO(johnniwinther): Should this include non-local (i.e. injected)
         // members?
-        Iterator<Builder> iterator = builder.localMembersIterator;
+        Iterator<ClassBuilder> iterator = builder.localMembersIteratorOfType();
         while (iterator.moveNext()) {
-          Builder childBuilder = iterator.current;
-          if (childBuilder is ClassBuilder && childBuilder.isMacro) {
+          ClassBuilder childBuilder = iterator.current;
+          if (childBuilder.isMacro) {
             // Changes to a library with macro classes can affect any class that
             // depends on it.
             recorderForTesting?.recordAdvancedInvalidationResult(

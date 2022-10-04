@@ -547,8 +547,14 @@ Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
   const Field& field_clone = MayCloneField(Z, field);
   if (IG->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
-    instructions += LoadLocal(store_expression);
-    instructions += GuardFieldClass(field_clone, GetNextDeoptId());
+
+    // Note: unboxing decision can only change due to hot reload at which
+    // point all code will be cleared, so there is no need to worry about
+    // stability of deopt id numbering.
+    if (!field_clone.is_unboxed()) {
+      instructions += LoadLocal(store_expression);
+      instructions += GuardFieldClass(field_clone, GetNextDeoptId());
+    }
 
     // Field length guard can be omitted if it is not needed.
     // However, it is possible that we were tracking list length previously,
@@ -931,6 +937,15 @@ Fragment BaseFlowGraphBuilder::CreateArray() {
                                element_count, GetNextDeoptId());
   Push(array);
   return Fragment(array);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateRecord(TokenPosition position,
+                                              intptr_t num_fields,
+                                              const Array& field_names) {
+  AllocateRecordInstr* allocate = new (Z) AllocateRecordInstr(
+      InstructionSource(position), num_fields, field_names, GetNextDeoptId());
+  Push(allocate);
+  return Fragment(allocate);
 }
 
 Fragment BaseFlowGraphBuilder::AllocateTypedData(TokenPosition position,

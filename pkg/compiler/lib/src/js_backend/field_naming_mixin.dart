@@ -58,7 +58,7 @@ class _FieldNamingRegistry {
   // number of fields preceding the current field in its classes inheritance
   // chain.
   //
-  // The implementation assumes that names are requedsted in order, that is the
+  // The implementation assumes that names are requested in order, that is the
   // name at position i+1 is requested after the name at position i was
   // requested.
   jsAst.Name getName(int index) {

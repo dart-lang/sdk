@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/add_diagnostic_prop
 import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
+import 'package:analysis_server/src/services/correction/dart/add_extension_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_key_to_constructors.dart';
 import 'package:analysis_server/src/services/correction/dart/add_late.dart';
@@ -187,6 +188,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_null_a
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
@@ -446,6 +448,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.cascade_invocations: [
       ConvertToCascade.new,
+    ],
+    LintNames.combinators_ordering: [
+      SortCombinators.new,
     ],
     LintNames.curly_braces_in_flow_control_structures: [
       UseCurlyBraces.new,
@@ -716,6 +721,9 @@ class FixProcessor extends BaseProcessor {
   /// generators used for lint rules are in the [lintMultiProducerMap].
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
+    CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
+      AddExtensionOverride.new,
+    ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
       ImportLibrary.forType,
     ],
@@ -884,6 +892,7 @@ class FixProcessor extends BaseProcessor {
       MakeVariableNotFinal.new,
     ],
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      AddExplicitCast.new,
       AddNullCheck.new,
       WrapInText.new,
     ],
@@ -994,6 +1003,9 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.new,
+      MakeVariableNullable.new,
+    ],
+    CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL: [
       MakeVariableNullable.new,
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION: [

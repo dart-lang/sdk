@@ -2,13 +2,8 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/records/record_type_errors.dart:5:2: Error: Record type fields list cannot be empty.
-// Try adding a record type field to the list.
-// () emptyType = throw '';
-//  ^
-//
-// pkg/front_end/testcases/records/record_type_errors.dart:6:5: Error: Record type fields list cannot contain only one element without a named field.
-// Try adding another record type field to the list or add a named field.
+// pkg/front_end/testcases/records/record_type_errors.dart:6:5: Error: Record type with one entry requires a trailing comma.
+// Try adding a trailing comma.
 // (int) singleType = throw '';
 //     ^
 //
@@ -25,12 +20,12 @@ library /*isNonNullableByDefault*/;
 // (var a, {var b}) missingType = throw '';
 //  ^^^
 //
-// pkg/front_end/testcases/records/record_type_errors.dart:8:16: Error: Record type fields list cannot contain only one element without a named field.
-// Try adding another record type field to the list or add a named field.
+// pkg/front_end/testcases/records/record_type_errors.dart:8:16: Error: Record type with one entry requires a trailing comma.
+// Try adding a trailing comma.
 // (var a, {var b}) missingType = throw '';
 //                ^
 //
-// pkg/front_end/testcases/records/record_type_errors.dart:9:8: Error: Record type named fields list cannot be empty.
+// pkg/front_end/testcases/records/record_type_errors.dart:9:8: Error: Record type named fields list can't be empty.
 // Try adding a record type named field to the list.
 // (int, {}) emptyNamedFields = throw '';
 //        ^

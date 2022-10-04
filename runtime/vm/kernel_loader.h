@@ -318,11 +318,14 @@ class KernelLoader : public ValueObject {
     return kernel_program_info_.ScriptAt(source_uri_index);
   }
 
-  // Returns the initial field value for a static function (if applicable).
-  ObjectPtr GenerateFieldAccessors(const Class& klass,
-                                   const Field& field,
-                                   FieldHelper* field_helper);
-  bool FieldNeedsSetter(FieldHelper* field_helper);
+  // Reads field initializer and returns the initial field value.
+  ObjectPtr ReadInitialFieldValue(const Field& field,
+                                  FieldHelper* field_helper);
+
+  // Generates field getter and setter functions.
+  void GenerateFieldAccessors(const Class& klass,
+                              const Field& field,
+                              FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);

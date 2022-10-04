@@ -1068,11 +1068,15 @@ static void JumpIfNotList(Assembler* assembler, Register cid, Label* target) {
 }
 
 static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfNotInRange, target);
 }
 
 // Return type quickly for simple types (not parameterized and not signature).
@@ -1085,6 +1089,9 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   // RCX: untagged cid of instance (RAX).
   __ cmpq(RCX, Immediate(kClosureCid));
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
+
+  __ cmpq(RCX, Immediate(kRecordCid));
+  __ j(EQUAL, normal_ir_body);  // Instance is a record.
 
   __ cmpl(RCX, Immediate(kNumPredefinedCids));
   __ j(ABOVE, &use_declaration_type);
@@ -1161,6 +1168,10 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ cmpq(cid1, Immediate(kClosureCid));
+  __ j(EQUAL, normal_ir_body);
+
+  // Check if left hand side is a record. Records are handled in the runtime.
+  __ cmpq(cid1, Immediate(kRecordCid));
   __ j(EQUAL, normal_ir_body);
 
   // Check whether class ids match. If class ids don't match types may still be
@@ -1330,8 +1341,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ movzxb(RCX, FieldAddress(RCX, target::Type::nullability_offset()));
-  __ movzxb(RDX, FieldAddress(RDX, target::Type::nullability_offset()));
+  __ LoadAbstractTypeNullability(RCX, RCX);
+  __ LoadAbstractTypeNullability(RDX, RDX);
   __ cmpq(RCX, RDX);
   __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
   // Fall through to equal case if nullability is strictly equal.
@@ -1358,7 +1369,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // FunctionType object.
   __ LoadCompressed(RAX,
@@ -1372,7 +1383,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movq(RCX, Address(RSP, +1 * target::kWordSize));
   __ movq(RDX, Address(RSP, +2 * target::kWordSize));

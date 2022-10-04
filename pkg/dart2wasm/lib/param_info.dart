@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart';
 /// Information about optional parameters and their default values for a
 /// member or a set of members belonging to the same override group.
 class ParameterInfo {
-  final Member member;
+  final Member? member;
   int typeParamCount = 0;
   late final List<Constant?> positional;
   late final Map<String, Constant?> named;
@@ -19,6 +19,12 @@ class ParameterInfo {
   late final Map<String, int> nameIndex = {
     for (int i = 0; i < names.length; i++) names[i]: positional.length + i
   };
+
+  /// A special marker value to use for default parameter values to indicate
+  /// that different implementations within the same selector have different
+  /// default values.
+  static final Constant defaultValueSentinel =
+      UnevaluatedConstant(InvalidExpression("Default value sentinel"));
 
   int get paramCount => positional.length + named.length;
 
@@ -34,13 +40,13 @@ class ParameterInfo {
   }
 
   ParameterInfo.fromMember(Reference target) : member = target.asMember {
-    FunctionNode? function = member.function;
+    FunctionNode? function = member!.function;
     if (target.isTearOffReference) {
       positional = [];
       named = {};
     } else if (function != null) {
       typeParamCount = (member is Constructor
-              ? member.enclosingClass!.typeParameters
+              ? member!.enclosingClass!.typeParameters
               : function.typeParameters)
           .length;
       positional = List.generate(function.positionalParameters.length, (i) {
@@ -59,6 +65,19 @@ class ParameterInfo {
     }
   }
 
+  ParameterInfo.fromLocalFunction(FunctionNode function) : member = null {
+    typeParamCount = function.typeParameters.length;
+    positional = List.generate(function.positionalParameters.length, (i) {
+      // A required parameter has no default value.
+      if (i < function.requiredParameterCount) return null;
+      return defaultValue(function.positionalParameters[i]);
+    });
+    named = {
+      for (VariableDeclaration param in function.namedParameters)
+        param.name!: defaultValue(param)
+    };
+  }
+
   void merge(ParameterInfo other) {
     assert(typeParamCount == other.typeParamCount);
     for (int i = 0; i < other.positional.length; i++) {
@@ -69,9 +88,8 @@ class ParameterInfo {
           positional[i] = other.positional[i];
         } else if (other.positional[i] != null) {
           if (positional[i] != other.positional[i]) {
-            print("Mismatching default value for parameter $i: "
-                "${member}: ${positional[i]} vs "
-                "${other.member}: ${other.positional[i]}");
+            // Default value differs between implementations.
+            positional[i] = defaultValueSentinel;
           }
         }
       }
@@ -83,9 +101,8 @@ class ParameterInfo {
         named[name] = otherValue;
       } else if (otherValue != null) {
         if (value != otherValue) {
-          print("Mismatching default value for parameter '$name': "
-              "${member}: ${value} vs "
-              "${other.member}: ${otherValue}");
+          // Default value differs between implementations.
+          named[name] = defaultValueSentinel;
         }
       }
     }

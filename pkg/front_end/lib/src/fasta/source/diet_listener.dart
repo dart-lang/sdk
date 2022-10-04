@@ -24,6 +24,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
+import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -79,9 +80,6 @@ class DietListener extends StackListenerImpl {
   bool _inRedirectingFactory = false;
 
   bool currentClassIsParserRecovery = false;
-
-  /// Counter used for naming unnamed extension declarations.
-  int unnamedExtensionCounter = 0;
 
   /// For top-level declarations, this is the library scope. For class members,
   /// this is the instance scope of [currentDeclaration].
@@ -440,9 +438,11 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     debugEvent("endLibraryName");
-    pop(); // Name.
+    if (hasName) {
+      pop(); // Name.
+    }
     pop(); // Annotations.
   }
 
@@ -900,7 +900,7 @@ class DietListener extends StackListenerImpl {
   void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
     assert(checkState(token, [
       ValueKinds.Token,
-      ValueKinds.NameOrParserRecovery,
+      ValueKinds.NameOrParserRecoveryOrNull,
       ValueKinds.TokenOrNull
     ]));
     debugEvent("beginClassOrMixinBody");
@@ -913,8 +913,12 @@ class DietListener extends StackListenerImpl {
       currentClassIsParserRecovery = true;
       return;
     }
-    currentDeclaration =
-        lookupBuilder(beginToken, null, name as String) as DeclarationBuilder;
+    if (name is String) {
+      currentDeclaration =
+          lookupBuilder(beginToken, null, name) as DeclarationBuilder;
+    } else {
+      currentDeclaration = lookupUnnamedExtensionBuilder(beginToken);
+    }
     memberScope = currentDeclaration!.scope;
   }
 
@@ -956,10 +960,7 @@ class DietListener extends StackListenerImpl {
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
     debugEvent("beginExtensionDeclaration");
-    String name = nameToken?.lexeme ??
-        // Synthesized name used internally.
-        '_extension#${unnamedExtensionCounter++}';
-    push(name);
+    push(nameToken?.lexeme ?? NullValue.Name);
     push(extensionKeyword);
   }
 
@@ -1150,6 +1151,11 @@ class DietListener extends StackListenerImpl {
     return declaration;
   }
 
+  ExtensionBuilder? lookupUnnamedExtensionBuilder(Token extensionToken) {
+    return libraryBuilder.scope
+        .lookupLocalUnnamedExtension(uri, extensionToken.charOffset);
+  }
+
   Builder? lookupConstructor(Token token, Object nameOrQualified) {
     assert(currentClass != null);
     Builder? declaration;
@@ -1164,7 +1170,7 @@ class DietListener extends StackListenerImpl {
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
     }
-    declaration = currentClass!.constructorScope.local[suffix];
+    declaration = currentClass!.constructorScope.lookupLocalMember(suffix);
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, nameOrQualified);
     return declaration;

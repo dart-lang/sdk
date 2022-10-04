@@ -410,6 +410,31 @@ void f() {
     );
   }
 
+  Future<void> test_params_recordType() async {
+    final content = '''
+/// Does something.
+void f((String, int) r) {
+  f(^);
+}
+''';
+
+    final expectedLabel = 'f((String, int) r)';
+    final expectedDoc = 'Does something.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: '(String, int) r'),
+      ],
+    );
+  }
+
   Future<void> test_params_requiredNamed() async {
     // This test requires support for the "required" keyword.
     final content = '''

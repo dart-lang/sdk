@@ -674,6 +674,76 @@ ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
               heap->new_space()->ExternalInWords() * kWordSize);
   }
 }
+
+ISOLATE_UNIT_TEST_CASE(ExternalSizeLimit) {
+  // This test checks that the tracked total size of external data never exceeds
+  // the amount of memory on the system. To accomplish this, the test performs
+  // five calls to FinalizablePersistentHandle::New(), all supplying a size
+  // argument that is barely (16 bytes) less than a quarter of kMaxAddrSpaceMB.
+  // So, we expect the first four calls to succeed, and the fifth one to return
+  // nullptr.
+
+  auto isolate_group = thread->isolate_group();
+  Heap* heap = isolate_group->heap();
+
+  // We declare an array of only length 1 here to get around the limit of
+  // ExternalTypedData::MaxElements(kExternalTypedDataUint8ArrayCid). Below, we
+  // pretend that the length is longer when calling
+  // FinalizablePersistentHandle::New(), which is what updates the external size
+  // tracker.
+  const intptr_t data_length = 1;
+  uint8_t data[data_length] = {0};
+  const ExternalTypedData& external_typed_data_1 =
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataUint8ArrayCid, data, data_length, Heap::kOld));
+  const ExternalTypedData& external_typed_data_2 =
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataUint8ArrayCid, data, data_length, Heap::kOld));
+  const ExternalTypedData& external_typed_data_3 =
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataUint8ArrayCid, data, data_length, Heap::kOld));
+  const ExternalTypedData& external_typed_data_4 =
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataUint8ArrayCid, data, data_length, Heap::kOld));
+  const ExternalTypedData& external_typed_data_5 =
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataUint8ArrayCid, data, data_length, Heap::kOld));
+
+  // A size that is less than a quarter of kMaxAddrSpaceMB is used because it
+  // needs to be less than or equal to std::numeric_limits<intptr_t>::max().
+  const intptr_t external_allocation_size =
+      (intptr_t{kMaxAddrSpaceMB / 4} << MBLog2) - 16;
+  EXPECT_NOTNULL(FinalizablePersistentHandle::New(
+      isolate_group, external_typed_data_1, nullptr, NoopFinalizer,
+      external_allocation_size,
+      /*auto_delete=*/true));
+  EXPECT_LT(heap->old_space()->ExternalInWords(), kMaxAddrSpaceInWords);
+
+  EXPECT_NOTNULL(FinalizablePersistentHandle::New(
+      isolate_group, external_typed_data_2, nullptr, NoopFinalizer,
+      external_allocation_size,
+      /*auto_delete=*/true));
+  EXPECT_LT(heap->old_space()->ExternalInWords(), kMaxAddrSpaceInWords);
+
+  EXPECT_NOTNULL(FinalizablePersistentHandle::New(
+      isolate_group, external_typed_data_3, nullptr, NoopFinalizer,
+      external_allocation_size,
+      /*auto_delete=*/true));
+  EXPECT_LT(heap->old_space()->ExternalInWords(), kMaxAddrSpaceInWords);
+
+  EXPECT_NOTNULL(FinalizablePersistentHandle::New(
+      isolate_group, external_typed_data_4, nullptr, NoopFinalizer,
+      external_allocation_size,
+      /*auto_delete=*/true));
+  EXPECT_LT(heap->old_space()->ExternalInWords(), kMaxAddrSpaceInWords);
+
+  EXPECT_NULLPTR(FinalizablePersistentHandle::New(
+      isolate_group, external_typed_data_5, nullptr, NoopFinalizer,
+      external_allocation_size,
+      /*auto_delete=*/true));
+  // Check that the external size is indeed protected from overflowing.
+  EXPECT_LT(heap->old_space()->ExternalInWords(), kMaxAddrSpaceInWords);
+}
 #endif  // !defined(PRODUCT)
 
 ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {

@@ -16,7 +16,7 @@ class TestConsumer implements StreamConsumer<List<int>> {
   bool expectClose;
 
   TestConsumer(this.expected,
-      {this.expectClose: true, this.expcetedAddStreamCount: -1}) {
+      {this.expectClose = true, this.expcetedAddStreamCount = -1}) {
     if (expectClose) asyncStart();
   }
 

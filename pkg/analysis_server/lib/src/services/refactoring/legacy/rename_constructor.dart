@@ -10,21 +10,16 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [ConstructorElement]s.
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
-  final AnalysisSession session;
-
   RenameConstructorRefactoringImpl(
-      RefactoringWorkspace workspace, this.session, ConstructorElement element)
-      : super(workspace, element);
+      super.workspace, super.sessionHelper, ConstructorElement super.element);
 
   @override
   ConstructorElement get element => super.element as ConstructorElement;
@@ -82,7 +77,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    var parentClass = element.enclosingElement3;
+    var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
       result.addError('The constructor should not have the same name '
@@ -107,10 +102,9 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> _replaceSynthetic() async {
-    var classElement = element.enclosingElement3;
+    var classElement = element.enclosingElement;
 
-    var result = await AnalysisSessionHelper(session)
-        .getElementDeclaration(classElement);
+    var result = await sessionHelper.getElementDeclaration(classElement);
     if (result == null) {
       return;
     }
@@ -123,7 +117,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var node = result.node;
     if (node is ClassDeclaration) {
       var utils = CorrectionUtils(resolvedUnit);
-      var location = utils.prepareNewConstructorLocation(session, node);
+      var location =
+          utils.prepareNewConstructorLocation(sessionHelper.session, node);
       if (location == null) {
         return;
       }

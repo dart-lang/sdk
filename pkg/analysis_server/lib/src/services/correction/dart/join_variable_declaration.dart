@@ -75,7 +75,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
     // The declared variable must be the one that is assigned.
     // There must be no initializer.
     var declaredVariable = declaredVariables.single;
-    if (declaredVariable.declaredElement2 != left.staticElement ||
+    if (declaredVariable.declaredElement != left.staticElement ||
         declaredVariable.initializer != null) {
       return;
     }
@@ -137,7 +137,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
     }
 
     // The assignment should write into the declared variable.
-    if (assignment.writeElement != declaredVariable.declaredElement2) {
+    if (assignment.writeElement != declaredVariable.declaredElement) {
       return;
     }
 
@@ -148,7 +148,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-        range.endStart(declaredVariable.name2, assignment.operator),
+        range.endStart(declaredVariable.name, assignment.operator),
         ' ',
       );
     });

@@ -109,6 +109,7 @@ group("dart2wasm") {
     "utils/dart2wasm:compile_dart2wasm_platform",
     "utils/dart2wasm:dart2wasm_asserts_snapshot",
     "utils/dart2wasm:dart2wasm_snapshot",
+    "utils/dart2wasm:test_wasm_modules",
   ]
 }
 

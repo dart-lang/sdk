@@ -823,10 +823,7 @@ void ScopeBuilder::VisitExpression() {
     }
     case kStringConcatenation: {
       helper_.ReadPosition();                           // read position.
-      intptr_t list_length = helper_.ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith expression.
-      }
+      VisitListOfExpressions();
       return;
     }
     case kIsExpression:
@@ -859,10 +856,7 @@ void ScopeBuilder::VisitExpression() {
     case kListLiteral: {
       helper_.ReadPosition();                           // read position.
       VisitDartType();                                  // read type.
-      intptr_t list_length = helper_.ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith expression.
-      }
+      VisitListOfExpressions();
       return;
     }
     case kSetLiteral: {
@@ -882,6 +876,24 @@ void ScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kRecordLiteral:
+      helper_.ReadPosition();         // read position.
+      VisitListOfExpressions();       // read positionals.
+      VisitListOfNamedExpressions();  // read named.
+      VisitDartType();                // read recordType.
+      return;
+    case kRecordIndexGet:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipDartType();  // read recordType.
+      helper_.ReadUInt();      // read index.
+      return;
+    case kRecordNameGet:
+      helper_.ReadPosition();         // read position.
+      VisitExpression();              // read receiver.
+      helper_.SkipDartType();         // read recordType.
+      helper_.SkipStringReference();  // read name.
+      return;
     case kFunctionExpression: {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
       helper_.ReadPosition();                        // read position.
@@ -1085,10 +1097,7 @@ void ScopeBuilder::VisitStatement() {
       if (tag == kSomething) {
         VisitExpression();  // read rest of condition.
       }
-      list_length = helper_.ReadListLength();  // read number of updates.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith update.
-      }
+      VisitListOfExpressions();  // read updates.
       VisitStatement();  // read body.
 
       ExitScope(position, helper_.reader_.max_position());
@@ -1259,6 +1268,21 @@ void ScopeBuilder::VisitStatement() {
   }
 }
 
+void ScopeBuilder::VisitListOfExpressions() {
+  const intptr_t list_length = helper_.ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    VisitExpression();
+  }
+}
+
+void ScopeBuilder::VisitListOfNamedExpressions() {
+  const intptr_t list_length = helper_.ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    helper_.SkipStringReference();  // read ith name index.
+    VisitExpression();              // read ith expression.
+  }
+}
+
 void ScopeBuilder::VisitArguments() {
   helper_.ReadUInt();  // read argument_count.
 
@@ -1268,18 +1292,8 @@ void ScopeBuilder::VisitArguments() {
     VisitDartType();  // read ith type.
   }
 
-  // Positional.
-  list_length = helper_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    VisitExpression();  // read ith positional.
-  }
-
-  // Named.
-  list_length = helper_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    helper_.SkipStringReference();  // read ith name index.
-    VisitExpression();              // read ith expression.
-  }
+  VisitListOfExpressions();       // Positional.
+  VisitListOfNamedExpressions();  // Named.
 }
 
 void ScopeBuilder::VisitVariableDeclaration() {
@@ -1355,6 +1369,9 @@ void ScopeBuilder::VisitDartType() {
     case kSimpleFunctionType:
       VisitFunctionType(true);
       return;
+    case kRecordType:
+      VisitRecordType();
+      return;
     case kTypeParameterType:
       VisitTypeParameterType();
       return;
@@ -1415,6 +1432,22 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
   }
 
   VisitDartType();  // read return type.
+}
+
+void ScopeBuilder::VisitRecordType() {
+  helper_.ReadNullability();  // read nullability.
+  const intptr_t positional_count =
+      helper_.ReadListLength();  // read positional list length.
+  for (intptr_t i = 0; i < positional_count; ++i) {
+    VisitDartType();  // read positional[i].
+  }
+  const intptr_t named_count =
+      helper_.ReadListLength();  // read named list length.
+  for (intptr_t i = 0; i < named_count; ++i) {
+    helper_.SkipStringReference();  // read named[i].name.
+    VisitDartType();                // read named[i].type.
+    helper_.ReadFlags();            // read named[i].flags
+  }
 }
 
 void ScopeBuilder::VisitTypeParameterType() {
@@ -1673,7 +1706,7 @@ void ScopeBuilder::AddExceptionVariable(
                      AbstractType::dynamic_type());
 
     // If transformer did not lift the variable then there is no need
-    // to lift it into the context when we encouter a YieldStatement.
+    // to lift it into the context when we encounter a YieldStatement.
     v->set_is_forced_stack();
     current_function_scope_->AddVariable(v);
   }

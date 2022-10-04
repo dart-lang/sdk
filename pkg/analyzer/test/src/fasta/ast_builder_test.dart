@@ -165,11 +165,57 @@ ClassDeclaration
         withOffsets: true);
   }
 
+  void test_class_constructor_named() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A.named();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.constructor('A.named()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  void test_class_constructor_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.constructor('A()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   void test_class_extendsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C extends (int, int) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, 16, 10),
+    ]);
 
     final node = parseResult.findNode.classDeclaration('class C');
     assertParsedNodeText(
@@ -186,9 +232,11 @@ ClassDeclaration
 
   void test_class_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
-class C implements (int, int) {}
+class C implements A, (int, int), B {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 22, 10),
+    ]);
 
     final node = parseResult.findNode.classDeclaration('class C');
     assertParsedNodeText(
@@ -199,8 +247,15 @@ ClassDeclaration
   name: C @6
   implementsClause: ImplementsClause
     implementsKeyword: implements @8
-  leftBracket: { @30
-  rightBracket: } @31
+    interfaces
+      NamedType
+        name: SimpleIdentifier
+          token: A @19
+      NamedType
+        name: SimpleIdentifier
+          token: B @34
+  leftBracket: { @36
+  rightBracket: } @37
 ''',
         withOffsets: true);
   }
@@ -224,23 +279,29 @@ ClassDeclaration
 
   void test_class_withClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
-class C with (int, int) {}
+class C with A, (int, int), B {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_NAMED_TYPE_WITH, 16, 10),
+    ]);
 
     final node = parseResult.findNode.classDeclaration('class C');
-    assertParsedNodeText(
-        node,
-        r'''
+    assertParsedNodeText(node, r'''
 ClassDeclaration
-  classKeyword: class @0
-  name: C @6
+  classKeyword: class
+  name: C
   withClause: WithClause
-    withKeyword: with @8
-  leftBracket: { @24
-  rightBracket: } @25
-''',
-        withOffsets: true);
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: A
+      NamedType
+        name: SimpleIdentifier
+          token: B
+  leftBracket: {
+  rightBracket: }
+''');
   }
 
   void test_classAlias_macro() {
@@ -272,10 +333,12 @@ ClassTypeAlias
 
   void test_classTypeAlias_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
-class C = Object with M implements (int, int);
+class C = Object with M implements A, (int, int), B;
 mixin M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 38, 10),
+    ]);
 
     final node = parseResult.findNode.classTypeAlias('class C');
     assertParsedNodeText(
@@ -296,16 +359,25 @@ ClassTypeAlias
           token: M @22
   implementsClause: ImplementsClause
     implementsKeyword: implements @24
-  semicolon: ; @45
+    interfaces
+      NamedType
+        name: SimpleIdentifier
+          token: A @35
+      NamedType
+        name: SimpleIdentifier
+          token: B @50
+  semicolon: ; @51
 ''',
         withOffsets: true);
   }
 
   void test_classTypeAlias_withClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
-class C = Object with (int, int);
+class C = Object with A, (int, int), B;
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_NAMED_TYPE_WITH, 25, 10),
+    ]);
 
     final node = parseResult.findNode.classTypeAlias('class C');
     assertParsedNodeText(
@@ -320,7 +392,14 @@ ClassTypeAlias
       token: Object @10
   withClause: WithClause
     withKeyword: with @17
-  semicolon: ; @32
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: A @22
+      NamedType
+        name: SimpleIdentifier
+          token: B @37
+  semicolon: ; @38
 ''',
         withOffsets: true);
   }
@@ -669,12 +748,50 @@ LibraryAugmentationDirective
 ''');
   }
 
+  void test_library_with_name() {
+    var parseResult = parseStringWithErrors(r'''
+library name.and.dots;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.library('library');
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  name: LibraryIdentifier
+    components
+      SimpleIdentifier
+        token: name
+      SimpleIdentifier
+        token: and
+      SimpleIdentifier
+        token: dots
+  semicolon: ;
+''');
+  }
+
+  void test_library_without_name() {
+    var parseResult = parseStringWithErrors(r'''
+library;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.library('library');
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  semicolon: ;
+''');
+  }
+
   void test_mixin_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C {}
-mixin M on C implements (int, int) {}
+mixin M on C implements A, (int, int), B {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 38, 10),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(
@@ -691,17 +808,26 @@ MixinDeclaration
           token: C @22
   implementsClause: ImplementsClause
     implementsKeyword: implements @24
-  leftBracket: { @46
-  rightBracket: } @47
+    interfaces
+      NamedType
+        name: SimpleIdentifier
+          token: A @35
+      NamedType
+        name: SimpleIdentifier
+          token: B @50
+  leftBracket: { @52
+  rightBracket: } @53
 ''',
         withOffsets: true);
   }
 
   void test_mixin_onClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
-mixin M on (int, int) {}
+mixin M on A, (int, int), B {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_NAMED_TYPE_ON, 14, 10),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(
@@ -712,8 +838,15 @@ MixinDeclaration
   name: M @6
   onClause: OnClause
     onKeyword: on @8
-  leftBracket: { @22
-  rightBracket: } @23
+    superclassConstraints
+      NamedType
+        name: SimpleIdentifier
+          token: A @11
+      NamedType
+        name: SimpleIdentifier
+          token: B @26
+  leftBracket: { @28
+  rightBracket: } @29
 ''',
         withOffsets: true);
   }
@@ -766,6 +899,23 @@ RecordLiteral
 ''');
   }
 
+  void test_recordLiteral_positional_one_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+final x = (0,);
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordLiteral('(0');
+    assertParsedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    IntegerLiteral
+      literal: 0
+  rightParenthesis: )
+''');
+  }
+
   void test_recordLiteral_positional_trailingComma() {
     var parseResult = parseStringWithErrors(r'''
 final x = (0, 1,);
@@ -785,7 +935,6 @@ RecordLiteral
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49826')
   void test_recordTypeAnnotation_empty() {
     var parseResult = parseStringWithErrors(r'''
 () f() {}
@@ -936,6 +1085,47 @@ RecordTypeAnnotation
       type: NamedType
         name: SimpleIdentifier
           token: bool
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_positional_one() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int) r) {}
+''');
+    parseResult.assertErrors([
+      error(
+          ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA, 11, 1),
+    ]);
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_positional_one_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int, ) r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
   rightParenthesis: )
 ''');
   }

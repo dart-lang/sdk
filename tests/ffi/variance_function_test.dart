@@ -189,7 +189,7 @@ void callbackParamInvariant2() {
   callback(fp);
 }
 
-void callbackParamImplictDowncast1() {
+void callbackParamImplicitDowncast1() {
   final callback = ffiTestFunctions.lookupFunction<CallbackNaTyPointerParamOp,
       CallbackNaTyPointerParamOpDart>(callbackParamOpName);
   final fp = Pointer.fromFunction<Int64PointerParamOp>(int64PointerParamOp);
@@ -224,7 +224,7 @@ void fromFunctionTests() {
   for (int i = 0; i < 100; ++i) {
     callbackParamInvariant1(); // Pointer<Int64> invariant
     callbackParamInvariant2(); // Pointer<NativeType> invariant
-    callbackParamImplictDowncast1(); // static and dynamically supertyped
+    callbackParamImplicitDowncast1(); // static and dynamically supertyped
     callbackParamSubtype1(); // static and dynamically subtyped
     callbackReturnInvariant1(); // Pointer<Int64> invariant
     callbackReturnInvariant2(); // Pointer<NativeType> invariant

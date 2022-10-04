@@ -196,7 +196,7 @@ abstract class BufferedCodeOutput {
 class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
   StringBuffer buffer = StringBuffer();
 
-  CodeBuffer([List<CodeOutputListener>? listeners]) : super(listeners);
+  CodeBuffer([super.listeners]);
 
   @override
   void _addInternal(String text) {

@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_c
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -36,15 +35,16 @@ Future<RefactoringStatus> validateCreateMethod(
 
 /// A [Refactoring] for renaming class member [Element]s.
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
-  final AnalysisSessionHelper sessionHelper;
-  final ClassElement classElement;
+  final InterfaceElement interfaceElement;
 
   late _RenameClassMemberValidator _validator;
 
-  RenameClassMemberRefactoringImpl(RefactoringWorkspace workspace,
-      AnalysisSession session, this.classElement, Element element)
-      : sessionHelper = AnalysisSessionHelper(session),
-        super(workspace, element);
+  RenameClassMemberRefactoringImpl(
+      RefactoringWorkspace workspace,
+      AnalysisSessionHelper sessionHelper,
+      this.interfaceElement,
+      Element element)
+      : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
@@ -60,7 +60,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = _RenameClassMemberValidator(
-        searchEngine, sessionHelper, classElement, element, newName);
+        searchEngine, sessionHelper, interfaceElement, element, newName);
     return _validator.validate();
   }
 
@@ -70,7 +70,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
-    return Future<RefactoringStatus>.value(result);
+    return result;
   }
 
   @override
@@ -87,7 +87,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     // update declarations
     for (var renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
@@ -95,31 +95,92 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         processor.addDeclarationEdit(renameElement.setter);
       } else {
         processor.addDeclarationEdit(renameElement);
+        if (!newName.startsWith('_')) {
+          var interfaceElement = renameElement.enclosingElement;
+          if (interfaceElement is InterfaceElement) {
+            for (var constructor in interfaceElement.constructors) {
+              for (var parameter in constructor.parameters) {
+                if (parameter is FieldFormalParameterElement &&
+                    parameter.field == renameElement) {
+                  await workspace.searchEngine
+                      .searchReferences(parameter)
+                      .then(processor.addReferenceEdits);
+                }
+              }
+            }
+          }
+        }
       }
     }
-    // update references
-    processor.addReferenceEdits(_validator.references);
+    await _updateReferences();
     // potential matches
-    var nameMatches = await searchEngine.searchMemberReferences(oldName);
-    var nameRefs = getSourceReferences(nameMatches);
-    for (var reference in nameRefs) {
-      // ignore references from SDK and pub cache
-      if (!workspace.containsElement(reference.element)) {
-        continue;
+    if (includePotential) {
+      var nameMatches = await searchEngine.searchMemberReferences(oldName);
+      var nameRefs = getSourceReferences(nameMatches);
+      for (var reference in nameRefs) {
+        // ignore references from SDK and pub cache
+        if (!workspace.containsElement(reference.element)) {
+          continue;
+        }
+        // check the element being renamed is accessible
+        if (!element.isAccessibleIn2(reference.libraryElement)) {
+          continue;
+        }
+        // add edit
+        reference.addEdit(change, newName, id: _newPotentialId());
       }
-      // check the element being renamed is accessible
-      if (!element.isAccessibleIn2(reference.libraryElement)) {
-        continue;
-      }
-      // add edit
-      reference.addEdit(change, newName, id: _newPotentialId());
+    }
+  }
+
+  Future<void> _addPrivateNamedFormalParameterEdit(
+      SourceReference reference, FieldFormalParameterElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is! DefaultFormalParameter) return;
+    var parameter = node.parameter as FieldFormalParameter;
+
+    var start = parameter.thisKeyword.offset;
+    var type = element.type.getDisplayString(withNullability: true);
+    var edit = SourceEdit(start, parameter.period.end - start, '$type ');
+    doSourceChange_addSourceEdit(change, reference.unitSource, edit);
+
+    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor != null) {
+      var previous = constructor.separator ?? constructor.parameters;
+      var replacement = '$newName = ${parameter.name.lexeme}';
+      replacement = constructor.initializers.isEmpty
+          ? ' : $replacement'
+          : ' $replacement,';
+      var edit = SourceEdit(previous.end, 0, replacement);
+      doSourceChange_addSourceEdit(change, reference.unitSource, edit);
     }
   }
 
   String _newPotentialId() {
+    assert(includePotential);
     var id = potentialEditIds.length.toString();
     potentialEditIds.add(id);
     return id;
+  }
+
+  Future<void> _updateReferences() async {
+    var references = getSourceReferences(_validator.references);
+
+    for (var reference in references) {
+      var element = reference.element;
+      if (!workspace.containsElement(element)) {
+        continue;
+      }
+
+      if (newName.startsWith('_') &&
+          element is FieldFormalParameterElement &&
+          element.isNamed) {
+        await _addPrivateNamedFormalParameterEdit(reference, element);
+        continue;
+      }
+
+      reference.addEdit(change, newName);
+    }
   }
 }
 
@@ -169,7 +230,7 @@ class _BaseClassMemberValidator {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var nameElement = getSyntheticAccessorVariable(declaration.element);
-      var nameClass = nameElement.enclosingElement3;
+      var nameClass = nameElement.enclosingElement;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
@@ -240,11 +301,39 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   _LocalElementsCollector(this.name);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is LocalElement && element.name == name) {
-      elements.add(element);
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.name.lexeme == name) {
+      final element = node.declaredElement;
+      if (element is FunctionElement) {
+        elements.add(element);
+      }
     }
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (node.name?.lexeme == name) {
+      final element = node.declaredElement;
+      if (element != null) {
+        elements.add(element);
+      }
+    }
+
+    super.visitSimpleFormalParameter(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.name.lexeme == name) {
+      final element = node.declaredElement;
+      if (element is LocalVariableElement) {
+        elements.add(element);
+      }
+    }
+
+    super.visitVariableDeclaration(node);
   }
 }
 
@@ -259,16 +348,16 @@ class _MatchShadowedByLocal {
 class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   final Element element;
 
-  Set<Element> elements = <Element>{};
-  List<SearchMatch> references = <SearchMatch>[];
+  Set<Element> elements = {};
+  List<SearchMatch> references = [];
 
   _RenameClassMemberValidator(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
-    ClassElement elementClass,
+    InterfaceElement elementInterface,
     this.element,
     String name,
-  ) : super(searchEngine, sessionHelper, elementClass, element.kind, name);
+  ) : super(searchEngine, sessionHelper, elementInterface, element.kind, name);
 
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
@@ -277,8 +366,9 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     var subClasses = await searchEngine.searchAllSubtypes(interfaceElement);
     // check shadowing of class names
     for (var element in elements) {
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement is ClassElement && enclosingElement.name == name) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is InterfaceElement &&
+          enclosingElement.name == name) {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '
           "declaring ${enclosingElement.kind.displayName} '$name'.",

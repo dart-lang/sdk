@@ -1,0 +1,4 @@
+part 'issue48765_part1.dart';
+part 'issue48765_part2.dart';
+
+void main() {}

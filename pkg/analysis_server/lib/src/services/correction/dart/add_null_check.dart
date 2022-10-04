@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -33,8 +34,6 @@ class AddNullCheck extends CorrectionProducer {
         target = coveredNodeParent.prefix;
       } else if (coveredNodeParent is PropertyAccess) {
         target = coveredNodeParent.realTarget;
-      } else if (coveredNodeParent is BinaryExpression) {
-        target = coveredNodeParent.rightOperand;
       } else {
         target = coveredNode;
       }
@@ -53,7 +52,20 @@ class AddNullCheck extends CorrectionProducer {
     } else if (coveredNode is PrefixExpression) {
       target = coveredNode.operand;
     } else if (coveredNode is BinaryExpression) {
-      target = coveredNode.leftOperand;
+      if (coveredNode.operator.type != TokenType.QUESTION_QUESTION) {
+        target = coveredNode.leftOperand;
+      } else {
+        var expectedType = coveredNode.staticParameterElement?.type;
+        if (expectedType == null) return;
+
+        var leftType = coveredNode.leftOperand.staticType;
+        var leftAssignable = leftType != null &&
+            typeSystem.isAssignableTo(
+                typeSystem.promoteToNonNull(leftType), expectedType);
+        if (leftAssignable) {
+          target = coveredNode.rightOperand;
+        }
+      }
     }
 
     if (target == null) {
@@ -74,14 +86,14 @@ class AddNullCheck extends CorrectionProducer {
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.declaredElement2?.type;
+      toType = parent.declaredElement?.type;
     } else if (parent is ArgumentList) {
       toType = target.staticParameterElement?.type;
     } else if (parent is IndexExpression) {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType =
-          typeProvider.iterableType(parent.loopVariable.declaredElement2!.type);
+          typeProvider.iterableType(parent.loopVariable.declaredElement!.type);
     } else if (parent is ForEachPartsWithIdentifier) {
       toType = typeProvider.iterableType(parent.identifier.typeOrThrow);
     } else if (parent is SpreadElement) {
@@ -103,10 +115,19 @@ class AddNullCheck extends CorrectionProducer {
       } else if (enclosingExecutable is FunctionExpression) {
         toType = enclosingExecutable.declaredElement!.returnType;
       }
+    } else if (parent is BinaryExpression) {
+      if (typeSystem.isNonNullable(fromType)) {
+        return;
+      }
+      var expectedType = parent.staticParameterElement?.type;
+      if (expectedType != null &&
+          !typeSystem.isAssignableTo(
+              typeSystem.promoteToNonNull(fromType), expectedType)) {
+        return;
+      }
     } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
         parent is PostfixExpression ||
         parent is PrefixExpression ||
-        parent is BinaryExpression ||
         (parent is PropertyAccess && target == parent.target) ||
         (parent is CascadeExpression && target == parent.target) ||
         (parent is MethodInvocation && target == parent.target) ||

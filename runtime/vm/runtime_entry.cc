@@ -4,6 +4,7 @@
 
 #include "vm/runtime_entry.h"
 
+#include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
@@ -385,6 +386,16 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxDouble, 0) {
   arguments.SetReturn(Object::Handle(zone, Double::New(val)));
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat32x4, 0) {
+  const auto val = thread->unboxed_simd128_runtime_arg();
+  arguments.SetReturn(Object::Handle(zone, Float32x4::New(val)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
+  const auto val = thread->unboxed_simd128_runtime_arg();
+  arguments.SetReturn(Object::Handle(zone, Float64x2::New(val)));
+}
+
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
@@ -709,6 +720,19 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   arguments.SetReturn(cloned_ctx);
 }
 
+// Allocate a new record instance.
+// Arg0: number of fields.
+// Arg1: field names.
+// Return value: newly allocated record.
+DEFINE_RUNTIME_ENTRY(AllocateRecord, 2) {
+  const Smi& num_fields = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& field_names = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const Record& record =
+      Record::Handle(zone, Record::New(num_fields.Value(), field_names,
+                                       SpaceForRuntimeAllocation()));
+  arguments.SetReturn(record);
+}
+
 // Allocate a SuspendState object.
 // Arg0: frame size.
 // Arg1: existing SuspendState object or function data.
@@ -835,6 +859,16 @@ static void UpdateTypeTestCache(
   ASSERT(destination_type.IsCanonical());
   ASSERT(instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsCanonical());
+  if (instance.IsRecord()) {
+    // Do not add record instances to cache as they don't have a valid
+    // key (type of a record depends on types of all its fields).
+    // TODO(dartbug.com/49719): consider testing each record field using
+    // SubtypeTestCache.
+    if (FLAG_trace_type_checks) {
+      THR_Print("Not updating subtype test cache for the record instance.\n");
+    }
+    return;
+  }
   Class& instance_class = Class::Handle(zone);
   if (instance.IsSmi()) {
     instance_class = Smi::Class();
@@ -3868,6 +3902,15 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
 
+#if defined(USING_MEMORY_SANITIZER)
+#define MSAN_UNPOISON_RANGE reinterpret_cast<RuntimeFunction>(&__msan_unpoison)
+#define MSAN_UNPOISON_PARAM                                                    \
+  reinterpret_cast<RuntimeFunction>(&__msan_unpoison_param)
+#else
+#define MSAN_UNPOISON_RANGE nullptr
+#define MSAN_UNPOISON_PARAM nullptr
+#endif
+
 #if defined(USING_THREAD_SANITIZER)
 #define TSAN_ACQUIRE reinterpret_cast<RuntimeFunction>(&__tsan_acquire)
 #define TSAN_RELEASE reinterpret_cast<RuntimeFunction>(&__tsan_release)
@@ -3875,6 +3918,19 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
 #define TSAN_ACQUIRE nullptr
 #define TSAN_RELEASE nullptr
 #endif
+
+// These runtime entries are defined even when not using MSAN / TSAN to keep
+// offsets on Thread consistent.
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(MsanUnpoison,
+                              /*argument_count=*/2,
+                              /*is_float=*/false,
+                              MSAN_UNPOISON_RANGE);
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam,
+                              /*argument_count=*/1,
+                              /*is_float=*/false,
+                              MSAN_UNPOISON_PARAM);
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanLoadAcquire,
                               /*argument_count=*/1,

@@ -123,6 +123,11 @@ class _File {
   }
 
   @patch
+  static List<dynamic> _createPipe(_Namespace namespace) {
+    throw UnsupportedError("File._createPipe");
+  }
+
+  @patch
   static _linkTarget(_Namespace namespace, Uint8List rawPath) {
     throw UnsupportedError("File._linkTarget");
   }
@@ -541,6 +546,16 @@ class ResourceHandle {
   factory ResourceHandle.fromStdout(Stdout stdout) {
     throw UnsupportedError("ResourceHandle.fromStdout constructor");
   }
+
+  @patch
+  factory ResourceHandle.fromReadPipe(ReadPipe pipe) {
+    throw UnsupportedError("ResourceHandle.fromReadPipe constructor");
+  }
+
+  @patch
+  factory ResourceHandle.fromWritePipe(WritePipe pipe) {
+    throw UnsupportedError("ResourceHandle.fromWritePipe constructor");
+  }
 }
 
 @patch
@@ -753,7 +768,7 @@ class _FileSystemWatcher {
 @patch
 class _IOService {
   @patch
-  static Future _dispatch(int request, List data) {
+  static Future<Object?> _dispatch(int request, List data) {
     throw UnsupportedError("_IOService._dispatch");
   }
 }

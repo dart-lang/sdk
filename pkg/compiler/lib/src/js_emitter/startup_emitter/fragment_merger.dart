@@ -101,7 +101,7 @@ import '../model.dart';
 /// interleaving.
 ///
 /// Instead, when this happens we emit {a} and {c} into separate
-/// [CodeFragments], with separate top level initalization functions that are
+/// [CodeFragments], with separate top level initialization functions that are
 /// only called when the necessary dependencies for initialization are
 /// present. These [CodeFragments] end up in a single [FinalizedFragment].
 /// While this approach doesn't have the performance benefits of
@@ -672,7 +672,7 @@ class FragmentMerger {
           .map((fragment) =>
               deferredPartFileName(_options, fragment.canonicalOutputUnit.name))
           .toList();
-      libraryMap["imports"][importDeferName] = partFileNames;
+      (libraryMap["imports"] as Map)[importDeferName] = partFileNames;
     });
     return mapping;
   }

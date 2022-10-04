@@ -263,7 +263,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     String className = classElement.name;
     if (!identical(classElement, _commonElements.constSetLiteralClass)) {
       failedAt(
-          classElement, "Compiler encoutered unexpected set class $className");
+          classElement, "Compiler encountered unexpected set class $className");
     }
 
     List<jsAst.Expression> arguments = [

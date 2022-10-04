@@ -19,7 +19,7 @@ Element? declaredParameterElement(
   SimpleIdentifier node,
   Element? element,
 ) {
-  if (element == null || element.enclosingElement3 != null) {
+  if (element == null || element.enclosingElement != null) {
     return element;
   }
 
@@ -64,7 +64,7 @@ Element? declaredParameterElement(
 /// Return the [CompilationUnitElement] that should be used for [element].
 /// Throw [StateError] if the [element] is not linked into a unit.
 CompilationUnitElement getUnitElement(Element element) {
-  for (Element? e = element; e != null; e = e.enclosingElement3) {
+  for (Element? e = element; e != null; e = e.enclosingElement) {
     if (e is CompilationUnitElement) {
       return e;
     }
@@ -89,21 +89,21 @@ class ElementNameComponents {
     String? parameterName;
     if (element is ParameterElement) {
       parameterName = element.name;
-      element = element.enclosingElement3!;
+      element = element.enclosingElement!;
     }
 
     String? classMemberName;
-    if (element.enclosingElement3 is ClassElement ||
-        element.enclosingElement3 is ExtensionElement) {
+    if (element.enclosingElement is InterfaceElement ||
+        element.enclosingElement is ExtensionElement) {
       classMemberName = element.name;
-      element = element.enclosingElement3!;
+      element = element.enclosingElement!;
     }
 
     String? unitMemberName;
-    if (element.enclosingElement3 is CompilationUnitElement) {
+    if (element.enclosingElement is CompilationUnitElement) {
       unitMemberName = element.name;
       if (element is ExtensionElement && unitMemberName == null) {
-        var enclosingUnit = element.enclosingElement3;
+        var enclosingUnit = element.enclosingElement;
         var indexOf = enclosingUnit.extensions.indexOf(element);
         unitMemberName = 'extension-$indexOf';
       }
@@ -140,7 +140,7 @@ class IndexElementInfo {
     } else if (element.isSynthetic) {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement3!;
+        element = element.enclosingElement!;
       } else if (element is FunctionElement &&
           element.name == FunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
@@ -152,7 +152,7 @@ class IndexElementInfo {
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
-        Element enclosing = element.enclosingElement3;
+        Element enclosing = element.enclosingElement;
         bool isEnumGetter = enclosing is EnumElement;
         if (isEnumGetter && accessor.name == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
@@ -167,7 +167,7 @@ class IndexElementInfo {
           element = accessor.variable;
         }
       } else if (element is MethodElement) {
-        Element enclosing = element.enclosingElement3;
+        Element enclosing = element.enclosingElement;
         bool isEnumMethod = enclosing is EnumElement;
         if (isEnumMethod && element.name == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
@@ -447,7 +447,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   _IndexContributor(this.assembler);
 
   void recordIsAncestorOf(InterfaceElement descendant) {
-    _recordIsAncestorOf(descendant, descendant, false, <ClassElement>[]);
+    _recordIsAncestorOf(descendant, descendant, false, <InterfaceElement>[]);
   }
 
   /// Record that the name [node] has a relation of the given [kind].
@@ -492,14 +492,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.TYPE_PARAMETER ||
         elementKind == ElementKind.FUNCTION &&
             element is FunctionElement &&
-            element.enclosingElement3 is ExecutableElement ||
+            element.enclosingElement is ExecutableElement ||
         false) {
       return;
     }
     // Ignore named parameters of synthetic functions, e.g. created for LUB.
     // These functions are not bound to a source, we cannot index them.
     if (elementKind == ElementKind.PARAMETER && element is ParameterElement) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement == null || enclosingElement.isSynthetic) {
         return;
       }
@@ -509,7 +509,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // named parameters. Ignore them.
     if (elementKind == ElementKind.PARAMETER &&
         element is ParameterElement &&
-        element.enclosingElement3 is GenericFunctionTypeElement) {
+        element.enclosingElement is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -561,11 +561,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _addSubtypeForClassDeclaration(node);
-    var declaredElement = node.declaredElement2!;
+    var declaredElement = node.declaredElement!;
     if (node.extendsClause == null) {
       final objectElement = declaredElement.supertype?.element2;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
-          node.name2.offset, 0, true);
+          node.name.offset, 0, true);
     }
     recordIsAncestorOf(declaredElement);
     super.visitClassDeclaration(node);
@@ -574,7 +574,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
-    recordIsAncestorOf(node.declaredElement2!);
+    recordIsAncestorOf(node.declaredElement!);
     super.visitClassTypeAlias(node);
   }
 
@@ -655,7 +655,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         offset = constructorSelector.period.offset;
         length = constructorSelector.name.end - offset;
       } else {
-        offset = node.name2.end;
+        offset = node.name.end;
         length = 0;
       }
       recordRelationOffset(
@@ -675,13 +675,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      node.name2.lexeme,
+      node.name.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
       memberNodes: node.members,
     );
 
-    var declaredElement = node.declaredElement2!;
+    var declaredElement = node.declaredElement!;
     recordIsAncestorOf(declaredElement);
     super.visitEnumDeclaration(node);
   }
@@ -758,7 +758,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }
     // element invocation
-    IndexRelationKind kind = element is ClassElement
+    IndexRelationKind kind = element is InterfaceElement
         ? IndexRelationKind.IS_REFERENCED_BY
         : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
@@ -770,7 +770,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _addSubtypeForMixinDeclaration(node);
-    recordIsAncestorOf(node.declaredElement2!);
+    recordIsAncestorOf(node.declaredElement!);
     super.visitMixinDeclaration(node);
   }
 
@@ -859,12 +859,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
       recordNameRelation(node, kind, isQualified);
     }
-    // this.field parameter
-    if (element is FieldFormalParameterElement) {
-      IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
-      recordRelation(element.field, kind, node, true);
-      return;
-    }
     // ignore a local reference to a parameter
     if (element is ParameterElement && node.parent is! Label) {
       return;
@@ -921,15 +915,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> supertypes = [];
     List<String> members = [];
 
-    String getClassElementId(ClassElement element) {
+    String getInterfaceElementId(InterfaceElement element) {
       return '${element.library.source.uri};'
           '${element.source.uri};${element.name}';
     }
 
     void addSupertype(NamedType? type) {
       var element = type?.name.staticElement;
-      if (element is ClassElement) {
-        String id = getClassElementId(element);
+      if (element is InterfaceElement) {
+        String id = getInterfaceElementId(element);
         supertypes.add(id);
       }
     }
@@ -948,10 +942,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     for (ClassMember member in memberNodes) {
       if (member is MethodDeclaration && !member.isStatic) {
-        addMemberName(member.name2);
+        addMemberName(member.name);
       } else if (member is FieldDeclaration && !member.isStatic) {
         for (var field in member.fields.variables) {
-          addMemberName(field.name2);
+          addMemberName(field.name);
         }
       }
     }
@@ -964,7 +958,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node.name2.lexeme,
+    _addSubtype(node.name.lexeme,
         superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -973,7 +967,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
-    _addSubtype(node.name2.lexeme,
+    _addSubtype(node.name.lexeme,
         superclass: node.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -982,7 +976,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given mixin as a subclass of its direct superclasses.
   void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
-    _addSubtype(node.name2.lexeme,
+    _addSubtype(node.name.lexeme,
         onClause: node.onClause,
         implementsClause: node.implementsClause,
         memberNodes: node.members);
@@ -995,7 +989,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       ConstructorElement? constructor) {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-      var enclosing = constructor.enclosingElement3;
+      var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElement && enclosing.isMixinApplication) {
         var superInvocation = constructor.constantInitializers
             .whereType<SuperConstructorInvocation>()
@@ -1037,12 +1031,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
           ancestor, IndexRelationKind.IS_ANCESTOR_OF, offset, length, false);
     }
     {
-      if (ancestor is ClassElement) {
-        var superType = ancestor.supertype;
-        if (superType != null) {
-          _recordIsAncestorOf(
-              descendant, superType.element2, true, visitedElements);
-        }
+      var superType = ancestor.supertype;
+      if (superType != null) {
+        _recordIsAncestorOf(
+            descendant, superType.element2, true, visitedElements);
       }
     }
     for (InterfaceType mixinType in ancestor.mixins) {

@@ -213,7 +213,7 @@ class Api extends Member with ApiParseUtil {
         writer.addLine('logUnknownResponse(consumer, json);');
       }, modifiers: null, isOverride: true);
 
-      writer.addMethod("convertMapToJsonObject", [
+      writer.addMethod('convertMapToJsonObject', [
         JavaMethodArg('map', 'Map<String, String>')
       ], (StatementWriter writer) {
         writer.addLine('JsonObject obj = new JsonObject();');
@@ -221,17 +221,17 @@ class Api extends Member with ApiParseUtil {
         writer.addLine('  obj.addProperty(key, map.get(key));');
         writer.addLine('}');
         writer.addLine('return obj;');
-      }, modifiers: "private", returnType: "JsonObject");
+      }, modifiers: 'private', returnType: 'JsonObject');
 
       writer.addMethod(
-          "convertIterableToJsonArray", [JavaMethodArg('list', 'Iterable')],
+          'convertIterableToJsonArray', [JavaMethodArg('list', 'Iterable')],
           (StatementWriter writer) {
         writer.addLine('JsonArray arr = new JsonArray();');
         writer.addLine('for (Object element : list) {');
         writer.addLine('  arr.add(new JsonPrimitive(element.toString()));');
         writer.addLine('}');
         writer.addLine('return arr;');
-      }, modifiers: "private", returnType: "JsonArray");
+      }, modifiers: 'private', returnType: 'JsonArray');
     });
 
     for (var m in methods) {
@@ -534,7 +534,7 @@ class Method extends Member {
       for (var t in returnType.types) {
         writer.addImport(t.elementTypeName);
         writer.addMethod(
-            "received", [JavaMethodArg('response', t.elementTypeName)], null);
+            'received', [JavaMethodArg('response', t.elementTypeName)], null);
       }
     });
   }
@@ -925,7 +925,7 @@ class TypeField extends Member {
         for (TypeRef t in type.types) {
           String refName = t.name!;
           if (refName.endsWith('Ref')) {
-            refName = "@" + refName.substring(0, refName.length - 3);
+            refName = '@' + refName.substring(0, refName.length - 3);
           }
           w.addLine('if (elem.get("type").getAsString().equals("${refName}")) '
               'return new ${t.name}(elem);');

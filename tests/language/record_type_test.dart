@@ -7,6 +7,7 @@
 main() {
   (int, int) record1 = (1, 2);
   print(record1);
+
   (int x, int y) record1Named = (1, 2);
   print(record1Named);
 
@@ -39,6 +40,12 @@ main() {
   List<(int, int)> listOfRecords = [];
 
   var listOfRecords2 = <(int, int)>[];
+
+  (int, ) oneElementRecord = (1, );
+  print(oneElementRecord);
+
+  ({int ok}) oneElementNamedRecord = (ok: 1);
+  print(oneElementNamedRecord);
 }
 
 (int, T) f1<T>(T t) {

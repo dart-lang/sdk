@@ -64,8 +64,8 @@ example(List<int> list) {
       assertType(findElement.localVar('a').type, 'int');
       assertType(findElement.parameter('x').type, 'int');
       assertType(findElement.parameter('y').type, 'int');
-      expect(findNode.binary('x + y').staticElement!.enclosingElement3.name,
-          'num');
+      expect(
+          findNode.binary('x + y').staticElement!.enclosingElement.name, 'num');
     } else {
       await assertErrorsInCode(code, [
         error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
@@ -106,7 +106,7 @@ test() {
                 'List<dynamic> Function(int Function()))');
     assertType(findNode.simpleParameter('h)').declaredElement!.type,
         _isEnabled ? 'int Function()' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<dynamic>');
   }
 
@@ -130,7 +130,7 @@ test(List<int> list) {
     assertType(findElement.localVar('a').type, _isEnabled ? 'int' : 'dynamic');
     assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement?.enclosingElement3.name,
+    expect(findNode.binary('+ y').staticElement?.enclosingElement.name,
         _isEnabled ? 'num' : null);
   }
 
@@ -153,7 +153,7 @@ test() {
             : 'List<Object?> Function(List<Object?> Function(int), int Function())');
     assertType(findNode.simpleParameter('x)').declaredElement!.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -176,7 +176,7 @@ test() {
             : 'List<Object?> Function(int Function(), List<Object?> Function(int))');
     assertType(findNode.simpleParameter('x)').declaredElement!.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -199,7 +199,7 @@ test() {
             : 'List<Object?> Function(int, List<Object?> Function(int))');
     assertType(findNode.simpleParameter('x)').declaredElement!.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -294,7 +294,7 @@ test(List<int> list) {
     assertType(findElement.localVar('a').type, 'int?');
     assertType(findElement.parameter('x').type, 'int?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_explicit_parameter_type_named() async {
@@ -311,7 +311,7 @@ test() {
     assertType(findElement.localVar('a').type, 'int?');
     assertType(findElement.parameter('x').type, 'int?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_no_dependency() async {

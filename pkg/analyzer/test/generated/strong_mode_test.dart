@@ -223,7 +223,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp;
     }
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
@@ -369,8 +369,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     var body = constructor.body as BlockFunctionBody;
     var stmt = body.block.statements[0] as ReturnStatement;
     var exp = stmt.expression as InstanceCreationExpression;
-    ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement2!;
-    ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
     final type = exp.constructorName.type.typeOrThrow as InterfaceType;
     expect(type.element2, elementB);
     _isInstantiationOf(_hasElement(elementB))([
@@ -1118,7 +1118,7 @@ void test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 347, 2),
     ]);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     void check(int i) {
@@ -1149,7 +1149,7 @@ void test() {
     ]);
 
     DartType cType = findElement.localVar('c').type;
-    Element elementC = AstFinder.getClass(unit, "C").declaredElement2!;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);
   }
@@ -1426,7 +1426,7 @@ test() {
             as VariableDeclarationStatement)
         .variables
         .variables[0];
-    _isDynamic(h.declaredElement2!.type);
+    _isDynamic(h.declaredElement!.type);
     var fCall = h.initializer as MethodInvocation;
     assertInvokeType(fCall, 'dynamic Function(dynamic Function(dynamic))');
     var g = fCall.argumentList.arguments[0];
@@ -1480,9 +1480,9 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
     MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
-    assertMapOfIntToListOfInt(mapB.declaredElement2!.type as InterfaceType);
+    assertMapOfIntToListOfInt(mapB.declaredElement!.type as InterfaceType);
     assertMapOfIntToListOfInt(
-        mapC.declaredElement2!.returnType as InterfaceType);
+        mapC.declaredElement!.returnType as InterfaceType);
 
     var mapLiteralB = mapB.initializer as SetOrMapLiteral;
     var mapLiteralC =
@@ -1667,12 +1667,12 @@ num test(Iterable values) => values.fold(values.first as num, max);
     void hasType(Asserter<DartType> assertion, Expression exp) =>
         assertion(exp.typeOrThrow);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
-    Element elementC = AstFinder.getClass(unit, "C").declaredElement2!;
-    Element elementD = AstFinder.getClass(unit, "D").declaredElement2!;
-    Element elementE = AstFinder.getClass(unit, "E").declaredElement2!;
-    Element elementF = AstFinder.getClass(unit, "F").declaredElement2!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement!;
+    Element elementD = AstFinder.getClass(unit, "D").declaredElement!;
+    Element elementE = AstFinder.getClass(unit, "E").declaredElement!;
+    Element elementF = AstFinder.getClass(unit, "F").declaredElement!;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
         _isInstantiationOf(_hasElement(elementA));
@@ -2178,7 +2178,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2200,7 +2200,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
   }
@@ -2225,7 +2225,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2248,7 +2248,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
   }
@@ -2274,7 +2274,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
   }
@@ -2299,7 +2299,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2325,7 +2325,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2351,7 +2351,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2773,9 +2773,10 @@ FunctionDeclaration
     await assertNoErrorsInCode(r'''
 void g(T f<T>(T x)) {}
 ''');
-    var type = expectFunctionType2('f', 'T Function<T>(T)');
-    FunctionType ft = type.instantiate([typeProvider.stringType]);
-    assertType(ft, 'String Function(String)');
+
+    final fType = findElement.parameter('f').type;
+    fType as FunctionType;
+    assertType(fType, 'T Function<T>(T)');
   }
 
   test_genericFunction_static() async {

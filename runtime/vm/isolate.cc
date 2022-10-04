@@ -329,10 +329,10 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            ObjectStore* object_store,
                            Dart_IsolateFlags api_flags)
-    : shared_class_table_(new SharedClassTable()),
-      class_table_(new ClassTable(shared_class_table_.get())),
-      cached_class_table_table_(class_table_->table()),
+    : class_table_(nullptr),
+      cached_class_table_table_(nullptr),
       object_store_(object_store),
+      class_table_allocator_(),
       embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -401,6 +401,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
     id_ = isolate_group_random_->NextUInt64();
   }
+  heap_walk_class_table_ = class_table_ =
+      new ClassTable(&class_table_allocator_);
+  cached_class_table_table_.store(class_table_->table());
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
@@ -422,6 +425,11 @@ IsolateGroup::~IsolateGroup() {
       delete[] obfuscation_map_[i];
     }
     delete[] obfuscation_map_;
+  }
+
+  class_table_allocator_.Free(class_table_);
+  if (heap_walk_class_table_ != class_table_) {
+    class_table_allocator_.Free(heap_walk_class_table_);
   }
 
 #if !defined(PRODUCT)
@@ -461,7 +469,7 @@ void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
   }
 }
 
-bool IsolateGroup::UnregisterIsolateDecrementCount(Isolate* isolate) {
+bool IsolateGroup::UnregisterIsolateDecrementCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   isolate_count_--;
   return isolate_count_ == 0;
@@ -1731,6 +1739,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       spawn_count_monitor_(),
       handler_info_cache_(),
       catch_entry_moves_cache_(),
+      wake_pause_event_handler_count_(0),
       loaded_prefixes_set_storage_(nullptr) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
@@ -2039,9 +2048,9 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
 
   ASSERT(!IsReloading());
 
-  auto shared_class_table = IsolateGroup::Current()->shared_class_table();
+  auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
-      new IsolateGroupReloadContext(this, shared_class_table, js));
+      new IsolateGroupReloadContext(this, class_table, js));
   group_reload_context_ = group_reload_context;
 
   SetHasAttemptedReload(true);
@@ -2068,9 +2077,9 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
 
   ASSERT(!IsReloading());
 
-  auto shared_class_table = IsolateGroup::Current()->shared_class_table();
+  auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
-      new IsolateGroupReloadContext(this, shared_class_table, js));
+      new IsolateGroupReloadContext(this, class_table, js));
   group_reload_context_ = group_reload_context;
 
   SetHasAttemptedReload(true);
@@ -2087,7 +2096,6 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
 }
 
 void IsolateGroup::DeleteReloadContext() {
-  // Another thread may be in the middle of GetClassForHeapWalkAt.
   GcSafepointOperationScope safepoint_scope(Thread::Current());
   group_reload_context_.reset();
 
@@ -2698,8 +2706,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
     }
   }
 
-  const bool shutdown_group =
-      isolate_group->UnregisterIsolateDecrementCount(isolate);
+  const bool shutdown_group = isolate_group->UnregisterIsolateDecrementCount();
   if (shutdown_group) {
     KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
 
@@ -2965,10 +2972,10 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
-  // if class table is shared, it's stored on isolate group
-  if (class_table() != nullptr) {
-    // Visit objects in the class table.
-    class_table()->VisitObjectPointers(visitor);
+  // Visit objects in the class table.
+  class_table()->VisitObjectPointers(visitor);
+  if (heap_walk_class_table() != class_table()) {
+    heap_walk_class_table()->VisitObjectPointers(visitor);
   }
   api_state()->VisitObjectPointersUnlocked(visitor);
   // Visit objects in the object store.
@@ -3052,34 +3059,6 @@ void IsolateGroup::DeferredMarkLiveTemporaries() {
 void IsolateGroup::RememberLiveTemporaries() {
   ForEachIsolate([&](Isolate* isolate) { isolate->RememberLiveTemporaries(); },
                  /*at_safepoint=*/true);
-}
-
-ClassPtr IsolateGroup::GetClassForHeapWalkAt(intptr_t cid) {
-  ClassPtr raw_class = nullptr;
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
-    raw_class = program_reload_context()->GetClassForHeapWalkAt(cid);
-  } else {
-    raw_class = class_table()->At(cid);
-  }
-#else
-  raw_class = class_table()->At(cid);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(raw_class != nullptr);
-  ASSERT(remapping_cids() || raw_class->untag()->id_ == cid);
-  return raw_class;
-}
-
-intptr_t IsolateGroup::GetClassSizeForHeapWalkAt(intptr_t cid) {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
-    return group_reload_context_->GetClassSizeForHeapWalkAt(cid);
-  } else {
-    return shared_class_table()->SizeAt(cid);
-  }
-#else
-  return shared_class_table()->SizeAt(cid);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if !defined(PRODUCT)
@@ -3503,6 +3482,20 @@ void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   MonitorLocker ml(iso->pause_loop_monitor_);
   ml.Notify();
+
+  Dart_MessageNotifyCallback current_notify_callback =
+      iso->message_notify_callback();
+  // It is possible that WakePauseEventHandler was replaced by original callback
+  // while waiting for pause_loop_monitor_. In that case PauseEventHandler
+  // is no longer running and the original callback needs to be invoked instead
+  // of incrementing wake_pause_event_handler_count_.
+  if (current_notify_callback != Isolate::WakePauseEventHandler) {
+    if (current_notify_callback != nullptr) {
+      current_notify_callback(isolate);
+    }
+  } else {
+    ++iso->wake_pause_event_handler_count_;
+  }
 }
 
 void Isolate::PauseEventHandler() {
@@ -3518,6 +3511,7 @@ void Isolate::PauseEventHandler() {
   MonitorLocker ml(pause_loop_monitor_, false);
 
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
+  ASSERT(wake_pause_event_handler_count_ == 0);
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3531,7 +3525,6 @@ void Isolate::PauseEventHandler() {
                                               ->start_time_micros();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
-  bool handle_non_service_messages = false;
   while (true) {
     // Handle all available vm service messages, up to a resume
     // request.
@@ -3542,8 +3535,6 @@ void Isolate::PauseEventHandler() {
     }
     if (resume) {
       break;
-    } else {
-      handle_non_service_messages = true;
     }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3567,8 +3558,13 @@ void Isolate::PauseEventHandler() {
   // message notify callback to check for unhandled messages. Otherwise, events
   // may be left unhandled until the next event comes in. See
   // https://github.com/dart-lang/sdk/issues/37312.
-  if ((saved_notify_callback != nullptr) && handle_non_service_messages) {
-    saved_notify_callback(Api::CastIsolate(this));
+  if (saved_notify_callback != nullptr) {
+    while (wake_pause_event_handler_count_ > 0) {
+      saved_notify_callback(Api::CastIsolate(this));
+      --wake_pause_event_handler_count_;
+    }
+  } else {
+    wake_pause_event_handler_count_ = 0;
   }
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
@@ -3849,5 +3845,27 @@ void Isolate::UnscheduleThread(Thread* thread,
     group()->DecreaseMutatorCount(this, is_nested_exit);
   }
 }
+
+#if !defined(PRODUCT)
+void IsolateGroup::CloneClassTableForReload() {
+  RELEASE_ASSERT(class_table_ == heap_walk_class_table_);
+  class_table_ = class_table_->Clone();
+  set_cached_class_table_table(nullptr);
+}
+
+void IsolateGroup::RestoreOriginalClassTable() {
+  RELEASE_ASSERT(class_table_ != heap_walk_class_table_);
+  class_table_allocator_.Free(class_table_);
+  class_table_ = heap_walk_class_table_;
+  set_cached_class_table_table(class_table_->table());
+}
+
+void IsolateGroup::DropOriginalClassTable() {
+  RELEASE_ASSERT(class_table_ != heap_walk_class_table_);
+  class_table_allocator_.Free(heap_walk_class_table_);
+  heap_walk_class_table_ = class_table_;
+  set_cached_class_table_table(class_table_->table());
+}
+#endif
 
 }  // namespace dart

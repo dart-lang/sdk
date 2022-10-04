@@ -14,6 +14,20 @@ void main() {
 
 @reflectiveTest
 class RemoveSettingTest extends AnalysisOptionsFixTest {
+  Future<void> test_enablePreviewDart2() async {
+    await assertHasFix('''
+analyzer:
+  enable-experiment:
+    - test-experiment
+  language:
+    enablePreviewDart2: true
+''', '''
+analyzer:
+  enable-experiment:
+    - test-experiment
+''');
+  }
+
   Future<void> test_enableSuperMixins() async {
     await assertHasFix('''
 analyzer:
@@ -61,5 +75,12 @@ analyzer:
     - not-an-experiment
 ''', '''
 ''');
+  }
+
+  Future<void> test_strong_mode_settings_deprecated() async {
+    await assertHasFix('''
+analyzer:
+  strong-mode: true
+''', '');
   }
 }

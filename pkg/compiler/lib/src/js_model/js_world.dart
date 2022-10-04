@@ -65,6 +65,7 @@ class JsClosedWorld implements JClosedWorld {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> implementedClasses;
 
+  @override
   final Set<MemberEntity> liveInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
@@ -82,6 +83,7 @@ class JsClosedWorld implements JClosedWorld {
   @override
   final ClassHierarchy classHierarchy;
 
+  @override
   final JsKernelToElementMap elementMap;
   @override
   final RuntimeTypesNeed rtiNeed;
@@ -473,6 +475,9 @@ class JsClosedWorld implements JClosedWorld {
   bool includesClosureCall(Selector selector, AbstractValue receiver) {
     return includesClosureCallInDomain(selector, receiver, abstractValueDomain);
   }
+
+  @override
+  Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
 
   @override
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {

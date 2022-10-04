@@ -4,8 +4,13 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// An object that can compute a refactoring in a Dart file.
@@ -26,6 +31,14 @@ abstract class RefactoringProducer {
   /// Return a list of the parameters to send to the client.
   List<CommandParameter> get parameters;
 
+  /// Return the result of resolving the file in which the refactoring was
+  /// invoked.
+  ResolvedUnitResult get result => _context.resolvedResult;
+
+  /// Return the node that was selected.
+  AstNode? get selectedNode =>
+      NodeLocator2(selectionOffset, selectionEnd).searchWithin(result.unit);
+
   /// Return the offset of the first character after the selection range.
   int get selectionEnd => selectionOffset + selectionLength;
 
@@ -45,13 +58,29 @@ abstract class RefactoringProducer {
       _context.server.clientCapabilities?.codeActionCommandParameterSupport ==
       true;
 
+  /// Return `true` if the client has support for creating files. Subclasses
+  /// that require the ability to create new files must not create a refactoring
+  /// if this getter returns `false`.
+  bool get supportsFileCreation =>
+      _context.server.clientCapabilities?.documentChanges == true &&
+      _context.server.clientCapabilities?.createResourceOperations == true;
+
   /// Return the title of this refactoring.
   String get title;
 
+  /// Return the correction utilities for this refactoring.
+  CorrectionUtils get utils => _context.utils;
+
   /// Given the [commandArguments] associated with the command, use the
   /// [builder] to generate the edits necessary to apply this refactoring.
-  Future<void> compute(List<String> commandArguments, ChangeBuilder builder);
+  Future<void> compute(List<Object?> commandArguments, ChangeBuilder builder);
 
   /// Return `true` if this refactoring is available in the given context.
   bool isAvailable();
+
+  /// Return `true` if the selection is inside the given [token].
+  bool selectionIsInToken(Token? token) =>
+      token != null &&
+      selectionOffset >= token.offset &&
+      selectionEnd <= token.end;
 }

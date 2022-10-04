@@ -416,9 +416,8 @@ class UntaggedObject {
     const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
     const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
-        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+        visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
       intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
@@ -430,10 +429,6 @@ class UntaggedObject {
     } else {
       visitor->VisitCompressedPointers(heap_base(), first, last);
     }
-#else
-    // Call visitor function virtually
-    visitor->VisitCompressedPointers(heap_base(), first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
   }
@@ -454,9 +449,8 @@ class UntaggedObject {
     const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
     const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
-        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+        visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
       intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
@@ -468,10 +462,6 @@ class UntaggedObject {
     } else {
       visitor->V::VisitCompressedPointers(heap_base(), first, last);
     }
-#else
-    // Call visitor function non-virtually
-    visitor->V::VisitCompressedPointers(heap_base(), first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
   }
@@ -2617,26 +2607,29 @@ class UntaggedTypeParameters : public UntaggedObject {
 };
 
 class UntaggedAbstractType : public UntaggedInstance {
+ protected:
+  // Accessed from generated code.
+  std::atomic<uword> type_test_stub_entry_point_;
+  // Accessed from generated code.
+  uint32_t flags_;
+  COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
+  VISIT_FROM(type_test_stub)
+
  public:
   enum TypeState {
     kAllocated,                // Initial state.
     kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
-    // Adjust kTypeStateBitSize if more are added.
   };
 
- protected:
-  static constexpr intptr_t kTypeStateBitSize = 2;
-  COMPILE_ASSERT(sizeof(std::atomic<word>) == sizeof(word));
+  using NullabilityBits = BitField<decltype(flags_), uint8_t, 0, 2>;
+  static constexpr intptr_t kNullabilityMask = NullabilityBits::mask();
 
-  // Accessed from generated code.
-  std::atomic<uword> type_test_stub_entry_point_;
-#if defined(DART_COMPRESSED_POINTERS)
-  uint32_t padding_;  // Makes Windows and Posix agree on layout.
-#endif
-  COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
-  VISIT_FROM(type_test_stub)
+  static constexpr intptr_t kTypeStateShift = NullabilityBits::kNextBit;
+  static constexpr intptr_t kTypeStateBits = 2;
+  using TypeStateBits =
+      BitField<decltype(flags_), uint8_t, kTypeStateShift, kTypeStateBits>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
@@ -2646,17 +2639,28 @@ class UntaggedAbstractType : public UntaggedInstance {
 };
 
 class UntaggedType : public UntaggedAbstractType {
+ public:
+  static constexpr intptr_t kTypeClassIdShift = TypeStateBits::kNextBit;
+  using TypeClassIdBits = BitField<decltype(flags_),
+                                   ClassIdTagType,
+                                   kTypeClassIdShift,
+                                   sizeof(ClassIdTagType) * kBitsPerByte>;
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
-  ClassIdTagType type_class_id_;
-  uint8_t type_state_;
-  uint8_t nullability_;
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  ClassIdTagType type_class_id() const {
+    return TypeClassIdBits::decode(flags_);
+  }
+  void set_type_class_id(ClassIdTagType value) {
+    flags_ = TypeClassIdBits::update(value, flags_);
+  }
 
   friend class compiler::target::UntaggedType;
   friend class CidRewriteVisitor;
@@ -2675,8 +2679,6 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   VISIT_TO(hash)
   AtomicBitFieldContainer<uint32_t> packed_parameter_counts_;
   AtomicBitFieldContainer<uint16_t> packed_type_parameter_counts_;
-  uint8_t type_state_;
-  uint8_t nullability_;
 
   // The bit fields are public for use in kernel_to_il.cc.
  public:
@@ -2718,6 +2720,18 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   friend class Function;
 };
 
+class UntaggedRecordType : public UntaggedAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(RecordType);
+
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_types)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names);
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  VISIT_TO(hash)
+
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
 class UntaggedTypeRef : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
@@ -2738,14 +2752,6 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
   uint8_t base_;   // Number of enclosing function type parameters.
   uint8_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
-  uint8_t flags_;
-  uint8_t nullability_;
-
- public:
-  using BeingFinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
-  using FinalizedBit =
-      BitField<decltype(flags_), bool, BeingFinalizedBit::kNextBit, 1>;
-  static constexpr intptr_t kFlagsBitSize = FinalizedBit::kNextBit;
 
  private:
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -3102,7 +3108,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class ReversePc;
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
-  friend class OldPage;
+  friend class Page;
   friend class FastObjectCopy;  // For initializing fields.
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
@@ -3208,6 +3214,19 @@ class UntaggedFloat64x2 : public UntaggedInstance {
   double y() const { return value_[1]; }
 };
 COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
+
+class UntaggedRecord : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
+
+  int32_t num_fields_;
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
+  VISIT_FROM(field_names)
+  // Variable length data follows here.
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
+
+  friend void UpdateLengthField(intptr_t, ObjectPtr,
+                                ObjectPtr);  // num_fields_
+};
 
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)

@@ -17,7 +17,7 @@ namespace dart {
 // Forward declarations.
 class FreeList;
 class Heap;
-class OldPage;
+class Page;
 
 // Implements a sliding compactor.
 class GCCompactor : public ValueObject,
@@ -30,7 +30,7 @@ class GCCompactor : public ValueObject,
         heap_(heap) {}
   ~GCCompactor() { free(image_page_ranges_); }
 
-  void Compact(OldPage* pages, FreeList* freelist, Mutex* mutex);
+  void Compact(Page* pages, FreeList* freelist, Mutex* mutex);
 
  private:
   friend class CompactorTask;

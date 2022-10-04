@@ -16,7 +16,11 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 import "../../../sdk/lib/internal/internal.dart"
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+    show
+        checkNotNullable,
+        Since,
+        valueOfNonNullableParamWithDefault,
+        HttpStatus;
 
 part "../../../sdk/lib/_http/crypto.dart";
 part "../../../sdk/lib/_http/embedder_config.dart";
@@ -659,7 +663,7 @@ void testInvalidFieldName() {
 }
 
 void testInvalidFieldValue() {
-  void test(value, {bool remove: true}) {
+  void test(value, {bool remove = true}) {
     _HttpHeaders headers = new _HttpHeaders("1.1");
     Expect.throwsFormatException(() => headers.add("field", value));
     Expect.throwsFormatException(() => headers.set("field", value));

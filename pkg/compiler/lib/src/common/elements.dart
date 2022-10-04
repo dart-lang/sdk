@@ -30,63 +30,63 @@ abstract class CommonElements {
   CommonElements(this.dartTypes, this._env);
 
   /// The `Object` class defined in 'dart:core'.
-  late final ClassEntity objectClass = _findClass(coreLibrary, 'Object')!;
+  late final ClassEntity objectClass = _findClass(coreLibrary, 'Object');
 
   /// The `bool` class defined in 'dart:core'.
-  late final ClassEntity boolClass = _findClass(coreLibrary, 'bool')!;
+  late final ClassEntity boolClass = _findClass(coreLibrary, 'bool');
 
   /// The `num` class defined in 'dart:core'.
-  late final ClassEntity numClass = _findClass(coreLibrary, 'num')!;
+  late final ClassEntity numClass = _findClass(coreLibrary, 'num');
 
   /// The `int` class defined in 'dart:core'.
-  late final ClassEntity intClass = _findClass(coreLibrary, 'int')!;
+  late final ClassEntity intClass = _findClass(coreLibrary, 'int');
 
   /// The `double` class defined in 'dart:core'.
-  late final ClassEntity doubleClass = _findClass(coreLibrary, 'double')!;
+  late final ClassEntity doubleClass = _findClass(coreLibrary, 'double');
 
   /// The `String` class defined in 'dart:core'.
-  late final ClassEntity stringClass = _findClass(coreLibrary, 'String')!;
+  late final ClassEntity stringClass = _findClass(coreLibrary, 'String');
 
   /// The `Function` class defined in 'dart:core'.
-  late final ClassEntity functionClass = _findClass(coreLibrary, 'Function')!;
+  late final ClassEntity functionClass = _findClass(coreLibrary, 'Function');
 
   /// The `Resource` class defined in 'dart:core'.
-  late final ClassEntity resourceClass = _findClass(coreLibrary, 'Resource')!;
+  late final ClassEntity resourceClass = _findClass(coreLibrary, 'Resource');
 
   /// The `Symbol` class defined in 'dart:core'.
-  late final ClassEntity symbolClass = _findClass(coreLibrary, 'Symbol')!;
+  late final ClassEntity symbolClass = _findClass(coreLibrary, 'Symbol');
 
   /// The `Null` class defined in 'dart:core'.
-  late final ClassEntity nullClass = _findClass(coreLibrary, 'Null')!;
+  late final ClassEntity nullClass = _findClass(coreLibrary, 'Null');
 
   /// The `Type` class defined in 'dart:core'.
-  late final ClassEntity typeClass = _findClass(coreLibrary, 'Type')!;
+  late final ClassEntity typeClass = _findClass(coreLibrary, 'Type');
 
   /// The `StackTrace` class defined in 'dart:core';
   late final ClassEntity stackTraceClass =
-      _findClass(coreLibrary, 'StackTrace')!;
+      _findClass(coreLibrary, 'StackTrace');
 
   /// The `List` class defined in 'dart:core';
-  late final ClassEntity listClass = _findClass(coreLibrary, 'List')!;
+  late final ClassEntity listClass = _findClass(coreLibrary, 'List');
 
   /// The `Set` class defined in 'dart:core';
-  late final ClassEntity setClass = _findClass(coreLibrary, 'Set')!;
+  late final ClassEntity setClass = _findClass(coreLibrary, 'Set');
 
   /// The `Map` class defined in 'dart:core';
-  late final ClassEntity mapClass = _findClass(coreLibrary, 'Map')!;
+  late final ClassEntity mapClass = _findClass(coreLibrary, 'Map');
 
   /// The `Set` class defined in 'dart:core';
   late final ClassEntity unmodifiableSetClass =
-      _findClass(_env.lookupLibrary(Uris.dart_collection), '_UnmodifiableSet')!;
+      _findClass(collectionLibrary, '_UnmodifiableSet');
 
   /// The `Iterable` class defined in 'dart:core';
-  late final ClassEntity iterableClass = _findClass(coreLibrary, 'Iterable')!;
+  late final ClassEntity iterableClass = _findClass(coreLibrary, 'Iterable');
 
   /// The `Future` class defined in 'async';.
-  late final ClassEntity futureClass = _findClass(asyncLibrary, 'Future')!;
+  late final ClassEntity futureClass = _findClass(asyncLibrary, 'Future');
 
   /// The `Stream` class defined in 'async';
-  late final ClassEntity streamClass = _findClass(asyncLibrary, 'Stream')!;
+  late final ClassEntity streamClass = _findClass(asyncLibrary, 'Stream');
 
   /// The dart:core library.
   late final LibraryEntity coreLibrary =
@@ -95,14 +95,22 @@ abstract class CommonElements {
   /// The dart:async library.
   late final LibraryEntity? asyncLibrary = _env.lookupLibrary(Uris.dart_async);
 
+  /// The dart:collection library.
+  late final LibraryEntity? collectionLibrary =
+      _env.lookupLibrary(Uris.dart_collection);
+
   /// The dart:mirrors library.
   /// Null if the program doesn't access dart:mirrors.
   late final LibraryEntity? mirrorsLibrary =
       _env.lookupLibrary(Uris.dart_mirrors);
 
   /// The dart:typed_data library.
-  late final LibraryEntity? typedDataLibrary =
-      _env.lookupLibrary(Uris.dart__native_typed_data);
+  late final LibraryEntity typedDataLibrary =
+      _env.lookupLibrary(Uris.dart__native_typed_data, required: true)!;
+
+  /// The dart:_js_shared_embedded_names library.
+  late final LibraryEntity sharedEmbeddedNamesLibrary =
+      _env.lookupLibrary(Uris.dart__js_shared_embedded_names, required: true)!;
 
   /// The dart:_js_helper library.
   late final LibraryEntity? jsHelperLibrary =
@@ -141,7 +149,7 @@ abstract class CommonElements {
 
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass =>
-      _findClass(typedDataLibrary, 'NativeTypedData')!;
+      _findClass(typedDataLibrary, 'NativeTypedData');
 
   /// Constructor of the `Symbol` class in dart:internal.
   ///
@@ -152,7 +160,7 @@ abstract class CommonElements {
     // so this cannot be found in kernel. Find a consistent way to handle
     // this and similar cases.
     return _symbolConstructorTarget ??=
-        _findConstructor(symbolImplementationClass, '');
+        _env.lookupConstructor(symbolImplementationClass, '')!;
   }
 
   void _ensureSymbolConstructorDependencies() {
@@ -161,21 +169,22 @@ abstract class CommonElements {
     if (_symbolConstructorTarget == null) {
       if (_symbolImplementationClass == null) {
         _symbolImplementationClass =
-            _findClass(internalLibrary, 'Symbol', required: false);
+            _findClassOrNull(internalLibrary, 'Symbol');
       }
       if (_symbolImplementationClass != null) {
-        _symbolConstructorTarget =
-            _findConstructor(_symbolImplementationClass!, '', required: false);
+        _symbolConstructorTarget = _env.lookupConstructor(
+            _symbolImplementationClass!, '',
+            required: false);
       }
     }
     if (_symbolClass == null) {
-      _symbolClass = _findClass(coreLibrary, 'Symbol', required: false);
+      _symbolClass = _findClassOrNull(coreLibrary, 'Symbol');
     }
     if (_symbolClass == null) {
       return;
     }
     _symbolConstructorImplementationTarget =
-        _findConstructor(symbolClass, '', required: false);
+        _env.lookupConstructor(symbolClass, '', required: false);
   }
 
   /// Whether [element] is the same as [symbolConstructor].
@@ -310,10 +319,13 @@ abstract class CommonElements {
     return _createInterfaceType(streamClass, [elementType]);
   }
 
-  ClassEntity? _findClass(LibraryEntity? library, String name,
-      {bool required = true}) {
+  ClassEntity _findClass(LibraryEntity? library, String name) {
+    return _env.lookupClass(library!, name, required: true)!;
+  }
+
+  ClassEntity? _findClassOrNull(LibraryEntity? library, String name) {
     if (library == null) return null;
-    return _env.lookupClass(library, name, required: required);
+    return _env.lookupClass(library, name, required: false);
   }
 
   T? _findLibraryMember<T extends MemberEntity>(
@@ -324,16 +336,17 @@ abstract class CommonElements {
         setter: setter, required: required) as T?;
   }
 
-  T _findClassMember<T extends MemberEntity>(ClassEntity cls, String name,
-      {bool setter = false, bool required = true}) {
+  T? _findClassMemberOrNull<T extends MemberEntity>(
+      ClassEntity cls, String name) {
     return _env.lookupLocalClassMember(
-        cls, Name(name, cls.library.canonicalUri, isSetter: setter),
-        required: required) as T;
+        cls, Name(name, cls.library.canonicalUri, isSetter: false),
+        required: false) as T?;
   }
 
-  ConstructorEntity _findConstructor(ClassEntity cls, String name,
-      {bool required = true}) {
-    return _env.lookupConstructor(cls, name, required: required);
+  T _findClassMember<T extends MemberEntity>(ClassEntity cls, String name) {
+    return _env.lookupLocalClassMember(
+        cls, Name(name, cls.library.canonicalUri, isSetter: false),
+        required: true) as T;
   }
 
   /// Return the raw type of [cls].
@@ -387,17 +400,16 @@ abstract class CommonElements {
     if (_mapLiteralClass == null) {
       _mapLiteralClass = _env.lookupClass(coreLibrary, 'LinkedHashMap');
       if (_mapLiteralClass == null) {
-        _mapLiteralClass = _findClass(
-            _env.lookupLibrary(Uris.dart_collection), 'LinkedHashMap');
+        _mapLiteralClass = _findClass(collectionLibrary, 'LinkedHashMap');
       }
     }
     return _mapLiteralClass!;
   }
 
   late final ConstructorEntity mapLiteralConstructor =
-      _env.lookupConstructor(mapLiteralClass, '_literal');
+      _env.lookupConstructor(mapLiteralClass, '_literal')!;
   late final ConstructorEntity mapLiteralConstructorEmpty =
-      _env.lookupConstructor(mapLiteralClass, '_empty');
+      _env.lookupConstructor(mapLiteralClass, '_empty')!;
   late final FunctionEntity mapLiteralUntypedMaker =
       _env.lookupLocalClassMember(mapLiteralClass,
               PrivateName('_makeLiteral', mapLiteralClass.library.canonicalUri))
@@ -408,12 +420,12 @@ abstract class CommonElements {
           as FunctionEntity;
 
   late final ClassEntity setLiteralClass =
-      _findClass(_env.lookupLibrary(Uris.dart_collection), 'LinkedHashSet')!;
+      _findClass(collectionLibrary, 'LinkedHashSet');
 
   late final ConstructorEntity setLiteralConstructor =
-      _env.lookupConstructor(setLiteralClass, '_literal');
+      _env.lookupConstructor(setLiteralClass, '_literal')!;
   late final ConstructorEntity setLiteralConstructorEmpty =
-      _env.lookupConstructor(setLiteralClass, '_empty');
+      _env.lookupConstructor(setLiteralClass, '_empty')!;
   late final FunctionEntity setLiteralUntypedMaker =
       _env.lookupLocalClassMember(setLiteralClass,
               PrivateName('_makeLiteral', setLiteralClass.library.canonicalUri))
@@ -436,7 +448,7 @@ abstract class CommonElements {
 
   // From dart:async
   ClassEntity _findAsyncHelperClass(String name) =>
-      _findClass(asyncLibrary, name)!;
+      _findClass(asyncLibrary, name);
 
   FunctionEntity _findAsyncHelperFunction(String name) =>
       _findLibraryMember(asyncLibrary, name)!;
@@ -489,7 +501,7 @@ abstract class CommonElements {
   ClassEntity get streamIterator => _findAsyncHelperClass("StreamIterator");
 
   ConstructorEntity get streamIteratorConstructor =>
-      _env.lookupConstructor(streamIterator, "");
+      _env.lookupConstructor(streamIterator, "")!;
 
   late final FunctionEntity syncStarIterableFactory =
       _findAsyncHelperFunction('_makeSyncStarIterable');
@@ -502,7 +514,7 @@ abstract class CommonElements {
 
   // From dart:_interceptors
   ClassEntity _findInterceptorsClass(String name) =>
-      _findClass(interceptorsLibrary, name)!;
+      _findClass(interceptorsLibrary, name);
 
   FunctionEntity _findInterceptorsFunction(String name) =>
       _findLibraryMember(interceptorsLibrary, name)!;
@@ -580,7 +592,7 @@ abstract class CommonElements {
       _findInterceptorsFunction('getNativeInterceptor');
 
   late final ConstructorEntity jsArrayTypedConstructor =
-      _findConstructor(jsArrayClass, 'typed');
+      _env.lookupConstructor(jsArrayClass, 'typed')!;
 
   // From dart:_js_helper
   // TODO(johnniwinther): Avoid the need for this (from [CheckedModeHelper]).
@@ -590,7 +602,7 @@ abstract class CommonElements {
       _findLibraryMember(jsHelperLibrary, name)!;
 
   ClassEntity _findHelperClass(String name) =>
-      _findClass(jsHelperLibrary, name)!;
+      _findClass(jsHelperLibrary, name);
 
   FunctionEntity _findLateHelperFunction(String name) =>
       _findLibraryMember(lateHelperLibrary, name)!;
@@ -787,7 +799,7 @@ abstract class CommonElements {
 
   // From dart:_rti
 
-  ClassEntity _findRtiClass(String name) => _findClass(rtiLibrary, name)!;
+  ClassEntity _findRtiClass(String name) => _findClass(rtiLibrary, name);
 
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name)!;
@@ -808,9 +820,9 @@ abstract class CommonElements {
 
   late final FunctionEntity checkTypeBound = _findRtiFunction('checkTypeBound');
 
-  ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti')!;
+  ClassEntity get _rtiImplClass => _findRtiClass('Rti');
 
-  ClassEntity get _rtiUniverseClass => _findClass(rtiLibrary, '_Universe')!;
+  ClassEntity get _rtiUniverseClass => _findRtiClass('_Universe');
 
   FieldEntity _findRtiClassField(String name) =>
       _findClassMember(_rtiImplClass, name);
@@ -916,19 +928,18 @@ abstract class CommonElements {
   // From dart:_internal
 
   late final ClassEntity symbolImplementationClass =
-      _findClass(internalLibrary, 'Symbol')!;
+      _findClass(internalLibrary, 'Symbol');
 
   /// Used to annotate items that have the keyword "native".
   late final ClassEntity externalNameClass =
-      _findClass(internalLibrary, 'ExternalName')!;
+      _findClass(internalLibrary, 'ExternalName');
 
   InterfaceType get externalNameType => _getRawType(externalNameClass);
 
   // From dart:_js_embedded_names
 
-  late final ClassEntity jsGetNameEnum = _findClass(
-      _env.lookupLibrary(Uris.dart__js_shared_embedded_names, required: true),
-      'JsGetName')!;
+  late final ClassEntity jsGetNameEnum =
+      _findClass(sharedEmbeddedNamesLibrary, 'JsGetName');
 
   /// Returns `true` if [member] is a "foreign helper", that is, a member whose
   /// semantics is defined synthetically and not through Dart code.
@@ -1022,24 +1033,23 @@ abstract class CommonElements {
 }
 
 class KCommonElements extends CommonElements {
-  KCommonElements(DartTypes dartTypes, ElementEnvironment env)
-      : super(dartTypes, env);
+  KCommonElements(super.dartTypes, super.env);
 
   // From package:js
 
   late final ClassEntity? jsAnnotationClass1 =
-      _findClass(packageJsLibrary, 'JS', required: false);
+      _findClassOrNull(packageJsLibrary, 'JS');
 
   late final ClassEntity? jsAnonymousClass1 =
-      _findClass(packageJsLibrary, '_Anonymous', required: false);
+      _findClassOrNull(packageJsLibrary, '_Anonymous');
 
   // From dart:_js_annotations
 
   late final ClassEntity? jsAnnotationClass2 =
-      _findClass(dartJsAnnotationsLibrary, 'JS', required: false);
+      _findClassOrNull(dartJsAnnotationsLibrary, 'JS');
 
   late final ClassEntity? jsAnonymousClass2 =
-      _findClass(dartJsAnnotationsLibrary, '_Anonymous', required: false);
+      _findClassOrNull(dartJsAnnotationsLibrary, '_Anonymous');
 
   /// Returns `true` if [cls] is a @JS() annotation.
   ///
@@ -1055,7 +1065,7 @@ class KCommonElements extends CommonElements {
     return cls == jsAnonymousClass1 || cls == jsAnonymousClass2;
   }
 
-  late final ClassEntity pragmaClass = _findClass(coreLibrary, 'pragma')!;
+  late final ClassEntity pragmaClass = _findClass(coreLibrary, 'pragma');
 
   late final FieldEntity pragmaClassNameField =
       _findClassMember(pragmaClass, 'name');
@@ -1065,10 +1075,7 @@ class KCommonElements extends CommonElements {
 }
 
 class JCommonElements extends CommonElements {
-  FunctionEntity? _jsStringSplit;
-
-  JCommonElements(DartTypes dartTypes, ElementEnvironment env)
-      : super(dartTypes, env);
+  JCommonElements(super.dartTypes, super.env);
 
   /// Returns `true` if [element] is the unnamed constructor of `List`.
   ///
@@ -1125,25 +1132,21 @@ class JCommonElements extends CommonElements {
   /// Returns `true` if [selector] applies to `JSString.split` on [receiver]
   /// in the given [world].
   ///
-  /// Returns `false` if `JSString.split` is not available.
+  /// Returns `false` if `JSString.split` is not available (e.g. the
+  /// method was tree-shaken in an earlier compilation phase).
   bool appliesToJsStringSplit(Selector selector, AbstractValue? receiver,
       AbstractValueDomain abstractValueDomain) {
-    if (_jsStringSplit == null) {
-      ClassEntity? cls =
-          _findClass(interceptorsLibrary, 'JSString', required: false);
-      if (cls == null) return false;
-      _jsStringSplit = _findClassMember(cls, 'split', required: false);
-      if (_jsStringSplit == null) return false;
-    }
-    return selector.applies(_jsStringSplit!) &&
+    final splitMember = jsStringSplit;
+    if (splitMember == null) return false;
+    return selector.applies(splitMember) &&
         (receiver == null ||
             abstractValueDomain
-                .isTargetingMember(receiver, jsStringSplit, selector.memberName)
+                .isTargetingMember(receiver, splitMember, selector.memberName)
                 .isPotentiallyTrue);
   }
 
-  FunctionEntity get jsStringSplit =>
-      _jsStringSplit ??= _findClassMember(jsStringClass, 'split');
+  late final FunctionEntity? jsStringSplit =
+      _findClassMemberOrNull(jsStringClass, 'split');
 
   late final FunctionEntity jsStringToString =
       _findClassMember(jsStringClass, 'toString');
@@ -1151,7 +1154,7 @@ class JCommonElements extends CommonElements {
   late final FunctionEntity jsStringOperatorAdd =
       _findClassMember(jsStringClass, '+');
 
-  late final ClassEntity jsConstClass = _findClass(foreignLibrary, 'JS_CONST')!;
+  late final ClassEntity jsConstClass = _findClass(foreignLibrary, 'JS_CONST');
 
   /// Return `true` if [member] is the 'checkInt' function defined in
   /// dart:_js_helpers.
@@ -1188,17 +1191,14 @@ class JCommonElements extends CommonElements {
 
   // From dart:_native_typed_data
 
-  late final ClassEntity? typedArrayOfIntClass = _findClass(
-      _env.lookupLibrary(Uris.dart__native_typed_data, required: true),
-      'NativeTypedArrayOfInt');
+  late final ClassEntity? typedArrayOfIntClass =
+      _findClass(typedDataLibrary, 'NativeTypedArrayOfInt');
 
-  late final ClassEntity typedArrayOfDoubleClass = _findClass(
-      _env.lookupLibrary(Uris.dart__native_typed_data, required: true),
-      'NativeTypedArrayOfDouble')!;
+  late final ClassEntity typedArrayOfDoubleClass =
+      _findClass(typedDataLibrary, 'NativeTypedArrayOfDouble');
 
-  late final ClassEntity jsBuiltinEnum = _findClass(
-      _env.lookupLibrary(Uris.dart__js_shared_embedded_names, required: true),
-      'JsBuiltin')!;
+  late final ClassEntity jsBuiltinEnum =
+      _findClass(sharedEmbeddedNamesLibrary, 'JsBuiltin');
 
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;
 
@@ -1226,10 +1226,10 @@ class JCommonElements extends CommonElements {
 // both resolution and codegen.
 abstract class ElementEnvironment {
   /// Returns the main library for the compilation.
-  LibraryEntity get mainLibrary;
+  LibraryEntity? get mainLibrary;
 
   /// Returns the main method for the compilation.
-  FunctionEntity get mainFunction;
+  FunctionEntity? get mainFunction;
 
   /// Returns all known libraries.
   Iterable<LibraryEntity> get libraries;
@@ -1278,7 +1278,7 @@ abstract class ElementEnvironment {
 
   /// Lookup the constructor [name] in [cls], fail if the class is missing and
   /// [required].
-  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+  ConstructorEntity? lookupConstructor(ClassEntity cls, String name,
       {bool required = false});
 
   /// Calls [f] for each class member declared in [cls].
@@ -1396,7 +1396,7 @@ abstract class ElementEnvironment {
   ///
   /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
   /// _effective_ mixin class of both is `A`.
-  ClassEntity getEffectiveMixinClass(ClassEntity cls);
+  ClassEntity? getEffectiveMixinClass(ClassEntity cls);
 }
 
 abstract class KElementEnvironment extends ElementEnvironment {
@@ -1474,7 +1474,7 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(covariant FunctionEntity function,
-      void f(DartType type, String name, ConstantValue defaultValue));
+      void f(DartType type, String? name, ConstantValue? defaultValue));
 
   /// Calls [f] for each parameter - given as a [Local] - of [function].
   void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,

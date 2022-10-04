@@ -23,6 +23,7 @@ class DartObjectPrinter {
   void write(DartObjectImpl? object) {
     if (object != null) {
       final type = object.type;
+      final state = object.state;
       if (object.isUnknown) {
         sink.write(
           type.getDisplayString(
@@ -30,6 +31,9 @@ class DartObjectPrinter {
           ),
         );
         sink.writeln(' <unknown>');
+      } else if (type.isDartCoreBool) {
+        sink.write('bool ');
+        sink.writeln(object.toBoolValue());
       } else if (type.isDartCoreDouble) {
         sink.write('double ');
         sink.writeln(object.toDoubleValue());
@@ -71,6 +75,8 @@ class DartObjectPrinter {
             }
           }
         });
+      } else if (state is RecordState) {
+        _writeRecord(state);
       } else {
         throw UnimplementedError();
       }
@@ -112,6 +118,36 @@ class DartObjectPrinter {
   void _writelnWithIndent(String line) {
     sink.write(indent);
     sink.writeln(line);
+  }
+
+  void _writeRecord(RecordState state) {
+    sink.writeln('Record');
+    _withIndent(() {
+      final positionalFields = state.positionalFields;
+      if (positionalFields.isNotEmpty) {
+        _writelnWithIndent('positionalFields');
+        _withIndent(() {
+          positionalFields.forEachIndexed((index, field) {
+            sink.write(indent);
+            sink.write('\$$index: ');
+            write(field);
+          });
+        });
+      }
+
+      final namedFields = state.namedFields;
+      if (namedFields.isNotEmpty) {
+        _writelnWithIndent('namedFields');
+        _withIndent(() {
+          final entries = namedFields.entries.sortedBy((entry) => entry.key);
+          for (final entry in entries) {
+            sink.write(indent);
+            sink.write('${entry.key}: ');
+            write(entry.value);
+          }
+        });
+      }
+    });
   }
 
   void _writeVariable(DartObjectImpl object) {

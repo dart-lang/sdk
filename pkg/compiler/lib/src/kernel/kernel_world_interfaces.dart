@@ -6,12 +6,21 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/backend_usage.dart';
+import '../js_backend/native_data.dart';
+import '../js_backend/field_analysis.dart';
 import '../world_interfaces.dart';
+import '../universe/member_usage.dart';
+import 'element_map.dart';
 
 abstract class KClosedWorld implements BuiltWorld {
+  KernelToElementMap get elementMap;
   KElementEnvironment get elementEnvironment;
 
   KCommonElements get commonElements;
+
+  NativeData get nativeData;
+
+  KFieldAnalysis get fieldAnalysis;
 
   Iterable<Local> get localFunctions;
 
@@ -20,6 +29,8 @@ abstract class KClosedWorld implements BuiltWorld {
   DartTypes get dartTypes;
 
   BackendUsage get backendUsage;
+
+  Map<MemberEntity, MemberUsage> get liveMemberUsage;
 
   bool isMemberUsed(MemberEntity member);
 }

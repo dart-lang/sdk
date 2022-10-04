@@ -24,7 +24,35 @@
   Previously, these behaviors only took effect if `e` was a reference to a local
   variable.
 
+  Additionally, a type test of the form `v is Never` (where `v` is a local
+  variable) no longer promotes `v` to type `Never`.
+
+- **Breaking change** [#49878][]: Calling `ResourceHandle.toFile()`,
+  `ResourceHandle.toSocket()`, `ResourceHandle.toRawSocket()` or
+  `ResourceHandle.toRawDatagramSocket()`, more than once now throws a
+  `StateError`.
+
+  The previous behavior would allow multiple Dart objects to refer to the same
+  file descriptor, which would produce errors when one object was closed or
+  garbage collected.
+
 [#49635]: https://github.com/dart-lang/sdk/issues/49635
+[#49878]: https://github.com/dart-lang/sdk/issues/49878
+
+- **Breaking Change** [#49687][]: Don't delegate inaccessible private names to
+  `noSuchMethod`. If a concrete class implements an interface containing a
+  member with a name that's private to different library, and does not inherit
+  an implementation of that interface member, a invocation of that member will
+  result in an exception getting thrown.  Previously, such attempts would result
+  in the call being diverted to the `noSuchMethod` method.
+
+  This change closes a loophole in Dart's privacy system, where another library
+  can provide a different implementation of a supposedly private member using
+  `noSuchMethod`, and paves the way for a future implementation of promotion for
+  private final fields (see [#2020][]).
+
+[#49687]: https://github.com/dart-lang/sdk/issues/49687
+[#2020]: https://github.com/dart-lang/language/issues/2020
 
 ### Libraries
 
@@ -36,15 +64,6 @@
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
 
-#### `dart:core`
-
-- The `Uri` class will parse a backslash in the path or the authority separator
-  of a URI as a forward slash. This affects the `Uri` constructor's `path`
-  parameter, and the `Uri.parse` method.
-  This change was made to not diverge as much from the browser `URL` behavior.
-  The Dart `Uri` class is still not an implementation of the same standard
-  as the browser's `URL` implementation.
-
 #### `dart:developer`
 
 - **Breaking change** [#34233][]: The previously deprecated APIs
@@ -52,11 +71,32 @@
   `kExtensionErrorMin` in [`ServiceExtensionResponse`][] have been removed. They
   have been replaced by `invalidParams`, `extensionError`, `extensionErrorMax`,
   and `extensionErrorMin`.
+- Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`ServiceExtensionResponse`]: https://api.dart.dev/stable/2.17.6/dart-developer/ServiceExtensionResponse-class.html#constants
 
-- Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+
+#### `dart:html`
+
+- Add constructor and `slice` to `SharedArrayBuffer`.
+- Deprecated `registerElement` and `registerElement2` in `Document` and
+  `HtmlDocument`. These APIs were based on the deprecated Web Components v0.5
+  specification and are not supported by browsers today. These APIs are expected
+  to be deleted in a future release. See the related breaking change
+  request [#49536](https://github.com/dart-lang/sdk/issues/49536).
+
+#### `dart:io`
+
+- **Breaking change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
+  Disallow negative or hexadecimal content-length headers.
+- **Breaking change** [#49647](https://github.com/dart-lang/sdk/issues/49647):
+  `File.create` now takes new optional `exclusive` `bool` parameter, and
+  when it is `true` the operation will fail if target file already exists.
+
+#### `dart:isolate`
+
+- Add `Isolate.run` to run a function in a new isolate.
 
 #### `dart:mirrors`
 
@@ -68,29 +108,27 @@
 [`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
 [`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
 
-#### `dart:html`
-
-- Deprecated `registerElement` and `registerElement2` in `Document` and
-  `HtmlDocument`. These APIs were based on the deprecated Web Components v0.5
-  specification and are not supported by browsers today. These APIs are expected
-  to be deleted in a future release. See the related breaking change
-  request [#49536](https://github.com/dart-lang/sdk/issues/49536).
-
-### `dart:io`
- - **Breaking change** [#49647][]: `File.create` now takes new optional
-   `exclusive` `bool` parameter, and when it is `true` the operation
-   will fail if target file already exists.
-
-#### `dart:isolate`
-
-- Add `Isolate.run` to run a function in a new isolate.
-
 ### Tools
+
+#### Analyzer
+
+- added static enforcement of new `mustBeOverridden` annotation
+- added quick fixes for diagnostics:
+  `abstract_field_initializer`,
+  `ambiguous_extension_member_access`,
+  `assert_in_redirecting_constructor`,
+  `default_value_on_required_parameter`,
+  `initializing_formal_for_non_existent_field`,
+  `super_formal_parameter_without_associated_named`,
+- added new Hint: `cast_from_null_always_fails`
 
 #### Linter
 
-Updated the Linter to `1.27.0`, which includes changes that
+Updated the Linter to `1.28.0`, which includes changes that
 
+- update `avoid_redundant_argument_values` to work with enum declarations.
+- improve performance for `prefer_contains`.
+- add new lint: `unreachable_from_main`.
 - fix `avoid_redundant_argument_values` when referencing required
   parameters in legacy libraries.
 - improve performance for `use_late_for_private_fields_and_variables`.
@@ -127,18 +165,35 @@ Updated the Linter to `1.27.0`, which includes changes that
 - **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
   dart2js no longer supports HTTP URIs as inputs.
 
-### Core libraries
+## 2.18.2 - 2022-09-28
 
-#### `dart:io`
+This is a patch release that:
 
-- **Breaking Change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
-  Disallow negative or hexadecimal content-length headers.
+- fixes incorrect behavior in `Uri.parse`.
+- fixes a compiler crash (issue [#50052][]).
 
-#### `dart:html`
+### Libraries
 
-- Add constructor and `slice` to `SharedArrayBuffer`.
+#### `dart:core`
 
-## 2.18.0
+- The `Uri` class will parse a backslash in the path or the authority separator
+  of a URI as a forward slash. This affects the `Uri` constructor's `path`
+  parameter, and the `Uri.parse` method.
+  This change was made to not diverge as much from the browser `URL` behavior.
+  The Dart `Uri` class is still not an implementation of the same standard
+  as the browser's `URL` implementation.
+
+[#50052]: https://github.com/dart-lang/sdk/issues/50052
+
+## 2.18.1 - 2022-09-14
+
+This is a patch release that fixes a crash caused by incorrect type inference
+(issues [flutter/flutter#110715][] and [flutter/flutter#111088][]).
+
+[flutter/flutter#110715]: https://github.com/flutter/flutter/issues/110715
+[flutter/flutter#111088]: https://github.com/flutter/flutter/issues/111088
+
+## 2.18.0 - 2022-08-30
 
 ### Language
 
@@ -209,9 +264,14 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 - The `Stream.fromIterable` stream can now be listened to more than once.
 
-### `dart:collection`
+#### `dart:collection`
 
 - Deprecates `BidirectionalIterator`.
+
+#### `dart:core`
+
+- Allow omitting the `unencodedPath` positional argument to `Uri.http` and
+  `Uri.https` to default to an empty path.
 
 #### `dart:html`
 
@@ -223,7 +283,6 @@ them, you must set the lower bound on the SDK constraint for your package to
 - **Breaking Change** [#49045](https://github.com/dart-lang/sdk/issues/49045):
   The `uri` property of `RedirectException` in `dart:io` has been changed to
   be nullable. Programs must be updated to handle the `null` case.
-
 - **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
   Constants in `dart:io`'s networking APIs following the `SCREAMING_CAPS`
   convention have been removed (they were previously deprecated). Please use
@@ -276,11 +335,6 @@ them, you must set the lower bound on the SDK constraint for your package to
 #### `dart:js_util`
 
 - Added `dartify` and a number of minor helper functions.
-
-#### `dart:core`
-
-- Allow omitting the `unencodedPath` positional argument to `Uri.http` and
-  `Uri.https` to default to an empty path.
 
 ### Dart VM
 
@@ -343,6 +397,20 @@ the new implementation carries a few subtle changes in behavior:
 - **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartanalyzer` tool has been removed as previously
   announced. `dartanalyzer` is replaced by the `dart analyze` command.
+
+#### Analyzer
+
+- added quick fixes for diagnostics: `abstract_field_constructor_initializer`,
+  `abstract_class_member`,
+  [`always_put_control_body_on_new_line`](https://dart-lang.github.io/linter/lints/always_put_control_body_on_new_line.html),
+  [`avoid_print`](https://dart-lang.github.io/linter/lints/avoid_print.html),
+  [`avoid_renaming_method_parameters`](https://dart-lang.github.io/linter/lints/avoid_renaming_method_parameters.html),
+  [`discarded_futures`](https://dart-lang.github.io/linter/lints/discarded_futures.html),
+  `enum_with_abstract_member`, `non_bool_condition`,
+  `super_formal_parameter_without_associated_named`,
+  [`unawaited_futures`](https://dart-lang.github.io/linter/lints/unawaited_futures.html),
+  `unnecessary_final` `unused_element_parameter`,
+- added new Hint: `deprecated_export_use`
 
 #### Linter
 
@@ -618,7 +686,6 @@ them, you must set the lower bound on the SDK constraint for your package to
   is unchanged for now, but users who intend to use the native
   `Element.scrollIntoViewIfNeeded` should use the new `scrollIntoViewIfNeeded`
   definition instead.
-
 - Change `Performance.mark` and `Performance.measure` to accept their different
   overloads. `mark` can now accept a `markOptions` map, and `measure` can now
   accept a `startMark` and `endMark`, or a `measureOptions` map. Both methods
@@ -659,16 +726,13 @@ them, you must set the lower bound on the SDK constraint for your package to
   Constants in `dart:io` following the `SCREAMING_CAPS` convention have been
   removed (they were previously deprecated).  Please use the corresponding
   `lowerCamelCase` constants instead.
-
-- Add a optional `keyLog` parameter to `SecureSocket.connect` and
-  `SecureSocket.startConnect`.
-
-- Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
-  which were no-ops.
-
 - **Breaking Change** [#48513](https://github.com/dart-lang/sdk/issues/48513):
   Add a new `allowLegacyUnsafeRenegotiation` poperty to `SecurityContext`,
   which allows TLS renegotiation for client secure sockets.
+- Add a optional `keyLog` parameter to `SecureSocket.connect` and
+  `SecureSocket.startConnect`.
+- Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
+  which were no-ops.
 
 ### Tools
 
@@ -703,6 +767,31 @@ them, you must set the lower bound on the SDK constraint for your package to
           [server-shelf]         A server app using package:shelf.
           [web]                  A web app that uses only core Dart libraries.
 ```
+
+#### Analyzer
+
+- added quick fixes for diagnostics:
+  [`always_use_package_imports`](https://dart-lang.github.io/linter/lints/always_use_package_imports.html),
+  [`avoid_void_async`](https://dart-lang.github.io/linter/lints/avoid_void_async.html),
+  [`cascade_invocations`](https://dart-lang.github.io/linter/lints/cascade_invocations.html),
+  `default_list_constructor`,
+  [`must_call_super`](https://dart.dev/tools/diagnostic-messages#must_call_super),
+  [`no_leading_underscores_for_local_identifiers`](https://dart-lang.github.io/linter/lints/no_leading_underscores_for_local_identifiers.html),
+  [`null_check_on_nullable_type_parameter`](https://dart-lang.github.io/linter/lints/null_check_on_nullable_type_parameter.html),
+  [`prefer_function_declarations_over_variables`](https://dart-lang.github.io/linter/lints/prefer_function_declarations_over_variables.html),
+  [`sort_constructors_first`](https://dart-lang.github.io/linter/lints/sort_constructors_first.html),
+  [`sort_unnamed_constructors_first`](https://dart-lang.github.io/linter/lints/sort_unnamed_constructors_first.html),
+  `undefined_enum_constant`,
+  [`unnecessary_late`](https://dart-lang.github.io/linter/lints/unnecessary_late.html),
+  `unnecessary_null_aware_assignments`,
+  [`use_enums`](https://dart-lang.github.io/linter/lints/use_enums.html),
+  [`use_raw_strings`](https://dart-lang.github.io/linter/lints/use_raw_strings.html),
+  [`use_super_parameters`](https://dart-lang.github.io/linter/lints/use_super_parameters.html),
+  `var_return_type`
+- added many errors for invalid enhanced enums
+- added new Hint: [`unnecessary_final`](https://dart.dev/tools/diagnostic-messages#unnecessary_final)
+- added new FFI error: `compound_implements_finalizable`
+- improved errors for invalid Unicode escapes in source code
 
 #### Linter
 
@@ -7191,9 +7280,9 @@ Patch release, resolves three issues:
   - `import` and `Isolate.spawnUri` now supports the
     [Data URI scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) on the VM.
 
-## Tool Changes
+### Tool Changes
 
-### pub
+#### pub
 
 - Running `pub run foo` within a package now runs the `foo` executable defined
   by the `foo` package. The previous behavior ran `bin/foo`. This makes it easy

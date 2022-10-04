@@ -53,6 +53,18 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
   }
 
+  /// See https://github.com/dart-lang/sdk/issues/50045
+  test_bool_fromEnvironment_dartLibraryJsUtil() async {
+    await resolveTestCode('''
+const x = bool.fromEnvironment('dart.library.js_util');
+''');
+
+    _assertTopVarConstValue('x', r'''
+bool <unknown>
+  variable: self::@variable::x
+''');
+  }
+
   test_conditionalExpression_unknownCondition_dynamic() async {
     await assertErrorsInCode('''
 const bool kIsWeb = identical(0, 0.0);
@@ -600,6 +612,54 @@ E<String>
     expect(value, null);
   }
 
+  test_record_mixed() async {
+    await assertNoErrorsInCode(r'''
+const x = (0, f1: 10, f2: 2.3);
+''');
+
+    final value = _topVarConstValue('x');
+    assertDartObjectText(value, r'''
+Record
+  positionalFields
+    $0: int 0
+  namedFields
+    f1: int 10
+    f2: double 2.3
+  variable: self::@variable::x
+''');
+  }
+
+  test_record_named() async {
+    await assertNoErrorsInCode(r'''
+const x = (f1: 10, f2: -3);
+''');
+
+    final value = _topVarConstValue('x');
+    assertDartObjectText(value, r'''
+Record
+  namedFields
+    f1: int 10
+    f2: int -3
+  variable: self::@variable::x
+''');
+  }
+
+  test_record_positional() async {
+    await assertNoErrorsInCode(r'''
+const x = (20, 0, 7);
+''');
+
+    final value = _topVarConstValue('x');
+    assertDartObjectText(value, r'''
+Record
+  positionalFields
+    $0: int 20
+    $1: int 0
+    $2: int 7
+  variable: self::@variable::x
+''');
+  }
+
   @failingTest
   test_simpleIdentifier_invalid() async {
     var result = await _getExpressionValue("?");
@@ -980,6 +1040,10 @@ $context
   EvaluationResultImpl _topVarConstResult(String name) {
     var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
     return element.evaluationResult!;
+  }
+
+  DartObjectImpl _topVarConstValue(String name) {
+    return _topVarConstResult(name).value!;
   }
 }
 

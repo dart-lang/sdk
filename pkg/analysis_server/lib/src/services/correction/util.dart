@@ -47,15 +47,19 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   // Prepare information about existing imports.
   LibraryDirective? libraryDirective;
   var importDirectives = <_ImportDirectiveInfo>[];
+  var directives = <NamespaceDirective>[];
   for (var directive in libUtils.unit.directives) {
     if (directive is LibraryDirective) {
       libraryDirective = directive;
-    } else if (directive is ImportDirective) {
-      var uriStr = directive.uri.stringValue;
-      if (uriStr != null) {
-        importDirectives.add(
-          _ImportDirectiveInfo(uriStr, directive.offset, directive.end),
-        );
+    } else if (directive is NamespaceDirective) {
+      directives.add(directive);
+      if (directive is ImportDirective) {
+        var uriStr = directive.uri.stringValue;
+        if (uriStr != null) {
+          importDirectives.add(
+            _ImportDirectiveInfo(uriStr, directive.offset, directive.end),
+          );
+        }
       }
     }
   }
@@ -66,6 +70,9 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
           session.resourceProvider.pathContext, targetLibrary, library.uri))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
+
+  var quote = session.analysisContext.analysisOptions.codeStyleOptions
+      .preferredQuoteForUris(directives);
 
   // Insert imports: between existing imports.
   if (importDirectives.isNotEmpty) {
@@ -82,7 +89,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
           isFirstPackage = false;
         }
         if (importUri.compareTo(existingImport.uri) < 0) {
-          var importCode = "import '$importUri';$eol";
+          var importCode = "import $quote$importUri$quote;$eol";
           doSourceChange_addElementEdit(change, targetLibrary,
               SourceEdit(existingImport.offset, 0, importCode));
           inserted = true;
@@ -90,7 +97,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         }
       }
       if (!inserted) {
-        var importCode = "${eol}import '$importUri';";
+        var importCode = "${eol}import $quote$importUri$quote;";
         if (isPackage && isFirstPackage && isAfterDart) {
           importCode = eol + importCode;
         }
@@ -108,7 +115,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   if (libraryDirective != null) {
     var prefix = eol + eol;
     for (var importUri in uriList) {
-      var importCode = "${prefix}import '$importUri';";
+      var importCode = "${prefix}import $quote$importUri$quote;";
       prefix = eol;
       doSourceChange_addElementEdit(change, targetLibrary,
           SourceEdit(libraryDirective.end, 0, importCode));
@@ -122,7 +129,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     var offset = desc.offset;
     for (var i = 0; i < uriList.length; i++) {
       var importUri = uriList[i];
-      var importCode = "import '$importUri';$eol";
+      var importCode = "import $quote$importUri$quote;$eol";
       if (i == 0) {
         importCode = desc.prefix + importCode;
       }
@@ -219,7 +226,7 @@ String getElementKindName(Element element) {
 String getElementQualifiedName(Element element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
-    return '${element.enclosingElement3!.displayName}.${element.displayName}';
+    return '${element.enclosingElement!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
     final session = element.session!;
@@ -255,13 +262,13 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
 ExecutableElement? getEnclosingExecutableElement(AstNode input) {
   for (var node in input.withParents) {
     if (node is FunctionDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     }
     if (node is ConstructorDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     }
     if (node is MethodDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     }
   }
   return null;
@@ -466,7 +473,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
     return true;
   }
   return node.parent is VariableDeclaration &&
-      (node.parent as VariableDeclaration).name2 == node.token;
+      (node.parent as VariableDeclaration).name == node.token;
 }
 
 /// Return `true` if the given [node] is the name of a [NamedExpression].
@@ -914,6 +921,13 @@ class CorrectionUtils {
       return 'Never';
     }
 
+    if (type is RecordType) {
+      return _getTypeCodeRecord(
+        librariesToImport: librariesToImport,
+        type: type,
+      );
+    }
+
     if (type is TypeParameterType) {
       var element = type.element2;
       if (_isTypeParameterVisible(element)) {
@@ -1304,6 +1318,51 @@ class CorrectionUtils {
     return sb.toString();
   }
 
+  String _getTypeCodeRecord({
+    required Set<Source> librariesToImport,
+    required RecordType type,
+  }) {
+    final buffer = StringBuffer();
+
+    final positionalFields = type.positionalFields;
+    final namedFields = type.namedFields;
+    final fieldCount = positionalFields.length + namedFields.length;
+    buffer.write('(');
+
+    var index = 0;
+    for (final field in positionalFields) {
+      buffer.write(
+        getTypeSource(field.type, librariesToImport),
+      );
+      if (index++ < fieldCount - 1) {
+        buffer.write(', ');
+      }
+    }
+
+    if (namedFields.isNotEmpty) {
+      buffer.write('{');
+      for (final field in namedFields) {
+        buffer.write(
+          getTypeSource(field.type, librariesToImport),
+        );
+        buffer.write(' ');
+        buffer.write(field.name);
+        if (index++ < fieldCount - 1) {
+          buffer.write(', ');
+        }
+      }
+      buffer.write('}');
+    }
+
+    buffer.write(')');
+
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+
+    return buffer.toString();
+  }
+
   /// @return the [InvertedCondition] for the given logical expression.
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
@@ -1375,7 +1434,7 @@ class CorrectionUtils {
   /// Checks if [element] is visible in [targetExecutableElement] or
   /// [targetClassElement].
   bool _isTypeParameterVisible(TypeParameterElement element) {
-    var enclosing = element.enclosingElement3;
+    var enclosing = element.enclosingElement;
     return identical(enclosing, targetExecutableElement) ||
         identical(enclosing, targetClassElement);
   }
@@ -1466,6 +1525,12 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
     }
   }
 
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    names.add(node.name.lexeme);
+    return super.visitVariableDeclaration(node);
+  }
+
   static bool _isPrefixed(SimpleIdentifier node) {
     var parent = node.parent;
     return parent is ConstructorName && parent.name == node ||
@@ -1541,13 +1606,13 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
   final elements = <LocalElement>[];
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      var element = node.staticElement;
-      if (element is LocalElement) {
-        elements.add(element);
-      }
+  void visitVariableDeclaration(VariableDeclaration node) {
+    final element = node.declaredElement;
+    if (element is LocalVariableElement) {
+      elements.add(element);
     }
+
+    super.visitVariableDeclaration(node);
   }
 }
 

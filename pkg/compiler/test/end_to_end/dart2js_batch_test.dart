@@ -42,7 +42,7 @@ Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
     Directory appDir =
-        new Directory.fromUri(Uri.base.resolve('samples-dev/swarm'));
+        Directory.fromUri(Uri.base.resolve('pkg/compiler/test/codesize/swarm'));
 
     print("Copying '${appDir.path}' to '${tmpDir.path}'.");
     copyDirectory(appDir, tmpDir);

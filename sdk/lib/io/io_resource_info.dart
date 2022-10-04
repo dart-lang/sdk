@@ -88,7 +88,7 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
 class _FileResourceInfo extends _ReadWriteResourceInfo {
   static const String _type = 'OpenFile';
 
-  final file;
+  final RandomAccessFile file;
 
   static Map<int, _FileResourceInfo> openFiles = {};
 
@@ -112,7 +112,8 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
     ));
   }
 
-  static Future<ServiceExtensionResponse> getOpenFiles(function, params) {
+  static Future<ServiceExtensionResponse> getOpenFiles(
+      String function, Map<String, String> params) {
     assert(function == 'ext.dart.io.getOpenFiles');
     final data = {
       'type': 'OpenFileList',
@@ -125,7 +126,7 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   Map<String, dynamic> get fileInfoMap => fullValueMap;
 
   static Future<ServiceExtensionResponse> getOpenFileInfoMapByID(
-      function, params) {
+      String function, Map<String, String> params) {
     final id = int.parse(params['id']!);
     final result = openFiles.containsKey(id) ? openFiles[id]!.fileInfoMap : {};
     final jsonValue = json.encode(result);
@@ -135,9 +136,15 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   String get name => file.path;
 }
 
+abstract class _Process implements Process {
+  abstract String _path;
+  abstract List<String> _arguments;
+  abstract String? _workingDirectory;
+}
+
 class _SpawnedProcessResourceInfo extends _IOResourceInfo {
   static const String _type = 'SpawnedProcess';
-  final process;
+  final _Process process;
   final int startedAt;
 
   static Map<int, _SpawnedProcessResourceInfo> startedProcesses =

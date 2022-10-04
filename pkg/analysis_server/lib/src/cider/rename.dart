@@ -48,7 +48,7 @@ class CanRenameResponse {
       status = validateMethodName(name);
     } else if (element is TypeAliasElement) {
       status = validateTypeAliasName(name);
-    } else if (element is ClassElement) {
+    } else if (element is InterfaceElement) {
       status = validateClassName(name);
     } else if (element is ConstructorElement) {
       status = validateConstructorName(name);
@@ -65,7 +65,7 @@ class CanRenameResponse {
 
   void _analyzePossibleConflicts(
       ConstructorElement element, RefactoringStatus result, String newName) {
-    var parentClass = element.enclosingElement3;
+    var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
       result.addError('The constructor should not have the same name '
@@ -254,8 +254,8 @@ class CheckNameResponse {
     var stateName = flutterState.newName;
     var match = await canRename._fileResolver.findReferences2(stateClass);
     var sourcePath = stateClass.source.fullName;
-    var location = stateClass.enclosingElement3.lineInfo
-        .getLocation(stateClass.nameOffset);
+    var location =
+        stateClass.enclosingElement.lineInfo.getLocation(stateClass.nameOffset);
     CiderSearchMatch ciderMatch;
     var searchInfo =
         CiderSearchInfo(location, stateClass.nameLength, MatchKind.DECLARATION);
@@ -297,12 +297,12 @@ class CheckNameResponse {
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
     var element = canRename.refactoringElement.element;
-    var classElement = element.enclosingElement3;
+    var interfaceElement = element.enclosingElement;
 
     var fileResolver = canRename._fileResolver;
-    var libraryPath = classElement!.library!.source.fullName;
+    var libraryPath = interfaceElement!.library!.source.fullName;
     var resolvedLibrary = await fileResolver.resolveLibrary2(path: libraryPath);
-    var result = resolvedLibrary.getElementDeclaration(classElement);
+    var result = resolvedLibrary.getElementDeclaration(interfaceElement);
     if (result == null) {
       return null;
     }
@@ -321,7 +321,7 @@ class CheckNameResponse {
         return null;
       }
 
-      var header = '${classElement.name}.$newName();';
+      var header = '${interfaceElement.name}.$newName();';
       return CiderReplaceMatch(libraryPath, [
         ReplaceInfo(location.prefix + header + location.suffix,
             resolvedUnit.lineInfo.getLocation(location.offset), 0)
@@ -333,7 +333,7 @@ class CheckNameResponse {
         return null;
       }
 
-      var header = 'const ${classElement.name}.$newName();';
+      var header = 'const ${interfaceElement.name}.$newName();';
       return CiderReplaceMatch(libraryPath, [
         ReplaceInfo(location.prefix + header + location.suffix,
             resolvedUnit.lineInfo.getLocation(location.offset), 0)
@@ -382,7 +382,7 @@ class CiderRenameComputer {
   }
 
   bool _canRenameElement(Element element) {
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement;
     if (element is ConstructorElement) {
       return true;
     }
@@ -392,7 +392,7 @@ class CiderRenameComputer {
     if (element is LabelElement || element is LocalElement) {
       return true;
     }
-    if (enclosingElement is ClassElement ||
+    if (enclosingElement is InterfaceElement ||
         enclosingElement is ExtensionElement ||
         enclosingElement is CompilationUnitElement) {
       return true;

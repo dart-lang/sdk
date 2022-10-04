@@ -8385,7 +8385,7 @@ static void NewNativePort_Transferrable1(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_TypedData_kUint8, message->value.as_typed_data.type);
   EXPECT_EQ(10, message->value.as_typed_data.length);
   EXPECT_EQ(42, message->value.as_typed_data.values[0]);
-  free(message->value.as_typed_data.values);
+  free(const_cast<uint8_t*>(message->value.as_typed_data.values));
 }
 
 static void NewNativePort_Transferrable2(Dart_Port dest_port_id,
@@ -8399,7 +8399,7 @@ static void NewNativePort_Transferrable2(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_TypedData_kUint8, cobj->value.as_typed_data.type);
   EXPECT_EQ(10, cobj->value.as_typed_data.length);
   EXPECT_EQ(42, cobj->value.as_typed_data.values[0]);
-  free(cobj->value.as_typed_data.values);
+  free(const_cast<uint8_t*>(cobj->value.as_typed_data.values));
 }
 
 TEST_CASE(DartAPI_NativePortPostTransferrableTypedData) {

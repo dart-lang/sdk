@@ -15,6 +15,7 @@ class Globals {
   final Map<Field, w.Global> globals = {};
   final Map<Field, w.BaseFunction> globalInitializers = {};
   final Map<Field, w.Global> globalInitializedFlag = {};
+  final Map<w.FunctionType, w.DefinedFunction> dummyFunctions = {};
   final Map<w.HeapType, w.DefinedGlobal> dummyValues = {};
   late final w.DefinedGlobal dummyGlobal;
 
@@ -35,6 +36,23 @@ class Globals {
     dummyValues[w.HeapType.any] = dummyGlobal;
     dummyValues[w.HeapType.eq] = dummyGlobal;
     dummyValues[w.HeapType.data] = dummyGlobal;
+  }
+
+  /// Provide a dummy function with the given signature. Used for empty entries
+  /// in vtables and for dummy values of function reference type.
+  w.DefinedFunction getDummyFunction(w.FunctionType type) {
+    return dummyFunctions.putIfAbsent(type, () {
+      w.DefinedFunction function = m.addFunction(type, "#dummy function $type");
+      w.Instructions b = function.body;
+      b.unreachable();
+      b.end();
+      return function;
+    });
+  }
+
+  /// Returns whether the given function was provided by [getDummyFunction].
+  bool isDummyFunction(w.BaseFunction function) {
+    return dummyFunctions[function.type] == function;
   }
 
   w.Global? prepareDummyValue(w.ValueType type) {
@@ -60,14 +78,9 @@ class Globals {
           ib.array_new_fixed(heapType, 0);
           ib.end();
         } else if (heapType is w.FunctionType) {
-          w.DefinedFunction function =
-              m.addFunction(heapType, "#dummy function $heapType");
-          w.Instructions b = function.body;
-          b.unreachable();
-          b.end();
           global = m.addGlobal(w.GlobalType(type, mutable: false));
           w.Instructions ib = global.initializer;
-          ib.ref_func(function);
+          ib.ref_func(getDummyFunction(heapType));
           ib.end();
         }
         dummyValues[heapType] = global!;
@@ -78,8 +91,10 @@ class Globals {
     return null;
   }
 
+  /// Produce a dummy value of any Wasm type. For non-nullable reference types,
+  /// the value is constructed in a global initializer, and the instantiation
+  /// of the value merely reads the global.
   void instantiateDummyValue(w.Instructions b, w.ValueType type) {
-    w.Global? global = prepareDummyValue(type);
     switch (type) {
       case w.NumType.i32:
         b.i32_const(0);
@@ -99,7 +114,7 @@ class Globals {
           if (type.nullable) {
             b.ref_null(heapType);
           } else {
-            b.global_get(global!);
+            b.global_get(prepareDummyValue(type)!);
           }
         } else {
           throw "Unsupported global type ${type} ($type)";
@@ -114,7 +129,6 @@ class Globals {
     if (init is IntLiteral) return IntConstant(init.value);
     if (init is DoubleLiteral) return DoubleConstant(init.value);
     if (init is BoolLiteral) return BoolConstant(init.value);
-    if (translator.options.lazyConstants) return null;
     if (init is StringLiteral) return StringConstant(init.value);
     if (init is ConstantExpression) return init.constant;
     return null;
@@ -127,9 +141,9 @@ class Globals {
     return globals.putIfAbsent(variable, () {
       w.ValueType type = translator.translateType(variable.type);
       Constant? init = _getConstantInitializer(variable);
-      if (init != null) {
+      if (init != null &&
+          !(translator.constants.ensureConstant(init)?.isLazy ?? false)) {
         // Initialized to a constant
-        translator.constants.ensureConstant(init);
         w.DefinedGlobal global =
             m.addGlobal(w.GlobalType(type, mutable: !variable.isFinal));
         translator.constants

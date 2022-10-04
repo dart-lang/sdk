@@ -10,16 +10,16 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 
 FunctionExpressionImpl emptyFunctionExpression() {
-  return astFactory.functionExpression(
-    null,
-    astFactory.formalParameterList(
+  return FunctionExpressionImpl(
+    typeParameters: null,
+    parameters: astFactory.formalParameterList(
       Tokens.openParenthesis(),
       [],
       null,
       null,
       Tokens.closeParenthesis(),
     ),
-    BlockFunctionBodyImpl(
+    body: BlockFunctionBodyImpl(
       keyword: null,
       star: null,
       block: BlockImpl(

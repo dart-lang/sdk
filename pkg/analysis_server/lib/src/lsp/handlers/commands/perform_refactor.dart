@@ -33,6 +33,10 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
       final refactoring = await getRefactoring(
           RefactoringKind(kind), result, offset, length, options);
       return refactoring.mapResult((refactoring) async {
+        // Don't include potential edits in refactorings until there is some UI
+        // for the user to control this.
+        refactoring.includePotential = false;
+
         // If the token we were given is not cancelable, wrap it with one that
         // is for the rest of this request as a future refactor may need to
         // cancel this request.

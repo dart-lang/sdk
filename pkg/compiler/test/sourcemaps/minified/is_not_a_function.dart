@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 // TODO(sigmund): should this be handled as "other"? (the identifier appears
-// direclty in the line producing the error).
+// directly in the line producing the error).
 //
 // Error pattern: \.([^\.]*) is not a function
 // Kind of minified name: instance

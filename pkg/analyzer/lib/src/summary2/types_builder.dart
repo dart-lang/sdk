@@ -117,7 +117,7 @@ class TypesBuilder {
   }
 
   void _classDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement2 as ClassElementImpl;
+    var element = node.declaredElement as ClassElementImpl;
 
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
@@ -143,7 +143,7 @@ class TypesBuilder {
   }
 
   void _classTypeAlias(ClassTypeAlias node) {
-    var element = node.declaredElement2 as ClassElementImpl;
+    var element = node.declaredElement as ClassElementImpl;
 
     var superType = node.superclass.type;
     if (superType is InterfaceType && _isInterfaceTypeInterface(superType)) {
@@ -181,7 +181,7 @@ class TypesBuilder {
           returnType = _dynamicType;
         }
       }
-      var element = node.declaredElement2 as ExecutableElementImpl;
+      var element = node.declaredElement as ExecutableElementImpl;
       element.returnType = returnType;
     } else if (node is FunctionTypeAlias) {
       _functionTypeAlias(node);
@@ -194,13 +194,13 @@ class TypesBuilder {
       if (returnType == null) {
         if (node.isSetter) {
           returnType = _voidType;
-        } else if (node.isOperator && node.name2.lexeme == '[]=') {
+        } else if (node.isOperator && node.name.lexeme == '[]=') {
           returnType = _voidType;
         } else {
           returnType = _dynamicType;
         }
       }
-      var element = node.declaredElement2 as ExecutableElementImpl;
+      var element = node.declaredElement as ExecutableElementImpl;
       element.returnType = returnType;
     } else if (node is MixinDeclaration) {
       _mixinDeclaration(node);
@@ -213,7 +213,7 @@ class TypesBuilder {
       var type = node.type?.type;
       if (type != null) {
         for (var variable in node.variables) {
-          (variable.declaredElement2 as VariableElementImpl).type = type;
+          (variable.declaredElement as VariableElementImpl).type = type;
         }
       }
     } else {
@@ -222,7 +222,7 @@ class TypesBuilder {
   }
 
   void _enumDeclaration(EnumDeclaration node) {
-    var element = node.declaredElement2 as EnumElementImpl;
+    var element = node.declaredElement as EnumElementImpl;
 
     element.mixins = _toInterfaceTypeList(
       node.withClause?.mixinTypes,
@@ -234,7 +234,7 @@ class TypesBuilder {
   }
 
   void _extensionDeclaration(ExtensionDeclaration node) {
-    var element = node.declaredElement2 as ExtensionElementImpl;
+    var element = node.declaredElement as ExtensionElementImpl;
     element.extendedType = node.extendedType.typeOrThrow;
   }
 
@@ -261,7 +261,7 @@ class TypesBuilder {
   }
 
   void _functionTypeAlias(FunctionTypeAlias node) {
-    var element = node.declaredElement2 as TypeAliasElementImpl;
+    var element = node.declaredElement as TypeAliasElementImpl;
     var function = element.aliasedElement as GenericFunctionTypeElementImpl;
     function.returnType = node.returnType?.type ?? _dynamicType;
     element.aliasedType = function.type;
@@ -279,7 +279,7 @@ class TypesBuilder {
   }
 
   void _genericTypeAlias(GenericTypeAlias node) {
-    var element = node.declaredElement2 as TypeAliasElementImpl;
+    var element = node.declaredElement as TypeAliasElementImpl;
     var featureSet = element.library.featureSet;
 
     var typeNode = node.type;
@@ -298,7 +298,7 @@ class TypesBuilder {
   }
 
   void _mixinDeclaration(MixinDeclaration node) {
-    var element = node.declaredElement2 as MixinElementImpl;
+    var element = node.declaredElement as MixinElementImpl;
 
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
@@ -347,7 +347,7 @@ class TypesBuilder {
     }
 
     return node.typeParameters
-        .map<TypeParameterElement>((p) => p.declaredElement2!)
+        .map<TypeParameterElement>((p) => p.declaredElement!)
         .toList();
   }
 
@@ -362,7 +362,7 @@ class TypesBuilder {
     );
   }
 
-  static InterfaceType _objectType(ClassElementImpl element) {
+  static InterfaceType _objectType(AbstractClassElementImpl element) {
     return element.library.typeProvider.objectType;
   }
 }
@@ -434,7 +434,7 @@ class _MixinInference {
     List<InterfaceType>? supertypeConstraints;
     InterfaceType Function(List<DartType> typeArguments)? instantiate;
     final mixinElement = mixinNode.name.staticElement;
-    if (mixinElement is ClassElement) {
+    if (mixinElement is InterfaceElement) {
       typeParameters = mixinElement.typeParameters;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem
@@ -518,8 +518,7 @@ class _MixinsInference {
   void perform(List<AstNode> declarations) {
     for (var node in declarations) {
       if (node is ClassDeclaration || node is ClassTypeAlias) {
-        var element =
-            (node as Declaration).declaredElement2 as ClassElementImpl;
+        var element = (node as Declaration).declaredElement as ClassElementImpl;
         element.mixinInferenceCallback = _callbackWhenRecursion;
       }
     }
@@ -569,13 +568,13 @@ class _MixinsInference {
 
   void _inferDeclaration(AstNode node) {
     if (node is ClassDeclaration) {
-      var element = node.declaredElement2 as ClassElementImpl;
+      var element = node.declaredElement as ClassElementImpl;
       _infer(element, node.withClause);
     } else if (node is ClassTypeAlias) {
-      var element = node.declaredElement2 as ClassElementImpl;
+      var element = node.declaredElement as ClassElementImpl;
       _infer(element, node.withClause);
     } else if (node is EnumDeclaration) {
-      var element = node.declaredElement2 as EnumElementImpl;
+      var element = node.declaredElement as EnumElementImpl;
       _infer(element, node.withClause);
     }
   }
@@ -587,10 +586,10 @@ class _MixinsInference {
   void _resetHierarchies(List<AstNode> declarations) {
     for (var declaration in declarations) {
       if (declaration is ClassDeclaration) {
-        var element = declaration.declaredElement2 as ClassElementImpl;
+        var element = declaration.declaredElement as ClassElementImpl;
         element.library.session.classHierarchy.remove(element);
       } else if (declaration is MixinDeclaration) {
-        var element = declaration.declaredElement2 as MixinElementImpl;
+        var element = declaration.declaredElement as MixinElementImpl;
         element.library.session.classHierarchy.remove(element);
       }
     }

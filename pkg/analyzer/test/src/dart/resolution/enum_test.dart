@@ -30,7 +30,7 @@ enum E {
 ListLiteral
   leftBracket: [
   rightBracket: ]
-  parameter: self::@enum::E::@constructor::•::@parameter::a
+  parameter: self::@enum::E::@constructor::new::@parameter::a
   staticType: List<int>
 ''');
   }
@@ -131,12 +131,12 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: ParameterMember
-            base: self::@enum::E::@constructor::•::@parameter::a
+            base: self::@enum::E::@constructor::new::@parameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
   constructorElement: ConstructorMember
-    base: self::@enum::E::@constructor::•
+    base: self::@enum::E::@constructor::new
     substitution: {T: int}
   declaredElement: self::@enum::E::@field::v
 ''');
@@ -238,10 +238,10 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: self::@enum::E::@constructor::•::@parameter::a
+          parameter: self::@enum::E::@constructor::new::@parameter::a
           staticType: int
       rightParenthesis: )
-  constructorElement: self::@enum::E::@constructor::•
+  constructorElement: self::@enum::E::@constructor::new
   declaredElement: self::@enum::E::@field::v
 ''');
   }
@@ -257,7 +257,7 @@ enum E {
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
-  constructorElement: self::@enum::E::@constructor::•
+  constructorElement: self::@enum::E::@constructor::new
   declaredElement: self::@enum::E::@field::v
 ''');
   }

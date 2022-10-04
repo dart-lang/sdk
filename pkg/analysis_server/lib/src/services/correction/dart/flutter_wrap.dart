@@ -89,7 +89,7 @@ class FlutterWrap extends MultiCorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapCenter extends _WrapSingleWidget {
   _FlutterWrapCenter(super.widgetExpr);
@@ -104,7 +104,7 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapColumn extends _WrapMultipleWidgets {
   _FlutterWrapColumn(super.firstWidget, super.lastWidget);
@@ -116,7 +116,7 @@ class _FlutterWrapColumn extends _WrapMultipleWidgets {
   String get _parentClassName => 'Column';
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapContainer extends _WrapSingleWidget {
   _FlutterWrapContainer(super.widgetExpr);
@@ -131,7 +131,7 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapGeneric extends _WrapSingleWidget {
   _FlutterWrapGeneric(super.widgetExpr);
@@ -140,7 +140,7 @@ class _FlutterWrapGeneric extends _WrapSingleWidget {
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapPadding extends _WrapSingleWidget {
   _FlutterWrapPadding(super.widgetExpr);
@@ -161,7 +161,7 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapRow extends _WrapMultipleWidgets {
   _FlutterWrapRow(super.firstWidget, super.lastWidget);
@@ -173,7 +173,7 @@ class _FlutterWrapRow extends _WrapMultipleWidgets {
   String get _parentClassName => 'Row';
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapSizedBox extends _WrapSingleWidget {
   _FlutterWrapSizedBox(super.widgetExpr);
@@ -188,7 +188,7 @@ class _FlutterWrapSizedBox extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 abstract class _WrapMultipleWidgets extends CorrectionProducer {
   final Expression firstWidget;
@@ -245,7 +245,7 @@ abstract class _WrapMultipleWidgets extends CorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 abstract class _WrapSingleWidget extends CorrectionProducer {
   final Expression widgetExpr;

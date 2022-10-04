@@ -50,7 +50,7 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
     if (node is VariableDeclaration) {
-      var element = node.declaredElement2!;
+      var element = node.declaredElement!;
       if (element.hasImplicitType) {
         return element.type;
       }
@@ -60,7 +60,7 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
         return element.type;
       }
     } else if (node is FunctionDeclarationStatement) {
-      var element = node.functionDeclaration.declaredElement2!;
+      var element = node.functionDeclaration.declaredElement!;
       if (element.hasImplicitReturnType) {
         return element.returnType;
       }

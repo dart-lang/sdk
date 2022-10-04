@@ -328,9 +328,11 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     debugEvent("LibraryName");
-    pop(); // Library name
+    if (hasName) {
+      pop(); // Library name
+    }
     pop(); // Metadata
     pop(); // Comment
   }

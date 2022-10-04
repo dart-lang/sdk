@@ -21,18 +21,15 @@ class MakeFieldPublic extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SimpleIdentifier) {
+    final declaration = node;
+    if (declaration is! MethodDeclaration) {
       return;
     }
-    var getterName = node.name;
+    var getterName = declaration.name.lexeme;
     _fieldName = '_$getterName';
-    var parent = node.parent;
-    if (parent is MethodDeclaration &&
-        parent.name2 == token &&
-        parent.isGetter) {
+    if (declaration.name == token && declaration.isGetter) {
       NodeList<ClassMember> members;
-      var container = parent.parent;
+      var container = declaration.parent;
       if (container is ClassDeclaration) {
         members = container.members;
       } else if (container is MixinDeclaration) {
@@ -45,12 +42,12 @@ class MakeFieldPublic extends CorrectionProducer {
       VariableDeclaration? field;
       for (var member in members) {
         if (member is MethodDeclaration &&
-            member.name2.lexeme == getterName &&
+            member.name.lexeme == getterName &&
             member.isSetter) {
           setter = member;
         } else if (member is FieldDeclaration) {
           for (var variable in member.fields.variables) {
-            if (variable.name2.lexeme == _fieldName) {
+            if (variable.name.lexeme == _fieldName) {
               field = variable;
             }
           }
@@ -60,8 +57,8 @@ class MakeFieldPublic extends CorrectionProducer {
         return;
       }
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.token(field!.name2), getterName);
-        builder.removeMember(members, parent);
+        builder.addSimpleReplacement(range.token(field!.name), getterName);
+        builder.removeMember(members, declaration);
         builder.removeMember(members, setter!);
       });
     }

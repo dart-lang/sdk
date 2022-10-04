@@ -30,6 +30,7 @@ import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -871,7 +872,7 @@ class KernelTarget extends TargetImplementation {
       constructorReference =
           indexedClass.lookupConstructorReference(new Name(""));
       tearOffReference = indexedClass.lookupGetterReference(
-          constructorTearOffName("", indexedClass.library));
+          new Name(constructorTearOffName(""), indexedClass.library));
     }
 
     /// From [Dart Programming Language Specification, 4th Edition](
@@ -929,7 +930,7 @@ class KernelTarget extends TargetImplementation {
       constructorReference =
           indexedClass.lookupConstructorReference(new Name(""));
       tearOffReference = indexedClass.lookupGetterReference(
-          constructorTearOffName("", indexedClass.library));
+          new Name(constructorTearOffName(""), indexedClass.library));
     }
 
     if (supertype is ClassBuilder) {
@@ -961,7 +962,7 @@ class KernelTarget extends TargetImplementation {
                 // added to `Class` whose name is `_` private to `lib1`.
                 .lookupConstructorReference(memberBuilder.member.name);
             tearOffReference = indexedClass.lookupGetterReference(
-                constructorTearOffName(name, indexedClass.library));
+                new Name(constructorTearOffName(name), indexedClass.library));
           }
           builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
               builder,
@@ -1322,11 +1323,12 @@ class KernelTarget extends TargetImplementation {
           patchConstructorNames.add(name);
         }
       });
-      builder.constructorScope.forEach((String name, Builder builder) {
-        if (builder is ConstructorBuilder) {
-          patchConstructorNames.remove(name);
-        }
-      });
+      NameIterator<ConstructorBuilder> iterator = builder.constructorScope
+          .filteredNameIterator<ConstructorBuilder>(
+              includeDuplicates: false, includeAugmentations: true);
+      while (iterator.moveNext()) {
+        patchConstructorNames.remove(iterator.name);
+      }
       Set<String> kernelConstructorNames =
           cls.constructors.map((c) => c.name.text).toSet().difference({""});
       return kernelConstructorNames.containsAll(patchConstructorNames);
@@ -1334,6 +1336,9 @@ class KernelTarget extends TargetImplementation {
         "Constructors of class '${builder.fullNameForErrors}' "
         "aren't fully patched.");
     for (Constructor constructor in cls.constructors) {
+      if (constructor.isExternal) {
+        continue;
+      }
       bool isRedirecting = false;
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {

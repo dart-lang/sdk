@@ -29,6 +29,42 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
 
+const char* RepresentationToCString(Representation rep) {
+  switch (rep) {
+    case kTagged:
+      return "tagged";
+    case kUntagged:
+      return "untagged";
+    case kUnboxedDouble:
+      return "double";
+    case kUnboxedFloat:
+      return "float";
+    case kUnboxedUint8:
+      return "uint8";
+    case kUnboxedUint16:
+      return "uint16";
+    case kUnboxedInt32:
+      return "int32";
+    case kUnboxedUint32:
+      return "uint32";
+    case kUnboxedInt64:
+      return "int64";
+    case kUnboxedFloat32x4:
+      return "float32x4";
+    case kUnboxedInt32x4:
+      return "int32x4";
+    case kUnboxedFloat64x2:
+      return "float64x2";
+    case kPairOfTagged:
+      return "tagged-pair";
+    case kNoRepresentation:
+      return "none";
+    case kNumRepresentations:
+      UNREACHABLE();
+  }
+  return "?";
+}
+
 class IlTestPrinter : public AllStatic {
  public:
   static void PrintGraph(const char* phase, FlowGraph* flow_graph) {
@@ -788,6 +824,9 @@ void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
   f->Printf(" . %s = ", slot().Name());
   value()->PrintTo(f);
+  if (slot().representation() != kTagged) {
+    f->Printf(" <%s>", RepresentationToCString(slot().representation()));
+  }
 
   // Here, we just print the value of the enum field. We would prefer to get
   // the final decision on whether a store barrier will be emitted by calling
@@ -1098,42 +1137,6 @@ void IndirectEntryInstr::PrintTo(BaseTextBuffer* f) const {
     f->AddString(" ");
     parallel_move()->PrintTo(f);
   }
-}
-
-const char* RepresentationToCString(Representation rep) {
-  switch (rep) {
-    case kTagged:
-      return "tagged";
-    case kUntagged:
-      return "untagged";
-    case kUnboxedDouble:
-      return "double";
-    case kUnboxedFloat:
-      return "float";
-    case kUnboxedUint8:
-      return "uint8";
-    case kUnboxedUint16:
-      return "uint16";
-    case kUnboxedInt32:
-      return "int32";
-    case kUnboxedUint32:
-      return "uint32";
-    case kUnboxedInt64:
-      return "int64";
-    case kUnboxedFloat32x4:
-      return "float32x4";
-    case kUnboxedInt32x4:
-      return "int32x4";
-    case kUnboxedFloat64x2:
-      return "float64x2";
-    case kPairOfTagged:
-      return "tagged-pair";
-    case kNoRepresentation:
-      return "none";
-    case kNumRepresentations:
-      UNREACHABLE();
-  }
-  return "?";
 }
 
 void PhiInstr::PrintTo(BaseTextBuffer* f) const {

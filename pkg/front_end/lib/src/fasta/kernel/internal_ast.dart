@@ -4948,9 +4948,11 @@ class InternalRecordLiteral extends InternalExpression {
   final List<NamedExpression> named;
   final Map<String, NamedExpression>? namedElements;
   final List<Object /*Expression|NamedExpression*/ > originalElementOrder;
+  final bool isConst;
 
   InternalRecordLiteral(this.positional, this.named, this.namedElements,
-      this.originalElementOrder);
+      this.originalElementOrder,
+      {required this.isConst});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4964,7 +4966,8 @@ class InternalRecordLiteral extends InternalExpression {
 
   @override
   void transformChildren(Transformer v) {
-    unsupported("${transformChildren}.accept on ${v.runtimeType}", -1, null);
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
   }
 
   @override
@@ -4985,6 +4988,9 @@ class InternalRecordLiteral extends InternalExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write('const ');
+    }
     printer.write('(');
     String comma = '';
     for (Object element in originalElementOrder) {
@@ -4999,5 +5005,169 @@ class InternalRecordLiteral extends InternalExpression {
       comma = ', ';
     }
     printer.write(')');
+  }
+}
+
+abstract class Binder extends TreeNode {}
+
+class ListBinder extends Binder {
+  final DartType typeBinderArgument;
+  final List<Binder> binders;
+
+  ListBinder(this.typeBinderArgument, this.binders);
+
+  @override
+  R accept<R>(TreeVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultTreeNode(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('[');
+    String comma = '';
+    for (Binder binder in binders) {
+      printer.write(comma);
+      binder.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write(']');
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "ListBinder(${toStringInternal()})";
+  }
+}
+
+class WildcardBinder extends Binder {
+  final DartType? type;
+
+  WildcardBinder(this.type);
+
+  @override
+  R accept<R>(TreeVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultTreeNode(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (type != null) {
+      type!.toTextInternal(printer);
+      printer.write(" ");
+    }
+    printer.write("_");
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "WildcardBinder(${toStringInternal()})";
+  }
+}
+
+class PatternVariableDeclaration extends Statement {
+  final Binder binder;
+  final Expression initializer;
+
+  PatternVariableDeclaration(this.binder, this.initializer);
+
+  @override
+  R accept<R>(StatementVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultStatement(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    binder.toTextInternal(printer);
+    printer.write(" = ");
+    printer.writeExpression(initializer);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "PatternVariableDeclaration(${toStringInternal()})";
   }
 }

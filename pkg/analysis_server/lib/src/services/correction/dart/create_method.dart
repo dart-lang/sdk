@@ -65,10 +65,10 @@ class CreateMethod extends CorrectionProducer {
     }
     final classDecl = memberDecl.thisOrAncestorOfType<ClassDeclaration>();
     if (classDecl != null) {
-      final classElement = classDecl.declaredElement2!;
+      final classElement = classDecl.declaredElement!;
 
       var missingEquals = memberDecl is FieldDeclaration ||
-          (memberDecl as MethodDeclaration).name2.lexeme == 'hashCode';
+          (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';
       ExecutableElement? element;
       if (missingEquals) {
         _memberName = '==';
@@ -147,7 +147,7 @@ class CreateMethod extends CorrectionProducer {
         staticModifier = inStaticContext;
       }
     } else {
-      var targetClassElement = getTargetClassElement(target);
+      var targetClassElement = getTargetInterfaceElement(target);
       if (targetClassElement == null) {
         return;
       }

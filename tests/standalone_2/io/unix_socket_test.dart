@@ -440,10 +440,11 @@ Future testHttpServer(String name) async {
 }
 
 Future testFileMessage(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
+  final firstMessageReceived = Completer<void>();
   final completer = Completer<bool>();
 
   final address =
@@ -477,6 +478,7 @@ Future testFileMessage(String tempDirPath) async {
         receivedFile.writeStringSync('Hello, server!\n');
         print("server has written to the $receivedFile file");
         socket.write('abc'.codeUnits);
+        firstMessageReceived.complete();
       } else if (e == RawSocketEvent.readClosed) {
         print('server socket got readClosed');
         socket.close();
@@ -489,13 +491,14 @@ Future testFileMessage(String tempDirPath) async {
   final randomAccessFile = file.openSync(mode: FileMode.write);
   // Send a message with sample file.
   final socket = await RawSocket.connect(address, 0);
-  socket.listen((e) {
+  socket.listen((e) async {
     if (e == RawSocketEvent.write) {
       randomAccessFile.writeStringSync('Hello, client!\n');
       socket.sendMessage(<SocketControlMessage>[
         SocketControlMessage.fromHandles(
             <ResourceHandle>[ResourceHandle.fromFile(randomAccessFile)])
       ], 'Hello'.codeUnits);
+      await firstMessageReceived.future;
       print('client sent a message');
       socket.sendMessage(<SocketControlMessage>[], 'EmptyMessage'.codeUnits);
       print('client sent a message without control data');
@@ -513,7 +516,7 @@ Future testFileMessage(String tempDirPath) async {
 }
 
 Future testTooLargeControlMessage(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final completer = Completer<bool>();
@@ -561,7 +564,7 @@ Future testTooLargeControlMessage(String tempDirPath) async {
 }
 
 Future testFileMessageWithShortRead(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
@@ -669,7 +672,7 @@ Future<RawServerSocket> createTestServer() async {
 }
 
 Future testSocketMessage(String uniqueName) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
@@ -735,16 +738,19 @@ Future testSocketMessage(String uniqueName) async {
   });
 }
 
-Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+Future testStdioMessage(String tempDirPath, {bool caller = false}) async {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
   final completer = Completer<bool>();
 
   if (caller) {
-    final process = await Process.start(Platform.resolvedExecutable,
-        <String>[Platform.script.toFilePath(), '--start-stdio-message-test']);
+    final process = await Process.start(Platform.resolvedExecutable, <String>[
+      ...Platform.executableArguments,
+      Platform.script.toFilePath(),
+      '--start-stdio-message-test'
+    ]);
     String processStdout = "";
     String processStderr = "";
     process.stdout.transform(utf8.decoder).listen((line) {
@@ -825,8 +831,142 @@ Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
   return completer.future;
 }
 
+Future testReadPipeMessage(String uniqueName) async {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  final address =
+      InternetAddress('$uniqueName/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    socket.listen((e) async {
+      switch (e) {
+        case RawSocketEvent.read:
+          final SocketMessage message = socket.readMessage();
+          if (message == null) {
+            return;
+          }
+          Expect.equals('Hello', String.fromCharCodes(message.data));
+          Expect.equals(1, message.controlMessages.length);
+          final SocketControlMessage controlMessage =
+              message.controlMessages[0];
+          final handles = controlMessage.extractHandles();
+          Expect.isNotNull(handles);
+          Expect.equals(1, handles.length);
+          final receivedPipe = handles[0].toReadPipe();
+          Expect.equals('Hello over pipe!',
+              await receivedPipe.transform(utf8.decoder).join());
+          socket.write('server replied'.codeUnits);
+          break;
+        case RawSocketEvent.readClosed:
+          socket.close();
+          server.close();
+          break;
+      }
+    });
+  });
+
+  final RawServerSocket testServer = await createTestServer();
+  final testPipe = await Pipe.create();
+
+  // Send a message containing an open pipe.
+  final socket = await RawSocket.connect(address, 0);
+  socket.listen((e) {
+    switch (e) {
+      case RawSocketEvent.write:
+        socket.sendMessage(<SocketControlMessage>[
+          SocketControlMessage.fromHandles(
+              <ResourceHandle>[ResourceHandle.fromReadPipe(testPipe.read)])
+        ], 'Hello'.codeUnits);
+        testPipe.write.add('Hello over pipe!'.codeUnits);
+        testPipe.write.close();
+        break;
+      case RawSocketEvent.read:
+        final data = socket.read();
+        if (data == null) {
+          return;
+        }
+
+        final dataString = String.fromCharCodes(data);
+        Expect.equals('server replied', dataString);
+        socket.close();
+        testPipe.write.close();
+        testServer.close();
+    }
+  });
+}
+
+Future testWritePipeMessage(String uniqueName) async {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  final address =
+      InternetAddress('$uniqueName/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    socket.listen((e) async {
+      switch (e) {
+        case RawSocketEvent.read:
+          final SocketMessage message = socket.readMessage();
+          if (message == null) {
+            return;
+          }
+          Expect.equals('Hello', String.fromCharCodes(message.data));
+          Expect.equals(1, message.controlMessages.length);
+          final SocketControlMessage controlMessage =
+              message.controlMessages[0];
+          final handles = controlMessage.extractHandles();
+          Expect.isNotNull(handles);
+          Expect.equals(1, handles.length);
+          final receivedPipe = handles[0].toWritePipe();
+
+          receivedPipe.add('Hello over pipe!'.codeUnits);
+          receivedPipe.close();
+          socket.write('server replied'.codeUnits);
+          break;
+        case RawSocketEvent.readClosed:
+          socket.close();
+          server.close();
+          break;
+      }
+    });
+  });
+
+  final RawServerSocket testServer = await createTestServer();
+  final testPipe = await Pipe.create();
+
+  // Send a message containing an open pipe.
+  final socket = await RawSocket.connect(address, 0);
+  socket.listen((e) async {
+    switch (e) {
+      case RawSocketEvent.write:
+        socket.sendMessage(<SocketControlMessage>[
+          SocketControlMessage.fromHandles(
+              <ResourceHandle>[ResourceHandle.fromWritePipe(testPipe.write)])
+        ], 'Hello'.codeUnits);
+
+        Expect.equals('Hello over pipe!',
+            await testPipe.read.transform(utf8.decoder).join());
+        break;
+      case RawSocketEvent.read:
+        final data = socket.read();
+        if (data == null) {
+          return;
+        }
+
+        final dataString = String.fromCharCodes(data);
+        Expect.equals('server replied', dataString);
+        socket.close();
+        testPipe.write.close();
+        testServer.close();
+    }
+  });
+}
+
 Future testDeleteFile(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final address =
@@ -850,7 +990,7 @@ Future testDeleteFile(String tempDirPath) async {
 }
 
 Future testFileStat(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final name = '$tempDirPath/sock';
@@ -862,7 +1002,7 @@ Future testFileStat(String tempDirPath) async {
 }
 
 Future testFileRename(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final name1 = '$tempDirPath/sock1';
@@ -880,7 +1020,7 @@ Future testFileRename(String tempDirPath) async {
 }
 
 Future testFileCopy(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final name1 = '$tempDirPath/sock1';
@@ -950,6 +1090,12 @@ void main(List<String> args) async {
       await testSocketMessage('${dir.path}');
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
+      await testReadPipeMessage('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testWritePipeMessage('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
       await testStdioMessage('${dir.path}', caller: true);
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
@@ -966,7 +1112,7 @@ void main(List<String> args) async {
     });
   }, (e, st) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
-      Expect.fail("Unexpected exception $e is thrown");
+      Expect.fail("Unexpected exception $e is thrown:\n$st");
     } else {
       Expect.isTrue(e is SocketException);
       Expect.isTrue(e.toString().contains('not available'));

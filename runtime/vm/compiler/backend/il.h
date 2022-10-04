@@ -457,6 +457,7 @@ struct InstrAttrs {
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
   M(AllocateClosure, _)                                                        \
+  M(AllocateRecord, _)                                                         \
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
@@ -2823,8 +2824,8 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   virtual Representation representation() const { return representation_; }
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    ASSERT(index == 0);
-    return representation();
+    UNREACHABLE();
+    return kTagged;
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5895,12 +5896,10 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
                         kind) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
-    // In AOT unbox is done based on TFA, therefore it was proven to be correct
-    // and it can never deoptimize.
-    return (slot().representation() != kTagged ||
-            (IsUnboxedDartFieldStore() && CompilerState::Current().is_aot()))
-               ? kNotSpeculative
-               : kGuardInputs;
+    // Slots are unboxed based on statically inferrable type information.
+    // Either sound non-nullable static types (JIT) or global type flow analysis
+    // results (AOT).
+    return slot().representation() != kTagged ? kNotSpeculative : kGuardInputs;
   }
 
   DECLARE_INSTRUCTION(StoreField)
@@ -5936,9 +5935,7 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
     emit_store_barrier_ = value;
   }
 
-  virtual bool CanTriggerGC() const {
-    return IsUnboxedDartFieldStore() || IsPotentialUnboxedDartFieldStore();
-  }
+  virtual bool CanTriggerGC() const { return false; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5949,15 +5946,6 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
   virtual bool HasUnknownSideEffects() const { return false; }
-
-  // Returns whether this instruction is an unboxed store into a _boxed_ Dart
-  // field. Unboxed Dart fields are handled similar to unboxed native fields.
-  bool IsUnboxedDartFieldStore() const;
-
-  // Returns whether this instruction is an potential unboxed store into a
-  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
-  // native fields.
-  bool IsPotentialUnboxedDartFieldStore() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
@@ -6992,6 +6980,46 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
   DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
 };
 
+// Allocates and null initializes a record object.
+class AllocateRecordInstr : public TemplateAllocation<0> {
+ public:
+  AllocateRecordInstr(const InstructionSource& source,
+                      intptr_t num_fields,
+                      const Array& field_names,
+                      intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id),
+        num_fields_(num_fields),
+        field_names_(field_names) {
+    ASSERT(field_names.IsNotTemporaryScopedHandle());
+    ASSERT(field_names.IsCanonical());
+  }
+
+  DECLARE_INSTRUCTION(AllocateRecord)
+  virtual CompileType ComputeType() const;
+
+  intptr_t num_fields() const { return num_fields_; }
+  const Array& field_names() const { return field_names_; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    return Heap::IsAllocatableInNewSpace(
+        compiler::target::Record::InstanceSize(num_fields_));
+  }
+
+#define FIELD_LIST(F)                                                          \
+  F(const intptr_t, num_fields_)                                               \
+  F(const Array&, field_names_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
+                                          TemplateAllocation,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateRecordInstr);
+};
+
 // This instruction captures the state of the object which had its allocation
 // removed during the AllocationSinking pass.
 // It does not produce any real code only deoptimization information.
@@ -7320,15 +7348,6 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   virtual Representation representation() const;
 
-  // Returns whether this instruction is an unboxed load from a _boxed_ Dart
-  // field. Unboxed Dart fields are handled similar to unboxed native fields.
-  bool IsUnboxedDartFieldLoad() const;
-
-  // Returns whether this instruction is an potential unboxed load from a
-  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
-  // native fields.
-  bool IsPotentialUnboxedDartFieldLoad() const;
-
   DECLARE_INSTRUCTION(LoadField)
   DECLARE_ATTRIBUTES(&slot())
 
@@ -7361,9 +7380,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
 
-  virtual bool CanTriggerGC() const {
-    return calls_initializer() || IsPotentialUnboxedDartFieldLoad();
-  }
+  virtual bool CanTriggerGC() const { return calls_initializer(); }
 
   virtual bool AttributesEqual(const Instruction& other) const;
 

@@ -81,7 +81,12 @@ class IsolateManager {
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
   /// and not requests to add/remove).
-  final Map<String, Map<String, List<vm.Breakpoint>>>
+  ///
+  /// Breakpoints are indexed by their ID so that duplicates are not stored even
+  /// if multiple client breakpoints resolve to a single VM breakpoint.
+  ///
+  /// IsolateId -> Uri -> breakpointId -> VM Breakpoint.
+  final Map<String, Map<String, Map<String, vm.Breakpoint>>>
       _vmBreakpointsByIsolateIdAndUri = {};
 
   /// The exception pause mode last provided by the client.
@@ -629,14 +634,23 @@ class IsolateManager {
       final existingBreakpointsForIsolate =
           _vmBreakpointsByIsolateIdAndUri.putIfAbsent(isolateId, () => {});
       final existingBreakpointsForIsolateAndUri =
-          existingBreakpointsForIsolate.putIfAbsent(uri, () => []);
+          existingBreakpointsForIsolate.putIfAbsent(uri, () => {});
       // Before doing async work, take a copy of the breakpoints to remove
       // and remove them from the list, so any subsequent calls here don't
-      // try to remove the same ones.
-      final breakpointsToRemove = existingBreakpointsForIsolateAndUri.toList();
+      // try to remove the same ones multiple times.
+      final breakpointsToRemove =
+          existingBreakpointsForIsolateAndUri.values.toList();
       existingBreakpointsForIsolateAndUri.clear();
-      await Future.forEach<vm.Breakpoint>(breakpointsToRemove,
-          (bp) => service.removeBreakpoint(isolateId, bp.id!));
+      await Future.forEach<vm.Breakpoint>(breakpointsToRemove, (bp) async {
+        try {
+          await service.removeBreakpoint(isolateId, bp.id!);
+        } catch (e) {
+          // Swallow errors removing breakpoints rather than failing the whole
+          // request as it's very possible that an isolate exited while we were
+          // sending this and the request will fail.
+          _adapter.logger?.call('Failed to remove old breakpoint $e');
+        }
+      });
 
       // Set new breakpoints.
       final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
@@ -655,7 +669,7 @@ class IsolateManager {
           final vmBp = await service.addBreakpointWithScriptUri(
               isolateId, vmUri.toString(), bp.line,
               column: bp.column);
-          existingBreakpointsForIsolateAndUri.add(vmBp);
+          existingBreakpointsForIsolateAndUri[vmBp.id!] = vmBp;
           _clientBreakpointsByVmId[vmBp.id!] = bp;
         } catch (e) {
           // Swallow errors setting breakpoints rather than failing the whole
@@ -908,7 +922,11 @@ class ThreadInfo {
         // We can't leave dangling completers here because others may already
         // be waiting on them, so propagate the error to them.
         completers.forEach((uri, completer) => completer.completeError(e));
-        rethrow;
+
+        // Don't rethrow here, because it will cause these completers futures
+        // to not have error handlers attached which can cause their errors to
+        // go unhandled. Instead, these completers futures will be returned
+        // below and awaited by the caller (which will propogate the errors).
       }
     }
 

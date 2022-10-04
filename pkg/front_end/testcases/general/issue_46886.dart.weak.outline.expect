@@ -20,7 +20,7 @@ abstract class Bar extends core::Object implements core::List<core::List<core::L
   synthetic constructor •() → self::Bar
     ;
 }
-extension _extension#0 on core::Symbol {
+extension /* unnamed */ _extension#0 on core::Symbol {
   operator > = self::_extension#0|>;
   method call = self::_extension#0|call;
   tearoff call = self::_extension#0|get#call;

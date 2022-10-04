@@ -579,6 +579,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
       artifact!.filename,
+      ...testFile.sharedObjects
+          .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
     ];
   }
 }

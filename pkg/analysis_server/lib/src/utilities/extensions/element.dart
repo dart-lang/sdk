@@ -30,15 +30,15 @@ extension ElementExtension on Element {
     if (hasDeprecated) {
       return true;
     }
-    var ancestor = enclosingElement3;
-    if (ancestor is ClassElement) {
+    var ancestor = enclosingElement;
+    if (ancestor is InterfaceElement) {
       if (ancestor.hasDeprecated) {
         return true;
       }
-      ancestor = ancestor.enclosingElement3;
+      ancestor = ancestor.enclosingElement;
     }
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement3.hasDeprecated;
+        ancestor.enclosingElement.hasDeprecated;
   }
 
   /// Return this element and all its enclosing elements.
@@ -46,7 +46,7 @@ extension ElementExtension on Element {
     var current = this;
     while (true) {
       yield current;
-      var enclosing = current.enclosingElement3;
+      var enclosing = current.enclosingElement;
       if (enclosing == null) {
         break;
       }
@@ -69,7 +69,7 @@ extension MethodElementExtensions on MethodElement {
     if (name != 'cast') {
       return false;
     }
-    var definingClass = enclosingElement3;
+    var definingClass = enclosingElement;
     if (definingClass is! ClassElement) {
       return false;
     }
@@ -79,16 +79,29 @@ extension MethodElementExtensions on MethodElement {
         definingClass.isDartCoreSet;
   }
 
-  /// Return `true` if this element represents the method `toList` from either
-  /// `Iterable` or `List`.
+  /// Return `true` if this element represents the method `toList` from
+  /// `Iterable`.
   bool get isToListMethod {
     if (name != 'toList') {
       return false;
     }
-    var definingClass = enclosingElement3;
+    var definingClass = enclosingElement;
     if (definingClass is! ClassElement) {
       return false;
     }
-    return definingClass.isDartCoreIterable || definingClass.isDartCoreList;
+    return definingClass.isDartCoreIterable;
+  }
+
+  /// Return `true` if this element represents the method `toSet` from
+  /// `Iterable`.
+  bool get isToSetMethod {
+    if (name != 'toSet') {
+      return false;
+    }
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
+    return definingClass.isDartCoreIterable;
   }
 }

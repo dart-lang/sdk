@@ -10,7 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// A [Refactoring] for renaming [LibraryElement]s.
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
-  RenameLibraryRefactoringImpl(super.workspace, LibraryElement super.element);
+  RenameLibraryRefactoringImpl(
+      super.workspace, super.sessionHelper, LibraryElement super.element);
 
   @override
   LibraryElement get element => super.element as LibraryElement;
@@ -35,7 +36,7 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     await processor.renameElement(element);
   }
 }

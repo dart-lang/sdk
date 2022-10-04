@@ -192,6 +192,8 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
       return object_store->allocate_int32x4_stub();
     case kClosureCid:
       return object_store->allocate_closure_stub();
+    case kRecordCid:
+      return object_store->allocate_record_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
   if (stub.IsNull()) {

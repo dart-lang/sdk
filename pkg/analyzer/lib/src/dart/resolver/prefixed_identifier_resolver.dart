@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -34,14 +33,18 @@ class PrefixedIdentifierResolver {
     if (prefixElement is! PrefixElement) {
       final prefixType = node.prefix.staticType;
       // TODO(scheglov) It would be nice to rewrite all such cases.
-      if (prefixType is RecordType) {
-        final propertyAccess = PropertyAccessImpl(
-          node.prefix,
-          node.period,
-          node.identifier,
-        );
-        NodeReplacer.replace(node, propertyAccess);
-        return propertyAccess;
+      if (prefixType != null) {
+        final prefixTypeResolved =
+            _resolver.typeSystem.resolveToBound(prefixType);
+        if (prefixTypeResolved is RecordType) {
+          final propertyAccess = PropertyAccessImpl(
+            node.prefix,
+            node.period,
+            node.identifier,
+          );
+          _resolver.replaceExpression(node, propertyAccess);
+          return propertyAccess;
+        }
       }
     }
 
@@ -75,7 +78,7 @@ class PrefixedIdentifierResolver {
         result.readElementRecovery != null) {
       // Since the element came from error recovery logic, its type isn't
       // trustworthy; leave it as `dynamic`.
-    } else if (element is ClassElement) {
+    } else if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
         node.staticType = type;

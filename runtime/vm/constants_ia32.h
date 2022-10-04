@@ -243,6 +243,15 @@ struct AllocateArrayABI {
   static const Register kTypeArgumentsReg = ECX;
 };
 
+// ABI for AllocateRecordStub.
+struct AllocateRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kNumFieldsReg = EDX;
+  static const Register kFieldNamesReg = ECX;
+  static const Register kTemp1Reg = EBX;
+  static const Register kTemp2Reg = EDI;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;

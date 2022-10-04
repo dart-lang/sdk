@@ -116,6 +116,24 @@ main() {
   //                    ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  (int, ) oneElementRecord = (1, );
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+//                           ^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+  print(oneElementRecord);
+
+  ({int ok}) oneElementNamedRecord = (ok: 1);
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+//                                   ^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+  print(oneElementNamedRecord);
 }
 
 (int, T) f1<T>(T t) {

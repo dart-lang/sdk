@@ -15,6 +15,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartLinkedEditBuilderImpl;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,6 +61,22 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
 
   Future<void> test_writeType_Never_question() async {
     await _assertWriteType('Never?');
+  }
+
+  Future<void> test_writeType_recordType_mixed() async {
+    await _assertWriteType('(int, {int y})');
+  }
+
+  Future<void> test_writeType_recordType_named() async {
+    await _assertWriteType('({int x, int y})');
+  }
+
+  Future<void> test_writeType_recordType_nullable() async {
+    await _assertWriteType('(int, {int y})?');
+  }
+
+  Future<void> test_writeType_recordType_positional() async {
+    await _assertWriteType('(int, int)');
   }
 }
 
@@ -838,7 +855,7 @@ class MyClass {}''';
           initializerWriter: () {
             builder.write('null');
           },
-          type: A.declaredElement2?.instantiate(
+          type: A.declaredElement?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -866,7 +883,7 @@ class MyClass {}''';
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration(
           'foo',
-          type: A.declaredElement2?.instantiate(
+          type: A.declaredElement?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -903,7 +920,7 @@ class MyClass {}''';
         builder.writeLocalVariableDeclaration(
           'foo',
           isFinal: true,
-          type: A.declaredElement2?.instantiate(
+          type: A.declaredElement?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -1984,7 +2001,7 @@ class C extends B {}
     var classC = unit.declarations[2] as ClassDeclaration;
     var builder = DartLinkedEditBuilderImpl(MockEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
-      classC.declaredElement2?.instantiate(
+      classC.declaredElement?.instantiate(
         typeArguments: [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
@@ -2068,6 +2085,88 @@ import 'package:foo/foo.dart';
 import 'dart:async';
 
 import 'package:foo/foo.dart';
+''',
+    );
+  }
+
+  Future<void> test_default_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+''',
+    );
+  }
+
+  Future<void> test_directive_adjacent_strings() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:' "async";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:' "async";
+''',
+    );
+  }
+
+  Future<void> test_directive_common_double_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:async";
+import "dart:math";
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import "dart:async";
+import "dart:math";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_directive_common_single_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:math";
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import "dart:math";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_directive_double_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:bbb";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import "dart:bbb";
+''',
+    );
+  }
+
+  Future<void> test_directive_single_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
 ''',
     );
   }
@@ -2375,6 +2474,36 @@ import 'foo.dart';
 import 'package:aaa/aaa.dart';
 
 import 'foo.dart';
+''',
+    );
+  }
+
+  Future<void> test_prefer_double_quotes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_double_quotes']);
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_prefer_single_quotes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_single_quotes']);
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:bbb";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import "dart:bbb";
 ''',
     );
   }

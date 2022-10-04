@@ -29,6 +29,11 @@
  */
 #define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
 
+/**
+ * ILLEGAL_ISOLATE_GROUP_ID is a number guaranteed never to be associated with a
+ * valid isolate group.
+ */
+#define ILLEGAL_ISOLATE_GROUP_ID 0
 
 /*
  * =======
@@ -132,7 +137,7 @@ typedef struct {
 } Dart_EmbedderInformation;
 
 /**
- * Callback provided by the embedder that is used by the vm to request
+ * Callback provided by the embedder that is used by the VM to request
  * information.
  *
  * \return Returns a pointer to a Dart_EmbedderInformation structure.
@@ -152,8 +157,8 @@ typedef void (*Dart_EmbedderInformationCallback)(
  * \param callback The callback to invoke.
  * \param user_data The user data passed to the callback.
  *
- * NOTE: If multiple callbacks with the same name are registered, only
- * the last callback registered will be remembered.
+ * NOTE: If multiple callbacks are registered, only the last callback registered
+ * will be remembered.
  */
 DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback);
@@ -442,6 +447,82 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
  * \param name The name of the thread.
  */
 DART_EXPORT void Dart_SetThreadName(const char* name);
+
+typedef struct {
+  const char* name;
+  const char* value;
+} Dart_TimelineRecorderEvent_Argument;
+
+#define DART_TIMELINE_RECORDER_CURRENT_VERSION (0x00000001)
+
+typedef struct {
+  /* Set to DART_TIMELINE_RECORDER_CURRENT_VERSION */
+  int32_t version;
+
+  /* The event's type / phase. */
+  Dart_Timeline_Event_Type type;
+
+  /* The event's timestamp according to the same clock as
+   * Dart_TimelineGetMicros. For a duration event, this is the beginning time.
+   */
+  int64_t timestamp0;
+
+  /* For a duration event, this is the end time. For an async event, this is the
+   * async id. */
+  int64_t timestamp1_or_async_id;
+
+  /* The current isolate of the event, as if by Dart_GetMainPortId, or
+   * ILLEGAL_PORT if the event had no current isolate. */
+  Dart_Port isolate;
+
+  /* The current isolate group of the event, as if by
+   * Dart_CurrentIsolateGroupId, or ILLEGAL_PORT if the event had no current
+   * isolate group. */
+  Dart_IsolateGroupId isolate_group;
+
+  /* The name / label of the event. */
+  const char* label;
+
+  /* The stream / category of the event. */
+  const char* stream;
+
+  intptr_t argument_count;
+  Dart_TimelineRecorderEvent_Argument* arguments;
+} Dart_TimelineRecorderEvent;
+
+/**
+ * Callback provided by the embedder to handle the completion of timeline
+ * events.
+ *
+ * \param event A timeline event that has just been completed. The VM keeps
+ * ownership of the event and any field in it (i.e., the embedder should copy
+ * any values it needs after the callback returns).
+ */
+typedef void (*Dart_TimelineRecorderCallback)(
+    Dart_TimelineRecorderEvent* event);
+
+/**
+ * Register a `Dart_TimelineRecorderCallback` to be called as timeline events
+ * are completed.
+ *
+ * The callback will be invoked without a current isolate.
+ *
+ * The callback will be invoked on the thread completing the event. Because
+ * `Dart_TimelineEvent` may be called by any thread, the callback may be called
+ * on any thread.
+ *
+ * The callback may be invoked at any time after `Dart_Initialize` is called and
+ * before `Dart_Cleanup` returns.
+ *
+ * If multiple callbacks are registered, only the last callback registered
+ * will be remembered. Providing a NULL callback will clear the registration
+ * (i.e., a NULL callback produced a no-op instead of a crash).
+ *
+ * Setting a callback is insuffient to receive events through the callback. The
+ * VM flag `timeline_recorder` must also be set to `callback`.
+ */
+DART_EXPORT void Dart_SetTimelineRecorderCallback(
+    Dart_TimelineRecorderCallback callback);
 
 /*
  * =======

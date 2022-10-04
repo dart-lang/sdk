@@ -104,7 +104,7 @@ class FindElement extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
-        var element = node.functionDeclaration.declaredElement2;
+        var element = node.functionDeclaration.declaredElement;
         if (element is FunctionElement && element.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
@@ -137,10 +137,10 @@ class FindElement extends _FindElementBase {
         updateResult(node.declaredElement!);
       },
       declaredIdentifier: (node) {
-        updateResult(node.declaredElement2!);
+        updateResult(node.declaredElement!);
       },
       variableDeclaration: (node) {
-        updateResult(node.declaredElement2!);
+        updateResult(node.declaredElement!);
       },
     ));
 

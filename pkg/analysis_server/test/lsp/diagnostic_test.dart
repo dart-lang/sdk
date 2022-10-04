@@ -245,7 +245,8 @@ void f() {
     expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
     expect(
       diagnostic.codeDescription!.href,
-      equals('https://dart.dev/diagnostics/built_in_identifier_in_declaration'),
+      equals(Uri.parse(
+          'https://dart.dev/diagnostics/built_in_identifier_in_declaration')),
     );
   }
 
@@ -272,7 +273,7 @@ void f() {
     newFile(dotFolderFilePath, 'String a = 1;');
 
     List<Diagnostic>? diagnostics;
-    // Record if diagnostics are recieved, but since we don't expect them
+    // Record if diagnostics are received, but since we don't expect them
     // don't await them.
     unawaited(
         waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d));

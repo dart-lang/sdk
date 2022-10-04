@@ -16,9 +16,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [RecordLiteral]s.
 class RecordLiteralResolver {
-  /// A regular expression used to match positional field names.
-  static final RegExp positionalFieldName = RegExp(r'^\$[0-9]+$');
-
   final ResolverVisitor _resolver;
 
   RecordLiteralResolver({
@@ -49,6 +46,12 @@ class RecordLiteralResolver {
   /// Report any fields in the record literal [node] that use an invalid name.
   void reportInvalidFieldNames(RecordLiteralImpl node) {
     var fields = node.fields;
+    var positionalCount = 0;
+    for (var field in fields) {
+      if (field is! NamedExpression) {
+        positionalCount++;
+      }
+    }
     for (var field in fields) {
       if (field is NamedExpression) {
         var nameNode = field.name.label;
@@ -56,15 +59,21 @@ class RecordLiteralResolver {
         if (name.startsWith('_')) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameNode);
-        } else if (positionalFieldName.hasMatch(name)) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
         } else {
-          var objectElement = _resolver.typeProvider.objectElement;
-          if (objectElement.getGetter(name) != null ||
-              objectElement.getMethod(name) != null) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameNode);
+          final index = RecordTypeExtension.positionalFieldIndex(name);
+          if (index != null) {
+            if (index < positionalCount) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
+            }
+          } else {
+            var objectElement = _resolver.typeProvider.objectElement;
+            if (objectElement.getGetter(name) != null ||
+                objectElement.getMethod(name) != null) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
+                  nameNode);
+            }
           }
         }
       }
@@ -116,6 +125,7 @@ class RecordLiteralResolver {
 
   void _resolveField(Expression field, DartType? contextType) {
     _resolver.analyzeExpression(field, contextType);
+    _resolver.popRewrite();
   }
 
   void _resolveFields(RecordLiteralImpl node, DartType? contextType) {

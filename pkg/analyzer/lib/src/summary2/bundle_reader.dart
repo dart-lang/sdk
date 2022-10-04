@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -98,8 +99,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
-  void readMembers(ClassElementImpl element) {
-    if (element.isMixinApplication) {
+  void readMembers(ClassOrMixinElementImpl element) {
+    if (element is ClassElementImpl && element.isMixinApplication) {
       element.constructors;
     } else {
       _readMembers?.call();
@@ -200,12 +201,16 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ResolutionReader reader,
     ElementImpl element,
   ) {
-    var enclosing = element.enclosingElement3;
-    if (enclosing is ClassElement) {
+    var enclosing = element.enclosingElement;
+    if (enclosing is InterfaceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
       // Nothing.
+    } else if (enclosing is EnumElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is ExtensionElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
+    } else if (enclosing is MixinElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else {
       throw UnimplementedError('${enclosing.runtimeType}');
@@ -268,7 +273,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement3,
+      unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
@@ -292,7 +297,7 @@ class ExtensionElementLinkedData
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement3,
+      unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.extendedType = reader.readRequiredType();
@@ -656,7 +661,8 @@ class LibraryReader {
     return List.generate(length, (_) {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var name = _reader.readStringReference();
-      var reference = containerRef.getChild(name);
+      var referenceName = name.ifNotEmptyOrElse('new');
+      var reference = containerRef.getChild(referenceName);
       var element = ConstructorElementImpl(name, -1);
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
@@ -1552,7 +1558,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement3,
+      unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
@@ -1636,7 +1642,7 @@ class ResolutionReader {
       // TODO(scheglov) why to check for empty? If we have this flags.
       if (arguments.isNotEmpty) {
         var typeParameters =
-            (element.enclosingElement3 as TypeParameterizedElement)
+            (element.enclosingElement as TypeParameterizedElement)
                 .typeParameters;
         var substitution = Substitution.fromPairs(typeParameters, arguments);
         element =
@@ -1735,7 +1741,7 @@ class ResolutionReader {
       var element = readElement() as TypeParameterElement;
       var nullability = _readNullability();
       var type = TypeParameterTypeImpl(
-        element: element,
+        element2: element,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
@@ -1838,7 +1844,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
-          element: type.element2,
+          element2: type.element2,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,

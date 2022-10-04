@@ -1013,23 +1013,29 @@ class NodeChangeForMethodName extends NodeChange<SimpleIdentifier> {
 /// Common infrastructure used by [NodeChange] objects that operate on AST nodes
 /// with that can be null-aware (method invocations and propety accesses).
 mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
-  /// Indicates whether null-awareness should be removed.
-  bool removeNullAwareness = false;
+  /// Indicates how null-awareness should be handled.
+  NullAwarenessRemovalType nullAwarenessRemoval = NullAwarenessRemovalType.none;
 
   @override
-  Iterable<String> get _toStringParts =>
-      [...super._toStringParts, if (removeNullAwareness) 'removeNullAwareness'];
+  Iterable<String> get _toStringParts => [
+        ...super._toStringParts,
+        if (nullAwarenessRemoval == NullAwarenessRemovalType.strong)
+          'removeNullAwareness (strong)'
+        else if (nullAwarenessRemoval == NullAwarenessRemovalType.weak)
+          'removeNullAwareness (weak)'
+      ];
 
   /// Returns an [EditPlan] that removes null awareness, if appropriate.
   /// Otherwise returns `null`.
   EditPlan? _applyNullAware(N node, FixAggregator aggregator) {
-    if (!removeNullAwareness) return null;
-    var description = aggregator._warnOnWeakCode
+    if (nullAwarenessRemoval == NullAwarenessRemovalType.none) return null;
+    var weak = aggregator._warnOnWeakCode &&
+        nullAwarenessRemoval == NullAwarenessRemovalType.weak;
+    var description = weak
         ? NullabilityFixDescription.nullAwarenessUnnecessaryInStrongMode
         : NullabilityFixDescription.removeNullAwareness;
     return aggregator.planner.removeNullAwareness(node,
-        info: AtomicEditInfo(description, const {}),
-        isInformative: aggregator._warnOnWeakCode);
+        info: AtomicEditInfo(description, const {}), isInformative: weak);
   }
 }
 
@@ -1364,6 +1370,19 @@ class NoValidMigrationChange extends ExpressionChange {
 
   @override
   String describe() => 'NoValidMigrationChange';
+}
+
+/// Enum used by [NodeChangeForNullAware] to indicate how null awareness should
+/// be handled.
+enum NullAwarenessRemovalType {
+  /// Do not remove null awareness.
+  none,
+
+  /// If warning on weak code, issue a warning; otherwise remove null awareness.
+  weak,
+
+  /// Remove null awareness unconditionally.
+  strong,
 }
 
 /// [ExpressionChange] describing the addition of an `!` after an expression.

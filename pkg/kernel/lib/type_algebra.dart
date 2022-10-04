@@ -312,7 +312,7 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
 
   @override
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
   }
 
   @override
@@ -651,7 +651,7 @@ Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   return a;
 }
 
-abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
+abstract class _TypeSubstitutor implements DartTypeVisitor<DartType> {
   final _TypeSubstitutor? outer;
   bool covariantContext = true;
 
@@ -713,6 +713,24 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
+  }
+
+  @override
+  DartType visitExtensionType(ExtensionType node) {
+    if (node.typeArguments.isEmpty) return node;
+    int before = useCounter;
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
+    if (useCounter == before) return node;
+    return new ExtensionType(node.extension, node.nullability, typeArguments);
+  }
+
+  @override
+  DartType visitRecordType(RecordType node) {
+    int before = useCounter;
+    List<DartType> positional = node.positional.map(visit).toList();
+    List<NamedType> named = node.named.map(visitNamedType).toList();
+    if (useCounter == before) return node;
+    return new RecordType(positional, named, node.nullability);
   }
 
   @override

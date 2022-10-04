@@ -131,7 +131,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.typeParameters?.accept(this);
     node.nativeClause?.accept(this);
     node.members.accept(this);
-    var classElement = node.declaredElement2!;
+    var classElement = node.declaredElement!;
     _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass,
         node.withClause, node.implementsClause, null);
     var constructors = classElement.constructors;
@@ -156,7 +156,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitClassTypeAlias(ClassTypeAlias node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
-    var classElement = node.declaredElement2!;
+    var classElement = node.declaredElement!;
     _handleSupertypeClauses(node, classElement, node.superclass,
         node.withClause, node.implementsClause, null);
     for (var constructorElement in classElement.constructors) {
@@ -188,7 +188,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitConstructorDeclaration(ConstructorDeclaration node) {
     _handleExecutableDeclaration(
         node,
-        node.declaredElement2!,
+        node.declaredElement!,
         node.metadata,
         null,
         null,
@@ -211,7 +211,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitDeclaredIdentifier(DeclaredIdentifier node) {
     node.metadata.accept(this);
-    var declaredElement = node.declaredElement2!;
+    var declaredElement = node.declaredElement!;
     var target = NullabilityNodeTarget.element(declaredElement);
     DecoratedType? type =
         _pushNullabilityNodeTarget(target, () => node.type?.accept(this));
@@ -220,7 +220,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _typeProvider, declaredElement.type, _graph, target);
       instrumentation?.implicitType(source, node, type);
     }
-    _variables!.recordDecoratedElementType(node.declaredElement2, type);
+    _variables!.recordDecoratedElementType(node.declaredElement, type);
     return type;
   }
 
@@ -248,7 +248,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitEnumDeclaration(EnumDeclaration node) {
     node.metadata.accept(this);
-    var classElement = node.declaredElement2!;
+    var classElement = node.declaredElement!;
     _variables!.recordDecoratedElementType(
         classElement, DecoratedType(classElement.thisType, _graph.never));
 
@@ -260,7 +260,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     for (var item in node.constants) {
-      var declaredElement = item.declaredElement2!;
+      var declaredElement = item.declaredElement!;
       var target = NullabilityNodeTarget.element(declaredElement);
       _variables!.recordDecoratedElementType(declaredElement,
           DecoratedType(classElement.thisType, makeNonNullNode(target, item)));
@@ -286,7 +286,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var type = _pushNullabilityNodeTarget(
         NullabilityNodeTarget.text('extended type'),
         () => node.extendedType.accept(this));
-    _variables!.recordDecoratedElementType(node.declaredElement2, type);
+    _variables!.recordDecoratedElementType(node.declaredElement, type);
     node.members.accept(this);
     return null;
   }
@@ -317,7 +317,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(
         node,
-        node.declaredElement2!,
+        node.declaredElement!,
         node.metadata,
         node.returnType,
         node.functionExpression.typeParameters,
@@ -350,7 +350,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitFunctionTypeAlias(FunctionTypeAlias node) {
     node.metadata.accept(this);
-    var declaredElement = node.declaredElement2!;
+    var declaredElement = node.declaredElement!;
     var functionElement =
         declaredElement.aliasedElement as GenericFunctionTypeElement;
     var functionType = functionElement.type;
@@ -403,12 +403,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     DecoratedType? decoratedFunctionType;
     node.typeParameters?.accept(this);
-    var target = NullabilityNodeTarget.element(node.declaredElement2!);
+    var target = NullabilityNodeTarget.element(node.declaredElement!);
     _pushNullabilityNodeTarget(target, () {
       decoratedFunctionType = node.functionType!.accept(this);
     });
     _variables!.recordDecoratedElementType(
-        (node.declaredElement2 as TypeAliasElement).aliasedElement,
+        (node.declaredElement as TypeAliasElement).aliasedElement,
         decoratedFunctionType);
     return null;
   }
@@ -431,7 +431,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitMethodDeclaration(MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
+    var declaredElement = node.declaredElement;
     var decoratedType = _handleExecutableDeclaration(
         node,
         declaredElement!,
@@ -478,7 +478,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.members.accept(this);
-    _handleSupertypeClauses(node, node.declaredElement2!, null, null,
+    _handleSupertypeClauses(node, node.declaredElement!, null, null,
         node.implementsClause, node.onClause);
     return null;
   }
@@ -616,7 +616,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitTypeParameter(TypeParameter node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     var bound = node.bound;
     DecoratedType? decoratedBound;
     var target = NullabilityNodeTarget.typeParameterBound(element);
@@ -638,7 +638,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     var declaredType = _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.element(node.variables.first.declaredElement2!),
+        NullabilityNodeTarget.element(node.variables.first.declaredElement!),
         () => typeAnnotation?.accept(this));
     var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (hint != null && hint.kind == HintCommentKind.late_) {
@@ -650,7 +650,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var parent = node.parent;
     for (var variable in node.variables) {
       variable.metadata.accept(this);
-      var declaredElement = variable.declaredElement2;
+      var declaredElement = variable.declaredElement;
       var type = declaredType;
       if (type == null) {
         var target = NullabilityNodeTarget.element(declaredElement!);
@@ -703,7 +703,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in metadata) {
       var element = annotation.element;
       if (element is ConstructorElement) {
-        var name = element.enclosingElement3.name;
+        var name = element.enclosingElement.name;
         if (_isAngularUri(element.librarySource.uri)) {
           if (name == 'ViewChild' || name == 'ContentChild') {
             return _AngularAnnotation.child;
@@ -745,7 +745,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Constructors have no explicit return type annotation, so use the
         // implicit return type.
         decoratedReturnType = _createDecoratedTypeForClass(
-            declaredElement.enclosingElement3, parameters!.parent);
+            declaredElement.enclosingElement, parameters!.parent);
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
       } else {
         // Inferred return type.
@@ -846,7 +846,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in node.metadata) {
       var element = annotation.element;
       if (element is ConstructorElement &&
-          element.enclosingElement3.name == 'Optional' &&
+          element.enclosingElement.name == 'Optional' &&
           _isAngularUri(element.librarySource.uri)) {
         _graph.makeNullable(
             decoratedType!.node!, AngularAnnotationOrigin(source, node));

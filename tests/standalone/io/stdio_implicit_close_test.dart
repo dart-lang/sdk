@@ -6,7 +6,6 @@
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "dart:convert";
 import "dart:io";
 
 void test({required bool closeStdout, required bool closeStderr}) {
@@ -20,9 +19,7 @@ void test({required bool closeStdout, required bool closeStderr}) {
   if (closeStderr) arguments.add("stderr");
 
   asyncStart();
-  Process.run(Platform.executable, arguments,
-          stdoutEncoding: ascii, stderrEncoding: ascii)
-      .then((result) {
+  Process.run(Platform.executable, arguments).then((result) {
     print(result.stdout);
     print(result.stderr);
     Expect.equals(0, result.exitCode);

@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -134,7 +133,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiver is IdentifierImpl) {
       var element = receiver.staticElement;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         _resolveReceiverTypeLiteral(
             node, element, nameNode, name, whyNotPromotedList,
             contextType: contextType);
@@ -175,13 +174,6 @@ class MethodInvocationResolver with ScopeHelpers {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    if (_typeSystem.isFunctionBounded(receiverType)) {
-      _resolveReceiverFunctionBounded(
-          node, receiver, receiverType, nameNode, name, whyNotPromotedList,
-          contextType: contextType);
-      return;
-    }
-
     if (receiver is TypeLiteralImpl &&
         receiver.type.typeArguments != null &&
         receiver.type.type is FunctionType) {
@@ -220,7 +212,7 @@ class MethodInvocationResolver with ScopeHelpers {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.reportErrorForNode(
@@ -485,36 +477,6 @@ class MethodInvocationResolver with ScopeHelpers {
             whyNotPromotedList: whyNotPromotedList,
             contextType: contextType)
         .resolveInvocation(rawType: rawType);
-  }
-
-  void _resolveReceiverFunctionBounded(
-      MethodInvocationImpl node,
-      Expression receiver,
-      DartType receiverType,
-      SimpleIdentifierImpl nameNode,
-      String name,
-      List<WhyNotPromotedGetter> whyNotPromotedList,
-      {required DartType? contextType}) {
-    if (name == FunctionElement.CALL_METHOD_NAME) {
-      _setResolution(node, receiverType, whyNotPromotedList,
-          contextType: contextType);
-      // TODO(scheglov) Replace this with using FunctionType directly.
-      // Here was erase resolution that _setResolution() sets.
-      nameNode.staticElement = null;
-      nameNode.staticType = _dynamicType;
-      return;
-    }
-
-    _resolveReceiverType(
-      node: node,
-      receiver: receiver,
-      receiverType: receiverType,
-      nameNode: nameNode,
-      name: name,
-      receiverErrorNode: nameNode,
-      whyNotPromotedList: whyNotPromotedList,
-      contextType: contextType,
-    );
   }
 
   void _resolveReceiverNever(MethodInvocationImpl node, Expression receiver,
@@ -790,6 +752,24 @@ class MethodInvocationResolver with ScopeHelpers {
       nameErrorEntity: nameNode,
     );
 
+    final callFunctionType = result.callFunctionType;
+    if (callFunctionType != null) {
+      assert(name == FunctionElement.CALL_METHOD_NAME);
+      _setResolution(node, callFunctionType, whyNotPromotedList,
+          contextType: contextType);
+      // TODO(scheglov) Replace this with using FunctionType directly.
+      // Here was erase resolution that _setResolution() sets.
+      nameNode.staticElement = null;
+      nameNode.staticType = _dynamicType;
+      return;
+    }
+
+    final recordField = result.recordField;
+    if (recordField != null) {
+      return _rewriteAsFunctionExpressionInvocation(node, recordField.type,
+          contextType: contextType);
+    }
+
     var target = result.getter;
     if (target != null) {
       nameNode.staticElement = target;
@@ -926,12 +906,12 @@ class MethodInvocationResolver with ScopeHelpers {
       functionExpression.staticType = targetType;
     }
 
-    var invocation = astFactory.functionExpressionInvocation(
-      functionExpression,
-      node.typeArguments,
-      node.argumentList,
+    var invocation = FunctionExpressionInvocationImpl(
+      function: functionExpression,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
     );
-    NodeReplacer.replace(node, invocation);
+    _resolver.replaceExpression(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
     _resolver.flowAnalysis.transferTestData(node, invocation);
   }
@@ -1011,10 +991,10 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static ClassElement? getTypeReference(Expression expression) {
+  static InterfaceElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var staticElement = expression.staticElement;
-      if (staticElement is ClassElement) {
+      if (staticElement is InterfaceElement) {
         return staticElement;
       }
     }

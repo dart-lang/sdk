@@ -693,7 +693,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeReference(Element element) {
-    if (element.enclosingElement3 is CompilationUnitElement) {
+    if (element.enclosingElement is CompilationUnitElement) {
       _writeLibraryReference(element);
     }
     write(element.displayName);
@@ -906,6 +906,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return true;
     }
 
+    if (type is RecordType) {
+      // TODO(brianwilkerson) This should return `false` if the `records`
+      //  feature is not enabled.
+      return true;
+    }
+
     throw UnimplementedError('(${type.runtimeType}) $type');
   }
 
@@ -1112,10 +1118,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
       var element = type.element2;
-      var enclosing = element.enclosingElement3;
+      var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
-        enclosing = enclosing!.enclosingElement3;
+        enclosing = enclosing!.enclosingElement;
       }
       if (enclosing == _enclosingExecutable ||
           enclosing == _enclosingClass ||
@@ -1276,6 +1282,50 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     if (type is VoidType) {
       write('void');
+      return true;
+    }
+
+    if (type is RecordType) {
+      // TODO(brianwilkerson) This should return `false` if the `records`
+      //  feature is not enabled. More importantly, we can't currently return
+      //  `false` if some portion of a type has already been written, so we
+      //  need to figure out what to do when a record type is nested in another
+      //  type in a context where it isn't allowed. For example, we might
+      //  enhance `_canWriteType` to be recursive, then guard all invocations of
+      //  this method with a call to `_canWriteType` (and remove the return type
+      //  from this method).
+      write('(');
+      var isFirst = true;
+      for (var field in type.positionalFields) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          write(', ');
+        }
+        _writeType(field.type);
+      }
+      var namedFields = type.namedFields;
+      if (namedFields.isNotEmpty) {
+        if (isFirst) {
+          write('{');
+        } else {
+          write(', {');
+        }
+        isFirst = true;
+        for (var field in namedFields) {
+          if (isFirst) {
+            isFirst = false;
+          } else {
+            write(', ');
+          }
+          _writeType(field.type);
+          write(' ');
+          write(field.name);
+        }
+        write('}');
+      }
+      write(')');
+      _writeTypeNullability(type);
       return true;
     }
 
@@ -1550,10 +1600,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     var importList = imports.toList();
     importList.sort((a, b) => a.uriText.compareTo(b.uriText));
 
+    var quote = codeStyleOptions.preferredQuoteForUris(importDirectives);
     void writeImport(EditBuilder builder, _LibraryToImport import) {
-      builder.write("import '");
+      builder.write('import $quote');
       builder.write(import.uriText);
-      builder.write("'");
+      builder.write(quote);
       var prefix = import.prefix;
       if (prefix != null) {
         builder.write(' as ');
@@ -1910,13 +1961,13 @@ class _EnclosingElementFinder {
     var node = NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
-        enclosingClass = node.declaredElement2;
+        enclosingClass = node.declaredElement;
       } else if (node is ConstructorDeclaration) {
-        enclosingExecutable = node.declaredElement2;
+        enclosingExecutable = node.declaredElement;
       } else if (node is MethodDeclaration) {
-        enclosingExecutable = node.declaredElement2;
+        enclosingExecutable = node.declaredElement;
       } else if (node is FunctionDeclaration) {
-        enclosingExecutable = node.declaredElement2;
+        enclosingExecutable = node.declaredElement;
       }
       node = node.parent;
     }

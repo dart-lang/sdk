@@ -1168,6 +1168,71 @@ const a = 'a';
 ''');
   }
 
+  test_topLevelFunction_prefixExpression_bang() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+
+bool f() {
+  return !foo();
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_decrement() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 1;
+
+int f() {
+  return --foo;
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_increment() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 1;
+
+int f() {
+  return ++foo;
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_minus() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 1;
+
+int f() {
+  return -foo();
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_tilde() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 1;
+
+int f() {
+  return ~foo();
+}
+''');
+  }
+
   test_topLevelFunction_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

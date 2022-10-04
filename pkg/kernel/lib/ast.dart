@@ -1543,6 +1543,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   // Must match serialized bit positions.
   static const int FlagExtensionTypeDeclaration = 1 << 0;
+  static const int FlagUnnamedExtension = 1 << 1;
 
   int flags = 0;
 
@@ -1590,6 +1591,16 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     flags = value
         ? (flags | FlagExtensionTypeDeclaration)
         : (flags & ~FlagExtensionTypeDeclaration);
+  }
+
+  bool get isUnnamedExtension {
+    return flags & FlagUnnamedExtension != 0;
+  }
+
+  void set isUnnamedExtension(bool value) {
+    flags = value
+        ? (flags | FlagUnnamedExtension)
+        : (flags & ~FlagUnnamedExtension);
   }
 
   @override
@@ -3822,93 +3833,6 @@ class FunctionNode extends TreeNode {
         ? computeThisFunctionType(nullability)
         : getFreshTypeParameters(typeParameters)
             .applyToFunctionType(computeThisFunctionType(nullability));
-  }
-
-  /// Return function type of node returning [typedefType] reuse type parameters
-  ///
-  /// When this getter is invoked, the parent must be a [Constructor].
-  /// This getter works similarly to [computeThisFunctionType], but uses
-  /// [typedef] to compute the return type of the returned function type. It
-  /// is useful in some contexts, especially during inference of aliased
-  /// constructor invocations.
-  FunctionType computeAliasedConstructorFunctionType(
-      Typedef typedef, Library library) {
-    assert(parent is Constructor, "Only run this method on constructors");
-    Constructor parentConstructor = parent as Constructor;
-    // We need create a copy of the list of type parameters, otherwise
-    // transformations like erasure don't work.
-    List<TypeParameter> classTypeParametersCopy =
-        List.of(parentConstructor.enclosingClass.typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, library);
-    TypedefType typedefType =
-        TypedefType(typedef, library.nonNullable, asTypeArguments);
-    DartType unaliasedTypedef = typedefType.unalias;
-    assert(unaliasedTypedef is InterfaceType,
-        "[typedef] is assumed to resolve to an interface type");
-    InterfaceType targetType = unaliasedTypedef as InterfaceType;
-    Substitution substitution = Substitution.fromPairs(
-        classTypeParametersCopy, targetType.typeArguments);
-    List<DartType> positional = positionalParameters
-        .map((VariableDeclaration decl) =>
-            substitution.substituteType(decl.type))
-        .toList(growable: false);
-    List<NamedType> named = namedParameters
-        .map((VariableDeclaration decl) => NamedType(
-            decl.name!, substitution.substituteType(decl.type),
-            isRequired: decl.isRequired))
-        .toList(growable: false);
-    named.sort();
-    return FunctionType(positional, typedefType.unalias, library.nonNullable,
-        namedParameters: named,
-        typeParameters: typedefTypeParametersCopy,
-        requiredParameterCount: requiredParameterCount);
-  }
-
-  /// Return function type of node returning [typedefType] reuse type parameters
-  ///
-  /// When this getter is invoked, the parent must be a [Procedure] which is a
-  /// redirecting factory constructor. This getter works similarly to
-  /// [computeThisFunctionType], but uses [typedef] to compute the return type
-  /// of the returned function type. It is useful in some contexts, especially
-  /// during inference of aliased factory invocations.
-  FunctionType computeAliasedFactoryFunctionType(
-      Typedef typedef, Library library) {
-    assert(
-        parent is Procedure &&
-            (parent as Procedure).kind == ProcedureKind.Factory,
-        "Only run this method on a factory");
-    // We need create a copy of the list of type parameters, otherwise
-    // transformations like erasure don't work.
-    List<TypeParameter> classTypeParametersCopy = List.of(typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, library);
-    TypedefType typedefType =
-        TypedefType(typedef, library.nonNullable, asTypeArguments);
-    DartType unaliasedTypedef = typedefType.unalias;
-    assert(unaliasedTypedef is InterfaceType,
-        "[typedef] is assumed to resolve to an interface type");
-    InterfaceType targetType = unaliasedTypedef as InterfaceType;
-    Substitution substitution = Substitution.fromPairs(
-        classTypeParametersCopy, targetType.typeArguments);
-    List<DartType> positional = positionalParameters
-        .map((VariableDeclaration decl) =>
-            substitution.substituteType(decl.type))
-        .toList(growable: false);
-    List<NamedType> named = namedParameters
-        .map((VariableDeclaration decl) => NamedType(
-            decl.name!, substitution.substituteType(decl.type),
-            isRequired: decl.isRequired))
-        .toList(growable: false);
-    named.sort();
-    return FunctionType(positional, typedefType.unalias, library.nonNullable,
-        namedParameters: named,
-        typeParameters: typedefTypeParametersCopy,
-        requiredParameterCount: requiredParameterCount);
   }
 
   @override
@@ -8717,7 +8641,12 @@ class RecordLiteral extends Expression {
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(positional, this);
+    v.transformNamedExpressionList(named, this);
+    recordType =
+        v.visitDartType(recordType, cannotRemoveSentinel) as RecordType;
+  }
 
   @override
   String toString() {
@@ -10802,11 +10731,10 @@ class VariableDeclaration extends Statement implements Annotatable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  /// For named parameters, this is the name of the parameter. No two named
-  /// parameters (in the same parameter list) can have the same name.
+  /// The name of the variable or parameter as provided in the source code.
   ///
-  /// In all other cases, the name is cosmetic, may be empty or null,
-  /// and is not necessarily unique.
+  /// If this variable is synthesized, for instance the variable of a [Let]
+  /// expression, the name is in most cases `null`.
   String? name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
@@ -13731,7 +13659,7 @@ class SetConstant extends Constant {
 
 class RecordConstant extends Constant {
   final List<Constant> positional;
-  final List<ConstantRecordNamedField> named;
+  final Map<String, Constant> named;
   final RecordType recordType;
 
   RecordConstant(this.positional, this.named, this.recordType);
@@ -13742,8 +13670,8 @@ class RecordConstant extends Constant {
     for (final Constant entry in positional) {
       entry.acceptReference(v);
     }
-    for (final ConstantRecordNamedField entry in named) {
-      entry.value.acceptReference(v);
+    for (final Constant entry in named.values) {
+      entry.acceptReference(v);
     }
   }
 
@@ -13764,22 +13692,22 @@ class RecordConstant extends Constant {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write("const (");
-    for (int i = 0; i < positional.length; i++) {
-      if (i > 0) {
-        printer.write(", ");
-      }
-      printer.writeConstant(positional[i]);
+    String comma = '';
+    for (Constant entry in positional) {
+      printer.write(comma);
+      printer.writeConstant(entry);
+      comma = ', ';
     }
     if (named.isNotEmpty) {
-      if (positional.isNotEmpty) {
-        printer.write(", ");
-      }
+      printer.write(comma);
+      comma = '';
       printer.write("{");
-      for (int i = 0; i < named.length; i++) {
-        if (i > 0) {
-          printer.write(", ");
-        }
-        printer.writeConstantRecordNamedField(named[i]);
+      for (MapEntry<String, Constant> entry in named.entries) {
+        printer.write(comma);
+        printer.write(entry.key);
+        printer.write(": ");
+        printer.writeConstant(entry.value);
+        comma = ', ';
       }
       printer.write("}");
     }
@@ -13791,7 +13719,7 @@ class RecordConstant extends Constant {
 
   @override
   late final int hashCode = _Hash.combineFinish(recordType.hashCode,
-      _Hash.combineListHash(named, _Hash.combineListHash(positional)));
+      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional)));
 
   @override
   bool operator ==(Object other) =>
@@ -13799,44 +13727,10 @@ class RecordConstant extends Constant {
       (other is RecordConstant &&
           other.recordType == recordType &&
           listEquals(other.positional, positional) &&
-          listEquals(other.named, named));
+          mapEquals(other.named, named));
 
   @override
   DartType getType(StaticTypeContext context) => recordType;
-}
-
-class ConstantRecordNamedField {
-  final String name;
-  final Constant value;
-
-  ConstantRecordNamedField(this.name, this.value);
-
-  @override
-  String toString() => "ConstantRecordNamedField(${toStringInternal()})";
-
-  @override
-  int get hashCode => _Hash.hash2(name, value);
-
-  @override
-  bool operator ==(Object other) {
-    return other is ConstantRecordNamedField &&
-        other.name == name &&
-        other.value == value;
-  }
-
-  String toStringInternal() => toText(defaultAstTextStrategy);
-
-  String toText(AstTextStrategy strategy) {
-    AstPrinter printer = new AstPrinter(strategy);
-    printer.writeConstantRecordNamedField(this);
-    return printer.getText();
-  }
-
-  void toTextInternal(AstPrinter printer) {
-    printer.write(name);
-    printer.write(": ");
-    printer.writeConstant(value);
-  }
 }
 
 class InstanceConstant extends Constant {

@@ -108,7 +108,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       view = window;
     }
 
-    dynamic eventObj;
+    KeyboardEvent eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"
@@ -119,7 +119,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     // initialize initKeyEvent.
 
     eventObj = new Event.eventType('KeyboardEvent', type,
-        canBubble: canBubble, cancelable: cancelable);
+        canBubble: canBubble, cancelable: cancelable) as KeyboardEvent;
 
     // Chromium Hack
     JS(

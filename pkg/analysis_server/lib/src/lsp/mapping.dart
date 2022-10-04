@@ -93,8 +93,8 @@ WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   final rename = RenameFile(
-    oldUri: Uri.file(oldPath).toString(),
-    newUri: Uri.file(newPath).toString(),
+    oldUri: Uri.file(oldPath),
+    newUri: Uri.file(newPath),
   );
 
   final renameUnion =
@@ -426,7 +426,7 @@ List<lsp.DiagnosticTag>? getDiagnosticTags(
 
 bool isDartDocument(lsp.TextDocumentIdentifier doc) => isDartUri(doc.uri);
 
-bool isDartUri(String uri) => uri.endsWith('.dart');
+bool isDartUri(Uri uri) => uri.path.endsWith('.dart');
 
 /// Converts a [server.Location] to an [lsp.Range] by translating the
 /// offset/length using a `LineInfo`.
@@ -480,7 +480,7 @@ lsp.Location navigationTargetToLocation(
   server.LineInfo targetLineInfo,
 ) {
   return lsp.Location(
-    uri: Uri.file(targetFilePath).toString(),
+    uri: Uri.file(targetFilePath),
     range: toRange(targetLineInfo, target.offset, target.length),
   );
 }
@@ -501,19 +501,17 @@ lsp.LocationLink? navigationTargetToLocationLink(
 
   return lsp.LocationLink(
     originSelectionRange: toRange(regionLineInfo, region.offset, region.length),
-    targetUri: Uri.file(targetFilePath).toString(),
+    targetUri: Uri.file(targetFilePath),
     targetRange: codeRange,
     targetSelectionRange: nameRange,
   );
 }
 
 /// Returns the file system path for a TextDocumentIdentifier.
-ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) =>
-    pathOfUri(Uri.tryParse(doc.uri));
+ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) => pathOfUri(doc.uri);
 
 /// Returns the file system path for a TextDocumentItem.
-ErrorOr<String> pathOfDocItem(lsp.TextDocumentItem doc) =>
-    pathOfUri(Uri.tryParse(doc.uri));
+ErrorOr<String> pathOfDocItem(lsp.TextDocumentItem doc) => pathOfUri(doc.uri);
 
 /// Returns the file system path for a file URI.
 ErrorOr<String> pathOfUri(Uri? uri) {
@@ -597,7 +595,7 @@ lsp.Diagnostic pluginToDiagnostic(
     // Only include codeDescription if the client explicitly supports it
     // (a minor optimization to avoid unnecessary payload/(de)serialization).
     codeDescription: clientSupportsCodeDescription && documentationUrl != null
-        ? CodeDescription(href: documentationUrl)
+        ? CodeDescription(href: Uri.parse(documentationUrl))
         : null,
   );
 }
@@ -614,7 +612,7 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
   }
   return lsp.DiagnosticRelatedInformation(
       location: lsp.Location(
-        uri: Uri.file(file).toString(),
+        uri: Uri.file(file),
         // TODO(dantup): Switch to using line/col information from the context
         // message once confirmed that AnalyzerConverter is not using the wrong
         // LineInfo.
@@ -872,6 +870,8 @@ lsp.CompletionItem toCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion, {
+  bool hasDefaultEditRange = false,
+  bool hasDefaultTextMode = false,
   required Range replacementRange,
   required Range insertionRange,
   bool includeDocs = true,
@@ -984,23 +984,30 @@ lsp.CompletionItem toCompletionItem(
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
-    insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
-        ? InsertTextMode.asIs
-        : null,
-    textEdit: supportsInsertReplace && insertionRange != replacementRange
-        ? Either2<InsertReplaceEdit, TextEdit>.t1(
-            InsertReplaceEdit(
-              insert: insertionRange,
-              replace: replacementRange,
-              newText: insertText,
-            ),
-          )
-        : Either2<InsertReplaceEdit, TextEdit>.t2(
-            TextEdit(
-              range: replacementRange,
-              newText: insertText,
-            ),
-          ),
+    insertTextMode:
+        !hasDefaultTextMode && supportsAsIsInsertMode && isMultilineCompletion
+            ? InsertTextMode.asIs
+            : null,
+    // When using defaults for edit range, don't use textEdit.
+    textEdit: hasDefaultEditRange
+        ? null
+        : supportsInsertReplace && insertionRange != replacementRange
+            ? Either2<InsertReplaceEdit, TextEdit>.t1(
+                InsertReplaceEdit(
+                  insert: insertionRange,
+                  replace: replacementRange,
+                  newText: insertText,
+                ),
+              )
+            : Either2<InsertReplaceEdit, TextEdit>.t2(
+                TextEdit(
+                  range: replacementRange,
+                  newText: insertText,
+                ),
+              ),
+    // When using defaults for edit range, use textEditText.
+    textEditText:
+        hasDefaultEditRange && insertText != label ? insertText : null,
   );
 }
 
@@ -1109,7 +1116,7 @@ List<lsp.DocumentHighlight> toHighlights(
 
 lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
     lsp.Location(
-      uri: Uri.file(location.file).toString(),
+      uri: Uri.file(location.file),
       range: toRange(
         lineInfo,
         location.offset,
@@ -1369,15 +1376,15 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   }
 }
 
-Map<String, List<lsp.TextEdit>> toWorkspaceEditChanges(
+Map<Uri, List<lsp.TextEdit>> toWorkspaceEditChanges(
     List<FileEditInformation> edits) {
-  MapEntry<String, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
+  MapEntry<Uri, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
     final edits =
         file.edits.map((edit) => toTextEdit(file.lineInfo, edit)).toList();
     return MapEntry(file.doc.uri, edits);
   }
 
-  return Map<String, List<lsp.TextEdit>>.fromEntries(edits.map(createEdit));
+  return Map<Uri, List<lsp.TextEdit>>.fromEntries(edits.map(createEdit));
 }
 
 lsp.MarkupContent _asMarkup(

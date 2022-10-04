@@ -780,6 +780,8 @@ class Assembler : public MicroAssembler {
 
   void PushRegistersInOrder(std::initializer_list<Register> regs);
 
+  void PushValueAtOffset(Register base, int32_t offset) { UNIMPLEMENTED(); }
+
   // Push all registers which are callee-saved according to the ARM64 ABI.
   void PushNativeCalleeSavedRegisters();
 
@@ -844,8 +846,10 @@ class Assembler : public MicroAssembler {
 
   void CompareWithMemoryValue(Register value, Address address);
 
-  void CompareFunctionTypeNullabilityWith(Register type, int8_t value) override;
-  void CompareTypeNullabilityWith(Register type, int8_t value) override;
+  void LoadAbstractTypeNullability(Register dst, Register type) override;
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override;
 
   // Debugging and bringup support.
   void Breakpoint() override { trap(); }
@@ -943,6 +947,13 @@ class Assembler : public MicroAssembler {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, src);
   }
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    slli(dest, src, scale);
+    addi(dest, dest, value);
+  }
   void SubRegisters(Register dest, Register src) {
     sub(dest, dest, src);
   }
@@ -976,6 +987,9 @@ class Assembler : public MicroAssembler {
                     OperandSize sz = kWordBytes);
   void LslImmediate(Register rd, int32_t shift) {
     slli(rd, rd, shift);
+  }
+  void LsrImmediate(Register rd, int32_t shift) override {
+    srli(rd, rd, shift);
   }
   void TestImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);
   void CompareImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);
@@ -1058,6 +1072,19 @@ class Assembler : public MicroAssembler {
     fmvd(dst, src);
   }
 
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    // No single register SIMD on RISC-V.
+    UNREACHABLE();
+  }
+  void StoreUnboxedSimd128(FpuRegister src, Register base, int32_t offset) {
+    // No single register SIMD on RISC-V.
+    UNREACHABLE();
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    // No single register SIMD on RISC-V.
+    UNREACHABLE();
+  }
+
   void LoadCompressed(Register dest, const Address& slot) {
     lx(dest, slot);
   }
@@ -1136,7 +1163,8 @@ class Assembler : public MicroAssembler {
       MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                const Object& value);
+                                const Object& value,
+                                MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreCompressedIntoObjectNoBarrier(
       Register object,
       const Address& dest,

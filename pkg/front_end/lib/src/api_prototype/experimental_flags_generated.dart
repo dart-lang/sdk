@@ -171,6 +171,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 13),
       experimentReleasedVersion: const Version(2, 13));
 
+  static const ExperimentalFlag patterns = const ExperimentalFlag(
+      name: 'patterns',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 19),
+      experimentEnabledVersion: const Version(2, 19),
+      experimentReleasedVersion: const Version(2, 19));
+
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
       isEnabledByDefault: false,
@@ -218,6 +226,14 @@ class ExperimentalFlag {
       enabledVersion: const Version(2, 14),
       experimentEnabledVersion: const Version(2, 14),
       experimentReleasedVersion: const Version(2, 14));
+
+  static const ExperimentalFlag unnamedLibraries = const ExperimentalFlag(
+      name: 'unnamed-libraries',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 19),
+      experimentEnabledVersion: const Version(2, 19),
+      experimentReleasedVersion: const Version(2, 19));
 
   static const ExperimentalFlag valueClass = const ExperimentalFlag(
       name: 'value-class',
@@ -342,6 +358,10 @@ class GlobalFeatures {
   GlobalFeature get nonfunctionTypeAliases => _nonfunctionTypeAliases ??=
       _computeGlobalFeature(ExperimentalFlag.nonfunctionTypeAliases);
 
+  GlobalFeature? _patterns;
+  GlobalFeature get patterns =>
+      _patterns ??= _computeGlobalFeature(ExperimentalFlag.patterns);
+
   GlobalFeature? _records;
   GlobalFeature get records =>
       _records ??= _computeGlobalFeature(ExperimentalFlag.records);
@@ -365,6 +385,10 @@ class GlobalFeatures {
   GlobalFeature? _tripleShift;
   GlobalFeature get tripleShift =>
       _tripleShift ??= _computeGlobalFeature(ExperimentalFlag.tripleShift);
+
+  GlobalFeature? _unnamedLibraries;
+  GlobalFeature get unnamedLibraries => _unnamedLibraries ??=
+      _computeGlobalFeature(ExperimentalFlag.unnamedLibraries);
 
   GlobalFeature? _valueClass;
   GlobalFeature get valueClass =>
@@ -468,6 +492,11 @@ class LibraryFeatures {
           canonicalUri,
           libraryVersion);
 
+  LibraryFeature? _patterns;
+  LibraryFeature get patterns =>
+      _patterns ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.patterns, canonicalUri, libraryVersion);
+
   LibraryFeature? _records;
   LibraryFeature get records =>
       _records ??= globalFeatures._computeLibraryFeature(
@@ -497,6 +526,11 @@ class LibraryFeatures {
   LibraryFeature get tripleShift =>
       _tripleShift ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.tripleShift, canonicalUri, libraryVersion);
+
+  LibraryFeature? _unnamedLibraries;
+  LibraryFeature get unnamedLibraries =>
+      _unnamedLibraries ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.unnamedLibraries, canonicalUri, libraryVersion);
 
   LibraryFeature? _valueClass;
   LibraryFeature get valueClass =>
@@ -541,6 +575,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nonNullable;
     case "nonfunction-type-aliases":
       return ExperimentalFlag.nonfunctionTypeAliases;
+    case "patterns":
+      return ExperimentalFlag.patterns;
     case "records":
       return ExperimentalFlag.records;
     case "set-literals":
@@ -553,6 +589,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.testExperiment;
     case "triple-shift":
       return ExperimentalFlag.tripleShift;
+    case "unnamed-libraries":
+      return ExperimentalFlag.unnamedLibraries;
     case "value-class":
       return ExperimentalFlag.valueClass;
     case "variance":
@@ -590,6 +628,7 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable.isEnabledByDefault,
   ExperimentalFlag.nonfunctionTypeAliases:
       ExperimentalFlag.nonfunctionTypeAliases.isEnabledByDefault,
+  ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
@@ -599,6 +638,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.testExperiment:
       ExperimentalFlag.testExperiment.isEnabledByDefault,
   ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift.isEnabledByDefault,
+  ExperimentalFlag.unnamedLibraries:
+      ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
   ExperimentalFlag.valueClass: ExperimentalFlag.valueClass.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
 };

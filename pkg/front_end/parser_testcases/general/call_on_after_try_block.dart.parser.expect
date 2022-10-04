@@ -7,10 +7,14 @@ try {
 ;
 }
 
-on();
+
+
+
+
+on(42);
 }
 
-void on() {}
+void on(e) {}
 
 
 void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
@@ -22,8 +26,12 @@ try[KeywordToken] {[BeginToken]
 ;[SimpleToken]
 }[SimpleToken]
 
-on[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+
+
+on[KeywordToken]([BeginToken]42[StringToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 
-void[KeywordToken] on[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] on[KeywordToken]([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 [SimpleToken]

@@ -35,7 +35,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     }
 
     // Must be a StatelessWidget subclass.
-    var widgetClassElement = widgetClass.declaredElement2!;
+    var widgetClassElement = widgetClass.declaredElement!;
     var superType = widgetClassElement.supertype;
     if (superType == null || !flutter.isExactlyStatelessWidgetType(superType)) {
       return;
@@ -66,7 +66,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var fieldNode in member.fields.variables) {
-          var fieldElement = fieldNode.declaredElement2 as FieldElement;
+          var fieldElement = fieldNode.declaredElement as FieldElement;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
@@ -84,7 +84,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
         }
       } else if (member is MethodDeclaration && !member.isStatic) {
         nodesToMove.add(member);
-        elementsToMove.add(member.declaredElement2!);
+        elementsToMove.add(member.declaredElement!);
       }
     }
 
@@ -146,7 +146,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
               builder.writeln('  @override');
               builder.write('  ');
               builder.writeReference(stateClass);
-              builder.write('<${widgetClass.name2.lexeme}$typeParams>');
+              builder.write('<${widgetClass.name.lexeme}$typeParams>');
               builder.writeln(' createState() => $stateName$typeParams();');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
@@ -205,7 +205,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
         builder.writeReference(stateClass);
 
         // Write just param names (and not bounds, metadata and docs).
-        builder.write('<${widgetClass.name2.lexeme}');
+        builder.write('<${widgetClass.name.lexeme}');
         if (typeParameters != null) {
           builder.write('<');
           var first = true;
@@ -214,7 +214,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
               builder.write(', ');
               first = false;
             }
-            builder.write(param.name2.lexeme);
+            builder.write(param.name.lexeme);
           }
           builder.write('>');
         }
@@ -247,7 +247,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
 
   MethodDeclaration? _findBuildMethod(ClassDeclaration widgetClass) {
     for (var member in widgetClass.members) {
-      if (member is MethodDeclaration && member.name2.lexeme == 'build') {
+      if (member is MethodDeclaration && member.name.lexeme == 'build') {
         var parameters = member.parameters;
         if (parameters != null && parameters.parameters.length == 1) {
           return member;
@@ -262,16 +262,20 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
   Set<FieldElement> fieldsAssignedInConstructors = {};
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.parent is FieldFormalParameter) {
-      var element = node.staticElement;
-      if (element is FieldFormalParameterElement) {
-        var field = element.field;
-        if (field != null) {
-          fieldsAssignedInConstructors.add(field);
-        }
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        fieldsAssignedInConstructors.add(field);
       }
     }
+
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorFieldInitializer) {
       var element = node.staticElement;
       if (element is FieldElement) {
@@ -309,7 +313,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
     }
     var element = node.staticElement;
     if (element is ExecutableElement &&
-        element.enclosingElement3 == widgetClassElement &&
+        element.enclosingElement == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var offset = node.offset - linesRange.offset;
       var qualifier =

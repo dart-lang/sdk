@@ -212,7 +212,7 @@ class LibraryBuilder {
               executable.body.accept(collector);
             }
           }
-          var element = declaration.declaredElement2 as MixinElementImpl;
+          var element = declaration.declaredElement as MixinElementImpl;
           element.superInvokedNames = names.toList();
         }
       }
@@ -760,9 +760,12 @@ class LibraryBuilder {
     var nameLength = 0;
     for (final directive in libraryUnitNode.directives) {
       if (directive is ast.LibraryDirective) {
-        name = directive.name.components.map((e) => e.name).join('.');
-        nameOffset = directive.name.offset;
-        nameLength = directive.name.length;
+        final nameIdentifier = directive.name2;
+        if (nameIdentifier != null) {
+          name = nameIdentifier.components.map((e) => e.name).join('.');
+          nameOffset = nameIdentifier.offset;
+          nameLength = nameIdentifier.length;
+        }
         break;
       }
     }

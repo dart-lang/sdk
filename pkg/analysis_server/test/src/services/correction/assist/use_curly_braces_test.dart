@@ -20,6 +20,40 @@ class UseCurlyBracesTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.USE_CURLY_BRACES;
 
+  Future<void> test_comment() async {
+    await resolveTestCode('''
+void f() {
+  /*caret*/while (true)
+    print(0); // something
+}
+''');
+    await assertHasAssist('''
+void f() {
+  while (true) {
+    print(0); // something
+  }
+}
+''');
+  }
+
+  Future<void> test_comment_outside() async {
+    await resolveTestCode('''
+void f() {
+  /*caret*/while (true)
+    print(0);
+  // something
+}
+''');
+    await assertHasAssist('''
+void f() {
+  while (true) {
+    print(0);
+  }
+  // something
+}
+''');
+  }
+
   Future<void> test_do_block() async {
     await resolveTestCode('''
 void f() {
@@ -56,6 +90,22 @@ void f() {
 void f() {
   do {
     print(0);
+  } while (true);
+}
+''');
+  }
+
+  Future<void> test_do_comment() async {
+    await resolveTestCode('''
+void f() {
+  /*caret*/do print(0); // something
+    while (true);
+}
+''');
+    await assertHasAssist('''
+void f() {
+  do {
+    print(0); // something
   } while (true);
 }
 ''');
@@ -301,6 +351,25 @@ void f(int a) {
 void f(int a) {
   if (a == 0) {
     print(0);
+  } else {
+    print(1);
+  }
+}
+''');
+  }
+
+  Future<void> test_if_keyword_withElse_comment() async {
+    await resolveTestCode('''
+void f(int a) {
+  /*caret*/if (a == 0)
+    print(0); // something
+  else print(1);
+}
+''');
+    await assertHasAssist('''
+void f(int a) {
+  if (a == 0) {
+    print(0); // something
   } else {
     print(1);
   }

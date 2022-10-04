@@ -6,7 +6,7 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show Future;
+import 'dart:async' show Future, StreamSubscription;
 import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 import 'dart:isolate' show Isolate;
@@ -657,6 +657,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler(Flags.useOldRti, passThrough),
     OptionHandler(Flags.useSimpleLoadIds, passThrough),
     OptionHandler(Flags.testMode, passThrough),
+    OptionHandler(Flags.experimentalInferrer, passThrough),
     OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
     OptionHandler('${Flags.invoker}=.+', setInvoker),
@@ -1492,7 +1493,7 @@ void batchMain(List<String> batchArguments) {
   };
 
   var stream = stdin.transform(utf8.decoder).transform(LineSplitter());
-  var subscription;
+  StreamSubscription subscription;
   fe.InitializedCompilerState kernelInitializedCompilerState;
   subscription = stream.listen((line) {
     Future.sync(() {

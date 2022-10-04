@@ -51,8 +51,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assist = findEditAction(
         codeActions,
         CodeActionKind('refactor.add.showCombinator'),
@@ -90,8 +90,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assistAction = findEditAction(
         codeActions,
         CodeActionKind('refactor.add.showCombinator'),
@@ -128,7 +128,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
       _RawParams('''
       {
         "textDocument": {
-          "uri": "${mainFileUri.toString()}"
+          "uri": "$mainFileUri"
         },
         "context": {
           "diagnostics": []
@@ -186,7 +186,7 @@ Widget build() {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final assist = findEditAction(codeActions,
         CodeActionKind('refactor.flutter.wrap.center'), 'Wrap with Center')!;
@@ -207,7 +207,7 @@ Widget build() {
     );
 
     final codeActions =
-        await getCodeActions(pubspecFileUri.toString(), range: startOfDocRange);
+        await getCodeActions(pubspecFileUri, range: startOfDocRange);
     expect(codeActions, isEmpty);
   }
 
@@ -240,8 +240,8 @@ Widget build() {
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assist = findEditAction(codeActions,
         CodeActionKind('refactor.fooToBar'), "Change 'foo' to 'bar'")!;
 
@@ -277,8 +277,8 @@ Widget build() {
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
@@ -339,7 +339,7 @@ Widget build() {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
@@ -411,7 +411,7 @@ Widget build() {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
@@ -472,7 +472,7 @@ Widget build() {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
@@ -514,7 +514,7 @@ Widget build() {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final names = codeActions.map(
       (e) => e.map((command) => command.title, (action) => action.title),
@@ -558,8 +558,8 @@ void f() {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assist = findEditAction(codeActions,
         CodeActionKind('refactor.surround.if'), "Surround with 'if'")!;
 

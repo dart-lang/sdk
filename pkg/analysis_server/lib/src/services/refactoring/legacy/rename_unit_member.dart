@@ -15,6 +15,7 @@ import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
 /// Checks if creating a top-level function with the given [name] in [library]
@@ -44,9 +45,9 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   /// If [_flutterWidgetState] is set, this is the new name of it.
   String? _flutterWidgetStateNewName;
 
-  RenameUnitMemberRefactoringImpl(
-      RefactoringWorkspace workspace, this.resolvedUnit, Element element)
-      : super(workspace, element);
+  RenameUnitMemberRefactoringImpl(RefactoringWorkspace workspace,
+      AnalysisSessionHelper sessionHelper, this.resolvedUnit, Element element)
+      : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
@@ -98,7 +99,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is TypeAliasElement) {
       result.addStatus(validateTypeAliasName(newName));
     }
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       result.addStatus(validateClassName(newName));
     }
     return result;
@@ -123,7 +124,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     }
 
     // Rename each element and references to it.
-    var processor = RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     for (var element in elements) {
       await processor.renameElement(element);
     }
@@ -134,6 +135,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
       _updateFlutterWidgetStateName();
       await RenameProcessor(
         workspace,
+        sessionHelper,
         change,
         _flutterWidgetStateNewName!,
       ).renameElement(flutterWidgetState);
@@ -214,7 +216,7 @@ class _BaseUnitMemberValidator {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var member = declaration.element;
-      var declaringClass = member.enclosingElement3 as ClassElement;
+      var declaringClass = member.enclosingElement as InterfaceElement;
       var memberReferences = await searchEngine.searchReferences(member);
       for (var memberReference in memberReferences) {
         var refElement = memberReference.element;
@@ -223,7 +225,7 @@ class _BaseUnitMemberValidator {
           continue;
         }
         // cannot be shadowed if declared in the same class as reference
-        var refClass = refElement.thisOrAncestorOfType<ClassElement>();
+        var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
         if (refClass == declaringClass) {
           continue;
         }
@@ -301,7 +303,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   void _validateWillBeShadowed() {
     for (var reference in references) {
       var refElement = reference.element;
-      var refClass = refElement.thisOrAncestorOfType<ClassElement>();
+      var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {

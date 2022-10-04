@@ -341,7 +341,7 @@ class ObjectPointerVisitor;
   V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableLinkedHashMap, "_InternalImmutableLinkedHashMap")                \
-  V(_ImmutableLinkedHashSet, "_CompactImmutableLinkedHashSet")                 \
+  V(_ImmutableLinkedHashSet, "_InternalImmutableLinkedHashSet")                \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \
@@ -365,7 +365,7 @@ class ObjectPointerVisitor;
   V(_LibraryMirror, "_LibraryMirror")                                          \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
   V(_LinkedHashMap, "_InternalLinkedHashMap")                                  \
-  V(_LinkedHashSet, "_CompactLinkedHashSet")                                   \
+  V(_LinkedHashSet, "_InternalLinkedHashSet")                                  \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
   V(_ListFilledFactory, "_List.filled")                                        \
@@ -376,6 +376,8 @@ class ObjectPointerVisitor;
   V(_ParameterMirror, "_ParameterMirror")                                      \
   V(_Random, "_Random")                                                        \
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
+  V(_Record, "_Record")                                                        \
+  V(_RecordType, "_RecordType")                                                \
   V(_RegExp, "_RegExp")                                                        \
   V(_SendPortImpl, "_SendPortImpl")                                            \
   V(_Smi, "_Smi")                                                              \

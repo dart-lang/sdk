@@ -6,7 +6,7 @@
 
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../world.dart' show JClosedWorld;
+import '../world_interfaces.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 

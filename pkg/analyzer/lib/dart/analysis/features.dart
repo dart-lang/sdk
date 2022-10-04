@@ -40,6 +40,9 @@ abstract class Feature {
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 
+  /// Feature information for patterns.
+  static final patterns = ExperimentalFeatures.patterns;
+
   /// Feature information for records.
   static final records = ExperimentalFeatures.records;
 
@@ -62,6 +65,9 @@ abstract class Feature {
   /// Feature information for non-function type aliases.
   static final nonfunction_type_aliases =
       ExperimentalFeatures.nonfunction_type_aliases;
+
+  /// Feature information for unnamed libraries.
+  static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
 
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;

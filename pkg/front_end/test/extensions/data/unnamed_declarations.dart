@@ -15,7 +15,7 @@
 class A1 {}
 
 /*class: _extension#0:
- builder-name=_extension#0,
+ builder-name=_unnamed-extension_,
  builder-onType=A1,
  extension-members=[
   method=_extension#0|method,
@@ -41,7 +41,7 @@ extension on A1 {
 }
 
 /*class: _extension#1:
- builder-name=_extension#1,
+ builder-name=_unnamed-extension_,
  builder-onType=A1,
  extension-members=[
   method=_extension#1|method,
@@ -69,7 +69,7 @@ extension on A1 {
 class B1<T> {}
 
 /*class: _extension#2:
- builder-name=_extension#2,
+ builder-name=_unnamed-extension_,
  builder-onType=B1<T>,
  builder-type-params=[T],
  extension-members=[
@@ -101,7 +101,7 @@ extension <T> on B1<T> {
 }
 
 /*class: _extension#3:
- builder-name=_extension#3,
+ builder-name=_unnamed-extension_,
  builder-onType=B1<A1>,
  extension-members=[
   method=_extension#3|method,
@@ -127,7 +127,7 @@ extension on B1<A1> {
 }
 
 /*class: _extension#4:
- builder-name=_extension#4,
+ builder-name=_unnamed-extension_,
  builder-onType=B1<T>,
  builder-type-params=[T extends A1],
  extension-members=[

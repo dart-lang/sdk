@@ -25,9 +25,6 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.importSharedMemory),
   Flag("inlining", (o, value) => o.translatorOptions.inlining = value,
       defaultsTo: _d.translatorOptions.inlining),
-  Flag(
-      "lazy-constants", (o, value) => o.translatorOptions.lazyConstants = value,
-      defaultsTo: _d.translatorOptions.lazyConstants),
   Flag("name-section", (o, value) => o.translatorOptions.nameSection = value,
       defaultsTo: _d.translatorOptions.nameSection),
   Flag("polymorphic-specialization",

@@ -382,15 +382,18 @@ class BodyBuilder extends StackListenerImpl
                     libraryBuilder.importUri.path == "ui"),
         needsImplicitSuperInitializer =
             declarationBuilder is SourceClassBuilder &&
-                coreTypes.objectClass != declarationBuilder.cls,
+                coreTypes.objectClass != declarationBuilder.cls &&
+                !member.isExternal,
         benchmarker = libraryBuilder.loader.target.benchmarker,
         this.scope = enclosingScope {
-    formalParameterScope
-        ?.filteredIterator<VariableBuilder>(
-            includeDuplicates: false, includeAugmentations: false)
-        .forEach((VariableBuilder builder) {
-      typeInferrer.assignedVariables.declare(builder.variable!);
-    });
+    Iterator<VariableBuilder>? iterator =
+        formalParameterScope?.filteredIterator<VariableBuilder>(
+            includeDuplicates: false, includeAugmentations: false);
+    if (iterator != null) {
+      while (iterator.moveNext()) {
+        typeInferrer.assignedVariables.declare(iterator.current.variable!);
+      }
+    }
   }
 
   BodyBuilder.withParents(FieldBuilder field, SourceLibraryBuilder part,
@@ -2255,7 +2258,10 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, Token? case_) {
+    if (case_ != null) {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -3963,7 +3969,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
     debugEvent("RecordLiteral");
     assert(checkState(
         token,
@@ -4023,7 +4029,10 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     push(new InternalRecordLiteral(
-        positional, named, namedElements, originalElementOrder));
+        positional, named, namedElements, originalElementOrder,
+        isConst:
+            constKeyword != null || constantContext == ConstantContext.inferred)
+      ..fileOffset = token.offset);
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,

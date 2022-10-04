@@ -40,7 +40,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
               'filePath: String, '
               'offset: int, '
               'length: int, '
-              'arguments: List<String>'));
+              'arguments: List'));
     }
 
     final clientCapabilities = server.clientCapabilities;
@@ -77,27 +77,20 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
         }
         final docIdentifier = server.getVersionedDocumentIdentifier(path);
         fileEdits.add(FileEditInformation(
-            docIdentifier, fileResult.lineInfo, edit.edits));
+            docIdentifier, fileResult.lineInfo, edit.edits,
+            newFile: edit.fileStamp == -1));
       }
       final workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
       return sendWorkspaceEditToClient(workspaceEdit);
     });
   }
 
-  /// If the [arguments] is a list whose elements are all strings, then return
-  /// them. Otherwise, return `null` to indicate that they aren't what we were
-  /// expecting.
-  List<String>? _validateArguments(Object? arguments) {
+  /// If the [arguments] is a list, then return it. Otherwise, return `null`
+  /// to indicate that they aren't what we were expecting.
+  List<Object?>? _validateArguments(Object? arguments) {
     if (arguments is! List<Object?>) {
       return null;
     }
-    var result = <String>[];
-    for (var element in arguments) {
-      if (element is! String) {
-        return null;
-      }
-      result.add(element);
-    }
-    return result;
+    return arguments;
   }
 }

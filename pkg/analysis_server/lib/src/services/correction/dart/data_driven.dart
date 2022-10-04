@@ -66,7 +66,7 @@ class DataDriven extends MultiCorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [DataDriven] producer.
 class DataDrivenFix extends CorrectionProducer {
   /// The transform being applied to implement this fix.

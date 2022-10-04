@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -21,35 +20,6 @@ main() {
     defineReflectiveTests(NodeReplacerTest);
     defineReflectiveTests(SourceRangeTest);
   });
-}
-
-class AstCloneComparator extends AstComparator {
-  final bool expectTokensCopied;
-
-  AstCloneComparator(this.expectTokensCopied);
-
-  @override
-  bool isEqualNodes(AstNode? first, AstNode? second) {
-    if (first != null && identical(first, second)) {
-      fail('Failed to copy node: $first (${first.offset})');
-    }
-    return super.isEqualNodes(first, second);
-  }
-
-  @override
-  bool isEqualTokens(Token? first, Token? second) {
-    if (expectTokensCopied && first != null && identical(first, second)) {
-      fail('Failed to copy token: ${first.lexeme} (${first.offset})');
-    }
-    var firstComment = first?.precedingComments;
-    if (firstComment != null) {
-      if (firstComment.parent != first) {
-        fail(
-            'Failed to link the comment "$firstComment" with the token "$first".');
-      }
-    }
-    return super.isEqualTokens(first, second);
-  }
 }
 
 @reflectiveTest
@@ -1008,8 +978,8 @@ void g<U>(double b) {
 }
 ''');
     _assertReplacementForChildren<FunctionExpression>(
-      destination: findNode.functionExpression('<T>'),
-      source: findNode.functionExpression('<U>'),
+      destination: findNode.functionExpression('T>'),
+      source: findNode.functionExpression('U>'),
       childAccessors: [
         (node) => node.body,
         (node) => node.parameters!,
@@ -1268,7 +1238,7 @@ library foo;
       destination: node,
       source: node,
       childAccessors: [
-        (node) => node.name,
+        (node) => node.name2!,
       ],
     );
   }
@@ -1376,20 +1346,6 @@ void f() {
       childAccessors: [
         (node) => node.name,
         (node) => node.expression,
-      ],
-    );
-  }
-
-  void test_nativeClause() {
-    var findNode = _parseStringToFindNode(r'''
-class A native 'foo' {}
-class B native 'bar' {}
-''');
-    _assertReplacementForChildren<NativeClause>(
-      destination: findNode.nativeClause('foo'),
-      source: findNode.nativeClause('bar'),
-      childAccessors: [
-        (node) => node.name!,
       ],
     );
   }
@@ -1700,8 +1656,9 @@ class B extends A {
     );
   }
 
-  void test_switchCase() {
+  void test_switchCase_language218() {
     var findNode = _parseStringToFindNode(r'''
+// @dart=2.18
 void f() {
   switch (x) {
     foo: bar:
@@ -1736,8 +1693,9 @@ void f() {
     );
   }
 
-  void test_switchStatement() {
+  void test_switchStatement_language218() {
     var findNode = _parseStringToFindNode(r'''
+// @dart=2.18
 void f() {
   switch (0) {
     case 0: break;

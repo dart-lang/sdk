@@ -228,10 +228,7 @@ class File : public ReferenceCounted<File> {
   // (stdin, stout or stderr).
   static File* OpenStdio(int fd);
 
-#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX) ||            \
-    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_MACOS)
   static File* OpenFD(int fd);
-#endif
 
   static bool Exists(Namespace* namespc, const char* path);
   static bool ExistsUri(Namespace* namespc, const char* uri);
@@ -239,6 +236,7 @@ class File : public ReferenceCounted<File> {
   static bool CreateLink(Namespace* namespc,
                          const char* path,
                          const char* target);
+  static bool CreatePipe(Namespace* namespc, File** readPipe, File** writePipe);
   static bool Delete(Namespace* namespc, const char* path);
   static bool DeleteLink(Namespace* namespc, const char* path);
   static bool Rename(Namespace* namespc,
@@ -297,6 +295,7 @@ class File : public ReferenceCounted<File> {
 
   static CObject* ExistsRequest(const CObjectArray& request);
   static CObject* CreateRequest(const CObjectArray& request);
+  static CObject* CreatePipeRequest(const CObjectArray& request);
   static CObject* DeleteRequest(const CObjectArray& request);
   static CObject* RenameRequest(const CObjectArray& request);
   static CObject* CopyRequest(const CObjectArray& request);

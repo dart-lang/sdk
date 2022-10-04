@@ -54,7 +54,6 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
   @#C2
   class StaticJSClass extends dart.core::Object {
     external constructor •() → sta::StaticJSClass
-      : super dart.core::Object::•()
       ;
     static method _#new#tearOff() → dart._interceptors::JavaScriptObject
       return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;

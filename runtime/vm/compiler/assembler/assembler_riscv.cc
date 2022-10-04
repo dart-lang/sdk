@@ -2368,7 +2368,7 @@ void Assembler::LoadAcquireCompressed(Register dst,
 }
 
 void Assembler::StoreRelease(Register src, Register address, int32_t offset) {
-  fence(HartEffects::kMemory, HartEffects::kRead);
+  fence(HartEffects::kMemory, HartEffects::kWrite);
   StoreToOffset(src, address, offset);
 }
 
@@ -2389,17 +2389,16 @@ void Assembler::CompareWithMemoryValue(Register value, Address address) {
   CompareRegisters(value, TMP2);
 }
 
-void Assembler::CompareFunctionTypeNullabilityWith(Register type,
-                                                   int8_t value) {
-  EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-  lbu(TMP,
-      FieldAddress(type, compiler::target::FunctionType::nullability_offset()));
-  CompareImmediate(TMP, value);
+void Assembler::LoadAbstractTypeNullability(Register dst, Register type) {
+  lbu(dst, FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+  andi(dst, dst, compiler::target::UntaggedAbstractType::kNullabilityMask);
 }
-void Assembler::CompareTypeNullabilityWith(Register type, int8_t value) {
-  EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-  lbu(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
-  CompareImmediate(TMP, value);
+
+void Assembler::CompareAbstractTypeNullabilityWith(Register type,
+                                                   /*Nullability*/ int8_t value,
+                                                   Register scratch) {
+  LoadAbstractTypeNullability(scratch, type);
+  CompareImmediate(scratch, value);
 }
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
@@ -3168,7 +3167,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                Register value,
                                                MemoryOrder memory_order) {
   if (memory_order == kRelease) {
-    StoreRelease(value, object, offset);
+    StoreRelease(value, object, offset - kHeapObjectTag);
   } else {
     StoreToOffset(value, object, offset - kHeapObjectTag);
   }
@@ -3200,18 +3199,24 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
 }
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
+  Register value_reg;
   if (IsSameObject(compiler::NullObject(), value)) {
-    sx(NULL_REG, dest);
+    value_reg = NULL_REG;
   } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-    sx(ZR, dest);
+    value_reg = ZR;
   } else {
     LoadObject(TMP2, value);
-    sx(TMP2, dest);
+    value_reg = TMP2;
   }
+  if (memory_order == kRelease) {
+    fence(HartEffects::kMemory, HartEffects::kWrite);
+  }
+  sx(value_reg, dest);
 }
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
@@ -4000,22 +4005,14 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
-
-  const intptr_t shared_table_offset =
-      target::IsolateGroup::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
-
   LoadIsolateGroup(temp_reg);
-  lx(temp_reg, Address(temp_reg, shared_table_offset));
-  lx(temp_reg, Address(temp_reg, table_offset));
-  if (IsITypeImm(class_offset)) {
-    lbu(temp_reg, Address(temp_reg, class_offset));
-  } else {
-    AddImmediate(temp_reg, class_offset);
-    lbu(temp_reg, Address(temp_reg, 0));
-  }
+  lx(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  lx(temp_reg,
+     Address(temp_reg,
+             target::ClassTable::allocation_tracing_state_table_offset()));
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(cid),
+                 kUnsignedByte);
   bnez(temp_reg, trace);
 }
 #endif  // !PRODUCT
@@ -4142,6 +4139,7 @@ static OperandSize OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kRecordCid:
     case kTypeArgumentsCid:
       return kObjectBytes;
     case kOneByteStringCid:

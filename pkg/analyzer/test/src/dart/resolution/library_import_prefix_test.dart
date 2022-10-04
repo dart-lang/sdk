@@ -44,8 +44,8 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
     ]);
 
-    var xRef = findNode.simple('x in');
-    expect(xRef.staticElement, isNotNull);
+    var xRef = findNode.declaredIdentifier('x in');
+    expect(xRef.declaredElement, isNotNull);
 
     var pRef = findNode.simple('p) {}');
     assertElement(pRef, findElement.prefix('p'));

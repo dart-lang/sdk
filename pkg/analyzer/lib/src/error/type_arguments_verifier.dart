@@ -37,7 +37,7 @@ class TypeArgumentsVerifier {
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
-    } else if (classElement is ClassElement) {
+    } else if (classElement is InterfaceElement) {
       typeParameters = classElement.typeParameters;
     } else {
       return;
@@ -97,7 +97,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    var enumElement = constructorElement.enclosingElement3;
+    var enumElement = constructorElement.enclosingElement;
     var typeParameters = enumElement.typeParameters;
 
     var typeArgumentList = node.arguments?.typeArguments;
@@ -131,7 +131,7 @@ class TypeArgumentsVerifier {
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        final errorTarget = typeArgumentNodes?[i] ?? node.name2;
+        final errorTarget = typeArgumentNodes?[i] ?? node.name;
         _errorReporter.reportErrorForOffset(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           errorTarget.offset,

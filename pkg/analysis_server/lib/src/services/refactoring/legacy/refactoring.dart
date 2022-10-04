@@ -18,15 +18,18 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename_import.da
 import 'package:analysis_server/src/services/refactoring/legacy/rename_label.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_local.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/rename_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
@@ -315,6 +318,13 @@ abstract class MoveFileRefactoring implements Refactoring {
 abstract class Refactoring {
   set cancellationToken(CancellationToken token);
 
+  /// Sets whether potential edits (see [potentialEditIds]) should be computed.
+  ///
+  /// If it is known in advance that potential edits will not be used, setting
+  /// this flag will skip the work to locate the identifiers to include in
+  /// potential edits.
+  set includePotential(bool value);
+
   /// The ids of source edits that are not known to be valid.
   ///
   /// An edit is not known to be valid if there was insufficient type
@@ -399,39 +409,45 @@ abstract class RenameRefactoring implements Refactoring {
   /// type.
   static RenameRefactoring? create(RefactoringWorkspace workspace,
       ResolvedUnitResult resolvedUnit, Element? element) {
-    var session = resolvedUnit.session;
     if (element == null) {
       return null;
     }
+    var session = resolvedUnit.session;
+    var sessionHelper = AnalysisSessionHelper(session);
     if (element is PropertyAccessorElement) {
       element = element.variable;
     }
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is CompilationUnitElement) {
-      return RenameUnitMemberRefactoringImpl(workspace, resolvedUnit, element);
+      return RenameUnitMemberRefactoringImpl(
+          workspace, sessionHelper, resolvedUnit, element);
     }
     if (element is ConstructorElement) {
-      return RenameConstructorRefactoringImpl(workspace, session, element);
+      return RenameConstructorRefactoringImpl(
+          workspace, sessionHelper, element);
     }
     if (element is LibraryImportElement) {
-      return RenameImportRefactoringImpl(workspace, session, element);
+      return RenameImportRefactoringImpl(workspace, sessionHelper, element);
     }
     if (element is LabelElement) {
-      return RenameLabelRefactoringImpl(workspace, element);
+      return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
     }
     if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(workspace, element);
+      return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
+    }
+    if (element is ParameterElement) {
+      return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
     }
     if (element is LocalElement) {
-      return RenameLocalRefactoringImpl(workspace, session, element);
+      return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (enclosingElement is ClassElement) {
+    if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
-          workspace, session, enclosingElement, element);
+          workspace, sessionHelper, enclosingElement, element);
     }
     if (enclosingElement is ExtensionElement) {
       return RenameExtensionMemberRefactoringImpl(
-          workspace, session, enclosingElement, element);
+          workspace, sessionHelper, enclosingElement, element);
     }
     return null;
   }
@@ -440,15 +456,39 @@ abstract class RenameRefactoring implements Refactoring {
   /// the class when on the `new` keyword).
   static RenameRefactoringElement? getElementToRename(
       AstNode node, Element? element) {
-    var offset = node.offset;
-    var length = node.length;
+    // TODO(scheglov) This is bad code.
+    SyntacticEntity? nameNode;
+    if (node is ConstructorDeclaration) {
+      nameNode = node;
+    } else if (node is ConstructorSelector) {
+      nameNode = node;
+    } else if (node is FieldFormalParameter) {
+      nameNode = node.name;
+    } else if (node is ImportDirective) {
+      nameNode = node;
+    } else if (node is InstanceCreationExpression) {
+      nameNode = node;
+    } else if (node is LibraryDirective) {
+      nameNode = node;
+    } else if (node is MethodDeclaration) {
+      nameNode = node.name;
+    } else if (node is NamedCompilationUnitMember) {
+      nameNode = node.name;
+    } else if (node is SimpleFormalParameter) {
+      nameNode = node.name;
+    } else if (node is SimpleIdentifier) {
+      nameNode = node.token;
+    } else if (node is VariableDeclaration) {
+      nameNode = node.name;
+    }
+    if (nameNode == null) {
+      return null;
+    }
+    var offset = nameNode.offset;
+    var length = nameNode.length;
 
     if (node is SimpleIdentifier && element is ParameterElement) {
       element = declaredParameterElement(node, element);
-    }
-
-    if (element is FieldFormalParameterElement) {
-      element = element.field;
     }
 
     // Use the prefix offset/length when renaming an import directive.

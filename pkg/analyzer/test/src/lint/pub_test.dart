@@ -213,14 +213,6 @@ testDepListContains(
   });
 }
 
-testEntry(String label, PSEntry node, Matcher m) {
-  group(label, () {
-    test('entry', () {
-      expect(node, m);
-    });
-  });
-}
-
 testKeySpan(String label, PSEntry? node, {int? startOffset, int? endOffset}) {
   group(label, () {
     group('key', () {

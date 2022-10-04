@@ -733,6 +733,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   *null_instance_ = Instance::null();
   *null_function_ = Function::null();
   *null_function_type_ = FunctionType::null();
+  *null_record_type_ = RecordType::null();
   *null_type_arguments_ = TypeArguments::null();
   *empty_type_arguments_ = TypeArguments::null();
   *null_abstract_type_ = AbstractType::null();
@@ -1160,6 +1161,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
+  cls = Class::New<RecordType, RTN::RecordType>(isolate_group);
+  cls.set_is_allocate_finalized();
+  cls.set_is_declaration_loaded();
+  cls.set_is_type_finalized();
+
   cls = dynamic_class_;
   *dynamic_type_ =
       Type::New(cls, Object::null_type_arguments(), Nullability::kNullable);
@@ -1241,6 +1247,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(null_function_->IsFunction());
   ASSERT(!null_function_type_->IsSmi());
   ASSERT(null_function_type_->IsFunctionType());
+  ASSERT(!null_record_type_->IsSmi());
+  ASSERT(null_record_type_->IsRecordType());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
   ASSERT(!null_compressed_stackmaps_->IsSmi());
@@ -1740,6 +1748,12 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
         kInitialCanonicalFunctionTypeSize, Heap::kOld);
     object_store->set_canonical_function_types(array);
 
+    // Initialize hash set for canonical record types.
+    const intptr_t kInitialCanonicalRecordTypeSize = 16;
+    array = HashTables::New<CanonicalRecordTypeSet>(
+        kInitialCanonicalRecordTypeSize, Heap::kOld);
+    object_store->set_canonical_record_types(array);
+
     // Initialize hash set for canonical type parameters.
     const intptr_t kInitialCanonicalTypeParameterSize = 4;
     array = HashTables::New<CanonicalTypeParameterSet>(
@@ -1757,6 +1771,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
         Class::Handle(zone, Class::New<Type, RTN::Type>(isolate_group));
     const Class& function_type_cls = Class::Handle(
         zone, Class::New<FunctionType, RTN::FunctionType>(isolate_group));
+    const Class& record_type_cls = Class::Handle(
+        zone, Class::New<RecordType, RTN::RecordType>(isolate_group));
     const Class& type_ref_cls =
         Class::Handle(zone, Class::New<TypeRef, RTN::TypeRef>(isolate_group));
     const Class& type_parameter_cls = Class::Handle(
@@ -1940,6 +1956,9 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterPrivateClass(function_type_cls, Symbols::_FunctionType(), core_lib);
     pending_classes.Add(function_type_cls);
 
+    RegisterPrivateClass(record_type_cls, Symbols::_RecordType(), core_lib);
+    pending_classes.Add(record_type_cls);
+
     RegisterPrivateClass(type_ref_cls, Symbols::_TypeRef(), core_lib);
     pending_classes.Add(type_ref_cls);
 
@@ -1971,6 +1990,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Closure, RTN::Closure>(isolate_group);
     object_store->set_closure_class(cls);
     RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
+    pending_classes.Add(cls);
+
+    cls = Class::New<Record, RTN::Record>(isolate_group);
+    RegisterPrivateClass(cls, Symbols::_Record(), core_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate_group);
@@ -2472,6 +2495,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate_group);
     cls = Class::New<Type, RTN::Type>(isolate_group);
     cls = Class::New<FunctionType, RTN::FunctionType>(isolate_group);
+    cls = Class::New<RecordType, RTN::RecordType>(isolate_group);
     cls = Class::New<TypeRef, RTN::TypeRef>(isolate_group);
     cls = Class::New<TypeParameter, RTN::TypeParameter>(isolate_group);
 
@@ -2564,6 +2588,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<Closure, RTN::Closure>(isolate_group);
     object_store->set_closure_class(cls);
+
+    cls = Class::New<Record, RTN::Record>(isolate_group);
 
     cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
     object_store->set_one_byte_string_class(cls);
@@ -2703,6 +2729,8 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
+  tags = UntaggedObject::ImmutableBit::update(
+      IsUnmodifiableTypedDataViewClassId(class_id), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
@@ -2766,8 +2794,8 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     heap->old_space()->AllocateBlack(size);
   }
 #ifndef PRODUCT
-  auto class_table = thread->isolate_group()->shared_class_table();
-  if (class_table->TraceAllocationFor(cls_id)) {
+  auto class_table = thread->isolate_group()->class_table();
+  if (class_table->ShouldTraceAllocationFor(cls_id)) {
     uint32_t hash =
         HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
     Profiler::SampleAllocation(thread, cls_id, hash);
@@ -3085,7 +3113,8 @@ void Class::InitEmptyFields() {
   set_invocation_dispatcher_cache(Object::empty_array());
 }
 
-ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
+ArrayPtr Class::OffsetToFieldMap(
+    ClassTable* class_table /* = nullptr */) const {
   ASSERT(is_finalized());
   if (untag()->offset_in_words_to_field<std::memory_order_acquire>() ==
       Array::null()) {
@@ -3104,7 +3133,7 @@ ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
           array.SetAt(f.HostOffset() >> kCompressedWordSizeLog2, f);
         }
       }
-      cls = cls.SuperClass(original_classes);
+      cls = cls.SuperClass(class_table);
     }
     untag()->set_offset_in_words_to_field<std::memory_order_release>(
         array.ptr());
@@ -3492,24 +3521,23 @@ TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
   return type_params.defaults();
 }
 
-ClassPtr Class::SuperClass(bool original_classes) const {
+ClassPtr Class::SuperClass(ClassTable* class_table /* = nullptr */) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
+  if (class_table == nullptr) {
+    class_table = thread->isolate_group()->class_table();
+  }
+
   if (super_type() == AbstractType::null()) {
     if (id() == kTypeArgumentsCid) {
       // Pretend TypeArguments objects are Dart instances.
-      return isolate_group->class_table()->At(kInstanceCid);
+      return class_table->At(kInstanceCid);
     }
     return Class::null();
   }
   const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
   const intptr_t type_class_id = sup_type.type_class_id();
-  if (original_classes) {
-    return isolate_group->GetClassForHeapWalkAt(type_class_id);
-  } else {
-    return isolate_group->class_table()->At(type_class_id);
-  }
+  return class_table->At(type_class_id);
 }
 
 void Class::set_super_type(const AbstractType& value) const {
@@ -3530,6 +3558,19 @@ TypeParameterPtr Class::TypeParameterAt(intptr_t index,
     type_param ^= ClassFinalizer::FinalizeType(type_param);
   }
   return type_param.ptr();
+}
+
+intptr_t Class::UnboxedFieldSizeInBytesByCid(intptr_t cid) {
+  switch (cid) {
+    case kDoubleCid:
+      return sizeof(UntaggedDouble::value_);
+    case kFloat32x4Cid:
+      return sizeof(UntaggedFloat32x4::value_);
+    case kFloat64x2Cid:
+      return sizeof(UntaggedFloat64x2::value_);
+    default:
+      return sizeof(UntaggedMint::value_);
+  }
 }
 
 UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
@@ -3559,11 +3600,8 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
     ASSERT(num_native_fields() == 0);
     set_num_native_fields(super.num_native_fields());
 
-    if (FLAG_precompiled_mode) {
-      host_bitmap =
-          IsolateGroup::Current()->shared_class_table()->GetUnboxedFieldsMapAt(
-              super.id());
-    }
+    host_bitmap = IsolateGroup::Current()->class_table()->GetUnboxedFieldsMapAt(
+        super.id());
   }
   // If the super class is parameterized, use the same type_arguments field,
   // otherwise, if this class is the first in the super chain to be
@@ -3595,27 +3633,9 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
       ASSERT(field.TargetOffset() == 0);
       field.SetOffset(host_offset, target_offset);
 
-      if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
-        intptr_t field_size;
-        switch (field.guarded_cid()) {
-          case kDoubleCid:
-            field_size = sizeof(UntaggedDouble::value_);
-            break;
-          case kFloat32x4Cid:
-            field_size = sizeof(UntaggedFloat32x4::value_);
-            break;
-          case kFloat64x2Cid:
-            field_size = sizeof(UntaggedFloat64x2::value_);
-            break;
-          default:
-            if (field.is_non_nullable_integer()) {
-              field_size = sizeof(UntaggedMint::value_);
-            } else {
-              UNREACHABLE();
-              field_size = 0;
-            }
-            break;
-        }
+      if (field.is_unboxed()) {
+        const intptr_t field_size =
+            UnboxedFieldSizeInBytesByCid(field.guarded_cid());
 
         const intptr_t host_num_words = field_size / kCompressedWordSize;
         const intptr_t host_next_offset = host_offset + field_size;
@@ -3641,7 +3661,7 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
           target_offset = target_next_offset;
         } else {
           // Make the field boxed
-          field.set_is_unboxing_candidate(false);
+          field.set_is_unboxed(false);
           host_offset += kCompressedWordSize;
           target_offset += compiler::target::kCompressedWordSize;
         }
@@ -3654,7 +3674,6 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
   set_instance_size(RoundedAllocationSize(host_offset),
                     compiler::target::RoundedAllocationSize(target_offset));
   set_next_field_offset(host_offset, target_offset);
-
   return host_bitmap;
 }
 
@@ -4127,10 +4146,7 @@ void Class::Finalize() const {
         // Unless class is top-level, which don't get instantiated,
         // sets the new size in the class table.
         isolate_group->class_table()->UpdateClassSize(id(), ptr());
-      }
-      if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
-        isolate_group->shared_class_table()->SetUnboxedFieldsMapAt(id(),
-                                                                   host_bitmap);
+        isolate_group->class_table()->SetUnboxedFieldsMapAt(id(), host_bitmap);
       }
     }
   }
@@ -4243,8 +4259,8 @@ void Class::set_dependent_code(const Array& array) const {
 
 bool Class::TraceAllocation(IsolateGroup* isolate_group) const {
 #ifndef PRODUCT
-  auto class_table = isolate_group->shared_class_table();
-  return class_table->TraceAllocationFor(id());
+  auto class_table = isolate_group->class_table();
+  return class_table->ShouldTraceAllocationFor(id());
 #else
   return false;
 #endif
@@ -4255,7 +4271,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   auto isolate_group = IsolateGroup::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate_group);
   if (changed) {
-    auto class_table = isolate_group->shared_class_table();
+    auto class_table = isolate_group->class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
@@ -8288,6 +8304,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kFfiAsExternalTypedDataFloat:
     case MethodRecognizer::kFfiAsExternalTypedDataDouble:
     case MethodRecognizer::kGetNativeField:
+    case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
@@ -10537,18 +10554,13 @@ FunctionTypePtr FunctionType::New(intptr_t num_parent_type_arguments,
   result.set_packed_type_parameter_counts(0);
   result.set_named_parameter_names(Object::empty_array());
   result.SetNumParentTypeArguments(num_parent_type_arguments);
-  result.set_nullability(nullability);
   result.SetHash(0);
-  result.StoreNonPointer(&result.untag()->type_state_,
-                         UntaggedType::kAllocated);
+  result.set_flags(0);
+  result.set_nullability(nullability);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
-}
-
-void FunctionType::set_type_state(uint8_t state) const {
-  ASSERT(state <= UntaggedFunctionType::kFinalizedUninstantiated);
-  StoreNonPointer(&untag()->type_state_, state);
 }
 
 const char* FunctionType::ToUserVisibleCString() const {
@@ -10642,43 +10654,6 @@ FieldPtr Field::Original() const {
   } else {
     return this->ptr();
   }
-}
-
-const Object* Field::CloneForUnboxed(const Object& value) const {
-  if (is_unboxing_candidate() && !is_nullable()) {
-    switch (guarded_cid()) {
-      case kDoubleCid:
-      case kFloat32x4Cid:
-      case kFloat64x2Cid:
-        return &Object::Handle(Object::Clone(value, Heap::kNew));
-      default:
-        // Not a supported unboxed field type.
-        return &value;
-    }
-  }
-  return &value;
-}
-
-void Field::DisableFieldUnboxing() const {
-  ASSERT(!IsOriginal());
-  const Field& original = Field::Handle(Original());
-  if (!original.is_unboxing_candidate()) {
-    return;
-  }
-  auto thread = Thread::Current();
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  if (!original.is_unboxing_candidate()) {
-    return;
-  }
-
-  // Ensures that to-be-disabled existing code won't continue running as we
-  // update field properties as it might write into now boxed field thinking
-  // it still holds unboxed(reusable box) value.
-  thread->isolate_group()->RunWithStoppedMutators([&]() {
-    original.set_is_unboxing_candidate(false);
-    set_is_unboxing_candidate(false);
-    original.DeoptimizeDependentCode();
-  });
 }
 
 intptr_t Field::guarded_cid() const {
@@ -10908,19 +10883,14 @@ void Field::InitializeNew(const Field& result,
   result.set_is_const(is_const);
   result.set_is_reflectable(is_reflectable);
   result.set_is_late(is_late);
-  result.set_is_double_initialized_unsafe(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
   result.set_has_nontrivial_initializer_unsafe(false);
   result.set_has_initializer_unsafe(false);
-  if (FLAG_precompiled_mode) {
-    // May be updated by KernelLoader::ReadInferredType
-    result.set_is_unboxing_candidate_unsafe(false);
-  } else {
-    result.set_is_unboxing_candidate_unsafe(!is_final && !is_late &&
-                                            !is_static);
-  }
+  // We will make unboxing decision once we read static type or
+  // in KernelLoader::ReadInferredType.
+  result.set_is_unboxed_unsafe(false);
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_has_pragma(false);
@@ -10966,6 +10936,9 @@ FieldPtr Field::New(const String& name,
   InitializeNew(result, name, is_static, is_final, is_const, is_reflectable,
                 is_late, owner, token_pos, end_token_pos);
   result.SetFieldTypeSafe(type);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  compiler::target::UnboxFieldIfSupported(result, type);
+#endif
   return result.ptr();
 }
 
@@ -11052,25 +11025,36 @@ void Field::set_guarded_list_length_in_object_offset_unsafe(
 }
 
 bool Field::NeedsSetter() const {
-  // Late fields always need a setter, unless they're static and non-final, or
-  // final with an initializer.
-  if (is_late()) {
-    if (is_static() && !is_final()) {
-      return false;
+  // According to the Dart language specification, final fields don't have
+  // a setter, except late final fields without initializer.
+  if (is_final()) {
+    // Late final fields without initializer always need a setter to check
+    // if they are already initialized.
+    if (is_late() && !has_initializer()) {
+      return true;
     }
-    if (is_final() && has_initializer()) {
-      return false;
-    }
-    return true;
-  }
-
-  // Non-late static fields never need a setter.
-  if (is_static()) {
     return false;
   }
 
-  // Otherwise, the field only needs a setter if it isn't final.
-  return !is_final();
+  // Instance non-final fields always need a setter.
+  if (!is_static()) {
+    return true;
+  }
+
+  // Setter is needed to make null assertions.
+  if (FLAG_null_assertions) {
+    Thread* thread = Thread::Current();
+    IsolateGroup* isolate_group = thread->isolate_group();
+    if (!isolate_group->null_safety() && isolate_group->asserts()) {
+      if (AbstractType::Handle(thread->zone(), type()).NeedsNullAssertion()) {
+        return true;
+      }
+    }
+  }
+
+  // Othwerwise, setters for static fields can be omitted
+  // and fields can be accessed directly.
+  return false;
 }
 
 bool Field::NeedsGetter() const {
@@ -11211,7 +11195,7 @@ bool Field::IsConsistentWith(const Field& other) const {
          (untag()->is_nullable_ == other.untag()->is_nullable_) &&
          (untag()->guarded_list_length() ==
           other.untag()->guarded_list_length()) &&
-         (is_unboxing_candidate() == other.is_unboxing_candidate()) &&
+         (is_unboxed() == other.is_unboxed()) &&
          (static_type_exactness_state().Encode() ==
           other.static_type_exactness_state().Encode());
 }
@@ -11981,10 +11965,10 @@ void Field::RecordStore(const Object& value) const {
 }
 
 void Field::ForceDynamicGuardedCidAndLength() const {
-  // Assume nothing about this field.
-  set_is_unboxing_candidate(false);
-  set_guarded_cid(kDynamicCid);
-  set_is_nullable(true);
+  if (!is_unboxed()) {
+    set_guarded_cid(kDynamicCid);
+    set_is_nullable(true);
+  }
   set_guarded_list_length(Field::kNoFixedLength);
   set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   if (static_type_exactness_state().IsTracking()) {
@@ -17499,7 +17483,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     if (FLAG_write_protect_code) {
       uword address = UntaggedObject::ToAddr(instrs.ptr());
       // Check if a dual mapping exists.
-      instrs = Instructions::RawCast(OldPage::ToExecutable(instrs.ptr()));
+      instrs = Instructions::RawCast(Page::ToExecutable(instrs.ptr()));
       uword exec_address = UntaggedObject::ToAddr(instrs.ptr());
       const bool use_dual_mapping = exec_address != address;
       ASSERT(use_dual_mapping == FLAG_dual_map_code);
@@ -17756,8 +17740,8 @@ bool Code::IsAllocationStubCode() const {
 bool Code::IsTypeTestStubCode() const {
   auto const cid = OwnerClassId();
   return cid == kAbstractTypeCid || cid == kTypeCid ||
-         cid == kFunctionTypeCid || cid == kTypeRefCid ||
-         cid == kTypeParameterCid;
+         cid == kFunctionTypeCid || cid == kRecordTypeCid ||
+         cid == kTypeRefCid || cid == kTypeParameterCid;
 }
 
 bool Code::IsFunctionCode() const {
@@ -18394,6 +18378,7 @@ void SubtypeTestCache::AddCheck(
              ->isolate_group()
              ->subtype_test_cache_mutex()
              ->IsOwnedByCurrentThread());
+  ASSERT(Smi::New(kRecordCid) != instance_class_id_or_signature.ptr());
 
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
@@ -19382,7 +19367,7 @@ uint32_t Instance::CanonicalizeHash() const {
     Instance& instance = Instance::Handle(zone);
 
     const auto unboxed_fields_bitmap =
-        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        thread->isolate_group()->class_table()->GetUnboxedFieldsMapAt(
             GetClassId());
 
     for (intptr_t offset = Instance::NextFieldOffset();
@@ -19453,8 +19438,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
-        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            class_id);
+        thread->isolate_group()->class_table()->GetUnboxedFieldsMapAt(class_id);
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kCompressedWordSize) {
       if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
@@ -19524,7 +19508,7 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
 #endif  // DEBUG
 
 ObjectPtr Instance::GetField(const Field& field) const {
-  if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
+  if (field.is_unboxed()) {
     switch (field.guarded_cid()) {
       case kDoubleCid:
         return Double::New(*reinterpret_cast<double_t*>(FieldAddr(field)));
@@ -19535,12 +19519,7 @@ ObjectPtr Instance::GetField(const Field& field) const {
         return Float64x2::New(
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
       default:
-        if (field.is_non_nullable_integer()) {
-          return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
-        } else {
-          UNREACHABLE();
-          return nullptr;
-        }
+        return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
     }
   } else {
     return FieldAddr(field)->Decompress(untag()->heap_base());
@@ -19548,7 +19527,7 @@ ObjectPtr Instance::GetField(const Field& field) const {
 }
 
 void Instance::SetField(const Field& field, const Object& value) const {
-  if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
+  if (field.is_unboxed()) {
     switch (field.guarded_cid()) {
       case kDoubleCid:
         StoreNonPointer(reinterpret_cast<double_t*>(FieldAddr(field)),
@@ -19563,18 +19542,13 @@ void Instance::SetField(const Field& field, const Object& value) const {
                         Float64x2::Cast(value).value());
         break;
       default:
-        if (field.is_non_nullable_integer()) {
-          StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
-                          Integer::Cast(value).AsInt64Value());
-        } else {
-          UNREACHABLE();
-        }
+        StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                        Integer::Cast(value).AsInt64Value());
         break;
     }
   } else {
     field.RecordStore(value);
-    const Object* stored_value = field.CloneForUnboxed(value);
-    StoreCompressedPointer(FieldAddr(field), stored_value->ptr());
+    StoreCompressedPointer(FieldAddr(field), value.ptr());
   }
 }
 
@@ -19593,12 +19567,20 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   }
   if (cls.IsClosureClass()) {
     FunctionType& signature = FunctionType::Handle(
-        Closure::Cast(*this).GetInstantiatedSignature(zone));
+        zone, Closure::Cast(*this).GetInstantiatedSignature(zone));
     if (!signature.IsFinalized()) {
       signature.SetIsFinalized();
     }
     signature ^= signature.Canonicalize(thread, nullptr);
     return signature.ptr();
+  }
+  if (IsRecord()) {
+    ASSERT(cls.IsRecordClass());
+    auto& record_type =
+        RecordType::Handle(zone, Record::Cast(*this).GetRecordType());
+    ASSERT(record_type.IsFinalized());
+    ASSERT(record_type.IsCanonical());
+    return record_type.ptr();
   }
   Type& type = Type::Handle(zone);
   if (!cls.IsGeneric()) {
@@ -19816,6 +19798,52 @@ bool Instance::RuntimeTypeIsSubtypeOf(
         Closure::Cast(*this).GetInstantiatedSignature(zone));
     return sig.IsSubtypeOf(FunctionType::Cast(instantiated_other), Heap::kOld);
   }
+  if (cls.IsRecordClass()) {
+    if (other.IsDartRecordType() || other.IsObjectType()) {
+      return true;
+    }
+    AbstractType& instantiated_other = AbstractType::Handle(zone, other.ptr());
+    if (!other.IsInstantiated()) {
+      instantiated_other = other.InstantiateFrom(
+          other_instantiator_type_arguments, other_function_type_arguments,
+          kAllFree, Heap::kOld);
+      if (instantiated_other.IsTypeRef()) {
+        instantiated_other = TypeRef::Cast(instantiated_other).type();
+      }
+      if (instantiated_other.IsTopTypeForSubtyping() ||
+          instantiated_other.IsObjectType() ||
+          instantiated_other.IsDartRecordType()) {
+        return true;
+      }
+    }
+    if (RuntimeTypeIsSubtypeOfFutureOr(zone, instantiated_other)) {
+      return true;
+    }
+    if (!instantiated_other.IsRecordType()) {
+      return false;
+    }
+    const Record& record = Record::Cast(*this);
+    const RecordType& record_type = RecordType::Cast(instantiated_other);
+    const intptr_t num_fields = record.num_fields();
+    ASSERT(Array::Handle(record.field_names()).IsCanonical());
+    ASSERT(Array::Handle(record_type.field_names()).IsCanonical());
+    if ((num_fields != record_type.NumFields()) ||
+        (record.field_names() != record_type.field_names())) {
+      return false;
+    }
+    Instance& field_value = Instance::Handle(zone);
+    AbstractType& field_type = AbstractType::Handle(zone);
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      field_value ^= record.FieldAt(i);
+      field_type = record_type.FieldTypeAt(i);
+      if (!field_value.RuntimeTypeIsSubtypeOf(field_type,
+                                              Object::null_type_arguments(),
+                                              Object::null_type_arguments())) {
+        return false;
+      }
+    }
+    return true;
+  }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
     type_arguments = GetTypeArguments();
@@ -19988,10 +20016,10 @@ InstancePtr Instance::NewAlreadyFinalized(const Class& cls, Heap::Space space) {
   return static_cast<InstancePtr>(raw);
 }
 
-InstancePtr Instance::NewFromCidAndSize(SharedClassTable* shared_class_table,
+InstancePtr Instance::NewFromCidAndSize(ClassTable* class_table,
                                         classid_t cid,
                                         Heap::Space heap) {
-  const intptr_t instance_size = shared_class_table->SizeAt(cid);
+  const intptr_t instance_size = class_table->SizeAt(cid);
   ASSERT(instance_size > 0);
   ObjectPtr raw = Object::Allocate(cid, instance_size, heap,
                                    Instance::ContainsCompressedPointers());
@@ -20050,6 +20078,8 @@ intptr_t Instance::DataOffsetFor(intptr_t cid) {
       return OneByteString::data_offset();
     case kTwoByteStringCid:
       return TwoByteString::data_offset();
+    case kRecordCid:
+      return Record::field_offset(0);
     default:
       UNIMPLEMENTED();
       return Array::data_offset();
@@ -20096,12 +20126,6 @@ TypeArgumentsPtr AbstractType::arguments() const {
 void AbstractType::set_arguments(const TypeArguments& value) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
-}
-
-Nullability AbstractType::nullability() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return Nullability::kNullable;
 }
 
 bool AbstractType::IsStrictlyNonNullable() const {
@@ -20164,6 +20188,9 @@ AbstractTypePtr AbstractType::SetInstantiatedNullability(
   if (IsFunctionType()) {
     return FunctionType::Cast(*this).ToNullability(result_nullability, space);
   }
+  if (IsRecordType()) {
+    return RecordType::Cast(*this).ToNullability(result_nullability, space);
+  }
   if (IsTypeParameter()) {
     return TypeParameter::Cast(*this).ToNullability(result_nullability, space);
   }
@@ -20221,26 +20248,32 @@ bool AbstractType::IsInstantiated(Genericity genericity,
   return false;
 }
 
-bool AbstractType::IsFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
 void AbstractType::SetIsFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-}
-
-bool AbstractType::IsBeingFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
+  ASSERT(!IsFinalized());
+  set_type_state(IsInstantiated()
+                     ? UntaggedAbstractType::kFinalizedInstantiated
+                     : UntaggedAbstractType::kFinalizedUninstantiated);
 }
 
 void AbstractType::SetIsBeingFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
+  ASSERT(!IsFinalized() && !IsBeingFinalized());
+  set_type_state(UntaggedAbstractType::kBeingFinalized);
+}
+
+void AbstractType::set_flags(uint32_t value) const {
+  StoreNonPointer(&untag()->flags_, value);
+}
+
+void AbstractType::set_type_state(UntaggedAbstractType::TypeState value) const {
+  ASSERT(!IsCanonical());
+  set_flags(
+      UntaggedAbstractType::TypeStateBits::update(value, untag()->flags_));
+}
+
+void AbstractType::set_nullability(Nullability value) const {
+  ASSERT(!IsCanonical());
+  set_flags(UntaggedAbstractType::NullabilityBits::update(
+      static_cast<uint8_t>(value), untag()->flags_));
 }
 
 bool AbstractType::IsEquivalent(const Instance& other,
@@ -20249,6 +20282,35 @@ bool AbstractType::IsEquivalent(const Instance& other,
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
+}
+
+bool AbstractType::IsNullabilityEquivalent(Thread* thread,
+                                           const AbstractType& other_type,
+                                           TypeEquality kind) const {
+  Nullability this_type_nullability = nullability();
+  Nullability other_type_nullability = other_type.nullability();
+  if (kind == TypeEquality::kInSubtypeTest) {
+    if (thread->isolate_group()->use_strict_null_safety_checks() &&
+        this_type_nullability == Nullability::kNullable &&
+        other_type_nullability == Nullability::kNonNullable) {
+      return false;
+    }
+  } else {
+    if (kind == TypeEquality::kSyntactical) {
+      if (this_type_nullability == Nullability::kLegacy) {
+        this_type_nullability = Nullability::kNonNullable;
+      }
+      if (other_type_nullability == Nullability::kLegacy) {
+        other_type_nullability = Nullability::kNonNullable;
+      }
+    } else {
+      ASSERT(kind == TypeEquality::kCanonical);
+    }
+    if (this_type_nullability != other_type_nullability) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool AbstractType::IsRecursive(TrailPtr trail) const {
@@ -20468,6 +20530,10 @@ void AbstractType::PrintName(NameVisibility name_visibility,
     }
     return;
   }
+  if (IsRecordType()) {
+    RecordType::Cast(*this).Print(name_visibility, printer);
+    return;
+  }
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
   intptr_t first_type_param_index;
@@ -20508,7 +20574,7 @@ void AbstractType::PrintName(NameVisibility name_visibility,
 }
 
 StringPtr AbstractType::ClassName() const {
-  ASSERT(!IsFunctionType());
+  ASSERT(!IsFunctionType() && !IsRecordType());
   return Class::Handle(type_class()).Name();
 }
 
@@ -20612,6 +20678,11 @@ bool AbstractType::IsDartClosureType() const {
   return (type_class_id() == kClosureCid);
 }
 
+bool AbstractType::IsDartRecordType() const {
+  // TODO(dartbug.com/49719): should check for Record, not _Record class.
+  return HasTypeClass() && type_class_id() == kRecordCid;
+}
+
 bool AbstractType::IsFfiPointerType() const {
   return HasTypeClass() && type_class_id() == kPointerCid;
 }
@@ -20639,6 +20710,24 @@ AbstractTypePtr AbstractType::UnwrapFutureOr() const {
     type_arg = type_args.TypeAt(0);
   }
   return type_arg.ptr();
+}
+
+bool AbstractType::NeedsNullAssertion() const {
+  if (!IsNonNullable()) {
+    return false;
+  }
+  if (IsTypeRef()) {
+    return AbstractType::Handle(TypeRef::Cast(*this).type())
+        .NeedsNullAssertion();
+  }
+  if (IsTypeParameter()) {
+    return AbstractType::Handle(TypeParameter::Cast(*this).bound())
+        .NeedsNullAssertion();
+  }
+  if (IsFutureOrType()) {
+    return AbstractType::Handle(UnwrapFutureOr()).NeedsNullAssertion();
+  }
+  return true;
 }
 
 bool AbstractType::IsSubtypeOf(const AbstractType& other,
@@ -20757,6 +20846,32 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     // fall through to class-based type tests.
     return false;
   }
+  // Record types cannot be handled by Class::IsSubtypeOf().
+  if (IsRecordType()) {
+    if (other.IsObjectType() || other.IsDartRecordType()) {
+      return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
+             !other.IsNonNullable();
+    }
+    if (other.IsRecordType()) {
+      // Check for two record types.
+      if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
+          other.IsNonNullable()) {
+        return false;
+      }
+      return RecordType::Cast(*this).IsSubtypeOf(RecordType::Cast(other),
+                                                 space);
+    }
+    // Apply additional subtyping rules if 'other' is 'FutureOr'.
+    if (IsSubtypeOfFutureOr(zone, other, space, trail)) {
+      return true;
+    }
+    // All possible supertypes for record type have been checked.
+    return false;
+  } else if (other.IsRecordType()) {
+    // RecordTypes can only be subtyped by other RecordTypes, so don't
+    // fall through to class-based type tests.
+    return false;
+  }
   const Class& type_cls = Class::Handle(zone, type_class());
   return Class::IsSubtypeOf(type_cls, TypeArguments::Handle(zone, arguments()),
                             nullability(), other, space, trail);
@@ -20768,9 +20883,9 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
                                        TrailPtr trail) const {
   if (other.IsFutureOrType()) {
     // This function is only called with a receiver that is either a function
-    // type or an uninstantiated type parameter, therefore, it cannot be of
-    // class Future and we can spare the check.
-    ASSERT(IsFunctionType() || IsTypeParameter());
+    // type, record type, or an uninstantiated type parameter.
+    // Therefore, it cannot be of class Future and we can spare the check.
+    ASSERT(IsFunctionType() || IsRecordType() || IsTypeParameter());
     const TypeArguments& other_type_arguments =
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
@@ -20946,34 +21061,6 @@ TypePtr Type::NewNonParameterizedType(const Class& type_class) {
   return type.ptr();
 }
 
-void Type::SetIsFinalized() const {
-  ASSERT(!IsFinalized());
-  if (IsInstantiated()) {
-    set_type_state(UntaggedType::kFinalizedInstantiated);
-  } else {
-    set_type_state(UntaggedType::kFinalizedUninstantiated);
-  }
-}
-
-void FunctionType::SetIsFinalized() const {
-  ASSERT(!IsFinalized());
-  if (IsInstantiated()) {
-    set_type_state(UntaggedFunctionType::kFinalizedInstantiated);
-  } else {
-    set_type_state(UntaggedFunctionType::kFinalizedUninstantiated);
-  }
-}
-
-void Type::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized() && !IsBeingFinalized());
-  set_type_state(UntaggedType::kBeingFinalized);
-}
-
-void FunctionType::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized() && !IsBeingFinalized());
-  set_type_state(UntaggedFunctionType::kBeingFinalized);
-}
-
 TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
   if (nullability() == value) {
     return ptr();
@@ -21031,7 +21118,7 @@ FunctionTypePtr FunctionType::ToNullability(Nullability value,
 }
 
 classid_t Type::type_class_id() const {
-  return untag()->type_class_id_;
+  return untag()->type_class_id();
 }
 
 ClassPtr Type::type_class() const {
@@ -21041,11 +21128,11 @@ ClassPtr Type::type_class() const {
 bool Type::IsInstantiated(Genericity genericity,
                           intptr_t num_free_fun_type_params,
                           TrailPtr trail) const {
-  if (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) {
+  if (type_state() == UntaggedType::kFinalizedInstantiated) {
     return true;
   }
   if ((genericity == kAny) && (num_free_fun_type_params == kAllFree) &&
-      (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated)) {
+      (type_state() == UntaggedType::kFinalizedUninstantiated)) {
     return false;
   }
   if (arguments() == TypeArguments::null()) {
@@ -21107,6 +21194,23 @@ AbstractTypePtr Type::InstantiateFrom(
   return instantiated_type.NormalizeFutureOrType(space);
 }
 
+// Certain built-in classes are treated as syntactically equivalent.
+static classid_t NormalizeClassIdForSyntacticalTypeEquality(classid_t cid) {
+  if (IsIntegerClassId(cid)) {
+    return Type::Handle(Type::IntType()).type_class_id();
+  } else if (IsStringClassId(cid)) {
+    return Type::Handle(Type::StringType()).type_class_id();
+  } else if (cid == kDoubleCid) {
+    return Type::Handle(Type::Double()).type_class_id();
+  } else if (IsTypeClassId(cid)) {
+    return Type::Handle(Type::DartTypeType()).type_class_id();
+  } else if (IsArrayClassId(cid)) {
+    return Class::Handle(IsolateGroup::Current()->object_store()->list_class())
+        .id();
+  }
+  return cid;
+}
+
 bool Type::IsEquivalent(const Instance& other,
                         TypeEquality kind,
                         TrailPtr trail) const {
@@ -21125,37 +21229,22 @@ bool Type::IsEquivalent(const Instance& other,
     return false;
   }
   const Type& other_type = Type::Cast(other);
-  if (type_class_id() != other_type.type_class_id()) {
+  const classid_t type_cid = type_class_id();
+  const classid_t other_type_cid = other_type.type_class_id();
+  if (type_cid != other_type_cid) {
+    if ((kind != TypeEquality::kSyntactical) ||
+        (NormalizeClassIdForSyntacticalTypeEquality(type_cid) !=
+         NormalizeClassIdForSyntacticalTypeEquality(other_type_cid))) {
+      return false;
+    }
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  if (!IsNullabilityEquivalent(thread, other_type, kind)) {
     return false;
   }
-  Nullability this_type_nullability = nullability();
-  Nullability other_type_nullability = other_type.nullability();
-  Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-  Zone* zone = thread->zone();
-  if (kind == TypeEquality::kInSubtypeTest) {
-    if (isolate_group->use_strict_null_safety_checks() &&
-        this_type_nullability == Nullability::kNullable &&
-        other_type_nullability == Nullability::kNonNullable) {
-      return false;
-    }
-  } else {
-    if (kind == TypeEquality::kSyntactical) {
-      if (this_type_nullability == Nullability::kLegacy) {
-        this_type_nullability = Nullability::kNonNullable;
-      }
-      if (other_type_nullability == Nullability::kLegacy) {
-        other_type_nullability = Nullability::kNonNullable;
-      }
-    } else {
-      ASSERT(kind == TypeEquality::kCanonical);
-      ASSERT(IsFinalized() && other_type.IsFinalized());
-    }
-    if (this_type_nullability != other_type_nullability) {
-      return false;
-    }
-  }
   if (!IsFinalized() || !other_type.IsFinalized()) {
+    ASSERT(kind != TypeEquality::kCanonical);
     return false;  // Too early to decide if equal.
   }
   if (arguments() == other_type.arguments()) {
@@ -21232,34 +21321,13 @@ bool FunctionType::IsEquivalent(const Instance& other,
     // Different number of type parameters or parameters.
     return false;
   }
-  Nullability this_type_nullability = nullability();
-  Nullability other_type_nullability = other_type.nullability();
   Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
-  if (kind == TypeEquality::kInSubtypeTest) {
-    if (isolate_group->null_safety() &&
-        this_type_nullability == Nullability::kNullable &&
-        other_type_nullability == Nullability::kNonNullable) {
-      return false;
-    }
-  } else {
-    if (kind == TypeEquality::kSyntactical) {
-      if (this_type_nullability == Nullability::kLegacy) {
-        this_type_nullability = Nullability::kNonNullable;
-      }
-      if (other_type_nullability == Nullability::kLegacy) {
-        other_type_nullability = Nullability::kNonNullable;
-      }
-    } else {
-      ASSERT(kind == TypeEquality::kCanonical);
-      ASSERT(IsFinalized() && other_type.IsFinalized());
-    }
-    if (this_type_nullability != other_type_nullability) {
-      return false;
-    }
+  if (!IsNullabilityEquivalent(thread, other_type, kind)) {
+    return false;
   }
   if (!IsFinalized() || !other_type.IsFinalized()) {
+    ASSERT(kind != TypeEquality::kCanonical);
     return false;  // Too early to decide if equal.
   }
   // Equal function types must have equal signature types and equal optional
@@ -21622,12 +21690,12 @@ TypePtr Type::New(const Class& clazz,
                   Heap::Space space) {
   Zone* Z = Thread::Current()->zone();
   const Type& result = Type::Handle(Z, Type::New(space));
-  result.set_type_class(clazz);
   result.set_arguments(arguments);
   result.SetHash(0);
-  result.StoreNonPointer(&result.untag()->type_state_,
-                         UntaggedType::kAllocated);
+  result.set_flags(0);
   result.set_nullability(nullability);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
+  result.set_type_class(clazz);
 
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
@@ -21635,19 +21703,13 @@ TypePtr Type::New(const Class& clazz,
 }
 
 void Type::set_type_class_id(intptr_t id) const {
-  COMPILE_ASSERT(
-      std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
-  ASSERT(Utils::IsUint(sizeof(untag()->type_class_id_) * kBitsPerByte, id));
+  COMPILE_ASSERT(std::is_unsigned<ClassIdTagType>::value);
+  ASSERT(Utils::IsUint(sizeof(ClassIdTagType) * kBitsPerByte, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
   ASSERT(id != kIllegalCid);
   ASSERT(!IsInternalOnlyClassId(id));
-  StoreNonPointer(&untag()->type_class_id_, id);
-}
-
-void Type::set_type_state(uint8_t state) const {
-  ASSERT(state <= UntaggedType::kFinalizedUninstantiated);
-  StoreNonPointer(&untag()->type_state_, state);
+  untag()->set_type_class_id(id);
 }
 
 const char* Type::ToCString() const {
@@ -21963,6 +22025,12 @@ AbstractTypePtr TypeRef::InstantiateFrom(
 
 void TypeRef::set_type(const AbstractType& value) const {
   ASSERT(!value.IsTypeRef());
+  if (value.IsNull()) {
+    ASSERT(!IsFinalized());
+  } else {
+    set_type_state(value.type_state());
+    set_nullability(value.nullability());
+  }
   untag()->set_type(value.ptr());
 }
 
@@ -21979,7 +22047,11 @@ AbstractTypePtr TypeRef::Canonicalize(Thread* thread, TrailPtr trail) const {
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull());
   ref_type = ref_type.Canonicalize(thread, trail);
-  set_type(ref_type);
+  {
+    SafepointMutexLocker ml(
+        thread->isolate_group()->type_canonicalization_mutex());
+    set_type(ref_type);
+  }
   return ptr();
 }
 
@@ -22062,23 +22134,6 @@ const char* TypeRef::ToCString() const {
     printer.Printf(" (H%" Px ")", hash);
   }
   return printer.buffer();
-}
-
-void TypeParameter::SetIsFinalized() const {
-  ASSERT(!IsFinalized());
-  set_flags(UntaggedTypeParameter::FinalizedBit::update(
-      true, UntaggedTypeParameter::BeingFinalizedBit::update(false,
-                                                             untag()->flags_)));
-}
-
-void TypeParameter::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized());
-  set_flags(
-      UntaggedTypeParameter::BeingFinalizedBit::update(true, untag()->flags_));
-}
-
-void TypeParameter::set_nullability(Nullability value) const {
-  StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
 }
 
 TypeParameterPtr TypeParameter::ToNullability(Nullability value,
@@ -22196,31 +22251,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
       return false;
     }
   }
-  // Compare nullability.
-  Nullability this_type_param_nullability = nullability();
-  Nullability other_type_param_nullability = other_type_param.nullability();
-  if (kind == TypeEquality::kInSubtypeTest) {
-    if (IsolateGroup::Current()->use_strict_null_safety_checks() &&
-        (this_type_param_nullability == Nullability::kNullable) &&
-        (other_type_param_nullability == Nullability::kNonNullable)) {
-      return false;
-    }
-  } else {
-    if (kind == TypeEquality::kSyntactical) {
-      if (this_type_param_nullability == Nullability::kLegacy) {
-        this_type_param_nullability = Nullability::kNonNullable;
-      }
-      if (other_type_param_nullability == Nullability::kLegacy) {
-        other_type_param_nullability = Nullability::kNonNullable;
-      }
-    } else {
-      ASSERT(kind == TypeEquality::kCanonical);
-    }
-    if (this_type_param_nullability != other_type_param_nullability) {
-      return false;
-    }
-  }
-  return true;
+  return IsNullabilityEquivalent(Thread::Current(), other_type_param, kind);
 }
 
 bool TypeParameter::IsRecursive(TrailPtr trail) const {
@@ -22462,17 +22493,14 @@ TypeParameterPtr TypeParameter::New(const Class& parameterized_class,
   result.set_base(base);
   result.set_index(index);
   result.set_bound(bound);
+  result.SetHash(0);
   result.set_flags(0);
   result.set_nullability(nullability);
-  result.SetHash(0);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
 
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
-}
-
-void TypeParameter::set_flags(uint8_t flags) const {
-  StoreNonPointer(&untag()->flags_, flags);
 }
 
 const char* TypeParameter::CanonicalNameCString(bool is_class_type_parameter,
@@ -23788,10 +23816,13 @@ static FinalizablePersistentHandle* AddFinalizer(const Object& referent,
                                                  void* peer,
                                                  Dart_HandleFinalizer callback,
                                                  intptr_t external_size) {
-  ASSERT(callback != NULL);
-  return FinalizablePersistentHandle::New(IsolateGroup::Current(), referent,
-                                          peer, callback, external_size,
-                                          /*auto_delete=*/true);
+  ASSERT(callback != nullptr);
+  FinalizablePersistentHandle* finalizable_ref =
+      FinalizablePersistentHandle::New(IsolateGroup::Current(), referent, peer,
+                                       callback, external_size,
+                                       /*auto_delete=*/true);
+  ASSERT(finalizable_ref != nullptr);
+  return finalizable_ref;
 }
 
 StringPtr String::Transform(int32_t (*mapping)(int32_t ch),
@@ -25420,7 +25451,7 @@ ExternalTypedDataPtr ExternalTypedData::New(
 
   if (perform_eager_msan_initialization_check) {
     // Once the TypedData is created, Dart might read this memory. Check for
-    // intialization at construction to make it easier to track the source.
+    // initialization at construction to make it easier to track the source.
     MSAN_CHECK_INITIALIZED(data, len);
   }
 
@@ -25642,10 +25673,12 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
   }
   // Set up finalizer so it frees allocated memory if handle is
   // garbage-collected.
-  peer->set_handle(
+  FinalizablePersistentHandle* finalizable_ref =
       FinalizablePersistentHandle::New(thread->isolate_group(), result, peer,
                                        &TransferableTypedDataFinalizer, length,
-                                       /*auto_delete=*/true));
+                                       /*auto_delete=*/true);
+  ASSERT(finalizable_ref != nullptr);
+  peer->set_handle(finalizable_ref);
 
   return result.ptr();
 }
@@ -26844,6 +26877,14 @@ void DumpFunctionTypeTable(Isolate* isolate) {
   table.Release();
 }
 
+void DumpRecordTypeTable(Isolate* isolate) {
+  OS::PrintErr("canonical record types:\n");
+  CanonicalRecordTypeSet table(
+      isolate->group()->object_store()->canonical_record_types());
+  table.Dump();
+  table.Release();
+}
+
 void DumpTypeParameterTable(Isolate* isolate) {
   OS::PrintErr("canonical type parameters (cloned from declarations):\n");
   CanonicalTypeParameterSet table(
@@ -27055,6 +27096,562 @@ ErrorPtr Class::VerifyEntryPoint() const {
   } else {
     return Error::null();
   }
+}
+
+AbstractTypePtr RecordType::FieldTypeAt(intptr_t index) const {
+  const Array& field_types = Array::Handle(untag()->field_types());
+  return AbstractType::RawCast(field_types.At(index));
+}
+
+void RecordType::SetFieldTypeAt(intptr_t index,
+                                const AbstractType& value) const {
+  ASSERT(!value.IsNull());
+  const Array& field_types = Array::Handle(untag()->field_types());
+  field_types.SetAt(index, value);
+}
+
+void RecordType::set_field_types(const Array& value) const {
+  ASSERT(!value.IsNull() && (value.Length() > 0));
+  untag()->set_field_types(value.ptr());
+}
+
+StringPtr RecordType::FieldNameAt(intptr_t index) const {
+  const Array& field_names = Array::Handle(untag()->field_names());
+  return String::RawCast(field_names.At(index));
+}
+
+void RecordType::SetFieldNameAt(intptr_t index, const String& value) const {
+  ASSERT(!value.IsNull());
+  ASSERT(value.IsSymbol());
+  const Array& field_names = Array::Handle(untag()->field_names());
+  field_names.SetAt(index, value);
+}
+
+void RecordType::set_field_names(const Array& value) const {
+  ASSERT(value.ptr() == Object::empty_array().ptr() || value.Length() > 0);
+  untag()->set_field_names(value.ptr());
+}
+
+void RecordType::Print(NameVisibility name_visibility,
+                       BaseTextBuffer* printer) const {
+  if (IsNull()) {
+    printer->AddString("null");
+    return;
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  AbstractType& type = AbstractType::Handle(zone);
+  String& name = String::Handle(zone);
+  const intptr_t num_fields = NumFields();
+  const intptr_t num_positional_fields = NumPositionalFields();
+  printer->AddString("(");
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    if (i != 0) {
+      printer->AddString(", ");
+    }
+    if (i == num_positional_fields) {
+      printer->AddString("{");
+    }
+    type = FieldTypeAt(i);
+    type.PrintName(name_visibility, printer);
+    if (i >= num_positional_fields) {
+      printer->AddString(" ");
+      name = FieldNameAt(i - num_positional_fields);
+      printer->AddString(name.ToCString());
+    }
+  }
+  if (num_positional_fields < num_fields) {
+    printer->AddString("}");
+  }
+  printer->AddString(")");
+  printer->AddString(NullabilitySuffix(name_visibility));
+}
+
+const char* RecordType::ToCString() const {
+  Zone* zone = Thread::Current()->zone();
+  ZoneTextBuffer printer(zone);
+  Print(kInternalName, &printer);
+  return printer.buffer();
+}
+
+bool RecordType::IsInstantiated(Genericity genericity,
+                                intptr_t num_free_fun_type_params,
+                                TrailPtr trail) const {
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_fields = NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type = FieldTypeAt(i);
+    if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+RecordTypePtr RecordType::New(Heap::Space space) {
+  ObjectPtr raw =
+      Object::Allocate(RecordType::kClassId, RecordType::InstanceSize(), space,
+                       RecordType::ContainsCompressedPointers());
+  return static_cast<RecordTypePtr>(raw);
+}
+
+RecordTypePtr RecordType::New(const Array& field_types,
+                              const Array& field_names,
+                              Nullability nullability,
+                              Heap::Space space) {
+  Zone* Z = Thread::Current()->zone();
+  const RecordType& result = RecordType::Handle(Z, RecordType::New(space));
+  result.set_field_types(field_types);
+  result.set_field_names(field_names);
+  result.SetHash(0);
+  result.set_flags(0);
+  result.set_nullability(nullability);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
+  result.InitializeTypeTestingStubNonAtomic(
+      Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
+  return result.ptr();
+}
+
+RecordTypePtr RecordType::ToNullability(Nullability value,
+                                        Heap::Space space) const {
+  if (nullability() == value) {
+    return ptr();
+  }
+  // Clone record type and set new nullability.
+  RecordType& type = RecordType::Handle();
+  // Always cloning in old space and removing space parameter would not satisfy
+  // currently existing requests for type instantiation in new space.
+  type ^= Object::Clone(*this, space);
+  type.set_nullability(value);
+  type.SetHash(0);
+  type.InitializeTypeTestingStubNonAtomic(
+      Code::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
+  if (IsCanonical()) {
+    // Object::Clone does not clone canonical bit.
+    ASSERT(!type.IsCanonical());
+    type ^= type.Canonicalize(Thread::Current(), nullptr);
+  }
+  return type.ptr();
+}
+
+bool RecordType::IsEquivalent(const Instance& other,
+                              TypeEquality kind,
+                              TrailPtr trail) const {
+  ASSERT(!IsNull());
+  if (ptr() == other.ptr()) {
+    return true;
+  }
+  if (other.IsTypeRef()) {
+    // Unfold right hand type. Divergence is controlled by left hand type.
+    const AbstractType& other_ref_type =
+        AbstractType::Handle(TypeRef::Cast(other).type());
+    ASSERT(!other_ref_type.IsTypeRef());
+    return IsEquivalent(other_ref_type, kind, trail);
+  }
+  if (!other.IsRecordType()) {
+    return false;
+  }
+  const RecordType& other_type = RecordType::Cast(other);
+  if ((NumFields() != other_type.NumFields()) ||
+      (NumNamedFields() != other_type.NumNamedFields())) {
+    // Different number of positional or named fields.
+    return false;
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  if (!IsNullabilityEquivalent(thread, other_type, kind)) {
+    return false;
+  }
+  // Equal record types must have equal field types and names.
+  AbstractType& field_type = Type::Handle(zone);
+  AbstractType& other_field_type = Type::Handle(zone);
+  const intptr_t num_fields = NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    field_type = FieldTypeAt(i);
+    other_field_type = other_type.FieldTypeAt(i);
+    if (!field_type.IsEquivalent(other_field_type, kind, trail)) {
+      return false;
+    }
+  }
+  if (field_names() != other_type.field_names()) {
+    const intptr_t num_named_fields = NumNamedFields();
+    for (intptr_t i = 0; i < num_named_fields; ++i) {
+      if (FieldNameAt(i) != other_type.FieldNameAt(i)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+uword RecordType::ComputeHash() const {
+  ASSERT(IsFinalized());
+  uint32_t result = 0;
+  // A legacy type should have the same hash as its non-nullable version to be
+  // consistent with the definition of type equality in Dart code.
+  Nullability type_nullability = nullability();
+  if (type_nullability == Nullability::kLegacy) {
+    type_nullability = Nullability::kNonNullable;
+  }
+  result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_fields = NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type = FieldTypeAt(i);
+    result = CombineHashes(result, type.Hash());
+  }
+  const intptr_t num_named_fields = NumNamedFields();
+  if (num_named_fields > 0) {
+    String& field_name = String::Handle();
+    for (intptr_t i = 0; i < num_named_fields; ++i) {
+      field_name = FieldNameAt(i);
+      result = CombineHashes(result, field_name.Hash());
+    }
+  }
+  result = FinalizeHash(result, kHashBits);
+  SetHash(result);
+  return result;
+}
+
+bool RecordType::IsRecursive(TrailPtr trail) const {
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_fields = NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type = FieldTypeAt(i);
+    if (type.IsRecursive(trail)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool RecordType::RequireConstCanonicalTypeErasure(Zone* zone,
+                                                  TrailPtr trail) const {
+  if (IsNonNullable()) {
+    return true;
+  }
+  if (IsLegacy()) {
+    return false;
+  }
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_fields = NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type = FieldTypeAt(i);
+    if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+AbstractTypePtr RecordType::Canonicalize(Thread* thread, TrailPtr trail) const {
+  ASSERT(IsFinalized());
+  Zone* zone = thread->zone();
+  AbstractType& type = AbstractType::Handle(zone);
+  if (IsCanonical()) {
+#ifdef DEBUG
+    // Verify that all fields are allocated in old space and are canonical.
+    ASSERT(Array::Handle(zone, field_types()).IsOld());
+    ASSERT(Array::Handle(zone, field_names()).IsOld());
+    const intptr_t num_fields = NumFields();
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      type = FieldTypeAt(i);
+      ASSERT(type.IsOld());
+      ASSERT(type.IsCanonical());
+    }
+#endif
+    return ptr();
+  }
+  auto isolate_group = thread->isolate_group();
+  ObjectStore* object_store = isolate_group->object_store();
+  RecordType& rec = RecordType::Handle(zone);
+  {
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    CanonicalRecordTypeSet table(zone, object_store->canonical_record_types());
+    rec ^= table.GetOrNull(CanonicalRecordTypeKey(*this));
+    ASSERT(object_store->canonical_record_types() == table.Release().ptr());
+  }
+  if (rec.IsNull()) {
+    ASSERT(Array::Handle(zone, field_types()).IsOld());
+    ASSERT(Array::Handle(zone, field_names()).IsOld());
+    const intptr_t num_fields = NumFields();
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      type = FieldTypeAt(i);
+      if (!type.IsCanonical()) {
+        type = type.Canonicalize(thread, trail);
+        SetFieldTypeAt(i, type);
+        SetHash(0);
+      }
+    }
+    if (IsCanonical()) {
+      // Canonicalizing fields types canonicalized this record as a
+      // side effect.
+      ASSERT(IsRecursive());
+      return this->ptr();
+    }
+    // Check to see if the record type got added to canonical table as part
+    // of the canonicalization of its signature types.
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    CanonicalRecordTypeSet table(zone, object_store->canonical_record_types());
+    rec ^= table.GetOrNull(CanonicalRecordTypeKey(*this));
+    if (rec.IsNull()) {
+      // Add this record type into the canonical table of record types.
+      if (this->IsNew()) {
+        rec ^= Object::Clone(*this, Heap::kOld);
+      } else {
+        rec = this->ptr();
+      }
+      ASSERT(rec.IsOld());
+      rec.SetCanonical();  // Mark object as being canonical.
+      bool present = table.Insert(rec);
+      ASSERT(!present);
+    }
+    object_store->set_canonical_record_types(table.Release());
+  }
+  return rec.ptr();
+}
+
+#if defined(DEBUG)
+bool RecordType::CheckIsCanonical(Thread* thread) const {
+  Zone* zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
+  RecordType& type = RecordType::Handle(zone);
+  ObjectStore* object_store = isolate_group->object_store();
+  {
+    ASSERT(thread->isolate_group()
+               ->constant_canonicalization_mutex()
+               ->IsOwnedByCurrentThread());
+    CanonicalRecordTypeSet table(zone, object_store->canonical_record_types());
+    type ^= table.GetOrNull(CanonicalRecordTypeKey(*this));
+    object_store->set_canonical_record_types(table.Release());
+  }
+  return ptr() == type.ptr();
+}
+#endif  // DEBUG
+
+void RecordType::EnumerateURIs(URIs* uris) const {
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_fields = NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type = FieldTypeAt(i);
+    type.EnumerateURIs(uris);
+  }
+}
+
+AbstractTypePtr RecordType::InstantiateFrom(
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
+  ASSERT(IsFinalized() || IsBeingFinalized());
+  Zone* zone = Thread::Current()->zone();
+
+  const intptr_t num_fields = NumFields();
+  const Array& old_field_types = Array::Handle(zone, field_types());
+  const Array& new_field_types =
+      Array::Handle(zone, Array::New(num_fields, space));
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type ^= old_field_types.At(i);
+    if (!type.IsInstantiated()) {
+      type = type.InstantiateFrom(instantiator_type_arguments,
+                                  function_type_arguments,
+                                  num_free_fun_type_params, space, trail);
+      // A returned null type indicates a failed instantiation in dead code that
+      // must be propagated up to the caller, the optimizing compiler.
+      if (type.IsNull()) {
+        return RecordType::null();
+      }
+    }
+    new_field_types.SetAt(i, type);
+  }
+
+  const auto& rec = RecordType::Handle(
+      zone, RecordType::New(new_field_types, Array::Handle(zone, field_names()),
+                            nullability(), space));
+
+  if (IsFinalized()) {
+    rec.SetIsFinalized();
+  } else {
+    if (IsBeingFinalized()) {
+      rec.SetIsBeingFinalized();
+    }
+  }
+
+  // Canonicalization is not part of instantiation.
+  return rec.ptr();
+}
+
+bool RecordType::IsSubtypeOf(const RecordType& other, Heap::Space space) const {
+  if (ptr() == other.ptr()) {
+    return true;
+  }
+  ASSERT(IsFinalized());
+  ASSERT(other.IsFinalized());
+  const intptr_t num_fields = NumFields();
+  if ((num_fields != other.NumFields()) ||
+      (field_names() != other.field_names())) {
+    // Different number of fields or different named fields.
+    return false;
+  }
+  Thread* const thread = Thread::Current();
+  if (!IsNullabilityEquivalent(thread, other, TypeEquality::kInSubtypeTest)) {
+    return false;
+  }
+  // Check subtyping of record field types.
+  Zone* const zone = thread->zone();
+  AbstractType& field_type = Type::Handle(zone);
+  AbstractType& other_field_type = Type::Handle(zone);
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    field_type = FieldTypeAt(i);
+    other_field_type = other.FieldTypeAt(i);
+    if (!field_type.IsSubtypeOf(other_field_type, space)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+intptr_t Record::NumNamedFields() const {
+  return Array::LengthOf(field_names());
+}
+
+intptr_t Record::NumPositionalFields() const {
+  return num_fields() - NumNamedFields();
+}
+
+void Record::set_num_fields(intptr_t num_fields) const {
+  ASSERT(num_fields >= 0);
+  StoreNonPointer(&untag()->num_fields_, num_fields);
+}
+
+void Record::set_field_names(const Array& field_names) const {
+  ASSERT(!field_names.IsNull());
+  ASSERT(field_names.IsCanonical());
+  ASSERT(field_names.ptr() == Object::empty_array().ptr() ||
+         field_names.Length() > 0);
+  untag()->set_field_names(field_names.ptr());
+}
+
+RecordPtr Record::New(intptr_t num_fields,
+                      const Array& field_names,
+                      Heap::Space space) {
+  ASSERT(num_fields >= 0);
+  Record& result = Record::Handle();
+  {
+    ObjectPtr raw =
+        Object::Allocate(Record::kClassId, Record::InstanceSize(num_fields),
+                         space, Record::ContainsCompressedPointers());
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.set_num_fields(num_fields);
+  }
+  result.set_field_names(field_names);
+  return result.ptr();
+}
+
+const char* Record::ToCString() const {
+  if (IsNull()) {
+    return "Record: null";
+  }
+  Zone* zone = Thread::Current()->zone();
+  ZoneTextBuffer printer(zone);
+  const intptr_t num_fields = this->num_fields();
+  const intptr_t num_positional_fields = NumPositionalFields();
+  const Array& field_names = Array::Handle(zone, this->field_names());
+  Object& obj = Object::Handle(zone);
+  printer.AddString("Record (");
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    if (i != 0) {
+      printer.AddString(", ");
+    }
+    if (i >= num_positional_fields) {
+      obj = field_names.At(i - num_positional_fields);
+      printer.AddString(obj.ToCString());
+      printer.AddString(": ");
+    }
+    obj = FieldAt(i);
+    printer.AddString(obj.ToCString());
+  }
+  printer.AddString(")");
+  return printer.buffer();
+}
+
+bool Record::CanonicalizeEquals(const Instance& other) const {
+  if (this->ptr() == other.ptr()) {
+    return true;
+  }
+
+  if (!other.IsRecord() || other.IsNull()) {
+    return false;
+  }
+
+  const Record& other_rec = Record::Cast(other);
+
+  const intptr_t num_fields = this->num_fields();
+  if (num_fields != other_rec.num_fields()) {
+    return false;
+  }
+
+  if (field_names() != other_rec.field_names()) {
+    return false;
+  }
+
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    if (this->FieldAt(i) != other_rec.FieldAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+uint32_t Record::CanonicalizeHash() const {
+  Thread* thread = Thread::Current();
+  uint32_t hash = thread->heap()->GetCanonicalHash(ptr());
+  if (hash != 0) {
+    return hash;
+  }
+  const intptr_t num_fields = this->num_fields();
+  hash = num_fields;
+  Instance& element = Instance::Handle(field_names());
+  hash = CombineHashes(hash, element.CanonicalizeHash());
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    element ^= FieldAt(i);
+    hash = CombineHashes(hash, element.CanonicalizeHash());
+  }
+  hash = FinalizeHash(hash, kHashBits);
+  thread->heap()->SetCanonicalHash(ptr(), hash);
+  return hash;
+}
+
+void Record::CanonicalizeFieldsLocked(Thread* thread) const {
+  Zone* zone = thread->zone();
+  Instance& obj = Instance::Handle(zone);
+  const intptr_t num_fields = this->num_fields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    obj ^= FieldAt(i);
+    obj = obj.CanonicalizeLocked(thread);
+    SetFieldAt(i, obj);
+  }
+}
+
+RecordTypePtr Record::GetRecordType() const {
+  Zone* const zone = Thread::Current()->zone();
+  const intptr_t num_fields = this->num_fields();
+  const Array& field_types =
+      Array::Handle(zone, Array::New(num_fields, Heap::kOld));
+  Instance& obj = Instance::Handle(zone);
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    obj ^= FieldAt(i);
+    type = obj.GetType(Heap::kNew);
+    field_types.SetAt(i, type);
+  }
+  const Array& field_names = Array::Handle(zone, this->field_names());
+  type = RecordType::New(field_types, field_names, Nullability::kNonNullable);
+  type = ClassFinalizer::FinalizeType(type);
+  return RecordType::Cast(type).ptr();
 }
 
 }  // namespace dart

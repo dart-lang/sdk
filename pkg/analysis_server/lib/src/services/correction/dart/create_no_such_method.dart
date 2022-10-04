@@ -14,10 +14,10 @@ class CreateNoSuchMethod extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node.parent is! ClassDeclaration) {
+    final targetClass = node;
+    if (targetClass is! ClassDeclaration) {
       return;
     }
-    var targetClass = node.parent as ClassDeclaration;
     // prepare environment
     var prefix = utils.getIndent(1);
     var insertOffset = targetClass.end - 1;

@@ -184,7 +184,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Find the enclosing class.
     _enclosingClassNode = node?.thisOrAncestorOfType<ClassDeclaration>();
-    _enclosingClassElement = _enclosingClassNode?.declaredElement2;
+    _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
     // new MyWidget(...)
     var newExpression = _flutter.identifyNewExpression(node);
@@ -372,7 +372,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// Replace invocations of the [_method] with instantiations of the new
   /// widget class.
   void _replaceInvocationsWithInstantiations(DartFileEditBuilder builder) {
-    var collector = _MethodInvocationsCollector(_method!.declaredElement2!);
+    var collector = _MethodInvocationsCollector(_method!.declaredElement!);
     _enclosingClassNode!.accept(collector);
     for (var invocation in collector.invocations) {
       List<Expression> arguments = invocation.argumentList.arguments;
@@ -610,7 +610,7 @@ class _Parameter {
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {
-  final ClassElement? enclosingClass;
+  final InterfaceElement? enclosingClass;
   final SourceRange expressionRange;
 
   final RefactoringStatus status = RefactoringStatus();
@@ -669,7 +669,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         enclosingClass,
         ...enclosingClass.allSupertypes.map((t) => t.element2)
       ];
-      return enclosingClasses.contains(element.enclosingElement3);
+      return enclosingClasses.contains(element.enclosingElement);
     }
     return false;
   }

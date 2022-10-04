@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -33,13 +34,22 @@ class RenameToCamelCase extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var identifier = node;
-    if (identifier is! SimpleIdentifier) {
+    Token? nameToken;
+    Element? element;
+    final node = this.node;
+    if (node is SimpleFormalParameter) {
+      nameToken = node.name;
+      element = node.declaredElement;
+    } else if (node is VariableDeclaration) {
+      nameToken = node.name;
+      element = node.declaredElement;
+    }
+    if (nameToken == null || element == null) {
       return;
     }
 
     // Prepare the new name.
-    var newName = identifier.name.toLowerCamelCase;
+    var newName = nameToken.lexeme.toLowerCamelCase;
     if (newName == null) {
       return;
     }
@@ -47,7 +57,6 @@ class RenameToCamelCase extends CorrectionProducer {
 
     // Find references to the identifier.
     List<SimpleIdentifier>? references;
-    var element = identifier.staticElement;
     if (element is LocalVariableElement) {
       var root = node.thisOrAncestorOfType<Block>();
       if (root != null) {
@@ -70,10 +79,13 @@ class RenameToCamelCase extends CorrectionProducer {
     }
 
     // Compute the change.
-    var references_final = references;
+    final sourceRanges = {
+      range.token(nameToken),
+      ...references.map(range.node),
+    };
     await builder.addDartFileEdit(file, (builder) {
-      for (var reference in references_final) {
-        builder.addSimpleReplacement(range.node(reference), _newName);
+      for (var sourceRange in sourceRanges) {
+        builder.addSimpleReplacement(sourceRange, _newName);
       }
     });
   }

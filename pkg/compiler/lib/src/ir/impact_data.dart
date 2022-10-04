@@ -28,8 +28,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   final ImpactData _data = ImpactData();
   final KernelToElementMapForImpactData _elementMap;
 
-  @override
-  final VariableScopeModel variableScopeModel;
+  // Note: this may be null for builders associated with abstract methods.
+  final VariableScopeModel? _variableScopeModel;
 
   @override
   final ir.StaticTypeContext staticTypeContext;
@@ -45,11 +45,14 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       this.staticTypeContext,
       StaticTypeCacheImpl staticTypeCache,
       ir.ClassHierarchy classHierarchy,
-      this.variableScopeModel,
+      this._variableScopeModel,
       {this.useAsserts = false,
       this.inferEffectivelyFinalVariableTypes = true})
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
+
+  @override
+  VariableScopeModel get variableScopeModel => _variableScopeModel!;
 
   CommonElements get _commonElements => _elementMap.commonElements;
 

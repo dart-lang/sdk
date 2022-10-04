@@ -61,13 +61,13 @@ class M extends Object with A {}
 ''');
     ClassElement classElementA = findElement.class_('A');
     assertThat(classElementA)
-      ..isAncestorOf('B1 extends A')
-      ..isAncestorOf('B2 implements A')
-      ..isAncestorOf('C1 extends B1')
-      ..isAncestorOf('C2 extends B2')
-      ..isAncestorOf('C3 implements B1')
-      ..isAncestorOf('C4 implements B2')
-      ..isAncestorOf('M extends Object with A');
+      ..isAncestorOf('B1 extends A', length: 2)
+      ..isAncestorOf('B2 implements A', length: 2)
+      ..isAncestorOf('C1 extends B1', length: 2)
+      ..isAncestorOf('C2 extends B2', length: 2)
+      ..isAncestorOf('C3 implements B1', length: 2)
+      ..isAncestorOf('C4 implements B2', length: 2)
+      ..isAncestorOf('M extends Object with A', length: 1);
   }
 
   test_hasAncestor_ClassTypeAlias() async {
@@ -80,9 +80,9 @@ class C2 = Object with B;
     ClassElement classElementA = findElement.class_('A');
     ClassElement classElementB = findElement.class_('B');
     assertThat(classElementA)
-      ..isAncestorOf('C1 = Object with A')
-      ..isAncestorOf('C2 = Object with B');
-    assertThat(classElementB).isAncestorOf('C2 = Object with B');
+      ..isAncestorOf('C1 = Object with A', length: 2)
+      ..isAncestorOf('C2 = Object with B', length: 2);
+    assertThat(classElementB).isAncestorOf('C2 = Object with B', length: 2);
   }
 
   test_hasAncestor_MixinDeclaration() async {
@@ -98,12 +98,12 @@ mixin M5 on M2 {}
 ''');
     ClassElement classElementA = findElement.class_('A');
     assertThat(classElementA)
-      ..isAncestorOf('B extends A')
-      ..isAncestorOf('M1 on A')
-      ..isAncestorOf('M2 on B')
-      ..isAncestorOf('M3 implements A')
-      ..isAncestorOf('M4 implements B')
-      ..isAncestorOf('M5 on M2');
+      ..isAncestorOf('B extends A', length: 1)
+      ..isAncestorOf('M1 on A', length: 2)
+      ..isAncestorOf('M2 on B', length: 2)
+      ..isAncestorOf('M3 implements A', length: 2)
+      ..isAncestorOf('M4 implements B', length: 2)
+      ..isAncestorOf('M5 on M2', length: 2);
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
@@ -362,11 +362,11 @@ main() {
 ''');
 
     var intMethod = findNode.methodDeclaration('foo() {} // int');
-    assertThat(intMethod.declaredElement2!)
+    assertThat(intMethod.declaredElement!)
         .isInvokedAt('foo(); // int ref', true);
 
     var doubleMethod = findNode.methodDeclaration('foo() {} // double');
-    assertThat(doubleMethod.declaredElement2!)
+    assertThat(doubleMethod.declaredElement!)
         .isInvokedAt('foo(); // double ref', true);
   }
 
@@ -661,6 +661,24 @@ void f() {}
     assertThat(findElement.class_('A'))
       ..isReferencedAt('A<A', false)
       ..isReferencedAt('A>()', false);
+  }
+
+  test_isReferencedBy_ClassElement_inRecordTypeAnnotation_named() async {
+    await _indexTestUnit('''
+class A {}
+
+void f(({int foo, A bar}) r) {}
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A bar', false);
+  }
+
+  test_isReferencedBy_ClassElement_inRecordTypeAnnotation_positional() async {
+    await _indexTestUnit('''
+class A {}
+
+void f((int, A) r) {}
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A)', false);
   }
 
   test_isReferencedBy_ClassElement_inTypeAlias() async {
@@ -1047,15 +1065,17 @@ main(A a) {
     FieldElement field = findElement.field('field');
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
+
     // A()
-    assertThat(field).isWrittenAt('field});', true);
+    assertThat(field)
+      ..isWrittenAt('field});', true, length: 5)
+      ..hasRelationCount(1);
     // m()
-    assertThat(setter).isReferencedAt('field = 2; // nq', false);
-    assertThat(getter).isReferencedAt('field); // nq', false);
+    assertThat(setter).isReferencedAt('field = 2; // nq', false, length: 5);
+    assertThat(getter).isReferencedAt('field); // nq', false, length: 5);
     // main()
-    assertThat(setter).isReferencedAt('field = 3; // q', true);
-    assertThat(getter).isReferencedAt('field); // q', true);
-    assertThat(field).isReferencedAt('field: 4', true);
+    assertThat(setter).isReferencedAt('field = 3; // q', true, length: 5);
+    assertThat(getter).isReferencedAt('field); // q', true, length: 5);
   }
 
   test_isReferencedBy_FieldElement_class_multiple() async {
@@ -1077,18 +1097,18 @@ class A {
       FieldElement field = findElement.field('aaa');
       PropertyAccessorElement getter = field.getter!;
       PropertyAccessorElement setter = field.setter!;
-      assertThat(field).isWrittenAt('aaa, ', true);
-      assertThat(getter).isReferencedAt('aaa);', false);
-      assertThat(setter).isReferencedAt('aaa = 1;', false);
+      assertThat(field).isWrittenAt('aaa, ', true, length: 3);
+      assertThat(getter).isReferencedAt('aaa);', false, length: 3);
+      assertThat(setter).isReferencedAt('aaa = 1;', false, length: 3);
     }
     // bbb
     {
       FieldElement field = findElement.field('bbb');
       PropertyAccessorElement getter = field.getter!;
       PropertyAccessorElement setter = field.setter!;
-      assertThat(field).isWrittenAt('bbb) {}', true);
-      assertThat(getter).isReferencedAt('bbb);', false);
-      assertThat(setter).isReferencedAt('bbb = 2;', false);
+      assertThat(field).isWrittenAt('bbb) {}', true, length: 3);
+      assertThat(getter).isReferencedAt('bbb);', false, length: 3);
+      assertThat(setter).isReferencedAt('bbb = 2;', false, length: 3);
     }
   }
 
@@ -1146,15 +1166,17 @@ void f(E e) {
     FieldElement field = findElement.field('field');
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
+
     // E()
-    assertThat(field).isWrittenAt('field});', true);
+    assertThat(field)
+      ..isWrittenAt('field});', true, length: 5)
+      ..hasRelationCount(1);
     // foo()
-    assertThat(setter).isReferencedAt('field = 2; // nq', false);
-    assertThat(getter).isReferencedAt('field; // nq', false);
+    assertThat(setter).isReferencedAt('field = 2; // nq', false, length: 5);
+    assertThat(getter).isReferencedAt('field; // nq', false, length: 5);
     // f()
-    assertThat(setter).isReferencedAt('field = 3; // q', true);
-    assertThat(getter).isReferencedAt('field; // q', true);
-    assertThat(field).isReferencedAt('field: 4', true);
+    assertThat(setter).isReferencedAt('field = 3; // q', true, length: 5);
+    assertThat(getter).isReferencedAt('field; // q', true, length: 5);
   }
 
   test_isReferencedBy_FieldElement_enum_index() async {
@@ -1384,7 +1406,7 @@ class B extends A {
 }
 ''');
     var element = findElement.unnamedConstructor('A').parameter('a');
-    assertThat(element).isReferencedAt('a}); // ref', true);
+    assertThat(element).isReferencedAt('a}); // ref', true, length: 1);
   }
 
   test_isReferencedBy_ParameterElement_ofConstructor_super_positional() async {
@@ -1397,7 +1419,7 @@ class B extends A {
 }
 ''');
     var element = findElement.unnamedConstructor('A').parameter('a');
-    assertThat(element).isReferencedAt('a); // ref', true);
+    assertThat(element).isReferencedAt('a); // ref', true, length: 1);
   }
 
   test_isReferencedBy_ParameterElement_optionalNamed_ofConstructor_genericClass() async {
@@ -1537,16 +1559,16 @@ main() {
 
     var intGetter = findNode.methodDeclaration('0; // int getter');
     var intSetter = findNode.methodDeclaration('{} // int setter');
-    assertThat(intGetter.declaredElement2!)
+    assertThat(intGetter.declaredElement!)
         .isReferencedAt('foo; // int getter ref', true);
-    assertThat(intSetter.declaredElement2!)
+    assertThat(intSetter.declaredElement!)
         .isReferencedAt('foo = 0; // int setter ref', true);
 
     var doubleGetter = findNode.methodDeclaration('0; // double getter');
     var doubleSetter = findNode.methodDeclaration('{} // double setter');
-    assertThat(doubleGetter.declaredElement2!)
+    assertThat(doubleGetter.declaredElement!)
         .isReferencedAt('foo; // double getter ref', true);
-    assertThat(doubleSetter.declaredElement2!)
+    assertThat(doubleSetter.declaredElement!)
         .isReferencedAt('foo = 0; // double setter ref', true);
   }
 
@@ -1655,8 +1677,8 @@ class A {
 ''');
     FieldElement element = findElement.field('field');
     assertThat(element)
-      ..isWrittenAt('field})', true)
-      ..isWrittenAt('field = 5', true);
+      ..isWrittenAt('field})', true, length: 5)
+      ..isWrittenAt('field = 5', true, length: 5);
   }
 
   test_subtypes_classDeclaration() async {

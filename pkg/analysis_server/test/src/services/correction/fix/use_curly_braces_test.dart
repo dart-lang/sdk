@@ -12,7 +12,7 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UseCurlyBracesTest);
+    defineReflectiveTests(UseCurlyBracesBulkTest);
     defineReflectiveTests(ControlBodyOnNewLineBulkTest);
     defineReflectiveTests(ControlBodyOnNewLineInFileTest);
     defineReflectiveTests(ControlBodyOnNewLineLintTest);
@@ -94,7 +94,7 @@ f() {
 }
 
 @reflectiveTest
-class UseCurlyBracesTest extends BulkFixProcessorTest {
+class UseCurlyBracesBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.curly_braces_in_flow_control_structures;
 

@@ -28,14 +28,6 @@ NavigationCollector computeDartNavigation(
   } else {
     var node = _getNodeForRange(unit, offset, length);
 
-    {
-      final parent = node?.parent;
-      // ignore: deprecated_member_use
-      if (parent is ConstructorDeclaration && parent.name == node) {
-        node = parent;
-      }
-    }
-
     if (node != null) {
       node = _getNavigationTargetNode(node);
     }
@@ -88,7 +80,23 @@ class _DartNavigationCollector {
   _DartNavigationCollector(
       this.collector, this.requestedOffset, this.requestedLength);
 
-  void _addRegion(int offset, int length, Element? element) {
+  void _addRegion(
+    int offset,
+    int length,
+    protocol.ElementKind kind,
+    protocol.Location location, {
+    Element? targetElement,
+  }) {
+    // Discard elements that don't span the offset/range given (if provided).
+    if (!_isWithinRequestedRange(offset, length)) {
+      return;
+    }
+
+    collector.addRegion(offset, length, kind, location,
+        targetElement: targetElement);
+  }
+
+  void _addRegionForElement(int offset, int length, Element? element) {
     element = element?.nonSynthetic;
     if (element == null || element == DynamicElementImpl.instance) {
       return;
@@ -107,7 +115,7 @@ class _DartNavigationCollector {
       return;
     }
 
-    collector.addRegion(offset, length, kind, location, targetElement: element);
+    _addRegion(offset, length, kind, location, targetElement: element);
   }
 
   void _addRegionForNode(AstNode? node, Element? element) {
@@ -116,13 +124,13 @@ class _DartNavigationCollector {
     }
     var offset = node.offset;
     var length = node.length;
-    _addRegion(offset, length, element);
+    _addRegionForElement(offset, length, element);
   }
 
   void _addRegionForToken(Token token, Element? element) {
     var offset = token.offset;
     var length = token.length;
-    _addRegion(offset, length, element);
+    _addRegionForElement(offset, length, element);
   }
 
   /// Checks if offset/length intersect with the range the user requested
@@ -149,6 +157,7 @@ class _DartNavigationCollector {
 class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   final ResourceProvider resourceProvider;
   final _DartNavigationCollector computer;
+  String? _examplesApiPath;
 
   _DartNavigationComputerVisitor(this.resourceProvider, this.computer);
 
@@ -156,7 +165,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var element = node.element;
     if (element is ConstructorElement && element.isSynthetic) {
-      element = element.enclosingElement3;
+      element = element.enclosingElement;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
@@ -193,7 +202,24 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitClassDeclaration(node);
+  }
+
+  @override
   void visitComment(Comment node) {
+    if (!node.isDocumentation) {
+      super.visitComment(node);
+      return;
+    }
+    _examplesApiPath ??= _computeParentWithExamplesAPI(node, resourceProvider);
+    if (_examplesApiPath == null) {
+      // Examples directory doesn't exist.
+      super.visitComment(node);
+      return;
+    }
+
     for (var commentReference in node.references) {
       commentReference.accept(this);
     }
@@ -211,27 +237,34 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       if (inToolAnnotation) {
         if (strValue.contains('{@end-tool}')) {
           inToolAnnotation = false;
-        } else if (strValue.contains('** See code in ')) {
-          var startIndex = strValue.indexOf('** See code in ') + 15;
-          var endIndex = strValue.indexOf('.dart') + 5;
-          var pathSnippet = strValue.substring(startIndex, endIndex);
-          var parentPath =
-              _computeParentWithExamplesAPI(node, resourceProvider);
-          if (parentPath != null) {
+        } else {
+          var seeCodeIn = '** See code in ';
+          var startIndex = strValue.indexOf('${seeCodeIn}examples/api/');
+          if (startIndex != -1) {
+            startIndex += seeCodeIn.length;
+            var endIndex = strValue.indexOf('.dart') + 5;
+            var pathSnippet = strValue.substring(startIndex, endIndex);
+            // Split on '/' because that's what the comment syntax uses, but
+            // re-join it using the resource provider to get the right separator
+            // for the platform.
+            var examplePath = resourceProvider.pathContext
+                .joinAll('${_examplesApiPath!}/$pathSnippet'.split('/'));
             var start = token.offset + startIndex;
             var end = token.offset + endIndex;
-            computer.collector.addRegion(
-                start,
-                end - start,
-                protocol.ElementKind.LIBRARY,
-                protocol.Location(
-                    resourceProvider.pathContext.join(parentPath, pathSnippet),
-                    0,
-                    0,
-                    0,
-                    0,
-                    endLine: 0,
-                    endColumn: 0));
+            computer._addRegion(
+              start,
+              end - start,
+              protocol.ElementKind.LIBRARY,
+              protocol.Location(
+                examplePath,
+                0,
+                0,
+                0,
+                0,
+                endLine: 0,
+                endColumn: 0,
+              ),
+            );
           }
         }
       } else if (strValue.contains('{@tool ')) {
@@ -242,6 +275,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit unit) {
+    // Reset the examples path for this compilation unit.
+    _examplesApiPath = null;
+
     // prepare top-level nodes sorted by their offsets
     var nodes = <AstNode>[];
     nodes.addAll(unit.directives);
@@ -281,12 +317,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // For a default constructor, override the class name to be the declaration
     // itself rather than linking to the class.
-    var nameToken = node.name2;
+    var nameToken = node.name;
     if (nameToken == null) {
-      computer._addRegionForNode(node.returnType, node.declaredElement2);
+      computer._addRegionForNode(node.returnType, node.declaredElement);
     } else {
       node.returnType.accept(this);
-      computer._addRegionForToken(nameToken, node.declaredElement2);
+      computer._addRegionForToken(nameToken, node.declaredElement);
     }
     node.parameters.accept(this);
     node.initializers.accept(this);
@@ -328,7 +364,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.type == null) {
       var token = node.keyword;
       if (token != null && token.keyword == Keyword.VAR) {
-        var inferredType = node.declaredElement2?.type;
+        var inferredType = node.declaredElement?.type;
         if (inferredType is InterfaceType) {
           computer._addRegionForToken(token, inferredType.element2);
         }
@@ -339,7 +375,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegionForToken(node.name2, node.constructorElement);
+    computer._addRegionForToken(node.name, node.constructorElement);
 
     var arguments = node.arguments;
     if (arguments != null) {
@@ -376,6 +412,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     var importElement = node.element2;
     if (importElement != null) {
@@ -395,7 +437,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForNode(node.name, node.element2);
+    computer._addRegionForNode(node.name2, node.element2);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitMethodDeclaration(node);
   }
 
   @override
@@ -444,13 +492,23 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       RedirectingConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement3;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForToken(node.thisKeyword, element);
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    final nameToken = node.name;
+    if (nameToken != null) {
+      computer._addRegionForToken(nameToken, node.declaredElement);
+    }
+
+    super.visitSimpleFormalParameter(node);
   }
 
   @override
@@ -463,7 +521,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement3;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForToken(node.superKeyword, element);
@@ -487,19 +545,31 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitTypeParameter(TypeParameter node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitTypeParameter(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitVariableDeclaration(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     /// Return the element for the type inferred for each of the variables in
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
     Element? getCommonElement(List<VariableDeclaration> variables) {
-      final firstType = variables[0].declaredElement2?.type;
+      final firstType = variables[0].declaredElement?.type;
       if (firstType is! InterfaceType) {
         return null;
       }
 
       var firstElement = firstType.element2;
       for (var i = 1; i < variables.length; i++) {
-        final type = variables[i].declaredElement2?.type;
+        final type = variables[i].declaredElement?.type;
         if (type is! InterfaceType) {
           return null;
         }
@@ -533,11 +603,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Given some [Comment], compute and return the parent directory absolute
-  /// path which contains the directories 'examples/api/'. Null is returned if
-  /// such directories are not found.
+  /// Given some [AstNode], compute and return the parent directory absolute
+  /// path which contains the directories 'examples/api/'.
+  ///
+  /// Null is returned if such directories are not found.
   String? _computeParentWithExamplesAPI(
-      Comment node, ResourceProvider resourceProvider) {
+      AstNode node, ResourceProvider resourceProvider) {
     var source =
         node.thisOrAncestorOfType<CompilationUnit>()?.declaredElement?.source;
     if (source == null) {

@@ -599,7 +599,7 @@ void CompileType::Union(CompileType* other) {
   // Climb up the hierarchy to find a suitable supertype. Note that interface
   // types are not considered, making the union potentially non-commutative
   if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType() &&
-      !abstract_type->IsFunctionType()) {
+      !abstract_type->IsFunctionType() && !abstract_type->IsRecordType()) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
@@ -773,6 +773,8 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kSentinelCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
+    } else if (type_->IsRecordType() || type_->IsDartRecordType()) {
+      cid_ = kRecordCid;
     } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
       intptr_t implementation_cid = kIllegalCid;
@@ -1158,7 +1160,8 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  const Function& function = graph_entry->parsed_function().function();
+  const ParsedFunction& pf = graph_entry->parsed_function();
+  const Function& function = pf.function();
   if (function.IsIrregexpFunction()) {
     // In irregexp functions, types of input parameters are known and immutable.
     // Set parameter types here in order to prevent unnecessary CheckClassInstr
@@ -1177,64 +1180,72 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  // Parameter is the receiver.
-  if ((index() == 0) &&
-      (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
-    const AbstractType& type =
-        graph_entry->parsed_function().RawParameterVariable(0)->type();
-    if (type.IsObjectType() || type.IsNullType()) {
-      // Receiver can be null.
-      return CompileType::FromAbstractType(type, CompileType::kCanBeNull,
-                                           CompileType::kCannotBeSentinel);
-    }
+  // Figure out if this Parameter instruction corresponds to a direct
+  // parameter. See FlowGraph::EnvIndex and initialization of
+  // num_direct_parameters_ in FlowGraph constructor.
+  const bool is_direct_parameter =
+      !function.MakesCopyOfParameters() && (index() < function.NumParameters());
+  // Parameter instructions in a function entry are only used for direct
+  // parameters. Parameter instructions in OsrEntry and CatchBlockEntry
+  // correspond to all local variables, not just direct parameters.
+  // OsrEntry is already checked above.
+  ASSERT(is_direct_parameter || block_->IsCatchBlockEntry());
 
-    // Receiver can't be null but can be an instance of a subclass.
-    intptr_t cid = kDynamicCid;
+  // The code below assumes that env index matches parameter index.
+  // This is true only for direct parameters.
+  if (is_direct_parameter) {
+    const intptr_t param_index = index();
+    // Parameter is the receiver.
+    if ((param_index == 0) &&
+        (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
+      const AbstractType& type = pf.RawParameterVariable(0)->type();
+      if (type.IsObjectType() || type.IsNullType()) {
+        // Receiver can be null.
+        return CompileType::FromAbstractType(type, CompileType::kCanBeNull,
+                                             CompileType::kCannotBeSentinel);
+      }
 
-    if (type.type_class_id() != kIllegalCid) {
-      Thread* thread = Thread::Current();
-      const Class& type_class = Class::Handle(type.type_class());
-      if (!CHA::HasSubclasses(type_class)) {
-        if (type_class.IsPrivate()) {
-          // Private classes can never be subclassed by later loaded libs.
-          cid = type_class.id();
-        } else {
-          if (FLAG_use_cha_deopt ||
-              thread->isolate_group()->all_classes_finalized()) {
-            if (FLAG_trace_cha) {
-              THR_Print(
-                  "  **(CHA) Computing exact type of receiver, "
-                  "no subclasses: %s\n",
-                  type_class.ToCString());
-            }
-            if (FLAG_use_cha_deopt) {
-              thread->compiler_state().cha().AddToGuardedClasses(
-                  type_class,
-                  /*subclass_count=*/0);
-            }
+      // Receiver can't be null but can be an instance of a subclass.
+      intptr_t cid = kDynamicCid;
+
+      if (type.type_class_id() != kIllegalCid) {
+        Thread* thread = Thread::Current();
+        const Class& type_class = Class::Handle(type.type_class());
+        if (!CHA::HasSubclasses(type_class)) {
+          if (type_class.IsPrivate()) {
+            // Private classes can never be subclassed by later loaded libs.
             cid = type_class.id();
+          } else {
+            if (FLAG_use_cha_deopt ||
+                thread->isolate_group()->all_classes_finalized()) {
+              if (FLAG_trace_cha) {
+                THR_Print(
+                    "  **(CHA) Computing exact type of receiver, "
+                    "no subclasses: %s\n",
+                    type_class.ToCString());
+              }
+              if (FLAG_use_cha_deopt) {
+                thread->compiler_state().cha().AddToGuardedClasses(
+                    type_class,
+                    /*subclass_count=*/0);
+              }
+              cid = type_class.id();
+            }
           }
         }
       }
+
+      return CompileType(CompileType::kCannotBeNull,
+                         CompileType::kCannotBeSentinel, cid, &type);
     }
 
-    return CompileType(CompileType::kCannotBeNull,
-                       CompileType::kCannotBeSentinel, cid, &type);
-  }
+    const bool is_unchecked_entry_param =
+        graph_entry->unchecked_entry() == block_;
 
-  const bool is_unchecked_entry_param =
-      graph_entry->unchecked_entry() == block_;
-
-  LocalScope* scope = graph_entry->parsed_function().scope();
-  // Note: in catch-blocks we have ParameterInstr for each local variable
-  // not only for normal parameters.
-  const LocalVariable* param = nullptr;
-  if (scope != nullptr && (index() < scope->num_variables())) {
-    param = scope->VariableAt(index());
-  } else if (index() < function.NumParameters()) {
-    param = graph_entry->parsed_function().RawParameterVariable(index());
-  }
-  if (param != nullptr) {
+    const LocalVariable* param = (pf.scope() != nullptr)
+                                     ? pf.ParameterVariable(param_index)
+                                     : pf.RawParameterVariable(param_index);
+    ASSERT(param != nullptr);
     CompileType* inferred_type = NULL;
     if (!block_->IsCatchBlockEntry()) {
       inferred_type = param->parameter_type();
@@ -1638,6 +1649,10 @@ CompileType AllocateClosureInstr::ComputeType() const {
   return CompileType::FromCid(kClosureCid);
 }
 
+CompileType AllocateRecordInstr::ComputeType() const {
+  return CompileType::FromCid(kRecordCid);
+}
+
 CompileType LoadUntaggedInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
@@ -1974,6 +1989,9 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       return CompileType::Int();
+
+    case kRecordCid:
+      return CompileType::Dynamic();
 
     default:
       UNIMPLEMENTED();

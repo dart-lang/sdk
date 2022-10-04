@@ -177,6 +177,30 @@ void f(bool a, String b) {}
     expect(declaration.parameters, '(bool a, String b)');
   }
 
+  /// Elements in part files should return paths of the definitions, not the
+  /// parent library.
+  Future<void> test_parts() async {
+    var a = newFile('$testPackageLibPath/a.dart', "part 'b.dart';").path;
+    var b = newFile('$testPackageLibPath/b.dart', '''
+part of 'a.dart';
+class A {}
+''').path;
+
+    await _getDeclarations(pattern: 'A');
+
+    expect(declarationsResult.files, isNot(contains(a)));
+    expect(declarationsResult.files, contains(b));
+
+    var declaration =
+        declarationsResult.declarations.singleWhere((d) => d.name == 'A');
+    expect(declaration.name, 'A');
+    expect(declaration.kind, ElementKind.CLASS);
+    expect(declarationsResult.files[declaration.fileIndex], b);
+    expect(declaration.offset, 24);
+    expect(declaration.line, 2);
+    expect(declaration.column, 7);
+  }
+
   Future<void> test_regExp() async {
     addTestFile(r'''
 class A {}

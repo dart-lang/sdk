@@ -371,6 +371,17 @@ bool File::CreateLink(Namespace* namespc,
   return (status == 0);
 }
 
+bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
+  int pipe_fds[2];
+  int status = NO_RETRY_EXPECTED(pipe(pipe_fds));
+  if (status != 0) {
+    return false;
+  }
+  *readPipe = OpenFD(pipe_fds[0]);
+  *writePipe = OpenFD(pipe_fds[1]);
+  return true;
+}
+
 File::Type File::GetType(Namespace* namespc,
                          const char* pathname,
                          bool follow_links) {

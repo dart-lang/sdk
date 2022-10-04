@@ -67,6 +67,7 @@
   V(PcDescriptors)                                                             \
   V(Pointer)                                                                   \
   V(ReceivePort)                                                               \
+  V(RecordType)                                                                \
   V(RegExp)                                                                    \
   V(Script)                                                                    \
   V(Sentinel)                                                                  \
@@ -262,13 +263,18 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
 }
 
 DART_FORCE_INLINE
-ObjectPtr AllocateObject(intptr_t cid, intptr_t size) {
+ObjectPtr AllocateObject(intptr_t cid,
+                         intptr_t size,
+                         intptr_t allocated_bytes) {
 #if defined(DART_COMPRESSED_POINTERS)
   const bool compressed = true;
 #else
   const bool compressed = false;
 #endif
-  return Object::Allocate(cid, size, Heap::kNew, compressed);
+  const intptr_t kLargeMessageThreshold = 16 * MB;
+  const Heap::Space space =
+      allocated_bytes > kLargeMessageThreshold ? Heap::kOld : Heap::kNew;
+  return Object::Allocate(cid, size, space, compressed);
 }
 
 DART_FORCE_INLINE
@@ -288,6 +294,9 @@ void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
   } else if (IsTypedDataClassId(cid)) {
     static_cast<UntaggedTypedDataBase*>(to.untag())->length_ =
         static_cast<UntaggedTypedDataBase*>(from.untag())->length_;
+  } else if (cid == kRecordCid) {
+    static_cast<UntaggedRecord*>(to.untag())->num_fields_ =
+        static_cast<UntaggedRecord*>(from.untag())->num_fields_;
   }
 }
 
@@ -359,14 +368,199 @@ void FreeTransferablePeer(void* isolate_callback_data, void* peer) {
   delete static_cast<TransferableTypedDataPeer*>(peer);
 }
 
-class ForwardMapBase {
+class SlowFromTo {
  public:
-  explicit ForwardMapBase(Thread* thread)
-      : thread_(thread), zone_(thread->zone()), isolate_(thread->isolate()) {}
+  explicit SlowFromTo(const GrowableObjectArray& storage) : storage_(storage) {}
 
- protected:
-  friend class ObjectGraphCopier;
+  ObjectPtr At(intptr_t index) { return storage_.At(index); }
+  void Add(const Object& key, const Object& value) {
+    storage_.Add(key);
+    storage_.Add(value);
+  }
+  intptr_t Length() { return storage_.Length(); }
 
+ private:
+  const GrowableObjectArray& storage_;
+};
+
+class FastFromTo {
+ public:
+  explicit FastFromTo(GrowableArray<ObjectPtr>& storage) : storage_(storage) {}
+
+  ObjectPtr At(intptr_t index) { return storage_.At(index); }
+  void Add(ObjectPtr key, ObjectPtr value) {
+    intptr_t i = storage_.length();
+    storage_.Resize(i + 2);
+    storage_[i + 0] = key;
+    storage_[i + 1] = value;
+  }
+  intptr_t Length() { return storage_.length(); }
+
+ private:
+  GrowableArray<ObjectPtr>& storage_;
+};
+
+static ObjectPtr Ptr(ObjectPtr obj) {
+  return obj;
+}
+static ObjectPtr Ptr(const Object& obj) {
+  return obj.ptr();
+}
+
+#if defined(HASH_IN_OBJECT_HEADER)
+class IdentityMap {
+ public:
+  explicit IdentityMap(Thread* thread) : thread_(thread) {
+    hash_table_used_ = 0;
+    hash_table_capacity_ = 32;
+    hash_table_ = reinterpret_cast<uint32_t*>(
+        malloc(hash_table_capacity_ * sizeof(uint32_t)));
+    memset(hash_table_, 0, hash_table_capacity_ * sizeof(uint32_t));
+  }
+  ~IdentityMap() { free(hash_table_); }
+
+  template <typename S, typename T>
+  DART_FORCE_INLINE ObjectPtr ForwardedObject(const S& object, T from_to) {
+    intptr_t mask = hash_table_capacity_ - 1;
+    intptr_t probe = GetHeaderHash(Ptr(object)) & mask;
+    for (;;) {
+      intptr_t index = hash_table_[probe];
+      if (index == 0) {
+        return Marker();
+      }
+      if (from_to.At(index) == Ptr(object)) {
+        return from_to.At(index + 1);
+      }
+      probe = (probe + 1) & mask;
+    }
+  }
+
+  template <typename S, typename T>
+  DART_FORCE_INLINE void Insert(const S& from,
+                                const S& to,
+                                T from_to,
+                                bool check_for_safepoint) {
+    ASSERT(ForwardedObject(from, from_to) == Marker());
+    const auto id = from_to.Length();
+    from_to.Add(from, to);  // Must occur before rehashing.
+    intptr_t mask = hash_table_capacity_ - 1;
+    intptr_t probe = GetHeaderHash(Ptr(from)) & mask;
+    for (;;) {
+      intptr_t index = hash_table_[probe];
+      if (index == 0) {
+        hash_table_[probe] = id;
+        break;
+      }
+      probe = (probe + 1) & mask;
+    }
+    hash_table_used_++;
+    if (hash_table_used_ * 2 > hash_table_capacity_) {
+      Rehash(hash_table_capacity_ * 2, from_to, check_for_safepoint);
+    }
+  }
+
+ private:
+  DART_FORCE_INLINE
+  uint32_t GetHeaderHash(ObjectPtr object) {
+    uint32_t hash = Object::GetCachedHash(object);
+    if (hash == 0) {
+      switch (object->GetClassId()) {
+        case kMintCid:
+          hash = Mint::Value(static_cast<MintPtr>(object));
+          // Don't write back: doesn't agree with dart:core's identityHash.
+          break;
+        case kDoubleCid:
+          hash =
+              bit_cast<uint64_t>(Double::Value(static_cast<DoublePtr>(object)));
+          // Don't write back: doesn't agree with dart:core's identityHash.
+          break;
+        case kOneByteStringCid:
+        case kTwoByteStringCid:
+        case kExternalOneByteStringCid:
+        case kExternalTwoByteStringCid:
+          hash = String::Hash(static_cast<StringPtr>(object));
+          hash = Object::SetCachedHashIfNotSet(object, hash);
+          break;
+        default:
+          do {
+            hash = thread_->random()->NextUInt32();
+          } while (hash == 0 || !Smi::IsValid(hash));
+          hash = Object::SetCachedHashIfNotSet(object, hash);
+          break;
+      }
+    }
+    return hash;
+  }
+
+  template <typename T>
+  void Rehash(intptr_t new_capacity, T from_to, bool check_for_safepoint) {
+    hash_table_capacity_ = new_capacity;
+    hash_table_used_ = 0;
+    free(hash_table_);
+    hash_table_ = reinterpret_cast<uint32_t*>(
+        malloc(hash_table_capacity_ * sizeof(uint32_t)));
+    for (intptr_t i = 0; i < hash_table_capacity_; i++) {
+      hash_table_[i] = 0;
+      if (check_for_safepoint && (((i + 1) % KB) == 0)) {
+        thread_->CheckForSafepoint();
+      }
+    }
+    for (intptr_t id = 2; id < from_to.Length(); id += 2) {
+      ObjectPtr obj = from_to.At(id);
+      intptr_t mask = hash_table_capacity_ - 1;
+      intptr_t probe = GetHeaderHash(obj) & mask;
+      for (;;) {
+        if (hash_table_[probe] == 0) {
+          hash_table_[probe] = id;
+          hash_table_used_++;
+          break;
+        }
+        probe = (probe + 1) & mask;
+      }
+      if (check_for_safepoint && (((id + 2) % KB) == 0)) {
+        thread_->CheckForSafepoint();
+      }
+    }
+  }
+
+  Thread* thread_;
+  uint32_t* hash_table_;
+  uint32_t hash_table_capacity_;
+  uint32_t hash_table_used_;
+};
+#else   // defined(HASH_IN_OBJECT_HEADER)
+class IdentityMap {
+ public:
+  explicit IdentityMap(Thread* thread) : isolate_(thread->isolate()) {
+    isolate_->set_forward_table_new(new WeakTable());
+    isolate_->set_forward_table_old(new WeakTable());
+  }
+  ~IdentityMap() {
+    isolate_->set_forward_table_new(nullptr);
+    isolate_->set_forward_table_old(nullptr);
+  }
+
+  template <typename S, typename T>
+  DART_FORCE_INLINE ObjectPtr ForwardedObject(const S& object, T from_to) {
+    const intptr_t id = GetObjectId(Ptr(object));
+    if (id == 0) return Marker();
+    return from_to.At(id + 1);
+  }
+
+  template <typename S, typename T>
+  DART_FORCE_INLINE void Insert(const S& from,
+                                const S& to,
+                                T from_to,
+                                bool check_for_safepoint) {
+    ASSERT(ForwardedObject(from, from_to) == Marker());
+    const auto id = from_to.Length();
+    // May take >100ms and cannot yield to safepoints.
+    SetObjectId(Ptr(from), id);
+    from_to.Add(from, to);
+  }
+
+ private:
+  DART_FORCE_INLINE
   intptr_t GetObjectId(ObjectPtr object) {
     if (object->IsNewObject()) {
       return isolate_->forward_table_new()->GetValueExclusive(object);
@@ -374,6 +568,8 @@ class ForwardMapBase {
       return isolate_->forward_table_old()->GetValueExclusive(object);
     }
   }
+
+  DART_FORCE_INLINE
   void SetObjectId(ObjectPtr object, intptr_t id) {
     if (object->IsNewObject()) {
       isolate_->forward_table_new()->SetValueExclusive(object, id);
@@ -381,6 +577,18 @@ class ForwardMapBase {
       isolate_->forward_table_old()->SetValueExclusive(object, id);
     }
   }
+
+  Isolate* isolate_;
+};
+#endif  // defined(HASH_IN_OBJECT_HEADER)
+
+class ForwardMapBase {
+ public:
+  explicit ForwardMapBase(Thread* thread)
+      : thread_(thread), zone_(thread->zone()) {}
+
+ protected:
+  friend class ObjectGraphCopier;
 
   void FinalizeTransferable(const TransferableTypedData& from,
                             const TransferableTypedData& to) {
@@ -396,9 +604,12 @@ class ForwardMapBase {
 
     // Move the handle itself to the new object.
     fpeer->handle()->EnsureFreedExternal(thread_->isolate_group());
-    tpeer->set_handle(FinalizablePersistentHandle::New(
-        thread_->isolate_group(), to, tpeer, FreeTransferablePeer, length,
-        /*auto_delete=*/true));
+    FinalizablePersistentHandle* finalizable_ref =
+        FinalizablePersistentHandle::New(thread_->isolate_group(), to, tpeer,
+                                         FreeTransferablePeer, length,
+                                         /*auto_delete=*/true);
+    ASSERT(finalizable_ref != nullptr);
+    tpeer->set_handle(finalizable_ref);
     fpeer->ClearData();
   }
 
@@ -408,7 +619,6 @@ class ForwardMapBase {
 
   Thread* thread_;
   Zone* zone_;
-  Isolate* isolate_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ForwardMapBase);
@@ -416,8 +626,9 @@ class ForwardMapBase {
 
 class FastForwardMap : public ForwardMapBase {
  public:
-  explicit FastForwardMap(Thread* thread)
+  explicit FastForwardMap(Thread* thread, IdentityMap* map)
       : ForwardMapBase(thread),
+        map_(map),
         raw_from_to_(thread->zone(), 20),
         raw_transferables_from_to_(thread->zone(), 0),
         raw_objects_to_rehash_(thread->zone(), 0),
@@ -429,19 +640,12 @@ class FastForwardMap : public ForwardMapBase {
   }
 
   ObjectPtr ForwardedObject(ObjectPtr object) {
-    const intptr_t id = GetObjectId(object);
-    if (id == 0) return Marker();
-    return raw_from_to_[id + 1];
+    return map_->ForwardedObject(object, FastFromTo(raw_from_to_));
   }
 
   void Insert(ObjectPtr from, ObjectPtr to, intptr_t size) {
-    ASSERT(ForwardedObject(from) == Marker());
-    ASSERT(raw_from_to_.length() == raw_from_to_.length());
-    const auto id = raw_from_to_.length();
-    SetObjectId(from, id);
-    raw_from_to_.Resize(id + 2);
-    raw_from_to_[id] = from;
-    raw_from_to_[id + 1] = to;
+    map_->Insert(from, to, FastFromTo(raw_from_to_),
+                 /*check_for_safepoint*/ false);
     allocated_bytes += size;
   }
 
@@ -465,6 +669,7 @@ class FastForwardMap : public ForwardMapBase {
   friend class FastObjectCopy;
   friend class ObjectGraphCopier;
 
+  IdentityMap* map_;
   GrowableArray<ObjectPtr> raw_from_to_;
   GrowableArray<TransferableTypedDataPtr> raw_transferables_from_to_;
   GrowableArray<ExternalTypedDataPtr> raw_external_typed_data_to_;
@@ -480,8 +685,9 @@ class FastForwardMap : public ForwardMapBase {
 
 class SlowForwardMap : public ForwardMapBase {
  public:
-  explicit SlowForwardMap(Thread* thread)
+  explicit SlowForwardMap(Thread* thread, IdentityMap* map)
       : ForwardMapBase(thread),
+        map_(map),
         from_to_transition_(thread->zone(), 2),
         from_to_(GrowableObjectArray::Handle(thread->zone(),
                                              GrowableObjectArray::New(2))),
@@ -495,17 +701,11 @@ class SlowForwardMap : public ForwardMapBase {
   }
 
   ObjectPtr ForwardedObject(ObjectPtr object) {
-    const intptr_t id = GetObjectId(object);
-    if (id == 0) return Marker();
-    return from_to_.At(id + 1);
+    return map_->ForwardedObject(object, SlowFromTo(from_to_));
   }
-
   void Insert(const Object& from, const Object& to, intptr_t size) {
-    ASSERT(ForwardedObject(from.ptr()) == Marker());
-    const auto id = from_to_.Length();
-    SetObjectId(from.ptr(), id);
-    from_to_.Add(from);
-    from_to_.Add(to);
+    map_->Insert(from, to, SlowFromTo(from_to_),
+                 /* check_for_safepoint */ true);
     allocated_bytes += size;
   }
 
@@ -549,8 +749,10 @@ class SlowForwardMap : public ForwardMapBase {
 
  private:
   friend class SlowObjectCopy;
+  friend class SlowObjectCopyBase;
   friend class ObjectGraphCopier;
 
+  IdentityMap* map_;
   GrowableArray<const PassiveObject*> from_to_transition_;
   GrowableObjectArray& from_to_;
   GrowableArray<const TransferableTypedData*> transferables_from_to_;
@@ -707,8 +909,8 @@ class FastObjectCopyBase : public ObjectCopyBase {
  public:
   using Types = PtrTypes;
 
-  explicit FastObjectCopyBase(Thread* thread)
-      : ObjectCopyBase(thread), fast_forward_map_(thread) {}
+  FastObjectCopyBase(Thread* thread, IdentityMap* map)
+      : ObjectCopyBase(thread), fast_forward_map_(thread, map) {}
 
  protected:
   DART_FORCE_INLINE
@@ -874,8 +1076,8 @@ class SlowObjectCopyBase : public ObjectCopyBase {
  public:
   using Types = HandleTypes;
 
-  explicit SlowObjectCopyBase(Thread* thread)
-      : ObjectCopyBase(thread), slow_forward_map_(thread) {}
+  explicit SlowObjectCopyBase(Thread* thread, IdentityMap* map)
+      : ObjectCopyBase(thread), slow_forward_map_(thread, map) {}
 
  protected:
   DART_FORCE_INLINE
@@ -1008,9 +1210,9 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     if (size == 0) {
       size = from.ptr().untag()->HeapSize();
     }
-    to_ = AllocateObject(cid, size);
+    to_ = AllocateObject(cid, size, slow_forward_map_.allocated_bytes);
     UpdateLengthField(cid, from.ptr(), to_.ptr());
-    slow_forward_map_.Insert(from, to_, size);  // SAFEPOINT
+    slow_forward_map_.Insert(from, to_, size);
     ObjectPtr to = to_.ptr();
     if (cid == kArrayCid && !Heap::IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
@@ -1102,13 +1304,13 @@ class ObjectCopy : public Base {
  public:
   using Types = typename Base::Types;
 
-  explicit ObjectCopy(Thread* thread) : Base(thread) {}
+  ObjectCopy(Thread* thread, IdentityMap* map) : Base(thread, map) {}
 
   void CopyPredefinedInstance(typename Types::Object from,
                               typename Types::Object to,
                               intptr_t cid) {
     if (IsImplicitFieldClassId(cid)) {
-      CopyUserdefinedInstance(from, to);
+      CopyUserdefinedInstanceWithoutUnboxedFields(from, to);
       return;
     }
     switch (cid) {
@@ -1171,21 +1373,18 @@ class ObjectCopy : public Base {
     FATAL1("Unexpected object: %s\n", obj.ToCString());
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void CopyUserdefinedInstanceAOT(typename Types::Object from,
-                                  typename Types::Object to,
-                                  UnboxedFieldBitmap bitmap) {
+  void CopyUserdefinedInstance(typename Types::Object from,
+                               typename Types::Object to,
+                               UnboxedFieldBitmap bitmap) {
     const intptr_t instance_size = UntagObject(from)->HeapSize();
     Base::ForwardCompressedPointers(from, to, kWordSize, instance_size, bitmap);
   }
-#endif
 
-  void CopyUserdefinedInstance(typename Types::Object from,
-                               typename Types::Object to) {
+  void CopyUserdefinedInstanceWithoutUnboxedFields(typename Types::Object from,
+                                                   typename Types::Object to) {
     const intptr_t instance_size = UntagObject(from)->HeapSize();
     Base::ForwardCompressedPointers(from, to, kWordSize, instance_size);
   }
-
   void CopyClosure(typename Types::Closure from, typename Types::Closure to) {
     Base::StoreCompressedPointers(
         from, to, OFFSET_OF(UntaggedClosure, instantiator_type_arguments_),
@@ -1234,6 +1433,16 @@ class ObjectCopy : public Base {
         OFFSET_OF(UntaggedGrowableObjectArray, length_));
     Base::ForwardCompressedPointer(
         from, to, OFFSET_OF(UntaggedGrowableObjectArray, data_));
+  }
+
+  void CopyRecord(typename Types::Record from, typename Types::Record to) {
+    const intptr_t num_fields = Record::NumFields(Types::GetRecordPtr(from));
+    UntagRecord(to)->num_fields_ = UntagRecord(from)->num_fields_;
+    Base::ForwardCompressedPointer(from, to,
+                                   OFFSET_OF(UntaggedRecord, field_names_));
+    Base::ForwardCompressedPointers(
+        from, to, Record::field_offset(0),
+        Record::field_offset(0) + Record::kBytesPerElement * num_fields);
   }
 
   template <intptr_t one_for_set_two_for_map, typename T>
@@ -1510,7 +1719,7 @@ class ObjectCopy : public Base {
 
 class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
  public:
-  explicit FastObjectCopy(Thread* thread) : ObjectCopy(thread) {}
+  FastObjectCopy(Thread* thread, IdentityMap* map) : ObjectCopy(thread, map) {}
   ~FastObjectCopy() {}
 
   ObjectPtr TryCopyGraphFast(ObjectPtr root) {
@@ -1664,14 +1873,9 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
       CopyPredefinedInstance(from, to, cid);
       return;
     }
-#if defined(DART_PRECOMPILED_RUNTIME)
-    const auto bitmap =
-        class_table_->shared_class_table()->GetUnboxedFieldsMapAt(cid);
-    CopyUserdefinedInstanceAOT(Instance::RawCast(from), Instance::RawCast(to),
-                               bitmap);
-#else
-    CopyUserdefinedInstance(Instance::RawCast(from), Instance::RawCast(to));
-#endif
+    const auto bitmap = class_table_->GetUnboxedFieldsMapAt(cid);
+    CopyUserdefinedInstance(Instance::RawCast(from), Instance::RawCast(to),
+                            bitmap);
     if (cid == expando_cid_) {
       EnqueueExpandoToRehash(to);
     }
@@ -1683,8 +1887,8 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
 
 class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
  public:
-  explicit SlowObjectCopy(Thread* thread)
-      : ObjectCopy(thread),
+  SlowObjectCopy(Thread* thread, IdentityMap* map)
+      : ObjectCopy(thread, map),
         objects_to_rehash_(Array::Handle(thread->zone())),
         expandos_to_rehash_(Array::Handle(thread->zone())) {}
   ~SlowObjectCopy() {}
@@ -1799,13 +2003,8 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
       CopyPredefinedInstance(from, to, cid);
       return;
     }
-#if defined(DART_PRECOMPILED_RUNTIME)
-    const auto bitmap =
-        class_table_->shared_class_table()->GetUnboxedFieldsMapAt(cid);
-    CopyUserdefinedInstanceAOT(from, to, bitmap);
-#else
-    CopyUserdefinedInstance(from, to);
-#endif
+    const auto bitmap = class_table_->GetUnboxedFieldsMapAt(cid);
+    CopyUserdefinedInstance(from, to, bitmap);
     if (cid == expando_cid_) {
       EnqueueExpandoToRehash(to);
     }
@@ -1821,15 +2020,9 @@ class ObjectGraphCopier : public StackResource {
       : StackResource(thread),
         thread_(thread),
         zone_(thread->zone()),
-        fast_object_copy_(thread_),
-        slow_object_copy_(thread_) {
-    thread_->isolate()->set_forward_table_new(new WeakTable());
-    thread_->isolate()->set_forward_table_old(new WeakTable());
-  }
-  ~ObjectGraphCopier() {
-    thread_->isolate()->set_forward_table_new(nullptr);
-    thread_->isolate()->set_forward_table_old(nullptr);
-  }
+        map_(thread),
+        fast_object_copy_(thread_, &map_),
+        slow_object_copy_(thread_, &map_) {}
 
   // Result will be
   //   [
@@ -2080,6 +2273,7 @@ class ObjectGraphCopier : public StackResource {
 
   Thread* thread_;
   Zone* zone_;
+  IdentityMap map_;
   FastObjectCopy fast_object_copy_;
   SlowObjectCopy slow_object_copy_;
   intptr_t copied_objects_ = 0;

@@ -1,0 +1,5 @@
+typedef ({int j}) R2();
+
+
+typedef[KeywordToken] ([BeginToken]{[BeginToken]int[StringToken] j[StringToken]}[SimpleToken])[SimpleToken] R2[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

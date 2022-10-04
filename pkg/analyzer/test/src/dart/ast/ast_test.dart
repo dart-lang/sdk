@@ -298,8 +298,28 @@ class C {
     assertInContext("C()}", true);
   }
 
+  @FailingTest(reason: 'not yet implemented')
   test_inConstantContext_instanceCreation_switch_true() {
     parse('''
+f(v) {
+  switch (v) {
+  case const C():
+    break;
+  }
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  @failingTest
+  test_inConstantContext_instanceCreation_switch_true_language218() {
+    // Expected: true
+    //   Actual: <false>
+    parse('''
+// @dart=2.18
 f(v) {
   switch (v) {
   case C():
@@ -431,8 +451,54 @@ f() {
     assertInContext("[]", true);
   }
 
+  test_inConstantContext_listLiteral_namedFields_recordLiteral_false() {
+    parse('''
+final x = (0, foo: [1]);
+''');
+    assertInContext('[1]', false);
+  }
+
+  test_inConstantContext_listLiteral_namedFields_recordLiteral_true() {
+    parse('''
+final x = const (0, foo: [1]);
+''');
+    assertInContext('[1]', true);
+  }
+
+  test_inConstantContext_listLiteral_positionalFields_recordLiteral_false() {
+    parse('''
+final x = (0, [1]);
+''');
+    assertInContext('[1]', false);
+  }
+
+  test_inConstantContext_listLiteral_positionalFields_recordLiteral_true() {
+    parse('''
+final x = const (0, [1]);
+''');
+    assertInContext('[1]', true);
+  }
+
+  @FailingTest(reason: 'not yet implemented')
   test_inConstantContext_listLiteral_switch_true() {
     parse('''
+f(v) {
+  switch (v) {
+  case const []:
+    break;
+  }
+}
+''');
+    assertInContext("[]", true);
+  }
+
+  @failingTest
+  test_inConstantContext_listLiteral_switch_true_language218() {
+    // Expected: <Instance of 'ExpressionImpl'>
+    //   Actual: ListPatternImpl:<[]>
+    //    Which: is not an instance of 'ExpressionImpl'
+    parse('''
+// @dart=2.18
 f(v) {
   switch (v) {
   case []:
@@ -541,8 +607,26 @@ f() {
     assertInContext("{'d", true);
   }
 
+  @FailingTest(reason: 'not yet implemented')
   test_inConstantContext_mapLiteral_switch_true() {
     parse('''
+f(v) {
+  switch (v) {
+  case const {}:
+    break;
+  }
+}
+''');
+    assertInContext("{}", true);
+  }
+
+  @failingTest
+  test_inConstantContext_mapLiteral_switch_true_language218() {
+    // Expected: <Instance of 'ExpressionImpl'>
+    //   Actual: MapPatternImpl:<{}>
+    //    Which: is not an instance of 'ExpressionImpl'
+    parse('''
+// @dart=2.18
 f(v) {
   switch (v) {
   case {}:
@@ -551,6 +635,48 @@ f(v) {
 }
 ''');
     assertInContext("{}", true);
+  }
+
+  test_inConstantContext_recordLiteral_listLiteral_false() {
+    parse('''
+final x = [0, (1, 2)];
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_listLiteral_true() {
+    parse('''
+final x = const [0, (1, 2)];
+''');
+    assertInContext('(1, 2)', true);
+  }
+
+  test_inConstantContext_recordLiteral_namedFields_recordLiteral_false() {
+    parse('''
+final x = (0, foo: (1, 2));
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_namedFields_recordLiteral_true() {
+    parse('''
+final x = const (0, foo: (1, 2));
+''');
+    assertInContext('(1, 2)', true);
+  }
+
+  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_false() {
+    parse('''
+final x = (0, (1, 2));
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_true() {
+    parse('''
+final x = const (0, (1, 2));
+''');
+    assertInContext('(1, 2)', true);
   }
 }
 

@@ -70,7 +70,9 @@ class RenameParameter extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   _Data validate(DataDrivenFix fix) {
     var node = fix.node;
-    if (node is SimpleIdentifier) {
+    if (node is MethodDeclaration) {
+      return _OverrideData(node);
+    } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;
       if (node.name == oldName &&
@@ -80,8 +82,6 @@ class RenameParameter extends Change<_Data> {
         if (invocation != null && fix.element.matches(invocation)) {
           return _InvocationData(node);
         }
-      } else if (parent is MethodDeclaration) {
-        return _OverrideData(parent);
       }
     }
     return const _IgnoredData();
@@ -120,10 +120,10 @@ extension on MethodDeclaration {
   /// Return the element that this method overrides, or `null` if this method
   /// doesn't override any inherited member.
   ExecutableElement? overriddenElement() {
-    var element = declaredElement2;
+    var element = declaredElement;
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement is ClassElement) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is InterfaceElement) {
         var name = Name(enclosingElement.library.source.uri, element.name);
         return InheritanceManager3().getInherited2(enclosingElement, name);
       }

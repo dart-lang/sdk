@@ -51,6 +51,7 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
@@ -85,6 +86,7 @@ import '../scope.dart';
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
+import '../uri_offset.dart';
 import '../util/helpers.dart';
 import '../uris.dart';
 import 'diet_listener.dart' show DietListener;
@@ -228,7 +230,7 @@ class SourceLoader extends Loader {
 
   int byteCount = 0;
 
-  Uri? currentUriForCrashReporting;
+  UriOffset? currentUriForCrashReporting;
 
   ClassBuilder? _macroClassBuilder;
 
@@ -284,6 +286,16 @@ class SourceLoader extends Loader {
 
   void clearLibraryBuilders() {
     _builders.clear();
+  }
+
+  /// Run [f] with [uri] and [fileOffset] as the current uri/offset used for
+  /// reporting crashes.
+  T withUriForCrashReporting<T>(Uri uri, int fileOffset, T Function() f) {
+    UriOffset? oldUriForCrashReporting = currentUriForCrashReporting;
+    currentUriForCrashReporting = new UriOffset(uri, fileOffset);
+    T result = f();
+    currentUriForCrashReporting = oldUriForCrashReporting;
+    return result;
   }
 
   @override
@@ -658,7 +670,8 @@ class SourceLoader extends Loader {
   Future<Null> buildBodies(List<SourceLibraryBuilder> libraryBuilders) async {
     assert(_coreLibrary != null);
     for (SourceLibraryBuilder library in libraryBuilders) {
-      currentUriForCrashReporting = library.importUri;
+      currentUriForCrashReporting =
+          new UriOffset(library.importUri, TreeNode.noOffset);
       await buildBody(library);
     }
     // Workaround: This will return right away but avoid a "semi leak"
@@ -1005,7 +1018,8 @@ severity: $severity
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
       SourceLibraryBuilder library = _unparsedLibraries.removeFirst();
-      currentUriForCrashReporting = library.importUri;
+      currentUriForCrashReporting =
+          new UriOffset(library.importUri, TreeNode.noOffset);
       await buildOutline(library);
     }
     currentUriForCrashReporting = null;
@@ -1227,7 +1241,7 @@ severity: $severity
             extensionName: null,
             isExtensionMember: false,
             isInstanceMember: false,
-            libraryReference: libraryBuilder.library.reference),
+            libraryName: libraryBuilder.libraryName),
         isInstanceMember: false,
         isExtensionMember: false)
       ..parent = parent;
@@ -1358,14 +1372,14 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          exported.exportScope
+          NameIterator<Builder> iterator = exported.exportScope
               .filteredNameIterator(
-                  includeDuplicates: false, includeAugmentations: false)
-              .forEach((String name, Builder member) {
-            if (export.addToExportScope(name, member)) {
+                  includeDuplicates: false, includeAugmentations: false);
+          while (iterator.moveNext()) {
+            if (export.addToExportScope(iterator.name, iterator.current)) {
               wasChanged = true;
             }
-          });
+          }
         }
       }
     } while (wasChanged);
@@ -1391,19 +1405,19 @@ severity: $severity
     _builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
-      Iterator<Builder> iterator = library.localMembersIterator;
-      while (iterator.moveNext()) {
-        members.add(iterator.current);
+      Iterator<Builder> memberIterator = library.localMembersIterator;
+      while (memberIterator.moveNext()) {
+        members.add(memberIterator.current);
       }
       List<String> exports = <String>[];
-      library.exportScope
+      NameIterator<Builder> exportsIterator = library.exportScope
           .filteredNameIterator(
-              includeDuplicates: true, includeAugmentations: false)
-          .forEach((String name, Builder member) {
-        if (!members.contains(member)) {
-          exports.add(name);
+              includeDuplicates: true, includeAugmentations: false);
+      while (exportsIterator.moveNext()) {
+        if (!members.contains(exportsIterator.current)) {
+          exports.add(exportsIterator.name);
         }
-      });
+      }
       if (exports.isNotEmpty) {
         print("$uri exports $exports");
       }
@@ -1447,10 +1461,11 @@ severity: $severity
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+      Iterator<ClassBuilder> iterator =
+          libraryBuilder.localMembersIteratorOfType();
       while (iterator.moveNext()) {
-        Builder builder = iterator.current;
-        if (builder is ClassBuilder && builder.isMacro) {
+        ClassBuilder builder = iterator.current;
+        if (builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
           if (!target.context.options.macroExecutor
               .libraryIsRegistered(libraryUri)) {
@@ -1556,8 +1571,13 @@ severity: $severity
           if (macroClasses != null) {
             Map<String, List<String>>? constructorMap;
             for (ClassBuilder macroClass in macroClasses) {
-              List<String> constructors =
-                  macroClass.constructorScope.local.keys.toList();
+              List<String> constructors = [];
+              NameIterator<MemberBuilder> iterator = macroClass.constructorScope
+                  .filteredNameIterator(
+                      includeDuplicates: false, includeAugmentations: true);
+              while (iterator.moveNext()) {
+                constructors.add(iterator.name);
+              }
               if (constructors.isNotEmpty) {
                 // TODO(johnniwinther): If there is no constructor here, it
                 // means the macro had no _explicit_ constructors. Since macro
@@ -1892,7 +1912,10 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    for (Builder constructor in builder.constructorScope.local.values) {
+    Iterator<MemberBuilder> iterator = builder.constructorScope
+        .filteredIterator(includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      MemberBuilder constructor = iterator.current;
       if (constructor.isConstructor && !constructor.isSynthetic) {
         cls.addProblem(
             templateIllegalMixinDueToConstructors
@@ -2683,7 +2706,7 @@ abstract class pragma {
 class AbstractClassInstantiationError {}
 
 class NoSuchMethodError {
-  NoSuchMethodError.withInvocation(receiver, invocation);
+  factory NoSuchMethodError.withInvocation(receiver, invocation) => throw '';
 }
 
 class StackTrace {}
@@ -2795,8 +2818,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _CompactLinkedHashSet<E> {
-  _CompactLinkedHashSet();
+class _InternalLinkedHashSet<E> {
+  _InternalLinkedHashSet();
 }
 
 class _UnmodifiableSet {

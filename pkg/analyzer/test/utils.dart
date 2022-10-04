@@ -31,7 +31,7 @@ class AstFinder {
     NodeList<CompilationUnitMember> unitMembers = unit.declarations;
     for (CompilationUnitMember unitMember in unitMembers) {
       if (unitMember is ClassDeclaration &&
-          unitMember.name2.lexeme == className) {
+          unitMember.name.lexeme == className) {
         return unitMember;
       }
     }
@@ -48,7 +48,7 @@ class AstFinder {
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is ConstructorDeclaration) {
-        if (classMember.name2?.lexeme == constructorName) {
+        if (classMember.name?.lexeme == constructorName) {
           return classMember;
         }
       }
@@ -66,7 +66,7 @@ class AstFinder {
       if (classMember is FieldDeclaration) {
         NodeList<VariableDeclaration> fields = classMember.fields.variables;
         for (VariableDeclaration field in fields) {
-          if (field.name2.lexeme == fieldName) {
+          if (field.name.lexeme == fieldName) {
             return field;
           }
         }
@@ -79,7 +79,7 @@ class AstFinder {
   /// with the given [className] in the given compilation [unit].
   static FieldElement? getFieldInClassElement(
       CompilationUnit unit, String className, String fieldName) {
-    return getFieldInClass(unit, className, fieldName).declaredElement2
+    return getFieldInClass(unit, className, fieldName).declaredElement
         as FieldElement;
   }
 
@@ -91,7 +91,7 @@ class AstFinder {
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is MethodDeclaration) {
-        if (classMember.name2.lexeme == methodName) {
+        if (classMember.name.lexeme == methodName) {
           return classMember;
         }
       }
@@ -125,7 +125,7 @@ class AstFinder {
     NodeList<CompilationUnitMember> unitMembers = unit.declarations;
     for (CompilationUnitMember unitMember in unitMembers) {
       if (unitMember is FunctionDeclaration) {
-        if (unitMember.name2.lexeme == functionName) {
+        if (unitMember.name.lexeme == functionName) {
           return unitMember;
         }
       }
@@ -143,7 +143,7 @@ class AstFinder {
         NodeList<VariableDeclaration> variables =
             unitMember.variables.variables;
         for (VariableDeclaration variable in variables) {
-          if (variable.name2.lexeme == variableName) {
+          if (variable.name.lexeme == variableName) {
             return variable;
           }
         }
@@ -155,7 +155,7 @@ class AstFinder {
   /// Return the top-level variable element with the given [name].
   static TopLevelVariableElement getTopLevelVariableElement(
       CompilationUnit unit, String name) {
-    return getTopLevelVariable(unit, name).declaredElement2
+    return getTopLevelVariable(unit, name).declaredElement
         as TopLevelVariableElement;
   }
 }

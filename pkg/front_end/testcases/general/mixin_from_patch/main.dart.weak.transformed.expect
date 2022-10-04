@@ -12,13 +12,6 @@ static method main() → dynamic {
 }
 
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/mixin_from_patch/origin_lib.dart:14:12: Error: The superclass, 'Class with Mixin', has no unnamed constructor that takes no arguments.
-//   external SubClass.patched();
-//            ^^^^^^^
-//
 import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;

@@ -20,7 +20,7 @@ class RemoveParametersInGetterDeclaration extends CorrectionProducer {
     final node = this.node;
     if (node is MethodDeclaration) {
       // Support for the analyzer error.
-      var name = node.name2;
+      var name = node.name;
       var body = node.body;
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.endStart(name, body), ' ');

@@ -481,35 +481,38 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       return fieldType;
     }
 
-    InferredType implicitFieldType = fieldType as InferredType;
-    DartType inferredType = implicitFieldType.computeType(hierarchy);
-    if (fieldType is InferredType) {
-      // `fieldType` may have changed if a circularity was detected when
-      // [inferredType] was computed.
-      if (!libraryBuilder.isNonNullableByDefault) {
-        inferredType = legacyErasure(inferredType);
-      }
-      type.registerInferredType(inferredType);
+    return libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset,
+        () {
+      InferredType implicitFieldType = fieldType as InferredType;
+      DartType inferredType = implicitFieldType.computeType(hierarchy);
+      if (fieldType is InferredType) {
+        // `fieldType` may have changed if a circularity was detected when
+        // [inferredType] was computed.
+        if (!libraryBuilder.isNonNullableByDefault) {
+          inferredType = legacyErasure(inferredType);
+        }
+        type.registerInferredType(inferredType);
 
-      IncludesTypeParametersNonCovariantly? needsCheckVisitor;
-      if (parent is ClassBuilder) {
-        Class enclosingClass = classBuilder!.cls;
-        if (enclosingClass.typeParameters.isNotEmpty) {
-          needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
-              enclosingClass.typeParameters,
-              // We are checking the field type as if it is the type of the
-              // parameter of the implicit setter and this is a contravariant
-              // position.
-              initialVariance: Variance.contravariant);
+        IncludesTypeParametersNonCovariantly? needsCheckVisitor;
+        if (parent is ClassBuilder) {
+          Class enclosingClass = classBuilder!.cls;
+          if (enclosingClass.typeParameters.isNotEmpty) {
+            needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+                enclosingClass.typeParameters,
+                // We are checking the field type as if it is the type of the
+                // parameter of the implicit setter and this is a contravariant
+                // position.
+                initialVariance: Variance.contravariant);
+          }
+        }
+        if (needsCheckVisitor != null) {
+          if (fieldType.accept(needsCheckVisitor)) {
+            _fieldEncoding.setGenericCovariantImpl();
+          }
         }
       }
-      if (needsCheckVisitor != null) {
-        if (fieldType.accept(needsCheckVisitor)) {
-          _fieldEncoding.setGenericCovariantImpl();
-        }
-      }
-    }
-    return fieldType;
+      return fieldType;
+    });
   }
 
   @override
@@ -636,9 +639,7 @@ class RegularFieldEncoding implements FieldEncoding {
     bool isImmutable =
         isLate ? (isFinal && hasInitializer) : (isFinal || isConst);
     _field = isImmutable
-        ? new Field.immutable(
-            nameScheme.getFieldName(FieldNameType.Field, name,
-                isSynthesized: false),
+        ? new Field.immutable(dummyName,
             isFinal: isFinal,
             isConst: isConst,
             isLate: isLate,
@@ -646,15 +647,16 @@ class RegularFieldEncoding implements FieldEncoding {
             fieldReference: fieldReference,
             getterReference: getterReference,
             isEnumElement: isEnumElement)
-        : new Field.mutable(
-            nameScheme.getFieldName(FieldNameType.Field, name,
-                isSynthesized: false),
+        : new Field.mutable(dummyName,
             isFinal: isFinal,
             isLate: isLate,
             fileUri: fileUri,
             fieldReference: fieldReference,
             getterReference: getterReference,
             setterReference: setterReference);
+    nameScheme
+        .getFieldMemberName(FieldNameType.Field, name, isSynthesized: false)
+        .attachMember(_field);
     _field
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
@@ -702,7 +704,6 @@ class RegularFieldEncoding implements FieldEncoding {
         ..isExtensionMember = false;
     }
     _field.isLate = fieldBuilder.isLate;
-    updatePrivateMemberName(_field, libraryBuilder);
   }
 
   @override
@@ -851,8 +852,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         _isSetStrategy = isSetStrategy,
         _forceIncludeIsSetField =
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
-    _field = new Field.mutable(
-        nameScheme.getFieldName(FieldNameType.Field, name, isSynthesized: true),
+    _field = new Field.mutable(dummyName,
         fileUri: fileUri,
         fieldReference: fieldReference,
         getterReference: fieldGetterReference,
@@ -861,6 +861,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = true
       ..isInternalImplementation = true;
+    nameScheme
+        .getFieldMemberName(FieldNameType.Field, name, isSynthesized: true)
+        .attachMember(_field);
     switch (_isSetStrategy) {
       case late_lowering.IsSetStrategy.useSentinelOrNull:
       case late_lowering.IsSetStrategy.forceUseSentinel:
@@ -868,9 +871,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         break;
       case late_lowering.IsSetStrategy.forceUseIsSetField:
       case late_lowering.IsSetStrategy.useIsSetFieldOrNull:
-        _lateIsSetField = new Field.mutable(
-            nameScheme.getFieldName(FieldNameType.IsSetField, name,
-                isSynthesized: true),
+        _lateIsSetField = new Field.mutable(dummyName,
             fileUri: fileUri,
             fieldReference: lateIsSetFieldReference,
             getterReference: lateIsSetGetterReference,
@@ -879,11 +880,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = true
           ..isInternalImplementation = true;
+        nameScheme
+            .getFieldMemberName(FieldNameType.IsSetField, name,
+                isSynthesized: true)
+            .attachMember(_lateIsSetField!);
         break;
     }
     _lateGetter = new Procedure(
-        nameScheme.getFieldName(FieldNameType.Getter, name,
-            isSynthesized: true),
+        dummyName,
         ProcedureKind.Getter,
         new FunctionNode(null)
           ..fileOffset = charOffset
@@ -893,13 +897,16 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = true;
-    _lateSetter = _createSetter(
-        nameScheme.getFieldName(FieldNameType.Setter, name,
-            isSynthesized: true),
-        fileUri,
-        charOffset,
-        lateSetterReference,
+    nameScheme
+        .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
+        .attachMember(_lateGetter);
+    _lateSetter = _createSetter(fileUri, charOffset, lateSetterReference,
         isCovariantByDeclaration: isCovariantByDeclaration);
+    if (_lateSetter != null) {
+      nameScheme
+          .getFieldMemberName(FieldNameType.Setter, name, isSynthesized: true)
+          .attachMember(_lateSetter!);
+    }
   }
 
   late_lowering.IsSetEncoding get isSetEncoding {
@@ -1004,8 +1011,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Statement _createGetterBody(
       CoreTypes coreTypes, String name, Expression? initializer);
 
-  Procedure? _createSetter(
-      Name name, Uri fileUri, int charOffset, Reference? reference,
+  Procedure? _createSetter(Uri fileUri, int charOffset, Reference? reference,
       {required bool isCovariantByDeclaration}) {
     // ignore: unnecessary_null_comparison
     assert(isCovariantByDeclaration != null);
@@ -1013,7 +1019,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..isCovariantByDeclaration = isCovariantByDeclaration
       ..fileOffset = fileOffset;
     return new Procedure(
-        name,
+        dummyName,
         ProcedureKind.Setter,
         new FunctionNode(null,
             positionalParameters: [parameter], returnType: const VoidType())
@@ -1102,7 +1108,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isStatic = !isInstanceMember
         ..isExtensionMember = false;
     }
-    updatePrivateMemberName(_field, libraryBuilder);
     if (_lateIsSetField != null) {
       _lateIsSetField!
         ..isStatic = !isInstanceMember
@@ -1110,17 +1115,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isExtensionMember = isExtensionMember
         ..type = libraryBuilder.loader
             .createCoreType('bool', Nullability.nonNullable);
-      updatePrivateMemberName(_lateIsSetField!, libraryBuilder);
     }
     _lateGetter
       ..isStatic = !isInstanceMember
       ..isExtensionMember = isExtensionMember;
-    updatePrivateMemberName(_lateGetter, libraryBuilder);
     if (_lateSetter != null) {
       _lateSetter!
         ..isStatic = !isInstanceMember
         ..isExtensionMember = isExtensionMember;
-      updatePrivateMemberName(_lateSetter!, libraryBuilder);
     }
   }
 
@@ -1407,8 +1409,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   }
 
   @override
-  Procedure? _createSetter(
-          Name name, Uri fileUri, int charOffset, Reference? reference,
+  Procedure? _createSetter(Uri fileUri, int charOffset, Reference? reference,
           {required bool isCovariantByDeclaration}) =>
       null;
 
@@ -1603,7 +1604,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             nameScheme.isInstanceMember {
     if (_isExtensionInstanceMember) {
       _getter = new Procedure(
-          nameScheme.getProcedureName(ProcedureKind.Getter, name),
+          dummyName,
           ProcedureKind.Method,
           new FunctionNode(null, positionalParameters: [
             new VariableDeclaration(extensionThisName)..fileOffset
@@ -1613,13 +1614,16 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         ..fileOffset = charOffset
         ..fileEndOffset = charEndOffset
         ..isNonNullableByDefault = isNonNullableByDefault;
+      nameScheme
+          .getProcedureMemberName(ProcedureKind.Getter, name)
+          .attachMember(_getter);
       if (!isFinal) {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue")
               ..isCovariantByDeclaration = isCovariantByDeclaration
               ..fileOffset = charOffset;
         _setter = new Procedure(
-            nameScheme.getProcedureName(ProcedureKind.Setter, name),
+            dummyName,
             ProcedureKind.Method,
             new FunctionNode(null,
                 positionalParameters: [
@@ -1634,26 +1638,27 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = isNonNullableByDefault;
+        nameScheme
+            .getProcedureMemberName(ProcedureKind.Setter, name)
+            .attachMember(_setter!);
       }
     } else {
       _getter = new Procedure(
-          nameScheme.getFieldName(FieldNameType.Getter, name,
-              isSynthesized: true),
-          ProcedureKind.Getter,
-          new FunctionNode(null),
-          fileUri: fileUri,
-          reference: getterReference)
+          dummyName, ProcedureKind.Getter, new FunctionNode(null),
+          fileUri: fileUri, reference: getterReference)
         ..fileOffset = charOffset
         ..fileEndOffset = charEndOffset
         ..isNonNullableByDefault = isNonNullableByDefault;
+      nameScheme
+          .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
+          .attachMember(_getter);
       if (!isFinal) {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue")
               ..isCovariantByDeclaration = isCovariantByDeclaration
               ..fileOffset = charOffset;
         _setter = new Procedure(
-            nameScheme.getFieldName(FieldNameType.Setter, name,
-                isSynthesized: true),
+            dummyName,
             ProcedureKind.Setter,
             new FunctionNode(null,
                 positionalParameters: [parameter], returnType: const VoidType())
@@ -1664,6 +1669,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = isNonNullableByDefault;
+        nameScheme
+            .getFieldMemberName(FieldNameType.Setter, name, isSynthesized: true)
+            .attachMember(_setter!);
       }
     }
   }
@@ -1755,7 +1763,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       ..isExtensionMember = isExtensionMember
       ..isAbstract = isAbstract && !isExternal
       ..isExternal = isExternal;
-    updatePrivateMemberName(_getter, libraryBuilder);
 
     if (_setter != null) {
       _setter!
@@ -1763,7 +1770,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         ..isExtensionMember = isExtensionMember
         ..isAbstract = isAbstract && !isExternal
         ..isExternal = isExternal;
-      updatePrivateMemberName(_setter!, libraryBuilder);
     }
   }
 

@@ -759,7 +759,10 @@ class FastaContext extends ChainContext with MatchContext {
     String resolvedExecutable = Platform.environment['resolvedExecutable'] ??
         Platform.resolvedExecutable;
     Uri vm = Uri.base.resolveUri(new Uri.file(resolvedExecutable));
-    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
+    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
+      // Force enable features in development.
+      ExperimentalFlag.records: true,
+    };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
       if (environment.containsKey(name)) {

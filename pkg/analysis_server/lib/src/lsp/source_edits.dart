@@ -348,10 +348,14 @@ class FileEditInformation {
   final int? selectionOffsetRelative;
   final int? selectionLength;
 
-  FileEditInformation(this.doc, this.lineInfo, this.edits,
-      {this.newFile = false,
-      this.selectionOffsetRelative,
-      this.selectionLength});
+  FileEditInformation(
+    this.doc,
+    this.lineInfo,
+    this.edits, {
+    required this.newFile,
+    this.selectionOffsetRelative,
+    this.selectionLength,
+  });
 }
 
 class _SourceMock implements Source {

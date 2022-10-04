@@ -111,6 +111,28 @@ VM_UNIT_TEST_CASE_WITH_EXPECTATION(AllocGeneric_Overflow, "Crash") {
   Dart_ShutdownIsolate();
 }
 
+VM_UNIT_TEST_CASE(ZoneRealloc) {
+  TestCase::CreateTestIsolate();
+  Thread* thread = Thread::Current();
+  {
+    TransitionNativeToVM transition(thread);
+    StackZone stack_zone(thread);
+    auto zone = thread->zone();
+
+    const intptr_t kOldLen = 32;
+    const intptr_t kNewLen = 16;
+    const intptr_t kNewLen2 = 16;
+
+    auto data_old = zone->Alloc<uint8_t>(kOldLen);
+    auto data_new = zone->Realloc<uint8_t>(data_old, kOldLen, kNewLen);
+    RELEASE_ASSERT(data_old == data_new);
+
+    auto data_new2 = zone->Realloc<uint8_t>(data_old, kNewLen, kNewLen2);
+    RELEASE_ASSERT(data_old == data_new2);
+  }
+  Dart_ShutdownIsolate();
+}
+
 VM_UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;

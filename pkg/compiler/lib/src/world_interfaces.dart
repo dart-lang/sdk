@@ -2,12 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:compiler/src/js_model/element_map_interfaces.dart';
+
+import 'closure.dart';
+import 'package:kernel/ast.dart' as ir;
 import 'common/elements.dart';
+import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'elements/entities.dart';
+import 'elements/names.dart';
 import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/annotations.dart';
 import 'js_backend/native_data.dart';
+import 'js_backend/interceptor_data.dart';
 import 'universe/class_hierarchy.dart';
 import 'universe/selector.dart';
 
@@ -29,6 +36,16 @@ abstract class JClosedWorld implements World {
 
   AnnotationsData get annotationsData;
 
+  ClosureData get closureDataLookup;
+
+  OutputUnitData get outputUnitData;
+
+  InterceptorData get interceptorData;
+
+  Iterable<MemberEntity> get liveInstanceMembers;
+
+  JsToElementMap get elementMap;
+
   bool isUsedAsMixin(ClassEntity cls);
 
   bool includesClosureCall(Selector selector, AbstractValue? receiver);
@@ -37,6 +54,39 @@ abstract class JClosedWorld implements World {
       Selector selector, AbstractValue? receiver);
 
   bool fieldNeverChanges(MemberEntity element);
+
+  Selector getSelector(ir.Expression node);
+
+  Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
+
+  bool isImplemented(ClassEntity cls);
+
+  Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes);
+
+  bool hasElementIn(ClassEntity cls, Name name, MemberEntity element);
+
+  bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin);
+
+  bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type);
+
+  bool hasAnySubclassOfMixinUseThatImplements(
+      ClassEntity cls, ClassEntity type);
+
+  bool needsNoSuchMethod(ClassEntity cls, Selector selector, ClassQuery query);
+
+  bool includesClosureCallInDomain(Selector selector, AbstractValue receiver,
+      AbstractValueDomain abstractValueDomain);
+
+  Iterable<MemberEntity> locateMembersInDomain(Selector selector,
+      AbstractValue receiver, AbstractValueDomain abstractValueDomain);
+
+  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y);
+
+  bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin);
+
+  ClassEntity? getLubOfInstantiatedSubtypes(ClassEntity cls);
+
+  ClassEntity? getLubOfInstantiatedSubclasses(ClassEntity cls);
 }
 
 // TODO(48820): Move back to `world.dart` when migrated.

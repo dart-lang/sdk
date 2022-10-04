@@ -18,8 +18,11 @@ namespace dart {
   V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
+  V(AllocateRecord)                                                            \
   V(AllocateSuspendState)                                                      \
   V(BoxDouble)                                                                 \
+  V(BoxFloat32x4)                                                              \
+  V(BoxFloat64x2)                                                              \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
@@ -104,8 +107,10 @@ namespace dart {
   V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
   V(void, ExitHandleScope, Thread*)                                            \
   V(LocalHandle*, AllocateHandle, ApiLocalScope*)                              \
-  V(void, TsanLoadAcquire, uword /* address */)                                \
-  V(void, TsanStoreRelease, uword /* address */)
+  V(void, MsanUnpoison, void*, size_t)                                         \
+  V(void, MsanUnpoisonParam, size_t)                                           \
+  V(void, TsanLoadAcquire, void*)                                              \
+  V(void, TsanStoreRelease, void*)
 
 }  // namespace dart
 

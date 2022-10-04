@@ -104,12 +104,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Object, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers,
-      Set<Object?> promotableFields = const {}}) {
+      {required bool respectImplicitlyTypedVarInitializers}) {
     return new _FlowAnalysisImpl(operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        promotableFields: promotableFields);
+            respectImplicitlyTypedVarInitializers);
   }
 
   factory FlowAnalysis.legacy(Operations<Variable, Type> operations,
@@ -379,11 +377,18 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting the condition part of an if statement.
   /// [condition] should be the if statement's condition.  [ifNode] should be
   /// the entire `if` statement (or the collection literal entry).
-  void ifStatement_thenBegin(Expression condition, Node ifNode);
+  ///
+  /// For an if-case statement, [condition] should be `null`.
+  void ifStatement_thenBegin(Expression? condition, Node ifNode);
 
-  /// Call this method after visiting the initializer of a variable declaration.
+  /// Call this method after visiting the initializer of a variable declaration,
+  /// or a variable pattern that is being matched (and hence being initialized
+  /// with an implicit value).
+  ///
+  /// If the initialized value is not known (i.e. because this is a variable
+  /// pattern that's being matched), pass `null` for [initializerExpression].
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped});
@@ -485,10 +490,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// expression.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  This will be matched
-  /// against set set of promotable fields passed to the [FlowAnalysis]
-  /// constructor.  [staticType] should be the static type of the value returned
-  /// by the property get.
+  /// track of the field or property being accessed.  If not `null`,
+  /// [Operations.isPropertyPromotable] will be consulted to find out whether
+  /// the property is promotable.  [staticType] should be the static type of the
+  /// value returned by the property get.
   ///
   /// Note: although only fields can be promoted, this method uses the
   /// nomenclature "property" rather than "field", to highlight the fact that
@@ -508,15 +513,23 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the identifier to the right hand side of the `.`.  [staticType] should be
   /// the static type of the value returned by the property get.
   ///
+  /// [wholeExpression] is used by flow analysis to detect the case where the
+  /// property get is used as a subexpression of a larger expression that
+  /// participates in promotion (e.g. promotion of a property of a property).
+  /// If there is no expression corresponding to the property get (e.g. because
+  /// the property is being invoked like a method, or the property get is part
+  /// of a compound assignment), [wholeExpression] may be `null`.
+  ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  This will be matched
-  /// against the set of promotable fields passed to the [FlowAnalysis]
-  /// constructor.  In the event of non-promotion of a property get, this value
-  /// can be retrieved from [PropertyNotPromoted.propertyMember].
+  /// track of the field or property being accessed.  If not `null`,
+  /// [Operations.isPropertyPromotable] will be consulted to find out whether
+  /// the property is promotable.  In the event of non-promotion of a property
+  /// get, this value can be retrieved from
+  /// [PropertyNotPromoted.propertyMember].
   ///
   /// If the property's type is currently promoted, the promoted type is
   /// returned.  Otherwise `null` is returned.
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType);
 
   /// Retrieves the SSA node associated with [variable], or `null` if [variable]
@@ -525,14 +538,20 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   @visibleForTesting
   SsaNode<Type>? ssaNodeForTesting(Variable variable);
 
+  /// Call this method just after visiting a guard part of a case clause.  See
+  /// [switchStatement_expressionEnd] for details.
+  ///
+  /// [when] should be the expression following the `when` keyword.
+  void switchStatement_afterGuard(Expression when);
+
+  /// Call this method just before visiting a sequence of two or more `case` or
+  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
+  /// for details.`
+  void switchStatement_beginAlternatives();
+
   /// Call this method just before visiting one of the cases in the body of a
   /// switch statement.  See [switchStatement_expressionEnd] for details.
-  ///
-  /// [hasLabel] indicates whether the case has any labels.
-  ///
-  /// [node] should be the same node that was passed to
-  /// [AssignedVariables.endNode] for the switch statement.
-  void switchStatement_beginCase(bool hasLabel, Node node);
+  void switchStatement_beginCase();
 
   /// Call this method just after visiting the body of a switch statement.  See
   /// [switchStatement_expressionEnd] for details.
@@ -542,17 +561,44 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// were listed in cases.
   void switchStatement_end(bool isExhaustive);
 
+  /// Call this method just after visiting a `case` or `default` clause, if it
+  /// shares a body with at least one other `case` or `default` clause.  See
+  /// [switchStatement_expressionEnd] for details.`
+  void switchStatement_endAlternative();
+
+  /// Call this method just after visiting a sequence of two or more `case` or
+  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
+  /// for details.`
+  ///
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the switch statement.
+  ///
+  /// [hasLabels] indicates whether the case has any labels.
+  void switchStatement_endAlternatives(Statement node,
+      {required bool hasLabels});
+
   /// Call this method just after visiting the expression part of a switch
-  /// statement.
+  /// statement or expression.  [switchStatement] should be the switch statement
+  /// itself (or `null` if this is a switch expression).
   ///
   /// The order of visiting a switch statement should be:
   /// - Visit the switch expression.
   /// - Call [switchStatement_expressionEnd].
-  /// - For each switch case (including the default case, if any):
+  /// - For each case body:
   ///   - Call [switchStatement_beginCase].
-  ///   - Visit the case.
+  ///   - If there is more than one `case` or `default` clause associated with
+  ///     this case body, call [switchStatement_beginAlternatives].  (Also safe
+  ///     to call if there is just one `case` or `default` clause).
+  ///   - For each `case` or `default` clause associated with this case body:
+  ///     - If a `when` clause is present, visit it and then call
+  ///       [switchStatement_afterGuard].
+  ///     - If [switchStatement_beginAlternatives] was called, call
+  ///       [switchStatement_endAlternative].
+  ///   - If [switchStatement_beginAlternatives] was called, call
+  ///     [switchStatement_endAlternatives].
+  ///   - Visit the case body.
   /// - Call [switchStatement_end].
-  void switchStatement_expressionEnd(Statement switchStatement);
+  void switchStatement_expressionEnd(Statement? switchStatement);
 
   /// Call this method just after visiting the expression `this` (or the
   /// pseudo-expression `super`, in the case of the analyzer, which represents
@@ -570,10 +616,11 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// returned by the property get.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  This will be matched
-  /// against the set of promotable fields passed to the [FlowAnalysis]
-  /// constructor.  In the event of non-promotion of a property get, this value
-  /// can be retrieved from [PropertyNotPromoted.propertyMember].
+  /// track of the field or property being accessed.  If not `null`,
+  /// [Operations.isPropertyPromotable] will be consulted to find out whether
+  /// the property is promotable.  In the event of non-promotion of a property
+  /// get, this value can be retrieved from
+  /// [PropertyNotPromoted.propertyMember].
   ///
   /// If the property's type is currently promoted, the promoted type is
   /// returned.  Otherwise `null` is returned.
@@ -768,14 +815,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   factory FlowAnalysisDebug(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers,
-      Set<Object?> promotableFields = const {}}) {
+      {required bool respectImplicitlyTypedVarInitializers}) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
         operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        promotableFields: promotableFields));
+            respectImplicitlyTypedVarInitializers));
   }
 
   factory FlowAnalysisDebug.legacy(Operations<Variable, Type> operations,
@@ -1002,23 +1047,22 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
+  void ifStatement_thenBegin(Expression? condition, Node ifNode) {
     _wrap('ifStatement_thenBegin($condition, $ifNode)',
         () => _wrapped.ifStatement_thenBegin(condition, ifNode));
   }
 
   @override
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {
     _wrap(
-        'initialize($variable, $initializerType, $initializerExpression, '
+        'initialize($variable, $matchedType, $initializerExpression, '
         'isFinal: $isFinal, isLate: $isLate, '
         'isImplicitlyTyped: $isImplicitlyTyped)',
-        () => _wrapped.initialize(
-            variable, initializerType, initializerExpression,
+        () => _wrapped.initialize(variable, matchedType, initializerExpression,
             isFinal: isFinal,
             isLate: isLate,
             isImplicitlyTyped: isImplicitlyTyped));
@@ -1149,7 +1193,7 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType) {
     return _wrap(
         'propertyGet($wholeExpression, $target, $propertyName, '
@@ -1168,9 +1212,21 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Node node) {
-    _wrap('switchStatement_beginCase($hasLabel, $node)',
-        () => _wrapped.switchStatement_beginCase(hasLabel, node));
+  void switchStatement_afterGuard(Expression when) {
+    _wrap('switchStatement_afterGuard($when)',
+        () => _wrapped.switchStatement_afterGuard(when));
+  }
+
+  @override
+  void switchStatement_beginAlternatives() {
+    _wrap('switchStatement_beginAlternatives()',
+        () => _wrapped.switchStatement_beginAlternatives());
+  }
+
+  @override
+  void switchStatement_beginCase() {
+    _wrap('switchStatement_beginCase()',
+        () => _wrapped.switchStatement_beginCase());
   }
 
   @override
@@ -1180,7 +1236,22 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_expressionEnd(Statement switchStatement) {
+  void switchStatement_endAlternative() {
+    _wrap('switchStatement_endAlternative()',
+        () => _wrapped.switchStatement_endAlternative());
+  }
+
+  @override
+  void switchStatement_endAlternatives(Statement node,
+      {required bool hasLabels}) {
+    _wrap(
+        'switchStatement_endAlternatives($node, hasLabels: $hasLabels)',
+        () => _wrapped.switchStatement_endAlternatives(node,
+            hasLabels: hasLabels));
+  }
+
+  @override
+  void switchStatement_expressionEnd(Statement? switchStatement) {
     _wrap('switchStatement_expressionEnd($switchStatement)',
         () => _wrapped.switchStatement_expressionEnd(switchStatement));
   }
@@ -2178,7 +2249,13 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
 
 /// Operations on types and variables, abstracted from concrete type interfaces.
 abstract class Operations<Variable extends Object, Type extends Object>
-    implements TypeOperations<Type>, VariableOperations<Variable, Type> {}
+    implements TypeOperations<Type>, VariableOperations<Variable, Type> {
+  /// Determines whether the given property can be promoted.  [propertyMember]
+  /// will correspond to a `propertyMember` value passed to
+  /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
+  /// [FlowAnalysis.thisOrSuperPropertyGet].
+  bool isPropertyPromotable(Object property);
+}
 
 /// Non-promotion reason describing the situation where an expression was not
 /// promoted due to the fact that it's a property get.
@@ -3095,16 +3172,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
-  /// The set of fields that can be promoted.  The type of the set element is
-  /// `Object?` to match the type of the `propertyMember` argument of
-  /// [promotedFieldType], [propertyGet], and [thisOrSuperPropertyGet].
-  final Set<Object?> _promotableFields;
-
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers,
-      Set<Object?> promotableFields = const {}})
-      : promotionKeyStore = _assignedVariables.promotionKeyStore,
-        _promotableFields = promotableFields {
+      {required this.respectImplicitlyTypedVarInitializers})
+      : promotionKeyStore = _assignedVariables.promotionKeyStore {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -3466,7 +3536,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
+  void ifStatement_thenBegin(Expression? condition, Node ifNode) {
     ExpressionInfo<Type> conditionInfo = _expressionEnd(condition);
     _stack.add(new _IfContext(conditionInfo));
     _current = conditionInfo.ifTrue;
@@ -3474,7 +3544,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {
@@ -3488,18 +3558,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // initializer expressions for implicitly typed variables, in order to
       // preserve the buggy behavior of
       // https://github.com/dart-lang/language/issues/1785.
-    } else {
+    } else if (initializerExpression != null) {
       expressionInfo = _getExpressionInfo(initializerExpression);
     }
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
-    _current = _current.write(this, null, variable, variableKey,
-        initializerType, newSsaNode, operations,
+    _current = _current.write(
+        this, null, variable, variableKey, matchedType, newSsaNode, operations,
         promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal);
-    if (isImplicitlyTyped && operations.isTypeParameterType(initializerType)) {
+    if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
       _current = _current
           .tryPromoteForTypeCheck(
-              this, _variableReference(variable, variableKey), initializerType)
+              this, _variableReference(variable, variableKey), matchedType)
           .ifTrue;
     }
   }
@@ -3670,7 +3740,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType) {
     return _handleProperty(
         wholeExpression, target, propertyName, propertyMember, staticType);
@@ -3681,16 +3751,26 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Node node) {
-    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+  void switchStatement_afterGuard(Expression when) {
+    ExpressionInfo<Type>? expressionInfo = _getExpressionInfo(when);
+    if (expressionInfo != null) {
+      _current = expressionInfo.ifTrue;
+    }
+  }
+
+  @override
+  void switchStatement_beginAlternatives() {
+    _current = _current.split();
+    _SwitchAlternativesContext<Type> context =
+        new _SwitchAlternativesContext<Type>(_current);
+    _stack.add(context);
+  }
+
+  @override
+  void switchStatement_beginCase() {
     _SimpleStatementContext<Type> context =
         _stack.last as _SimpleStatementContext<Type>;
-    if (hasLabel) {
-      _current =
-          context._previous.conservativeJoin(this, info.written, info.captured);
-    } else {
-      _current = context._previous;
-    }
+    _current = context._previous;
   }
 
   @override
@@ -3710,12 +3790,40 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_expressionEnd(Statement switchStatement) {
+  void switchStatement_endAlternative() {
+    _SwitchAlternativesContext<Type> context =
+        _stack.last as _SwitchAlternativesContext<Type>;
+    context._combinedModel = _join(context._combinedModel, _current);
+    _current = context._previous;
+  }
+
+  @override
+  void switchStatement_endAlternatives(Statement? node,
+      {required bool hasLabels}) {
+    _SwitchAlternativesContext<Type> alternativesContext =
+        _stack.removeLast() as _SwitchAlternativesContext<Type>;
+    _SimpleStatementContext<Type> switchContext =
+        _stack.last as _SimpleStatementContext<Type>;
+    if (hasLabels) {
+      AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
+      _current = switchContext._previous
+          .conservativeJoin(this, info.written, info.captured);
+    } else {
+      _current =
+          (alternativesContext._combinedModel ?? alternativesContext._previous)
+              .unsplit();
+    }
+  }
+
+  @override
+  void switchStatement_expressionEnd(Statement? switchStatement) {
     _current = _current.split();
     _SimpleStatementContext<Type> context =
         new _SimpleStatementContext<Type>(_current.reachable.parent!, _current);
     _stack.add(context);
-    _statementToContext[switchStatement] = context;
+    if (switchStatement != null) {
+      _statementToContext[switchStatement] = context;
+    }
   }
 
   @override
@@ -3908,14 +4016,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// be the last expression that was traversed).  If there is no
   /// [ExpressionInfo] associated with the [expression], then a fresh
   /// [ExpressionInfo] is created recording the current flow analysis state.
-  ExpressionInfo<Type> _expressionEnd(Expression expression) =>
+  ExpressionInfo<Type> _expressionEnd(Expression? expression) =>
       _getExpressionInfo(expression) ?? new _TrivialExpressionInfo(_current);
 
   /// Gets the [ExpressionInfo] associated with the [expression] (which should
   /// be the last expression that was traversed).  If there is no
   /// [ExpressionInfo] associated with the [expression], then `null` is
   /// returned.
-  ExpressionInfo<Type>? _getExpressionInfo(Expression expression) {
+  ExpressionInfo<Type>? _getExpressionInfo(Expression? expression) {
     if (identical(expression, _expressionWithInfo)) {
       ExpressionInfo<Type>? expressionInfo = _expressionInfo;
       _expressionInfo = null;
@@ -3992,7 +4100,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? _handleProperty(Expression? wholeExpression, Expression? target,
       String propertyName, Object? propertyMember, Type staticType) {
     int targetKey;
-    bool isPromotable = _promotableFields.contains(propertyMember);
+    bool isPromotable = propertyMember != null &&
+        operations.isPropertyPromotable(propertyMember);
     if (target == null) {
       targetKey = promotionKeyStore.thisPromotionKey;
     } else {
@@ -4319,13 +4428,13 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
+  void ifStatement_thenBegin(Expression? condition, Node ifNode) {
     _conditionalOrIf_thenBegin(condition, ifNode);
   }
 
   @override
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {}
@@ -4498,7 +4607,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
           String propertyName, Object? propertyMember, Type staticType) =>
       null;
 
@@ -4508,13 +4617,26 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Node node) {}
+  void switchStatement_afterGuard(Expression when) {}
+
+  @override
+  void switchStatement_beginAlternatives() {}
+
+  @override
+  void switchStatement_beginCase() {}
 
   @override
   void switchStatement_end(bool isExhaustive) {}
 
   @override
-  void switchStatement_expressionEnd(Statement switchStatement) {}
+  void switchStatement_endAlternative() {}
+
+  @override
+  void switchStatement_endAlternatives(Statement node,
+      {required bool hasLabels}) {}
+
+  @override
+  void switchStatement_expressionEnd(Statement? switchStatement) {}
 
   @override
   void thisOrSuper(Expression expression, Type staticType) {}
@@ -4585,7 +4707,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
     _writeStackForAnd.last.add(variableKey);
   }
 
-  void _conditionalOrIf_thenBegin(Expression condition, Node node) {
+  void _conditionalOrIf_thenBegin(Expression? condition, Node node) {
     _contextStack.add(new _LegacyContext<Type>(_knownTypes));
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     Map<int, Type>? newKnownTypes;
@@ -4633,7 +4755,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   /// Gets the [_LegacyExpressionInfo] associated with [expression], if any;
   /// otherwise returns `null`.
-  _LegacyExpressionInfo<Type>? _getExpressionInfo(Expression expression) {
+  _LegacyExpressionInfo<Type>? _getExpressionInfo(Expression? expression) {
     if (identical(expression, _expressionWithInfo)) {
       _LegacyExpressionInfo<Type>? expressionInfo = _expressionInfo;
       _expressionInfo = null;
@@ -4758,6 +4880,14 @@ class _SimpleStatementContext<Type extends Object>
   String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
       'continueModel: $_continueModel, previous: $_previous, '
       'checkpoint: $_checkpoint)';
+}
+
+class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
+  final FlowModel<Type> _previous;
+
+  FlowModel<Type>? _combinedModel;
+
+  _SwitchAlternativesContext(this._previous);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the information we

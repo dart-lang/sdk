@@ -291,7 +291,7 @@ class SuperclassParameterVisitor extends ScrapeVisitor {
     record('Insert super args', insert ? 'Yes' : 'No');
     record('Do not merge super args', noMerge ? 'Yes' : 'No');
 
-    var subName = _constructorName(node.name2);
+    var subName = _constructorName(node.name);
     var superName = _constructorName(initializer.constructorName?.token);
 
     record('No explicit super(), call same name',

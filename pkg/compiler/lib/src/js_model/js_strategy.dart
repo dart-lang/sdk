@@ -25,6 +25,9 @@ import '../io/source_information.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
+import '../inferrer_experimental/types.dart' as experimentalInferrer;
+import '../inferrer_experimental/type_graph_inferrer.dart'
+    as experimentalInferrer;
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_impact.dart';
@@ -404,6 +407,15 @@ class JsBackendStrategy {
         _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
+  /// Creates the [TypesInferrer] used by this strategy.
+  experimentalInferrer.TypesInferrer createExperimentalTypesInferrer(
+      JClosedWorld closedWorld,
+      GlobalLocalsMap globalLocalsMap,
+      InferredDataBuilder inferredDataBuilder) {
+    return experimentalInferrer.TypeGraphInferrer(
+        _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
+  }
+
   /// Prepare [source] to deserialize modular code generation data.
   void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
@@ -625,7 +637,9 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue typeFromNativeBehavior(
-      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
+      // TODO(48820): remove covariant once interface and implementation match.
+      NativeBehavior nativeBehavior,
+      covariant JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

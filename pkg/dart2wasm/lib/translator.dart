@@ -34,7 +34,6 @@ class TranslatorOptions {
   bool importSharedMemory = false;
   bool inlining = false;
   int inliningLimit = 3;
-  bool lazyConstants = false;
   bool nameSection = true;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
@@ -138,6 +137,7 @@ class Translator {
   late final Map<w.ValueType, Class> boxedClasses;
 
   // Other parts of the global compiler state.
+  late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
   late final DispatchTable dispatchTable;
   late final Globals globals;
@@ -166,9 +166,8 @@ class Translator {
 
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
-  final Map<int, w.StructType> functionTypeCache = {};
   final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
-  final Map<Procedure, w.DefinedFunction> tearOffFunctionCache = {};
+  final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
   ClassInfo get topInfo => classes[0];
   ClassInfo get objectInfo => classInfo[coreTypes.objectClass]!;
@@ -179,24 +178,28 @@ class Translator {
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
     subtypes = hierarchy.computeSubtypesInformation();
+    closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
     types = Types(this);
     dynamics = DynamicDispatcher(this);
 
-    Class Function(String) makeLookup(String libraryName) {
-      Library library =
-          component.libraries.firstWhere((l) => l.name == libraryName);
-      return (name) => library.classes.firstWhere((c) => c.name == name);
+    Library lookupLibrary(String importUriString) => component.libraries
+        .firstWhere((l) => l.importUri == Uri.parse(importUriString));
+
+    Class Function(String) makeLookup(String importUriString) {
+      return (name) => lookupLibrary(importUriString)
+          .classes
+          .firstWhere((c) => c.name == name);
     }
 
-    Class Function(String) lookupCore = makeLookup("dart.core");
-    Class Function(String) lookupCollection = makeLookup("dart.collection");
-    Class Function(String) lookupFfi = makeLookup("dart.ffi");
-    Class Function(String) lookupInternal = makeLookup("dart._internal");
-    Class Function(String) lookupTypedData = makeLookup("dart.typed_data");
-    Class Function(String) lookupWasm = makeLookup("dart.wasm");
+    Class Function(String) lookupCore = makeLookup("dart:core");
+    Class Function(String) lookupCollection = makeLookup("dart:collection");
+    Class Function(String) lookupFfi = makeLookup("dart:ffi");
+    Class Function(String) lookupInternal = makeLookup("dart:_internal");
+    Class Function(String) lookupTypedData = makeLookup("dart:typed_data");
+    Class Function(String) lookupWasm = makeLookup("dart:wasm");
 
     wasmTypesBaseClass = lookupWasm("_WasmBase");
     wasmArrayBaseClass = lookupWasm("_WasmArray");
@@ -250,12 +253,10 @@ class Translator {
         .firstWhere((p) => p.name.text == "callIndirect");
     stackTraceCurrent =
         stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
-    asyncHelper = component.libraries
-        .firstWhere((l) => l.name == "dart.async")
+    asyncHelper = lookupLibrary("dart:async")
         .procedures
         .firstWhere((p) => p.name.text == "_asyncHelper");
-    awaitHelper = component.libraries
-        .firstWhere((l) => l.name == "dart.async")
+    awaitHelper = lookupLibrary("dart:async")
         .procedures
         .firstWhere((p) => p.name.text == "_awaitHelper");
     stringEquals =
@@ -285,8 +286,7 @@ class Translator {
     hashImmutableIndexNullable = lookupCollection("_HashAbstractImmutableBase")
         .procedures
         .firstWhere((p) => p.name.text == "_indexNullable");
-    isSubtype = component.libraries
-        .firstWhere((l) => l.name == "dart.core")
+    isSubtype = lookupLibrary("dart:core")
         .procedures
         .firstWhere((p) => p.name.text == "_isSubtype");
     objectRuntimeType = lookupCore("Object")
@@ -361,6 +361,7 @@ class Translator {
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
     dynamics.collect();
+    closureLayouter.collect();
     classInfoCollector.collect();
 
     functions.collectImportsAndExports();
@@ -447,7 +448,6 @@ class Translator {
     }
 
     dispatchTable.output();
-    constants.finalize();
     initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
@@ -460,10 +460,6 @@ class Translator {
           print(info.global.initializer.trace);
         }
       }
-    }
-    if (options.lazyConstants) {
-      _printFunction(constants.oneByteStringFunction, "makeOneByteString");
-      _printFunction(constants.twoByteStringFunction, "makeTwoByteString");
     }
     _printFunction(initFunction, "init");
 
@@ -630,11 +626,15 @@ class Translator {
       return topInfo.typeWithNullability(type.isPotentiallyNullable);
     }
     if (type is FunctionType) {
-      if (type.requiredParameterCount != type.positionalParameters.length ||
-          type.namedParameters.isNotEmpty) {
-        throw "Function types with optional parameters not supported: $type";
-      }
-      return w.RefType.def(closureStructType(type.requiredParameterCount),
+      ClosureRepresentation? representation =
+          closureLayouter.getClosureRepresentation(
+              type.typeParameters.length,
+              type.positionalParameters.length,
+              type.namedParameters.map((p) => p.name).toList());
+      return w.RefType.def(
+          representation != null
+              ? representation.closureStruct
+              : classInfo[typeClass]!.struct,
           nullable: type.isPotentiallyNullable);
     }
     throw "Unsupported type ${type.runtimeType}";
@@ -653,28 +653,6 @@ class Translator {
         () => m.addArrayType("Array<$name>", elementType: w.FieldType(type)));
   }
 
-  w.StructType closureStructType(int parameterCount) {
-    return functionTypeCache.putIfAbsent(parameterCount, () {
-      ClassInfo info = classInfo[functionClass]!;
-      w.StructType struct = m.addStructType("Function$parameterCount",
-          fields: info.struct.fields, superType: info.struct);
-      assert(struct.fields.length == FieldIndex.closureFunction);
-      struct.fields.add(w.FieldType(
-          w.RefType.def(closureFunctionType(parameterCount), nullable: false),
-          mutable: false));
-      return struct;
-    });
-  }
-
-  w.FunctionType closureFunctionType(int parameterCount) {
-    return m.addFunctionType([
-      w.RefType.data(nullable: false),
-      ...List<w.ValueType>.filled(parameterCount, topInfo.nullableType)
-    ], [
-      topInfo.nullableType
-    ]);
-  }
-
   w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {
     return functionRefCache.putIfAbsent(f, () {
       w.DefinedGlobal global = m.addGlobal(
@@ -685,40 +663,148 @@ class Translator {
     });
   }
 
-  w.DefinedFunction getTearOffFunction(Procedure member) {
+  ClosureImplementation getTearOffClosure(Procedure member) {
     return tearOffFunctionCache.putIfAbsent(member, () {
       assert(member.kind == ProcedureKind.Method);
-      FunctionNode functionNode = member.function;
-      int parameterCount = functionNode.requiredParameterCount;
-      if (functionNode.positionalParameters.length != parameterCount ||
-          functionNode.namedParameters.isNotEmpty) {
-        throw "Not supported: Tear-off with optional parameters"
-            " at ${member.location}";
-      }
-      if (functionNode.typeParameters.isNotEmpty) {
-        throw "Not supported: Tear-off with type parameters"
-            " at ${member.location}";
-      }
-      w.FunctionType memberSignature = signatureFor(member.reference);
-      w.FunctionType closureSignature = closureFunctionType(parameterCount);
-      int signatureOffset = member.isInstanceMember ? 1 : 0;
-      assert(memberSignature.inputs.length == signatureOffset + parameterCount);
-      assert(closureSignature.inputs.length == 1 + parameterCount);
-      w.DefinedFunction function =
-          m.addFunction(closureSignature, "$member (tear-off)");
       w.BaseFunction target = functions.getFunction(member.reference);
-      w.Instructions b = function.body;
-      for (int i = 0; i < memberSignature.inputs.length; i++) {
-        w.Local paramLocal = function.locals[(1 - signatureOffset) + i];
-        b.local_get(paramLocal);
-        convertType(function, paramLocal.type, memberSignature.inputs[i]);
-      }
-      b.call(target);
-      convertType(function, outputOrVoid(target.type.outputs),
-          outputOrVoid(closureSignature.outputs));
-      b.end();
-      return function;
+      return getClosure(member.function, target, paramInfoFor(member.reference),
+          "$member tear-off");
     });
+  }
+
+  ClosureImplementation getClosure(FunctionNode functionNode,
+      w.BaseFunction target, ParameterInfo paramInfo, String name) {
+    // The target function takes an extra initial parameter if it's a function
+    // expression / local function (which takes a context) or a tear-off of an
+    // instance method (which takes a receiver).
+    bool takesContextOrReceiver =
+        paramInfo.member == null || paramInfo.member!.isInstanceMember;
+
+    // Look up the closure representation for the signature.
+    int typeCount = functionNode.typeParameters.length;
+    int positionalCount = functionNode.positionalParameters.length;
+    List<String> names =
+        functionNode.namedParameters.map((p) => p.name!).toList();
+    assert(typeCount == paramInfo.typeParamCount);
+    assert(positionalCount <= paramInfo.positional.length);
+    assert(names.length <= paramInfo.named.length);
+    assert(target.type.inputs.length ==
+        (takesContextOrReceiver ? 1 : 0) +
+            paramInfo.typeParamCount +
+            paramInfo.positional.length +
+            paramInfo.named.length);
+    ClosureRepresentation representation = closureLayouter
+        .getClosureRepresentation(typeCount, positionalCount, names)!;
+    assert(representation.vtableStruct.fields.length ==
+        representation.vtableBaseIndex +
+            (1 + positionalCount) +
+            representation.nameCombinations.length);
+
+    List<w.DefinedFunction> functions = [];
+
+    bool canBeCalledWith(int posArgCount, List<String> argNames) {
+      if (posArgCount < functionNode.requiredParameterCount) {
+        return false;
+      }
+      int i = 0, j = 0;
+      while (i < argNames.length && j < functionNode.namedParameters.length) {
+        int comp = argNames[i].compareTo(functionNode.namedParameters[j].name!);
+        if (comp < 0) return false;
+        if (comp > 0) {
+          if (functionNode.namedParameters[j++].isRequired) return false;
+          continue;
+        }
+        i++;
+        j++;
+      }
+      if (i < argNames.length) return false;
+      while (j < functionNode.namedParameters.length) {
+        if (functionNode.namedParameters[j++].isRequired) return false;
+      }
+      return true;
+    }
+
+    w.DefinedFunction makeTrampoline(
+        w.FunctionType signature, int posArgCount, List<String> argNames) {
+      w.DefinedFunction function = m.addFunction(signature, name);
+      w.Instructions b = function.body;
+      int targetIndex = 0;
+      if (takesContextOrReceiver) {
+        w.Local receiver = function.locals[0];
+        b.local_get(receiver);
+        convertType(function, receiver.type, target.type.inputs[targetIndex++]);
+      }
+      int argIndex = 1;
+      for (int i = 0; i < typeCount; i++) {
+        b.local_get(function.locals[argIndex++]);
+        targetIndex++;
+      }
+      for (int i = 0; i < paramInfo.positional.length; i++) {
+        if (i < posArgCount) {
+          w.Local arg = function.locals[argIndex++];
+          b.local_get(arg);
+          convertType(function, arg.type, target.type.inputs[targetIndex++]);
+        } else {
+          constants.instantiateConstant(function, b, paramInfo.positional[i]!,
+              target.type.inputs[targetIndex++]);
+        }
+      }
+      int argNameIndex = 0;
+      for (int i = 0; i < paramInfo.names.length; i++) {
+        String argName = paramInfo.names[i];
+        if (argNameIndex < argNames.length &&
+            argNames[argNameIndex] == argName) {
+          w.Local arg = function.locals[argIndex++];
+          b.local_get(arg);
+          convertType(function, arg.type, target.type.inputs[targetIndex++]);
+          argNameIndex++;
+        } else {
+          constants.instantiateConstant(function, b, paramInfo.named[argName]!,
+              target.type.inputs[targetIndex++]);
+        }
+      }
+      assert(argIndex == signature.inputs.length);
+      assert(targetIndex == target.type.inputs.length);
+      assert(argNameIndex == argNames.length);
+
+      b.call(target);
+
+      convertType(function, outputOrVoid(target.type.outputs),
+          outputOrVoid(signature.outputs));
+      b.end();
+
+      return function;
+    }
+
+    void fillVtableEntry(
+        w.Instructions ib, int posArgCount, List<String> argNames) {
+      int fieldIndex = representation.vtableBaseIndex + functions.length;
+      assert(fieldIndex ==
+          representation.fieldIndexForSignature(posArgCount, argNames));
+      w.FunctionType signature =
+          (representation.vtableStruct.fields[fieldIndex].type as w.RefType)
+              .heapType as w.FunctionType;
+      w.DefinedFunction function = canBeCalledWith(posArgCount, argNames)
+          ? makeTrampoline(signature, posArgCount, argNames)
+          : globals.getDummyFunction(signature);
+      functions.add(function);
+      ib.ref_func(function);
+    }
+
+    w.DefinedGlobal vtable = m.addGlobal(w.GlobalType(
+        w.RefType.def(representation.vtableStruct, nullable: false),
+        mutable: false));
+    w.Instructions ib = vtable.initializer;
+    for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
+      fillVtableEntry(ib, posArgCount, const []);
+    }
+    for (NameCombination nameCombination in representation.nameCombinations) {
+      fillVtableEntry(ib, positionalCount, nameCombination.names);
+    }
+    ib.struct_new(representation.vtableStruct);
+    ib.end();
+
+    return ClosureImplementation(representation, functions, vtable);
   }
 
   w.ValueType outputOrVoid(List<w.ValueType> outputs) {
@@ -739,8 +825,8 @@ class Translator {
       }
       if (to != voidMarker) {
         if (to is w.RefType && to.nullable) {
-          // This can happen when a void method has its return type overridden to
-          // return a value, in which case the selector signature will have a
+          // This can happen when a void method has its return type overridden
+          // to return a value, in which case the selector signature will have a
           // non-void return type to encompass all possible return values.
           b.ref_null(to.heapType);
         } else {
@@ -752,6 +838,17 @@ class Translator {
         return;
       }
     }
+
+    bool fromIsExtern = from.isSubtypeOf(w.RefType.extern(nullable: true));
+    bool toIsExtern = to.isSubtypeOf(w.RefType.extern(nullable: true));
+    if (fromIsExtern && !toIsExtern) {
+      b.extern_internalize();
+      from = w.RefType.any(nullable: from.nullable);
+    }
+    if (!fromIsExtern && toIsExtern) {
+      to = w.RefType.any(nullable: to.nullable);
+    }
+
     if (!from.isSubtypeOf(to)) {
       if (from is! w.RefType && to is w.RefType) {
         // Boxing
@@ -811,6 +908,10 @@ class Translator {
           b.end(); // nullLabel
         }
       }
+    }
+
+    if (!fromIsExtern && toIsExtern) {
+      b.extern_externalize();
     }
   }
 

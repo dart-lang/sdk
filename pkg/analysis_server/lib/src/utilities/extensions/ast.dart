@@ -24,7 +24,7 @@ extension AstNodeExtensions on AstNode {
   ExtensionElement? get enclosingExtensionElement {
     for (final node in withParents) {
       if (node is ExtensionDeclaration) {
-        return node.declaredElement2;
+        return node.declaredElement;
       }
     }
     return null;
@@ -46,9 +46,9 @@ extension AstNodeExtensions on AstNode {
   InterfaceElement? get enclosingInterfaceElement {
     for (final node in withParents) {
       if (node is ClassDeclaration) {
-        return node.declaredElement2;
+        return node.declaredElement;
       } else if (node is MixinDeclaration) {
-        return node.declaredElement2;
+        return node.declaredElement;
       }
     }
     return null;
@@ -180,11 +180,21 @@ extension ExpressionExtensions on Expression {
   }
 
   /// Return `true` if this expression is an invocation of the method `toList`
-  /// from either `Iterable` or `List`.
+  /// from `Iterable`.
   bool get isToListMethodInvocation {
     if (this is MethodInvocation) {
       var element = (this as MethodInvocation).methodName.staticElement;
       return element is MethodElement && element.isToListMethod;
+    }
+    return false;
+  }
+
+  /// Return `true` if this expression is an invocation of the method `toSet`
+  /// from `Iterable`.
+  bool get isToSetMethodInvocation {
+    if (this is MethodInvocation) {
+      var element = (this as MethodInvocation).methodName.staticElement;
+      return element is MethodElement && element.isToSetMethod;
     }
     return false;
   }

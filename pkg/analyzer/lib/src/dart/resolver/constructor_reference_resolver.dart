@@ -30,7 +30,7 @@ class ConstructorReferenceResolver {
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;
     if (element != null && !element.isFactory) {
-      final enclosingElement = element.enclosingElement3;
+      final enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isAbstract) {
         _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode
@@ -60,7 +60,7 @@ class ConstructorReferenceResolver {
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
       // This is illegal.
-      if (enclosingElement is ClassElement) {
+      if (enclosingElement is InterfaceElement) {
         var method = enclosingElement.getMethod(name.name) ??
             enclosingElement.getGetter(name.name) ??
             enclosingElement.getSetter(name.name);

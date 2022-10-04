@@ -35,6 +35,10 @@ import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'deferred_holder_expression.dart';
 import 'native_data.dart';
+import 'namer_interfaces.dart' as interfaces;
+import 'namer_migrated.dart';
+
+export 'namer_migrated.dart' show suffixForGetInterceptor;
 
 part 'field_naming_mixin.dart';
 part 'frequency_namer.dart';
@@ -1554,38 +1558,6 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
       'FutureOr<${_represent(type.typeArgument)}>';
 }
 
-/// Returns a unique suffix for an intercepted accesses to [classes]. This is
-/// used as the suffix for emitted interceptor methods and as the unique key
-/// used to distinguish equivalences of sets of intercepted classes.
-String suffixForGetInterceptor(CommonElements commonElements,
-    NativeData nativeData, Iterable<ClassEntity> classes) {
-  String abbreviate(ClassEntity cls) {
-    if (cls == commonElements.objectClass) return "o";
-    if (cls == commonElements.jsStringClass) return "s";
-    if (cls == commonElements.jsArrayClass) return "a";
-    if (cls == commonElements.jsNumNotIntClass) return "d";
-    if (cls == commonElements.jsIntClass) return "i";
-    if (cls == commonElements.jsNumberClass) return "n";
-    if (cls == commonElements.jsNullClass) return "u";
-    if (cls == commonElements.jsBoolClass) return "b";
-    if (cls == commonElements.jsInterceptorClass) return "I";
-    return cls.name;
-  }
-
-  List<String> names = classes
-      .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
-      .map(abbreviate)
-      .toList();
-  // There is one dispatch mechanism for all native classes.
-  if (classes.any((cls) => nativeData.isNativeOrExtendsNative(cls))) {
-    names.add("x");
-  }
-  // Sort the names of the classes after abbreviating them to ensure
-  // the suffix is stable and predictable for the suggested names.
-  names.sort();
-  return names.join();
-}
-
 /// Generator of names for [ConstantValue] values.
 ///
 /// The names are stable under perturbations of the source.  The name is either
@@ -2133,7 +2105,7 @@ class MinifiedFixedNames extends FixedNames {
 }
 
 /// Namer interface that can be used in modular code generation.
-abstract class ModularNamer {
+abstract class ModularNamer implements interfaces.ModularNamer {
   FixedNames get fixedNames;
 
   /// Returns a variable use for accessing constants.
@@ -2241,6 +2213,7 @@ abstract class ModularNamer {
 
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
+  @override
   jsAst.Name nameForOneShotInterceptor(
       Selector selector, Set<ClassEntity> classes);
 
@@ -2372,6 +2345,7 @@ abstract class ModularNamer {
 
   /// Returns the string that is to be used as the result of a call to
   /// [JS_GET_NAME] at [node] with argument [name].
+  @override
   jsAst.Name getNameForJsGetName(Spannable spannable, JsGetName name) {
     switch (name) {
       case JsGetName.GETTER_PREFIX:

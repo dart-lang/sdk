@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -21,7 +19,7 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../world.dart';
+import '../world_interfaces.dart';
 import 'closure.dart';
 import 'element_map_interfaces.dart' as interfaces;
 import 'element_map_migrated.dart';
@@ -32,6 +30,7 @@ export 'element_map_migrated.dart';
 /// global type inference and building the SSA graph for members.
 abstract class JsToElementMap implements interfaces.JsToElementMap {
   /// Access to the commonly used elements and types.
+  @override
   JCommonElements get commonElements;
 
   /// Access to the [DartTypes] object.
@@ -61,6 +60,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
 
   /// Returns the [Selector] corresponding to the invocation or getter/setter
   /// access of [node].
+  @override
   Selector getSelector(ir.Expression node);
 
   /// Returns the [MemberEntity] corresponding to the member [node].
@@ -68,10 +68,12 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   MemberEntity getMember(ir.Member node);
 
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
+  @override
   FunctionEntity getMethod(ir.Procedure node);
 
   /// Returns the [ConstructorEntity] corresponding to the generative or factory
   /// constructor [node].
+  @override
   ConstructorEntity getConstructor(ir.Member node);
 
   /// Returns the [FieldEntity] corresponding to the field [node].
@@ -88,6 +90,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   Name getName(ir.Name name);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
@@ -104,8 +107,8 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   //  only needed because effectively constant expressions are not replaced by
   //  constant expressions during resolution.
   @override
-  ConstantValue getConstantValue(
-      ir.Member memberContext, ir.Expression expression,
+  ConstantValue? getConstantValue(
+      ir.Member memberContext, ir.Expression? expression,
       {bool requireConstant = true, bool implicitNull = false});
 
   /// Returns the [ConstantValue] for the sentinel used to indicate that a
@@ -134,11 +137,11 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   MemberDefinition getMemberDefinition(MemberEntity member);
 
   /// Returns the [ir.Member] containing the definition of [member], if any.
-  ir.Member getMemberContextNode(MemberEntity member);
+  ir.Member? getMemberContextNode(MemberEntity member);
 
   /// Returns the type of `this` in [member], or `null` if member is defined in
   /// a static context.
-  InterfaceType getMemberThisType(MemberEntity member);
+  InterfaceType? getMemberThisType(MemberEntity member);
 
   /// Returns how [member] has access to type variables of the this type
   /// returned by [getMemberThisType].
@@ -160,6 +163,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
 
   /// Make a record to ensure variables that are are declared in one scope and
   /// modified in another get their values updated correctly.
+  @override
   Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
       KernelScopeInfo info, MemberEntity member);
 
@@ -227,19 +231,17 @@ abstract class KernelToTypeInferenceMap {
 
 /// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
 /// is not a constructor, method or local function.
-ir.FunctionNode getFunctionNode(
+ir.FunctionNode? getFunctionNode(
     JsToElementMap elementMap, MemberEntity member) {
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
     case MemberKind.regular:
-      ir.Member node = definition.node;
-      return node.function;
     case MemberKind.constructor:
     case MemberKind.constructorBody:
-      ir.Member node = definition.node;
+      ir.Member node = definition.node as ir.Member;
       return node.function;
     case MemberKind.closureCall:
-      ir.LocalFunction node = definition.node;
+      ir.LocalFunction node = definition.node as ir.LocalFunction;
       return node.function;
     default:
   }
@@ -250,13 +252,15 @@ ir.FunctionNode getFunctionNode(
 ///
 /// If [field] is an instance field with a null literal initializer `null` is
 /// returned, otherwise the initializer of the [ir.Field] is returned.
-ir.Node getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
+ir.Node? getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
   MemberDefinition definition = elementMap.getMemberDefinition(field);
-  ir.Field node = definition.node;
-  if (node.isInstanceMember &&
+  ir.Field node = definition.node as ir.Field;
+  ir.Expression? initializer = node.initializer;
+  if (initializer != null &&
+      node.isInstanceMember &&
       !node.isFinal &&
-      isNullLiteral(node.initializer)) {
+      isNullLiteral(initializer)) {
     return null;
   }
-  return node.initializer;
+  return initializer;
 }

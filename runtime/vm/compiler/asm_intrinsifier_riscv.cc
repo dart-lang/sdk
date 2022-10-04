@@ -1237,15 +1237,18 @@ static void JumpIfType(Assembler* assembler,
                        Register cid,
                        Register tmp,
                        Label* target) {
-  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfInRange,
-             target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, tmp, kTypeCid, kRecordTypeCid, kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfNotInRange,
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, tmp, kTypeCid, kRecordTypeCid, kIfNotInRange,
              target);
 }
 
@@ -1258,6 +1261,9 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ CompareImmediate(A1, kClosureCid);
   __ BranchIf(EQ, normal_ir_body);  // Instance is a closure.
+
+  __ CompareImmediate(A1, kRecordCid);
+  __ BranchIf(EQ, normal_ir_body);  // Instance is a record.
 
   __ CompareImmediate(A1, kNumPredefinedCids);
   __ BranchIf(HI, &use_declaration_type, Assembler::kNearJump);
@@ -1315,6 +1321,10 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
+  __ BranchIf(EQ, normal_ir_body);
+
+  // Check if left hand side is a record. Records are handled in the runtime.
+  __ CompareImmediate(cid1, kRecordCid);
   __ BranchIf(EQ, normal_ir_body);
 
   // Check whether class ids match. If class ids don't match types may still be
@@ -1477,8 +1487,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ lbu(A0, FieldAddress(A0, target::Type::nullability_offset()));
-  __ lbu(A1, FieldAddress(A1, target::Type::nullability_offset()));
+  __ LoadAbstractTypeNullability(A0, A0);
+  __ LoadAbstractTypeNullability(A1, A1);
   __ bne(A0, A1, &check_legacy);
   // Fall through to equal case if nullability is strictly equal.
 
@@ -1504,7 +1514,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ lx(A0, Address(SP, 0 * target::kWordSize));
   __ LoadCompressed(A0, FieldAddress(A0, target::FunctionType::hash_offset()));
@@ -1514,7 +1524,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ lx(A0, Address(SP, 1 * target::kWordSize));
   __ lx(A1, Address(SP, 0 * target::kWordSize));

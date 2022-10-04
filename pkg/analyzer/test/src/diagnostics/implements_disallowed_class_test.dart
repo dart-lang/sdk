@@ -116,6 +116,14 @@ class A implements num {}
     ]);
   }
 
+  test_class_Record() async {
+    await assertErrorsInCode('''
+class A implements Record {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
+    ]);
+  }
+
   test_class_String() async {
     await assertErrorsInCode('''
 class A implements String {}

@@ -1152,6 +1152,48 @@ Vec3Mut main() {
   EXPECT(store3->instance()->definition() == allocate);
 }
 
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoreAOT) {
+  const char* kScript = R"(
+class Foo {
+  int x = -1;
+
+  toString() => "Foo x: $x";
+}
+
+class Bar {}
+
+main() {
+  final foo = Foo();
+  foo.x = 11;
+  new Bar();
+  foo.x = 12;
+  new Bar();
+  foo.x = 13;
+  return foo;
+}
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  auto entry = flow_graph->graph_entry()->normal_entry();
+
+  AllocateObjectInstr* allocate;
+  StoreFieldInstr* store1;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveAllocateObject, &allocate},
+      {kMatchAndMoveStoreField, &store1},  // initializing store
+      kMatchReturn,
+  }));
+
+  EXPECT(store1->instance()->definition() == allocate);
+}
+
 #endif  // !defined(TARGET_ARCH_IA32)
 
 ISOLATE_UNIT_TEST_CASE(AllocationSinking_Arrays) {
@@ -1473,7 +1515,9 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
 
   using compiler::BlockBuilder;
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
-  FlowGraphBuilderHelper H;
+  FlowGraphBuilderHelper H(/*num_parameters=*/2);
+  H.AddVariable("v0", AbstractType::ZoneHandle(Type::DynamicType()));
+  H.AddVariable("v1", AbstractType::ZoneHandle(Type::DynamicType()));
 
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
 

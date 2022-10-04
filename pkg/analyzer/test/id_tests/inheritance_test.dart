@@ -90,7 +90,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   void computeForClass(Declaration node, Id? id) {
     super.computeForClass(node, id);
     if (node is ClassDeclaration) {
-      var element = node.declaredElement2!;
+      var element = node.declaredElement!;
 
       void registerMember(
           MemberId id, int offset, Object object, DartType type) {
@@ -102,8 +102,10 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
       for (var name in interface.map.keys) {
         var executable = interface.map[name]!;
 
-        var enclosingClass = executable.enclosingElement3 as ClassElement;
-        if (enclosingClass.isDartCoreObject) continue;
+        var enclosingClass = executable.enclosingElement as InterfaceElement;
+        if (enclosingClass is ClassElement && enclosingClass.isDartCoreObject) {
+          continue;
+        }
 
         var id = MemberId.internal(
           name.name,
@@ -135,7 +137,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, AstNode node) {
     if (node is ClassDeclaration) {
-      var cls = node.declaredElement2!;
+      var cls = node.declaredElement!;
       var supertypes = <String>[];
       supertypes.add(supertypeToString(cls.thisType));
       for (var supertype in cls.allSupertypes) {

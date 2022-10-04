@@ -36,6 +36,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginBinaryPattern(Token token) {
+    listener?.beginBinaryPattern(token);
+  }
+
+  @override
   void beginBlock(Token token, BlockKind blockKind) {
     listener?.beginBlock(token, blockKind);
   }
@@ -523,6 +528,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleExtractorPatternFields(
+      int count, Token beginToken, Token endToken) {
+    listener?.handleExtractorPatternFields(count, beginToken, endToken);
+  }
+
+  @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token? commaToken, Token semicolonToken) {
     listener?.endAssert(
@@ -537,6 +548,11 @@ class ForwardingListener implements Listener {
   @override
   void endBinaryExpression(Token token) {
     listener?.endBinaryExpression(token);
+  }
+
+  @override
+  void endBinaryPattern(Token token) {
+    listener?.endBinaryPattern(token);
   }
 
   @override
@@ -973,8 +989,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
-    listener?.endLibraryName(libraryKeyword, semicolon);
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
+    listener?.endLibraryName(libraryKeyword, semicolon, hasName);
   }
 
   @override
@@ -1252,6 +1268,11 @@ class ForwardingListener implements Listener {
   @override
   void handleAsOperator(Token operator) {
     listener?.handleAsOperator(operator);
+  }
+
+  @override
+  void handleCastPattern(Token operator) {
+    listener?.handleCastPattern(operator);
   }
 
   @override
@@ -1562,8 +1583,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleListPattern(int count, Token beginToken, Token endToken) {
+    listener?.handleListPattern(count, beginToken, endToken);
+  }
+
+  @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
     listener?.handleLiteralMapEntry(colon, endToken);
+  }
+
+  @override
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    listener?.handleMapPatternEntry(colon, endToken);
   }
 
   @override
@@ -1586,6 +1617,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    listener?.handleMapPattern(count, leftBrace, rightBrace);
+  }
+
+  @override
   void handleMixinHeader(Token mixinKeyword) {
     listener?.handleMixinHeader(mixinKeyword);
   }
@@ -1598,6 +1634,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNamedArgument(Token colon) {
     listener?.handleNamedArgument(colon);
+  }
+
+  @override
+  void handlePatternField(Token? colon) {
+    listener?.handlePatternField(colon);
   }
 
   @override
@@ -1681,6 +1722,21 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNullAssertPattern(Token bang) {
+    listener?.handleNullAssertPattern(bang);
+  }
+
+  @override
+  void handleNullCheckPattern(Token question) {
+    listener?.handleNullCheckPattern(question);
+  }
+
+  @override
+  void handleVariablePattern(Token? keyword, Token variable) {
+    listener?.handleVariablePattern(keyword, variable);
+  }
+
+  @override
   void handleNoType(Token lastConsumed) {
     listener?.handleNoType(lastConsumed);
   }
@@ -1716,8 +1772,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
-    listener?.handleParenthesizedCondition(token);
+  void handleParenthesizedCondition(Token token, Token? case_) {
+    listener?.handleParenthesizedCondition(token, case_);
   }
 
   @override
@@ -1726,13 +1782,34 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
-    listener?.endRecordLiteral(token, count);
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+    listener?.endRecordLiteral(token, count, constKeyword);
+  }
+
+  @override
+  void handleRecordPattern(Token token, int count) {
+    listener?.handleRecordPattern(token, count);
   }
 
   @override
   void endParenthesizedExpression(Token token) {
     listener?.endParenthesizedExpression(token);
+  }
+
+  @override
+  void handleParenthesizedPattern(Token token) {
+    listener?.handleParenthesizedPattern(token);
+  }
+
+  @override
+  void handleConstantPattern(Token? constKeyword) {
+    listener?.handleConstantPattern(constKeyword);
+  }
+
+  @override
+  void handleExtractorPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    listener?.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
   }
 
   @override
@@ -1837,6 +1914,11 @@ class ForwardingListener implements Listener {
   @override
   void handleUnaryPrefixExpression(Token token) {
     listener?.handleUnaryPrefixExpression(token);
+  }
+
+  @override
+  void handleRelationalPattern(Token token) {
+    listener?.handleRelationalPattern(token);
   }
 
   @override

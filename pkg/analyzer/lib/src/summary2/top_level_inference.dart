@@ -47,7 +47,7 @@ class ConstantInitializersResolver {
         unit.extensions.forEach(_resolveExtensionFields);
         unit.mixins2.forEach(_resolveInterfaceFields);
 
-        _scope = unit.enclosingElement3.scope;
+        _scope = unit.enclosingElement.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
       }
     }
@@ -174,7 +174,7 @@ class _ConstructorInferenceNode extends _InferenceNode {
       }
     }
 
-    var classElement = _constructor.enclosingElement3;
+    var classElement = _constructor.enclosingElement;
     if (classElement is ClassElement && classElement.isMixinApplication) {
       var superType = classElement.supertype;
       if (superType != null) {
@@ -285,7 +285,7 @@ class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
 
     _set.add(element);
 
-    if (element.enclosingElement3.typeParameters.isNotEmpty) {
+    if (element.enclosingElement.typeParameters.isNotEmpty) {
       node.argumentList.accept(this);
     }
   }
@@ -356,7 +356,7 @@ class _InitializerInference {
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins2.forEach(_addClassElementFields);
 
-        _scope = unit.enclosingElement3.scope;
+        _scope = unit.enclosingElement.scope;
         for (var element in unit.topLevelVariables) {
           _addVariableNode(element);
         }
@@ -455,7 +455,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   String get displayName {
-    return _node.name2.lexeme;
+    return _node.name.lexeme;
   }
 
   @override
@@ -526,9 +526,9 @@ class _VariableInferenceNode extends _InferenceNode {
   }
 
   void _resolveInitializer({required bool forDependencies}) {
-    var enclosingElement = _element.enclosingElement3;
+    var enclosingElement = _element.enclosingElement;
     var enclosingClassElement =
-        enclosingElement is ClassElement ? enclosingElement : null;
+        enclosingElement is InterfaceElement ? enclosingElement : null;
     var astResolver = AstResolver(_walker._linker, _unitElement, _scope,
         enclosingClassElement: enclosingClassElement);
     astResolver.resolveExpression(() => _node.initializer!,

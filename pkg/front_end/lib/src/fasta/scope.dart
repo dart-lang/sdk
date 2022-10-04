@@ -21,6 +21,7 @@ import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
 import 'source/source_class_builder.dart';
+import 'source/source_extension_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -472,6 +473,17 @@ class Scope extends MutableScope {
     _setters.forEach(f);
   }
 
+  ExtensionBuilder? lookupLocalUnnamedExtension(Uri fileUri, int offset) {
+    if (_extensions != null) {
+      for (ExtensionBuilder extension in _extensions!) {
+        if (extension.fileUri == fileUri && extension.charOffset == offset) {
+          return extension;
+        }
+      }
+    }
+    return null;
+  }
+
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
     _extensions?.forEach(f);
   }
@@ -639,18 +651,14 @@ class Scope extends MutableScope {
 
 class ConstructorScope {
   /// Constructors declared in this scope.
-  final Map<String, MemberBuilder> local;
+  final Map<String, MemberBuilder> _local;
 
   final String className;
 
-  ConstructorScope(this.className, this.local);
-
-  void forEach(f(String name, MemberBuilder member)) {
-    local.forEach(f);
-  }
+  ConstructorScope(this.className, this._local);
 
   MemberBuilder? lookup(String name, int charOffset, Uri fileUri) {
-    MemberBuilder? builder = local[name];
+    MemberBuilder? builder = _local[name];
     if (builder == null) return null;
     if (builder.next != null) {
       return new AmbiguousMemberBuilder(
@@ -661,11 +669,15 @@ class ConstructorScope {
   }
 
   MemberBuilder? lookupLocalMember(String name) {
-    return local[name];
+    return _local[name];
   }
 
   void addLocalMember(String name, MemberBuilder builder) {
-    local[name] = builder;
+    _local[name] = builder;
+  }
+
+  void addLocalMembers(Map<String, MemberBuilder> map) {
+    _local.addAll(map);
   }
 
   /// Returns an iterator of all constructors mapped in this scope,
@@ -721,7 +733,7 @@ class ConstructorScope {
   }
 
   @override
-  String toString() => "ConstructorScope($className, ${local.keys})";
+  String toString() => "ConstructorScope($className, ${_local.keys})";
 }
 
 abstract class LazyScope extends Scope {
@@ -968,13 +980,15 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder
 /// directly mapped builder.
 class ScopeIterator implements Iterator<Builder> {
   Iterator<Builder>? local;
-  final Iterator<Builder> setters;
+  Iterator<Builder>? setters;
+  Iterator<Builder>? extensions;
 
   Builder? _current;
 
   ScopeIterator(Scope scope)
       : local = scope._local.values.iterator,
-        setters = scope._setters.values.iterator;
+        setters = scope._setters.values.iterator,
+        extensions = scope._extensions?.iterator;
 
   @override
   bool moveNext() {
@@ -990,13 +1004,28 @@ class ScopeIterator implements Iterator<Builder> {
       }
       local = null;
     }
-    if (setters.moveNext()) {
-      _current = setters.current;
-      return true;
-    } else {
-      _current = null;
-      return false;
+    if (setters != null) {
+      if (setters!.moveNext()) {
+        _current = setters!.current;
+        return true;
+      }
+      setters = null;
     }
+    if (extensions != null) {
+      while (extensions!.moveNext()) {
+        Builder extension = extensions!.current;
+        // Named extensions have already been included throw [local] so we skip
+        // them here.
+        if (extension is SourceExtensionBuilder &&
+            extension.isUnnamedExtension) {
+          _current = extension;
+          return true;
+        }
+      }
+      extensions = null;
+    }
+    _current = null;
+    return false;
   }
 
   @override
@@ -1012,7 +1041,7 @@ class ScopeIterator implements Iterator<Builder> {
 /// access to the name that the builders are mapped to.
 class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
   Iterator<String>? localNames;
-  final Iterator<String> setterNames;
+  Iterator<String>? setterNames;
 
   String? _name;
 
@@ -1035,18 +1064,36 @@ class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
         _name = localNames!.current;
         return true;
       }
+      local = null;
       localNames = null;
     }
-    if (setters.moveNext()) {
-      setterNames.moveNext();
-      _current = setters.current;
-      _name = setterNames.current;
-      return true;
-    } else {
-      _current = null;
-      _name = null;
-      return false;
+    if (setters != null) {
+      if (setters!.moveNext()) {
+        setterNames!.moveNext();
+        _current = setters!.current;
+        _name = setterNames!.current;
+        return true;
+      }
+      setters = null;
+      setterNames = null;
     }
+    if (extensions != null) {
+      while (extensions!.moveNext()) {
+        Builder extension = extensions!.current;
+        // Named extensions have already been included throw [local] so we skip
+        // them here.
+        if (extension is SourceExtensionBuilder &&
+            extension.isUnnamedExtension) {
+          _current = extension;
+          _name = extension.name;
+          return true;
+        }
+      }
+      extensions = null;
+    }
+    _current = null;
+    _name = null;
+    return false;
   }
 
   @override
@@ -1063,7 +1110,7 @@ class ConstructorScopeIterator implements Iterator<MemberBuilder> {
   MemberBuilder? _current;
 
   ConstructorScopeIterator(ConstructorScope scope)
-      : local = scope.local.values.iterator;
+      : local = scope._local.values.iterator;
 
   @override
   bool moveNext() {
@@ -1097,7 +1144,7 @@ class ConstructorScopeNameIterator extends ConstructorScopeIterator
   String? _name;
 
   ConstructorScopeNameIterator(ConstructorScope scope)
-      : localNames = scope.local.keys.iterator,
+      : localNames = scope._local.keys.iterator,
         super(scope);
 
   @override
@@ -1322,13 +1369,24 @@ abstract class MergedScope<T extends Builder> {
   }
 
   void _addAugmentationScope(T parentBuilder, Scope scope) {
+    // TODO(johnniwinther): Use `scope.filteredNameIterator` instead of
+    // `scope.forEachLocalMember`/`scope.forEachLocalSetter`.
+
     // Include all augmentation scope members to the origin scope.
     scope.forEachLocalMember((String name, Builder member) {
+      // In case of duplicates we use the first declaration.
+      while (member.isDuplicate) {
+        member = member.next!;
+      }
       _addBuilderToMergedScope(parentBuilder, name, member,
           _originScope.lookupLocalMember(name, setter: false),
           setter: false);
     });
     scope.forEachLocalSetter((String name, Builder member) {
+      // In case of duplicates we use the first declaration.
+      while (member.isDuplicate) {
+        member = member.next!;
+      }
       _addBuilderToMergedScope(parentBuilder, name, member,
           _originScope.lookupLocalMember(name, setter: true),
           setter: true);
@@ -1422,7 +1480,8 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
 
   void _addAugmentationConstructorScope(
       SourceClassBuilder classBuilder, ConstructorScope constructorScope) {
-    constructorScope.forEach((String name, MemberBuilder newConstructor) {
+    constructorScope._local
+        .forEach((String name, MemberBuilder newConstructor) {
       MemberBuilder? existingConstructor =
           _originConstructorScope.lookupLocalMember(name);
       if (classBuilder.isAugmentation) {
@@ -1471,7 +1530,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         }
       }
     });
-    _originConstructorScope
+    _originConstructorScope._local
         .forEach((String name, MemberBuilder originConstructor) {
       _addConstructorToAugmentationScope(
           constructorScope, name, originConstructor);

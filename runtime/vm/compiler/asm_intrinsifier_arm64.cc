@@ -1218,15 +1218,18 @@ static void JumpIfType(Assembler* assembler,
                        Register cid,
                        Register tmp,
                        Label* target) {
-  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfInRange,
-             target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, tmp, kTypeCid, kRecordTypeCid, kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfNotInRange,
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, tmp, kTypeCid, kRecordTypeCid, kIfNotInRange,
              target);
 }
 
@@ -1239,6 +1242,9 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ CompareImmediate(R1, kClosureCid);
   __ b(normal_ir_body, EQ);  // Instance is a closure.
+
+  __ CompareImmediate(R1, kRecordCid);
+  __ b(normal_ir_body, EQ);  // Instance is a record.
 
   __ CompareImmediate(R1, kNumPredefinedCids);
   __ b(&use_declaration_type, HI);
@@ -1268,10 +1274,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);
-  __ ldr(
-      R3,
-      FieldAddress(R2, target::Class::num_type_arguments_offset(), kTwoBytes),
-      kTwoBytes);
+  __ ldr(R3, FieldAddress(R2, target::Class::num_type_arguments_offset()),
+         kTwoBytes);
   __ cbnz(normal_ir_body, R3);
 
   __ LoadCompressed(R0,
@@ -1300,6 +1304,10 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
+  __ b(normal_ir_body, EQ);
+
+  // Check if left hand side is a record. Records are handled in the runtime.
+  __ CompareImmediate(cid1, kRecordCid);
   __ b(normal_ir_body, EQ);
 
   // Check whether class ids match. If class ids don't match types may still be
@@ -1455,10 +1463,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ ldr(R1, FieldAddress(R1, target::Type::nullability_offset(), kByte),
-         kUnsignedByte);
-  __ ldr(R2, FieldAddress(R2, target::Type::nullability_offset(), kByte),
-         kUnsignedByte);
+  __ LoadAbstractTypeNullability(R1, R1);
+  __ LoadAbstractTypeNullability(R2, R2);
   __ cmp(R1, Operand(R2));
   __ b(&check_legacy, NE);
   // Fall through to equal case if nullability is strictly equal.
@@ -1485,7 +1491,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ LoadCompressed(R0, FieldAddress(R0, target::FunctionType::hash_offset()));
@@ -1495,7 +1501,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
   __ CompareObjectRegisters(R1, R2);
@@ -1515,12 +1521,11 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   Label not_yet_computed;
   __ ldr(R0, Address(SP, 0 * target::kWordSize));  // Object.
-  __ ldr(R0,
-         FieldAddress(R0,
-                      target::Object::tags_offset() +
-                          target::UntaggedObject::kHashTagPos / kBitsPerByte,
-                      kFourBytes),
-         kUnsignedFourBytes);
+  __ ldr(
+      R0,
+      FieldAddress(R0, target::Object::tags_offset() +
+                           target::UntaggedObject::kHashTagPos / kBitsPerByte),
+      kUnsignedFourBytes);
   __ cbz(&not_yet_computed, R0);
   __ SmiTag(R0);
   __ ret();
@@ -1925,7 +1930,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ AddImmediate(R6, 1);
   __ sub(R2, R2, Operand(1));
   __ cmp(R2, Operand(0));
-  __ str(R1, FieldAddress(R7, target::OneByteString::data_offset(), kByte),
+  __ str(R1, FieldAddress(R7, target::OneByteString::data_offset()),
          kUnsignedByte);
   __ AddImmediate(R7, 1);
   __ b(&loop, GT);

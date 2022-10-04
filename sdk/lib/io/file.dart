@@ -442,6 +442,12 @@ abstract class File implements FileSystemEntity {
   /// In order to make sure that system resources are freed, the stream
   /// must be read to completion or the subscription on the stream must
   /// be cancelled.
+  ///
+  /// If [File] is a [named pipe](https://en.wikipedia.org/wiki/Named_pipe)
+  /// then the returned [Stream] will wait until the write side of the pipe
+  /// is closed before signaling "done". If there are no writers attached
+  /// to the pipe when it is opened, then [Stream.listen] will wait until
+  /// a writer opens the pipe.
   Stream<List<int>> openRead([int? start, int? end]);
 
   /// Creates a new independent [IOSink] for the file.
@@ -907,5 +913,63 @@ class FileSystemException implements IOException {
       sb.write(": $path");
     }
     return sb.toString();
+  }
+}
+
+/// The "read" end of an [Pipe] created by [Pipe.create].
+///
+/// The read stream will continue to listen until the "write" end of the
+/// pipe (i.e. [Pipe.write]) is closed.
+///
+/// ```dart
+/// final pipe = await Pipe.create();
+/// pipe.read.transform(utf8.decoder).listen((data) {
+///   print(data);
+/// }, onDone: () => print('Done'));
+/// ```
+abstract class ReadPipe implements Stream<List<int>> {}
+
+/// The "write" end of an [Pipe] created by [Pipe.create].
+///
+/// ```dart
+/// final pipe = await Pipe.create();
+/// pipe.write.add("Hello World!".codeUnits);
+/// pipe.write.close();
+/// ```
+abstract class WritePipe implements IOSink {}
+
+/// An anonymous pipe that can be used to send data in a single direction i.e.
+/// data written to [write] can be read using [read].
+///
+/// On macOS and Linux (excluding Android), either the [read] or [write]
+/// portion of the pipe can be transmitted to another process and used for
+/// interprocess communication.
+///
+/// For example:
+/// ```dart
+/// final pipe = await Pipe.create();
+/// final socket = await RawSocket.connect(address, 0);
+/// socket.sendMessage(<SocketControlMessage>[
+/// SocketControlMessage.fromHandles(
+///     <ResourceHandle>[ResourceHandle.fromReadPipe(pipe.read)])
+/// ], 'Hello'.codeUnits);
+/// pipe.write.add('Hello over pipe!'.codeUnits);
+/// pipe.write.close();
+/// ```
+abstract class Pipe {
+  /// The read end of the [Pipe].
+  ReadPipe get read;
+
+  /// The write end of the [Pipe].
+  WritePipe get write;
+
+  // Create an anonymous pipe.
+  static Future<Pipe> create() {
+    return _Pipe.create();
+  }
+
+  /// Synchronously creates an anonymous pipe.
+  factory Pipe.createSync() {
+    return _Pipe.createSync();
   }
 }

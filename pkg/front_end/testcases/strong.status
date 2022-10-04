@@ -6,6 +6,8 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+macros/scope_access: SemiFuzzCrash
+
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
 dart2js/late_fields: SemiFuzzFailure
@@ -26,6 +28,7 @@ dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure # seems like the differe
 late_lowering/private_members: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242285
 macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
 nnbd/constants: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242441
+macros/multiple_augment_class: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49990
 
 # These tests have "privacy issues" and isn't compatiable with splitting files (fuzzing):
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method

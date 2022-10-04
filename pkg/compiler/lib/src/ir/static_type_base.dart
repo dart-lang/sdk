@@ -18,9 +18,7 @@ class DoesNotCompleteType extends ir.NeverType {
 /// Special interface type used to signal that the static type of an expression
 /// has precision of a this-expression.
 class ThisInterfaceType extends ir.InterfaceType {
-  ThisInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType>? typeArguments])
-      : super(classNode, nullability, typeArguments);
+  ThisInterfaceType(super.classNode, super.nullability, [super.typeArguments]);
 
   static from(ir.InterfaceType? type) => type != null
       ? ThisInterfaceType(type.classNode, type.nullability, type.typeArguments)
@@ -41,9 +39,7 @@ class ThisInterfaceType extends ir.InterfaceType {
 /// Special interface type used to signal that the static type of an expression
 /// is exact, i.e. the runtime type is not a subtype or subclass of the type.
 class ExactInterfaceType extends ir.InterfaceType {
-  ExactInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType>? typeArguments])
-      : super(classNode, nullability, typeArguments);
+  ExactInterfaceType(super.classNode, super.nullability, [super.typeArguments]);
 
   static from(ir.InterfaceType? type) => type != null
       ? ExactInterfaceType(type.classNode, type.nullability, type.typeArguments)

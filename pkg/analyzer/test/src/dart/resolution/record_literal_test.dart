@@ -14,6 +14,295 @@ main() {
 
 @reflectiveTest
 class RecordLiteralTest extends PubPackageResolutionTest {
+  test_hasContext_mixed() async {
+    await assertNoErrorsInCode(r'''
+class A1 {}
+class A2 {}
+class A3 {}
+class A4 {}
+class A5 {}
+
+final (A1, A2, A3, {A4 f1, A5 f2}) x = (g(), f1: g(), g(), f2: g(), g());
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(g(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: A1 Function()
+      staticType: A1
+      typeArgumentTypes
+        A1
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A4 Function()
+        staticType: A4
+        typeArgumentTypes
+          A4
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: A2 Function()
+      staticType: A2
+      typeArgumentTypes
+        A2
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f2
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A5 Function()
+        staticType: A5
+        typeArgumentTypes
+          A5
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: A3 Function()
+      staticType: A3
+      typeArgumentTypes
+        A3
+  rightParenthesis: )
+  staticType: (A1, A2, A3, {A4 f1, A5 f2})
+''');
+  }
+
+  test_hasContext_named() async {
+    await assertNoErrorsInCode(r'''
+final ({int f1, String f2}) x = (f1: g(), f2: g());
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(f1:');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+        typeArgumentTypes
+          int
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f2
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: String Function()
+        staticType: String
+        typeArgumentTypes
+          String
+  rightParenthesis: )
+  staticType: ({int f1, String f2})
+''');
+  }
+
+  test_hasContext_named_differentOrder() async {
+    await assertNoErrorsInCode(r'''
+final ({int f1, String f2}) x = (f2: g(), f1: g());
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(f2:');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f2
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: String Function()
+        staticType: String
+        typeArgumentTypes
+          String
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+        typeArgumentTypes
+          int
+  rightParenthesis: )
+  staticType: ({int f1, String f2})
+''');
+  }
+
+  test_hasContext_notRecordType() async {
+    await assertNoErrorsInCode(r'''
+final Object x = (g(), g());
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(g(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: dynamic Function()
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: dynamic Function()
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  rightParenthesis: )
+  staticType: (dynamic, dynamic)
+''');
+  }
+
+  test_hasContext_positional() async {
+    await assertNoErrorsInCode(r'''
+final (int, String) x = (g(), g());
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(g(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+      typeArgumentTypes
+        int
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: String Function()
+      staticType: String
+      typeArgumentTypes
+        String
+  rightParenthesis: )
+  staticType: (int, String)
+''');
+  }
+
   test_noContext_mixed() async {
     await assertNoErrorsInCode(r'''
 final x = (0, f1: 1, 2, f2: 3, 4);

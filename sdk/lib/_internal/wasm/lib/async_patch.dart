@@ -53,20 +53,18 @@ import 'dart:_internal' show patch, scheduleCallback, unsafeCastOpaque;
 import 'dart:wasm';
 
 @pragma("wasm:entry-point")
-Future<T> _asyncHelper<T>(WasmEqRef args) {
+Future<T> _asyncHelper<T>(WasmDataRef args) {
   Completer<T> completer = Completer();
   _callAsyncBridge(args, completer);
   return completer.future;
 }
 
 @pragma("wasm:import", "dart2wasm.callAsyncBridge")
-external void _callAsyncBridge(WasmEqRef args, Completer<Object?> completer);
+external void _callAsyncBridge(WasmDataRef args, Completer<Object?> completer);
 
 @pragma("wasm:export", "\$asyncBridge")
 WasmAnyRef? _asyncBridge(
-    WasmExternRef? stack, WasmExternRef? argsRef, WasmExternRef? completerRef) {
-  WasmDataRef args = unsafeCastOpaque(argsRef!.internalize());
-  Completer<Object?> completer = unsafeCastOpaque(completerRef!.internalize());
+    WasmExternRef? stack, WasmDataRef args, Completer<Object?> completer) {
   try {
     Object? result = _asyncBridge2(args, stack);
     completer.complete(result);
@@ -87,9 +85,7 @@ class _FutureError {
 @pragma("wasm:entry-point")
 Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
   if (operand is! Future) return operand;
-  WasmExternRef futureRef = WasmAnyRef.fromObject(operand).externalize();
-  Object? result =
-      unsafeCastOpaque(_futurePromise(stack, futureRef).internalize());
+  Object? result = _futurePromise(stack, operand);
   if (result is _FutureError) {
     // TODO(askesc): Combine stack traces
     throw result.exception;
@@ -98,11 +94,10 @@ Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
 }
 
 @pragma("wasm:import", "dart2wasm.futurePromise")
-external WasmExternRef? _futurePromise(
-    WasmExternRef? stack, WasmExternRef? future);
+external Object? _futurePromise(WasmExternRef? stack, Future<Object?> future);
 
 @pragma("wasm:export", "\$awaitCallback")
-void _awaitCallback(Future<Object?> future, WasmAnyRef resolve) {
+void _awaitCallback(Future<Object?> future, WasmExternRef? resolve) {
   future.then((value) {
     _callResolve(resolve, value);
   }, onError: (exception, stackTrace) {
@@ -111,4 +106,4 @@ void _awaitCallback(Future<Object?> future, WasmAnyRef resolve) {
 }
 
 @pragma("wasm:import", "dart2wasm.callResolve")
-external void _callResolve(WasmAnyRef resolve, Object? result);
+external void _callResolve(WasmExternRef? resolve, Object? result);

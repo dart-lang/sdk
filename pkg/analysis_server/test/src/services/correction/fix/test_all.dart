@@ -14,6 +14,7 @@ import 'add_diagnostic_property_reference_test.dart'
 import 'add_enum_constant_test.dart' as add_enum_constant_test;
 import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
+import 'add_extension_override_test.dart' as add_extension_override;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
 import 'add_late_test.dart' as add_late;
@@ -225,6 +226,7 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
+import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
@@ -252,6 +254,7 @@ void main() {
     add_enum_constant_test.main();
     add_eol_at_end_of_file.main();
     add_explicit_cast.main();
+    add_extension_override.main();
     add_field_formal_parameters.main();
     add_key_to_constructors.main();
     add_late.main();
@@ -438,6 +441,7 @@ void main() {
     replace_with_var.main();
     sort_properties_last.main();
     sort_constructor_first_test.main();
+    sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
     use_const.main();
