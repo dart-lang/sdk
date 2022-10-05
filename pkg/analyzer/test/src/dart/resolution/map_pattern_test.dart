@@ -14,41 +14,7 @@ main() {
 
 @reflectiveTest
 class MapPatternResolutionTest extends PatternsResolutionTest {
-  test_empty() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case {}:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-MapPattern
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
-  test_empty_withWhitespace() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case { }:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-MapPattern
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
-  test_inside_castPattern() async {
+  test_elements_constant() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
@@ -78,65 +44,11 @@ CastPattern
 ''');
   }
 
-  test_inside_nullAssert() async {
+  test_elements_empty() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
-    case {'a': 0}!:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: MapPattern
-    leftBracket: {
-    entries
-      MapPatternEntry
-        key: SimpleStringLiteral
-          literal: 'a'
-        separator: :
-        value: ConstantPattern
-          expression: IntegerLiteral
-            literal: 0
-    rightBracket: }
-  operator: !
-''');
-  }
-
-  test_inside_nullCheck() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case {'a': 0}?:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: MapPattern
-    leftBracket: {
-    entries
-      MapPatternEntry
-        key: SimpleStringLiteral
-          literal: 'a'
-        separator: :
-        value: ConstantPattern
-          expression: IntegerLiteral
-            literal: 0
-    rightBracket: }
-  operator: ?
-''');
-  }
-
-  test_inside_switchStatement_case() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case {'a': 1, 'b': 2}:
+    case {}:
       break;
   }
 }
@@ -145,21 +57,6 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
-    MapPatternEntry
-      key: SimpleStringLiteral
-        literal: 'a'
-      separator: :
-      value: ConstantPattern
-        expression: IntegerLiteral
-          literal: 1
-    MapPatternEntry
-      key: SimpleStringLiteral
-        literal: 'b'
-      separator: :
-      value: ConstantPattern
-        expression: IntegerLiteral
-          literal: 2
   rightBracket: }
 ''');
   }

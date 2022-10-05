@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class RecordPatternResolutionTest extends PatternsResolutionTest {
-  test_empty() async {
+  test_fields_empty() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
@@ -31,94 +31,7 @@ RecordPattern
 ''');
   }
 
-  test_inside_castPattern() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case (1, 2) as Object:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-CastPattern
-  pattern: RecordPattern
-    leftParenthesis: (
-    fields
-      RecordPatternField
-        pattern: ConstantPattern
-          expression: IntegerLiteral
-            literal: 1
-      RecordPatternField
-        pattern: ConstantPattern
-          expression: IntegerLiteral
-            literal: 2
-    rightParenthesis: )
-  asToken: as
-  type: NamedType
-    name: SimpleIdentifier
-      token: Object
-''');
-  }
-
-  test_inside_nullAssert() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case (1, 2)!:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: RecordPattern
-    leftParenthesis: (
-    fields
-      RecordPatternField
-        pattern: ConstantPattern
-          expression: IntegerLiteral
-            literal: 1
-      RecordPatternField
-        pattern: ConstantPattern
-          expression: IntegerLiteral
-            literal: 2
-    rightParenthesis: )
-  operator: !
-''');
-  }
-
-  test_inside_nullCheck() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case (1, 2)?:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: RecordPattern
-    leftParenthesis: (
-    fields
-      RecordPatternField
-        pattern: ConstantPattern
-          expression: IntegerLiteral
-            literal: 1
-      RecordPatternField
-        pattern: ConstantPattern
-          expression: IntegerLiteral
-            literal: 2
-    rightParenthesis: )
-  operator: ?
-''');
-  }
-
-  test_inside_switchStatement_case() async {
+  test_fields_pair() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
@@ -144,7 +57,7 @@ RecordPattern
 ''');
   }
 
-  test_singleton() async {
+  test_fields_singleton() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
