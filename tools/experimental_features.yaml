@@ -130,6 +130,7 @@ features:
 
   records:
     help: "Records"
+    experimentalReleaseVersion: '2.19.0'
 
   patterns:
     help: "Patterns"
