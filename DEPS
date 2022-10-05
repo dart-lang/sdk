@@ -95,7 +95,7 @@ vars = {
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev": "97026d1657566bb0c9f5a33642712ec350e45084",
   "collection_rev": "414ffa1bc8ba18bd608bbf916d95715311d89ac1",
-  "convert_rev": "7145da14f9cd730e80fb4c6a10108fcfd205e8e7",
+  "convert_rev": "11d191e4cc517595f53f86dd193a7c01a7601228",
   "crypto_rev": "7cf89d35b3d90786d9f7f75211b3b3cd7e4d173f",
   "csslib_rev": "ba2eb2d80530eedefadaade338a09c2dd60410f3",
 
