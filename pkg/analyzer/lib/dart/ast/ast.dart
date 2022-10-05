@@ -4467,6 +4467,9 @@ abstract class RedirectingConstructorInvocation
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RelationalPattern implements DartPattern {
+  /// The element of the [operator] for the matched type.
+  MethodElement? get element;
+
   /// Return the expression used to compute the operand.
   Expression get operand;
 

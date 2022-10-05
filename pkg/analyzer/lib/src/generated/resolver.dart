@@ -1101,6 +1101,38 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
+  void resolveRelationalPattern({
+    required RelationalPatternImpl node,
+    required DartType matchedType,
+  }) {
+    final String methodName;
+    if (node.operator.lexeme == '!=') {
+      methodName = '==';
+    } else {
+      methodName = node.operator.lexeme;
+    }
+
+    analyzeExpression(node.operand, matchedType);
+    node.operand = popRewrite()!;
+
+    final result = typePropertyResolver.resolve(
+      receiver: null,
+      receiverType: matchedType,
+      name: methodName,
+      propertyErrorEntity: node.operator,
+      nameErrorEntity: node,
+    );
+
+    node.element = result.getter as MethodElement?;
+    if (result.needsGetterError) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        node.operator,
+        [methodName, matchedType],
+      );
+    }
+  }
+
   void setReadElement(Expression node, Element? element) {
     DartType readType = DynamicTypeImpl.instance;
     if (node is IndexExpression) {

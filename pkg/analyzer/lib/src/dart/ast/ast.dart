@@ -10813,13 +10813,18 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
 @experimental
 class RelationalPatternImpl extends DartPatternImpl
     implements RelationalPattern {
-  @override
-  final ExpressionImpl operand;
+  ExpressionImpl _operand;
 
   @override
   final Token operator;
 
-  RelationalPatternImpl({required this.operator, required this.operand}) {
+  @override
+  MethodElement? element;
+
+  RelationalPatternImpl({
+    required this.operator,
+    required ExpressionImpl operand,
+  }) : _operand = operand {
     _becomeParentOf(operand);
   }
 
@@ -10828,6 +10833,13 @@ class RelationalPatternImpl extends DartPatternImpl
 
   @override
   Token get endToken => operand.endToken;
+
+  @override
+  ExpressionImpl get operand => _operand;
+
+  set operand(ExpressionImpl operand) {
+    _operand = _becomeParentOf(operand);
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -10847,7 +10859,10 @@ class RelationalPatternImpl extends DartPatternImpl
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.resolveRelationalPattern(
+      node: this,
+      matchedType: matchedType,
+    );
   }
 
   @override

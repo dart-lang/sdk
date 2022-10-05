@@ -1148,6 +1148,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RelationalPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
     });
   }
 

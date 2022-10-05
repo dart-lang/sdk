@@ -1513,6 +1513,22 @@ class A {
     );
   }
 
+  void test_relationalPattern() {
+    var findNode = _parseStringToFindNode(r'''
+void f(x) {
+  if (x case > 0) {}
+  if (x case > 1) {}
+}
+''');
+    _assertReplacementForChildren<RelationalPattern>(
+      destination: findNode.relationalPattern('> 0'),
+      source: findNode.relationalPattern('> 1'),
+      childAccessors: [
+        (node) => node.operand,
+      ],
+    );
+  }
+
   void test_returnStatement() {
     var findNode = _parseStringToFindNode(r'''
 void f() {

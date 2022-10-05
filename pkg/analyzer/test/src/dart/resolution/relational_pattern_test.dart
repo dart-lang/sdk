@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -14,9 +15,13 @@ main() {
 
 @reflectiveTest
 class RelationalPatternResolutionTest extends PatternsResolutionTest {
-  test_equal() async {
+  test_equal_ofClass() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
   switch (x) {
     case == 0:
       break;
@@ -24,17 +29,45 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::==
 ''');
   }
 
-  test_greaterThan() async {
+  test_equal_ofObject() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case == 0:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: dart:core::@class::Object::@method::==
+''');
+  }
+
+  test_greaterThan_ofClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator >(_) => true;
+}
+
+void f(A x) {
   switch (x) {
     case > 0:
       break;
@@ -42,17 +75,73 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::>
 ''');
   }
 
-  test_greaterThanOrEqualTo() async {
+  test_greaterThan_ofExtension() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {}
+
+extension E on A {
+  bool operator >(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case > 0:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: self::@extension::E::@method::>
+''');
+  }
+
+  test_greaterThan_unresolved() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case > 0:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
+''');
+  }
+
+  test_greaterThanOrEqualTo_ofClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator >=(_) => true;
+}
+
+void f(A x) {
   switch (x) {
     case >= 0:
       break;
@@ -60,32 +149,94 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >=
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::>=
+''');
+  }
+
+  test_greaterThanOrEqualTo_ofExtension() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  bool operator >=(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case >= 0:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: self::@extension::E::@method::>=
+''');
+  }
+
+  test_greaterThanOrEqualTo_unresolved() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case >= 0:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
 ''');
   }
 
   test_ifCase() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
   if (x case == 0) {}
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::==
 ''');
   }
 
-  test_lessThan() async {
+  test_lessThan_ofClass() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {
+  bool operator <(_) => true;
+}
+
+void f(A x) {
   switch (x) {
     case < 0:
       break;
@@ -93,17 +244,73 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::<
 ''');
   }
 
-  test_lessThanOrEqualTo() async {
+  test_lessThan_ofExtension() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {}
+
+extension E on A {
+  bool operator <(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case < 0:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: self::@extension::E::@method::<
+''');
+  }
+
+  test_lessThan_unresolved() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case < 0:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
+''');
+  }
+
+  test_lessThanOrEqualTo_ofClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator <=(_) => true;
+}
+
+void f(A x) {
   switch (x) {
     case <= 0:
       break;
@@ -111,17 +318,73 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <=
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::<=
 ''');
   }
 
-  test_notEqual() async {
+  test_lessThanOrEqualTo_ofExtension() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {}
+
+extension E on A {
+  bool operator <=(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case <= 0:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: self::@extension::E::@method::<=
+''');
+  }
+
+  test_lessThanOrEqualTo_unresolved() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case <= 0:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
+''');
+  }
+
+  test_notEqual_ofClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
   switch (x) {
     case != 0:
       break;
@@ -129,17 +392,73 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: !=
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::==
+''');
+  }
+
+  test_notEqual_ofObject() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case != 0:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: !=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: dart:core::@class::Object::@method::==
+''');
+  }
+
+  test_rewrite_operand() async {
+    await assertNoErrorsInCode(r'''
+void f(x, int Function() a) {
+  switch (x) {
+    case == a():
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: int Function()
+    staticType: int
+  element: dart:core::@class::Object::@method::==
 ''');
   }
 
   test_switchCase() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
   switch (x) {
     case == 0:
       break;
@@ -147,11 +466,13 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
   operand: IntegerLiteral
     literal: 0
+    staticType: int
+  element: self::@class::A::@method::==
 ''');
   }
 }

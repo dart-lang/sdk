@@ -3151,6 +3151,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool? visitRelationalPattern(covariant RelationalPatternImpl node) {
+    if (identical(node.operand, _oldNode)) {
+      node.operand = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitRethrowExpression(RethrowExpression node) => visitNode(node);
 
   @override
