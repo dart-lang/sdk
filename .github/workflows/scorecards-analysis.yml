@@ -15,6 +15,7 @@ jobs:
     permissions:
       # Needed to upload the results to code-scanning dashboard.
       security-events: write
+      id-token: write
       actions: read
       contents: read
 
