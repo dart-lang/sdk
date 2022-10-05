@@ -882,14 +882,7 @@ class DataSourceReader {
         int requiredParameterCount = readInt();
         List<ir.DartType> positionalParameters =
             _readDartTypeNodes(functionTypeVariables);
-        int namedParameterCount = readInt();
-        final namedParameters =
-            List<ir.NamedType>.generate(namedParameterCount, (index) {
-          String name = readString();
-          bool isRequired = readBool();
-          ir.DartType type = _readDartTypeNode(functionTypeVariables)!;
-          return ir.NamedType(name, type, isRequired: isRequired);
-        }, growable: false);
+        final namedParameters = _readNamedTypeNodes(functionTypeVariables);
         end(functionTypeNodeTag);
         return ir.FunctionType(positionalParameters, returnType, nullability,
             namedParameters: namedParameters,
@@ -914,6 +907,12 @@ class DataSourceReader {
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
         return ExactInterfaceType(cls, nullability, typeArguments);
+      case DartTypeNodeKind.recordType:
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
+        List<ir.DartType> positional =
+            _readDartTypeNodes(functionTypeVariables);
+        List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
+        return ir.RecordType(positional, named, nullability);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
@@ -929,6 +928,18 @@ class DataSourceReader {
       case DartTypeNodeKind.nullType:
         return const ir.NullType();
     }
+  }
+
+  List<ir.NamedType> _readNamedTypeNodes(
+      List<ir.TypeParameter> functionTypeVariables) {
+    int count = readInt();
+    if (count == 0) return const [];
+    return List<ir.NamedType>.generate(count, (index) {
+      String name = readString();
+      bool isRequired = readBool();
+      ir.DartType type = _readDartTypeNode(functionTypeVariables)!;
+      return ir.NamedType(name, type, isRequired: isRequired);
+    }, growable: false);
   }
 
   /// Reads a list of kernel type nodes from this data source.

@@ -742,6 +742,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
+  EvaluationComplexity visitRecordType(ir.RecordType node) {
+    EvaluationComplexity complexity = visitNodes(node.positional);
+    return complexity.combine(visitNodes(node.named));
+  }
+
+  @override
   EvaluationComplexity visitFutureOrType(ir.FutureOrType node) {
     return visitNode(node.typeArgument);
   }

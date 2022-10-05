@@ -294,8 +294,19 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitRecordType(RecordType type, _) {
-    // TODO(49718): Implement Rti recipes for records.
-    throw UnimplementedError();
+    _emitCode(Recipe.startRecord);
+    // Partial shape tag. The full shape is this plus the number of fields.
+    _emitStringUnescaped(type.shape.fieldNames.join(Recipe.separatorString));
+    _emitCode(Recipe.startFunctionArguments);
+    bool first = true;
+    for (DartType field in type.fields) {
+      if (!first) {
+        _emitCode(Recipe.separator);
+      }
+      visit(field, _);
+      first = false;
+    }
+    _emitCode(Recipe.endFunctionArguments);
   }
 
   @override

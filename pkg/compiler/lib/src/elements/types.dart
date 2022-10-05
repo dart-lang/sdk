@@ -2304,6 +2304,24 @@ abstract class DartTypes {
         return false;
       }
 
+      // Records
+      //
+      // TODO(50081): Reference rules to updated specification
+      // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
+      //
+      // TODO(50081): record is subtype of interface `Record`.
+      if (s is RecordType) {
+        if (t is! RecordType) return false;
+        if (s.shape != t.shape) return false;
+        List<DartType> sFields = s.fields;
+        List<DartType> tFields = t.fields;
+        assert(sFields.length == tFields.length); // Guaranteed by shape.
+        for (int i = 0; i < sFields.length; i++) {
+          if (!_isSubtype(sFields[i], tFields[i], env)) return false;
+        }
+        return true;
+      }
+
       return false;
     }
 
