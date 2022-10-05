@@ -1340,60 +1340,60 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
-  // Not used on IA32.
-  __ Breakpoint();
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
+
+    Register reg = static_cast<Register>(i);
+    intptr_t start = __ CodeSize();
+    __ pushl(kWriteBarrierObjectReg);
+    __ movl(kWriteBarrierObjectReg, reg);
+    __ call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
+    __ popl(kWriteBarrierObjectReg);
+    __ ret();
+    intptr_t end = __ CodeSize();
+
+    ASSERT_EQUAL(end - start, kStoreBufferWrapperSize);
+    RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
+  }
 }
 
 // Helper stub to implement Assembler::StoreIntoObject/Array.
 // Input parameters:
 //   EDX: Object (old)
+//   EBX: Value (old or new)
 //   EDI: Slot
-// If EDX is not remembered, mark as remembered and add to the store buffer.
+// If EAX is new, add EDX to the store buffer. Otherwise EAX is old, mark EAX
+// and add it to the mark list.
 COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
-COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
+COMPILE_ASSERT(kWriteBarrierValueReg == EBX);
 COMPILE_ASSERT(kWriteBarrierSlotReg == EDI);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            bool cards) {
-  Label remember_card;
-
   // Save values being destroyed.
   __ pushl(EAX);
   __ pushl(ECX);
 
-  Label add_to_buffer;
-  // Check whether this object has already been remembered. Skip adding to the
-  // store buffer if the object is in the store buffer already.
-  // Spilled: EAX, ECX
-  // EDX: Address being stored
-  __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
-  __ testl(EAX,
-           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
-  __ popl(ECX);
-  __ popl(EAX);
-  __ ret();
-
-  // Update the tags that this object has been remembered.
-  // EDX: Address being stored
-  // EAX: Current tag value
-  __ Bind(&add_to_buffer);
+  Label add_to_mark_stack, remember_card, lost_race;
+  __ testl(EBX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ j(ZERO, &add_to_mark_stack);
 
   if (cards) {
-    // Check if this object is using remembered cards.
-    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
-    __ j(NOT_EQUAL, &remember_card, Assembler::kFarJump);  // Unlikely.
+    __ testl(FieldAddress(EDX, target::Object::tags_offset()),
+             Immediate(1 << target::UntaggedObject::kCardRememberedBit));
+    __ j(NOT_ZERO, &remember_card, Assembler::kFarJump);  // Unlikely.
   } else {
 #if defined(DEBUG)
     Label ok;
-    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
-    __ j(ZERO, &ok, Assembler::kFarJump);  // Unlikely.
+    __ testl(FieldAddress(EDX, target::Object::tags_offset()),
+             Immediate(1 << target::UntaggedObject::kCardRememberedBit));
+    __ j(ZERO, &ok, Assembler::kFarJump);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
 #endif
   }
 
   // Atomically clear kOldAndNotRememberedBit.
-  Label retry, lost_race;
+  Label retry;
   __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
   __ Bind(&retry);
   __ movl(ECX, EAX);
@@ -1440,6 +1440,43 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                         /*preserve_registers=*/true);
     __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
     rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+  }
+  __ ret();
+
+  __ Bind(&add_to_mark_stack);
+  // Atomically clear kOldAndNotMarkedBit.
+  Label retry_marking, marking_overflow;
+  __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+  __ Bind(&retry_marking);
+  __ movl(ECX, EAX);
+  __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+  __ j(ZERO, &lost_race);  // Marked by another thread.
+  __ andl(ECX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+  // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
+  // On failure, EAX is updated with the current value.
+  __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
+  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
+
+  __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
+  __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
+  __ movl(
+      Address(EAX, ECX, TIMES_4, target::MarkingStackBlock::pointers_offset()),
+      EBX);
+  __ incl(ECX);
+  __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
+  __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
+  __ popl(ECX);  // Unspill.
+  __ popl(EAX);  // Unspill.
+  __ j(EQUAL, &marking_overflow, Assembler::kNearJump);
+  __ ret();
+
+  __ Bind(&marking_overflow);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/1 * target::kWordSize,
+                        /*preserve_registers=*/true);
+    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
   }
   __ ret();
 

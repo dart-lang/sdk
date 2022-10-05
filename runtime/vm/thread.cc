@@ -122,11 +122,9 @@ Thread::Thread(bool is_vm_isolate)
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] = 0;
   }
-#endif
 
 #define DEFAULT_INIT(name) name##_entry_point_ = 0;
   RUNTIME_ENTRY_LIST(DEFAULT_INIT)
@@ -205,13 +203,11 @@ void Thread::InitVMConstants() {
   CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
-#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] =
         StubCode::WriteBarrierWrappers().EntryPoint() +
         i * kStoreBufferWrapperSize;
   }
-#endif
 
 #define INIT_VALUE(name)                                                       \
   ASSERT(name##_entry_point_ == 0);                                            \
