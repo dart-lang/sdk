@@ -12,8 +12,7 @@ on:
 env:
   PUB_ENVIRONMENT: bot.github
 
-permissions:
-  contents: read
+permissions: read-all
 
 jobs:
   build:

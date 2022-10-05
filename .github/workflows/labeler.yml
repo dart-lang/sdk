@@ -1,6 +1,9 @@
 name: "labeler"
+
 on:
   - pull_request_target
+
+permissions: read-all
 
 jobs:
   triage:
