@@ -517,6 +517,22 @@ void f() {
     );
   }
 
+  void test_constantPattern() {
+    var findNode = _parseStringToFindNode(r'''
+void f(x) async {
+  if (x case 0) {}
+  if (x case 1) {}
+}
+''');
+    _assertReplacementForChildren<ConstantPattern>(
+      destination: findNode.caseClause('0').pattern as ConstantPattern,
+      source: findNode.caseClause('1').pattern as ConstantPattern,
+      childAccessors: [
+        (node) => node.expression,
+      ],
+    );
+  }
+
   void test_constructorDeclaration() {
     var findNode = _parseStringToFindNode(r'''
 class A {

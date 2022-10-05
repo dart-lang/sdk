@@ -2247,6 +2247,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool visitConstantPattern(covariant ConstantPatternImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     if (identical(node.returnType, _oldNode)) {
       node.returnType = _newNode as Identifier;
