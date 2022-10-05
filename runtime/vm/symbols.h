@@ -220,6 +220,7 @@ class ObjectPointerVisitor;
   V(PrependTypeArguments, "_prependTypeArguments")                             \
   V(QuoteIsNotASubtypeOf, "' is not a subtype of ")                            \
   V(RangeError, "RangeError")                                                  \
+  V(Record, "Record")                                                          \
   V(RegExp, "RegExp")                                                          \
   V(RightShiftOperator, ">>")                                                  \
   V(SavedTryContextVar, ":saved_try_context_var")                              \

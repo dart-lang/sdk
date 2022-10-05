@@ -75,6 +75,7 @@ class ObjectPointerVisitor;
   RW(Type, function_type)                                                      \
   RW(Type, type_type)                                                          \
   RW(Class, closure_class)                                                     \
+  RW(Class, record_class)                                                      \
   RW(Type, number_type)                                                        \
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
