@@ -4222,10 +4222,8 @@ class RecordIndexGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    DartType receiverType = receiver.getStaticType(context);
-    assert(
-        receiverType is RecordType && index < receiverType.positional.length);
-    return (receiverType as RecordType).positional[index];
+    assert(index < receiverType.positional.length);
+    return receiverType.positional[index];
   }
 
   @override
@@ -4275,12 +4273,8 @@ class RecordNameGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    DartType receiverType = receiver.getStaticType(context);
-    assert(receiverType is RecordType);
-
-    RecordType recordType = receiverType as RecordType;
     DartType? result;
-    for (NamedType namedType in recordType.named) {
+    for (NamedType namedType in receiverType.named) {
       if (namedType.name == name) {
         result = namedType.type;
         break;
@@ -12796,6 +12790,8 @@ class RecordType extends DartType {
       return true;
     } else if (other is RecordType) {
       if (nullability != other.nullability) return false;
+      if (positional.length != other.positional.length) return false;
+      if (named.length != other.named.length) return false;
       for (int index = 0; index < positional.length; index++) {
         if (!positional[index].equals(other.positional[index], assumptions)) {
           return false;
