@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use interpolation to compose strings and values.';
 
@@ -45,6 +44,18 @@ class PreferInterpolationToComposeStrings extends LintRule {
   }
 }
 
+class _NodeVisitor extends UnifyingAstVisitor {
+  Set<AstNode> skippedNodes;
+  _NodeVisitor(this.skippedNodes);
+
+  @override
+  visitNode(AstNode node) {
+    skippedNodes.add(node);
+
+    super.visitNode(node);
+  }
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
@@ -74,8 +85,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
       if (leftOperand.staticType?.isDartCoreString ?? false) {
-        node.traverseNodesInDFS().forEach(skippedNodes.add);
         rule.reportLint(node);
+        node.accept(_NodeVisitor(skippedNodes));
       }
     }
   }
