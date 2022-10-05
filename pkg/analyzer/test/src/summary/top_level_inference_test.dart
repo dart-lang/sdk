@@ -4192,7 +4192,6 @@ library
           B
         fields
           x @148
-            typeInferenceError: overrideConflictFieldType
             type: dynamic
           final y @159
             type: int
