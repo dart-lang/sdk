@@ -191,7 +191,7 @@ class AstBinaryReader {
   }
 
   AdjacentStrings _readAdjacentStrings() {
-    var components = _readNodeList<StringLiteral>();
+    var components = _readNodeList<StringLiteralImpl>();
     var node = AdjacentStringsImpl(strings: components);
     _readExpressionResolution(node);
     return node;
@@ -215,7 +215,7 @@ class AstBinaryReader {
   }
 
   ArgumentList _readArgumentList() {
-    var arguments = _readNodeList<Expression>();
+    var arguments = _readNodeList<ExpressionImpl>();
 
     return ArgumentListImpl(
       leftParenthesis: Tokens.openParenthesis(),
@@ -306,7 +306,7 @@ class AstBinaryReader {
 
   CascadeExpression _readCascadeExpression() {
     var target = readNode() as ExpressionImpl;
-    var sections = _readNodeList<Expression>();
+    var sections = _readNodeList<ExpressionImpl>();
     var node = CascadeExpressionImpl(
       target: target,
       cascadeSections: sections,

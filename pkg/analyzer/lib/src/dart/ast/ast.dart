@@ -36,12 +36,12 @@ import 'package:meta/meta.dart';
 ///        [StringLiteral] [StringLiteral]+
 class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   /// The strings that are implicitly concatenated.
-  final NodeListImpl<StringLiteral> _strings = NodeListImpl._();
+  final NodeListImpl<StringLiteralImpl> _strings = NodeListImpl._();
 
   /// Initialize a newly created list of adjacent strings. To be syntactically
   /// valid, the list of [strings] must contain at least two elements.
   AdjacentStringsImpl({
-    required List<StringLiteral> strings,
+    required List<StringLiteralImpl> strings,
   }) {
     _strings._initialize(this, strings);
   }
@@ -53,7 +53,7 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   Token get endToken => _strings.endToken!;
 
   @override
-  NodeListImpl<StringLiteral> get strings => _strings;
+  NodeListImpl<StringLiteralImpl> get strings => _strings;
 
   @override
   ChildEntities get _childEntities {
@@ -77,8 +77,7 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   void _appendStringValue(StringBuffer buffer) {
     int length = strings.length;
     for (int i = 0; i < length; i++) {
-      var stringLiteral = strings[i] as StringLiteralImpl;
-      stringLiteral._appendStringValue(buffer);
+      strings[i]._appendStringValue(buffer);
     }
   }
 }
@@ -342,7 +341,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   Token leftParenthesis;
 
   /// The expressions producing the values of the arguments.
-  final NodeListImpl<Expression> _arguments = NodeListImpl._();
+  final NodeListImpl<ExpressionImpl> _arguments = NodeListImpl._();
 
   /// The right parenthesis.
   @override
@@ -360,14 +359,14 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// be `null` if there are no arguments.
   ArgumentListImpl({
     required this.leftParenthesis,
-    required List<Expression> arguments,
+    required List<ExpressionImpl> arguments,
     required this.rightParenthesis,
   }) {
     _arguments._initialize(this, arguments);
   }
 
   @override
-  NodeListImpl<Expression> get arguments => _arguments;
+  NodeListImpl<ExpressionImpl> get arguments => _arguments;
 
   @override
   Token get beginToken => leftParenthesis;
@@ -1227,7 +1226,7 @@ class BlockImpl extends StatementImpl implements Block {
   Token leftBracket;
 
   /// The statements contained in the block.
-  final NodeListImpl<Statement> _statements = NodeListImpl._();
+  final NodeListImpl<StatementImpl> _statements = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -1236,7 +1235,7 @@ class BlockImpl extends StatementImpl implements Block {
   /// Initialize a newly created block of code.
   BlockImpl({
     required this.leftBracket,
-    required List<Statement> statements,
+    required List<StatementImpl> statements,
     required this.rightBracket,
   }) {
     _statements._initialize(this, statements);
@@ -1249,7 +1248,7 @@ class BlockImpl extends StatementImpl implements Block {
   Token get endToken => rightBracket;
 
   @override
-  NodeListImpl<Statement> get statements => _statements;
+  NodeListImpl<StatementImpl> get statements => _statements;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -1397,13 +1396,13 @@ class CascadeExpressionImpl extends ExpressionImpl
   ExpressionImpl _target;
 
   /// The cascade sections sharing the common target.
-  final NodeListImpl<Expression> _cascadeSections = NodeListImpl._();
+  final NodeListImpl<ExpressionImpl> _cascadeSections = NodeListImpl._();
 
   /// Initialize a newly created cascade expression. The list of
   /// [cascadeSections] must contain at least one element.
   CascadeExpressionImpl({
     required ExpressionImpl target,
-    required List<Expression> cascadeSections,
+    required List<ExpressionImpl> cascadeSections,
   }) : _target = target {
     _becomeParentOf(_target);
     _cascadeSections._initialize(this, cascadeSections);
@@ -1413,7 +1412,7 @@ class CascadeExpressionImpl extends ExpressionImpl
   Token get beginToken => _target.beginToken;
 
   @override
-  NodeListImpl<Expression> get cascadeSections => _cascadeSections;
+  NodeListImpl<ExpressionImpl> get cascadeSections => _cascadeSections;
 
   @override
   Token get endToken => _cascadeSections.endToken!;
@@ -1875,7 +1874,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token leftBracket;
 
   /// The members defined by the class or mixin.
-  final NodeListImpl<ClassMember> _members = NodeListImpl._();
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -1903,7 +1902,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required ImplementsClauseImpl? implementsClause,
     required NativeClauseImpl? nativeClause,
     required this.leftBracket,
-    required List<ClassMember> members,
+    required List<ClassMemberImpl> members,
     required this.rightBracket,
   })  : _typeParameters = typeParameters,
         _extendsClause = extendsClause,
@@ -1946,7 +1945,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  NodeListImpl<ClassMember> get members => _members;
+  NodeListImpl<ClassMemberImpl> get members => _members;
 
   @override
   NativeClauseImpl? get nativeClause => _nativeClause;

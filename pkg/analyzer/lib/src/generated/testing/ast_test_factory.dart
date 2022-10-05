@@ -24,14 +24,6 @@ import 'package:meta/meta.dart';
 /// rather than 'integerLiteral'.
 @internal
 class AstTestFactory {
-  static ArgumentListImpl argumentList(
-          [List<Expression> arguments = const []]) =>
-      ArgumentListImpl(
-        leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-        arguments: arguments,
-        rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-      );
-
   static AssignmentExpressionImpl assignmentExpression(Expression leftHandSide,
           TokenType operator, Expression rightHandSide) =>
       AssignmentExpressionImpl(
@@ -39,37 +31,6 @@ class AstTestFactory {
         operator: TokenFactory.tokenFromType(operator),
         rightHandSide: rightHandSide as ExpressionImpl,
       );
-
-  static ClassDeclarationImpl classDeclaration(
-          Keyword? abstractKeyword,
-          String name,
-          TypeParameterList? typeParameters,
-          ExtendsClause? extendsClause,
-          WithClause? withClause,
-          ImplementsClause? implementsClause,
-          {List<ClassMember> members = const [],
-          bool isMacro = false,
-          bool isAugmentation = false}) =>
-      ClassDeclarationImpl(
-          comment: null,
-          metadata: null,
-          abstractKeyword: abstractKeyword == null
-              ? null
-              : TokenFactory.tokenFromKeyword(abstractKeyword),
-          macroKeyword: isMacro ? TokenFactory.tokenFromString('macro') : null,
-          augmentKeyword:
-              isAugmentation ? TokenFactory.tokenFromString('augment') : null,
-          classKeyword: TokenFactory.tokenFromKeyword(Keyword.CLASS),
-          name: TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, name),
-          typeParameters: typeParameters as TypeParameterListImpl?,
-          extendsClause: extendsClause as ExtendsClauseImpl?,
-          withClause: withClause as WithClauseImpl?,
-          implementsClause: implementsClause as ImplementsClauseImpl?,
-          nativeClause: null,
-          leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          members: members,
-          rightBracket:
-              TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static ConstructorDeclarationImpl constructorDeclaration(
           Identifier returnType,
@@ -222,14 +183,6 @@ class AstTestFactory {
   static ImportDirectiveImpl importDirective3(String uri, String? prefix,
           [List<Combinator> combinators = const []]) =>
       importDirective([], uri, false, prefix, combinators);
-
-  static InstanceCreationExpressionImpl instanceCreationExpression(
-          Keyword? keyword, ConstructorName name,
-          [List<Expression> arguments = const []]) =>
-      astFactory.instanceCreationExpression(
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          name,
-          argumentList(arguments));
 
   static InterpolationExpressionImpl interpolationExpression(
           Expression expression) =>
@@ -412,19 +365,6 @@ class AstTestFactory {
 
   static SimpleStringLiteralImpl string2(String content) => astFactory
       .simpleStringLiteral(TokenFactory.tokenFromString("'$content'"), content);
-
-  static SuperConstructorInvocationImpl superConstructorInvocation(
-          [List<Expression> arguments = const []]) =>
-      superConstructorInvocation2(null, arguments);
-
-  static SuperConstructorInvocationImpl superConstructorInvocation2(
-          String? name,
-          [List<Expression> arguments = const []]) =>
-      astFactory.superConstructorInvocation(
-          TokenFactory.tokenFromKeyword(Keyword.SUPER),
-          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-          name == null ? null : identifier3(name),
-          argumentList(arguments));
 
   static SuperExpressionImpl superExpression() =>
       astFactory.superExpression(TokenFactory.tokenFromKeyword(Keyword.SUPER));

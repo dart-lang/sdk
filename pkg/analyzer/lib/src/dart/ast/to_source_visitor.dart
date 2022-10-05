@@ -186,9 +186,9 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('class ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);

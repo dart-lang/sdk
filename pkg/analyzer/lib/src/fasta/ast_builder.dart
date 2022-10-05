@@ -201,7 +201,7 @@ class AstBuilder extends StackListener {
       push(
         CascadeExpressionImpl(
           target: expression,
-          cascadeSections: <Expression>[],
+          cascadeSections: <ExpressionImpl>[],
         ),
       );
     }
@@ -656,7 +656,7 @@ class AstBuilder extends StackListener {
     assert(optional(')', rightParenthesis));
     debugEvent("Arguments");
 
-    var expressions = popTypedList2<Expression>(count);
+    var expressions = popTypedList2<ExpressionImpl>(count);
     final arguments = ArgumentListImpl(
       leftParenthesis: leftParenthesis,
       arguments: expressions,
@@ -707,7 +707,7 @@ class AstBuilder extends StackListener {
       case Assert.Expression:
         // The parser has already reported an error indicating that assert
         // cannot be used in an expression. Insert a placeholder.
-        List<Expression> arguments = <Expression>[condition];
+        final arguments = <ExpressionImpl>[condition];
         if (message != null) {
           arguments.add(message);
         }
@@ -821,7 +821,7 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("Block");
 
-    var statements = popTypedList2<Statement>(count);
+    var statements = popTypedList2<StatementImpl>(count);
     push(
       BlockImpl(
         leftBracket: leftBracket,
@@ -837,7 +837,7 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("BlockFunctionBody");
 
-    var statements = popTypedList2<Statement>(count);
+    var statements = popTypedList2<StatementImpl>(count);
     final block = BlockImpl(
       leftBracket: leftBracket,
       statements: statements,
@@ -870,13 +870,13 @@ class AstBuilder extends StackListener {
   void endCascade() {
     debugEvent("Cascade");
 
-    var expression = pop() as Expression;
+    var expression = pop() as ExpressionImpl;
     var cascade = pop() as CascadeExpressionImpl;
     pop(); // Token.
     push(
       CascadeExpressionImpl(
         target: cascade.target,
-        cascadeSections: <Expression>[
+        cascadeSections: <ExpressionImpl>[
           ...cascade.cascadeSections,
           expression,
         ],
@@ -950,7 +950,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
           messageConstConstructorWithBody, bodyToken, bodyToken);
     }
-    ConstructorDeclaration constructor = ConstructorDeclarationImpl(
+    var constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,
       externalKeyword: modifiers?.externalKeyword,
@@ -4764,7 +4764,7 @@ class AstBuilder extends StackListener {
   void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
 
-    var strings = popTypedList2<StringLiteral>(literalCount);
+    var strings = popTypedList2<StringLiteralImpl>(literalCount);
     push(AdjacentStringsImpl(strings: strings));
   }
 
@@ -5210,7 +5210,7 @@ class _ClassLikeDeclarationBuilder {
   final TypeParameterListImpl? typeParameters;
 
   Token leftBracket;
-  final List<ClassMember> members = [];
+  final List<ClassMemberImpl> members = [];
   Token rightBracket;
 
   _ClassLikeDeclarationBuilder({

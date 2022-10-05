@@ -62,12 +62,11 @@ void f() {}
   }
 
   void test_visitArgumentList() {
-    _assertSource(
-        "(a, b)",
-        AstTestFactory.argumentList([
-          AstTestFactory.identifier3("a"),
-          AstTestFactory.identifier3("b")
-        ]));
+    final code = '(0, 1)';
+    final findNode = _parseStringToFindNode('''
+final x = f$code;
+''');
+    _assertSource(code, findNode.argumentList(code));
   }
 
   void test_visitAsExpression() {
@@ -344,24 +343,21 @@ void f() {
   }
 
   void test_visitClassDeclaration_abstract() {
-    _assertSource(
-        "abstract class C {}",
-        AstTestFactory.classDeclaration(
-            Keyword.ABSTRACT, "C", null, null, null, null));
+    final code = 'abstract class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_abstractAugment() {
-    ClassDeclaration declaration = AstTestFactory.classDeclaration(
-        Keyword.ABSTRACT, "C", null, null, null, null,
-        isAugmentation: true);
-    _assertSource("abstract augment class C {}", declaration);
+    final code = 'augment abstract class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration('class C'));
   }
 
   void test_visitClassDeclaration_abstractMacro() {
-    ClassDeclaration declaration = AstTestFactory.classDeclaration(
-        Keyword.ABSTRACT, "C", null, null, null, null,
-        isMacro: true);
-    _assertSource("abstract macro class C {}", declaration);
+    final code = 'abstract macro class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_augment() {
@@ -375,8 +371,9 @@ augment class A {}
   }
 
   void test_visitClassDeclaration_empty() {
-    _assertSource("class C {}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null));
+    final code = 'class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_extends() {
@@ -440,10 +437,9 @@ $code
   }
 
   void test_visitClassDeclaration_parameters() {
-    _assertSource(
-        "class C<E> {}",
-        AstTestFactory.classDeclaration(null, "C",
-            AstTestFactory.typeParameterList(["E"]), null, null, null));
+    final code = 'class C<E> {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_parameters_extends() {
@@ -487,13 +483,9 @@ $code
   }
 
   void test_visitClassDeclaration_singleMember() {
-    _assertSource(
-        "class C {var a;}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null,
-            members: [
-              AstTestFactory.fieldDeclaration2(
-                  false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")])
-            ]));
+    final code = 'class C {var a;}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_withMetadata() {
@@ -3164,11 +3156,23 @@ final x = $code;
   }
 
   void test_visitSuperConstructorInvocation() {
-    _assertSource("super()", AstTestFactory.superConstructorInvocation());
+    final code = 'super(0)';
+    final findNode = _parseStringToFindNode('''
+class A extends B {
+  A() : $code;
+}
+''');
+    _assertSource(code, findNode.superConstructorInvocation(code));
   }
 
   void test_visitSuperConstructorInvocation_named() {
-    _assertSource("super.c()", AstTestFactory.superConstructorInvocation2("c"));
+    final code = 'super.named(0)';
+    final findNode = _parseStringToFindNode('''
+class A extends B {
+  A() : $code;
+}
+''');
+    _assertSource(code, findNode.superConstructorInvocation(code));
   }
 
   void test_visitSuperExpression() {
