@@ -29,6 +29,20 @@ class RefactoringProcessor {
       var generator = entry.value;
       var producer = generator(context);
       if (producer.isAvailable()) {
+        var parameters = producer.parameters;
+
+        // In debug mode, throw if we produced a refactoring that has parameters
+        // without default values that are not supported by the client.
+        assert(
+          () {
+            return parameters.every((parameter) =>
+                parameter.defaultValue != null ||
+                producer.supportsCommandParameter(parameter.kind));
+          }(),
+          '${producer.title} refactor returned parameters without defaults '
+          'that are not supported by the client',
+        );
+
         refactorings.add(
           CodeAction(
               title: producer.title,
@@ -41,14 +55,13 @@ class RefactoringProcessor {
                     'filePath': context.resolvedResult.path,
                     'selectionOffset': context.selectionOffset,
                     'selectionLength': context.selectionLength,
-                    'arguments': producer.parameters
-                        .map((param) => param.defaultValue)
-                        .toList(),
+                    'arguments':
+                        parameters.map((param) => param.defaultValue).toList(),
                   }
                 ],
               ),
               data: {
-                'parameters': producer.parameters,
+                'parameters': parameters,
               }),
         );
       }
