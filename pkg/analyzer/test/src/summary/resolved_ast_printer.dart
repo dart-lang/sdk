@@ -924,6 +924,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
+      // Types of the node and its expression must be the same.
+      if (node.expression.staticType != node.staticType) {
+        final nodeType = node.staticType;
+        final expressionType = node.expression.staticType;
+        fail(
+          'Must be the same:\n'
+          'nodeType: $nodeType\n'
+          'expressionType: $expressionType',
+        );
+      }
     });
   }
 

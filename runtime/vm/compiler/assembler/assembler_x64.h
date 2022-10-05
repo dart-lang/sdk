@@ -1491,11 +1491,6 @@ class Assembler : public AssemblerBase {
     kJumpToBarrier,
   };
 
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
   void StoreIntoArrayBarrier(Register object,
                              Register slot,
                              Register value,

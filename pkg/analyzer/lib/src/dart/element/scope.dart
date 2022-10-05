@@ -165,8 +165,12 @@ class PrefixScope implements Scope {
             final reference = exportedReference.reference;
             if (combinators.allows(reference.name)) {
               final element = elementFactory.elementOfReference(reference)!;
-              _add(element,
-                  _isFromDeprecatedExport(importedLibrary, exportedReference));
+              if (_shouldAdd(importedLibrary, element)) {
+                _add(
+                  element,
+                  _isFromDeprecatedExport(importedLibrary, exportedReference),
+                );
+              }
             }
           }
           if (import.prefix is DeferredImportElementPrefix) {
@@ -192,14 +196,6 @@ class PrefixScope implements Scope {
   }
 
   void _add(Element element, bool isFromDeprecatedExport) {
-    // TODO(scheglov) Remove when `records` feature is enabled by default.
-    if (element is ClassElementImpl &&
-        element.isDartCoreRecord &&
-        !_container.featureSet.isEnabled(Feature.records) &&
-        Feature.records.status != FeatureStatus.current) {
-      return;
-    }
-
     if (element is PropertyAccessorElement && element.isSetter) {
       _addTo(element, isFromDeprecatedExport, isSetter: true);
     } else {
@@ -265,6 +261,22 @@ class PrefixScope implements Scope {
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );
+  }
+
+  bool _shouldAdd(LibraryElementImpl importedLibrary, Element element) {
+    // It is an error for the identifier `Record`, denoting the `Record` class
+    // from `dart:core`, where that import scope name is only imported from
+    // platform libraries, to appear in a library whose language version is
+    // less than `v`; assuming that `v` is the language version in which
+    // records are released.
+    if (!_container.featureSet.isEnabled(Feature.records)) {
+      if (importedLibrary.isInSdk &&
+          element is ClassElementImpl &&
+          element.isDartCoreRecord) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static void _addElement(

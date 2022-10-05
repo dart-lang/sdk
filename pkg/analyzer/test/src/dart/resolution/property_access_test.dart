@@ -376,6 +376,35 @@ PropertyAccess
 ''');
   }
 
+  test_ofRecordType_namedField_language218() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final r = (foo: 42);
+''');
+
+    await assertNoErrorsInCode('''
+// @dart = 2.18
+import 'a.dart';
+void f() {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: package:test/a.dart::@getter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_ofRecordType_namedField_nullAware() async {
     await assertNoErrorsInCode('''
 void f(({int foo})? r) {
@@ -617,6 +646,35 @@ PropertyAccess
     staticElement: <null>
     staticType: dynamic
   staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_language218() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final r = (0, 'bar');
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+import 'a.dart';
+void f() {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: package:test/a.dart::@getter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
 ''');
   }
 

@@ -366,7 +366,7 @@ class JsKernelToElementMap
       if (env.cls != null) {
         classMap[env.cls!] = cls;
       }
-      if (cls is! closureMigrated.JRecord &&
+      if (cls is! closureMigrated.JContext &&
           cls is! closureMigrated.JClosureClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);
@@ -1730,13 +1730,13 @@ class JsKernelToElementMap
     _injectedClassMembers[cls]?.forEach(f);
   }
 
-  JRecordField _constructRecordFieldEntry(
+  JContextField _constructContextFieldEntry(
       InterfaceType? memberThisType,
       ir.VariableDeclaration variable,
       BoxLocal boxLocal,
       Map<Name, MemberEntity> memberMap) {
-    JRecordField boxedField =
-        JRecordField(variable.name!, boxLocal, isConst: variable.isConst);
+    JContextField boxedField =
+        JContextField(variable.name!, boxLocal, isConst: variable.isConst);
     members.register(
         boxedField,
         closureMigrated.ClosureFieldData(
@@ -1748,36 +1748,36 @@ class JsKernelToElementMap
     return boxedField;
   }
 
-  /// Make a container controlling access to records, that is, variables that
+  /// Make a container controlling access to contexts, that is, variables that
   /// are accessed in different scopes. This function creates the container
   /// and returns a map of locals to the corresponding records created.
   @override
-  Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
+  Map<ir.VariableDeclaration, JContextField> makeContextContainer(
       KernelScopeInfo info, MemberEntity member) {
-    Map<ir.VariableDeclaration, JRecordField> boxedFields = {};
+    Map<ir.VariableDeclaration, JContextField> boxedFields = {};
     if (info.boxedVariables.isNotEmpty) {
       NodeBox box = info.capturedVariablesAccessor!;
 
       Map<Name, IndexedMember> memberMap = {};
-      closureMigrated.JRecord container =
-          closureMigrated.JRecord(member.library, box.name);
+      closureMigrated.JContext container =
+          closureMigrated.JContext(member.library, box.name);
       BoxLocal boxLocal = BoxLocal(container);
       InterfaceType thisType =
           types.interfaceType(container, const <DartType>[]);
       InterfaceType supertype = commonElements.objectType;
-      JClassData containerData = closureMigrated.RecordClassData(
-          RecordContainerDefinition(getMemberDefinition(member).location),
+      JClassData containerData = closureMigrated.ContextClassData(
+          ContextContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
           getOrderedTypeSet(supertype.element as IndexedClass)
               .extendClass(types, thisType));
-      classes.register(container, containerData, RecordEnv(memberMap));
+      classes.register(container, containerData, ContextEnv(memberMap));
 
       InterfaceType? memberThisType = member.enclosingClass != null
           ? elementEnvironment.getThisType(member.enclosingClass!)
           : null;
       for (ir.VariableDeclaration variable in info.boxedVariables) {
-        boxedFields[variable] = _constructRecordFieldEntry(
+        boxedFields[variable] = _constructContextFieldEntry(
             memberThisType, variable, boxLocal, memberMap);
       }
     }
@@ -1810,7 +1810,7 @@ class JsKernelToElementMap
       MemberEntity member,
       ir.FunctionNode node,
       JLibrary enclosingLibrary,
-      Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
+      Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
       KernelScopeInfo info,
       InterfaceType supertype,
       {required bool createSignatureMethod}) {
@@ -1873,14 +1873,14 @@ class JsKernelToElementMap
     JsClosureClassInfo closureClassInfo = JsClosureClassInfo.fromScopeInfo(
         classEntity,
         node,
-        <ir.VariableDeclaration, JRecordField>{},
+        <ir.VariableDeclaration, JContextField>{},
         info,
         member.enclosingClass,
         closureEntity,
         closureEntityNode,
         info.hasThisLocal ? ThisLocal(member.enclosingClass!) : null);
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
-        recordFieldsVisibleInScope, memberMap);
+        contextFieldsVisibleInScope, memberMap);
 
     if (createSignatureMethod) {
       _constructSignatureMethod(closureClassInfo, memberMap, node,
@@ -1908,7 +1908,7 @@ class JsKernelToElementMap
       MemberEntity member,
       InterfaceType? memberThisType,
       KernelScopeInfo info,
-      Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
+      Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
       Map<Name, MemberEntity> memberMap) {
     // TODO(efortuna): Limit field number usage to when we need to distinguish
     // between two variables with the same name from different scopes.
@@ -1922,14 +1922,14 @@ class JsKernelToElementMap
 
     for (ir.Node variable in info.freeVariables) {
       if (variable is ir.VariableDeclaration) {
-        if (recordFieldsVisibleInScope.containsKey(variable)) {
+        if (contextFieldsVisibleInScope.containsKey(variable)) {
           bool constructedField = _constructClosureFieldForRecord(
               variable,
               closureClassInfo,
               memberThisType,
               memberMap,
               variable,
-              recordFieldsVisibleInScope,
+              contextFieldsVisibleInScope,
               fieldNumber);
           if (constructedField) fieldNumber++;
         }
@@ -1956,7 +1956,7 @@ class JsKernelToElementMap
       // Make a corresponding field entity in this closure class for the
       // free variables in the KernelScopeInfo.freeVariable.
       if (variable is ir.VariableDeclaration) {
-        if (!recordFieldsVisibleInScope.containsKey(variable)) {
+        if (!contextFieldsVisibleInScope.containsKey(variable)) {
           closureClassInfo.registerFieldForVariable(
               variable,
               _constructClosureField(
@@ -1998,11 +1998,11 @@ class JsKernelToElementMap
     }
   }
 
-  /// Records point to one or more local variables declared in another scope
+  /// Contexts point to one or more local variables declared in another scope
   /// that are captured in a scope. Access to those variables goes entirely
-  /// through the record container, so we only create a field for the *record*
+  /// through the context container, so we only create a field for the *context*
   /// holding [capturedLocal] and not the individual local variables accessed
-  /// through the record. Records, by definition, are not mutable (though the
+  /// through the context. Contexts, by definition, are not mutable (though the
   /// locals they contain may be). Returns `true` if we constructed a new field
   /// in the closure class.
   bool _constructClosureFieldForRecord(
@@ -2011,20 +2011,20 @@ class JsKernelToElementMap
       InterfaceType? memberThisType,
       Map<Name, MemberEntity> memberMap,
       ir.TreeNode sourceNode,
-      Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
+      Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
       int fieldNumber) {
-    JRecordField recordField = recordFieldsVisibleInScope[capturedLocal]!;
+    JContextField contextField = contextFieldsVisibleInScope[capturedLocal]!;
 
     // Don't construct a new field if the box that holds this local already has
     // a field in the closure class.
-    if (closureClassInfo.hasFieldForLocal(recordField.box)) {
+    if (closureClassInfo.hasFieldForLocal(contextField.box)) {
       closureClassInfo.registerFieldForBoxedVariable(
-          capturedLocal, recordField);
+          capturedLocal, contextField);
       return false;
     }
 
     final closureField = JClosureField(
-        '_box_$fieldNumber', closureClassInfo, recordField.box.name,
+        '_box_$fieldNumber', closureClassInfo, contextField.box.name,
         isConst: true, isAssignable: false);
 
     members.register<IndexedField, JFieldData>(
@@ -2034,8 +2034,8 @@ class JsKernelToElementMap
                 MemberKind.closureField, sourceNode),
             memberThisType));
     memberMap[closureField.memberName] = closureField;
-    closureClassInfo.registerFieldForLocal(recordField.box, closureField);
-    closureClassInfo.registerFieldForBoxedVariable(capturedLocal, recordField);
+    closureClassInfo.registerFieldForLocal(contextField.box, closureField);
+    closureClassInfo.registerFieldForBoxedVariable(capturedLocal, contextField);
     return true;
   }
 

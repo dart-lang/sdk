@@ -2556,16 +2556,12 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var elements = popTypedList<Expression>(count) ?? const [];
-    List<Expression> expressions = <Expression>[];
-    for (var elem in elements) {
-      expressions.add(elem);
-    }
+    var fields = popTypedList<ExpressionImpl>(count) ?? const [];
 
     push(RecordLiteralImpl(
       constKeyword: constKeyword,
       leftParenthesis: token,
-      fields: expressions,
+      fields: fields,
       rightParenthesis: token.endGroup!,
     ));
   }

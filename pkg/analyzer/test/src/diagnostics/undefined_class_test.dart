@@ -215,13 +215,24 @@ void f(Record r) {}
   }
 
   test_Record_language218() async {
-    // TODO(scheglov) Update when `records` feature is enabled by default.
     await assertErrorsInCode('''
 // @dart = 2.18
 void f(Record r) {}
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 23, 6),
     ]);
+  }
+
+  test_Record_language218_exported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+export 'dart:core' show Record;
+''');
+
+    await assertNoErrorsInCode('''
+// @dart = 2.18
+import 'a.dart';
+void f(Record r) {}
+''');
   }
 
   test_variableDeclaration() async {

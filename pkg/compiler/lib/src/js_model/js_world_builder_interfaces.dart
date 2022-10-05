@@ -14,7 +14,7 @@ abstract class JsClosedWorldBuilder {
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,
       JLibrary enclosingLibrary,
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, JContextField> boxedVariables,
       KernelScopeInfo info,
       {required bool createSignatureMethod});
 }

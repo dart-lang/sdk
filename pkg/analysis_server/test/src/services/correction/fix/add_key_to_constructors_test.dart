@@ -368,6 +368,40 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_namedConstructor_namedParameters_withSuper_assert() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named({required String s}) : assert(s.isNotEmpty), super();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named({super.key, required String s}) : assert(s.isNotEmpty);
+}
+''');
+  }
+
+  Future<void> test_namedConstructor_noParameters_withoutSuper() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named({super.key});
+}
+''');
+  }
+
   Future<void> test_super_not_constant() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';

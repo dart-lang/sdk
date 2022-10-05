@@ -20,7 +20,7 @@ import 'closure_migrated.dart' as migrated;
 import 'js_world_builder_interfaces.dart' show JsClosedWorldBuilder;
 
 export 'closure_migrated.dart'
-    show AnonymousClosureLocal, JClosureField, JRecordField;
+    show AnonymousClosureLocal, JClosureField, JContextField;
 
 class ClosureDataImpl implements ClosureData {
   /// Tag used for identifying serialized [ClosureData] objects in a
@@ -339,15 +339,15 @@ class ClosureDataBuilder {
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
     void processModel(MemberEntity member, ClosureScopeModel model) {
-      Map<ir.VariableDeclaration, migrated.JRecordField> allBoxedVariables =
-          _elementMap.makeRecordContainer(model.scopeInfo!, member);
+      Map<ir.VariableDeclaration, migrated.JContextField> allBoxedVariables =
+          _elementMap.makeContextContainer(model.scopeInfo!, member);
       _scopeMap[member] = JsScopeInfo.from(
           allBoxedVariables, model.scopeInfo!, member.enclosingClass);
 
       model.capturedScopesMap
           .forEach((ir.Node node, KernelCapturedScope scope) {
-        Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-            _elementMap.makeRecordContainer(scope, member);
+        Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables =
+            _elementMap.makeContextContainer(scope, member);
         _updateScopeBasedOnRtiNeed(scope, rtiNeed, member);
 
         if (scope is KernelCapturedLoopScope) {
@@ -424,7 +424,7 @@ class ClosureDataBuilder {
       MemberEntity member,
       ir.FunctionNode node,
       KernelScopeInfo info,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables,
       ClosureRtiNeed rtiNeed,
       {required bool createSignatureMethod}) {
     _updateScopeBasedOnRtiNeed(info, rtiNeed, member);
@@ -461,9 +461,9 @@ class JsScopeInfo extends ScopeInfo {
   @override
   final Local? thisLocal;
 
-  final Map<ir.VariableDeclaration, migrated.JRecordField> _boxedVariables;
+  final Map<ir.VariableDeclaration, migrated.JContextField> _boxedVariables;
 
-  Map<Local, migrated.JRecordField>? _boxedVariablesCache;
+  Map<Local, migrated.JContextField>? _boxedVariablesCache;
 
   JsScopeInfo.internal(
       this._localsUsedInTryOrSync, this.thisLocal, this._boxedVariables);
@@ -478,9 +478,9 @@ class JsScopeInfo extends ScopeInfo {
       if (_boxedVariables.isEmpty) {
         _boxedVariablesCache = const {};
       } else {
-        final cache = <Local, migrated.JRecordField>{};
+        final cache = <Local, migrated.JContextField>{};
         _boxedVariables.forEach(
-            (ir.VariableDeclaration node, migrated.JRecordField field) {
+            (ir.VariableDeclaration node, migrated.JContextField field) {
           cache[localsMap.getLocalVariable(node)] = field;
         });
         _boxedVariablesCache = cache;
@@ -529,9 +529,9 @@ class JsScopeInfo extends ScopeInfo {
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember() as migrated.JRecordField);
+    Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JContextField>(
+            () => source.readMember() as migrated.JContextField);
     source.end(tag);
     if (boxedVariables.isEmpty) boxedVariables = const {};
     return JsScopeInfo.internal(
@@ -575,9 +575,9 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember() as migrated.JRecordField);
+    Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JContextField>(
+            () => source.readMember() as migrated.JContextField);
     Local? context = source.readLocalOrNull();
     source.end(tag);
     return JsCapturedScope.internal(
@@ -620,9 +620,9 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember() as migrated.JRecordField);
+    Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JContextField>(
+            () => source.readMember() as migrated.JContextField);
     Local? context = source.readLocalOrNull();
     List<ir.VariableDeclaration> boxedLoopVariables =
         source.readTreeNodes<ir.VariableDeclaration>();
@@ -688,7 +688,7 @@ class JsClosureClassInfo extends JsScopeInfo
   JsClosureClassInfo.internal(
       Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
       this.thisLocal,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables,
       this.callMethod,
       this.signatureMethod,
       this._closureEntity,
@@ -702,7 +702,7 @@ class JsClosureClassInfo extends JsScopeInfo
   JsClosureClassInfo.fromScopeInfo(
       this.closureClassEntity,
       ir.FunctionNode closureSourceNode,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables,
       KernelScopeInfo info,
       ClassEntity? enclosingClass,
       this._closureEntity,
@@ -718,9 +718,9 @@ class JsClosureClassInfo extends JsScopeInfo
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember() as migrated.JRecordField);
+    Map<ir.VariableDeclaration, migrated.JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JContextField>(
+            () => source.readMember() as migrated.JContextField);
     JFunction callMethod = source.readMember() as JFunction;
     JSignatureMethod? signatureMethod =
         source.readMemberOrNull() as JSignatureMethod?;
@@ -800,7 +800,7 @@ class JsClosureClassInfo extends JsScopeInfo
   void registerFieldForBoxedVariable(
       ir.VariableDeclaration node, JField field) {
     assert(_boxedVariablesCache == null);
-    _boxedVariables[node] = field as migrated.JRecordField;
+    _boxedVariables[node] = field as migrated.JContextField;
   }
 
   void _ensureFieldToLocalsMap(KernelToLocalsMap localsMap) {
