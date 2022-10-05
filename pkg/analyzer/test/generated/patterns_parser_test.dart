@@ -2186,34 +2186,6 @@ f() {
     ]);
   }
 
-  test_extractor_pattern_with_type_args() {
-    _parse('''
-class C<T> {}
-void f(x) {
-  switch (x) {
-    case C<int>():
-      break;
-  }
-}
-''');
-    var node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-ExtractorPattern
-  type: NamedType
-    name: SimpleIdentifier
-      token: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
-  leftParenthesis: (
-  rightParenthesis: )
-''');
-  }
-
   test_extractor_prefixed_withTypeArgs_insideCase() {
     _parse('''
 import 'dart:async' as async;
@@ -2461,6 +2433,34 @@ PostfixPattern
             literal: 1
     rightParenthesis: )
   operator: ?
+''');
+  }
+
+  test_extractor_unprefixed_withTypeArgs_insideCase() {
+    _parse('''
+class C<T> {}
+void f(x) {
+  switch (x) {
+    case C<int>():
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+  leftParenthesis: (
+  rightParenthesis: )
 ''');
   }
 
