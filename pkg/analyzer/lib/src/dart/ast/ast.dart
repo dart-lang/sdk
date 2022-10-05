@@ -1478,10 +1478,13 @@ class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   @override
   final DartPatternImpl pattern;
 
-  CaseClauseImpl(
-      {required this.caseKeyword,
-      required this.pattern,
-      required this.whenClause});
+  CaseClauseImpl({
+    required this.caseKeyword,
+    required this.pattern,
+    required this.whenClause,
+  }) {
+    _becomeParentOf(pattern);
+  }
 
   @override
   Token get beginToken => caseKeyword;
@@ -2769,10 +2772,12 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   @override
   final Token? constKeyword;
 
-  @override
-  ExpressionImpl expression;
+  ExpressionImpl _expression;
 
-  ConstantPatternImpl({required this.constKeyword, required this.expression}) {
+  ConstantPatternImpl({
+    required this.constKeyword,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(expression);
   }
 
@@ -2781,6 +2786,13 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
 
   @override
   Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -10606,6 +10618,7 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     required this.rightParenthesis,
     required this.question,
   }) {
+    _becomeParentOf(namedFields);
     this.positionalFields._initialize(this, positionalFields);
   }
 
