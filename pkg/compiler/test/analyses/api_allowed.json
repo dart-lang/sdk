@@ -28,8 +28,6 @@
     "Dynamic update to 'dart.io::_owner'.": 1
   },
   "org-dartlang-sdk:///lib/io/secure_socket.dart": {
-    "Dynamic invocation of '[]'.": 4,
-    "Dynamic invocation of 'dart.io::_detachRaw'.": 2,
     "Dynamic access of 'closedReadEventSent'.": 1,
     "Dynamic update to 'dart.io::_owner'.": 1
   },

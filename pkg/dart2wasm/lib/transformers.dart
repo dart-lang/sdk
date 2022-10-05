@@ -134,9 +134,15 @@ class _WasmTransformer extends Transformer {
     //
     //  {
     //    final StreamIterator<T> #forIterator = StreamIterator(<stream>);
-    //    for (; await #forIterator.moveNext() ;) {
-    //        {var/final} T variable = await #forIterator.current;
+    //    bool #jumpSentinel = false;
+    //    try {
+    //      for (; jumpSentinel = await #forIterator.moveNext() ;) {
+    //        {var/final} T variable = #forIterator.current;
     //        ...
+    //      }
+    //    } finally {
+    //      if (#jumpSentinel) {
+    //        await #forIterator.cancel();
     //      }
     //    }
     //  }
@@ -188,6 +194,11 @@ class _WasmTransformer extends Transformer {
         type: iteratorType)
       ..fileOffset = iterable.fileOffset;
 
+    // Only used when `isAsync` is true.
+    final jumpSentinel = VariableDeclaration("#jumpSentinel",
+        initializer: ConstantExpression(BoolConstant(false)),
+        type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable));
+
     final condition = InstanceInvocation(InstanceAccessKind.Instance,
         VariableGet(iterator), Name('moveNext'), Arguments(const []),
         interfaceTarget: iteratorMoveNext,
@@ -200,14 +211,39 @@ class _WasmTransformer extends Transformer {
           interfaceTarget: iteratorCurrent, resultType: elementType)
         ..fileOffset = stmt.bodyOffset);
 
-    final Block body = Block([variable, stmt.body])
-      ..fileOffset = stmt.fileOffset;
+    Block body = Block([variable, stmt.body])..fileOffset = stmt.fileOffset;
 
-    return Block([
-      iterator,
-      ForStatement(const [], isAsync ? AwaitExpression(condition) : condition,
-          const [], body)
-    ]).accept<TreeNode>(this);
+    Statement forStatement = ForStatement(
+        const [],
+        isAsync
+            ? VariableSet(jumpSentinel, AwaitExpression(condition))
+            : condition,
+        const [],
+        body);
+
+    // Wrap the body with a try / finally to cancel the stream on breaking out
+    // of the loop.
+    if (isAsync) {
+      forStatement = TryFinally(
+        Block([forStatement]),
+        Block([
+          IfStatement(
+              VariableGet(jumpSentinel),
+              ExpressionStatement(AwaitExpression(InstanceInvocation(
+                  InstanceAccessKind.Instance,
+                  VariableGet(iterator),
+                  Name('cancel'),
+                  Arguments(const []),
+                  interfaceTarget: coreTypes.streamIteratorCancel,
+                  functionType: coreTypes.streamIteratorCancel.getterType
+                      as FunctionType))),
+              null)
+        ]),
+      );
+    }
+
+    return Block([iterator, if (isAsync) jumpSentinel, forStatement])
+        .accept<TreeNode>(this);
   }
 
   @override

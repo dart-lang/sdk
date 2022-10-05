@@ -144,8 +144,7 @@ abstract class SecureSocket implements Socket {
       bool onBadCertificate(X509Certificate certificate)?,
       void keyLog(String line)?,
       @Since("2.6") List<String>? supportedProtocols}) {
-    return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
-        .then<RawSecureSocket>((detachedRaw) {
+    return socket._detachRaw().then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
           subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           host: host,
@@ -182,8 +181,7 @@ abstract class SecureSocket implements Socket {
       bool requestClientCertificate = false,
       bool requireClientCertificate = false,
       List<String>? supportedProtocols}) {
-    return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
-        .then<RawSecureSocket>((detachedRaw) {
+    return socket._detachRaw().then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secureServer(detachedRaw[0] as RawSocket, context,
           subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           bufferedData: bufferedData,

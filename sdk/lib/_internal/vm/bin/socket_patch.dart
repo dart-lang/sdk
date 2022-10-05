@@ -2153,7 +2153,7 @@ class _Socket extends Stream<Uint8List> implements Socket {
   late _SocketStreamConsumer _consumer;
   late IOSink _sink;
   StreamSubscription? _subscription;
-  var _detachReady;
+  Completer<Object?>? _detachReady;
 
   _Socket(RawSocket raw) : _raw = raw {
     _controller
@@ -2273,10 +2273,11 @@ class _Socket extends Stream<Uint8List> implements Socket {
     return raw.remoteAddress;
   }
 
-  Future _detachRaw() {
-    _detachReady = new Completer();
+  Future<List<Object?>> _detachRaw() {
+    var completer = Completer<Object?>();
+    _detachReady = completer;
     _sink.close();
-    return _detachReady.future.then((_) {
+    return completer.future.then((_) {
       assert(_consumer.buffer == null);
       var raw = _raw;
       _raw = null;
@@ -2374,7 +2375,7 @@ class _Socket extends Stream<Uint8List> implements Socket {
 
   void _consumerDone() {
     if (_detachReady != null) {
-      _detachReady.complete(null);
+      _detachReady!.complete(null);
     } else {
       final raw = _raw;
       if (raw != null) {
