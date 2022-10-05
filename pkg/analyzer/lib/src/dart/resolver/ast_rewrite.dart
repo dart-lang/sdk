@@ -158,8 +158,11 @@ class AstRewriter {
             typeIdentifier: methodName,
           );
         } else if (prefixedElement is ExtensionElement) {
-          PrefixedIdentifier extensionName =
-              astFactory.prefixedIdentifier(target, node.operator!, methodName);
+          PrefixedIdentifier extensionName = PrefixedIdentifierImpl(
+            prefix: target,
+            period: node.operator!,
+            identifier: methodName,
+          );
           ExtensionOverride extensionOverride = astFactory.extensionOverride(
               extensionName: extensionName,
               typeArguments: node.typeArguments,
@@ -481,10 +484,10 @@ class AstRewriter {
     required SimpleIdentifierImpl typeIdentifier,
   }) {
     var typeName = NamedTypeImpl(
-      name: astFactory.prefixedIdentifier(
-        prefixIdentifier,
-        node.operator!,
-        typeIdentifier,
+      name: PrefixedIdentifierImpl(
+        prefix: prefixIdentifier,
+        period: node.operator!,
+        identifier: typeIdentifier,
       ),
       typeArguments: node.typeArguments,
       question: null,

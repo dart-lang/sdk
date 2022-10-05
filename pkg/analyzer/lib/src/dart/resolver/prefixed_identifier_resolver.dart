@@ -38,9 +38,9 @@ class PrefixedIdentifierResolver {
             _resolver.typeSystem.resolveToBound(prefixType);
         if (prefixTypeResolved is RecordType) {
           final propertyAccess = PropertyAccessImpl(
-            node.prefix,
-            node.period,
-            node.identifier,
+            target: node.prefix,
+            operator: node.period,
+            propertyName: node.identifier,
           );
           _resolver.replaceExpression(node, propertyAccess);
           return propertyAccess;

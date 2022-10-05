@@ -93,16 +93,16 @@ ExpressionImpl insertCascadeTargetIntoExpression({
     );
   } else if (expression is PropertyAccessImpl) {
     var expressionTarget = expression.realTarget;
-    return astFactory.propertyAccess(
-      insertCascadeTargetIntoExpression(
+    return PropertyAccessImpl(
+      target: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
         cascadeTarget: cascadeTarget,
       ),
       // If we've reached the end, replace the `..` operator with `.`
-      expressionTarget == cascadeTarget
+      operator: expressionTarget == cascadeTarget
           ? _synthesizeToken(TokenType.PERIOD, expression.operator)
           : expression.operator,
-      expression.propertyName,
+      propertyName: expression.propertyName,
     );
   }
   throw UnimplementedError('Unhandled ${expression.runtimeType}'

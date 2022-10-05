@@ -85,6 +85,7 @@ enum DartTypeNodeKind {
   functionType,
   functionTypeVariable,
   interfaceType,
+  recordType,
   typedef,
   dynamicType,
   invalidType,

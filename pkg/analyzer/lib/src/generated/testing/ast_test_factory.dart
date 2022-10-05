@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -42,12 +40,6 @@ class AstTestFactory {
         rightHandSide: rightHandSide as ExpressionImpl,
       );
 
-  static PropertyAccessImpl cascadedPropertyAccess(String propertyName) =>
-      astFactory.propertyAccess(
-          null,
-          TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-          identifier3(propertyName));
-
   static ClassDeclarationImpl classDeclaration(
           Keyword? abstractKeyword,
           String name,
@@ -78,60 +70,6 @@ class AstTestFactory {
           members: members,
           rightBracket:
               TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static CompilationUnitImpl compilationUnit() =>
-      compilationUnit8(null, [], []);
-
-  static CompilationUnitImpl compilationUnit2(
-          List<CompilationUnitMember> declarations) =>
-      compilationUnit8(null, [], declarations);
-
-  static CompilationUnitImpl compilationUnit3(List<Directive> directives) =>
-      compilationUnit8(null, directives, []);
-
-  static CompilationUnitImpl compilationUnit4(List<Directive> directives,
-          List<CompilationUnitMember> declarations) =>
-      compilationUnit8(null, directives, declarations);
-
-  static CompilationUnitImpl compilationUnit5(String scriptTag) =>
-      compilationUnit8(scriptTag, [], []);
-
-  static CompilationUnitImpl compilationUnit6(
-          String scriptTag, List<CompilationUnitMember> declarations) =>
-      compilationUnit8(scriptTag, [], declarations);
-
-  static CompilationUnitImpl compilationUnit7(
-          String scriptTag, List<Directive> directives) =>
-      compilationUnit8(scriptTag, directives, []);
-
-  static CompilationUnitImpl compilationUnit8(
-          String? scriptTag,
-          List<Directive> directives,
-          List<CompilationUnitMember> declarations) =>
-      astFactory.compilationUnit(
-          beginToken: TokenFactory.tokenFromType(TokenType.EOF),
-          scriptTag:
-              scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives: directives,
-          declarations: declarations,
-          endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          featureSet: FeatureSet.latestLanguageVersion(),
-          lineInfo: LineInfo.fromContent(''));
-
-  static CompilationUnitImpl compilationUnit9(
-          {String? scriptTag,
-          List<Directive> directives = const [],
-          List<CompilationUnitMember> declarations = const [],
-          required FeatureSet featureSet}) =>
-      astFactory.compilationUnit(
-          beginToken: TokenFactory.tokenFromType(TokenType.EOF),
-          scriptTag:
-              scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives: directives,
-          declarations: declarations,
-          endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          featureSet: featureSet,
-          lineInfo: LineInfo.fromContent(''));
 
   static ConstructorDeclarationImpl constructorDeclaration(
           Identifier returnType,
@@ -247,25 +185,9 @@ class AstTestFactory {
           null,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
-  static PrefixedIdentifierImpl identifier(
-          SimpleIdentifier prefix, SimpleIdentifier identifier) =>
-      astFactory.prefixedIdentifier(
-          prefix, TokenFactory.tokenFromType(TokenType.PERIOD), identifier);
-
   static SimpleIdentifierImpl identifier3(String lexeme) =>
       astFactory.simpleIdentifier(
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, lexeme));
-
-  static PrefixedIdentifierImpl identifier4(
-          String prefix, SimpleIdentifier identifier) =>
-      astFactory.prefixedIdentifier(identifier3(prefix),
-          TokenFactory.tokenFromType(TokenType.PERIOD), identifier);
-
-  static PrefixedIdentifierImpl identifier5(String prefix, String identifier) =>
-      astFactory.prefixedIdentifier(
-          identifier3(prefix),
-          TokenFactory.tokenFromType(TokenType.PERIOD),
-          identifier3(identifier));
 
   static List<SimpleIdentifier> identifierList(List<String> identifiers) {
     return identifiers
@@ -442,54 +364,6 @@ class AstTestFactory {
         libraryName: libraryName as LibraryIdentifierImpl,
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
-
-  static PostfixExpressionImpl postfixExpression(
-          Expression expression, TokenType operator) =>
-      astFactory.postfixExpression(
-          expression, TokenFactory.tokenFromType(operator));
-
-  static PrefixExpressionImpl prefixExpression(
-          TokenType operator, Expression expression) =>
-      astFactory.prefixExpression(
-          TokenFactory.tokenFromType(operator), expression);
-
-  static PropertyAccessImpl propertyAccess(
-          Expression? target, SimpleIdentifier propertyName) =>
-      astFactory.propertyAccess(
-          target, TokenFactory.tokenFromType(TokenType.PERIOD), propertyName);
-
-  static PropertyAccessImpl propertyAccess2(
-          Expression? target, String propertyName,
-          [TokenType operator = TokenType.PERIOD]) =>
-      astFactory.propertyAccess(target, TokenFactory.tokenFromType(operator),
-          identifier3(propertyName));
-
-  static RedirectingConstructorInvocationImpl redirectingConstructorInvocation(
-          [List<Expression> arguments = const []]) =>
-      redirectingConstructorInvocation2(null, arguments);
-
-  static RedirectingConstructorInvocationImpl redirectingConstructorInvocation2(
-          String? constructorName,
-          [List<Expression> arguments = const []]) =>
-      astFactory.redirectingConstructorInvocation(
-          TokenFactory.tokenFromKeyword(Keyword.THIS),
-          constructorName == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.PERIOD),
-          constructorName == null ? null : identifier3(constructorName),
-          argumentList(arguments));
-
-  static RethrowExpressionImpl rethrowExpression() => astFactory
-      .rethrowExpression(TokenFactory.tokenFromKeyword(Keyword.RETHROW));
-
-  static ReturnStatementImpl returnStatement() => returnStatement2(null);
-
-  static ReturnStatementImpl returnStatement2(Expression? expression) =>
-      astFactory.returnStatement(TokenFactory.tokenFromKeyword(Keyword.RETURN),
-          expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ScriptTagImpl scriptTag(String scriptTag) =>
-      astFactory.scriptTag(TokenFactory.tokenFromString(scriptTag));
 
   static SetOrMapLiteralImpl setOrMapLiteral(
           Keyword? keyword, TypeArgumentList? typeArguments,

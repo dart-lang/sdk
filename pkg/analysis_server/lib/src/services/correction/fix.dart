@@ -153,6 +153,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Add 'key' to constructors",
   );
+  static const ADD_KEY_TO_CONSTRUCTORS_MULTI = FixKind(
+    'dart.fix.add.keyToConstructors.multi',
+    DartFixKindPriority.DEFAULT,
+    "Add 'key' to constructors everywhere in file",
+  );
   static const ADD_LATE = FixKind(
     'dart.fix.add.late',
     DartFixKindPriority.DEFAULT,

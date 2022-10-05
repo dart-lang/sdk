@@ -1054,9 +1054,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // TODO(scheglov) It would be nice to rewrite all such cases.
       if (prefix.staticType is RecordType) {
         final propertyAccess = PropertyAccessImpl(
-          prefix,
-          node.period,
-          node.identifier,
+          target: prefix,
+          operator: node.period,
+          propertyName: node.identifier,
         );
         NodeReplacer.replace(node, propertyAccess);
         return resolveForWrite(

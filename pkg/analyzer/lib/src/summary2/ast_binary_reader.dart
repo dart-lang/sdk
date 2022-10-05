@@ -941,11 +941,11 @@ class AstBinaryReader {
   }
 
   PostfixExpression _readPostfixExpression() {
-    var operand = readNode() as Expression;
+    var operand = readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
-    var node = astFactory.postfixExpression(
-      operand,
-      Tokens.fromType(operatorType),
+    var node = PostfixExpressionImpl(
+      operand: operand,
+      operator: Tokens.fromType(operatorType),
     );
     node.staticElement = _reader.readElement() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
@@ -959,12 +959,12 @@ class AstBinaryReader {
   }
 
   PrefixedIdentifier _readPrefixedIdentifier() {
-    var prefix = readNode() as SimpleIdentifier;
-    var identifier = readNode() as SimpleIdentifier;
-    var node = astFactory.prefixedIdentifier(
-      prefix,
-      Tokens.period(),
-      identifier,
+    var prefix = readNode() as SimpleIdentifierImpl;
+    var identifier = readNode() as SimpleIdentifierImpl;
+    var node = PrefixedIdentifierImpl(
+      prefix: prefix,
+      period: Tokens.period(),
+      identifier: identifier,
     );
     _readExpressionResolution(node);
     return node;
@@ -972,10 +972,10 @@ class AstBinaryReader {
 
   PrefixExpression _readPrefixExpression() {
     var operatorType = UnlinkedTokenType.values[_readByte()];
-    var operand = readNode() as Expression;
-    var node = astFactory.prefixExpression(
-      Tokens.fromType(operatorType),
-      operand,
+    var operand = readNode() as ExpressionImpl;
+    var node = PrefixExpressionImpl(
+      operator: Tokens.fromType(operatorType),
+      operand: operand,
     );
     node.staticElement = _reader.readElement() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
@@ -990,8 +990,8 @@ class AstBinaryReader {
 
   PropertyAccess _readPropertyAccess() {
     var flags = _readByte();
-    var target = _readOptionalNode() as Expression?;
-    var propertyName = readNode() as SimpleIdentifier;
+    var target = _readOptionalNode() as ExpressionImpl?;
+    var propertyName = readNode() as SimpleIdentifierImpl;
 
     Token operator;
     if (AstBinaryFlags.hasQuestion(flags)) {
@@ -1004,7 +1004,11 @@ class AstBinaryReader {
           : Tokens.periodPeriod();
     }
 
-    var node = astFactory.propertyAccess(target, operator, propertyName);
+    var node = PropertyAccessImpl(
+      target: target,
+      operator: operator,
+      propertyName: propertyName,
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -1023,13 +1027,13 @@ class AstBinaryReader {
   }
 
   RedirectingConstructorInvocation _readRedirectingConstructorInvocation() {
-    var constructorName = _readOptionalNode() as SimpleIdentifier?;
-    var argumentList = readNode() as ArgumentList;
-    var node = astFactory.redirectingConstructorInvocation(
-      Tokens.this_(),
-      constructorName != null ? Tokens.period() : null,
-      constructorName,
-      argumentList,
+    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var argumentList = readNode() as ArgumentListImpl;
+    var node = RedirectingConstructorInvocationImpl(
+      thisKeyword: Tokens.this_(),
+      period: constructorName != null ? Tokens.period() : null,
+      constructorName: constructorName,
+      argumentList: argumentList,
     );
     node.staticElement = _reader.readElement() as ConstructorElement?;
     _resolveNamedExpressions(node.staticElement, node.argumentList);

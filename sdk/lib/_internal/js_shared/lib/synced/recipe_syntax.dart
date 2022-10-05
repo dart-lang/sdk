@@ -58,6 +58,9 @@ abstract class Recipe {
   static const String genericFunctionTypeParameterIndexString =
       _circumflexString;
 
+  static const int startRecord = _plus;
+  static const String startRecordString = _plusString;
+
   static const int extensionOp = _ampersand;
   static const String extensionOpString = _ampersandString;
   static const int pushNeverExtension = 0;
@@ -198,6 +201,7 @@ abstract class Recipe {
         requiredNameSeparatorString);
     test("genericFunctionTypeParameterIndex", genericFunctionTypeParameterIndex,
         genericFunctionTypeParameterIndexString);
+    test("startRecord", startRecord, startRecordString);
     test("extensionOp", extensionOp, extensionOpString);
     testExtension(
         "pushNeverExtension", pushNeverExtension, pushNeverExtensionString);
