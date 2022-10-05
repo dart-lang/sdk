@@ -368,7 +368,7 @@ class _ClassVerifier {
   /// corresponding instance members in each of [directSuperInterfaces].
   void _checkDeclaredMembers(AstNode node, InterfaceType type,
       {required int mixinIndex}) {
-    var libraryUri = type.element2.library.source.uri;
+    var libraryUri = type.element.library.source.uri;
     for (var method in type.methods) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
@@ -395,7 +395,7 @@ class _ClassVerifier {
       return false;
     }
 
-    final typeElement = type.element2;
+    final typeElement = type.element;
 
     final classElement = this.classElement;
     if (typeElement is ClassElement &&
@@ -476,7 +476,7 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element2;
+    var interfaceElement = type.element;
     if (interfaceElement is EnumElement) {
       return false;
     }
@@ -544,26 +544,26 @@ class _ClassVerifier {
     // n-case
     final supertype = element.supertype;
     if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element2, path)) {
+        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
       return true;
     }
 
     for (InterfaceType type in element.mixins) {
-      if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
     }
 
     if (element is MixinElement) {
       for (InterfaceType type in element.superclassConstraints) {
-        if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
+        if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
           return true;
         }
       }
     }
 
     for (InterfaceType type in element.interfaces) {
-      if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
     }
@@ -657,20 +657,20 @@ class _ClassVerifier {
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
   ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
-    if (element.supertype?.element2 == classElement) {
+    if (element.supertype?.element == classElement) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
     if (element is MixinElement) {
       for (InterfaceType type in element.superclassConstraints) {
-        if (type.element2 == classElement) {
+        if (type.element == classElement) {
           return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
         }
       }
     }
 
     for (InterfaceType type in element.mixins) {
-      if (type.element2 == classElement) {
+      if (type.element == classElement) {
         return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
       }
     }

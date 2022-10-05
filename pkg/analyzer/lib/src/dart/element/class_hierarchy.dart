@@ -55,7 +55,7 @@ class ClassHierarchy {
       interfacesMerger.add(type);
 
       var substitution = Substitution.fromInterfaceType(type);
-      var rawInterfaces = implementedInterfaces(type.element2);
+      var rawInterfaces = implementedInterfaces(type.element);
       for (var rawInterface in rawInterfaces) {
         var newInterface =
             substitution.substituteType(rawInterface) as InterfaceType;
@@ -125,7 +125,7 @@ class InterfacesMerger {
   }
 
   void add(InterfaceType type) {
-    var element = type.element2;
+    var element = type.element;
     var classResult = _map[element];
     if (classResult == null) {
       classResult = _ClassInterfaceType(_typeSystem);

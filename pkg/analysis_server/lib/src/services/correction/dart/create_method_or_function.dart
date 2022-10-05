@@ -38,7 +38,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
         if (target != null) {
           var targetType = target.staticType;
           if (targetType is InterfaceType) {
-            targetElement = targetType.element2;
+            targetElement = targetType.element;
             argument = target.parent as Expression;
           } else {
             return;

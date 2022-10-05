@@ -142,7 +142,7 @@ class MethodInvocationResolver with ScopeHelpers {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
           _resolveReceiverTypeLiteral(
-              node, aliasedType.element2, nameNode, name, whyNotPromotedList,
+              node, aliasedType.element, nameNode, name, whyNotPromotedList,
               contextType: contextType);
           return;
         }
@@ -799,7 +799,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     String receiverClassName = '<unknown>';
     if (receiverType is InterfaceType) {
-      receiverClassName = receiverType.element2.name;
+      receiverClassName = receiverType.element.name;
     } else if (receiverType is FunctionType) {
       receiverClassName = 'Function';
     }
@@ -821,7 +821,7 @@ class MethodInvocationResolver with ScopeHelpers {
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
     if (node.isCascaded) {
-      receiver = _typeType.element2;
+      receiver = _typeType.element;
     }
 
     var element = _resolveElement(receiver, nameNode);

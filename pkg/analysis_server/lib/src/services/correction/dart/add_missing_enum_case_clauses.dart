@@ -35,7 +35,7 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
     var enumConstantNames = <String>[];
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element2;
+      var enumElement = expressionType.element;
       if (enumElement is EnumElement) {
         enumName = enumElement.name;
         for (var field in enumElement.fields) {

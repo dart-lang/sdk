@@ -93,7 +93,7 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
 
   @override
   DecoratedType _getTypeParameterTypeBound(DecoratedType type) {
-    return bounds[(type.type as TypeParameterType).element2] ??
+    return bounds[(type.type as TypeParameterType).element] ??
         (throw StateError('Unknown bound for $type'));
   }
 }
@@ -716,7 +716,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.withClause);
     var classElement = node.declaredElement!;
     var supertype = classElement.supertype!;
-    var superElement = supertype.element2;
+    var superElement = supertype.element;
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
       var superConstructorElement =
@@ -2209,7 +2209,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var rightType = right.type;
     if (leftType is TypeParameterType && leftType != type) {
       // We are "unwrapping" a type parameter type to its bound.
-      final typeParam = leftType.element2;
+      final typeParam = leftType.element;
       return _decorateUpperOrLowerBound(
           astNode,
           type,
@@ -2221,7 +2221,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     if (rightType is TypeParameterType && rightType != type) {
       // We are "unwrapping" a type parameter type to its bound.
-      final typeParam = rightType.element2;
+      final typeParam = rightType.element;
       return _decorateUpperOrLowerBound(
           astNode,
           type,
@@ -2257,14 +2257,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           List<DecoratedType?> rightTypeArguments;
           if (isLUB) {
             leftTypeArguments = _decoratedClassHierarchy!
-                .asInstanceOf(left, type.element2)
+                .asInstanceOf(left, type.element)
                 .typeArguments;
             rightTypeArguments = _decoratedClassHierarchy!
-                .asInstanceOf(right, type.element2)
+                .asInstanceOf(right, type.element)
                 .typeArguments;
           } else {
-            if (leftType.element2 != type.element2 ||
-                rightType.element2 != type.element2) {
+            if (leftType.element != type.element ||
+                rightType.element != type.element) {
               _unimplemented(astNode, 'GLB with substitution');
             }
             leftTypeArguments = left.typeArguments;
@@ -2350,8 +2350,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         return DecoratedType(type, node);
       }
 
-      assert(leftType.element2 == type.element2 &&
-          rightType.element2 == type.element2);
+      assert(leftType.element == type.element &&
+          rightType.element == type.element);
       return DecoratedType(type, node);
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
@@ -2438,7 +2438,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // TODO(paulberry): once we've wired up flow analysis, return promoted
     // bounds if applicable.
     return _variables
-        .decoratedTypeParameterBound((type.type as TypeParameterType).element2);
+        .decoratedTypeParameterBound((type.type as TypeParameterType).element);
   }
 
   /// Creates the necessary constraint(s) for an assignment of the given
@@ -3575,7 +3575,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     if (dartType is InterfaceType &&
-        dartType.element2 == typeProvider.futureOrElement) {
+        dartType.element == typeProvider.futureOrElement) {
       var typeArguments = type.typeArguments;
       if (typeArguments.length == 1) {
         // Wrapping FutureOr<T?1>?2 should produce Future<T?3>, where either 1
@@ -3807,7 +3807,7 @@ mixin _AssignmentChecker {
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
       var rewrittenSource = _decoratedClassHierarchy!
-          .asInstanceOf(source, destinationType.element2);
+          .asInstanceOf(source, destinationType.element);
       assert(rewrittenSource.typeArguments.length ==
           destination.typeArguments.length);
       for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
@@ -3875,7 +3875,7 @@ mixin _AssignmentChecker {
         sourceType.isDartCoreObject ||
         sourceType.isVoid) {
       if (destinationType is InterfaceType) {
-        for (final param in destinationType.element2.typeParameters) {
+        for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,
               'downcast to type parameters with bounds not supported');
         }
@@ -3926,7 +3926,7 @@ mixin _AssignmentChecker {
     } else if (destinationType is InterfaceType) {
       if (sourceType is InterfaceType) {
         final target = _decoratedClassHierarchy!
-            .asInstanceOf(destination, sourceType.element2);
+            .asInstanceOf(destination, sourceType.element);
         for (var i = 0; i < source.typeArguments.length; ++i) {
           _checkDowncast(origin,
               source: source.typeArguments[i]!,
@@ -4018,7 +4018,7 @@ extension on DartType? {
     final self = this;
     if (self is TypeParameterType &&
         self.nullabilitySuffix == NullabilitySuffix.star) {
-      return self.element2.bound.explicitBound;
+      return self.element.bound.explicitBound;
     }
     return self;
   }

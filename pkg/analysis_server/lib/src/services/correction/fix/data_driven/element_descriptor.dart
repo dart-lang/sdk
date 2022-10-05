@@ -154,11 +154,11 @@ class ElementDescriptor {
             return true;
           }
           if (type is InterfaceType) {
-            if (components[1] == type.element2.name) {
+            if (components[1] == type.element.name) {
               return true;
             }
             for (var supertype in type.allSupertypes) {
-              if (components[1] == supertype.element2.name) {
+              if (components[1] == supertype.element.name) {
                 return true;
               }
             }

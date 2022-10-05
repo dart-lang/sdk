@@ -269,7 +269,7 @@ class ConstantEvaluationEngine {
           var superclass = constant.returnType.superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             var unnamedConstructor =
-                superclass.element2.unnamedConstructor?.declaration;
+                superclass.element.unnamedConstructor?.declaration;
             if (unnamedConstructor != null && unnamedConstructor.isConst) {
               callback(unnamedConstructor);
             }
@@ -747,7 +747,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (typeArgumentTypes != null) {
         var instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
           if (type is TypeParameterType) {
-            return _lexicalTypeEnvironment?[type.element2] ?? type;
+            return _lexicalTypeEnvironment?[type.element] ?? type;
           } else {
             return type;
           }
@@ -1470,7 +1470,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       DartObjectImpl targetResult, SimpleIdentifier identifier) {
     final targetType = targetResult.type;
     if (!(targetType is InterfaceType &&
-        targetType.element2 == _typeProvider.stringElement)) {
+        targetType.element == _typeProvider.stringElement)) {
       return false;
     }
     return identifier.name == 'length' &&

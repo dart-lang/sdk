@@ -45,7 +45,7 @@ class ConvertToMapLiteral extends CorrectionProducer {
         creation.constructorName.name != null ||
         creation.argumentList.arguments.isNotEmpty ||
         type is! InterfaceType ||
-        !_isMapClass(type.element2)) {
+        !_isMapClass(type.element)) {
       return;
     }
     //

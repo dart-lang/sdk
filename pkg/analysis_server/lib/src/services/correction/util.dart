@@ -911,7 +911,7 @@ class CorrectionUtils {
     if (type is InterfaceType) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: type.element2,
+        element: type.element,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: type.typeArguments,
       );
@@ -929,7 +929,7 @@ class CorrectionUtils {
     }
 
     if (type is TypeParameterType) {
-      var element = type.element2;
+      var element = type.element;
       if (_isTypeParameterVisible(element)) {
         return element.name;
       } else {

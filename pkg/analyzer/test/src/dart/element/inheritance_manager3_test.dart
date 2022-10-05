@@ -1329,7 +1329,7 @@ mixin M on A {}
 class A {}
 ''');
     var member = manager.getMember2(
-      typeProvider.objectType.element2,
+      typeProvider.objectType.element,
       Name(null, 'hashCode'),
       forSuper: true,
     );

@@ -34,7 +34,7 @@ class MoveTypeArgumentsToClass extends CorrectionProducer {
 
     final type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      final element = type.element2;
+      final element = type.element;
       if (element.typeParameters.length == typeArguments.arguments.length) {
         await builder.addDartFileEdit(file, (builder) {
           var argumentText = utils.getNodeText(typeArguments);

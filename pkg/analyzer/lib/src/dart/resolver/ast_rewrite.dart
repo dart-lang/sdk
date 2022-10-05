@@ -184,7 +184,7 @@ class AstRewriter {
             node: node,
             typeIdentifier: target,
             constructorIdentifier: methodName,
-            classElement: aliasedType.element2,
+            classElement: aliasedType.element,
           );
         }
       }
@@ -209,7 +209,7 @@ class AstRewriter {
               node: node,
               typeNameIdentifier: target,
               constructorIdentifier: methodName,
-              classElement: aliasedType.element2,
+              classElement: aliasedType.element,
             );
           }
         }
@@ -263,7 +263,7 @@ class AstRewriter {
         //     X.named
         return _toConstructorReference_prefixed(
           node: node,
-          classElement: aliasedType.element2,
+          classElement: aliasedType.element,
         );
       }
     }
@@ -352,7 +352,7 @@ class AstRewriter {
           node: node,
           receiver: receiverIdentifier,
           typeArguments: typeArguments,
-          classElement: aliasedType.element2,
+          classElement: aliasedType.element,
         );
       }
     }

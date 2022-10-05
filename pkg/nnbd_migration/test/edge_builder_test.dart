@@ -103,7 +103,7 @@ class AssignmentCheckerTest extends Object
     }
     return DecoratedType(
       InterfaceTypeImpl(
-        element2: _myListOfListClass!,
+        element: _myListOfListClass!,
         typeArguments: [elementType.type!],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
@@ -5049,7 +5049,7 @@ String f(void Function() g) => g.toString();
 ''');
     var toStringReturnType = variables
         .decoratedElementType(
-            typeProvider.objectType.element2.getMethod('toString')!)
+            typeProvider.objectType.element.getMethod('toString')!)
         .returnType!;
     assertEdge(
         toStringReturnType.node, decoratedTypeAnnotation('String f').node,
@@ -6939,7 +6939,7 @@ int f(int i) => i.hashCode;
     await analyze('int f(void Function() g) => g.hashCode;');
     var hashCodeReturnType = variables
         .decoratedElementType(
-            typeProvider.objectType.element2.getGetter('hashCode')!)
+            typeProvider.objectType.element.getGetter('hashCode')!)
         .returnType!;
     assertEdge(hashCodeReturnType.node, decoratedTypeAnnotation('int f').node,
         hard: false);
@@ -8255,7 +8255,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
 
   @override
   DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
-    var class_ = (type.type as InterfaceType).element2;
+    var class_ = (type.type as InterfaceType).element;
     if (class_ == superclass) return type;
     if (superclass!.name == 'Object') {
       return DecoratedType(

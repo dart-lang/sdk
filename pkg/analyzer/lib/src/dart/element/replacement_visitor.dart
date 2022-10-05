@@ -86,7 +86,7 @@ class ReplacementVisitor
     }
 
     return InterfaceTypeImpl(
-      element2: type.element2,
+      element: type.element,
       typeArguments: newTypeArguments ?? type.typeArguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       alias: newAlias ?? type.alias,
@@ -105,7 +105,7 @@ class ReplacementVisitor
     return NamedTypeBuilder(
       type.linker,
       type.typeSystem,
-      type.element2,
+      type.element,
       newTypeArguments ?? type.arguments,
       newNullability ?? type.nullabilitySuffix,
     );
@@ -133,7 +133,7 @@ class ReplacementVisitor
 
     var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
     return TypeParameterTypeImpl(
-      element2: type.element2,
+      element: type.element,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       promotedBound: newPromotedBound ?? promotedBound,
       alias: type.alias,
@@ -149,7 +149,7 @@ class ReplacementVisitor
     }
 
     return TypeParameterTypeImpl(
-      element2: type.element2,
+      element: type.element,
       nullabilitySuffix: newNullability,
       alias: type.alias,
     );
@@ -373,7 +373,7 @@ class ReplacementVisitor
     }
 
     var newTypeArguments = _typeArguments(
-      type.element2.typeParameters,
+      type.element.typeParameters,
       type.typeArguments,
     );
 
@@ -390,7 +390,7 @@ class ReplacementVisitor
     var newNullability = visitNullability(type);
 
     var parameters = const <TypeParameterElement>[];
-    var element = type.element2;
+    var element = type.element;
     if (element is InterfaceElement) {
       parameters = element.typeParameters;
     } else if (element is TypeAliasElement) {

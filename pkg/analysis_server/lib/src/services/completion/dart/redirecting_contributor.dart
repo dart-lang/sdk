@@ -35,7 +35,7 @@ class RedirectingContributor extends DartCompletionContributor {
       } else if (parent is SuperConstructorInvocation) {
         // C() : super.^
         var superclassElement =
-            parent.enclosingInterfaceElement?.supertype?.element2;
+            parent.enclosingInterfaceElement?.supertype?.element;
         if (superclassElement != null) {
           for (var constructor in superclassElement.constructors) {
             if (constructor.isAccessibleIn2(request.libraryElement)) {

@@ -139,7 +139,7 @@ class NormalizeHelper {
 
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
     if (T is InterfaceType) {
-      return T.element2.instantiate(
+      return T.element.instantiate(
         typeArguments: T.typeArguments.map(_normalize).toList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -253,7 +253,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// NORM(X extends T)
   DartType _typeParameterType(TypeParameterTypeImpl T) {
-    var element = T.element2;
+    var element = T.element;
 
     // NORM(X & T)
     var promotedBound = T.promotedBound;
@@ -304,7 +304,7 @@ class NormalizeHelper {
     // * if S is X then X
     if (S is TypeParameterType &&
         S.nullabilitySuffix == NullabilitySuffix.none &&
-        S.element2 == X.declaration) {
+        S.element == X.declaration) {
       return X.declaration.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -326,7 +326,7 @@ class NormalizeHelper {
 
     // * else X & S
     return TypeParameterTypeImpl(
-      element2: X.declaration,
+      element: X.declaration,
       nullabilitySuffix: NullabilitySuffix.none,
       promotedBound: S,
     );

@@ -57,13 +57,13 @@ class VarianceBuilder {
 
   Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
-      if (type.element2 == variable) {
+      if (type.element == variable) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
-      var element = type.element2;
+      var element = type.element;
       var arguments = type.arguments;
       if (element is InterfaceElement) {
         var result = Variance.unrelated;

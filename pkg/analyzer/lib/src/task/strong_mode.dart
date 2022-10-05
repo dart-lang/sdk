@@ -504,7 +504,7 @@ class InstanceMemberInferrer {
   /// interface [type].
   void _inferType(InterfaceType? type) {
     if (type != null) {
-      _inferClass(type.element2);
+      _inferClass(type.element);
     }
   }
 

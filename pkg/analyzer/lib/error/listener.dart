@@ -299,7 +299,7 @@ class _TypeToConvert {
             addElementsFrom(parameter.type);
           }
         } else if (type is InterfaceType) {
-          if (elements.add(type.element2)) {
+          if (elements.add(type.element)) {
             for (DartType typeArgument in type.typeArguments) {
               addElementsFrom(typeArgument);
             }

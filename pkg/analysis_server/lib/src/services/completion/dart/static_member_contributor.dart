@@ -26,7 +26,7 @@ class StaticMemberContributor extends DartCompletionContributor {
       if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
-          element = aliasedType.element2;
+          element = aliasedType.element;
         }
       }
       if (element is InterfaceElement) {

@@ -98,14 +98,14 @@ class DeclarationBuilderFromElement {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        identifier: identifier(type.element2),
+        identifier: identifier(type.element),
         typeArguments: type.typeArguments.map(_dartType).toList(),
       );
     } else if (type is TypeParameterType) {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        identifier: identifier(type.element2),
+        identifier: identifier(type.element),
         typeArguments: const [],
       );
     } else {

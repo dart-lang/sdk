@@ -26,7 +26,7 @@ class AddMissingEnumLikeCaseClauses extends CorrectionProducer {
       if (expressionType is! InterfaceType) {
         return;
       }
-      var classElement = expressionType.element2;
+      var classElement = expressionType.element;
       var className = classElement.name;
       var caseNames = _caseNames(node);
       var missingNames = _constantNames(classElement)

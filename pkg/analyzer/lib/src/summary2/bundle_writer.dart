@@ -659,11 +659,11 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(Tag.InterfaceType_noTypeArguments_star);
         }
         // TODO(scheglov) Write raw
-        writeElement(type.element2);
+        writeElement(type.element);
       } else {
         writeByte(Tag.InterfaceType);
         // TODO(scheglov) Write raw
-        writeElement(type.element2);
+        writeElement(type.element);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
           writeType(typeArguments[i]);
@@ -680,7 +680,7 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterType) {
       writeByte(Tag.TypeParameterType);
-      writeElement(type.element2);
+      writeElement(type.element);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is VoidType) {

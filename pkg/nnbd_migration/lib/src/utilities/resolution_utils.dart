@@ -32,7 +32,7 @@ mixin ResolutionUtils {
 
   List<String> _computeObjectGetNames() {
     var result = <String>[];
-    var objectClass = typeProvider.objectType.element2;
+    var objectClass = typeProvider.objectType.element;
     for (var accessor in objectClass.accessors) {
       assert(accessor.isGetter);
       assert(!accessor.name.startsWith('_'));

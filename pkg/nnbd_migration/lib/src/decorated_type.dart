@@ -181,7 +181,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
     if (type is InterfaceType) {
       return {
         for (int i = 0; i < typeArguments.length; i++)
-          type.element2.typeParameters[i]: typeArguments[i]!
+          type.element.typeParameters[i]: typeArguments[i]!
       };
     } else {
       throw StateError(
@@ -231,7 +231,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
         }
         return true;
       } else if (thisType is InterfaceType && otherType is InterfaceType) {
-        if (thisType.element2 != otherType.element2) return false;
+        if (thisType.element != otherType.element) return false;
         if (!_compareLists(typeArguments, other.typeArguments)) {
           return false;
         }
@@ -321,7 +321,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
     } else if (type is InterfaceType) {
-      var name = type.element2.name;
+      var name = type.element.name;
       var args = '';
       if (type.typeArguments.isNotEmpty) {
         args = '<${typeArguments.join(', ')}>';
@@ -445,7 +445,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
       return DecoratedType(undecoratedResult, node,
           typeArguments: newTypeArguments);
     } else if (type is TypeParameterType) {
-      var inner = substitution[type.element2];
+      var inner = substitution[type.element];
       if (inner == null) {
         return this;
       } else {
@@ -685,7 +685,7 @@ class _TypeVariableReplacement implements SubstitutedType {
 
   _TypeVariableReplacement(TypeParameterElement newTypeVariable)
       : type = TypeParameterTypeImpl(
-          element2: newTypeVariable,
+          element: newTypeVariable,
           nullabilitySuffix: NullabilitySuffix.star,
         );
 

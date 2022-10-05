@@ -270,7 +270,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return InterfaceTypeImpl(
-      element2: this,
+      element: this,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -415,12 +415,12 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
         yield getter;
       }
       for (InterfaceType mixin in classElement.mixins.reversed) {
-        getter = mixin.element2.getGetter(getterName);
+        getter = mixin.element.getGetter(getterName);
         if (getter != null) {
           yield getter;
         }
       }
-      classElement = classElement.supertype?.element2;
+      classElement = classElement.supertype?.element;
     }
   }
 
@@ -444,12 +444,12 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
         yield method;
       }
       for (InterfaceType mixin in classElement.mixins.reversed) {
-        method = mixin.element2.getMethod(methodName);
+        method = mixin.element.getMethod(methodName);
         if (method != null) {
           yield method;
         }
       }
-      classElement = classElement.supertype?.element2;
+      classElement = classElement.supertype?.element;
     }
   }
 
@@ -474,12 +474,12 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
         yield setter;
       }
       for (InterfaceType mixin in classElement.mixins.reversed) {
-        setter = mixin.element2.getSetter(setterName);
+        setter = mixin.element.getSetter(setterName);
         if (setter != null) {
           yield setter;
         }
       }
-      classElement = classElement.supertype?.element2;
+      classElement = classElement.supertype?.element;
     }
   }
 
@@ -633,12 +633,12 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
         }
         // check mixins
         for (InterfaceType mixinType in currentElement.mixins) {
-          classesToVisit.add(mixinType.element2);
+          classesToVisit.add(mixinType.element);
         }
         // check super
         final supertype = currentElement.supertype;
         if (supertype != null) {
-          classesToVisit.add(supertype.element2);
+          classesToVisit.add(supertype.element);
         }
       }
     }
@@ -708,7 +708,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     // No subclasses in the library.
     for (var unit in library.units) {
       for (var class_ in unit.classes) {
-        if (class_.supertype?.element2 == this) {
+        if (class_.supertype?.element == this) {
           return false;
         }
       }
@@ -788,7 +788,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       return <ConstructorElement>[];
     }
 
-    var superElement = supertype!.element2 as ClassElementImpl;
+    var superElement = supertype!.element as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -834,7 +834,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
     bool typeHasInstanceVariables(InterfaceType type) =>
-        type.element2.fields.any((e) => !e.isSynthetic);
+        type.element.fields.any((e) => !e.isSynthetic);
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
@@ -1816,7 +1816,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 /// The synthetic element representing the declaration of the type `dynamic`.
 class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   /// Return the unique instance of this class.
-  static DynamicElementImpl get instance => DynamicTypeImpl.instance.element2;
+  static DynamicElementImpl get instance => DynamicTypeImpl.instance.element;
 
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
@@ -6027,7 +6027,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     if (aliasedType_ is! InterfaceType) {
       return false;
     }
-    var aliasedClass = aliasedType_.element2;
+    var aliasedClass = aliasedType_.element;
     var typeArguments = aliasedType_.typeArguments;
     var typeParameterCount = typeParameters.length;
     if (typeParameterCount != aliasedClass.typeParameters.length) {
@@ -6043,7 +6043,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       }
       final typeArgument = typeArguments[i];
       if (typeArgument is TypeParameterType &&
-          typeParameters[i] != typeArgument.element2) {
+          typeParameters[i] != typeArgument.element) {
         return false;
       }
     }
@@ -6153,7 +6153,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
-        element2: type.element2,
+        element: type.element,
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
@@ -6173,7 +6173,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
-        element2: type.element2,
+        element: type.element,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
@@ -6292,7 +6292,7 @@ class TypeParameterElementImpl extends ElementImpl
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return TypeParameterTypeImpl(
-      element2: this,
+      element: this,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

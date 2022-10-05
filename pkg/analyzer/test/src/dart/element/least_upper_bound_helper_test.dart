@@ -173,7 +173,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_class_object() {
-    expect(_longestPathToObject(typeProvider.objectType.element2), 0);
+    expect(_longestPathToObject(typeProvider.objectType.element), 0);
   }
 
   void test_class_recursion() {

@@ -30,7 +30,7 @@ class NamedTypeBuilder extends TypeBuilder {
   final TypeSystemImpl typeSystem;
 
   @override
-  final Element element2;
+  final Element element;
 
   final List<DartType> arguments;
 
@@ -48,7 +48,7 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   DartType? _type;
 
-  NamedTypeBuilder(this.linker, this.typeSystem, this.element2, this.arguments,
+  NamedTypeBuilder(this.linker, this.typeSystem, this.element, this.arguments,
       this.nullabilitySuffix,
       {this.node});
 
@@ -74,7 +74,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
   /// TODO(scheglov) Only when enabled both in the element, and target?
   bool get _isNonFunctionTypeAliasesEnabled {
-    return element2.library!.featureSet.isEnabled(
+    return element.library!.featureSet.isEnabled(
       Feature.nonfunction_type_aliases,
     );
   }
@@ -96,7 +96,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     // ignore: unnecessary_this
-    final element = this.element2;
+    final element = this.element;
     if (element is InterfaceElement) {
       var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
@@ -125,7 +125,7 @@ class NamedTypeBuilder extends TypeBuilder {
       }
     } else if (element is TypeParameterElement) {
       _type = TypeParameterTypeImpl(
-        element2: element,
+        element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -139,7 +139,7 @@ class NamedTypeBuilder extends TypeBuilder {
   @override
   String toString() {
     var buffer = StringBuffer();
-    buffer.write(element2.displayName);
+    buffer.write(element.displayName);
     if (arguments.isNotEmpty) {
       buffer.write('<');
       buffer.write(arguments.join(', '));
@@ -155,7 +155,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-        linker, typeSystem, element2, arguments, nullabilitySuffix,
+        linker, typeSystem, element, arguments, nullabilitySuffix,
         node: node);
   }
 

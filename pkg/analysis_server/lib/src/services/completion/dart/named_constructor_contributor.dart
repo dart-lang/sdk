@@ -28,7 +28,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
       } else {
         var type = node.type.type;
         if (type is InterfaceType) {
-          var element = type.element2;
+          var element = type.element;
           _buildSuggestions(element);
         }
       }

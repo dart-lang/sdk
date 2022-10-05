@@ -366,7 +366,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       if (token != null && token.keyword == Keyword.VAR) {
         var inferredType = node.declaredElement?.type;
         if (inferredType is InterfaceType) {
-          computer._addRegionForToken(token, inferredType.element2);
+          computer._addRegionForToken(token, inferredType.element);
         }
       }
     }
@@ -567,13 +567,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         return null;
       }
 
-      var firstElement = firstType.element2;
+      var firstElement = firstType.element;
       for (var i = 1; i < variables.length; i++) {
         final type = variables[i].declaredElement?.type;
         if (type is! InterfaceType) {
           return null;
         }
-        if (type.element2 != firstElement) {
+        if (type.element != firstElement) {
           return null;
         }
       }
