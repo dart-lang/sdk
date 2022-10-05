@@ -2,6 +2,7 @@
   "version": 1,
   "experimentSets": {
     "sdkExperiments": [
+      "records"
     ],
     "nullSafety": [
       "non-nullable"

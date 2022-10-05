@@ -349,7 +349,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Returns the state of the experimental features within this library.
   LibraryFeatures get libraryFeatures =>
       _libraryFeatures ??= new LibraryFeatures(loader.target.globalFeatures,
-          _packageUri ?? importUri, languageVersion.version);
+          _packageUri ?? origin.importUri, languageVersion.version);
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
@@ -1611,7 +1611,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   SourceLibraryBuilder get origin {
     SourceLibraryBuilder? origin = _immediateOrigin;
-    if (origin != null && origin.isPart) {
+    // TODO(johnniwinther): This returns the wrong origin for early queries on
+    // augmentations imported into parts.
+    if (origin != null && origin.partOfLibrary is SourceLibraryBuilder) {
       origin = origin.partOfLibrary as SourceLibraryBuilder;
     }
     return origin?.origin ?? this;

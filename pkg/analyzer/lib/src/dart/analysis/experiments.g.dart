@@ -282,7 +282,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
     documentation: 'Records',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('2.19.0'),
     releaseVersion: null,
   );
 
