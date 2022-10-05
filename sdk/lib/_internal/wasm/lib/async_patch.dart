@@ -86,8 +86,13 @@ class _FutureError {
 
 @pragma("wasm:entry-point")
 Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
+  // Save the existing zone in a local, and restore('_leave') upon returning. We
+  // ensure that the zone will be restored in the event of an exception by
+  // restoring the original zone before we throw the exception.
+  _Zone current = Zone._current;
   if (operand is! Future) return operand;
   Object? result = _futurePromise(stack, operand);
+  Zone._leave(current);
   if (result is _FutureError) {
     // TODO(askesc): Combine stack traces
     throw result.exception;
