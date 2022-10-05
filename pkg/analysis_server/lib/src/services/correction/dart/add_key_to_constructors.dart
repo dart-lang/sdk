@@ -18,7 +18,16 @@ import 'package:collection/collection.dart';
 
 class AddKeyToConstructors extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
