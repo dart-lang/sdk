@@ -1155,11 +1155,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     //  - nullable (including Null)
     //  - a type parameter (it can be instantiated with Null)
     //  - legacy Never
+    //  - a FutureOr of the above
     final nullability = type.nullability;
     return _environment.isTop(type) ||
         nullability == Nullability.nullable ||
         type is TypeParameterType ||
-        (type is NeverType && nullability == Nullability.legacy);
+        (type is NeverType && nullability == Nullability.legacy) ||
+        (type is FutureOrType &&
+            _canBeNullAfterSuccessfulIsCheck(type.typeArgument));
   }
 
   TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
