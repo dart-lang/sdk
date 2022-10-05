@@ -14,18 +14,16 @@ main() {
 
 @reflectiveTest
 class ParenthesizedPatternResolutionTest extends PatternsResolutionTest {
-  test_inside_castPattern() async {
+  test_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
-  switch (x) {
-    case (0) as Object:
-      break;
-  }
+  if (x case (0)) {}
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.caseClause('case');
     assertResolvedNodeText(node, r'''
-CastPattern
+CaseClause
+  caseKeyword: case
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: ConstantPattern
@@ -33,57 +31,27 @@ CastPattern
         literal: 0
         staticType: int
     rightParenthesis: )
-  asToken: as
-  type: NamedType
-    name: SimpleIdentifier
-      token: Object
-      staticElement: dart:core::@class::Object
-      staticType: null
-    type: Object
 ''');
   }
 
-  test_inside_nullAssert() async {
+  test_switchCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
-    case (0)!:
+    case (0):
       break;
   }
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ParenthesizedPattern
-    leftParenthesis: (
-    pattern: ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-    rightParenthesis: )
-  operator: !
-''');
-  }
-
-  test_inside_nullCheck() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case (0)?:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ParenthesizedPattern
-    leftParenthesis: (
-    pattern: ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-    rightParenthesis: )
-  operator: ?
+    assertResolvedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+  rightParenthesis: )
 ''');
   }
 }

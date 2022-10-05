@@ -75,7 +75,7 @@ class AlreadyMigratedCodeDecorator {
           namedParameters: namedParameters,
           positionalParameters: positionalParameters);
     } else if (type is InterfaceType) {
-      var typeParameters = type.element2.typeParameters;
+      var typeParameters = type.element.typeParameters;
       if (typeParameters.isNotEmpty) {
         assert(type.typeArguments.length == typeParameters.length);
         int index = 0;

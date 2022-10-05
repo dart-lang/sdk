@@ -579,7 +579,7 @@ class CodeChecker extends RecursiveAstVisitor {
       } else {
         // Future<T> -> FutureOr<T>
         var typeArg = (type is InterfaceType &&
-                type.element2 == _typeProvider.futureElement)
+                type.element == _typeProvider.futureElement)
             ? type.typeArguments[0]
             : _typeProvider.dynamicType;
         return _typeProvider.futureOrType(typeArg);
@@ -608,7 +608,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     if (type.isDynamic) {
       return type;
-    } else if (type is InterfaceType && type.element2 == expectedElement) {
+    } else if (type is InterfaceType && type.element == expectedElement) {
       return type.typeArguments[0];
     } else {
       // Malformed type - fallback on analyzer error.

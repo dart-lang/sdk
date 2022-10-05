@@ -83,7 +83,7 @@ class SubtypeHelper {
           T0 is TypeParameterTypeImpl) {
         var S = T0.promotedBound;
         if (S == null) {
-          var B = T0.element2.bound ?? _objectQuestion;
+          var B = T0.element.bound ?? _objectQuestion;
           return isSubtypeOf(B, _objectNone);
         } else {
           return isSubtypeOf(S, _objectNone);
@@ -185,7 +185,7 @@ class SubtypeHelper {
     if (T0 is TypeParameterTypeImpl &&
         T1 is TypeParameterTypeImpl &&
         T1.promotedBound == null &&
-        T0.element2 == T1.element2) {
+        T0.element == T1.element) {
       return true;
     }
 
@@ -195,7 +195,7 @@ class SubtypeHelper {
       var T1_promotedBound = T1.promotedBound;
       if (T1_promotedBound != null) {
         var X1 = TypeParameterTypeImpl(
-          element2: T1.element2,
+          element: T1.element,
           nullabilitySuffix: T1.nullabilitySuffix,
         );
         return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1_promotedBound);
@@ -227,7 +227,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element2.bound;
+        var B0 = T0.element.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -255,7 +255,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element2.bound;
+        var B0 = T0.element.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -281,7 +281,7 @@ class SubtypeHelper {
         return true;
       }
 
-      var B0 = T0.element2.bound;
+      var B0 = T0.element.bound;
       if (B0 != null && isSubtypeOf(B0, T1)) {
         return true;
       }
@@ -456,8 +456,8 @@ class SubtypeHelper {
       return false;
     }
 
-    var subElement = subType.element2;
-    var superElement = superType.element2;
+    var subElement = subType.element;
+    var superElement = superType.element;
     if (subElement == superElement) {
       return _interfaceArguments(superElement, subType, superType);
     }
@@ -468,7 +468,7 @@ class SubtypeHelper {
     }
 
     for (var interface in subElement.allSupertypes) {
-      if (interface.element2 == superElement) {
+      if (interface.element == superElement) {
         var substitution = Substitution.fromInterfaceType(subType);
         var substitutedInterface =
             substitution.substituteType(interface) as InterfaceType;

@@ -372,7 +372,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
     final type = exp.constructorName.type.typeOrThrow as InterfaceType;
-    expect(type.element2, elementB);
+    expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(elementA.typeParameters[0]
           .instantiate(nullabilitySuffix: NullabilitySuffix.star))

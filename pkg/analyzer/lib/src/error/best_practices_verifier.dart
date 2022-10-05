@@ -748,7 +748,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var type = node.typeOrThrow;
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
       // not report synthetic `dynamic` in place of an unresolved type.
-      if ((type is InterfaceType && type.element2 == _nullType.element2 ||
+      if ((type is InterfaceType && type.element == _nullType.element ||
               (type.isDynamic && name == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
@@ -1017,17 +1017,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           return true;
         }
         for (InterfaceType interface in element.mixins) {
-          if (isOrInheritsImmutable(interface.element2, visited)) {
+          if (isOrInheritsImmutable(interface.element, visited)) {
             return true;
           }
         }
         for (InterfaceType mixin in element.interfaces) {
-          if (isOrInheritsImmutable(mixin.element2, visited)) {
+          if (isOrInheritsImmutable(mixin.element, visited)) {
             return true;
           }
         }
         if (element.supertype != null) {
-          return isOrInheritsImmutable(element.supertype!.element2, visited);
+          return isOrInheritsImmutable(element.supertype!.element, visited);
         }
       }
       return false;
@@ -1046,11 +1046,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (visited.add(element)) {
         nonFinalFields = nonFinalInstanceFields(element);
         nonFinalFields = nonFinalFields.followedBy(element.mixins.expand(
-            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element2)));
+            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element)));
         if (element.supertype != null) {
           nonFinalFields = nonFinalFields.followedBy(
               definedOrInheritedNonFinalInstanceFields(
-                  element.supertype!.element2, visited));
+                  element.supertype!.element, visited));
         }
       }
       return nonFinalFields;
@@ -1181,7 +1181,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
-      final superclass = supertype.element2;
+      final superclass = supertype.element;
       if (superclass.hasSealed) {
         if (!currentPackageContains(superclass)) {
           if (element is MixinElement &&

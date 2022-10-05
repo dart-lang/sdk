@@ -163,7 +163,7 @@ class FunctionReferenceResolver {
     // Otherwise, a 'call' method on the interface, or on an applicable
     // extension method applies.
     return type.lookUpMethod2(
-            FunctionElement.CALL_METHOD_NAME, type.element2.library) ??
+            FunctionElement.CALL_METHOD_NAME, type.element.library) ??
         _extensionResolver
             .findExtension(type, node, FunctionElement.CALL_METHOD_NAME)
             .getter;
@@ -233,7 +233,7 @@ class FunctionReferenceResolver {
       // If the type of the function is a type parameter, the tearoff is
       // disallowed, reported in [_resolveDisallowedExpression]. Use the type
       // parameter's bound here in an attempt to assign the intended types.
-      rawType = rawType.element2.bound;
+      rawType = rawType.element.bound;
     }
 
     if (rawType is FunctionType) {
@@ -846,7 +846,7 @@ class FunctionReferenceResolver {
       } else if (receiverElement is TypeAliasElement) {
         var aliasedType = receiverElement.aliasedType;
         if (aliasedType is InterfaceType) {
-          var element = _resolveStaticElement(aliasedType.element2, name);
+          var element = _resolveStaticElement(aliasedType.element, name);
           name.staticElement = element;
           return element?.referenceType;
         } else {

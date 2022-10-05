@@ -272,7 +272,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     }
     for (var targetType in types) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(type.element2, targetType.element2);
+          .inheritanceDistanceFeature(type.element, targetType.element);
       for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
@@ -313,7 +313,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element2)) {
+      if (!classesSeen.add(nextType.element)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

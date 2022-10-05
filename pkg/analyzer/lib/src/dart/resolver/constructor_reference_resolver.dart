@@ -55,7 +55,7 @@ class ConstructorReferenceResolver {
       if (enclosingElement is TypeAliasElement) {
         final aliasedType = enclosingElement.aliasedType;
         enclosingElement =
-            aliasedType is InterfaceType ? aliasedType.element2 : null;
+            aliasedType is InterfaceType ? aliasedType.element : null;
       }
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.

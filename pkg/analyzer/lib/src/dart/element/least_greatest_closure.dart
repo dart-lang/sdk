@@ -82,7 +82,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
 
   @override
   DartType? visitTypeParameterType(TypeParameterType type) {
-    if (eliminationTargets.contains(type.element2)) {
+    if (eliminationTargets.contains(type.element)) {
       var replacement = _typeParameterReplacement as TypeImpl;
       return replacement.withNullability(
         uniteNullabilities(

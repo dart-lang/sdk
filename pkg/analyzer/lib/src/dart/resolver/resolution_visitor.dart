@@ -1458,7 +1458,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      final element = type.element2;
+      final element = type.element;
       if (element is EnumElement || element is MixinElement && asClass) {
         _errorReporter.reportErrorForNode(errorCode, namedType);
         return;

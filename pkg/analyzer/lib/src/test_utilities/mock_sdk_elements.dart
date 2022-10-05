@@ -1075,7 +1075,7 @@ class _MockSdkElementsBuilder {
     List<DartType> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
-      element2: element,
+      element: element,
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -1151,7 +1151,7 @@ class _MockSdkElementsBuilder {
 
   TypeParameterType _typeParameterType(TypeParameterElement element) {
     return TypeParameterTypeImpl(
-      element2: element,
+      element: element,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }

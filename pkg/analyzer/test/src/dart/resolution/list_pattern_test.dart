@@ -14,7 +14,28 @@ main() {
 
 @reflectiveTest
 class ListPatternResolutionTest extends PatternsResolutionTest {
-  test_empty() async {
+  test_elements_constant() async {
+    await assertNoErrorsInCode(r'''
+void f(x) {
+  switch (x) {
+    case [0]:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+  rightBracket: ]
+''');
+  }
+
+  test_elements_empty() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
@@ -27,137 +48,6 @@ void f(x) {
     assertParsedNodeText(node, r'''
 ListPattern
   leftBracket: [
-  rightBracket: ]
-''');
-  }
-
-  test_empty_withWhitespace() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case [ ]:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-ListPattern
-  leftBracket: [
-  rightBracket: ]
-''');
-  }
-
-  test_inside_castPattern() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case [0] as Object:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-CastPattern
-  pattern: ListPattern
-    leftBracket: [
-    elements
-      ConstantPattern
-        expression: IntegerLiteral
-          literal: 0
-    rightBracket: ]
-  asToken: as
-  type: NamedType
-    name: SimpleIdentifier
-      token: Object
-''');
-  }
-
-  test_inside_ifStatement_case() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  if (x case [0]) {}
-}
-''');
-    final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
-ListPattern
-  leftBracket: [
-  elements
-    ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-  rightBracket: ]
-''');
-  }
-
-  test_inside_nullAssert() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case [0]!:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ListPattern
-    leftBracket: [
-    elements
-      ConstantPattern
-        expression: IntegerLiteral
-          literal: 0
-    rightBracket: ]
-  operator: !
-''');
-  }
-
-  test_inside_nullCheck() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case [0]?:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ListPattern
-    leftBracket: [
-    elements
-      ConstantPattern
-        expression: IntegerLiteral
-          literal: 0
-    rightBracket: ]
-  operator: ?
-''');
-  }
-
-  test_inside_switchStatement_case() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case [1, 2]:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-ListPattern
-  leftBracket: [
-  elements
-    ConstantPattern
-      expression: IntegerLiteral
-        literal: 1
-    ConstantPattern
-      expression: IntegerLiteral
-        literal: 2
   rightBracket: ]
 ''');
   }

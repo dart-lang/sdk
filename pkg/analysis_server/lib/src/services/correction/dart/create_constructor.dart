@@ -76,7 +76,7 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = targetType.element2;
+    var targetElement = targetType.element;
     var targetResult = await sessionHelper.getElementDeclaration(targetElement);
     if (targetResult == null) {
       return;

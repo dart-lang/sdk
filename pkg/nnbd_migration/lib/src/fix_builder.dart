@@ -381,7 +381,7 @@ class MigrationResolutionHooksImpl
         () => element.interfacesInternal,
         () => [
               for (var interface in element.interfacesInternal)
-                _getClassInterface(element, interface.element2)
+                _getClassInterface(element, interface.element)
             ]);
   }
 

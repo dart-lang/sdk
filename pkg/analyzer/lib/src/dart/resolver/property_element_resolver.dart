@@ -391,7 +391,7 @@ class PropertyElementResolver with ScopeHelpers {
         var aliasedType = targetElement.aliasedType;
         if (aliasedType is InterfaceType) {
           return _resolveTargetInterfaceElement(
-            typeReference: aliasedType.element2,
+            typeReference: aliasedType.element,
             isCascaded: isCascaded,
             propertyName: propertyName,
             hasRead: hasRead,
@@ -634,7 +634,7 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasWrite,
   }) {
     if (isCascaded) {
-      typeReference = _resolver.typeProvider.typeType.element2;
+      typeReference = _resolver.typeProvider.typeType.element;
     }
 
     ExecutableElement? readElement;
@@ -766,7 +766,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (hasRead) {
         var name = Name(_definingLibrary.source.uri, propertyName.name);
         readElement = _resolver.inheritance
-            .getMember2(targetType.element2, name, forSuper: true);
+            .getMember2(targetType.element, name, forSuper: true);
 
         if (readElement != null) {
           readElement = _resolver.toLegacyElement(readElement);
@@ -776,7 +776,7 @@ class PropertyElementResolver with ScopeHelpers {
           // But we would like to give the user at least some resolution.
           // So, we retry simply looking for an inherited member.
           readElement =
-              _resolver.inheritance.getInherited2(targetType.element2, name);
+              _resolver.inheritance.getInherited2(targetType.element, name);
           if (readElement != null) {
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,

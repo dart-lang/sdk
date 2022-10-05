@@ -318,14 +318,14 @@ class Flutter {
         return true;
       }
       for (var type in element.allSupertypes) {
-        if (isExactColor(type.element2)) {
+        if (isExactColor(type.element)) {
           return true;
         }
       }
       return false;
     }
 
-    return isColorElement(type.element2);
+    return isColorElement(type.element);
   }
 
   /// Return `true` if the given [type] is the flutter mixin `Diagnosticable`
@@ -344,14 +344,14 @@ class Flutter {
         return true;
       }
       for (var type in element.allSupertypes) {
-        if (isExactDiagnosticable(type.element2)) {
+        if (isExactDiagnosticable(type.element)) {
           return true;
         }
       }
       return false;
     }
 
-    return isDiagnosticableElement(type.element2);
+    return isDiagnosticableElement(type.element);
   }
 
   /// Return `true` if the [element] is the Flutter class `Alignment`.
@@ -373,7 +373,7 @@ class Flutter {
   /// Return `true` if the [type] is the Flutter type `EdgeInsetsGeometry`.
   bool isExactEdgeInsetsGeometryType(DartType type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, 'EdgeInsetsGeometry', _uriEdgeInsets);
+        _isExactWidget(type.element, 'EdgeInsetsGeometry', _uriEdgeInsets);
   }
 
   /// Return `true` if the [node] is creation of `Align`.
@@ -397,13 +397,13 @@ class Flutter {
   /// Return `true` if the given [type] is the Flutter class `StatefulWidget`.
   bool isExactlyStatefulWidgetType(DartType? type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameStatefulWidget, _uriFramework);
+        _isExactWidget(type.element, _nameStatefulWidget, _uriFramework);
   }
 
   /// Return `true` if the given [type] is the Flutter class `StatelessWidget`.
   bool isExactlyStatelessWidgetType(DartType type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameStatelessWidget, _uriFramework);
+        _isExactWidget(type.element, _nameStatelessWidget, _uriFramework);
   }
 
   /// Return `true` if the given [element] is the Flutter class `State`.
@@ -414,43 +414,43 @@ class Flutter {
   /// Return `true` if the given [type] is the Flutter class `Align`.
   bool isExactWidgetTypeAlign(DartType? type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameAlign, _uriBasic);
+        _isExactWidget(type.element, _nameAlign, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `StreamBuilder`.
   bool isExactWidgetTypeBuilder(DartType type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameBuilder, _uriBasic);
+        _isExactWidget(type.element, _nameBuilder, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `Center`.
   bool isExactWidgetTypeCenter(DartType type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameCenter, _uriBasic);
+        _isExactWidget(type.element, _nameCenter, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `Container`.
   bool isExactWidgetTypeContainer(DartType? type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameContainer, _uriContainer);
+        _isExactWidget(type.element, _nameContainer, _uriContainer);
   }
 
   /// Return `true` if the given [type] is the Flutter class `Padding`.
   bool isExactWidgetTypePadding(DartType? type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _namePadding, _uriBasic);
+        _isExactWidget(type.element, _namePadding, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `SizedBox`.
   bool isExactWidgetTypeSizedBox(DartType type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameSizedBox, _uriBasic);
+        _isExactWidget(type.element, _nameSizedBox, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `StreamBuilder`.
   bool isExactWidgetTypeStreamBuilder(DartType type) {
     return type is InterfaceType &&
-        _isExactWidget(type.element2, _nameStreamBuilder, _uriAsync);
+        _isExactWidget(type.element, _nameStreamBuilder, _uriAsync);
   }
 
   /// Return `true` if the given [type] is the Flutter class `Widget`, or its
@@ -476,14 +476,14 @@ class Flutter {
         return true;
       }
       for (var type in element.allSupertypes) {
-        if (isExactMatrix4(type.element2)) {
+        if (isExactMatrix4(type.element)) {
           return true;
         }
       }
       return false;
     }
 
-    return isMatrix4Element(type.element2);
+    return isMatrix4Element(type.element);
   }
 
   /// Return `true` if the given [element] has the Flutter class `State` as
@@ -511,7 +511,7 @@ class Flutter {
       return true;
     }
     for (var type in element.allSupertypes) {
-      if (_isExactWidget(type.element2, _nameWidget, _uriFramework)) {
+      if (_isExactWidget(type.element, _nameWidget, _uriFramework)) {
         return true;
       }
     }
@@ -549,7 +549,7 @@ class Flutter {
   /// Return `true` if the given [type] is the Flutter class `Widget`, or its
   /// subtype.
   bool isWidgetType(DartType? type) {
-    return type is InterfaceType && isWidget(type.element2);
+    return type is InterfaceType && isWidget(type.element);
   }
 
   /// Return `true` if the given [element] has a supertype with the
@@ -560,8 +560,8 @@ class Flutter {
       return false;
     }
     for (var type in element.allSupertypes) {
-      if (type.element2.name == requiredName) {
-        var uri = type.element2.source.uri;
+      if (type.element.name == requiredName) {
+        var uri = type.element.source.uri;
         if (uri == requiredUri) {
           return true;
         }

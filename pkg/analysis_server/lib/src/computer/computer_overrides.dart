@@ -161,10 +161,10 @@ class _OverriddenElementsFinder {
     }
     // interfaces
     for (var interfaceType in class_.interfaces) {
-      _addInterfaceOverrides(interfaceType.element2, true);
+      _addInterfaceOverrides(interfaceType.element, true);
     }
     // super
-    _addInterfaceOverrides(class_.supertype?.element2, checkType);
+    _addInterfaceOverrides(class_.supertype?.element, checkType);
   }
 
   void _addSuperOverrides(InterfaceElement? class_,
@@ -183,13 +183,13 @@ class _OverriddenElementsFinder {
       }
     }
 
-    _addSuperOverrides(class_.supertype?.element2);
+    _addSuperOverrides(class_.supertype?.element);
     for (var mixin_ in class_.mixins) {
-      _addSuperOverrides(mixin_.element2);
+      _addSuperOverrides(mixin_.element);
     }
     if (class_ is MixinElement) {
       for (var constraint in class_.superclassConstraints) {
-        _addSuperOverrides(constraint.element2);
+        _addSuperOverrides(constraint.element);
       }
     }
   }

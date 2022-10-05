@@ -21724,7 +21724,7 @@ library
             superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo.dart');
+    expect(typeA.element.source.shortName, 'foo.dart');
   }
 
   test_exportImport_configurations_useFirst() async {
@@ -21757,7 +21757,7 @@ library
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_io.dart');
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_exportImport_configurations_useSecond() async {
@@ -21790,7 +21790,7 @@ library
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_html.dart');
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_exports() async {
@@ -24170,7 +24170,7 @@ library
             superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo.dart');
+    expect(typeA.element.source.shortName, 'foo.dart');
   }
 
   test_import_configurations_useFirst() async {
@@ -24201,7 +24201,7 @@ library
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_io.dart');
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useFirst_eqTrue() async {
@@ -24232,7 +24232,7 @@ library
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_io.dart');
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useSecond() async {
@@ -24263,7 +24263,7 @@ library
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_html.dart');
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_import_configurations_useSecond_eqTrue() async {
@@ -24294,7 +24294,7 @@ library
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_html.dart');
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_import_dartCore_explicit() async {
@@ -25724,7 +25724,7 @@ library
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    final streamElement = (p.type as InterfaceType).element2;
+    final streamElement = (p.type as InterfaceType).element;
     expect(streamElement.source, isNot(streamElement.library.source));
   }
 

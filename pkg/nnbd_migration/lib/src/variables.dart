@@ -341,7 +341,7 @@ class Variables {
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
-        element2: type.element2,
+        element: type.element,
         typeArguments: [
           for (var arg in decoratedType.typeArguments) toFinalType(arg!)
         ],
@@ -349,7 +349,7 @@ class Variables {
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
-        element2: type.element2,
+        element: type.element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -422,7 +422,7 @@ class Variables {
     var result = <InterfaceElement, DecoratedType>{};
     for (var decoratedSupertype
         in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {
-      var class_ = (decoratedSupertype.type as InterfaceType).element2;
+      var class_ = (decoratedSupertype.type as InterfaceType).element;
       result[class_] = decoratedSupertype;
     }
     return result;

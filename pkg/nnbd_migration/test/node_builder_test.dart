@@ -312,7 +312,7 @@ class D<V> extends C<int, V> {}
 class C<T, U> {}
 ''');
     var types = decoratedDirectSupertypes('C');
-    var decorated = types[typeProvider.objectType.element2]!;
+    var decorated = types[typeProvider.objectType.element]!;
     _assertType(decorated.type!, 'Object');
     assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
@@ -418,7 +418,7 @@ abstract class D<V> extends Iterable<V> {}
 mixin C<T, U> {}
 ''');
     var types = decoratedDirectSupertypes('C');
-    var decorated = types[typeProvider.objectType.element2]!;
+    var decorated = types[typeProvider.objectType.element]!;
     _assertType(decorated.type!, 'Object');
     assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
@@ -1066,13 +1066,13 @@ typedef T F<T, U>(U u);
     // type.
     expect(decoratedType.typeFormals, isEmpty);
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
-    expect((decoratedType.returnType!.type as TypeParameterType).element2,
-        same(t));
+    expect(
+        (decoratedType.returnType!.type as TypeParameterType).element, same(t));
     expect(
         decoratedType.returnType!.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
         (decoratedType.positionalParameters![0].type as TypeParameterType)
-            .element2,
+            .element,
         same(u));
     expect(decoratedType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
@@ -1220,11 +1220,11 @@ void f(T Function<T, U>(U) x) {}
     expect(decoratedType.typeFormals, hasLength(2));
     var t = decoratedType.typeFormals![0];
     var u = decoratedType.typeFormals![1];
-    expect((decoratedType.returnType!.type as TypeParameterType).element2,
-        same(t));
+    expect(
+        (decoratedType.returnType!.type as TypeParameterType).element, same(t));
     expect(
         (decoratedType.positionalParameters![0].type as TypeParameterType)
-            .element2,
+            .element,
         same(u));
   }
 
@@ -1300,13 +1300,13 @@ typedef F = T Function<T, U>(U u);
     var t = decoratedType.typeFormals![0];
     var u = decoratedType.typeFormals![1];
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
-    expect((decoratedType.returnType!.type as TypeParameterType).element2,
-        same(t));
+    expect(
+        (decoratedType.returnType!.type as TypeParameterType).element, same(t));
     expect(
         decoratedType.returnType!.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
         (decoratedType.positionalParameters![0].type as TypeParameterType)
-            .element2,
+            .element,
         same(u));
     expect(decoratedType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
@@ -1327,13 +1327,13 @@ typedef F<T, U> = T Function(U u);
     // type.
     expect(decoratedType.typeFormals, isEmpty);
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
-    expect((decoratedType.returnType!.type as TypeParameterType).element2,
-        same(t));
+    expect(
+        (decoratedType.returnType!.type as TypeParameterType).element, same(t));
     expect(
         decoratedType.returnType!.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
         (decoratedType.positionalParameters![0].type as TypeParameterType)
-            .element2,
+            .element,
         same(u));
     expect(decoratedType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());

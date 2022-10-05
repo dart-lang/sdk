@@ -96,7 +96,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   if (enclosingElement is InterfaceElement) {
     var name = member.displayName;
     var searchClasses = [
-      ...enclosingElement.allSupertypes.map((e) => e.element2),
+      ...enclosingElement.allSupertypes.map((e) => e.element),
       enclosingElement,
     ];
     for (var superClass in searchClasses) {
@@ -155,7 +155,7 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
 /// Excludes: constructors and synthetic elements.
 List<Element> getMembers(InterfaceElement clazz) {
   var classElements = [
-    ...clazz.allSupertypes.map((e) => e.element2),
+    ...clazz.allSupertypes.map((e) => e.element),
     clazz,
   ];
   var members = <Element>[];

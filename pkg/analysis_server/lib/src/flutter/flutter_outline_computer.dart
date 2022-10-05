@@ -135,7 +135,7 @@ class FlutterOutlineComputer {
     if (type is! InterfaceType || !_flutter.isWidgetType(type)) {
       return null;
     }
-    var className = type.element2.displayName;
+    var className = type.element.displayName;
 
     if (node is InstanceCreationExpression) {
       var attributes = <protocol.FlutterOutlineAttribute>[];

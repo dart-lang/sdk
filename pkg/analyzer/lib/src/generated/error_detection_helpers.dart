@@ -237,7 +237,7 @@ mixin ErrorDetectionHelpers {
         type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
       return type.lookUpMethod2(
-          FunctionElement.CALL_METHOD_NAME, type.element2.library);
+          FunctionElement.CALL_METHOD_NAME, type.element.library);
     } else {
       return null;
     }

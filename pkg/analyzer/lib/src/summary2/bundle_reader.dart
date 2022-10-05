@@ -1701,7 +1701,7 @@ class ResolutionReader {
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
@@ -1709,7 +1709,7 @@ class ResolutionReader {
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
       var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -1717,7 +1717,7 @@ class ResolutionReader {
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
       var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
       );
@@ -1725,7 +1725,7 @@ class ResolutionReader {
     } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
       var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.star,
       );
@@ -1741,7 +1741,7 @@ class ResolutionReader {
       var element = readElement() as TypeParameterElement;
       var nullability = _readNullability();
       var type = TypeParameterTypeImpl(
-        element2: element,
+        element: element,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
@@ -1824,7 +1824,7 @@ class ResolutionReader {
         );
       } else if (type is InterfaceType) {
         return InterfaceTypeImpl(
-          element2: type.element2,
+          element: type.element,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
@@ -1844,7 +1844,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
-          element2: type.element2,
+          element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,

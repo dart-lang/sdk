@@ -848,7 +848,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
   void test_getElement() {
     ClassElementImpl typeElement = class_(name: 'A');
     InterfaceType type = interfaceTypeStar(typeElement);
-    expect(type.element2, typeElement);
+    expect(type.element, typeElement);
   }
 
   void test_getGetter_implemented() {
@@ -947,7 +947,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     List<InterfaceType> interfaces = typeBI.interfaces;
     expect(interfaces, hasLength(1));
     InterfaceType result = interfaces[0];
-    expect(result.element2, same(A));
+    expect(result.element, same(A));
     expect(result.typeArguments[0], same(typeI));
   }
 
@@ -1059,7 +1059,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     List<InterfaceType> interfaces = typeBI.mixins;
     expect(interfaces, hasLength(1));
     InterfaceType result = interfaces[0];
-    expect(result.element2, same(A));
+    expect(result.element, same(A));
     expect(result.typeArguments[0], same(typeI));
   }
 
@@ -1144,7 +1144,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     var typeI = interfaceTypeStar(class_(name: 'I'));
     var typeBI = interfaceTypeStar(classB, typeArguments: <DartType>[typeI]);
     InterfaceType superclass = typeBI.superclass!;
-    expect(superclass.element2, same(A));
+    expect(superclass.element, same(A));
     expect(superclass.typeArguments[0], same(typeI));
   }
 
@@ -1274,7 +1274,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_getElement() {
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
     TypeParameterTypeImpl type = typeParameterTypeStar(element);
-    expect(type.element2, element);
+    expect(type.element, element);
   }
 
   @deprecated

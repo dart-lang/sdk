@@ -158,19 +158,19 @@ class TypeHierarchyComputer {
       var superType = classElement.supertype;
       if (superType != null) {
         item.superclass = _createSuperItem(
-          superType.element2,
+          superType.element,
           superType.typeArguments,
         );
       }
     }
     // mixins
     for (var type in classElement.mixins) {
-      var id = _createSuperItem(type.element2, type.typeArguments);
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.mixins.add(id);
     }
     // interfaces
     for (var type in classElement.interfaces) {
-      var id = _createSuperItem(type.element2, type.typeArguments);
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.interfaces.add(id);
     }
     // done
@@ -201,7 +201,7 @@ class TypeHierarchyComputer {
     }
     // try to find in the class mixin
     for (var mixin in clazz.mixins.reversed) {
-      var mixinElement = mixin.element2;
+      var mixinElement = mixin.element;
       if (_pivotKind == ElementKind.METHOD) {
         result = mixinElement.lookUpMethod(pivotName, _pivotLibrary);
       } else if (_pivotKind == ElementKind.GETTER) {

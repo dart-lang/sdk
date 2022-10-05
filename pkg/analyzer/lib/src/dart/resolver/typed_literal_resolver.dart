@@ -683,11 +683,11 @@ class TypedLiteralResolver {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
     } else if (literalType is InterfaceType &&
-        literalType.element2 == _typeProvider.mapElement) {
+        literalType.element == _typeProvider.mapElement) {
       node.becomeMap();
     } else {
       assert(literalType is InterfaceType &&
-          literalType.element2 == _typeProvider.setElement);
+          literalType.element == _typeProvider.setElement);
       node.becomeSet();
     }
     if (_strictInference &&

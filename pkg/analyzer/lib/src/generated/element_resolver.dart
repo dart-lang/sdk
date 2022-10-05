@@ -505,7 +505,7 @@ class ElementResolver {
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
-          return aliasedType.element2;
+          return aliasedType.element;
         }
       }
     }

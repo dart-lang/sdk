@@ -320,7 +320,7 @@ class _ElementWriter {
 
       final supertype = e.supertype;
       if (supertype != null &&
-          (supertype.element2.name != 'Object' || e.mixins.isNotEmpty)) {
+          (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
       }
 

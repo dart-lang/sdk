@@ -176,7 +176,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     } else if (node is MethodInvocation &&
         displayName == FunctionElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
-      var invokeClass = invokeType.element2;
+      var invokeClass = invokeType.element;
       displayName = "${invokeClass.name}.${element.displayName}";
     }
     var message = _deprecatedMessage(element);

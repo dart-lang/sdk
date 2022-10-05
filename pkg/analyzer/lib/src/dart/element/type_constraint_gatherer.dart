@@ -109,8 +109,8 @@ class TypeConstraintGatherer {
     var P_nullability = P.nullabilitySuffix;
     if (P is TypeParameterType &&
         P_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(P.element2)) {
-      _addUpper(P.element2, Q);
+        _typeParameters.contains(P.element)) {
+      _addUpper(P.element, Q);
       return true;
     }
 
@@ -119,8 +119,8 @@ class TypeConstraintGatherer {
     var Q_nullability = Q.nullabilitySuffix;
     if (Q is TypeParameterType &&
         Q_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(Q.element2)) {
-      _addLower(Q.element2, P);
+        _typeParameters.contains(Q.element)) {
+      _addLower(Q.element, P);
       return true;
     }
 
@@ -308,7 +308,7 @@ class TypeConstraintGatherer {
     // Note: we have already eliminated the case that `X` is a variable in `L`.
     if (P_nullability == NullabilitySuffix.none && P is TypeParameterTypeImpl) {
       var rewind = _constraints.length;
-      var B = P.promotedBound ?? P.element2.bound;
+      var B = P.promotedBound ?? P.element.bound;
       if (B != null && trySubtypeMatch(B, Q, leftSchema)) {
         return true;
       }
@@ -547,7 +547,7 @@ class TypeConstraintGatherer {
     // holds under constraints `C0 + ... + Ck`:
     //   If `Mi` is a subtype match for `Ni` with respect to L under
     //   constraints `Ci`.
-    if (P.element2 == Q.element2) {
+    if (P.element == Q.element) {
       if (!_interfaceType_arguments(P, Q, leftSchema)) {
         return false;
       }
@@ -559,10 +559,10 @@ class TypeConstraintGatherer {
     //   If `C1<B0, ..., Bj>` is a superinterface of `C0<M0, ..., Mk>` and
     //   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
     //   respect to `L` under constraints `C`.
-    var C0 = P.element2;
-    var C1 = Q.element2;
+    var C0 = P.element;
+    var C1 = Q.element;
     for (var interface in C0.allSupertypes) {
-      if (interface.element2 == C1) {
+      if (interface.element == C1) {
         var substitution = Substitution.fromInterfaceType(P);
         return _interfaceType_arguments(
           substitution.substituteType(interface) as InterfaceType,
@@ -582,13 +582,13 @@ class TypeConstraintGatherer {
     InterfaceType Q,
     bool leftSchema,
   ) {
-    assert(P.element2 == Q.element2);
+    assert(P.element == Q.element);
 
     var rewind = _constraints.length;
 
     for (var i = 0; i < P.typeArguments.length; i++) {
       var variance =
-          (P.element2.typeParameters[i] as TypeParameterElementImpl).variance;
+          (P.element.typeParameters[i] as TypeParameterElementImpl).variance;
       var M = P.typeArguments[i];
       var N = Q.typeArguments[i];
       if ((variance.isCovariant || variance.isInvariant) &&
