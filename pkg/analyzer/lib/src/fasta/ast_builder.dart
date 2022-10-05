@@ -408,34 +408,40 @@ class AstBuilder extends StackListener {
   }
 
   ConstructorInitializer? buildInitializer(Object initializerObject) {
-    if (initializerObject is FunctionExpressionInvocation) {
+    if (initializerObject is FunctionExpressionInvocationImpl) {
       Expression function = initializerObject.function;
       if (function is SuperExpression) {
         return ast.superConstructorInvocation(
             function.superKeyword, null, null, initializerObject.argumentList);
       }
       if (function is ThisExpression) {
-        return ast.redirectingConstructorInvocation(
-            function.thisKeyword, null, null, initializerObject.argumentList);
+        return RedirectingConstructorInvocationImpl(
+          thisKeyword: function.thisKeyword,
+          period: null,
+          constructorName: null,
+          argumentList: initializerObject.argumentList,
+        );
       }
       return null;
     }
 
-    if (initializerObject is MethodInvocation) {
+    if (initializerObject is MethodInvocationImpl) {
       var target = initializerObject.target;
-      if (target is SuperExpression) {
+      if (target is SuperExpressionImpl) {
         return ast.superConstructorInvocation(
-            target.superKeyword,
-            initializerObject.operator,
-            initializerObject.methodName,
-            initializerObject.argumentList);
+          target.superKeyword,
+          initializerObject.operator,
+          initializerObject.methodName,
+          initializerObject.argumentList,
+        );
       }
-      if (target is ThisExpression) {
-        return ast.redirectingConstructorInvocation(
-            target.thisKeyword,
-            initializerObject.operator,
-            initializerObject.methodName,
-            initializerObject.argumentList);
+      if (target is ThisExpressionImpl) {
+        return RedirectingConstructorInvocationImpl(
+          thisKeyword: target.thisKeyword,
+          period: initializerObject.operator,
+          constructorName: initializerObject.methodName,
+          argumentList: initializerObject.argumentList,
+        );
       }
       return buildInitializerTargetExpressionRecovery(
           target, initializerObject);
@@ -498,15 +504,15 @@ class AstBuilder extends StackListener {
 
   ConstructorInitializer? buildInitializerTargetExpressionRecovery(
       Expression? target, Object initializerObject) {
-    ArgumentList? argumentList;
+    ArgumentListImpl? argumentList;
     while (true) {
-      if (target is FunctionExpressionInvocation) {
+      if (target is FunctionExpressionInvocationImpl) {
         argumentList = target.argumentList;
         target = target.function;
-      } else if (target is MethodInvocation) {
+      } else if (target is MethodInvocationImpl) {
         argumentList = target.argumentList;
         target = target.target;
-      } else if (target is PropertyAccess) {
+      } else if (target is PropertyAccessImpl) {
         argumentList = null;
         target = target.target;
       } else {
@@ -525,8 +531,13 @@ class AstBuilder extends StackListener {
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidThisInInitializer,
           target.thisKeyword, target.thisKeyword);
-      return ast.redirectingConstructorInvocation(target.thisKeyword, null,
-          null, argumentList ?? _syntheticArgumentList(target.thisKeyword));
+      return RedirectingConstructorInvocationImpl(
+        thisKeyword: target.thisKeyword,
+        period: null,
+        constructorName: null,
+        argumentList:
+            argumentList ?? _syntheticArgumentList(target.thisKeyword),
+      );
     }
     return null;
   }
@@ -572,13 +583,25 @@ class AstBuilder extends StackListener {
   }
 
   void doDotExpression(Token dot) {
-    var identifierOrInvoke = pop() as Expression;
-    var receiver = pop() as Expression?;
-    if (identifierOrInvoke is SimpleIdentifier) {
-      if (receiver is SimpleIdentifier && identical('.', dot.stringValue)) {
-        push(ast.prefixedIdentifier(receiver, dot, identifierOrInvoke));
+    var identifierOrInvoke = pop() as ExpressionImpl;
+    var receiver = pop() as ExpressionImpl?;
+    if (identifierOrInvoke is SimpleIdentifierImpl) {
+      if (receiver is SimpleIdentifierImpl && identical('.', dot.stringValue)) {
+        push(
+          PrefixedIdentifierImpl(
+            prefix: receiver,
+            period: dot,
+            identifier: identifierOrInvoke,
+          ),
+        );
       } else {
-        push(ast.propertyAccess(receiver, dot, identifierOrInvoke));
+        push(
+          PropertyAccessImpl(
+            target: receiver,
+            operator: dot,
+            propertyName: identifierOrInvoke,
+          ),
+        );
       }
     } else if (identifierOrInvoke is MethodInvocationImpl) {
       assert(identifierOrInvoke.target == null);
@@ -593,9 +616,15 @@ class AstBuilder extends StackListener {
       // upon the type of expression. e.g. "x.this" -> templateThisAsIdentifier
       handleRecoverableError(
           templateExpectedIdentifier.withArguments(token), token, token);
-      SimpleIdentifier identifier =
+      SimpleIdentifierImpl identifier =
           ast.simpleIdentifier(token, isDeclaration: false);
-      push(ast.propertyAccess(receiver, dot, identifier));
+      push(
+        PropertyAccessImpl(
+          target: receiver,
+          operator: dot,
+          propertyName: identifier,
+        ),
+      );
     }
   }
 
@@ -2652,7 +2681,9 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("RethrowStatement");
 
-    final expression = ast.rethrowExpression(rethrowToken);
+    final expression = RethrowExpressionImpl(
+      rethrowKeyword: rethrowToken,
+    );
     // TODO(scheglov) According to the specification, 'rethrow' is a statement.
     push(
       ExpressionStatementImpl(
@@ -2669,8 +2700,14 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("ReturnStatement");
 
-    var expression = hasExpression ? pop() as Expression : null;
-    push(ast.returnStatement(returnKeyword, expression, semicolon));
+    var expression = hasExpression ? pop() as ExpressionImpl : null;
+    push(
+      ReturnStatementImpl(
+        returnKeyword: returnKeyword,
+        expression: expression,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -3381,9 +3418,16 @@ class AstBuilder extends StackListener {
   ) {
     var identifier = ast.simpleIdentifier(thirdToken);
     if (firstToken != null) {
-      var target = ast.prefixedIdentifier(ast.simpleIdentifier(firstToken),
-          firstPeriod!, ast.simpleIdentifier(secondToken!));
-      var expression = ast.propertyAccess(target, secondPeriod!, identifier);
+      var target = PrefixedIdentifierImpl(
+        prefix: ast.simpleIdentifier(firstToken),
+        period: firstPeriod!,
+        identifier: ast.simpleIdentifier(secondToken!),
+      );
+      var expression = PropertyAccessImpl(
+        target: target,
+        operator: secondPeriod!,
+        propertyName: identifier,
+      );
       push(
         CommentReferenceImpl(
           newKeyword: newKeyword,
@@ -3391,8 +3435,11 @@ class AstBuilder extends StackListener {
         ),
       );
     } else if (secondToken != null) {
-      var expression = ast.prefixedIdentifier(
-          ast.simpleIdentifier(secondToken), secondPeriod!, identifier);
+      var expression = PrefixedIdentifierImpl(
+        prefix: ast.simpleIdentifier(secondToken),
+        period: secondPeriod!,
+        identifier: identifier,
+      );
       push(
         CommentReferenceImpl(
           newKeyword: newKeyword,
@@ -3718,7 +3765,10 @@ class AstBuilder extends StackListener {
     var typeName = dot == null
         ? firstIdentifier
         : PrefixedIdentifierImpl(
-            firstIdentifier, dot, SimpleIdentifierImpl(secondIdentifierToken!));
+            prefix: firstIdentifier,
+            period: dot,
+            identifier: SimpleIdentifierImpl(secondIdentifierToken!),
+          );
     push(
       ExtractorPatternImpl(
         type: NamedTypeImpl(
@@ -4377,7 +4427,12 @@ class AstBuilder extends StackListener {
         startToken: bang,
       );
     } else {
-      push(ast.postfixExpression(pop() as Expression, bang));
+      push(
+        PostfixExpressionImpl(
+          operand: pop() as ExpressionImpl,
+          operator: bang,
+        ),
+      );
     }
   }
 
@@ -4472,16 +4527,22 @@ class AstBuilder extends StackListener {
   void handleQualified(Token period) {
     assert(optional('.', period));
 
-    var identifier = pop() as SimpleIdentifier;
+    var identifier = pop() as SimpleIdentifierImpl;
     var prefix = pop();
     if (prefix is List) {
       // We're just accumulating components into a list.
       prefix.add(identifier);
       push(prefix);
-    } else if (prefix is SimpleIdentifier) {
+    } else if (prefix is SimpleIdentifierImpl) {
       // TODO(paulberry): resolve [identifier].  Note that BodyBuilder handles
       // this situation using SendAccessGenerator.
-      push(ast.prefixedIdentifier(prefix, period, identifier));
+      push(
+        PrefixedIdentifierImpl(
+          prefix: prefix,
+          period: period,
+          identifier: identifier,
+        ),
+      );
     } else {
       // TODO(paulberry): implement.
       logEvent('Qualified with >1 dot');
@@ -4654,7 +4715,9 @@ class AstBuilder extends StackListener {
     assert(identical(token.type, TokenType.SCRIPT_TAG));
     debugEvent("Script");
 
-    scriptTag = ast.scriptTag(token);
+    scriptTag = ScriptTagImpl(
+      scriptTag: token,
+    );
   }
 
   @override
@@ -4793,13 +4856,18 @@ class AstBuilder extends StackListener {
     assert(operator.type.isUnaryPostfixOperator);
     debugEvent("UnaryPostfixAssignmentExpression");
 
-    var expression = pop() as Expression;
+    var expression = pop() as ExpressionImpl;
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(
           messageIllegalAssignmentToNonAssignable, operator, operator);
     }
-    push(ast.postfixExpression(expression, operator));
+    push(
+      PostfixExpressionImpl(
+        operand: expression,
+        operator: operator,
+      ),
+    );
   }
 
   @override
@@ -4807,13 +4875,18 @@ class AstBuilder extends StackListener {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixAssignmentExpression");
 
-    var expression = pop() as Expression;
+    var expression = pop() as ExpressionImpl;
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(messageMissingAssignableSelector,
           expression.endToken, expression.endToken);
     }
-    push(ast.prefixExpression(operator, expression));
+    push(
+      PrefixExpressionImpl(
+        operator: operator,
+        operand: expression,
+      ),
+    );
   }
 
   @override
@@ -4821,7 +4894,12 @@ class AstBuilder extends StackListener {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixExpression");
 
-    push(ast.prefixExpression(operator, pop() as Expression));
+    push(
+      PrefixExpressionImpl(
+        operator: operator,
+        operand: pop() as ExpressionImpl,
+      ),
+    );
   }
 
   @override

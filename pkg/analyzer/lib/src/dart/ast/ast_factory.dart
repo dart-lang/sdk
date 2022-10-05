@@ -130,43 +130,6 @@ class AstFactoryImpl {
       ParenthesizedExpressionImpl(
           leftParenthesis, expression as ExpressionImpl, rightParenthesis);
 
-  PostfixExpressionImpl postfixExpression(Expression operand, Token operator) =>
-      PostfixExpressionImpl(operand as ExpressionImpl, operator);
-
-  PrefixedIdentifierImpl prefixedIdentifier(
-          SimpleIdentifier prefix, Token period, SimpleIdentifier identifier) =>
-      PrefixedIdentifierImpl(prefix as SimpleIdentifierImpl, period,
-          identifier as SimpleIdentifierImpl);
-
-  PrefixExpressionImpl prefixExpression(Token operator, Expression operand) =>
-      PrefixExpressionImpl(operator, operand as ExpressionImpl);
-
-  PropertyAccessImpl propertyAccess(
-          Expression? target, Token operator, SimpleIdentifier propertyName) =>
-      PropertyAccessImpl(target as ExpressionImpl?, operator,
-          propertyName as SimpleIdentifierImpl);
-
-  RedirectingConstructorInvocationImpl redirectingConstructorInvocation(
-          Token thisKeyword,
-          Token? period,
-          SimpleIdentifier? constructorName,
-          ArgumentList argumentList) =>
-      RedirectingConstructorInvocationImpl(
-          thisKeyword,
-          period,
-          constructorName as SimpleIdentifierImpl?,
-          argumentList as ArgumentListImpl);
-
-  RethrowExpressionImpl rethrowExpression(Token rethrowKeyword) =>
-      RethrowExpressionImpl(rethrowKeyword);
-
-  ReturnStatementImpl returnStatement(
-          Token returnKeyword, Expression? expression, Token semicolon) =>
-      ReturnStatementImpl(
-          returnKeyword, expression as ExpressionImpl?, semicolon);
-
-  ScriptTagImpl scriptTag(Token scriptTag) => ScriptTagImpl(scriptTag);
-
   SetOrMapLiteralImpl setOrMapLiteral(
           {Token? constKeyword,
           TypeArgumentList? typeArguments,

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -1378,93 +1377,100 @@ void f() {
   }
 
   void test_isQualified_inPrefixedIdentifier_name() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("test");
-    AstTestFactory.identifier4("prefix", identifier);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  prefix.foo;
+}
+''');
+    final identifier = findNode.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPrefixedIdentifier_prefix() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("test");
-    AstTestFactory.identifier(identifier, AstTestFactory.identifier3("name"));
+    final findNode = _parseStringToFindNode('''
+void f() {
+  prefix.foo;
+}
+''');
+    final identifier = findNode.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inPropertyAccess_name() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("test");
-    AstTestFactory.propertyAccess(
-        AstTestFactory.identifier3("target"), identifier);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  prefix?.foo;
+}
+''');
+    final identifier = findNode.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPropertyAccess_target() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("test");
-    AstTestFactory.propertyAccess(
-        identifier, AstTestFactory.identifier3("name"));
+    final findNode = _parseStringToFindNode('''
+void f() {
+  prefix?.foo;
+}
+''');
+    final identifier = findNode.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inReturnStatement() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("test");
-    AstTestFactory.returnStatement2(identifier);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  return test;
+}
+''');
+    final identifier = findNode.simple('test');
     expect(identifier.isQualified, isFalse);
   }
 
   SimpleIdentifier _createIdentifier(
       _WrapperKind wrapper, _AssignmentKind assignment) {
-    var identifier = AstTestFactory.identifier3("a");
-    ExpressionImpl expression = identifier;
-    while (true) {
-      if (wrapper == _WrapperKind.PREFIXED_LEFT) {
-        expression = AstTestFactory.identifier(
-            identifier, AstTestFactory.identifier3("_"));
-      } else if (wrapper == _WrapperKind.PREFIXED_RIGHT) {
-        expression = AstTestFactory.identifier(
-            AstTestFactory.identifier3("_"), identifier);
-      } else if (wrapper == _WrapperKind.PROPERTY_LEFT) {
-        expression = AstTestFactory.propertyAccess2(expression, "_");
-      } else if (wrapper == _WrapperKind.PROPERTY_RIGHT) {
-        expression = AstTestFactory.propertyAccess(
-            AstTestFactory.identifier3("_"), identifier);
-      } else {
-        throw UnimplementedError();
-      }
-      break;
+    String code;
+    if (wrapper == _WrapperKind.PREFIXED_LEFT) {
+      code = 'test.right';
+    } else if (wrapper == _WrapperKind.PREFIXED_RIGHT) {
+      code = 'left.test';
+    } else if (wrapper == _WrapperKind.PROPERTY_LEFT) {
+      code = 'test?.right';
+    } else if (wrapper == _WrapperKind.PROPERTY_RIGHT) {
+      code = 'left?.test';
+    } else {
+      throw UnimplementedError();
     }
-    while (true) {
-      if (assignment == _AssignmentKind.BINARY) {
-        BinaryExpressionImpl(
-          leftOperand: expression,
-          operator: TokenFactory.tokenFromType(TokenType.PLUS),
-          rightOperand: AstTestFactory.identifier3("_"),
-        );
-      } else if (assignment == _AssignmentKind.COMPOUND_LEFT) {
-        AstTestFactory.assignmentExpression(
-            expression, TokenType.PLUS_EQ, AstTestFactory.identifier3("_"));
-      } else if (assignment == _AssignmentKind.COMPOUND_RIGHT) {
-        AstTestFactory.assignmentExpression(
-            AstTestFactory.identifier3("_"), TokenType.PLUS_EQ, expression);
-      } else if (assignment == _AssignmentKind.POSTFIX_BANG) {
-        AstTestFactory.postfixExpression(expression, TokenType.BANG);
-      } else if (assignment == _AssignmentKind.POSTFIX_INC) {
-        AstTestFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
-      } else if (assignment == _AssignmentKind.PREFIX_DEC) {
-        AstTestFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
-      } else if (assignment == _AssignmentKind.PREFIX_INC) {
-        AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
-      } else if (assignment == _AssignmentKind.PREFIX_NOT) {
-        AstTestFactory.prefixExpression(TokenType.BANG, expression);
-      } else if (assignment == _AssignmentKind.SIMPLE_LEFT) {
-        AstTestFactory.assignmentExpression(
-            expression, TokenType.EQ, AstTestFactory.identifier3("_"));
-      } else if (assignment == _AssignmentKind.SIMPLE_RIGHT) {
-        AstTestFactory.assignmentExpression(
-            AstTestFactory.identifier3("_"), TokenType.EQ, expression);
-      } else {
-        throw UnimplementedError();
-      }
-      break;
+
+    if (assignment == _AssignmentKind.BINARY) {
+      code = '$code + 0';
+    } else if (assignment == _AssignmentKind.COMPOUND_LEFT) {
+      code = '$code += 0';
+    } else if (assignment == _AssignmentKind.COMPOUND_RIGHT) {
+      code = 'other += $code';
+    } else if (assignment == _AssignmentKind.POSTFIX_BANG) {
+      code = '$code!';
+    } else if (assignment == _AssignmentKind.POSTFIX_INC) {
+      code = '$code++';
+    } else if (assignment == _AssignmentKind.PREFIX_DEC) {
+      code = '--$code';
+    } else if (assignment == _AssignmentKind.PREFIX_INC) {
+      code = '++$code';
+    } else if (assignment == _AssignmentKind.PREFIX_NOT) {
+      code = '!$code';
+    } else if (assignment == _AssignmentKind.SIMPLE_LEFT) {
+      code = '$code = 0';
+    } else if (assignment == _AssignmentKind.SIMPLE_RIGHT) {
+      code = 'other = $code';
+    } else {
+      throw UnimplementedError();
     }
-    return identifier;
+
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    return findNode.simple('test');
   }
 
   /// Return the top-most node in the AST structure containing the given

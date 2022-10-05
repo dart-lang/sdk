@@ -9937,7 +9937,10 @@ class PostfixExpressionImpl extends ExpressionImpl
   MethodElement? staticElement;
 
   /// Initialize a newly created postfix expression.
-  PostfixExpressionImpl(this._operand, this.operator) {
+  PostfixExpressionImpl({
+    required ExpressionImpl operand,
+    required this.operator,
+  }) : _operand = operand {
     _becomeParentOf(_operand);
   }
 
@@ -10067,7 +10070,12 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   SimpleIdentifierImpl _identifier;
 
   /// Initialize a newly created prefixed identifier.
-  PrefixedIdentifierImpl(this._prefix, this.period, this._identifier) {
+  PrefixedIdentifierImpl({
+    required SimpleIdentifierImpl prefix,
+    required this.period,
+    required SimpleIdentifierImpl identifier,
+  })  : _prefix = prefix,
+        _identifier = identifier {
     _becomeParentOf(_prefix);
     _becomeParentOf(_identifier);
   }
@@ -10158,7 +10166,10 @@ class PrefixExpressionImpl extends ExpressionImpl
   MethodElement? staticElement;
 
   /// Initialize a newly created prefix expression.
-  PrefixExpressionImpl(this.operator, this._operand) {
+  PrefixExpressionImpl({
+    required this.operator,
+    required ExpressionImpl operand,
+  }) : _operand = operand {
     _becomeParentOf(_operand);
   }
 
@@ -10241,7 +10252,12 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
   SimpleIdentifierImpl _propertyName;
 
   /// Initialize a newly created property access expression.
-  PropertyAccessImpl(this._target, this.operator, this._propertyName) {
+  PropertyAccessImpl({
+    required ExpressionImpl? target,
+    required this.operator,
+    required SimpleIdentifierImpl propertyName,
+  })  : _target = target,
+        _propertyName = propertyName {
     _becomeParentOf(_target);
     _becomeParentOf(_propertyName);
   }
@@ -10729,8 +10745,13 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   /// constructor with the given name with the given arguments. The
   /// [constructorName] can be `null` if the constructor being invoked is the
   /// unnamed constructor.
-  RedirectingConstructorInvocationImpl(this.thisKeyword, this.period,
-      this._constructorName, this._argumentList) {
+  RedirectingConstructorInvocationImpl({
+    required this.thisKeyword,
+    required this.period,
+    required SimpleIdentifierImpl? constructorName,
+    required ArgumentListImpl argumentList,
+  })  : _constructorName = constructorName,
+        _argumentList = argumentList {
     _becomeParentOf(_constructorName);
     _becomeParentOf(_argumentList);
   }
@@ -10834,7 +10855,9 @@ class RethrowExpressionImpl extends ExpressionImpl
   Token rethrowKeyword;
 
   /// Initialize a newly created rethrow expression.
-  RethrowExpressionImpl(this.rethrowKeyword);
+  RethrowExpressionImpl({
+    required this.rethrowKeyword,
+  });
 
   @override
   Token get beginToken => rethrowKeyword;
@@ -10882,7 +10905,11 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
 
   /// Initialize a newly created return statement. The [expression] can be
   /// `null` if no explicit value was provided.
-  ReturnStatementImpl(this.returnKeyword, this._expression, this.semicolon) {
+  ReturnStatementImpl({
+    required this.returnKeyword,
+    required ExpressionImpl? expression,
+    required this.semicolon,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -10925,7 +10952,9 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   Token scriptTag;
 
   /// Initialize a newly created script tag.
-  ScriptTagImpl(this.scriptTag);
+  ScriptTagImpl({
+    required this.scriptTag,
+  });
 
   @override
   Token get beginToken => scriptTag;

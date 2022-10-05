@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -885,16 +884,16 @@ class MethodInvocationResolver with ScopeHelpers {
     } else {
       if (target is SimpleIdentifierImpl &&
           target.staticElement is PrefixElement) {
-        functionExpression = astFactory.prefixedIdentifier(
-          target,
-          node.operator!,
-          node.methodName,
+        functionExpression = PrefixedIdentifierImpl(
+          prefix: target,
+          period: node.operator!,
+          identifier: node.methodName,
         );
       } else {
-        functionExpression = astFactory.propertyAccess(
-          target,
-          node.operator!,
-          node.methodName,
+        functionExpression = PropertyAccessImpl(
+          target: target,
+          operator: node.operator!,
+          propertyName: node.methodName,
         );
       }
       _resolver.flowAnalysis.flow?.propertyGet(
