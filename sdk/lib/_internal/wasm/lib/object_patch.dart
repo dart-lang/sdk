@@ -67,4 +67,14 @@ class Object {
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(this, invocation);
   }
+
+  // Used for `null.toString` tear-offs
+  @pragma("wasm:entry-point")
+  static String _nullToString() => "null";
+
+  // Used for `null.noSuchMethod` tear-offs
+  @pragma("wasm:entry-point")
+  static dynamic _nullNoSuchMethod(Invocation invocation) {
+    throw new NoSuchMethodError.withInvocation(null, invocation);
+  }
 }

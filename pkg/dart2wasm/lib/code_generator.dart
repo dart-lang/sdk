@@ -1899,7 +1899,41 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitInstanceTearOff(
       InstanceTearOff node, w.ValueType expectedType) {
-    return _virtualCall(node, node.interfaceTarget,
+    Member target = node.interfaceTarget;
+
+    if (node.kind == InstanceAccessKind.Object) {
+      late w.Label doneLabel;
+      w.ValueType resultType = _virtualCall(node, target, (signature) {
+        doneLabel = b.block(const [], signature.outputs);
+        w.Label nullLabel = b.block();
+        wrap(node.receiver, translator.topInfo.nullableType);
+        b.br_on_null(nullLabel);
+      }, (_) {}, getter: true, setter: false);
+      b.br(doneLabel);
+      b.end(); // nullLabel
+      switch (target.name.text) {
+        case "toString":
+          wrap(
+              ConstantExpression(
+                  StaticTearOffConstant(translator.nullToString)),
+              resultType);
+          break;
+        case "noSuchMethod":
+          wrap(
+              ConstantExpression(
+                  StaticTearOffConstant(translator.nullNoSuchMethod)),
+              resultType);
+          break;
+        default:
+          unimplemented(
+              node, "Nullable tear-off of ${target.name.text}", [resultType]);
+          break;
+      }
+      b.end(); // doneLabel
+      return resultType;
+    }
+
+    return _virtualCall(node, target,
         (signature) => wrap(node.receiver, signature.inputs.first), (_) {},
         getter: true, setter: false);
   }

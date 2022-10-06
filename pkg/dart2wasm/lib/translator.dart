@@ -133,6 +133,8 @@ class Translator {
   late final Procedure invocationSetterFactory;
   late final Procedure invocationMethodFactory;
   late final Procedure invocationGenericMethodFactory;
+  late final Procedure nullToString;
+  late final Procedure nullNoSuchMethod;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -307,6 +309,12 @@ class Translator {
         invocationClass.procedures.firstWhere((p) => p.name.text == "method");
     invocationGenericMethodFactory = invocationClass.procedures
         .firstWhere((p) => p.name.text == "genericMethod");
+    nullToString = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "_nullToString");
+    nullNoSuchMethod = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "_nullNoSuchMethod");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
