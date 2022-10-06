@@ -38,4 +38,13 @@ class A9<X extends (Y, Z), Y extends num, Z extends String?> {}
 
 foo9(A9 a) {}
 
+class A10<X, Y> {}
+
+A10<(T, T), T> foo10<T>() => throw 0;
+
+bar10() {
+  A10<Record, String> r = foo10();
+}
+
+
 main() {}
