@@ -140,7 +140,7 @@ vars = {
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
   "protobuf_rev": "1d175bef6043bc4bdef5970f6dbd6d3001124373",
   "pub_rev": "28a2503d7f4806e6854e3ed0d783f065abfd1b5f", # manually rev'd
-  "pub_semver_rev": "eadf51613e6549c30ab1132c84f6964a2a6bfa5c",
+  "pub_semver_rev": "7671359982b4be9bdf87e621dd1bcdeac242b4b9",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "39d820d4e32fc99c65f562786097487d597dcee1",
   "source_map_stack_trace_rev": "72dbf21a33293b2b8434d0a9751e36f9463981ac",
