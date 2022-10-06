@@ -100,7 +100,7 @@ abstract class TypeEnvironment extends Types {
 
     // otherwise if T <: Future then let S be a type such that T <: Future<S>
     //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
-    DartType resolved = _resolveTypeParameterType(t);
+    DartType resolved = t.resolveTypeParameterType;
     if (resolved is InterfaceType) {
       List<DartType>? futureArguments =
           getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
@@ -111,42 +111,6 @@ abstract class TypeEnvironment extends Types {
 
     // otherwise flatten(T) = T
     return t;
-  }
-
-  /// Returns the non-type parameter type bound of [type].
-  DartType _resolveTypeParameterType(DartType type) {
-    while (true) {
-      if (type is TypeParameterType) {
-        type = type.bound;
-      } else if (type is IntersectionType) {
-        type = type.right;
-      } else {
-        break;
-      }
-    }
-    return type;
-  }
-
-  /// Returns the type of the element in the for-in statement [node] with
-  /// [iterableExpressionType] as the static type of the iterable expression.
-  ///
-  /// The [iterableExpressionType] must be a subclass of `Stream` or `Iterable`
-  /// depending on whether `node.isAsync` is `true` or not.
-  DartType forInElementType(
-      ForInStatement node, DartType iterableExpressionType) {
-    // TODO(johnniwinther): Update this to use the type of
-    //  `iterable.iterator.current` if inference is updated accordingly.
-    InterfaceType iterableType =
-        _resolveTypeParameterType(iterableExpressionType) as InterfaceType;
-    if (node.isAsync) {
-      List<DartType>? typeArguments =
-          getTypeArgumentsAsInstanceOf(iterableType, coreTypes.streamClass);
-      return typeArguments!.single;
-    } else {
-      List<DartType>? typeArguments =
-          getTypeArgumentsAsInstanceOf(iterableType, coreTypes.iterableClass);
-      return typeArguments!.single;
-    }
   }
 
   /// True if [member] is a binary operator whose return type is defined by
@@ -239,8 +203,8 @@ abstract class TypeEnvironment extends Types {
       // Otherwise the static type of e is num.
       return coreTypes.numNonNullableRawType;
     } else {
-      type1 = _resolveTypeParameterType(type1);
-      type2 = _resolveTypeParameterType(type2);
+      type1 = type1.resolveTypeParameterType;
+      type2 = type2.resolveTypeParameterType;
 
       if (type1 == type2) return type1;
 

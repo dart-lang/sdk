@@ -3942,11 +3942,7 @@ abstract class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .rawType(superclass, context.nonNullable);
     }
-    DartType type = getStaticType(context);
-    while (type is TypeParameterType) {
-      TypeParameterType typeParameterType = type;
-      type = typeParameterType.bound;
-    }
+    DartType type = getStaticType(context).resolveTypeParameterType;
     if (type is NullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
@@ -10015,7 +10011,8 @@ class ForInStatement extends Statement {
   /// This is called by `StaticTypeContext.getForInElementType` if the element
   /// type of this for-in statement is not already cached in [context].
   DartType getElementTypeInternal(StaticTypeContext context) {
-    DartType iterableType = iterable.getStaticType(context);
+    DartType iterableType =
+        iterable.getStaticType(context).resolveTypeParameterType;
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
     while (iterableType is TypeParameterType) {
@@ -11314,6 +11311,9 @@ abstract class DartType extends Node {
         nullability == Nullability.undetermined;
   }
 
+  /// Returns the non-type parameter type bound of this type.
+  DartType get resolveTypeParameterType;
+
   bool equals(Object other, Assumptions? assumptions);
 
   /// Returns a textual representation of the this type.
@@ -11349,6 +11349,9 @@ class InvalidType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -11401,6 +11404,9 @@ class DynamicType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -11441,6 +11447,9 @@ class VoidType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -11497,6 +11506,9 @@ class NeverType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   int get hashCode {
@@ -11557,6 +11569,9 @@ class NullType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -11606,6 +11621,9 @@ class InterfaceType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -11709,6 +11727,9 @@ class FunctionType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -11912,6 +11933,9 @@ class TypedefType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
+  DartType get resolveTypeParameterType => unalias.resolveTypeParameterType;
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
 
   @override
@@ -12020,6 +12044,9 @@ class FutureOrType extends DartType {
   }
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -12095,6 +12122,9 @@ class ExtensionType extends DartType {
     return uniteNullabilities(
         declaredNullability, extension.onType.nullability);
   }
+
+  @override
+  DartType get resolveTypeParameterType => onType.resolveTypeParameterType;
 
   static List<DartType> _defaultTypeArguments(Extension extensionNode) {
     if (extensionNode.typeParameters.length == 0) {
@@ -12330,6 +12360,9 @@ class IntersectionType extends DartType {
         "leftNullability = ${leftNullability}, "
         "rightNullability = ${rightNullability}.");
   }
+
+  @override
+  DartType get resolveTypeParameterType => right.resolveTypeParameterType;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitIntersectionType(this);
@@ -12621,6 +12654,9 @@ class TypeParameterType extends DartType {
             : Nullability.legacy;
 
   @override
+  DartType get resolveTypeParameterType => bound.resolveTypeParameterType;
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
 
   @override
@@ -12764,6 +12800,9 @@ class RecordType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {

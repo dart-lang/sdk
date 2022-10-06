@@ -259,17 +259,8 @@ class TypeCheckingVisitor
     if (superclass.supertype == null) {
       return Substitution.empty; // Members on Object are always accessible.
     }
-    // TODO(cstefantsova): Implement the procedure for resolving type parameter
-    // types and intersection types.
-    while (true) {
-      if (type is TypeParameterType) {
-        type = type.bound;
-      } else if (type is IntersectionType) {
-        type = type.right;
-      } else {
-        break;
-      }
-    }
+
+    type = type.resolveTypeParameterType;
     if (type is NeverType || type is NullType || type is InvalidType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);

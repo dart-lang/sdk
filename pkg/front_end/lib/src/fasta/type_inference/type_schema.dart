@@ -57,6 +57,9 @@ class UnknownType extends DartType {
   Nullability get nullability => Nullability.undetermined;
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
