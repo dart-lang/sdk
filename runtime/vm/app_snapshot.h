@@ -332,7 +332,9 @@ class Serializer : public ThreadStackResource {
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_->WriteBytes(addr, len);
   }
-  void Align(intptr_t alignment) { stream_->Align(alignment); }
+  void Align(intptr_t alignment, intptr_t offset = 0) {
+    stream_->Align(alignment, offset);
+  }
 
   V8SnapshotProfileWriter::ObjectId GetProfileId(ObjectPtr object) const;
   V8SnapshotProfileWriter::ObjectId GetProfileId(intptr_t ref) const;
@@ -645,7 +647,9 @@ class Deserializer : public ThreadStackResource {
   }
 
   void Advance(intptr_t value) { stream_.Advance(value); }
-  void Align(intptr_t alignment) { stream_.Align(alignment); }
+  void Align(intptr_t alignment, intptr_t offset = 0) {
+    stream_.Align(alignment, offset);
+  }
 
   void AddBaseObject(ObjectPtr base_object) { AssignRef(base_object); }
 
