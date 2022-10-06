@@ -6,7 +6,7 @@ void errors() {
 void ok() {
 (int, ) record1 = (1, );
 ({int ok}) record2 = (ok: 1);
-() record3 = Record.empty;
+() record3 = ();
 }
 
 
@@ -18,6 +18,6 @@ void[KeywordToken] errors[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 void[KeywordToken] ok[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 ([BeginToken]int[StringToken],[SimpleToken] )[SimpleToken] record1[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
 ([BeginToken]{[BeginToken]int[StringToken] ok[StringToken]}[SimpleToken])[SimpleToken] record2[StringToken] =[SimpleToken] ([BeginToken]ok[StringToken]:[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
-([BeginToken])[SimpleToken] record3[StringToken] =[SimpleToken] Record[StringToken].[SimpleToken]empty[StringToken];[SimpleToken]
+([BeginToken])[SimpleToken] record3[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

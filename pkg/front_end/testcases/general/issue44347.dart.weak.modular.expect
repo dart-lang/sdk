@@ -2,11 +2,6 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue44347.dart:6:13: Error: Expected an identifier, but got ')'.
-// Try inserting an identifier before ')'.
-//   Set<int>.();
-//             ^
-//
 // pkg/front_end/testcases/general/issue44347.dart:6:12: Error: Expected an identifier, but got '('.
 // Try inserting an identifier before '('.
 //   Set<int>.();

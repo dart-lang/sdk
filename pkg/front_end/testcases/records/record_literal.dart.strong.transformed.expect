@@ -1,12 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/records/record_literal.dart:6:4: Error: Expected an identifier, but got ')'.
-// Try inserting an identifier before ')'.
-//   ();
-//    ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -19,14 +11,12 @@ class Class extends core::Object {
   }
 }
 static method method() → dynamic {
-  invalid-expression "pkg/front_end/testcases/records/record_literal.dart:6:4: Error: This couldn't be parsed.
-  ();
-   ^";
+  #C1;
   (0, 1);
   (0, {b: 1});
   ({a: 0, b: 1});
   let final core::int #t1 = 0 in (1, {a: #t1});
-  #C3;
+  #C4;
 }
 static method sorting() → dynamic {
   ({a: 0, b: 1, c: 2, d: 3});
@@ -42,9 +32,10 @@ static method sorting() → dynamic {
 }
 
 constants  {
-  #C1 = TypeLiteralConstant(core::int)
-  #C2 = TypeLiteralConstant(core::String)
-  #C3 = (#C1, #C2)
+  #C1 = ()
+  #C2 = TypeLiteralConstant(core::int)
+  #C3 = TypeLiteralConstant(core::String)
+  #C4 = (#C2, #C3)
 }
 
 Extra constant evaluation status:

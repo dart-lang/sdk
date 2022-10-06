@@ -142,8 +142,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET,
   ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED,
   ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-  ParserErrorCode.RECORD_LITERAL_EMPTY,
+  ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA,
   ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST,
+  ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA,
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
 ];
 
@@ -435,11 +436,24 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try declaring a constant.",
   );
 
+  static const ParserErrorCode EMPTY_RECORD_LITERAL_WITH_COMMA =
+      ParserErrorCode(
+    'EMPTY_RECORD_LITERAL_WITH_COMMA',
+    "Record literal without fields can't have a trailing comma.",
+    correctionMessage: "Try removing the trailing comma.",
+  );
+
   static const ParserErrorCode EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST =
       ParserErrorCode(
     'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
     "Record type named fields list can't be empty.",
     correctionMessage: "Try adding a record type named field to the list.",
+  );
+
+  static const ParserErrorCode EMPTY_RECORD_TYPE_WITH_COMMA = ParserErrorCode(
+    'EMPTY_RECORD_TYPE_WITH_COMMA',
+    "Record type without fields can't have a trailing comma.",
+    correctionMessage: "Try removing the trailing comma.",
   );
 
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
@@ -1420,12 +1434,6 @@ class ParserErrorCode extends ErrorCode {
     'PREFIX_AFTER_COMBINATOR',
     "The prefix ('as' clause) should come before any show/hide combinators.",
     correctionMessage: "Try moving the prefix before the combinators.",
-  );
-
-  static const ParserErrorCode RECORD_LITERAL_EMPTY = ParserErrorCode(
-    'RECORD_LITERAL_EMPTY',
-    "Record literal can't be empty.",
-    correctionMessage: "Try adding elements or use 'Record.empty()' instead.",
   );
 
   static const ParserErrorCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =

@@ -19,7 +19,4 @@ main() {
   //             ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] The 'records' language feature is disabled for this library.
-  //              ^
-  // [analyzer] SYNTACTIC_ERROR.RECORD_LITERAL_EMPTY
-  // [cfe] Record literal can't be empty.
 }

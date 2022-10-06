@@ -1,7 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 augment ;void topLevelMethod() {
-augment super;(*synthetic*);
+augment super;();
 }
 
 augment ;void topLevelMethodError() {
@@ -20,7 +20,7 @@ augment super = value;
 }
 
 void injectedTopLevelMethod() {
-augment super;(*synthetic*);
+augment super;();
 augment super;
 augment int ;local;
 augment;
@@ -28,7 +28,7 @@ augment;
 
 augment ;class Class {
 augment ;void instanceMethod() {
-augment super;(*synthetic*);
+augment super;();
 }
 
 augment ;void instanceMethodErrors() {
@@ -47,7 +47,7 @@ augment super = value;
 }
 
 void injectedInstanceMethod() {
-augment super;(*synthetic*);
+augment super;();
 augment super;
 augment int ;local;
 augment;
@@ -55,7 +55,7 @@ augment;
 }
 
 augment[StringToken] ;[SyntheticToken]void[KeywordToken] topLevelMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
-augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 
 augment[StringToken] ;[SyntheticToken]void[KeywordToken] topLevelMethodError[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
@@ -74,7 +74,7 @@ augment[StringToken] super[KeywordToken] =[SimpleToken] value[StringToken];[Simp
 }[SimpleToken]
 
 void[KeywordToken] injectedTopLevelMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
-augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken])[SimpleToken];[SimpleToken]
 augment[StringToken] super[KeywordToken];[SimpleToken]
 augment[StringToken] int[StringToken] ;[SyntheticToken]local[StringToken];[SimpleToken]
 augment[StringToken];[SimpleToken]
@@ -82,7 +82,7 @@ augment[StringToken];[SimpleToken]
 
 augment[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] {[BeginToken]
 augment[StringToken] ;[SyntheticToken]void[KeywordToken] instanceMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
-augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 
 augment[StringToken] ;[SyntheticToken]void[KeywordToken] instanceMethodErrors[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
@@ -101,7 +101,7 @@ augment[StringToken] super[KeywordToken] =[SimpleToken] value[StringToken];[Simp
 }[SimpleToken]
 
 void[KeywordToken] injectedInstanceMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
-augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken])[SimpleToken];[SimpleToken]
 augment[StringToken] super[KeywordToken];[SimpleToken]
 augment[StringToken] int[StringToken] ;[SyntheticToken]local[StringToken];[SimpleToken]
 augment[StringToken];[SimpleToken]

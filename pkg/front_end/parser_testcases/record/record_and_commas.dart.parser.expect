@@ -1,0 +1,33 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+
+() emptyRecord1 = ();
+
+
+(,) emptyRecord2 = ();
+() emptyRecord3 = (,);
+(,) emptyRecord4 = (,);
+
+
+(int, *synthetic*,) emptyRecord5 = (42, 42, *synthetic*,);
+(int, int, *synthetic*,) emptyRecord6 = (42, 42, *synthetic*,);
+(int, *synthetic*, *synthetic*,) emptyRecord7 = (42, 42, *synthetic*, *synthetic*,);
+(int, int, *synthetic*, *synthetic*,) emptyRecord8 = (42, 42, *synthetic*, *synthetic*,);
+}
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+([BeginToken])[SimpleToken] emptyRecord1[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken];[SimpleToken]
+
+
+([BeginToken],[SimpleToken])[SimpleToken] emptyRecord2[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken];[SimpleToken]
+([BeginToken])[SimpleToken] emptyRecord3[StringToken] =[SimpleToken] ([BeginToken],[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken],[SimpleToken])[SimpleToken] emptyRecord4[StringToken] =[SimpleToken] ([BeginToken],[SimpleToken])[SimpleToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken] emptyRecord5[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken] emptyRecord6[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken] emptyRecord7[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken] emptyRecord8[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken] [SyntheticStringToken],[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

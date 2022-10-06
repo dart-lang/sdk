@@ -9962,17 +9962,6 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     problemMessage: r"""An optional named parameter can't start with '_'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeRecordLiteralEmpty = messageRecordLiteralEmpty;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordLiteralEmpty = const MessageCode(
-    "RecordLiteralEmpty",
-    index: 128,
-    problemMessage: r"""Record literal can't be empty.""",
-    correctionMessage:
-        r"""Try adding elements or use 'Record.empty()' instead.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordLiteralOnePositionalFieldNoTrailingComma =
     messageRecordLiteralOnePositionalFieldNoTrailingComma;
 
@@ -9985,16 +9974,40 @@ const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
         correctionMessage: r"""Try adding a trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordLiteralZeroFieldsWithTrailingComma =
+    messageRecordLiteralZeroFieldsWithTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordLiteralZeroFieldsWithTrailingComma =
+    const MessageCode("RecordLiteralZeroFieldsWithTrailingComma",
+        index: 128,
+        problemMessage:
+            r"""Record literal without fields can't have a trailing comma.""",
+        correctionMessage: r"""Try removing the trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordTypeOnePositionalFieldNoTrailingComma =
     messageRecordTypeOnePositionalFieldNoTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
     const MessageCode("RecordTypeOnePositionalFieldNoTrailingComma",
-        index: 130,
+        index: 131,
         problemMessage:
             r"""Record type with one entry requires a trailing comma.""",
         correctionMessage: r"""Try adding a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordTypeZeroFieldsButTrailingComma =
+    messageRecordTypeZeroFieldsButTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
+    const MessageCode("RecordTypeZeroFieldsButTrailingComma",
+        index: 130,
+        problemMessage:
+            r"""Record type without fields can't have a trailing comma.""",
+        correctionMessage: r"""Try removing the trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectingConstructorWithAnotherInitializer =
