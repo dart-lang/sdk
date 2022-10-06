@@ -65,6 +65,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
   String get name => 'Graph inferrer';
 
+  @override
   Metrics get metrics => _metrics;
 
   AbstractValueDomain get abstractValueDomain =>

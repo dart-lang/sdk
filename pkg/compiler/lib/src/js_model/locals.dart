@@ -197,6 +197,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   MemberEntity get currentMember => _currentMember;
 
+  @override
   Local getLocalByIndex(int index) {
     return _locals.getEntity(index)!;
   }

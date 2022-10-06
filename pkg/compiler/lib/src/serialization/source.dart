@@ -254,7 +254,7 @@ class DataSourceReader {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// deserialization of `ir.TreeNode`s using the `readTreeNode*InContext`
   /// methods.
-  T inMemberContext<T>(ir.Member context, T f()) {
+  T inMemberContext<T>(ir.Member? context, T f()) {
     ir.Member? oldMemberContext = _currentMemberContext;
     MemberData? oldMemberData = _currentMemberData;
     _currentMemberContext = context;

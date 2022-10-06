@@ -63,6 +63,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
 
   RuntimeTypesNeed get rtiNeed;
 
+  @override
   NoSuchMethodData get noSuchMethodData;
 
   Iterable<ClassEntity> get liveNativeClasses;

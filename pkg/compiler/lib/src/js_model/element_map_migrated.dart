@@ -20,6 +20,8 @@ abstract class KernelToLocalsMap {
   /// The member currently being built.
   MemberEntity get currentMember;
 
+  Local getLocalByIndex(int index);
+
   /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
 

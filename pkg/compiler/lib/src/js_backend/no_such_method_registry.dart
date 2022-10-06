@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../inferrer/types_interfaces.dart' show GlobalTypeInferenceResults;
+import '../inferrer/types.dart' show GlobalTypeInferenceResults;
 import '../kernel/no_such_method_resolver.dart';
 import '../serialization/serialization.dart';
 import 'no_such_method_registry_interfaces.dart' as interfaces;

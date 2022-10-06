@@ -40,7 +40,7 @@ class CallersDataComputer extends DataComputer<String> {
             compiler.reporter,
             actualMap,
             elementMap,
-            compiler.globalInference.typesInferrerInternal,
+            compiler.globalInference.typesInferrerInternal as TypeGraphInferrer,
             closedWorld.closureDataLookup)
         .run(definition.node);
   }

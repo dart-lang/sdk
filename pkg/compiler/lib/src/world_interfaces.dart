@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:compiler/src/js_backend/no_such_method_registry_interfaces.dart';
 import 'package:compiler/src/js_model/element_map_interfaces.dart';
 
 import 'closure.dart';
@@ -41,6 +42,8 @@ abstract class JClosedWorld implements World {
   OutputUnitData get outputUnitData;
 
   InterceptorData get interceptorData;
+
+  NoSuchMethodData get noSuchMethodData;
 
   Iterable<MemberEntity> get liveInstanceMembers;
 

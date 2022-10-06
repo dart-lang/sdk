@@ -21,7 +21,10 @@ import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'compiler_interfaces.dart'
-    show CompilerDeferredLoadingFacade, CompilerDiagnosticsFacade;
+    show
+        CompilerDeferredLoadingFacade,
+        CompilerDiagnosticsFacade,
+        CompilerTypeInferenceFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
@@ -41,7 +44,7 @@ import 'inferrer/types.dart'
 import 'inferrer_experimental/trivial.dart' as experimentalInferrer
     show TrivialAbstractValueStrategy;
 import 'inferrer_experimental/types.dart' as experimentalInferrer
-    show GlobalTypeInferenceTask;
+    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
     show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
@@ -72,7 +75,10 @@ import 'world.dart' show JClosedWorld;
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
 /// the sources.
 class Compiler
-    implements CompilerDiagnosticsFacade, CompilerDeferredLoadingFacade {
+    implements
+        CompilerDiagnosticsFacade,
+        CompilerDeferredLoadingFacade,
+        CompilerTypeInferenceFacade {
   @override
   final Measurer measurer;
   final api.CompilerInput provider;
@@ -80,6 +86,7 @@ class Compiler
 
   @override
   KernelFrontendStrategy frontendStrategy;
+  @override
   JsBackendStrategy backendStrategy;
   /*late*/ DiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
@@ -234,6 +241,7 @@ class Compiler
 
   CodegenWorld codegenWorldForTesting;
 
+  @override
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
@@ -485,8 +493,8 @@ class Compiler
   bool get shouldStopAfterModularAnalysis =>
       compilationFailed || options.writeModularAnalysisUri != null;
 
-  GlobalTypeInferenceResults performExperimentalGlobalTypeInference(
-      JClosedWorld closedWorld) {
+  experimentalInferrer.GlobalTypeInferenceResults
+      performExperimentalGlobalTypeInference(JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Performing experimental global type inference');
     GlobalLocalsMap globalLocalsMap =

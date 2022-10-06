@@ -15,10 +15,20 @@ import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/source_span.dart';
 import 'diagnostics/spannable.dart';
 import 'elements/entities.dart' show Entity;
+import 'js_model/js_strategy_interfaces.dart';
 import 'kernel/kernel_strategy_migrated.dart'
     show KernelFrontendStrategyForDeferredLoading;
 import 'options.dart' show CompilerOptions;
 import 'universe/world_impact.dart' show WorldImpact;
+
+/// Subset of [Compiler] needed by deferred loading.
+///
+/// See definitions on [Compiler] for documentation.
+abstract class CompilerTypeInferenceFacade {
+  JsBackendStrategy get backendStrategy;
+  bool get disableTypeInference;
+  Measurer get measurer;
+}
 
 /// Subset of [Compiler] needed by deferred loading.
 ///
