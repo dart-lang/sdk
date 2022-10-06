@@ -211,12 +211,22 @@ class _UnnecessaryGetterOverrideVisitor
   _UnnecessaryGetterOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement? getInheritedElement(MethodDeclaration node) =>
-      node.lookUpInheritedConcreteGetter();
+  ExecutableElement? getInheritedElement(MethodDeclaration node) {
+    var element = node.declaredElement;
+    if (element == null) return null;
+    var enclosingElement = element.enclosingElement3;
+    if (enclosingElement is! InterfaceElement) return null;
+    return enclosingElement.thisType.lookUpGetter2(
+      element.name,
+      element.library,
+      concrete: true,
+      inherited: true,
+    );
+  }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName.staticElement == _inheritedMethod) {
+    if (node.propertyName.name == _inheritedMethod.name) {
       node.target?.accept(this);
     }
   }
@@ -227,13 +237,24 @@ class _UnnecessaryMethodOverrideVisitor
   _UnnecessaryMethodOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement? getInheritedElement(node) => node.lookUpInheritedMethod();
+  ExecutableElement? getInheritedElement(node) {
+    var element = node.declaredElement;
+    if (element == null) return null;
+    var enclosingElement = element.enclosingElement3;
+    if (enclosingElement is! InterfaceElement) return null;
+    return enclosingElement.thisType.lookUpMethod2(
+      node.name.lexeme,
+      element.library,
+      concrete: true,
+      inherited: true,
+    );
+  }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     var declarationParameters = declaration.parameters;
     if (declarationParameters != null &&
-        node.methodName.staticElement == _inheritedMethod &&
+        node.methodName.name == _inheritedMethod.name &&
         argumentsMatchParameters(
             node.argumentList.arguments, declarationParameters.parameters)) {
       node.target?.accept(this);
@@ -246,8 +267,18 @@ class _UnnecessaryOperatorOverrideVisitor
   _UnnecessaryOperatorOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement? getInheritedElement(node) =>
-      node.lookUpInheritedConcreteMethod();
+  ExecutableElement? getInheritedElement(node) {
+    var element = node.declaredElement;
+    if (element == null) return null;
+    var enclosingElement = element.enclosingElement3;
+    if (enclosingElement is! InterfaceElement) return null;
+    return enclosingElement.thisType.lookUpMethod2(
+      element.name,
+      element.library,
+      concrete: true,
+      inherited: true,
+    );
+  }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -283,8 +314,18 @@ class _UnnecessarySetterOverrideVisitor
   _UnnecessarySetterOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement? getInheritedElement(node) =>
-      node.lookUpInheritedConcreteSetter();
+  ExecutableElement? getInheritedElement(node) {
+    var element = node.declaredElement;
+    if (element == null) return null;
+    var enclosingElement = element.enclosingElement3;
+    if (enclosingElement is! InterfaceElement) return null;
+    return enclosingElement.thisType.lookUpSetter2(
+      node.name.lexeme,
+      element.library,
+      concrete: true,
+      inherited: true,
+    );
+  }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -295,7 +336,7 @@ class _UnnecessarySetterOverrideVisitor
             node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
-        if (node.writeElement == _inheritedMethod) {
+        if (node.writeElement?.name == _inheritedMethod.name) {
           leftPart.target?.accept(this);
         }
       }
