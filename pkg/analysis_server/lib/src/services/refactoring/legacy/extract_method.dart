@@ -958,6 +958,17 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  void visitDirective(Directive node) {
+    if (selection.intersects(SourceRange(node.offset, node.length))) {
+      invalidSelection(
+          'Cannot extract a directive.', newLocation_fromNode(node));
+      return;
+    }
+
+    super.visitDirective(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     super.visitFormalParameterList(node);
     if (_isFirstSelectedNode(node)) {

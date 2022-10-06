@@ -281,6 +281,55 @@ class B extends A {
         'Cannot extract a constructor initializer. Select expression part of initializer.');
   }
 
+  Future<void> test_bad_directive_combinator() async {
+    await indexTestUnit('''
+import 'dart:async' show FutureOr;
+''');
+    _createRefactoringForString('show');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_combinatorNames() async {
+    await indexTestUnit('''
+import 'dart:async' show FutureOr;
+''');
+    _createRefactoringForString('FutureOr');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_import() async {
+    await indexTestUnit('''
+// Dummy comment ("The selection offset must be greater than zero")
+import 'dart:async';
+''');
+    _createRefactoringForString('import');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_prefixAs() async {
+    await indexTestUnit('''
+import 'dart:core' as core;
+''');
+    _createRefactoringForString('as');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_prefixName() async {
+    await indexTestUnit('''
+import 'dart:async' as prefixName;
+''');
+    _createRefactoringForString('prefixName');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_uriString() async {
+    await indexTestUnit('''
+import 'dart:async';
+''');
+    _createRefactoringForString('dart:async');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
   Future<void> test_bad_doWhile_body() async {
     await indexTestUnit('''
 void f() {
@@ -3195,6 +3244,23 @@ void res() {
   print(0);
   print(0);
 }
+''');
+  }
+
+  Future<void> test_string() async {
+    await indexTestUnit('''
+void f() {
+  var a = 'test';
+}
+''');
+    _createRefactoringForString('test');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var a = res();
+}
+
+String res() => 'test';
 ''');
   }
 

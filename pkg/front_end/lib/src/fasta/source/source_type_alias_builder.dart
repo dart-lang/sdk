@@ -9,12 +9,9 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/fixed_type_builder.dart';
-import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/named_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -88,17 +85,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   Typedef build() {
     buildThisType();
-
-    TypeBuilder type = this.type;
-    if (type is FunctionTypeBuilder ||
-        type is NamedTypeBuilder ||
-        type is FixedTypeBuilder) {
-      // No error, but also no additional setup work.
-      // ignore: unnecessary_null_comparison
-    } else if (type != null) {
-      unhandled("${type.fullNameForErrors}", "build", charOffset, fileUri);
-    }
-
     return typedef;
   }
 
