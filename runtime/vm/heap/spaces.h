@@ -46,6 +46,7 @@ enum class GCReason {
   kFull,         // Heap::CollectAllGarbage
   kExternal,     // Dart_NewFinalizableHandle Dart_NewWeakPersistentHandle
   kIdle,         // Dart_NotifyIdle
+  kDetach,       // Dart_NotifyDetach
   kDebugging,    // service request, etc.
   kCatchUp,      // End of ForceGrowthScope or Dart_PerformanceMode_Latency.
 };

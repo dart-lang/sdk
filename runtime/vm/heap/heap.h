@@ -108,6 +108,7 @@ class Heap {
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   void NotifyIdle(int64_t deadline);
+  void NotifyDetach();
 
   Dart_PerformanceMode mode() const { return mode_; }
   Dart_PerformanceMode SetMode(Dart_PerformanceMode mode);

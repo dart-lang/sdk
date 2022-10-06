@@ -436,6 +436,12 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 }
 
+void Heap::NotifyDetach() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "NotifyDetach");
+  CollectAllGarbage(GCReason::kDetach, /*compact=*/true);
+  Page::ClearCache();
+}
+
 Dart_PerformanceMode Heap::SetMode(Dart_PerformanceMode new_mode) {
   Dart_PerformanceMode old_mode = mode_.exchange(new_mode);
   if ((old_mode == Dart_PerformanceMode_Latency) &&
@@ -872,6 +878,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "external";
     case GCReason::kIdle:
       return "idle";
+    case GCReason::kDetach:
+      return "detach";
     case GCReason::kDebugging:
       return "debugging";
     case GCReason::kCatchUp:
