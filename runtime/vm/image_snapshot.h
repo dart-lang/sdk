@@ -442,7 +442,9 @@ class ImageWriter : public ValueObject {
   // section contents.
   virtual intptr_t WriteBytes(const void* bytes, intptr_t size) = 0;
   // Pads the section contents to a given alignment with zeroes.
-  virtual intptr_t Align(intptr_t alignment, intptr_t offset) = 0;
+  virtual intptr_t Align(intptr_t alignment,
+                         intptr_t offset,
+                         intptr_t position) = 0;
 #if defined(DART_PRECOMPILER)
   // Writes a target word-sized value that depends on the final relocated
   // addresses of the sections named by the two symbols. If T is the final
@@ -610,7 +612,9 @@ class AssemblyImageWriter : public ImageWriter {
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
   virtual intptr_t WriteTargetWord(word value);
   virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
-  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0);
+  virtual intptr_t Align(intptr_t alignment,
+                         intptr_t offset,
+                         intptr_t position);
   virtual intptr_t Relocation(intptr_t section_offset,
                               const char* source_symbol,
                               intptr_t source_offset,
@@ -662,7 +666,9 @@ class BlobImageWriter : public ImageWriter {
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
   virtual intptr_t WriteTargetWord(word value);
   virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
-  virtual intptr_t Align(intptr_t alignment, intptr_t offset);
+  virtual intptr_t Align(intptr_t alignment,
+                         intptr_t offset,
+                         intptr_t position);
   // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
   // provide unwinding information.
   virtual void FrameUnwindPrologue() {}

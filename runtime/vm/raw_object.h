@@ -688,13 +688,11 @@ class UntaggedObject {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
-#if !defined(TARGET_ARCH_IA32)
         if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
           // Instruction pages may be non-writable. Defer marking.
           thread->DeferredMarkingStackAddObject(value);
           return;
         }
-#endif
         if (value->untag()->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
@@ -722,13 +720,11 @@ class UntaggedObject {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
-#if !defined(TARGET_ARCH_IA32)
         if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
           // Instruction pages may be non-writable. Defer marking.
           thread->DeferredMarkingStackAddObject(value);
           return;
         }
-#endif
         if (value->untag()->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }

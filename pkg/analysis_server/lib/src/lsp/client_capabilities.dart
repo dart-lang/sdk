@@ -85,7 +85,7 @@ class LspClientCapabilities {
   final bool completionDefaultEditRange;
   final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
-  final bool codeActionCommandParameterSupport;
+  final Set<String> codeActionCommandParameterSupportedKinds;
 
   factory LspClientCapabilities(ClientCapabilities raw) {
     final workspace = raw.workspace;
@@ -154,8 +154,11 @@ class LspClientCapabilities {
         workspaceSymbol?.symbolKind?.valueSet,
         defaults: defaultSupportedSymbolKinds);
     final experimentalSnippetTextEdit = experimental['snippetTextEdit'] == true;
-    final codeActionCommandParameterSupport =
-        experimentalActions['commandParameterSupport'] == true;
+    final commandParameterSupport =
+        _mapOrEmpty(experimentalActions['commandParameterSupport']);
+    final commandParameterSupportedKinds =
+        _listToSet(commandParameterSupport['supportedKinds'] as List?)
+            .cast<String>();
 
     return LspClientCapabilities._(
       raw,
@@ -188,7 +191,7 @@ class LspClientCapabilities {
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
       experimentalSnippetTextEdit: experimentalSnippetTextEdit,
-      codeActionCommandParameterSupport: codeActionCommandParameterSupport,
+      codeActionCommandParameterSupportedKinds: commandParameterSupportedKinds,
     );
   }
 
@@ -223,7 +226,7 @@ class LspClientCapabilities {
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,
-    required this.codeActionCommandParameterSupport,
+    required this.codeActionCommandParameterSupportedKinds,
   });
 
   /// Converts a list to a `Set`, returning null if the list is null.

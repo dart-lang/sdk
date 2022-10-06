@@ -50,6 +50,9 @@ abstract class CommonElements {
   /// The `Function` class defined in 'dart:core'.
   late final ClassEntity functionClass = _findClass(coreLibrary, 'Function');
 
+  /// The `Record` class defined in 'dart:core'.
+  late final ClassEntity recordClass = _findClass(coreLibrary, 'Record');
+
   /// The `Resource` class defined in 'dart:core'.
   late final ClassEntity resourceClass = _findClass(coreLibrary, 'Resource');
 
@@ -238,6 +241,9 @@ abstract class CommonElements {
 
   /// The `Null` type defined in 'dart:core'.
   InterfaceType get nullType => _getRawType(nullClass);
+
+  /// The `Record` type defined in 'dart:core'.
+  InterfaceType get recordType => _getRawType(recordClass);
 
   /// The `Type` type defined in 'dart:core'.
   InterfaceType get typeType => _getRawType(typeClass);

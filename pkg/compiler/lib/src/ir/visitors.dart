@@ -179,7 +179,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       for (final type in positional) visitType(type),
       for (final namedType in named) visitType(namedType.type)
     ].toList(growable: false);
-    return _dartTypes.recordType(shape, fields);
+    return _convertNullability(_dartTypes.recordType(shape, fields), node);
   }
 
   @override

@@ -110,6 +110,13 @@ VM_UNIT_TEST_CASE(IsAligned) {
   EXPECT(Utils::IsAligned(32, 8));
   EXPECT(!Utils::IsAligned(33, 8));
   EXPECT(Utils::IsAligned(40, 8));
+
+  EXPECT(!Utils::IsAligned(0, 8, 4));
+  EXPECT(!Utils::IsAligned(1, 8, 4));
+  EXPECT(Utils::IsAligned(4, 8, 4));
+  EXPECT(!Utils::IsAligned(8, 8, 4));
+  EXPECT(!Utils::IsAligned(9, 8, 4));
+  EXPECT(Utils::IsAligned(12, 8, 4));
 }
 
 VM_UNIT_TEST_CASE(RoundDown) {
@@ -128,6 +135,13 @@ VM_UNIT_TEST_CASE(RoundUp) {
   uword* address = reinterpret_cast<uword*>(63);
   uword* roundup_address = reinterpret_cast<uword*>(64);
   EXPECT_EQ(roundup_address, Utils::RoundUp(address, 32));
+
+  EXPECT_EQ(4, Utils::RoundUp(0, 8, 4));
+  EXPECT_EQ(4, Utils::RoundUp(1, 8, 4));
+  EXPECT_EQ(4, Utils::RoundUp(4, 8, 4));
+  EXPECT_EQ(12, Utils::RoundUp(8, 8, 4));
+  EXPECT_EQ(12, Utils::RoundUp(9, 8, 4));
+  EXPECT_EQ(12, Utils::RoundUp(12, 8, 4));
 }
 
 VM_UNIT_TEST_CASE(RoundUpToPowerOfTwo) {

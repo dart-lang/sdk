@@ -6949,7 +6949,11 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 2;
+#if defined(TARGET_ARCH_IA32)
+  const intptr_t kNumTemps = ShouldEmitStoreBarrier() ? 1 : 0;
+#else
   const intptr_t kNumTemps = 0;
+#endif
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
@@ -6973,9 +6977,7 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
     Location value_loc;
     if (ShouldEmitStoreBarrier()) {
       summary->set_in(kValuePos,
-                      kWriteBarrierValueReg != kNoRegister
-                          ? Location::RegisterLocation(kWriteBarrierValueReg)
-                          : Location::WritableRegister());
+                      Location::RegisterLocation(kWriteBarrierValueReg));
     } else {
 #if defined(TARGET_ARCH_IA32)
       // IA32 supports emitting `mov mem, Imm32` even for heap
@@ -7003,6 +7005,11 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
       summary->set_in(kValuePos, Location::RequiresRegister());
 #endif
     }
+  }
+  if (kNumTemps == 1) {
+    summary->set_temp(0, Location::RequiresRegister());
+  } else {
+    ASSERT(kNumTemps == 0);
   }
   return summary;
 }
@@ -7057,8 +7064,14 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(kValuePos).reg();
     if (!compressed) {
+#if defined(TARGET_ARCH_IA32)
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
+                               CanValueBeSmi(), memory_order_,
+                               locs()->temp(0).reg());
+#else
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
                                CanValueBeSmi(), memory_order_);
+#endif
     } else {
 #if defined(DART_COMPRESSED_POINTERS)
       __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes,

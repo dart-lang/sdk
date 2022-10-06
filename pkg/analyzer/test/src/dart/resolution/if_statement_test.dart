@@ -15,7 +15,6 @@ main() {
 
 @reflectiveTest
 class IfStatementCaseResolutionTest extends PatternsResolutionTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50077')
   test_caseClause_rewrite() async {
     await assertNoErrorsInCode(r'''
 void f(x, int Function() a) {
@@ -25,7 +24,32 @@ void f(x, int Function() a) {
 
     final node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
-TODO
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      const: const
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: a
+          staticElement: self::@function::f::@parameter::a
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: int Function()
+        staticType: int
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 

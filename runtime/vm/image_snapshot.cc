@@ -710,7 +710,7 @@ void ImageWriter::WriteText(bool vm) {
       WriteTargetWord(FLAG_precompiled_mode ? Image::kHeaderSize
                                             : Image::kNoInstructionsSection);
   // Zero values for the rest of the Image object header bytes.
-  text_offset += Align(Image::kHeaderSize, text_offset);
+  text_offset += Align(Image::kHeaderSize, 0, text_offset);
   ASSERT_EQUAL(text_offset, Image::kHeaderSize);
 
 #if defined(DART_PRECOMPILER)
@@ -776,11 +776,14 @@ void ImageWriter::WriteText(bool vm) {
         bare_instruction_payloads
             ? compiler::target::Instructions::kBarePayloadAlignment
             : compiler::target::ObjectAlignment::kObjectAlignment;
+    const intptr_t alignment_offset =
+        compiler::target::ObjectAlignment::kOldObjectAlignmentOffset;
     const intptr_t expected_size =
         bare_instruction_payloads
             ? compiler::target::InstructionsSection::HeaderSize()
             : compiler::target::InstructionsSection::InstanceSize(0);
-    text_offset += Align(section_contents_alignment, text_offset);
+    text_offset +=
+        Align(section_contents_alignment, alignment_offset, text_offset);
     ASSERT_EQUAL(text_offset - id.nonce(), expected_size);
   }
 #endif
@@ -837,6 +840,7 @@ void ImageWriter::WriteText(bool vm) {
       text_offset += WriteFixed(insns.untag()->size_and_flags_);
       text_offset +=
           Align(compiler::target::Instructions::kNonBarePayloadAlignment,
+                compiler::target::ObjectAlignment::kOldObjectAlignmentOffset,
                 text_offset);
     }
 
@@ -1367,7 +1371,7 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
   if (global_symbol) {
     assembly_stream_->Printf(".globl %s\n", current_section_symbol_);
   }
-  intptr_t padding = Align(alignment);
+  intptr_t padding = Align(alignment, 0, 0);
   if (alignment_padding != nullptr) {
     *alignment_padding = padding;
   }
@@ -1599,7 +1603,10 @@ intptr_t AssemblyImageWriter::WriteBytes(const void* bytes, intptr_t size) {
   return size;
 }
 
-intptr_t AssemblyImageWriter::Align(intptr_t alignment, intptr_t position) {
+intptr_t AssemblyImageWriter::Align(intptr_t alignment,
+                                    intptr_t offset,
+                                    intptr_t position) {
+  ASSERT(offset == 0);
   const intptr_t next_position = Utils::RoundUp(position, alignment);
   assembly_stream_->Printf(".balign %" Pd ", 0\n", alignment);
   return next_position - position;
@@ -1731,10 +1738,14 @@ intptr_t BlobImageWriter::WriteTargetWord(word value) {
   return compiler::target::kWordSize;
 }
 
-intptr_t BlobImageWriter::Align(intptr_t alignment, intptr_t offset) {
-  const intptr_t stream_padding = current_section_stream_->Align(alignment);
-  // Double-check that the offset has the same alignment.
-  ASSERT_EQUAL(Utils::RoundUp(offset, alignment) - offset, stream_padding);
+intptr_t BlobImageWriter::Align(intptr_t alignment,
+                                intptr_t offset,
+                                intptr_t position) {
+  const intptr_t stream_padding =
+      current_section_stream_->Align(alignment, offset);
+  // Double-check that the position has the same alignment.
+  ASSERT_EQUAL(Utils::RoundUp(position, alignment, offset) - position,
+               stream_padding);
   return stream_padding;
 }
 

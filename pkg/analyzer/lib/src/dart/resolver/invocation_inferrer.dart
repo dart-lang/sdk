@@ -492,7 +492,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       Expression value;
       ParameterElement? parameter;
       Object parameterKey;
-      if (argument is NamedExpression) {
+      if (argument is NamedExpressionImpl) {
         value = argument.expression;
         parameterKey = argument.name.label.name;
       } else {

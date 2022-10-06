@@ -128,9 +128,10 @@ class ReadStream : public ValueObject {
     current_ = buffer_ + value;
   }
 
-  void Align(intptr_t alignment) {
+  void Align(intptr_t alignment, intptr_t offset = 0) {
     intptr_t position_before = Position();
-    intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    intptr_t position_after =
+        Utils::RoundUp(position_before, alignment, offset);
     Advance(position_after - position_before);
   }
 
@@ -335,9 +336,10 @@ class BaseWriteStream : public ValueObject {
   DART_FORCE_INLINE intptr_t bytes_written() const { return Position(); }
   virtual intptr_t Position() const { return current_ - buffer_; }
 
-  intptr_t Align(intptr_t alignment) {
+  intptr_t Align(intptr_t alignment, intptr_t offset = 0) {
     const intptr_t position_before = Position();
-    const intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    const intptr_t position_after =
+        Utils::RoundUp(position_before, alignment, offset);
     const intptr_t length = position_after - position_before;
     if (length != 0) {
       EnsureSpace(length);

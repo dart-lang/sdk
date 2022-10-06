@@ -51,13 +51,6 @@ abstract class RefactoringProducer {
   /// Return the helper used to efficiently access resolved units.
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
 
-  /// Return `true` if the client has support for command parameters. Subclasses
-  /// that produce command parameters that don't have a default value must not
-  /// create a refactoring if this getter returns `false`.
-  bool get supportsCommandParameters =>
-      _context.server.clientCapabilities?.codeActionCommandParameterSupport ==
-      true;
-
   /// Return `true` if the client has support for creating files. Subclasses
   /// that require the ability to create new files must not create a refactoring
   /// if this getter returns `false`.
@@ -83,4 +76,14 @@ abstract class RefactoringProducer {
       token != null &&
       selectionOffset >= token.offset &&
       selectionEnd <= token.end;
+
+  /// Return `true` if the client has support for command parameters of the
+  /// provided `kind`. Subclasses that produce command parameters of this kind
+  /// that don't have a default value must not create a refactoring if this
+  /// returns `false`.
+  bool supportsCommandParameter(String kind) =>
+      _context
+          .server.clientCapabilities?.codeActionCommandParameterSupportedKinds
+          .contains(kind) ??
+      false;
 }

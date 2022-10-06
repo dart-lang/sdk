@@ -276,8 +276,7 @@ class InstanceMemberInferrer {
         // combined member signature of said setter in the direct
         // superinterfaces, if this type is the same as the return type of the
         // combined member signature of said getter in the direct
-        // superinterfaces. If the types are not the same then inference
-        // fails with an error.
+        // superinterfaces.
         if (!field.isFinal) {
           var getterType = combinedGetterType();
           var setterType = combinedSetterType();
@@ -286,11 +285,6 @@ class InstanceMemberInferrer {
             var type = getterType;
             type = typeSystem.nonNullifyLegacy(type);
             _setFieldType(field, type);
-          } else {
-            field.typeInferenceError = TopLevelInferenceError(
-              kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
-              arguments: const <String>[],
-            );
           }
           return;
         }

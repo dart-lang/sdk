@@ -857,7 +857,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
           superclassConstructor.isConst && !hasMixinWithInstanceVariables;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
-      var argumentsForSuperInvocation = <Expression>[];
+      var argumentsForSuperInvocation = <ExpressionImpl>[];
       if (count > 0) {
         var implicitParameters = <ParameterElement>[];
         for (int i = 0; i < count; i++) {

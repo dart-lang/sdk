@@ -3003,10 +3003,12 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
   //
   // TODO(50081): Reference rules to updated specification
   // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
-  //
-  // TODO(50081): record is subtype of interface `Record`.
-  if (sKind == Rti.kindRecord) {
-    if (tKind != Rti.kindRecord) return false;
+
+  // Record Type/Record:
+  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
+
+  // Record Type/Record Type:
+  if (sKind == Rti.kindRecord && tKind == Rti.kindRecord) {
     return _isRecordSubtype(universe, s, sEnv, t, tEnv);
   }
 
@@ -3267,6 +3269,7 @@ bool isNullType(Rti t) =>
 bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>
     _Utils.isIdentical(t, TYPE_REF<JavaScriptFunction>());
+bool isRecordInterfaceType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Record>());
 
 class _Utils {
   static bool asBool(Object? o) => JS('bool', '#', o);

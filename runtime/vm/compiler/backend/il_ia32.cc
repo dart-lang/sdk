@@ -1705,7 +1705,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps =
-      class_id() == kArrayCid && ShouldEmitStoreBarrier() ? 1 : 0;
+      class_id() == kArrayCid && ShouldEmitStoreBarrier() ? 2 : 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1720,12 +1720,12 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   }
   switch (class_id()) {
     case kArrayCid:
-      locs->set_in(2, ShouldEmitStoreBarrier()
-                          ? Location::WritableRegister()
-                          : LocationRegisterOrConstant(value()));
+      locs->set_in(2, LocationRegisterOrConstant(value()));
       if (ShouldEmitStoreBarrier()) {
         locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
+        locs->set_in(2, Location::RegisterLocation(kWriteBarrierValueReg));
         locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
+        locs->set_temp(1, Location::RequiresRegister());
       }
       break;
     case kExternalTypedDataUint8ArrayCid:
@@ -1791,8 +1791,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (ShouldEmitStoreBarrier()) {
         Register value = locs()->in(2).reg();
         Register slot = locs()->temp(0).reg();
+        Register scratch = locs()->temp(1).reg();
         __ leal(slot, element_address);
-        __ StoreIntoArray(array, slot, value, CanValueBeSmi());
+        __ StoreIntoArray(array, slot, value, CanValueBeSmi(), scratch);
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, element_address, constant);

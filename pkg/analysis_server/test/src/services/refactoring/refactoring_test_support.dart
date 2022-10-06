@@ -96,7 +96,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   /// corresponding flags are set to `false`.
   Future<void> initializeServer({
     bool experimentalOptInFlag = true,
-    bool commandParameterSupport = true,
+    Set<String>? commandParameterSupportedKinds,
     bool fileCreateSupport = true,
     bool applyEditSupport = true,
   }) async {
@@ -104,7 +104,12 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
       if (experimentalOptInFlag) 'experimentalNewRefactors': true,
     };
     final experimentalCapabilities = {
-      if (commandParameterSupport) 'commandParameterSupport': true,
+      if (commandParameterSupportedKinds != null)
+        'dartCodeAction': {
+          'commandParameterSupport': {
+            'supportedKinds': commandParameterSupportedKinds.toList()
+          },
+        }
     };
 
     var workspaceCapabilities =

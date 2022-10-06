@@ -21,15 +21,20 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: VariablePattern
     keyword: var
     name: y
+    declaredElement: hasImplicitType y@29
+      type: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
       token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
 ''');
   }
 
@@ -43,15 +48,20 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: dynamic
   asToken: as
   type: NamedType
     name: SimpleIdentifier
       token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
 ''');
   }
 }

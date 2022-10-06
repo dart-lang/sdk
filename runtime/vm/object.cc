@@ -2241,6 +2241,14 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     type = Type::NewNonParameterizedType(cls);
     object_store->set_function_type(type);
 
+    // Abstract class that represents the Dart class Record.
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
+    RegisterClass(cls, Symbols::Record(), core_lib);
+    pending_classes.Add(cls);
+    object_store->set_record_class(cls);
+
     cls = Class::New<Number, RTN::Number>(isolate_group);
     RegisterClass(cls, Symbols::Number(), core_lib);
     pending_classes.Add(cls);
@@ -20705,8 +20713,12 @@ bool AbstractType::IsDartClosureType() const {
 }
 
 bool AbstractType::IsDartRecordType() const {
-  // TODO(dartbug.com/49719): should check for Record, not _Record class.
-  return HasTypeClass() && type_class_id() == kRecordCid;
+  if (!HasTypeClass()) return false;
+  const auto cid = type_class_id();
+  return ((cid == kRecordCid) ||
+          (cid == Class::Handle(
+                      IsolateGroup::Current()->object_store()->record_class())
+                      .id()));
 }
 
 bool AbstractType::IsFfiPointerType() const {

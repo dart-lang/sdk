@@ -2308,10 +2308,12 @@ abstract class DartTypes {
       //
       // TODO(50081): Reference rules to updated specification
       // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
-      //
-      // TODO(50081): record is subtype of interface `Record`.
-      if (s is RecordType) {
-        if (t is! RecordType) return false;
+
+      // Record Type/Record:
+      if (s is RecordType && t == commonElements.recordType) return true;
+
+      // Record Type/Record Type:
+      if (s is RecordType && t is RecordType) {
         if (s.shape != t.shape) return false;
         List<DartType> sFields = s.fields;
         List<DartType> tFields = t.fields;

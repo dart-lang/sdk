@@ -13,6 +13,7 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
   required ExpressionStatement expressionStatement,
   required CascadeExpression cascadeExpression,
 }) {
+  cascadeExpression as CascadeExpressionImpl;
   assert(cascadeExpression.cascadeSections.length == 1);
 
   var newTarget = astFactory.parenthesizedExpression(
