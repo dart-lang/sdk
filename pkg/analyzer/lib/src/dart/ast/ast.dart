@@ -8112,6 +8112,9 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
 
+  @override
+  DartType? requiredType;
+
   ListPatternImpl(
       {required this.typeArguments,
       required this.leftBracket,
@@ -8150,7 +8153,11 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    typeArguments?.accept(resolverVisitor);
+    requiredType = resolverVisitor.analyzeListPattern(
+        matchedType, typeInfos, context, this,
+        elementType: typeArguments?.arguments.first.typeOrThrow,
+        elements: elements);
   }
 
   @override

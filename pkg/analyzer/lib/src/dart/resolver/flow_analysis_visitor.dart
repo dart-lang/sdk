@@ -446,7 +446,9 @@ class TypeSystemOperations
 
   @override
   DartType? matchListType(DartType type) {
-    throw UnimplementedError('TODO(paulberry)');
+    var listElement = typeSystem.typeProvider.listElement;
+    var listType = type.asInstanceOf(listElement);
+    return listType?.typeArguments[0];
   }
 
   @override

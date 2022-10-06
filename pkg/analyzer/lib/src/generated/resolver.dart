@@ -424,7 +424,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   DartType get doubleType => throw UnimplementedError('TODO(paulberry)');
 
   @override
-  DartType get dynamicType => throw UnimplementedError('TODO(paulberry)');
+  DartType get dynamicType => typeProvider.dynamicType;
 
   /// Return the element representing the function containing the current node,
   /// or `null` if the current node is not contained in a function.
@@ -457,8 +457,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType get objectQuestionType =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType get objectQuestionType => typeSystem.objectQuestion;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
   /// assertions to verify that pushes and pops are properly balanced.
@@ -895,7 +894,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType listType(DartType elementType) {
-    throw UnimplementedError('TODO(paulberry)');
+    return typeProvider.listType(elementType);
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
