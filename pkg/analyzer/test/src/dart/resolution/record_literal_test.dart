@@ -474,6 +474,20 @@ RecordLiteral
 ''');
   }
 
+  test_noContext_empty() async {
+    await assertNoErrorsInCode(r'''
+final x = ();
+''');
+
+    final node = findNode.recordLiteral('()');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  rightParenthesis: )
+  staticType: ()
+''');
+  }
+
   test_noContext_mixed() async {
     await assertNoErrorsInCode(r'''
 final x = (0, f1: 1, 2, f2: 3, 4);

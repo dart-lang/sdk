@@ -10008,6 +10008,38 @@ void main() {
   EXPECT_VALID(result);
 }
 
+static void NotifyDetachNative(Dart_NativeArguments args) {
+  Dart_NotifyDetach();
+}
+
+static Dart_NativeFunction NotifyDetach_native_lookup(Dart_Handle name,
+                                                      int argument_count,
+                                                      bool* auto_setup_scope) {
+  return NotifyDetachNative;
+}
+
+TEST_CASE(DartAPI_NotifyDetach) {
+  const char* kScriptChars = R"(
+import 'dart:isolate';
+@pragma("vm:external-name", "Test_nativeFunc")
+external void notifyDetach();
+void main() {
+  var v;
+  for (var i = 0; i < 100; i++) {
+    var t = [];
+    for (var j = 0; j < 10000; j++) {
+      t.add(List.filled(100, null));
+    }
+    v = t;
+    notifyDetach();
+  }
+})";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &NotifyDetach_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
 static void SetPerformanceModeDefault(Dart_NativeArguments args) {
   Dart_SetPerformanceMode(Dart_PerformanceMode_Default);
 }

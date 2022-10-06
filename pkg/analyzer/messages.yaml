@@ -12152,6 +12152,9 @@ CompileTimeErrorCode:
         print(x);
       }
       ```
+  RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
+    problemMessage: The return type of operators used in relational patterns must be assignable to 'bool'.
+    correctionMessage: Try updating the operator declaration to return 'bool'.
   RETHROW_OUTSIDE_CATCH:
     problemMessage: A rethrow must be inside of a catch clause.
     correctionMessage: "Try moving the expression into a catch clause, or using a 'throw' expression."

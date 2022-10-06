@@ -466,6 +466,33 @@ bool hasDisplayName(Element? element, String name) {
   return element?.displayName == name;
 }
 
+/// Return whether the specified [name] is declared inside the [root] node
+/// or not.
+bool isDeclaredIn(AstNode root, String name) {
+  bool isDeclaredIn(FormalParameterList? parameters) {
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        if (parameter.name?.lexeme == name) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  if (root is MethodDeclaration && isDeclaredIn(root.parameters)) {
+    return true;
+  }
+  if (root is FunctionDeclaration &&
+      isDeclaredIn(root.functionExpression.parameters)) {
+    return true;
+  }
+
+  var collector = _DeclarationCollector(name);
+  root.accept(collector);
+  return collector.isDeclared;
+}
+
 /// Checks if given [DartNode] is the left hand side of an assignment, or a
 /// declaration of a variable.
 bool isLeftHandOfAssignment(SimpleIdentifier node) {
@@ -1539,6 +1566,20 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
             parent.realTarget != null ||
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
+  }
+}
+
+class _DeclarationCollector extends RecursiveAstVisitor<void> {
+  final String name;
+  bool isDeclared = false;
+
+  _DeclarationCollector(this.name);
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.name.lexeme == name) {
+      isDeclared = true;
+    }
   }
 }
 

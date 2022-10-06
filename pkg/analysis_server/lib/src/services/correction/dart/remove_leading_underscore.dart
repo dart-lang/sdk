@@ -57,9 +57,22 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
     // Find references to the identifier.
     List<SimpleIdentifier>? references;
     if (element is LocalVariableElement) {
-      var root = node.thisOrAncestorOfType<Block>();
-      if (root != null) {
-        references = findLocalElementReferences(root, element);
+      var block = node.thisOrAncestorOfType<Block>();
+      if (block != null) {
+        references = findLocalElementReferences(block, element);
+
+        var declaration = block.thisOrAncestorOfType<MethodDeclaration>() ??
+            block.thisOrAncestorOfType<FunctionDeclaration>();
+
+        if (declaration != null) {
+          if (isDeclaredIn(declaration, newName)) {
+            var suffix = -1;
+            do {
+              suffix++;
+            } while (isDeclaredIn(declaration, '$newName$suffix'));
+            newName = '$newName$suffix';
+          }
+        }
       }
     } else if (element is ParameterElement) {
       if (!element.isNamed) {

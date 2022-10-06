@@ -3888,6 +3888,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL =
+      CompileTimeErrorCode(
+    'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
+    "The return type of operators used in relational patterns must be "
+        "assignable to 'bool'.",
+    correctionMessage:
+        "Try updating the operator declaration to return 'bool'.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH =
       CompileTimeErrorCode(
