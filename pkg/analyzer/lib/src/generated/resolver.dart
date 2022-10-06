@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -1104,12 +1105,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required RelationalPatternImpl node,
     required DartType matchedType,
   }) {
-    final String methodName;
-    if (node.operator.lexeme == '!=') {
-      methodName = '==';
-    } else {
-      methodName = node.operator.lexeme;
-    }
+    final operatorLexeme = node.operator.lexeme;
+    final isEqEq = const {'==', '!='}.contains(operatorLexeme);
+    final methodName = isEqEq ? '==' : operatorLexeme;
 
     analyzeExpression(node.operand, matchedType);
     node.operand = popRewrite()!;
@@ -1122,13 +1120,40 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       nameErrorEntity: node,
     );
 
-    node.element = result.getter as MethodElement?;
     if (result.needsGetterError) {
       errorReporter.reportErrorForToken(
         CompileTimeErrorCode.UNDEFINED_OPERATOR,
         node.operator,
         [methodName, matchedType],
       );
+    }
+
+    final element = result.getter as MethodElement?;
+    node.element = element;
+
+    if (element != null) {
+      final parameterType = element.firstParameterType;
+      if (parameterType != null) {
+        final operandType = node.operand.typeOrThrow;
+        final argumentType =
+            isEqEq ? typeSystem.promoteToNonNull(operandType) : operandType;
+        if (!typeSystem.isAssignableTo(argumentType, parameterType)) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+            node.operand,
+            [argumentType, parameterType],
+          );
+        }
+      }
+
+      final returnType = element.returnType;
+      if (!typeSystem.isAssignableTo(returnType, typeProvider.boolType)) {
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode
+              .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
+          node.operator,
+        );
+      }
     }
   }
 
