@@ -221,7 +221,7 @@ class _JsonMap extends MapBase<String, dynamic> {
         // Clear the list of keys to make sure we force
         // a concurrent modification error if anyone is
         // currently iterating over it.
-        _data.clear();
+        _computeKeys().clear();
       }
       _original = _processed = null;
       _data = {};
