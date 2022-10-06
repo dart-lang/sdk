@@ -490,7 +490,7 @@ class B = Object with A {}''', codes:
     CompilationUnit unit =
         parseCompilationUnit("class A { A() : a = (){}; var v; }", codes: [
       ParserErrorCode.EXPECTED_CLASS_MEMBER,
-      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPERIMENT_NOT_ENABLED,
     ]);
 // Make sure we recovered and parsed "var v" correctly
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;

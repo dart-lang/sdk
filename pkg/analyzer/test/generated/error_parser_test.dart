@@ -1445,7 +1445,7 @@ class Wrong<T> {
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 1),
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 1),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
     ]);
   }

@@ -29,13 +29,12 @@ main() {
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] The 'records' language feature is disabled for this library.
 
-  () emptyRecord = Record.empty;
+  () emptyRecord = ();
 //^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
-//                 ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-//                        ^
-// [cfe] Member not found: 'empty'.
+//                 ^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] The 'records' language feature is disabled for this library.
   print(emptyRecord);
 }

@@ -1403,20 +1403,16 @@ class Parser {
 
   /// Parse a record type similarly as a formal parameter list of a function.
   ///
-  /// TODO(jensj): Update this to fit any new updates to the spec.
-  /// E.g. having two recordTypeNamedField entries doesn't make sense.
-  ///
   /// recordType          ::= '(' recordTypeFields ',' recordTypeNamedFields ')'
   ///                       | '(' recordTypeFields ','? ')'
-  ///                       | '(' recordTypeNamedFields ')'
+  ///                       | '(' recordTypeNamedFields? ')'
   ///
   /// recordTypeFields      ::= recordTypeField ( ',' recordTypeField )*
   /// recordTypeField       ::= metadata type identifier?
   ///
   /// recordTypeNamedFields ::= '{' recordTypeNamedField
   ///                           ( ',' recordTypeNamedField )* ','? '}'
-  /// recordTypeNamedField  ::= type identifier
-  /// recordTypeNamedField  ::= metadata typedIdentifier
+  /// recordTypeNamedField  ::= metadata type identifier
   Token parseRecordType(final Token start, Token token) {
     token = token.next!;
     assert(optional('(', token));
@@ -1429,10 +1425,17 @@ class Parser {
     int parameterCount = 0;
     bool hasNamedFields = false;
     bool sawComma = false;
+    Token? illegalTrailingComma;
     while (true) {
       Token next = token.next!;
       if (optional(')', next)) {
         token = next;
+        break;
+      } else if (parameterCount == 0 &&
+          optional(',', next) &&
+          optional(')', next.next!)) {
+        illegalTrailingComma = next;
+        token = next.next!;
         break;
       }
       ++parameterCount;
@@ -1478,7 +1481,11 @@ class Parser {
     }
     assert(optional(')', token));
 
-    if (parameterCount == 1 && !hasNamedFields && !sawComma) {
+    if (parameterCount == 0 && illegalTrailingComma != null) {
+      // Empty record type with a comma `(,)`.
+      reportRecoverableError(illegalTrailingComma,
+          codes.messageRecordTypeZeroFieldsButTrailingComma);
+    } else if (parameterCount == 1 && !hasNamedFields && !sawComma) {
       // Single non-named element without trailing comma.
       reportRecoverableError(
           token, codes.messageRecordTypeOnePositionalFieldNoTrailingComma);
@@ -6143,9 +6150,20 @@ class Parser {
     int count = 0;
     bool wasRecord = constKeywordForRecord != null;
     bool wasValidRecord = false;
+    Token? illegalTrailingComma;
     while (true) {
       Token next = token.next!;
-      if ((count > 0 || wasRecord) && optional(')', next)) {
+      if (optional(')', next)) {
+        if (count == 0) {
+          wasRecord = true;
+        }
+        break;
+      } else if (count == 0 &&
+          optional(',', next) &&
+          optional(')', next.next!)) {
+        illegalTrailingComma = next;
+        wasRecord = true;
+        token = next;
         break;
       }
       Token? colon = null;
@@ -6179,8 +6197,10 @@ class Parser {
     assert(wasRecord || count <= 1);
 
     if (wasRecord) {
-      if (count == 0) {
-        reportRecoverableError(token, codes.messageRecordLiteralEmpty);
+      if (count == 0 && illegalTrailingComma != null) {
+        // Empty record literal with a comma `(,)`.
+        reportRecoverableError(illegalTrailingComma,
+            codes.messageRecordLiteralZeroFieldsWithTrailingComma);
       } else if (count == 1 && !wasValidRecord) {
         reportRecoverableError(
             token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
@@ -9484,9 +9504,7 @@ class Parser {
     assert(wasRecord || count <= 1);
 
     if (wasRecord) {
-      if (count == 0) {
-        reportRecoverableError(token, codes.messageRecordLiteralEmpty);
-      } else if (count == 1 && !wasValidRecord) {
+      if (count == 1 && !wasValidRecord) {
         reportRecoverableError(
             token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
       }
