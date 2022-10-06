@@ -172,7 +172,7 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-ImageWriter::ImageWriter(Thread* t)
+ImageWriter::ImageWriter(Thread* t, bool generates_assembly)
     : thread_(ASSERT_NOTNULL(t)),
       zone_(t->zone()),
       next_data_offset_(0),
@@ -180,7 +180,7 @@ ImageWriter::ImageWriter(Thread* t)
       objects_(),
       instructions_(),
 #if defined(DART_PRECOMPILER)
-      namer_(t->zone()),
+      namer_(t->zone(), /*for_assembly=*/generates_assembly),
 #endif
       image_type_(TagObjectTypeAsReadOnly(zone_, "Image")),
       instructions_section_type_(
@@ -628,7 +628,7 @@ uword ImageWriter::GetMarkedTags(const Object& obj) {
   return tags;
 }
 
-const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) const {
+const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
   switch (section) {
     case ProgramSection::Text:
       return vm ? kVmSnapshotInstructionsAsmSymbol
@@ -716,8 +716,12 @@ void ImageWriter::WriteText(bool vm) {
 #if defined(DART_PRECOMPILER)
   const char* instructions_symbol = SectionSymbol(ProgramSection::Text, vm);
   ASSERT(instructions_symbol != nullptr);
+  intptr_t instructions_label = SectionLabel(ProgramSection::Text, vm);
+  ASSERT(instructions_label > 0);
   const char* bss_symbol = SectionSymbol(ProgramSection::Bss, vm);
   ASSERT(bss_symbol != nullptr);
+  intptr_t bss_label = SectionLabel(ProgramSection::Bss, vm);
+  ASSERT(bss_label > 0);
 
   if (profile_writer_ != nullptr) {
     profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
@@ -765,12 +769,12 @@ void ImageWriter::WriteText(bool vm) {
     // 1) The length of the payload.
     text_offset += WriteTargetWord(section_payload_length);
     // 2) The BSS offset from this section.
-    text_offset += Relocation(text_offset, instructions_symbol, bss_symbol);
+    text_offset += Relocation(text_offset, instructions_label, bss_label);
     // 3) The relocated address of the instructions.
-    text_offset += RelocatedAddress(text_offset, instructions_symbol);
+    text_offset += RelocatedAddress(text_offset, instructions_label);
     // 4) The GNU build ID note offset from this section.
-    text_offset += Relocation(text_offset, instructions_symbol,
-                              SectionSymbol(ProgramSection::BuildId, vm));
+    text_offset += Relocation(text_offset, instructions_label,
+                              SectionLabel(ProgramSection::BuildId, vm));
 
     const intptr_t section_contents_alignment =
         bare_instruction_payloads
@@ -892,8 +896,8 @@ void ImageWriter::WriteText(bool vm) {
         const auto target_offset =
             *reinterpret_cast<const compiler::target::word*>(
                 next_reloc_address);
-        text_offset += Relocation(text_offset, instructions_symbol, text_offset,
-                                  bss_symbol, target_offset);
+        text_offset += Relocation(text_offset, instructions_label, text_offset,
+                                  bss_label, target_offset);
         cursor = next_reloc_address + compiler::target::kWordSize;
       }
 #endif
@@ -975,8 +979,12 @@ static constexpr const char* kWordDirective =
 
 class DwarfAssemblyStream : public DwarfWriteStream {
  public:
-  explicit DwarfAssemblyStream(Zone* zone, BaseWriteStream* stream)
-      : zone_(ASSERT_NOTNULL(zone)), stream_(ASSERT_NOTNULL(stream)) {}
+  explicit DwarfAssemblyStream(Zone* zone,
+                               BaseWriteStream* stream,
+                               const IntMap<const char*>& label_to_name)
+      : zone_(ASSERT_NOTNULL(zone)),
+        stream_(ASSERT_NOTNULL(stream)),
+        label_to_name_(label_to_name) {}
 
   void sleb128(intptr_t value) { stream_->Printf(".sleb128 %" Pd "\n", value); }
   void uleb128(uintptr_t value) {
@@ -997,8 +1005,7 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   void string(const char* cstr) {               // NOLINT
     stream_->Printf(".string \"%s\"\n", cstr);  // NOLINT
   }
-  EncodedPosition WritePrefixedLength(const char* prefix,
-                                      std::function<void()> body) {
+  void WritePrefixedLength(const char* prefix, std::function<void()> body) {
     ASSERT(prefix != nullptr);
     const char* const length_prefix_symbol =
         OS::SCreate(zone_, ".L%s_length_prefix", prefix);
@@ -1013,9 +1020,10 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     stream_->Printf(".L%s_start:\n", prefix);
     body();
     stream_->Printf(".L%s_end:\n", prefix);
-    return EncodedPosition(length_prefix_symbol);
   }
-  void OffsetFromSymbol(const char* symbol, intptr_t offset) {
+  void OffsetFromSymbol(intptr_t label, intptr_t offset) {
+    const char* symbol = label_to_name_.Lookup(label);
+    ASSERT(symbol != nullptr);
     if (offset == 0) {
       PrintNamedAddress(symbol);
     } else {
@@ -1076,14 +1084,15 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   static constexpr const char* kDebugInfoLabel = ".Ldebug_info";
 
   void PrintNamedAddress(const char* name) {
-    stream_->Printf("%s %s\n", kWordDirective, name);
+    stream_->Printf("%s \"%s\"\n", kWordDirective, name);
   }
   void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
-    stream_->Printf("%s %s + %" Pd "\n", kWordDirective, name, offset);
+    stream_->Printf("%s \"%s\" + %" Pd "\n", kWordDirective, name, offset);
   }
 
   Zone* const zone_;
   BaseWriteStream* const stream_;
+  const IntMap<const char*>& label_to_name_;
   intptr_t temp_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(DwarfAssemblyStream);
@@ -1105,14 +1114,34 @@ AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          BaseWriteStream* stream,
                                          bool strip,
                                          Elf* debug_elf)
-    : ImageWriter(thread),
+    : ImageWriter(thread, /*generates_assembly=*/true),
       assembly_stream_(stream),
       assembly_dwarf_(AddDwarfIfUnstripped(zone_, strip, debug_elf)),
-      debug_elf_(debug_elf) {}
+      debug_elf_(debug_elf),
+      label_to_symbol_name_(zone_) {
+  // Set up the label mappings for the section symbols for use in relocations.
+  for (intptr_t i = 0; i < kNumProgramSections; i++) {
+    auto const section = static_cast<ProgramSection>(i);
+
+    auto const vm_name = SectionSymbol(section, /*vm=*/true);
+    auto const vm_label = SectionLabel(section, /*vm=*/true);
+    label_to_symbol_name_.Insert(vm_label, vm_name);
+
+    auto const isolate_name = SectionSymbol(section, /*vm=*/false);
+    auto const isolate_label = SectionLabel(section, /*vm=*/false);
+    if (vm_label != isolate_label) {
+      label_to_symbol_name_.Insert(isolate_label, isolate_name);
+    } else {
+      // Make sure the names also match.
+      ASSERT_EQUAL(strcmp(vm_name, isolate_name), 0);
+    }
+  }
+}
 
 void AssemblyImageWriter::Finalize() {
   if (assembly_dwarf_ != nullptr) {
-    DwarfAssemblyStream dwarf_stream(zone_, assembly_stream_);
+    DwarfAssemblyStream dwarf_stream(zone_, assembly_stream_,
+                                     label_to_symbol_name_);
     dwarf_stream.AbbreviationsPrologue();
     assembly_dwarf_->WriteAbbreviations(&dwarf_stream);
     dwarf_stream.DebugInfoPrologue();
@@ -1131,88 +1160,37 @@ void AssemblyImageWriter::Finalize() {
 #endif
 }
 
-static void AddAssemblerIdentifier(BaseTextBuffer* printer, const char* label) {
-  ASSERT(label[0] != '.');
-  if (label[0] == 'L' && printer->length() == 0) {
-    // Assembler treats labels starting with `L` as local which can cause
-    // some issues down the line e.g. on Mac the linker might fail to encode
-    // compact unwind information because multiple functions end up being
-    // treated as a single function. See https://github.com/flutter/flutter/issues/102281.
-    //
-    // Avoid this by prepending an underscore.
-    printer->AddString("_");
-  }
-
-  for (char c = *label; c != '\0'; c = *++label) {
-#define OP(dart_name, asm_name)                                                \
-  if (strncmp(label, dart_name, strlen(dart_name)) == 0) {                     \
-    printer->AddString(asm_name);                                              \
-    label += (strlen(dart_name) - 1);                                          \
-    continue;                                                                  \
-  }
-
-    OP("+", "operator_add")
-    OP("-", "operator_sub")
-    OP("*", "operator_mul")
-    OP("/", "operator_div")
-    OP("~/", "operator_truncdiv")
-    OP("%", "operator_mod")
-    OP("~", "operator_not")
-    OP("&", "operator_and")
-    OP("|", "operator_or")
-    OP("^", "operator_xor")
-    OP("<<", "operator_sll")
-    OP(">>>", "operator_srl")
-    OP(">>", "operator_sra")
-    OP("[]=", "operator_set")
-    OP("[]", "operator_get")
-    OP("unary-", "operator_neg")
-    OP("==", "operator_eq")
-    OP("<anonymous closure>", "anonymous_closure")
-    OP("<=", "operator_le")
-    OP("<", "operator_lt")
-    OP(">=", "operator_ge")
-    OP(">", "operator_gt")
-#undef OP
-
-    if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
-        ((c >= '0') && (c <= '9')) || (c == '.')) {
-      printer->AddChar(c);
-      continue;
-    }
-    printer->AddChar('_');
-  }
-}
-
 void ImageWriter::SnapshotTextObjectNamer::AddNonUniqueNameFor(
     BaseTextBuffer* buffer,
     const Object& object) {
   if (object.IsCode()) {
     const Code& code = Code::Cast(object);
-    owner_ = WeakSerializationReference::Unwrap(code.owner());
-    if (owner_.IsNull()) {
-      buffer->AddString("Stub_");
+    if (code.IsStubCode()) {
+      buffer->AddString("stub ");
       insns_ = code.instructions();
       const char* name = StubCode::NameOfStub(insns_.EntryPoint());
       ASSERT(name != nullptr);
       buffer->AddString(name);
     } else {
-      if (owner_.IsClass()) {
-        buffer->AddString("AllocationStub_");
-      } else if (!owner_.IsAbstractType() && !owner_.IsFunction()) {
-        // Double-check that we didn't get an invalid owner for the Code object.
-        UNREACHABLE();
+      if (code.IsAllocationStubCode()) {
+        buffer->AddString("new ");
+      } else if (code.IsTypeTestStubCode()) {
+        buffer->AddString("assert type is ");
+      } else {
+        ASSERT(code.IsFunctionCode());
       }
+      owner_ = code.owner();
       AddNonUniqueNameFor(buffer, owner_);
     }
   } else if (object.IsClass()) {
-    const char* name = Class::Cast(object).ScrubbedNameCString();
-    AddAssemblerIdentifier(buffer, name);
+    const char* name = Class::Cast(object).UserVisibleNameCString();
+    buffer->AddString(name);
   } else if (object.IsAbstractType()) {
-    namer_.WriteStubNameForTypeTo(buffer, AbstractType::Cast(object));
+    AbstractType::Cast(object).PrintName(Object::kUserVisibleName, buffer);
   } else if (object.IsFunction()) {
-    const char* name = Function::Cast(object).QualifiedScrubbedNameCString();
-    AddAssemblerIdentifier(buffer, name);
+    const Function& func = Function::Cast(object);
+    func.PrintName({Object::kUserVisibleName, Object::NameDisambiguation::kNo},
+                   buffer);
   } else if (object.IsCompressedStackMaps()) {
     buffer->AddString("CompressedStackMaps");
   } else if (object.IsPcDescriptors()) {
@@ -1231,6 +1209,27 @@ void ImageWriter::SnapshotTextObjectNamer::AddNonUniqueNameFor(
   }
 }
 
+void ImageWriter::SnapshotTextObjectNamer::ModifyForAssembly(
+    BaseTextBuffer* buffer) {
+  if (buffer->buffer()[0] == 'L') {
+    // Assembler treats labels starting with `L` as local which can cause
+    // some issues down the line e.g. on Mac the linker might fail to encode
+    // compact unwind information because multiple functions end up being
+    // treated as a single function. See https://github.com/flutter/flutter/issues/102281.
+    //
+    // Avoid this by prepending an underscore.
+    auto* const result = OS::SCreate(zone_, "_%s", buffer->buffer());
+    buffer->Clear();
+    buffer->AddString(result);
+  }
+  auto* const pair = usage_count_.Lookup(buffer->buffer());
+  if (pair == nullptr) {
+    usage_count_.Insert({buffer->buffer(), 1});
+  } else {
+    buffer->Printf(" (#%" Pd ")", ++pair->value);
+  }
+}
+
 const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
     const InstructionsData& data) {
   ZoneTextBuffer printer(zone_);
@@ -1239,7 +1238,9 @@ const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
   } else {
     AddNonUniqueNameFor(&printer, *data.code_);
   }
-  printer.Printf("_%" Pd, nonce_++);
+  if (for_assembly_) {
+    ModifyForAssembly(&printer);
+  }
   return printer.buffer();
 }
 
@@ -1257,15 +1258,18 @@ const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
     if (!obj.IsString()) {
       const Object& parent = *data.parent;
       if (!parent.IsNull()) {
-        printer.AddString("_");
+        printer.AddString(" (");
         AddNonUniqueNameFor(&printer, parent);
+        printer.AddString(")");
       }
     }
 #endif
   } else {
     printer.AddString("RawBytes");
   }
-  printer.Printf("_%" Pd, nonce_++);
+  if (for_assembly_) {
+    ModifyForAssembly(&printer);
+  }
   return printer.buffer();
 }
 
@@ -1306,12 +1310,12 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
   intptr_t last_position = 0;
   for (const auto& symbol : *current_symbols_) {
     WriteBytes(bytes + last_position, symbol.offset - last_position);
-    assembly_stream_->Printf("%s:\n", symbol.name);
+    assembly_stream_->Printf("\"%s\":\n", symbol.name);
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
     defined(DART_TARGET_OS_FUCHSIA)
     // Output size and type of the read-only data symbol to the assembly stream.
-    assembly_stream_->Printf(".size %s, %zu\n", symbol.name, symbol.size);
-    assembly_stream_->Printf(".type %s, %%object\n", symbol.name);
+    assembly_stream_->Printf(".size \"%s\", %zu\n", symbol.name, symbol.size);
+    assembly_stream_->Printf(".type \"%s\", %%object\n", symbol.name);
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     // MachO symbol tables don't include the size of the symbol, so don't bother
     // printing it to the assembly output.
@@ -1329,7 +1333,6 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
                                        intptr_t alignment,
                                        intptr_t* alignment_padding) {
   ASSERT(FLAG_precompiled_mode);
-  ASSERT(current_section_symbol_ == nullptr);
   ASSERT(current_symbols_ == nullptr);
   bool global_symbol = false;
   switch (section) {
@@ -1366,16 +1369,16 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
     case ProgramSection::BuildId:
       break;
   }
-  current_section_symbol_ = SectionSymbol(section, vm);
-  ASSERT(current_section_symbol_ != nullptr);
+  current_section_label_ = SectionLabel(section, vm);
+  ASSERT(current_section_label_ > 0);
   if (global_symbol) {
-    assembly_stream_->Printf(".globl %s\n", current_section_symbol_);
+    assembly_stream_->Printf(".globl %s\n", SectionSymbol(section, vm));
   }
   intptr_t padding = Align(alignment, 0, 0);
   if (alignment_padding != nullptr) {
     *alignment_padding = padding;
   }
-  assembly_stream_->Printf("%s:\n", current_section_symbol_);
+  assembly_stream_->Printf("%s:\n", SectionSymbol(section, vm));
   return true;
 }
 
@@ -1383,6 +1386,7 @@ static void ElfAddSection(
     Elf* elf,
     ImageWriter::ProgramSection section,
     const char* symbol,
+    intptr_t label,
     uint8_t* bytes,
     intptr_t size,
     ZoneGrowableArray<Elf::SymbolData>* symbols,
@@ -1390,10 +1394,10 @@ static void ElfAddSection(
   if (elf == nullptr) return;
   switch (section) {
     case ImageWriter::ProgramSection::Text:
-      elf->AddText(symbol, bytes, size, relocations, symbols);
+      elf->AddText(symbol, label, bytes, size, relocations, symbols);
       break;
     case ImageWriter::ProgramSection::Data:
-      elf->AddROData(symbol, bytes, size, relocations, symbols);
+      elf->AddROData(symbol, label, bytes, size, relocations, symbols);
       break;
     default:
       // Other sections are handled by the Elf object internally.
@@ -1405,13 +1409,12 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
                                       bool vm,
                                       intptr_t size) {
   // We should still be in the same section as the last EnterSection.
-  ASSERT(current_section_symbol_ != nullptr);
-  ASSERT_EQUAL(strcmp(SectionSymbol(name, vm), current_section_symbol_), 0);
+  ASSERT_EQUAL(current_section_label_, SectionLabel(name, vm));
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
     defined(DART_TARGET_OS_FUCHSIA)
   // Output the size of the section symbol to the assembly stream.
-  assembly_stream_->Printf(".size %s, %zu\n", current_section_symbol_, size);
-  assembly_stream_->Printf(".type %s, %%object\n", current_section_symbol_);
+  assembly_stream_->Printf(".size %s, %zu\n", SectionSymbol(name, vm), size);
+  assembly_stream_->Printf(".type %s, %%object\n", SectionSymbol(name, vm));
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   // MachO symbol tables don't include the size of the symbol, so don't bother
   // printing it to the assembly output.
@@ -1433,9 +1436,10 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
   // Since we don't want to add the actual contents of the segment in the
   // separate debugging information, we pass nullptr for the bytes, which
   // creates an appropriate NOBITS section instead of PROGBITS.
-  ElfAddSection(debug_elf_, name, current_section_symbol_, /*bytes=*/nullptr,
-                size, current_symbols_);
-  current_section_symbol_ = nullptr;
+  ElfAddSection(debug_elf_, name, SectionSymbol(name, vm),
+                current_section_label_, /*bytes=*/nullptr, size,
+                current_symbols_);
+  current_section_label_ = 0;
   current_symbols_ = nullptr;
 }
 
@@ -1448,37 +1452,36 @@ intptr_t AssemblyImageWriter::WriteTargetWord(word value) {
 }
 
 intptr_t AssemblyImageWriter::Relocation(intptr_t section_offset,
-                                         const char* source_symbol,
+                                         intptr_t source_label,
                                          intptr_t source_offset,
-                                         const char* target_symbol,
+                                         intptr_t target_label,
                                          intptr_t target_offset) {
-  ASSERT(source_symbol != nullptr);
-  ASSERT(target_symbol != nullptr);
-
   // TODO(dartbug.com/43274): Remove once we generate consistent build IDs
   // between assembly snapshots and their debugging information.
-  const char* build_id_symbol =
-      SectionSymbol(ProgramSection::BuildId, /*vm=*/false);
-  if (strcmp(target_symbol, build_id_symbol) == 0) {
+  if (target_label == SectionLabel(ProgramSection::BuildId, /*vm=*/false)) {
     return WriteTargetWord(Image::kNoBuildId);
   }
 
   // All relocations are word-sized.
   assembly_stream_->Printf("%s ", kWordDirective);
-  if (strcmp(target_symbol, current_section_symbol_) == 0) {
+  if (target_label == current_section_label_) {
     assembly_stream_->WriteString("(.)");
     target_offset -= section_offset;
   } else {
+    const char* target_symbol = label_to_symbol_name_.Lookup(target_label);
+    ASSERT(target_symbol != nullptr);
     assembly_stream_->Printf("%s", target_symbol);
   }
   if (target_offset != 0) {
     assembly_stream_->Printf(" + %" Pd "", target_offset);
   }
 
-  if (strcmp(source_symbol, current_section_symbol_) == 0) {
+  if (source_label == current_section_label_) {
     assembly_stream_->WriteString(" - (.)");
     source_offset -= section_offset;
   } else {
+    const char* source_symbol = label_to_symbol_name_.Lookup(source_label);
+    ASSERT(source_symbol != nullptr);
     assembly_stream_->Printf(" - %s", source_symbol);
   }
   if (source_offset != 0) {
@@ -1491,19 +1494,21 @@ intptr_t AssemblyImageWriter::Relocation(intptr_t section_offset,
 void AssemblyImageWriter::AddCodeSymbol(const Code& code,
                                         const char* symbol,
                                         intptr_t offset) {
+  auto const label = next_label_++;
+  label_to_symbol_name_.Insert(label, symbol);
   if (assembly_dwarf_ != nullptr) {
-    assembly_dwarf_->AddCode(code, symbol);
+    assembly_dwarf_->AddCode(code, label);
   }
   if (debug_elf_ != nullptr) {
-    current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size()});
-    debug_elf_->dwarf()->AddCode(code, symbol);
+    current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size(), label});
+    debug_elf_->dwarf()->AddCode(code, label);
   }
-  assembly_stream_->Printf("%s:\n", symbol);
+  assembly_stream_->Printf("\"%s\":\n", symbol);
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
     defined(DART_TARGET_OS_FUCHSIA)
   // Output the size of the code symbol to the assembly stream.
-  assembly_stream_->Printf(".size %s, %zu\n", symbol, code.Size());
-  assembly_stream_->Printf(".type %s, %%function\n", symbol);
+  assembly_stream_->Printf(".size \"%s\", %zu\n", symbol, code.Size());
+  assembly_stream_->Printf(".type \"%s\", %%function\n", symbol);
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   // MachO symbol tables don't include the size of the symbol, so don't bother
   // printing it to the assembly output.
@@ -1516,7 +1521,9 @@ void AssemblyImageWriter::AddDataSymbol(const char* symbol,
                                         intptr_t offset,
                                         size_t size) {
   if (!FLAG_add_readonly_data_symbols) return;
-  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size});
+  auto const label = next_label_++;
+  label_to_symbol_name_.Insert(label, symbol);
+  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size, label});
 }
 
 void AssemblyImageWriter::FrameUnwindPrologue() {
@@ -1618,7 +1625,7 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* isolate_instructions,
                                  Elf* debug_elf,
                                  Elf* elf)
-    : ImageWriter(thread),
+    : ImageWriter(thread, /*generates_assembly=*/false),
       vm_instructions_(vm_instructions),
       isolate_instructions_(isolate_instructions),
       elf_(elf),
@@ -1674,7 +1681,6 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
   ASSERT(current_symbols_ == nullptr);
 #endif
   ASSERT(section == ProgramSection::Data || current_section_stream_ == nullptr);
-  ASSERT(current_section_symbol_ == nullptr);
   switch (section) {
     case ProgramSection::Text:
       current_section_stream_ =
@@ -1705,7 +1711,6 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
       // get used for non-precompiled snapshots.
       return false;
   }
-  current_section_symbol_ = SectionSymbol(section, vm);
   intptr_t padding = current_section_stream_->Align(alignment);
   if (alignment_padding != nullptr) {
     *alignment_padding = padding;
@@ -1714,22 +1719,18 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
 }
 
 void BlobImageWriter::ExitSection(ProgramSection name, bool vm, intptr_t size) {
-  // We should still be in the same section as the last EnterSection.
-  ASSERT(current_section_symbol_ != nullptr);
-  ASSERT_EQUAL(strcmp(SectionSymbol(name, vm), current_section_symbol_), 0);
 #if defined(DART_PRECOMPILER)
-  ElfAddSection(elf_, name, current_section_symbol_,
+  ElfAddSection(elf_, name, SectionSymbol(name, vm), SectionLabel(name, vm),
                 current_section_stream_->buffer(), size, current_symbols_,
                 current_relocations_);
   // We create the corresponding segment in the debugging information as well,
   // since it needs the contents to create the correct build ID.
-  ElfAddSection(debug_elf_, name, current_section_symbol_,
-                current_section_stream_->buffer(), size, current_symbols_,
-                current_relocations_);
+  ElfAddSection(debug_elf_, name, SectionSymbol(name, vm),
+                SectionLabel(name, vm), current_section_stream_->buffer(), size,
+                current_symbols_, current_relocations_);
   current_relocations_ = nullptr;
   current_symbols_ = nullptr;
 #endif
-  current_section_symbol_ = nullptr;
   current_section_stream_ = nullptr;
 }
 
@@ -1751,13 +1752,13 @@ intptr_t BlobImageWriter::Align(intptr_t alignment,
 
 #if defined(DART_PRECOMPILER)
 intptr_t BlobImageWriter::Relocation(intptr_t section_offset,
-                                     const char* source_symbol,
+                                     intptr_t source_label,
                                      intptr_t source_offset,
-                                     const char* target_symbol,
+                                     intptr_t target_label,
                                      intptr_t target_offset) {
   ASSERT(FLAG_precompiled_mode);
   current_relocations_->Add({compiler::target::kWordSize, section_offset,
-                             source_symbol, source_offset, target_symbol,
+                             source_label, source_offset, target_label,
                              target_offset});
   // We write break instructions so it's easy to tell if a relocation doesn't
   // get replaced appropriately.
@@ -1767,12 +1768,13 @@ intptr_t BlobImageWriter::Relocation(intptr_t section_offset,
 void BlobImageWriter::AddCodeSymbol(const Code& code,
                                     const char* symbol,
                                     intptr_t offset) {
-  current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size()});
+  const intptr_t label = next_label_++;
+  current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size(), label});
   if (elf_ != nullptr && elf_->dwarf() != nullptr) {
-    elf_->dwarf()->AddCode(code, symbol);
+    elf_->dwarf()->AddCode(code, label);
   }
   if (debug_elf_ != nullptr) {
-    debug_elf_->dwarf()->AddCode(code, symbol);
+    debug_elf_->dwarf()->AddCode(code, label);
   }
 }
 
@@ -1780,7 +1782,8 @@ void BlobImageWriter::AddDataSymbol(const char* symbol,
                                     intptr_t offset,
                                     size_t size) {
   if (!FLAG_add_readonly_data_symbols) return;
-  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size});
+  const intptr_t label = next_label_++;
+  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size, label});
 }
 #endif  // defined(DART_PRECOMPILER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

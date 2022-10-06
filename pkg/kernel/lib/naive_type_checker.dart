@@ -268,10 +268,7 @@ super method declares ${superParameter.type}
 
   @override
   void checkUnresolvedInvocation(DartType receiver, TreeNode where) {
-    while (receiver is TypeParameterType) {
-      TypeParameterType typeParameterType = receiver;
-      receiver = typeParameterType.bound;
-    }
+    receiver = receiver.resolveTypeParameterType;
 
     if (receiver is DynamicType) {
       return;

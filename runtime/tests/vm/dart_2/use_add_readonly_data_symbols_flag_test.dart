@@ -64,10 +64,14 @@ main(List<String> args) async {
       scriptDill,
     ]);
 
-    checkElf(scriptSnapshot);
-    checkElf(scriptDebuggingInfo);
+    final snapshotElf = Elf.fromFile(scriptSnapshot);
+    Expect.isNotNull(snapshotElf);
+    final debugInfoElf = Elf.fromFile(scriptDebuggingInfo);
+    Expect.isNotNull(debugInfoElf);
 
-    if (Platform.isLinux && !isSimulator) {
+    checkElf(snapshotElf, debugInfoElf, isAssembled: false);
+
+    if ((Platform.isLinux || Platform.isMacOS) && !isSimulator) {
       final scriptAssembly = path.join(tempDir, 'snapshot.S');
       final scriptAssemblySnapshot = path.join(tempDir, 'assembly.so');
       final scriptAssemblyDebuggingInfo =
@@ -85,63 +89,57 @@ main(List<String> args) async {
       await assembleSnapshot(scriptAssembly, scriptAssemblySnapshot,
           debug: true);
 
-      checkElf(scriptAssemblySnapshot, isAssembled: true);
-      checkElf(scriptAssemblyDebuggingInfo);
+      // This one may be null if on MacOS.
+      final assembledElf = Elf.fromFile(scriptAssemblySnapshot);
+      if (Platform.isLinux) {
+        Expect.isNotNull(assembledElf);
+      }
+      final assembledDebugElf = Elf.fromFile(scriptAssemblyDebuggingInfo);
+      Expect.isNotNull(assembledDebugElf);
+
+      checkElf(assembledElf, assembledDebugElf, isAssembled: true);
     }
   });
 }
 
-void checkElf(String filename, {bool isAssembled = false}) {
-  // Check that the static symbol table contains entries that are not in the
-  // dynamic symbol table, have STB_LOCAL binding, and are of type STT_OBJECT.
-  final elf = Elf.fromFile(filename);
-  Expect.isNotNull(elf);
-  final dynamicSymbols = elf.dynamicSymbols;
-  // All symbol tables have an initial entry with zero-valued fields.
-  Expect.isNotEmpty(dynamicSymbols);
-  print('Dynamic symbols:');
-  final initialDynamic = dynamicSymbols.first;
-  print(initialDynamic);
-  Expect.equals(SymbolBinding.STB_LOCAL, initialDynamic.bind);
-  Expect.equals(SymbolType.STT_NOTYPE, initialDynamic.type);
-  Expect.equals(0, initialDynamic.value);
-  for (final symbol in dynamicSymbols.skip(1)) {
+final _uniqueSuffixRegexp = RegExp(r' \(#\d+\)');
+
+void checkVMSymbolsAreValid(Iterable<Symbol> symbols,
+    {String source, bool isAssembled}) {
+  print("Checking VM symbols from $source:");
+  for (final symbol in symbols) {
     print(symbol);
-    if (!symbol.name.startsWith('_kDart')) {
-      // The VM only adds symbols with names starting with _kDart, so this
-      // must be an assembled snapshot.
-      Expect.isTrue(isAssembled);
+    // All VM-created symbols should have sizes.
+    Expect.notEquals(0, symbol.size);
+    if (symbol.bind != SymbolBinding.STB_GLOBAL &&
+        symbol.bind != SymbolBinding.STB_LOCAL) {
+      Expect.fail('Unexpected symbol binding ${symbol.bind}');
+    }
+    if (symbol.bind == SymbolBinding.STB_GLOBAL) {
+      // All global symbols created by the VM are currently object symbols.
+      Expect.equals(SymbolType.STT_OBJECT, symbol.type);
+      Expect.isTrue(symbol.name.startsWith('_kDart'),
+          'Unexpected symbol name ${symbol.name}');
+      Expect.isFalse(_uniqueSuffixRegexp.hasMatch(symbol.name),
+          'Global VM symbols should have no numeric suffix');
       continue;
     }
-    Expect.equals(SymbolBinding.STB_GLOBAL, symbol.bind);
-    Expect.equals(SymbolType.STT_OBJECT, symbol.type);
-    // All VM-generated read-only object symbols should have a non-zero size.
-    Expect.notEquals(0, symbol.size);
-  }
-  print("");
-  final onlyStaticSymbols = elf.staticSymbols
-      .where((s1) => !dynamicSymbols.any((s2) => s1.name == s2.name));
-  Expect.isNotEmpty(onlyStaticSymbols, 'no static-only symbols');
-  final objectSymbols =
-      onlyStaticSymbols.where((s) => s.type == SymbolType.STT_OBJECT);
-  Expect.isNotEmpty(objectSymbols, 'no static-only object symbols');
-  print("Static-only object symbols:");
-  for (final symbol in objectSymbols) {
-    print(symbol);
-    // There should be no static-only global object symbols.
-    Expect.equals(SymbolBinding.STB_LOCAL, symbol.bind);
-    final objectTypeEnd = symbol.name.indexOf('_');
-    // All VM-generated read-only object symbols are prefixed with the type of
-    // the C++ object followed by an underscore. If assembling the snapshot,
-    // the assembler might introduce other object symbols which either start
-    // with an underscore or have no underscore.
-    if (objectTypeEnd <= 0) {
-      Expect.isTrue(isAssembled);
+    if (symbol.type == SymbolType.STT_FUNC ||
+        symbol.type == SymbolType.STT_SECTION) {
+      // Currently we don't do any additional checking on these.
       continue;
     }
-    // All VM-generated read-only object symbols should have a non-zero size.
-    Expect.notEquals(0, symbol.size);
-    final objectType = symbol.name.substring(0, objectTypeEnd);
+    if (symbol.type != SymbolType.STT_OBJECT) {
+      Expect.fail('Unexpected symbol type ${symbol.type}');
+    }
+    // The name of object symbols are prefixed with the type of the object. If
+    // there is useful additional information, the additional information is
+    // provided after the type in parentheses.
+    int objectTypeEnd = symbol.name.indexOf(' (');
+    final objectType = objectTypeEnd > 0
+        ? symbol.name.substring(0, objectTypeEnd)
+        : symbol.name;
+
     switch (objectType) {
       // Used for entries in the non-clustered portion of the read-only data
       // section that don't correspond to a specific Dart object.
@@ -154,8 +152,101 @@ void checkElf(String filename, {bool isAssembled = false}) {
       case 'PcDescriptors':
       case 'CompressedStackMaps':
         break;
+      // In assembly snapshots, we use local object symbols to initialize the
+      // InstructionsSection header with the right offset to the BSS section.
+      case '_kDartVmSnapshotBss':
+      case '_kDartIsolateSnapshotBss':
+        Expect.isTrue(isAssembled);
+        break;
       default:
-        Expect.fail('unexpected object type $objectType');
+        Expect.fail('unexpected object type $objectType in "${symbol.name}"');
     }
+  }
+}
+
+void checkSymbols(List<Symbol> snapshotSymbols, List<Symbol> debugInfoSymbols,
+    {bool isAssembled}) {
+  // All symbols in the separate debugging info are created by the VM.
+  Expect.isNotEmpty(debugInfoSymbols);
+  checkVMSymbolsAreValid(debugInfoSymbols,
+      source: 'debug info', isAssembled: isAssembled);
+  if (snapshotSymbols == null) return;
+  List<Symbol> checkedSnapshotSymbols = snapshotSymbols;
+  if (isAssembled) {
+    final names = debugInfoSymbols.map((s) => s.name).toSet();
+    // All VM-generated symbols should have unique names in assembled output.
+    Expect.equals(names.length, debugInfoSymbols.length);
+    // For assembled snapshots, we may have symbols that are created by the
+    // assembler and not the VM, so ignore those symbols. Since all VM symbols
+    // have unique names when generating assembly, we just check that the
+    // debug info has a symbol with the same name.
+    checkedSnapshotSymbols = <Symbol>[];
+    for (final symbol in snapshotSymbols) {
+      if (names.contains(symbol.name)) {
+        checkedSnapshotSymbols.add(symbol);
+      }
+    }
+  }
+  checkVMSymbolsAreValid(checkedSnapshotSymbols,
+      source: 'snapshot', isAssembled: isAssembled);
+}
+
+void checkElf(Elf snapshot, Elf debugInfo, {bool isAssembled}) {
+  // All symbol tables have an initial entry with zero-valued fields.
+  final snapshotDynamicSymbols = snapshot?.dynamicSymbols?.skip(1)?.toList();
+  final debugDynamicSymbols = debugInfo.dynamicSymbols.skip(1).toList();
+  final snapshotStaticSymbols = snapshot?.staticSymbols?.skip(1)?.toList();
+  final debugStaticSymbols = debugInfo.staticSymbols.skip(1).toList();
+
+  // First, do our general round of checks against each group of tables.
+  checkSymbols(snapshotDynamicSymbols, debugDynamicSymbols,
+      isAssembled: isAssembled);
+  checkSymbols(snapshotStaticSymbols, debugStaticSymbols,
+      isAssembled: isAssembled);
+
+  // Now do some additional spot checks to make sure we actually haven't missed
+  // generating some expected VM symbols by examining the debug info tables,
+  // which only contain VM generated symbols.
+
+  // For the dynamic symbol tables, we expect that all VM symbols are global
+  // object symbols.
+  for (final symbol in debugDynamicSymbols) {
+    Expect.equals(symbol.bind, SymbolBinding.STB_GLOBAL,
+        'Expected all global symbols in the dynamic table, got $symbol');
+    Expect.equals(symbol.type, SymbolType.STT_OBJECT,
+        'Expected all object symbols in the dynamic table, got $symbol');
+  }
+
+  final debugLocalSymbols =
+      debugStaticSymbols.where((s) => s.bind == SymbolBinding.STB_LOCAL);
+  final debugLocalObjectSymbols =
+      debugLocalSymbols.where((s) => s.type == SymbolType.STT_OBJECT);
+  // We should be generating at least _some_ local object symbols, since we're
+  // using the --add-readonly-data-symbols flag.
+  Expect.isNotEmpty(debugLocalObjectSymbols);
+
+  // We expect exactly two local object symbols with names starting with
+  // 'RawBytes'.
+  int rawBytesSeen = debugLocalObjectSymbols.fold<int>(
+      0, (i, s) => i + (s.name.startsWith('RawBytes') ? 1 : 0));
+  Expect.equals(2, rawBytesSeen,
+      'saw $rawBytesSeen (!= 2) RawBytes local object symbols');
+
+  // All snapshots include at least one (and likely many) duplicate local
+  // symbols. For assembly snapshots and their separate debugging information,
+  // these symbols will have a numeric suffix to make them unique. In
+  // direct-to-ELF snapshots and their separate debugging information, we allow
+  // duplicate symbol names and thus there should be no numeric suffixes.
+  bool sawUniqueSuffix = false;
+  for (final symbol in debugLocalSymbols) {
+    if (_uniqueSuffixRegexp.hasMatch(symbol.name)) {
+      if (!isAssembled) {
+        Expect.fail('Saw numeric suffix on symbol: $symbol');
+      }
+      sawUniqueSuffix = true;
+    }
+  }
+  if (isAssembled) {
+    Expect.isTrue(sawUniqueSuffix, 'No numeric suffixes seen');
   }
 }
