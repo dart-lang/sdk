@@ -331,6 +331,15 @@ class TypeConstraintGatherer {
       return _functionType(P, Q, leftSchema);
     }
 
+    // A type `P` is a subtype match for `Record` with respect to `L` under no
+    // constraints:
+    //   If `P` is a record type or `Record`.
+    if (Q_nullability == NullabilitySuffix.none && Q.isDartCoreRecord) {
+      if (P is RecordType) {
+        return true;
+      }
+    }
+
     if (P is RecordTypeImpl && Q is RecordTypeImpl) {
       return _recordType(P, Q, leftSchema);
     }
