@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.20 Adjust record syntax such that () is allowed (denoting the empty
+// record type and the empty record value).
+//
 // v0.19 Add support for super parameters, named arguments everywhere, and
 // records.
 //
@@ -608,7 +611,8 @@ recordLiteral
     ;
 
 recordLiteralNoConst
-    :    '(' expression ',' ')'
+    :    '(' ')'
+    |    '(' expression ',' ')'
     |    '(' label expression ','? ')'
     |    '(' recordField ',' recordField (',' recordField)* ','? ')'
     ;
@@ -1235,7 +1239,8 @@ typeList
     ;
 
 recordType
-    :    '(' recordTypeFields ',' recordTypeNamedFields ')'
+    :    '(' ')'
+    |    '(' recordTypeFields ',' recordTypeNamedFields ')'
     |    '(' recordTypeFields ','? ')'
     |    '(' recordTypeNamedFields? ')'
     ;
