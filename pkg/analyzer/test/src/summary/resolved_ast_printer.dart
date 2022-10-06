@@ -856,6 +856,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ListPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('requiredType', node.requiredType);
     });
   }
 

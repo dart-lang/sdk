@@ -3464,6 +3464,10 @@ abstract class ListLiteral implements TypedLiteral {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ListPattern implements DartPattern {
+  /// The required type, specified by [typeArguments] or inferred from the
+  /// matched value type; or `null` if the node is not resolved yet.
+  DartType? requiredType;
+
   /// Return the elements in this pattern.
   NodeList<DartPattern> get elements;
 
