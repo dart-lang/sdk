@@ -456,14 +456,14 @@ class SymbolTable : public Section {
         table_(table),
         dynamic_(dynamic),
         symbols_(zone, 1),
-        by_name_index_(zone) {
+        by_label_index_(zone) {
     link = table_->index;
     entry_size = sizeof(elf::Symbol);
     // The first symbol table entry is reserved and must be all zeros.
     // (String tables always have the empty string at the 0th index.)
     ASSERT_EQUAL(table_->Lookup(""), 0);
     symbols_.Add({/*name_index=*/0, elf::STB_LOCAL, elf::STT_NOTYPE, /*size=*/0,
-                  elf::SHN_UNDEF, /*offset=*/0});
+                  elf::SHN_UNDEF, /*offset=*/0, /*label =*/0});
     // The info field on a symbol table section holds the index of the first
     // non-local symbol, so since there are none yet, it points past the single
     // symbol we do have.
@@ -505,6 +505,9 @@ class SymbolTable : public Section {
     // Initialized to the section-relative offset, must be updated to the
     // snapshot-relative offset before writing.
     intptr_t offset;
+    // Only used within the VM and not written as part of the ELF file. If 0,
+    // this symbol cannot be looked up via label.
+    intptr_t label;
 
    private:
     DISALLOW_ALLOCATION();
@@ -527,16 +530,18 @@ class SymbolTable : public Section {
                  intptr_t type,
                  intptr_t size,
                  intptr_t index,
-                 intptr_t offset) {
+                 intptr_t offset,
+                 intptr_t label) {
+    ASSERT(label > 0);
     ASSERT(!table_->HasBeenFinalized());
     auto const name_index = table_->Add(name);
     ASSERT(name_index != 0);
     const intptr_t new_index = symbols_.length();
-    symbols_.Add({name_index, binding, type, size, index, offset});
-    by_name_index_.Insert(name_index, new_index);
+    symbols_.Add({name_index, binding, type, size, index, offset, label});
+    by_label_index_.Insert(label, new_index);
     // The info field on a symbol table section holds the index of the first
-    // non-local symbol, so they can be skipped if desired. Thus, we need to
-    // make sure local symbols are before any non-local ones.
+    // non-local symbol, so that local symbols can be skipped if desired. Thus,
+    // we need to make sure local symbols are before any non-local ones.
     if (binding == elf::STB_LOCAL) {
       if (info != new_index) {
         // There are non-local symbols, as otherwise [info] would be the
@@ -545,9 +550,9 @@ class SymbolTable : public Section {
         // [info] is incremented it will point just past the new local symbol.
         ASSERT(symbols_[info].binding != elf::STB_LOCAL);
         symbols_.Swap(info, new_index);
-        // Since by_name_index has indices into symbols_, we need to update it.
-        by_name_index_.Update({symbols_[info].name_index, info});
-        by_name_index_.Update({symbols_[new_index].name_index, new_index});
+        // Since by_label_index has indices into symbols_, we need to update it.
+        by_label_index_.Update({symbols_[info].label, info});
+        by_label_index_.Update({symbols_[new_index].label, new_index});
       }
       info += 1;
     }
@@ -587,13 +592,9 @@ class SymbolTable : public Section {
     }
   }
 
-  const Symbol* Find(const char* name) const {
-    ASSERT(name != nullptr);
-    const intptr_t name_index = table_->Lookup(name);
-    // 0 is kNoValue for by_name_index, but luckily that's the name of the
-    // initial reserved symbol.
-    if (name_index == 0) return &symbols_[0];
-    const intptr_t symbols_index = by_name_index_.Lookup(name_index);
+  const Symbol* FindUid(intptr_t label) const {
+    ASSERT(label > 0);
+    const intptr_t symbols_index = by_label_index_.Lookup(label);
     if (symbols_index == 0) return nullptr;  // Not found.
     return &symbols_[symbols_index];
   }
@@ -603,9 +604,9 @@ class SymbolTable : public Section {
   StringTable* const table_;
   const bool dynamic_;
   GrowableArray<Symbol> symbols_;
-  // Maps name indexes in table_ to indexes in symbols_. Does not include an
-  // entry for the reserved symbol (name ""), as 0 is kNoValue.
-  IntMap<intptr_t> by_name_index_;
+  // Maps positive symbol labels to indexes in symbols_. No entry for the
+  // reserved symbol, which has index 0, the same as the IntMap's kNoValue.
+  IntMap<intptr_t> by_label_index_;
 };
 
 class SymbolHashTable : public Section {
@@ -810,21 +811,23 @@ class BitsContainer : public Section {
                              reloc.section_offset - current_pos);
         }
         intptr_t source_address = reloc.source_offset;
-        if (reloc.source_symbol != nullptr) {
-          auto* const source_symbol = symtab.Find(reloc.source_symbol);
+        if (reloc.source_label > 0) {
+          auto* const source_symbol = symtab.FindUid(reloc.source_label);
           ASSERT(source_symbol != nullptr);
           source_address += source_symbol->offset;
-        } else {
+        } else if (reloc.source_label == Elf::Relocation::kSelfRelative) {
           source_address += section_start + offset + reloc.section_offset;
+        } else {
+          ASSERT_EQUAL(reloc.source_label, Elf::Relocation::kSnapshotRelative);
+          // No change to source_address.
         }
         ASSERT(reloc.size_in_bytes <= kWordSize);
         word to_write = reloc.target_offset - source_address;
-        if (reloc.target_symbol != nullptr) {
-          if (auto* const symbol = symtab.Find(reloc.target_symbol)) {
-            to_write += symbol->offset;
+        if (reloc.target_label > 0) {
+          if (auto* const target_symbol = symtab.FindUid(reloc.target_label)) {
+            to_write += target_symbol->offset;
           } else {
-            ASSERT_EQUAL(strcmp(reloc.target_symbol, kSnapshotBuildIdAsmSymbol),
-                         0);
+            ASSERT_EQUAL(reloc.target_label, Elf::kBuildIdLabel);
             ASSERT_EQUAL(reloc.target_offset, 0);
             ASSERT_EQUAL(reloc.source_offset, 0);
             ASSERT_EQUAL(reloc.size_in_bytes, compiler::target::kWordSize);
@@ -833,8 +836,11 @@ class BitsContainer : public Section {
             // InstructionsSection when there is no build ID.
             to_write = Image::kNoRelocatedAddress;
           }
-        } else {
+        } else if (reloc.target_label == Elf::Relocation::kSelfRelative) {
           to_write += section_start + offset + reloc.section_offset;
+        } else {
+          ASSERT_EQUAL(reloc.target_label, Elf::Relocation::kSnapshotRelative);
+          // No change to source_address.
         }
         ASSERT(Utils::IsInt(reloc.size_in_bytes * kBitsPerByte, to_write));
         stream->WriteBytes(reinterpret_cast<const uint8_t*>(&to_write),
@@ -846,6 +852,7 @@ class BitsContainer : public Section {
 
     intptr_t offset;
     const char* symbol_name;
+    intptr_t label;
     const uint8_t* bytes;
     intptr_t size;
     const ZoneGrowableArray<Elf::Relocation>* relocations;
@@ -862,13 +869,17 @@ class BitsContainer : public Section {
       intptr_t size,
       const ZoneGrowableArray<Elf::Relocation>* relocations = nullptr,
       const ZoneGrowableArray<Elf::SymbolData>* symbols = nullptr,
-      const char* symbol_name = nullptr) {
+      const char* symbol_name = nullptr,
+      intptr_t label = 0) {
+    // Any named portion should also have a valid symbol label.
+    ASSERT(symbol_name == nullptr || label > 0);
     ASSERT(IsNoBits() || bytes != nullptr);
     ASSERT(bytes != nullptr || relocations == nullptr);
     // Make sure all portions are consistent in containing bytes.
     ASSERT(portions_.is_empty() || HasBytes() == (bytes != nullptr));
     const intptr_t offset = Utils::RoundUp(total_size_, alignment);
-    portions_.Add({offset, symbol_name, bytes, size, relocations, symbols});
+    portions_.Add(
+        {offset, symbol_name, label, bytes, size, relocations, symbols});
     const Portion& portion = portions_.Last();
     total_size_ = offset + size;
     return portion;
@@ -933,7 +944,7 @@ class ConcatenableBitsContainer : public BitsContainer {
     ASSERT(CanMergeWith(other));
     for (const auto& portion : other.AsBitsContainer()->portions()) {
       AddPortion(portion.bytes, portion.size, portion.relocations,
-                 portion.symbols, portion.symbol_name);
+                 portion.symbols, portion.symbol_name, portion.label);
     }
   }
 };
@@ -1149,12 +1160,13 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
 }
 
 void Elf::AddText(const char* name,
+                  intptr_t label,
                   const uint8_t* bytes,
                   intptr_t size,
                   const ZoneGrowableArray<Relocation>* relocations,
                   const ZoneGrowableArray<SymbolData>* symbols) {
   auto* const container = new (zone_) TextSection(type_);
-  container->AddPortion(bytes, size, relocations, symbols, name);
+  container->AddPortion(bytes, size, relocations, symbols, name, label);
   section_table_->Add(container, kTextName);
 }
 
@@ -1170,14 +1182,17 @@ void Elf::CreateBSS() {
   for (const auto& portion : text_section->AsBitsContainer()->portions()) {
     size_t size;
     const char* symbol_name;
+    intptr_t label;
     // First determine whether this is the VM's text portion or the isolate's.
     if (strcmp(portion.symbol_name, kVmSnapshotInstructionsAsmSymbol) == 0) {
       size = BSS::kVmEntryCount * compiler::target::kWordSize;
       symbol_name = kVmSnapshotBssAsmSymbol;
+      label = kVmBssLabel;
     } else if (strcmp(portion.symbol_name,
                       kIsolateSnapshotInstructionsAsmSymbol) == 0) {
       size = BSS::kIsolateEntryCount * compiler::target::kWordSize;
       symbol_name = kIsolateSnapshotBssAsmSymbol;
+      label = kIsolateBssLabel;
     } else {
       // Not VM or isolate text.
       UNREACHABLE();
@@ -1198,7 +1213,7 @@ void Elf::CreateBSS() {
     // static symbol table, as these addresses are only used for relocation.
     // (This matches the behavior in the assembly output.)
     auto* symbols = new (zone_) ZoneGrowableArray<Elf::SymbolData>();
-    symbols->Add({symbol_name, elf::STT_SECTION, 0, size});
+    symbols->Add({symbol_name, elf::STT_SECTION, 0, size, label});
     bss_container->AddPortion(bytes, size, /*relocations=*/nullptr, symbols);
   }
 
@@ -1206,12 +1221,13 @@ void Elf::CreateBSS() {
 }
 
 void Elf::AddROData(const char* name,
+                    intptr_t label,
                     const uint8_t* bytes,
                     intptr_t size,
                     const ZoneGrowableArray<Relocation>* relocations,
                     const ZoneGrowableArray<SymbolData>* symbols) {
   auto* const container = new (zone_) DataSection(type_);
-  container->AddPortion(bytes, size, relocations, symbols, name);
+  container->AddPortion(bytes, size, relocations, symbols, name, label);
   section_table_->Add(container, kDataName);
 }
 
@@ -1238,8 +1254,7 @@ class DwarfElfStream : public DwarfWriteStream {
     stream_->WriteBytes(cstr, strlen(cstr) + 1);
   }
   // The prefix is ignored for DwarfElfStreams.
-  EncodedPosition WritePrefixedLength(const char* symbol_prefix,
-                                      std::function<void()> body) {
+  void WritePrefixedLength(const char* unused, std::function<void()> body) {
     const intptr_t fixup = stream_->Position();
     // We assume DWARF v2 currently, so all sizes are 32-bit.
     u4(0);
@@ -1251,22 +1266,21 @@ class DwarfElfStream : public DwarfWriteStream {
     stream_->SetPosition(fixup);
     u4(end - start);
     stream_->SetPosition(end);
-    return EncodedPosition(fixup);
   }
   // Shorthand for when working directly with DwarfElfStreams.
-  intptr_t WritePrefixedLength(std::function<void()> body) {
-    const EncodedPosition& pos = WritePrefixedLength(nullptr, body);
-    return pos.position();
+  void WritePrefixedLength(std::function<void()> body) {
+    WritePrefixedLength(nullptr, body);
   }
 
-  void OffsetFromSymbol(const char* symbol, intptr_t offset) {
-    relocations_->Add(
-        {kAddressSize, stream_->Position(), "", 0, symbol, offset});
+  void OffsetFromSymbol(intptr_t label, intptr_t offset) {
+    relocations_->Add({kAddressSize, stream_->Position(),
+                       Elf::Relocation::kSnapshotRelative, 0, label, offset});
     addr(0);  // Resolved later.
   }
   template <typename T>
-  void RelativeSymbolOffset(const char* symbol) {
-    relocations_->Add({sizeof(T), stream_->Position(), nullptr, 0, symbol, 0});
+  void RelativeSymbolOffset(intptr_t label) {
+    relocations_->Add({sizeof(T), stream_->Position(),
+                       Elf::Relocation::kSelfRelative, 0, label, 0});
     stream_->WriteFixed<T>(0);  // Resolved later.
   }
   void InitializeAbstractOrigins(intptr_t size) {
@@ -1327,14 +1341,14 @@ void SymbolTable::Initialize(const GrowableArray<Section*>& sections) {
           // dynamic symbol table when it exists and only use it, so put all
           // dynamic symbols there also. (see dartbug.com/41783).
           AddSymbol(portion.symbol_name, binding, type, portion.size,
-                    section->index, portion.offset);
+                    section->index, portion.offset, portion.label);
         }
         if (!dynamic_ && portion.symbols != nullptr) {
           for (const auto& symbol_data : *portion.symbols) {
             // Local static-only symbols, e.g., code payloads or RO objects.
             AddSymbol(symbol_data.name, elf::STB_LOCAL, symbol_data.type,
                       symbol_data.size, section->index,
-                      portion.offset + symbol_data.offset);
+                      portion.offset + symbol_data.offset, symbol_data.label);
           }
         }
       }
@@ -1408,7 +1422,8 @@ void Elf::FinalizeEhFrame() {
   // Emit CIE.
 
   // Used to calculate offset to CIE in FDEs.
-  const intptr_t cie_start = dwarf_stream.WritePrefixedLength([&] {
+  const intptr_t cie_start = dwarf_stream.Position();
+  dwarf_stream.WritePrefixedLength([&] {
     dwarf_stream.u4(0);  // CIE
     dwarf_stream.u1(1);  // Version (must be 1 or 3)
     // Augmentation String
@@ -1434,13 +1449,13 @@ void Elf::FinalizeEhFrame() {
 
   // Emit an FDE covering each .text section.
   for (const auto& portion : text_section->portions()) {
-    ASSERT(portion.symbol_name != nullptr);  // Needed for relocations.
+    ASSERT(portion.label != 0);  // Needed for relocations.
     dwarf_stream.WritePrefixedLength([&]() {
       // Offset to CIE. Note that unlike pcrel this offset is encoded
       // backwards: it will be subtracted from the current position.
       dwarf_stream.u4(stream.Position() - cie_start);
       // Start address as a PC relative reference.
-      dwarf_stream.RelativeSymbolOffset<int32_t>(portion.symbol_name);
+      dwarf_stream.RelativeSymbolOffset<int32_t>(portion.label);
       dwarf_stream.u4(portion.size);           // Size.
       dwarf_stream.u1(0);                      // Augmentation Data length.
 
@@ -1818,7 +1833,7 @@ void Elf::GenerateBuildId() {
   auto* const container = new (zone_) NoteSection();
   container->AddPortion(stream.buffer(), stream.bytes_written(),
                         /*relocations=*/nullptr, /*symbols=*/nullptr,
-                        kSnapshotBuildIdAsmSymbol);
+                        kSnapshotBuildIdAsmSymbol, kBuildIdLabel);
   section_table_->Add(container, kBuildIdNoteName);
 }
 
