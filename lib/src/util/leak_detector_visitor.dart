@@ -111,6 +111,8 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
           ((_hasMatch(predicates, declaredElement.type, n.methodName.name) &&
                   (_isSimpleIdentifierElementEqualToVariable(
                           n.realTarget, variable) ||
+                      _isPostfixExpressionOperandEqualToVariable(
+                          n.realTarget, variable) ||
                       _isPropertyAccessThroughThis(n.realTarget, variable) ||
                       (n.thisOrAncestorMatching((a) => a == variable) !=
                           null))) ||
@@ -187,6 +189,16 @@ bool _isSimpleIdentifierElementEqualToVariable(
         AstNode? n, VariableDeclaration variable) =>
     n is SimpleIdentifier &&
     _isElementEqualToVariable(n.staticElement, variable);
+
+bool _isPostfixExpressionOperandEqualToVariable(
+    AstNode? n, VariableDeclaration variable) {
+  if (n is PostfixExpression) {
+    var operand = n.operand;
+    return operand is SimpleIdentifier &&
+        _isElementEqualToVariable(operand.staticElement, variable);
+  }
+  return false;
+}
 
 typedef DartTypePredicate = bool Function(DartType type);
 
