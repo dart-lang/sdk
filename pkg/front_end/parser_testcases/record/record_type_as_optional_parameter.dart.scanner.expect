@@ -1,0 +1,15 @@
+void foo([(int, int) foo1, (int, int) foo2]) {
+}
+void bar([(int, int) foo1 = (42, 42), (int, int) foo2 = (42, 42)]) {
+}
+void baz([(int, int)? foo1, (int, int)? foo2]) {
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken][[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] foo1[StringToken],[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] foo2[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]
+}[SimpleToken]
+void[KeywordToken] bar[StringToken]([BeginToken][[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] foo1[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken],[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] foo2[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken]][SimpleToken])[SimpleToken] {[BeginToken]
+}[SimpleToken]
+void[KeywordToken] baz[StringToken]([BeginToken][[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] foo1[StringToken],[SimpleToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] foo2[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]
+}[SimpleToken]
+[SimpleToken]

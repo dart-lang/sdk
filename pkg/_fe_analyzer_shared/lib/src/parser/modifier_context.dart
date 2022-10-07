@@ -27,9 +27,15 @@ bool isModifier(Token token) {
     Keyword? keyword = next.keyword;
     if (keyword == null && !next.isIdentifier || keyword == Keyword.IN) {
       // Record type is a possibility.
-      if (optional("(", next) && next.endGroup!.next!.isIdentifier) {
-        // We've seen [modifier] [record type] [identifier].
-        return true;
+      if (optional("(", next)) {
+        Token afterGroup = next.endGroup!.next!;
+        if (afterGroup.isIdentifier) {
+          // We've seen [modifier] [record type] [identifier].
+          return true;
+        } else if (optional('?', afterGroup) && afterGroup.next!.isIdentifier) {
+          // We've seen [modifier] [record type]? [identifier].
+          return true;
+        }
       }
       return false;
     }
