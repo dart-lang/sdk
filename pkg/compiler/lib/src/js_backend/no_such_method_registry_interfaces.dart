@@ -4,7 +4,7 @@
 
 import '../common.dart';
 import '../elements/entities.dart';
-import '../inferrer/types_interfaces.dart';
+import '../inferrer/types.dart';
 
 abstract class NoSuchMethodRegistry {
   void registerNoSuchMethod(FunctionEntity noSuchMethodElement);

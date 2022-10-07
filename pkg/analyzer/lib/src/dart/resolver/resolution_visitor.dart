@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1621,8 +1622,16 @@ class _PatternContext
     required DartPatternImpl pattern,
     required DartPatternImpl previousPattern,
   }) {
-    // TODO: implement matchVarOverlap
-    throw UnimplementedError();
+    pattern as VariablePatternImpl;
+    visitor._errorReporter.reportError(
+      DiagnosticFactory().duplicateDefinitionForNodes(
+        visitor._errorReporter.source,
+        CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+        pattern,
+        previousPattern,
+        [pattern.name.lexeme],
+      ),
+    );
   }
 
   @override

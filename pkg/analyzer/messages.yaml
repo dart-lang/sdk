@@ -3518,6 +3518,12 @@ CompileTimeErrorCode:
 
       part 'part.dart';
       ```
+  DUPLICATE_VARIABLE_PATTERN:
+    problemMessage: The variable '{0}' is already defined in this pattern.
+    correctionMessage: Try renaming the variable.
+    comment: |-
+      Parameters:
+      0: the name of the variable
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.

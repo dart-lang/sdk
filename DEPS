@@ -5,6 +5,14 @@
 # IMPORTANT:
 # Before adding or updating dependencies, please review the documentation here:
 # https://github.com/dart-lang/sdk/wiki/Adding-and-Updating-Dependencies
+#
+# Packages can be rolled to the latest version with `tools/manage_deps.dart`.
+# There is some lag time between a commit landing in github and reaching the
+# google hosted clones.
+#
+# For example
+#
+#     dart tools/manage_deps.dart bump third_party/pkg/dart_style
 
 allowed_hosts = [
   'boringssl.googlesource.com',
@@ -95,7 +103,7 @@ vars = {
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev": "97026d1657566bb0c9f5a33642712ec350e45084",
   "collection_rev": "414ffa1bc8ba18bd608bbf916d95715311d89ac1",
-  "convert_rev": "11d191e4cc517595f53f86dd193a7c01a7601228",
+  "convert_rev": "f0acc6b1ec7878117117a81ea8212615153ec6c0",
   "crypto_rev": "7cf89d35b3d90786d9f7f75211b3b3cd7e4d173f",
   "csslib_rev": "ba2eb2d80530eedefadaade338a09c2dd60410f3",
 
@@ -111,7 +119,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "f79a9828ad07e50d6e8352ac154cc16eb4d78d5c", # manually rev'd
 
-  "dartdoc_rev": "9908cf86dd66bce43cd4953cd1010766b01aae2b",
+  "dartdoc_rev": "c2f66ecf1a75c2a73e7e083291493f14b575d1e4",
   "devtools_rev": "b21cd59f1f6bb60cacd59ba39e376d2a50d82f74",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
@@ -128,7 +136,7 @@ vars = {
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
-  "markdown_rev": "e7915ed2892d31776a6ab59b5e9cc7594352274e",
+  "markdown_rev": "f3873403f5b1a0319f78632a8fbc2b22315a7b83",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
   "mime_rev": "bf041aa372a27aae6f94e185aa0af3932b9de98b",
@@ -165,7 +173,7 @@ vars = {
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "741695691a7a8d357e404888ebe8d3e614a84e71",
   "webdriver_rev": "e1a9ad671ee82e05eee463f922a34585ed2d2f15",
-  "webkit_inspection_protocol_rev": "4e5eb8d4a48fb97603d90f2b5aac5483ebbdeb1d",
+  "webkit_inspection_protocol_rev": "b825c8f6a12200d619729903207ac826cce278da",
   "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",
   "yaml_rev": "fda5b15692ccfa0feb7793a27fe3829b3d0f77fa",
   "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",

@@ -1214,7 +1214,7 @@ class DataSinkWriter {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// serialization of `ir.TreeNode`s using the `writeTreeNode*InContext`
   /// methods.
-  void inMemberContext(ir.Member context, void f()) {
+  void inMemberContext(ir.Member? context, void f()) {
     ir.Member? oldMemberContext = _currentMemberContext;
     MemberData? oldMemberData = _currentMemberData;
     _currentMemberContext = context;

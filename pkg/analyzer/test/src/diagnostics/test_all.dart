@@ -160,6 +160,7 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
+import 'duplicate_variable_pattern_test.dart' as duplicate_variable_pattern;
 import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
 import 'enum_constant_with_non_const_constructor_test.dart'
@@ -913,6 +914,7 @@ main() {
     duplicate_named_argument.main();
     duplicate_part.main();
     duplicate_shown_name.main();
+    duplicate_variable_pattern.main();
     enum_constant_same_name_as_enclosing.main();
     enum_constant_with_non_const_constructor.main();
     enum_instantiated_to_bounds_is_not_well_bounded.main();

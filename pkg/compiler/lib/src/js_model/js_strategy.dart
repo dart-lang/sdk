@@ -67,10 +67,11 @@ import 'element_map_impl.dart';
 import 'js_world.dart';
 import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
+import 'js_strategy_interfaces.dart' as interfaces;
 
 /// JS Strategy pattern that defines the element model used in type inference
 /// and code generation.
-class JsBackendStrategy {
+class JsBackendStrategy implements interfaces.JsBackendStrategy {
   final Compiler _compiler;
   JsKernelToElementMap _elementMap;
 
@@ -392,8 +393,9 @@ class JsBackendStrategy {
   }
 
   /// Creates the [TypesInferrer] used by this strategy.
+  @override
   TypesInferrer createTypesInferrer(
-      JClosedWorld closedWorld,
+      covariant JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
       InferredDataBuilder inferredDataBuilder) {
     return TypeGraphInferrer(
@@ -401,8 +403,9 @@ class JsBackendStrategy {
   }
 
   /// Creates the [TypesInferrer] used by this strategy.
+  @override
   experimentalInferrer.TypesInferrer createExperimentalTypesInferrer(
-      JClosedWorld closedWorld,
+      covariant JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
       InferredDataBuilder inferredDataBuilder) {
     return experimentalInferrer.TypeGraphInferrer(
