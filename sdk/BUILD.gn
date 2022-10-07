@@ -38,7 +38,7 @@ declare_args() {
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dart2js
 # ......dartdevc
-# ......run_wasm.js (if not on ia32)
+# ......dart2wasm_runtime.mjs (if not on ia32)
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -502,7 +502,7 @@ copy("copy_dart2wasm_platform") {
 
 copy("copy_dart2wasm_runtime") {
   visibility = [ ":create_full_sdk" ]
-  sources = [ "../pkg/dart2wasm/bin/run_wasm.js" ]
+  sources = [ "../pkg/dart2wasm/bin/dart2wasm_runtime.mjs" ]
   outputs = [ "$root_out_dir/$dart_sdk_output/bin/{{source_file_part}}" ]
 }
 
