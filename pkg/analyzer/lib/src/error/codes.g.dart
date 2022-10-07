@@ -1170,6 +1170,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the variable
+  static const CompileTimeErrorCode DUPLICATE_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'DUPLICATE_VARIABLE_PATTERN',
+    "The variable '{0}' is already defined in this pattern.",
+    correctionMessage: "Try renaming the variable.",
+  );
+
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
