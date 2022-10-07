@@ -1,0 +1,31 @@
+abstract class Foo {
+abstract int foo1;
+abstract int? foo2;
+abstract (int, int) foo3;
+abstract (int, int)? foo4;
+abstract Function(int) foo5;
+abstract Function(int)? foo6;
+abstract int Function(int) foo7;
+abstract int Function(int)? foo8;
+abstract (int, int) Function(int) foo9;
+abstract (int, int) Function(int)? foo10;
+abstract (int, int)? Function(int) foo11;
+abstract (int, int)? Function(int)? foo12;
+}
+
+
+abstract[KeywordToken] class[KeywordToken] Foo[StringToken] {[BeginToken]
+abstract[KeywordToken] int[StringToken] foo1[StringToken];[SimpleToken]
+abstract[KeywordToken] int[StringToken]?[SimpleToken] foo2[StringToken];[SimpleToken]
+abstract[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] foo3[StringToken];[SimpleToken]
+abstract[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] foo4[StringToken];[SimpleToken]
+abstract[KeywordToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken] foo5[StringToken];[SimpleToken]
+abstract[KeywordToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken]?[SimpleToken] foo6[StringToken];[SimpleToken]
+abstract[KeywordToken] int[StringToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken] foo7[StringToken];[SimpleToken]
+abstract[KeywordToken] int[StringToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken]?[SimpleToken] foo8[StringToken];[SimpleToken]
+abstract[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken] foo9[StringToken];[SimpleToken]
+abstract[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken]?[SimpleToken] foo10[StringToken];[SimpleToken]
+abstract[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken] foo11[StringToken];[SimpleToken]
+abstract[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] Function[KeywordToken]([BeginToken]int[StringToken])[SimpleToken]?[SimpleToken] foo12[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]
