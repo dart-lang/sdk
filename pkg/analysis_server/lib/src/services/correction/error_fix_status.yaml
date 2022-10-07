@@ -679,6 +679,8 @@ CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
   status: hasFix
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
   status: hasFix
+CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME:
+  status: noFix
 CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
   status: hasFix
 CompileTimeErrorCode.MISSING_VARIABLE_PATTERN:

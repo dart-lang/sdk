@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 class ExtractorPatternResolver {
@@ -35,20 +36,7 @@ class ExtractorPatternResolver {
     );
 
     for (var field in node.fields) {
-      // TODO(scheglov) Report an error.
-      var nameToken =
-          field.fieldName?.name ?? field.pattern.variablePattern!.name;
-      var result = resolverVisitor.typePropertyResolver.resolve(
-        receiver: null,
-        receiverType: inferredType,
-        name: nameToken.lexeme,
-        propertyErrorEntity: nameToken,
-        nameErrorEntity: node,
-      );
-      // TODO(scheglov) Report an error.
-      var getter = result.getter;
-      field.fieldElement = getter;
-      var fieldType = getter?.returnType ?? _typeProvider.dynamicType;
+      var fieldType = _resolveFieldType(inferredType, field);
       field.pattern
           .resolvePattern(resolverVisitor, fieldType, typeInfos, context);
     }
@@ -114,5 +102,59 @@ class ExtractorPatternResolver {
         return typeArgument;
       }
     }).toList();
+  }
+
+  DartType _resolveFieldType(
+    DartType inferredType,
+    RecordPatternFieldImpl field,
+  ) {
+    var nameToken = field.fieldName?.name;
+    nameToken ??= field.pattern.variablePattern?.name;
+    if (nameToken == null) {
+      resolverVisitor.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME,
+        field,
+      );
+      return _typeProvider.dynamicType;
+    }
+
+    var result = resolverVisitor.typePropertyResolver.resolve(
+      receiver: null,
+      receiverType: inferredType,
+      name: nameToken.lexeme,
+      propertyErrorEntity: nameToken,
+      nameErrorEntity: nameToken,
+    );
+
+    if (result.needsGetterError) {
+      resolverVisitor.errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.UNDEFINED_GETTER,
+        nameToken,
+        [nameToken.lexeme, inferredType],
+      );
+    }
+
+    var getter = result.getter;
+    if (getter != null) {
+      field.fieldElement = getter;
+      if (getter is PropertyAccessorElement) {
+        return getter.returnType;
+      } else {
+        // TODO(scheglov) https://github.com/dart-lang/language/issues/2561
+        resolverVisitor.errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.UNDEFINED_GETTER,
+          nameToken,
+          [nameToken.lexeme, inferredType],
+        );
+        return getter.type;
+      }
+    }
+
+    var recordField = result.recordField;
+    if (recordField != null) {
+      return recordField.type;
+    }
+
+    return _typeProvider.dynamicType;
   }
 }

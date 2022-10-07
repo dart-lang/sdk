@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -118,7 +119,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noTypeArguments_hasName_constant() async {
+  test_notGeneric_hasName_constant() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -155,7 +156,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noTypeArguments_hasName_extensionGetter() async {
+  test_notGeneric_hasName_extensionGetter() async {
     await assertNoErrorsInCode(r'''
 abstract class A {}
 
@@ -194,7 +195,162 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noTypeArguments_hasName_variable_untyped() async {
+  test_notGeneric_hasName_extensionGetter_functionType() async {
+    await assertNoErrorsInCode(r'''
+typedef A = void Function();
+
+extension E on A {
+  int get foo => 0;
+}
+
+void f(x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: void Function()
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@119
+          type: int
+      fieldElement: self::@extension::E::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_hasName_method() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void foo();
+}
+
+void f(x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 74, 3),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@83
+          type: void Function()
+      fieldElement: self::@class::A::@method::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_hasName_recordField_named() async {
+    await assertNoErrorsInCode(r'''
+typedef A = ({int foo});
+
+void f(x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: ({int foo})
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@73
+          type: int
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_hasName_recordField_positional() async {
+    await assertNoErrorsInCode(r'''
+typedef A = (int foo,);
+
+void f(x) {
+  switch (x) {
+    case A($0: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: (int)
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: $0
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@71
+          type: int
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_hasName_variable_untyped() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -232,7 +388,45 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noTypeArguments_noName_variable() async {
+  test_notGeneric_noName_constant() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A(: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME, 75, 3),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_noName_variable() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -269,7 +463,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noTypeArguments_noName_variable_nullCheck() async {
+  test_notGeneric_noName_variable_nullCheck() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int? get foo;
@@ -308,7 +502,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noTypeArguments_noName_variable_parenthesis() async {
+  test_notGeneric_noName_variable_parenthesis() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -344,6 +538,80 @@ ExtractorPattern
             type: int
         rightParenthesis: )
       fieldElement: self::@class::A::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_unresolved_hasName() async {
+    await assertErrorsInCode(r'''
+abstract class A {}
+
+void f(x) {
+  switch (x) {
+    case A(foo: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 59, 3),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_unresolved_noName() async {
+    await assertErrorsInCode(r'''
+abstract class A {}
+
+void f(x) {
+  switch (x) {
+    case A(: var foo):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 65, 3),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: foo
+        declaredElement: hasImplicitType foo@65
+          type: dynamic
+      fieldElement: <null>
   rightParenthesis: )
 ''');
   }
