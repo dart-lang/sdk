@@ -61,17 +61,20 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator &(int other) => other._bitAndFromInteger(this);
+  int operator &(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._bitAndFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator |(int other) => other._bitOrFromInteger(this);
+  int operator |(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._bitOrFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator ^(int other) => other._bitXorFromInteger(this);
+  int operator ^(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._bitXorFromInteger(this);
 
   num remainder(num other) {
     return other._remainderFromInteger(this);
@@ -120,17 +123,20 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator >>(int other) => other._shrFromInteger(this);
+  int operator >>(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._shrFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator >>>(int other) => other._ushrFromInteger(this);
+  int operator >>>(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._ushrFromInteger(this);
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator <<(int other) => other._shlFromInteger(this);
+  int operator <<(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._shlFromInteger(this);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)

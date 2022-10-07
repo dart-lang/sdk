@@ -1,0 +1,17 @@
+foo(dynamic a) {
+final b = a;
+if (a is (int, int)) {
+print("a is (int, int)");
+}
+final c = b as (int, int);
+}
+
+
+foo[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] b[StringToken] =[SimpleToken] a[StringToken];[SimpleToken]
+if[KeywordToken] ([BeginToken]a[StringToken] is[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"a is (int, int)"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+final[KeywordToken] c[StringToken] =[SimpleToken] b[StringToken] as[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

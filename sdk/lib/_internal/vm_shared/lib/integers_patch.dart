@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "core_patch.dart";
+import "dart:_internal" show has63BitSmis, patch, unsafeCast;
+
+import "dart:typed_data" show Int64List;
 
 /// VM implementation of int.
 @patch
@@ -11,13 +13,6 @@ class int {
   @pragma("vm:external-name", "Integer_fromEnvironment")
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
-
-  int _bitAndFromInteger(int other);
-  int _bitOrFromInteger(int other);
-  int _bitXorFromInteger(int other);
-  int _shlFromInteger(int other);
-  int _shrFromInteger(int other);
-  int _ushrFromInteger(int other);
 
   static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);

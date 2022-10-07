@@ -20,7 +20,6 @@ import "dart:_internal"
         POWERS_OF_TEN,
         SubListIterable,
         UnmodifiableListMixin,
-        has63BitSmis,
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,
@@ -49,7 +48,7 @@ import 'dart:convert' show Encoding, utf8;
 
 import 'dart:math' show Random;
 
-import "dart:typed_data" show Uint8List, Int64List, Uint16List;
+import "dart:typed_data" show Uint8List, Uint16List;
 
 import 'dart:wasm';
 
@@ -61,9 +60,7 @@ part "function.dart";
 part "growable_list.dart";
 part "identical_patch.dart";
 part "int.dart";
-part "integers_patch.dart";
 part "list.dart";
-part "null_patch.dart";
 part "object_patch.dart";
 part "regexp_patch.dart";
 part "stack_trace_patch.dart";

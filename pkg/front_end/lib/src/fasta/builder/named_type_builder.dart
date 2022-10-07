@@ -411,7 +411,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
     DartType builtType = _buildAliasedInternal(library, typeUse, hierarchy);
     if (library is SourceLibraryBuilder &&
-        !library.libraryFeatures.records.isEnabled &&
+        !isRecordAccessAllowed(library.libraryFeatures) &&
         isRecordOrItsAlias(builtType)) {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
@@ -707,7 +707,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
     DartType builtType = _buildInternal(library, typeUse, hierarchy);
 
     if (library is SourceLibraryBuilder &&
-        !library.libraryFeatures.records.isEnabled &&
+        !isRecordAccessAllowed(library.libraryFeatures) &&
         isRecordOrItsAlias(builtType)) {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
