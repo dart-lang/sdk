@@ -5,6 +5,14 @@
 # IMPORTANT:
 # Before adding or updating dependencies, please review the documentation here:
 # https://github.com/dart-lang/sdk/wiki/Adding-and-Updating-Dependencies
+#
+# Packages can be rolled to the latest version with `tools/manage_deps.dart`.
+# There is some lag time between a commit landing in github and reaching the
+# google hosted clones.
+#
+# For example
+#
+#     dart tools/manage_deps.dart bump third_party/pkg/dart_style
 
 allowed_hosts = [
   'boringssl.googlesource.com',
