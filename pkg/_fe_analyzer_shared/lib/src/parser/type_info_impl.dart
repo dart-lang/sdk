@@ -722,8 +722,9 @@ class ComplexTypeInfo implements TypeInfo {
         // * `(` e.g. method definition like `(int, int) x() {}`.
         // * `,` e.g. non-last parameter like `void x((int, int) y, int z) {}`.
         // * `)` e.g. last parameter like `void x((int, int) y) {}`.
+        // * `in` e.g. `for ((int, int) x in list) {}`
         if (!isOneOfOrEof(
-            afterIdentifier, const [";", "=", "<", "(", ",", ")"])) {
+            afterIdentifier, const [";", "=", "<", "(", ",", ")", "in"])) {
           if (getOrSet && isOneOfOrEof(afterIdentifier, const ["=>", "{"])) {
             // With a getter/setter in the mix we can accept more stuff, e.g.
             // these would be fine:
