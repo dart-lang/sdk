@@ -1413,7 +1413,8 @@ class Parser {
   /// recordTypeNamedFields ::= '{' recordTypeNamedField
   ///                           ( ',' recordTypeNamedField )* ','? '}'
   /// recordTypeNamedField  ::= metadata type identifier
-  Token parseRecordType(final Token start, Token token) {
+  Token parseRecordType(
+      final Token start, Token token, bool questionMarkPartOfType) {
     token = token.next!;
     assert(optional('(', token));
 
@@ -1491,8 +1492,9 @@ class Parser {
           token, codes.messageRecordTypeOnePositionalFieldNoTrailingComma);
     }
 
+    // Only consume the `?` if it is part of the type.
     Token? questionMark = token.next!;
-    if (optional('?', questionMark)) {
+    if (optional('?', questionMark) && questionMarkPartOfType) {
       token = questionMark;
     } else {
       questionMark = null;

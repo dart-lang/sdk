@@ -526,8 +526,15 @@ class ComplexTypeInfo implements TypeInfo {
     assert(typeArguments != null);
   }
 
-  ComplexTypeInfo._nonNullable(this.start, this.typeArguments, this.end,
-      this.typeVariableStarters, this.gftHasReturnType, this.recovered);
+  ComplexTypeInfo._nonNullable(
+      this.start,
+      this.typeArguments,
+      this.end,
+      this.typeVariableStarters,
+      this.gftHasReturnType,
+      this.recordType,
+      this.gftReturnTypeHasRecordType,
+      this.recovered);
 
   @override
   TypeInfo get asNonNullable {
@@ -539,6 +546,8 @@ class ComplexTypeInfo implements TypeInfo {
             beforeQuestionMark,
             typeVariableStarters,
             gftHasReturnType,
+            recordType,
+            gftReturnTypeHasRecordType,
             recovered);
   }
 
@@ -590,8 +599,10 @@ class ComplexTypeInfo implements TypeInfo {
       // Push the non-existing return type first. The loop below will
       // generate the full type.
       noType.parseType(token, parser);
-    } else if (recordType || gftReturnTypeHasRecordType) {
-      token = parser.parseRecordType(start, token);
+    } else if (recordType) {
+      token = parser.parseRecordType(start, token, beforeQuestionMark != null);
+    } else if (gftReturnTypeHasRecordType) {
+      token = parser.parseRecordType(start, token, true);
     } else {
       Token typeRefOrPrefix = token.next!;
       if (optional('void', typeRefOrPrefix)) {
