@@ -40,7 +40,9 @@
           "_internal/vm_shared/lib/array_patch.dart",
           "_internal/vm_shared/lib/bigint_patch.dart",
           "_internal/vm_shared/lib/bool_patch.dart",
-          "_internal/vm_shared/lib/map_patch.dart"
+          "_internal/vm_shared/lib/integers_patch.dart",
+          "_internal/vm_shared/lib/map_patch.dart",
+          "_internal/vm_shared/lib/null_patch.dart"
         ]
       },
       "developer": {
@@ -158,7 +160,9 @@
           "_internal/vm_shared/lib/bigint_patch.dart",
           "_internal/vm_shared/lib/bool_patch.dart",
           "_internal/wasm/lib/expando_patch.dart",
-          "_internal/vm_shared/lib/map_patch.dart"
+          "_internal/vm_shared/lib/integers_patch.dart",
+          "_internal/vm_shared/lib/map_patch.dart",
+          "_internal/vm_shared/lib/null_patch.dart"
         ]
       },
       "developer": {

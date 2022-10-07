@@ -379,7 +379,7 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, 0xf07a87d4)                   \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0xb6764495)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0xfecba6b3)          \
-  V(_IntegerImplementation, <<, Integer_shl, 0x2d855b02)                       \
+  V(_IntegerImplementation, <<, Integer_shl, 0x4a95c65b)                       \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(_Int8List, [], Int8ArrayGetIndexed, 0x35f3fab6)                            \
@@ -455,11 +455,11 @@ namespace dart {
   V(_IntegerImplementation, %, Integer_mod, 0x93a8d914)                        \
   V(_IntegerImplementation, ~/, Integer_truncDivide, 0x4c5b2b80)               \
   V(_IntegerImplementation, unary-, Integer_negate, 0xaec000b3)                \
-  V(_IntegerImplementation, &, Integer_bitAnd, 0x42b3d650)                     \
-  V(_IntegerImplementation, |, Integer_bitOr, 0x465e5008)                      \
-  V(_IntegerImplementation, ^, Integer_bitXor, 0x8f4f190f)                     \
-  V(_IntegerImplementation, >>, Integer_sar, 0x4a3615a7)                       \
-  V(_IntegerImplementation, >>>, Integer_shr, 0x2bac5209)                      \
+  V(_IntegerImplementation, &, Integer_bitAnd, 0x5fc441a9)                     \
+  V(_IntegerImplementation, |, Integer_bitOr, 0x636ebb61)                      \
+  V(_IntegerImplementation, ^, Integer_bitXor, 0xac5f8468)                     \
+  V(_IntegerImplementation, >>, Integer_sar, 0x67468100)                       \
+  V(_IntegerImplementation, >>>, Integer_shr, 0x48bcbd62)                      \
   V(_Double, unary-, DoubleFlipSignBit, 0x3d39082b)                            \
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
