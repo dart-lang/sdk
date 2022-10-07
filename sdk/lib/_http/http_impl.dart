@@ -438,8 +438,8 @@ class _HttpIncoming extends Stream<Uint8List> {
       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     hasSubscriber = true;
     return _stream.handleError((error) {
-      throw HttpException(error.message, uri: uri);
-    }).listen(onData,
+      throw HttpException((error as HttpException).message, uri: uri);
+    }, test: (error) => error is HttpException).listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
@@ -2062,16 +2062,18 @@ class _HttpClientConnection {
           _subscription!.resume();
         }).catchError((dynamic error, StackTrace stackTrace) {
           _nextResponseCompleter!.completeError(
-              HttpException(error.message, uri: _currentUri), stackTrace);
+              HttpException((error as HttpException).message, uri: _currentUri),
+              stackTrace);
           _nextResponseCompleter = null;
-        });
+        }, test: (error) => error is HttpException);
       } else {
         _nextResponseCompleter!.complete(incoming);
         _nextResponseCompleter = null;
       }
     }, onError: (dynamic error, StackTrace stackTrace) {
       _nextResponseCompleter?.completeError(
-          HttpException(error.message, uri: _currentUri), stackTrace);
+          HttpException((error as HttpException).message, uri: _currentUri),
+          stackTrace);
       _nextResponseCompleter = null;
     }, onDone: () {
       _nextResponseCompleter?.completeError(HttpException(
