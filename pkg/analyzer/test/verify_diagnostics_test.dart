@@ -4,7 +4,6 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -327,7 +326,6 @@ class DocumentationValidator {
 class VerifyDiagnosticsTest {
   @TestTimeout(Timeout.factor(4))
   test_diagnostics() async {
-    Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     //
     // Validate that the input to the generator is correct.
     //
@@ -336,20 +334,21 @@ class VerifyDiagnosticsTest {
     //
     // Validate that the generator has been run.
     //
-    if (pathContext.style != Style.windows) {
-      String actualContent = PhysicalResourceProvider.INSTANCE
-          .getFile(computeOutputPath())
-          .readAsStringSync();
+    String actualContent = PhysicalResourceProvider.INSTANCE
+        .getFile(computeOutputPath())
+        .readAsStringSync();
+    // Normalize Windows line endings to Unix line endings so that the
+    // comparison doesn't fail on Windows.
+    actualContent = actualContent.replaceAll('\r\n', '\n');
 
-      StringBuffer sink = StringBuffer();
-      DocumentationGenerator generator = DocumentationGenerator();
-      generator.writeDocumentation(sink);
-      String expectedContent = sink.toString();
+    StringBuffer sink = StringBuffer();
+    DocumentationGenerator generator = DocumentationGenerator();
+    generator.writeDocumentation(sink);
+    String expectedContent = sink.toString();
 
-      if (actualContent != expectedContent) {
-        fail('The diagnostic documentation needs to be regenerated.\n'
-            'Please run tool/diagnostics/generate.dart.');
-      }
+    if (actualContent != expectedContent) {
+      fail('The diagnostic documentation needs to be regenerated.\n'
+          'Please run tool/diagnostics/generate.dart.');
     }
   }
 

@@ -14,122 +14,336 @@ main() {
 
 @reflectiveTest
 class ExtractorPatternResolutionTest extends PatternsResolutionTest {
-  test_identifier_noTypeArguments() async {
+  test_generic_noTypeArguments_infer_interfaceType() async {
     await assertNoErrorsInCode(r'''
-class C {}
-
-void f(x) {
+class A<T> {}
+class B<T> extends A<T> {}
+void f(A<int> x) {
   switch (x) {
-    case C():
+    case B():
       break;
   }
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ExtractorPattern
   type: NamedType
     name: SimpleIdentifier
-      token: C
+      token: B
+      staticElement: self::@class::B
+      staticType: null
+    type: B<int>
   leftParenthesis: (
   rightParenthesis: )
 ''');
   }
 
-  test_identifier_withTypeArguments() async {
+  test_generic_noTypeArguments_infer_interfaceType_viaTypeAlias() async {
     await assertNoErrorsInCode(r'''
-class C<T> {}
-
-void f(x) {
+class A<T, U> {}
+class B<T, U> extends A<T, U> {}
+typedef L<T> = B<T, String>;
+void f(A<int, String> x) {
   switch (x) {
-    case C<int>():
+    case L():
       break;
   }
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ExtractorPattern
   type: NamedType
     name: SimpleIdentifier
-      token: C
+      token: L
+      staticElement: self::@typeAlias::L
+      staticType: null
+    type: B<int, String>
+      alias: self::@typeAlias::L
+        typeArguments
+          int
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_generic_withTypeArguments_hasName_variable_untyped() async {
+    await assertNoErrorsInCode(r'''
+abstract class A<T> {
+  T get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A<int>(foo: var foo2):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: SimpleIdentifier
             token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
       rightBracket: >
+    type: A<int>
   leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: foo2
+        declaredElement: hasImplicitType foo2@90
+          type: int
+      fieldElement: PropertyAccessorMember
+        base: self::@class::A::@getter::foo
+        substitution: {T: int}
   rightParenthesis: )
 ''');
   }
 
-  test_prefixedIdentifier_noTypeArguments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class C {}
-''');
-
+  test_notGeneric_noTypeArguments_hasName_constant() async {
     await assertNoErrorsInCode(r'''
-import 'a.dart' as prefix;
+abstract class A {
+  int get foo;
+}
 
 void f(x) {
   switch (x) {
-    case prefix.C():
+    case A(foo: 0):
       break;
   }
 }
 ''');
-
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ExtractorPattern
   type: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
-      period: .
-      identifier: SimpleIdentifier
-        token: C
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
   leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+      fieldElement: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
 
-  test_prefixedIdentifier_withTypeArguments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class C<T> {}
-''');
-
+  test_notGeneric_noTypeArguments_hasName_extensionGetter() async {
     await assertNoErrorsInCode(r'''
-import 'a.dart' as prefix;
+abstract class A {}
+
+extension E on A {
+  int get foo => 0;
+}
 
 void f(x) {
   switch (x) {
-    case prefix.C<int>():
+    case A(foo: 0):
       break;
   }
 }
 ''');
-
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ExtractorPattern
   type: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
-      period: .
-      identifier: SimpleIdentifier
-        token: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: SimpleIdentifier
-            token: int
-      rightBracket: >
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
   leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+      fieldElement: self::@extension::E::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_noTypeArguments_hasName_variable_untyped() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A(foo: var foo2):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: foo2
+        declaredElement: hasImplicitType foo2@84
+          type: int
+      fieldElement: self::@class::A::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_noTypeArguments_noName_variable() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A(: var foo):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: foo
+        declaredElement: hasImplicitType foo@81
+          type: int
+      fieldElement: self::@class::A::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_noTypeArguments_noName_variable_nullCheck() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int? get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A(: var foo?):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: PostfixPattern
+        operand: VariablePattern
+          keyword: var
+          name: foo
+          declaredElement: hasImplicitType foo@82
+            type: int
+        operator: ?
+      fieldElement: self::@class::A::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_notGeneric_noTypeArguments_noName_variable_parenthesis() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A(: (var foo)):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: ParenthesizedPattern
+        leftParenthesis: (
+        pattern: VariablePattern
+          keyword: var
+          name: foo
+          declaredElement: hasImplicitType foo@82
+            type: int
+        rightParenthesis: )
+      fieldElement: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }

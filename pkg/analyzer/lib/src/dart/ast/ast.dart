@@ -3359,6 +3359,9 @@ abstract class DartPatternImpl extends AstNodeImpl implements DartPattern {
   //  have constants for pattern-related precedence values.
   Precedence get precedence => throw UnimplementedError();
 
+  /// The variable pattern, itself, or wrapped in a unary pattern.
+  VariablePatternImpl? get variablePattern => null;
+
   DartType computePatternSchema(ResolverVisitor resolverVisitor);
 
   void resolvePattern(
@@ -4712,7 +4715,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
 ///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
 @experimental
 class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
-  final NodeListImpl<RecordPatternField> _fields = NodeListImpl._();
+  final NodeListImpl<RecordPatternFieldImpl> _fields = NodeListImpl._();
 
   @override
   final Token leftParenthesis;
@@ -4726,7 +4729,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
   ExtractorPatternImpl(
       {required this.type,
       required this.leftParenthesis,
-      required List<RecordPatternField> fields,
+      required List<RecordPatternFieldImpl> fields,
       required this.rightParenthesis}) {
     _becomeParentOf(type);
     _fields._initialize(this, fields);
@@ -4739,7 +4742,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
   Token get endToken => rightParenthesis;
 
   @override
-  NodeList<RecordPatternField> get fields => _fields;
+  NodeList<RecordPatternFieldImpl> get fields => _fields;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -4757,11 +4760,17 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
 
   @override
   void resolvePattern(
-      ResolverVisitor resolverVisitor,
-      DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
-      MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    ResolverVisitor resolverVisitor,
+    DartType matchedType,
+    Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+    MatchContext<AstNode, Expression> context,
+  ) {
+    resolverVisitor.extractorPatternResolver.resolve(
+      node: this,
+      matchedType: matchedType,
+      typeInfos: typeInfos,
+      context: context,
+    );
   }
 
   @override
@@ -9589,6 +9598,9 @@ class ParenthesizedPatternImpl extends DartPatternImpl
   Token get endToken => rightParenthesis;
 
   @override
+  VariablePatternImpl? get variablePattern => pattern.variablePattern;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('pattern', pattern)
@@ -10042,6 +10054,9 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
   Token get endToken => operator;
 
   @override
+  VariablePatternImpl? get variablePattern => operand.variablePattern;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addNode('operand', operand)
     ..addToken('operator', operator);
@@ -10435,6 +10450,9 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 ///        [RecordPatternFieldName]? [DartPattern]
 @experimental
 class RecordPatternFieldImpl extends AstNodeImpl implements RecordPatternField {
+  @override
+  Element? fieldElement;
+
   @override
   final RecordPatternFieldNameImpl? fieldName;
 
@@ -13559,6 +13577,9 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
 
   @override
   Token get endToken => name;
+
+  @override
+  VariablePatternImpl? get variablePattern => this;
 
   @override
   ChildEntities get _childEntities => super._childEntities
