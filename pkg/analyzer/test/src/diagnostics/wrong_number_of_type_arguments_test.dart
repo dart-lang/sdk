@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
+class WrongNumberOfTypeArgumentsTest extends PatternsResolutionTest {
   test_class_tooFew() async {
     await assertErrorsInCode(r'''
 class A<E, F> {}
@@ -90,6 +90,40 @@ f() {
 dynamic<int> v;
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 0, 12),
+    ]);
+  }
+
+  test_extractorPattern_tooFew() async {
+    await assertErrorsInCode(r'''
+abstract class A<T, U> {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A<int>(foo: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 79, 6),
+    ]);
+  }
+
+  test_extractorPattern_tooMany() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A<int>(foo: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 73, 6),
     ]);
   }
 
