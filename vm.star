@@ -308,6 +308,7 @@ _extra_builder(
     "cross-vm-linux-release-arm64",
     category = "vm|kernel|cra",
     channels = [],
+    execution_timeout = 4 * time.hour,
     properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
 
