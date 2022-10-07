@@ -736,6 +736,10 @@ class ComplexTypeInfo implements TypeInfo {
             // TODO(jensj): A setter would need parenthesis so technically
             // couldn't look like this, but I don't think any other valid thing
             // could either. Should we handle that specifically?
+          } else if (optional("operator", next) &&
+              afterIdentifier.isUserDefinableOperator) {
+            // E.g.
+            // `(int, int) operator [](int foo) {}`
           } else {
             // This could for instance be `(int x, int y) async {`.
             return noType;
