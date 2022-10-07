@@ -3787,7 +3787,7 @@ class AstBuilder extends StackListener {
   void handleExtractorPatternFields(
       int count, Token beginToken, Token endToken) {
     debugEvent("ExtractorPatternFields");
-    var fields = popTypedList2<RecordPatternField>(count);
+    var fields = popTypedList2<RecordPatternFieldImpl>(count);
     push(_ExtractorPatternFields(beginToken, endToken, fields));
   }
 
@@ -5312,7 +5312,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 class _ExtractorPatternFields {
   final Token leftParenthesis;
   final Token rightParenthesis;
-  final List<RecordPatternField> fields;
+  final List<RecordPatternFieldImpl> fields;
 
   _ExtractorPatternFields(
       this.leftParenthesis, this.rightParenthesis, this.fields);

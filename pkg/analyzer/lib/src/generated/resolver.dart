@@ -41,6 +41,7 @@ import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/constructor_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/extractor_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
@@ -276,6 +277,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       RecordLiteralResolver(resolver: this);
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
+
+  late final ExtractorPatternResolver extractorPatternResolver =
+      ExtractorPatternResolver(this);
 
   final bool genericMetadataIsEnabled;
 

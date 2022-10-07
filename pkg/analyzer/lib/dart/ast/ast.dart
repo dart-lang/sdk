@@ -4337,6 +4337,10 @@ abstract class RecordPattern implements DartPattern {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordPatternField implements AstNode {
+  /// The element referenced explicitly by [fieldName], or implicitly by the
+  /// variable pattern inside [pattern].
+  Element? get fieldElement;
+
   /// The name of the field, or `null` if the field is a positional field.
   RecordPatternFieldName? get fieldName;
 

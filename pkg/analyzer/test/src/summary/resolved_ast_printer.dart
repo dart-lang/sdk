@@ -1086,6 +1086,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RecordPatternField');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('fieldElement', node.fieldElement);
     });
   }
 
