@@ -902,15 +902,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
 
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [
-        astFactory.superConstructorInvocation(
-          Tokens.super_(),
-          isNamed ? Tokens.period() : null,
-          isNamed
+        SuperConstructorInvocationImpl(
+          superKeyword: Tokens.super_(),
+          period: isNamed ? Tokens.period() : null,
+          constructorName: isNamed
               ? (astFactory.simpleIdentifier(
                   StringToken(TokenType.STRING, superclassConstructor.name, -1),
                 )..staticElement = superclassConstructor)
               : null,
-          ArgumentListImpl(
+          argumentList: ArgumentListImpl(
             leftParenthesis: Tokens.openParenthesis(),
             arguments: argumentsForSuperInvocation,
             rightParenthesis: Tokens.closeParenthesis(),

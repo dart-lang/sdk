@@ -8049,18 +8049,13 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /// if the literal is not a constant. The [typeArguments] can be `null` if no
   /// type arguments were declared. The list of [elements] can be `null` if the
   /// list is empty.
-  ListLiteralImpl(super.constKeyword, super.typeArguments, this.leftBracket,
-      List<Expression> elements, this.rightBracket) {
-    _elements._initialize(this, elements);
-  }
-
-  /// Initialize a newly created list literal.
-  ///
-  /// The [constKeyword] can be `null` if the literal is not a constant. The
-  /// [typeArguments] can be `null` if no type arguments were declared. The list
-  /// of [elements] can be `null` if the list is empty.
-  ListLiteralImpl.experimental(super.constKeyword, super.typeArguments,
-      this.leftBracket, List<CollectionElement> elements, this.rightBracket) {
+  ListLiteralImpl({
+    required super.constKeyword,
+    required super.typeArguments,
+    required this.leftBracket,
+    required List<CollectionElement> elements,
+    required this.rightBracket,
+  }) {
     _elements._initialize(this, elements);
   }
 
@@ -11058,8 +11053,13 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   /// `null` if the literal is not a constant. The [typeArguments] can be `null`
   /// if no type arguments were declared. The [elements] can be `null` if the
   /// set is empty.
-  SetOrMapLiteralImpl(super.constKeyword, super.typeArguments, this.leftBracket,
-      List<CollectionElement> elements, this.rightBracket) {
+  SetOrMapLiteralImpl({
+    required super.constKeyword,
+    required super.typeArguments,
+    required this.leftBracket,
+    required List<CollectionElement> elements,
+    required this.rightBracket,
+  }) {
     _elements._initialize(this, elements);
   }
 
@@ -11138,7 +11138,10 @@ class ShowClauseImpl extends AstNodeImpl implements ShowClause {
   final NodeListImpl<ShowHideClauseElement> _elements = NodeListImpl._();
 
   /// Initialize a newly created show clause.
-  ShowClauseImpl(this.showKeyword, List<ShowHideClauseElement> elements) {
+  ShowClauseImpl({
+    required this.showKeyword,
+    required List<ShowHideClauseElement> elements,
+  }) {
     _elements._initialize(this, elements);
   }
 
@@ -11218,10 +11221,13 @@ class ShowHideElementImpl extends AstNodeImpl implements ShowHideElement {
   Token? modifier;
 
   @override
-  SimpleIdentifier name;
+  SimpleIdentifierImpl name;
 
-  ShowHideElementImpl(this.modifier, this.name) {
-    _becomeParentOf<SimpleIdentifierImpl>(name as SimpleIdentifierImpl);
+  ShowHideElementImpl({
+    required this.modifier,
+    required this.name,
+  }) {
+    _becomeParentOf<SimpleIdentifierImpl>(name);
   }
 
   @override
@@ -11571,7 +11577,10 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   String value;
 
   /// Initialize a newly created simple string literal.
-  SimpleStringLiteralImpl(this.literal, this.value);
+  SimpleStringLiteralImpl({
+    required this.literal,
+    required this.value,
+  });
 
   @override
   Token get beginToken => literal;
@@ -11639,7 +11648,10 @@ class SpreadElementImpl extends AstNodeImpl
 
   ExpressionImpl _expression;
 
-  SpreadElementImpl(this.spreadOperator, this._expression) {
+  SpreadElementImpl({
+    required this.spreadOperator,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -11948,8 +11960,13 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   /// constructor with the given name with the given arguments. The [period] and
   /// [constructorName] can be `null` if the constructor being invoked is the
   /// unnamed constructor.
-  SuperConstructorInvocationImpl(this.superKeyword, this.period,
-      this._constructorName, this._argumentList) {
+  SuperConstructorInvocationImpl({
+    required this.superKeyword,
+    required this.period,
+    required SimpleIdentifierImpl? constructorName,
+    required ArgumentListImpl argumentList,
+  })  : _constructorName = constructorName,
+        _argumentList = argumentList {
     _becomeParentOf(_constructorName);
     _becomeParentOf(_argumentList);
   }
@@ -12002,7 +12019,9 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   Token superKeyword;
 
   /// Initialize a newly created super expression.
-  SuperExpressionImpl(this.superKeyword);
+  SuperExpressionImpl({
+    required this.superKeyword,
+  });
 
   @override
   Token get beginToken => superKeyword;
@@ -12183,9 +12202,13 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 
   /// Initialize a newly created switch case. The list of [labels] can be `null`
   /// if there are no labels.
-  SwitchCaseImpl(List<Label> labels, Token keyword, this._expression,
-      Token colon, List<Statement> statements)
-      : super(labels, keyword, colon, statements) {
+  SwitchCaseImpl({
+    required super.labels,
+    required super.keyword,
+    required ExpressionImpl expression,
+    required super.colon,
+    required super.statements,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -12222,7 +12245,12 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
   /// Initialize a newly created switch default. The list of [labels] can be
   /// `null` if there are no labels.
-  SwitchDefaultImpl(super.labels, super.keyword, super.colon, super.statements);
+  SwitchDefaultImpl({
+    required super.labels,
+    required super.keyword,
+    required super.colon,
+    required super.statements,
+  });
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -12446,8 +12474,12 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 
   /// Initialize a newly created switch member. The list of [labels] can be
   /// `null` if there are no labels.
-  SwitchMemberImpl(List<Label> labels, this.keyword, this.colon,
-      List<Statement> statements) {
+  SwitchMemberImpl({
+    required List<Label> labels,
+    required this.keyword,
+    required this.colon,
+    required List<Statement> statements,
+  }) {
     _labels._initialize(this, labels);
     _statements._initialize(this, statements);
   }
@@ -12488,14 +12520,14 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
   @override
   final DartPatternImpl pattern;
 
-  SwitchPatternCaseImpl(
-      {required List<Label> labels,
-      required Token keyword,
-      required this.pattern,
-      required this.whenClause,
-      required Token colon,
-      required List<Statement> statements})
-      : super(labels, keyword, colon, statements) {
+  SwitchPatternCaseImpl({
+    required super.labels,
+    required super.keyword,
+    required this.pattern,
+    required this.whenClause,
+    required super.colon,
+    required super.statements,
+  }) {
     _becomeParentOf(pattern);
     _becomeParentOf(whenClause);
   }
@@ -12617,7 +12649,10 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   final List<Token> components;
 
   /// Initialize a newly created symbol literal.
-  SymbolLiteralImpl(this.poundSign, this.components);
+  SymbolLiteralImpl({
+    required this.poundSign,
+    required this.components,
+  });
 
   @override
   Token get beginToken => poundSign;
@@ -12655,7 +12690,9 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   Token thisKeyword;
 
   /// Initialize a newly created this expression.
-  ThisExpressionImpl(this.thisKeyword);
+  ThisExpressionImpl({
+    required this.thisKeyword,
+  });
 
   @override
   Token get beginToken => thisKeyword;
@@ -12697,7 +12734,10 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   ExpressionImpl _expression;
 
   /// Initialize a newly created throw expression.
-  ThrowExpressionImpl(this.throwKeyword, this._expression) {
+  ThrowExpressionImpl({
+    required this.throwKeyword,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -12835,8 +12875,14 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   /// Initialize a newly created try statement. The list of [catchClauses] can
   /// be`null` if there are no catch clauses. The [finallyKeyword] and
   /// [finallyBlock] can be `null` if there is no finally clause.
-  TryStatementImpl(this.tryKeyword, this._body, List<CatchClause> catchClauses,
-      this.finallyKeyword, this._finallyBlock) {
+  TryStatementImpl({
+    required this.tryKeyword,
+    required BlockImpl body,
+    required List<CatchClause> catchClauses,
+    required this.finallyKeyword,
+    required BlockImpl? finallyBlock,
+  })  : _body = body,
+        _finallyBlock = finallyBlock {
     _becomeParentOf(_body);
     _catchClauses._initialize(this, catchClauses);
     _becomeParentOf(_finallyBlock);
@@ -13002,7 +13048,10 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   /// Initialize a newly created typed literal. The [constKeyword] can be
   /// `null` if the literal is not a constant. The [typeArguments] can be `null`
   /// if no type arguments were declared.
-  TypedLiteralImpl(this.constKeyword, this._typeArguments) {
+  TypedLiteralImpl({
+    required this.constKeyword,
+    required TypeArgumentListImpl? typeArguments,
+  }) : _typeArguments = typeArguments {
     _becomeParentOf(_typeArguments);
   }
 
@@ -13043,7 +13092,9 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
     implements TypeLiteral {
   NamedTypeImpl _typeName;
 
-  TypeLiteralImpl(this._typeName) {
+  TypeLiteralImpl({
+    required NamedTypeImpl typeName,
+  }) : _typeName = typeName {
     _becomeParentOf(_typeName);
   }
 
@@ -13517,7 +13568,10 @@ class VariableDeclarationStatementImpl extends StatementImpl
   Token semicolon;
 
   /// Initialize a newly created variable declaration statement.
-  VariableDeclarationStatementImpl(this._variableList, this.semicolon) {
+  VariableDeclarationStatementImpl({
+    required VariableDeclarationListImpl variableList,
+    required this.semicolon,
+  }) : _variableList = variableList {
     _becomeParentOf(_variableList);
   }
 
@@ -13672,8 +13726,14 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
   StatementImpl _body;
 
   /// Initialize a newly created while statement.
-  WhileStatementImpl(this.whileKeyword, this.leftParenthesis, this._condition,
-      this.rightParenthesis, this._body) {
+  WhileStatementImpl({
+    required this.whileKeyword,
+    required this.leftParenthesis,
+    required ExpressionImpl condition,
+    required this.rightParenthesis,
+    required StatementImpl body,
+  })  : _condition = condition,
+        _body = body {
     _becomeParentOf(_condition);
     _becomeParentOf(_body);
   }
@@ -13729,7 +13789,10 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   final NodeListImpl<NamedType> _mixinTypes = NodeListImpl._();
 
   /// Initialize a newly created with clause.
-  WithClauseImpl(this.withKeyword, List<NamedType> mixinTypes) {
+  WithClauseImpl({
+    required this.withKeyword,
+    required List<NamedType> mixinTypes,
+  }) {
     _mixinTypes._initialize(this, mixinTypes);
   }
 

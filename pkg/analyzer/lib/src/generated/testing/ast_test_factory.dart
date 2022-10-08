@@ -63,23 +63,6 @@ class AstTestFactory {
     return astFactory.documentationComment(tokens, references);
   }
 
-  static ExportDirectiveImpl exportDirective(
-          List<Annotation> metadata, String uri,
-          [List<Combinator> combinators = const []]) =>
-      ExportDirectiveImpl(
-        comment: null,
-        metadata: metadata,
-        exportKeyword: TokenFactory.tokenFromKeyword(Keyword.EXPORT),
-        uri: string2(uri),
-        configurations: null,
-        combinators: combinators,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
-
-  static ExportDirectiveImpl exportDirective2(String uri,
-          [List<Combinator> combinators = const []]) =>
-      exportDirective([], uri, combinators);
-
   static ExtensionDeclarationImpl extensionDeclaration(
           {required String name,
           required bool isExtensionTypeDeclaration,
@@ -156,34 +139,6 @@ class AstTestFactory {
         .toList();
   }
 
-  static ImportDirectiveImpl importDirective(List<Annotation> metadata,
-          String uri, bool isDeferred, String? prefix,
-          [List<Combinator> combinators = const []]) =>
-      ImportDirectiveImpl(
-        comment: null,
-        metadata: metadata,
-        importKeyword: TokenFactory.tokenFromKeyword(Keyword.IMPORT),
-        uri: string2(uri),
-        configurations: null,
-        deferredKeyword: !isDeferred
-            ? null
-            : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
-        asKeyword:
-            prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
-        prefix: prefix == null ? null : identifier3(prefix),
-        combinators: combinators,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
-
-  static ImportDirectiveImpl importDirective2(
-          String uri, bool isDeferred, String prefix,
-          [List<Combinator> combinators = const []]) =>
-      importDirective([], uri, isDeferred, prefix, combinators);
-
-  static ImportDirectiveImpl importDirective3(String uri, String? prefix,
-          [List<Combinator> combinators = const []]) =>
-      importDirective([], uri, false, prefix, combinators);
-
   static InterpolationExpressionImpl interpolationExpression(
           Expression expression) =>
       astFactory.interpolationExpression(
@@ -238,19 +193,6 @@ class AstTestFactory {
     return elements;
   }
 
-  static ListLiteralImpl listLiteral([List<Expression> elements = const []]) =>
-      listLiteral2(null, null, elements);
-
-  static ListLiteralImpl listLiteral2(
-          Keyword? keyword, TypeArgumentList? typeArguments,
-          [List<CollectionElement> elements = const []]) =>
-      astFactory.listLiteral(
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          typeArguments,
-          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
-          elements,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
-
   static MethodDeclarationImpl methodDeclaration(
           Keyword? modifier,
           TypeAnnotation? returnType,
@@ -277,31 +219,12 @@ class AstTestFactory {
         ),
       );
 
-  static NativeFunctionBodyImpl nativeFunctionBody(String nativeMethodName) =>
-      astFactory.nativeFunctionBody(
-          TokenFactory.tokenFromString("native"),
-          string2(nativeMethodName),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
   static ParenthesizedExpressionImpl parenthesizedExpression(
           Expression expression) =>
       astFactory.parenthesizedExpression(
           TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           expression,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static PartDirectiveImpl partDirective(
-          List<Annotation> metadata, String url) =>
-      PartDirectiveImpl(
-        comment: null,
-        metadata: metadata,
-        partKeyword: TokenFactory.tokenFromKeyword(Keyword.PART),
-        uri: string2(url),
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
-
-  static PartDirectiveImpl partDirective2(String url) =>
-      partDirective(<Annotation>[], url);
 
   static PartOfDirectiveImpl partOfDirective(LibraryIdentifier libraryName) =>
       partOfDirective2(<Annotation>[], libraryName);
@@ -318,76 +241,9 @@ class AstTestFactory {
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
 
-  static SetOrMapLiteralImpl setOrMapLiteral(
-          Keyword? keyword, TypeArgumentList? typeArguments,
-          [List<CollectionElement> elements = const []]) =>
-      astFactory.setOrMapLiteral(
-        constKeyword:
-            keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-        typeArguments: typeArguments,
-        leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-        elements: elements,
-        rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
-      );
-
-  static ShowClauseImpl showClause(List<ShowHideClauseElement> elements) =>
-      astFactory.showClause(
-          showKeyword: TokenFactory.tokenFromString("show"),
-          elements: elements);
-
-  static ShowHideElementImpl showHideElement(String name) =>
-      astFactory.showHideElement(modifier: null, name: identifier3(name));
-
-  static ShowHideElementImpl showHideElementGetter(String name) =>
-      astFactory.showHideElement(
-          modifier: TokenFactory.tokenFromString("get"),
-          name: identifier3(name));
-
-  static ShowHideElementImpl showHideElementOperator(String name) =>
-      astFactory.showHideElement(
-          modifier: TokenFactory.tokenFromString("operator"),
-          name: identifier3(name));
-
-  static ShowHideElementImpl showHideElementSetter(String name) =>
-      astFactory.showHideElement(
-          modifier: TokenFactory.tokenFromString("set"),
-          name: identifier3(name));
-
-  static SpreadElementImpl spreadElement(
-          TokenType operator, Expression expression) =>
-      astFactory.spreadElement(
-          spreadOperator: TokenFactory.tokenFromType(operator),
-          expression: expression);
-
   static StringInterpolationImpl string(
           [List<InterpolationElement> elements = const []]) =>
       astFactory.stringInterpolation(elements);
-
-  static SimpleStringLiteralImpl string2(String content) => astFactory
-      .simpleStringLiteral(TokenFactory.tokenFromString("'$content'"), content);
-
-  static SuperExpressionImpl superExpression() =>
-      astFactory.superExpression(TokenFactory.tokenFromKeyword(Keyword.SUPER));
-
-  static SwitchCaseImpl switchCase(
-          Expression expression, List<Statement> statements) =>
-      switchCase2(<Label>[], expression, statements);
-
-  static SwitchCaseImpl switchCase2(List<Label> labels, Expression expression,
-          List<Statement> statements) =>
-      astFactory.switchCase(labels, TokenFactory.tokenFromKeyword(Keyword.CASE),
-          expression, TokenFactory.tokenFromType(TokenType.COLON), statements);
-
-  static SwitchDefaultImpl switchDefault(
-          List<Label> labels, List<Statement> statements) =>
-      astFactory.switchDefault(
-          labels,
-          TokenFactory.tokenFromKeyword(Keyword.DEFAULT),
-          TokenFactory.tokenFromType(TokenType.COLON),
-          statements);
-
-  static SwitchDefaultImpl switchDefault2(List<Statement> statements) =>
-      switchDefault(<Label>[], statements);
 
   static SwitchStatementImpl switchStatement(
           Expression expression, List<SwitchMember> members) =>
@@ -399,23 +255,6 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
           members,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static SymbolLiteralImpl symbolLiteral(List<String> components) {
-    List<Token> identifierList = <Token>[];
-    for (String component in components) {
-      identifierList.add(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, component));
-    }
-    return astFactory.symbolLiteral(
-        TokenFactory.tokenFromType(TokenType.HASH), identifierList);
-  }
-
-  static ThisExpressionImpl thisExpression() =>
-      astFactory.thisExpression(TokenFactory.tokenFromKeyword(Keyword.THIS));
-
-  static ThrowExpressionImpl throwExpression2(Expression expression) =>
-      astFactory.throwExpression(
-          TokenFactory.tokenFromKeyword(Keyword.THROW), expression);
 
   static TopLevelVariableDeclarationImpl topLevelVariableDeclaration(
           Keyword? keyword,
@@ -440,24 +279,6 @@ class AstTestFactory {
         externalKeyword:
             isExternal ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL) : null,
       );
-
-  static TryStatementImpl tryStatement(Block body, Block finallyClause) =>
-      tryStatement3(body, <CatchClause>[], finallyClause);
-
-  static TryStatementImpl tryStatement2(
-          Block body, List<CatchClause> catchClauses) =>
-      tryStatement3(body, catchClauses, null);
-
-  static TryStatementImpl tryStatement3(
-          Block body, List<CatchClause> catchClauses, Block? finallyClause) =>
-      astFactory.tryStatement(
-          TokenFactory.tokenFromKeyword(Keyword.TRY),
-          body,
-          catchClauses,
-          finallyClause == null
-              ? null
-              : TokenFactory.tokenFromKeyword(Keyword.FINALLY),
-          finallyClause);
 
   static TypeArgumentList? typeArgumentList(List<TypeAnnotation>? types) {
     if (types == null || types.isEmpty) {
@@ -540,30 +361,6 @@ class AstTestFactory {
   static VariableDeclarationListImpl variableDeclarationList2(
           Keyword? keyword, List<VariableDeclaration> variables) =>
       variableDeclarationList(keyword, null, variables);
-
-  static VariableDeclarationStatementImpl variableDeclarationStatement(
-          Keyword? keyword,
-          TypeAnnotation? type,
-          List<VariableDeclaration> variables) =>
-      astFactory.variableDeclarationStatement(
-          variableDeclarationList(keyword, type, variables),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static VariableDeclarationStatementImpl variableDeclarationStatement2(
-          Keyword keyword, List<VariableDeclaration> variables) =>
-      variableDeclarationStatement(keyword, null, variables);
-
-  static WhileStatementImpl whileStatement(
-          Expression condition, Statement body) =>
-      astFactory.whileStatement(
-          TokenFactory.tokenFromKeyword(Keyword.WHILE),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          condition,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body);
-
-  static WithClauseImpl withClause(List<NamedType> types) =>
-      astFactory.withClause(TokenFactory.tokenFromKeyword(Keyword.WITH), types);
 
   static YieldStatementImpl yieldEachStatement(Expression expression) =>
       astFactory.yieldStatement(

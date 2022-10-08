@@ -3210,7 +3210,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitShowHideElement(covariant ShowHideElementImpl node) {
     if (identical(node.name, _oldNode)) {
-      node.name = _newNode as SimpleIdentifier;
+      node.name = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);

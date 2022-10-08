@@ -823,7 +823,9 @@ class FunctionReferenceResolver {
     );
     typeName.type = instantiatedType;
     typeName.name.staticType = instantiatedType;
-    var typeLiteral = astFactory.typeLiteral(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(
+      typeName: typeName,
+    );
     typeLiteral.staticType = _typeType;
     _resolver.replaceExpression(node, typeLiteral);
   }

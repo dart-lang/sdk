@@ -1038,8 +1038,9 @@ export 'foo.dart'
   }
 
   void test_visitExportDirective_minimal() {
-    _assertSource(
-        "export 'a.dart';", AstTestFactory.exportDirective2("a.dart"));
+    final code = "export 'a.dart';";
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.export(code));
   }
 
   void test_visitExportDirective_withMetadata() {
@@ -2011,18 +2012,21 @@ import 'foo.dart'
   }
 
   void test_visitImportDirective_deferred() {
-    _assertSource("import 'a.dart' deferred as p;",
-        AstTestFactory.importDirective2("a.dart", true, "p"));
+    final code = "import 'a.dart' deferred as p;";
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportDirective_minimal() {
-    _assertSource(
-        "import 'a.dart';", AstTestFactory.importDirective3("a.dart", null));
+    final code = "import 'a.dart';";
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportDirective_prefix() {
-    _assertSource("import 'a.dart' as p;",
-        AstTestFactory.importDirective3("a.dart", "p"));
+    final code = "import 'a.dart' as p;";
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportDirective_prefix_combinator() {
@@ -2228,21 +2232,27 @@ final v = $code;
   }
 
   void test_visitListLiteral_const() {
-    _assertSource("const []", AstTestFactory.listLiteral2(Keyword.CONST, null));
+    final code = 'const []';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.listLiteral(code));
   }
 
   void test_visitListLiteral_empty() {
-    _assertSource("[]", AstTestFactory.listLiteral());
+    final code = '[]';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.listLiteral(code));
   }
 
   void test_visitListLiteral_nonEmpty() {
-    _assertSource(
-        "[a, b, c]",
-        AstTestFactory.listLiteral([
-          AstTestFactory.identifier3("a"),
-          AstTestFactory.identifier3("b"),
-          AstTestFactory.identifier3("c")
-        ]));
+    final code = '[0, 1, 2]';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.listLiteral(code));
   }
 
   void test_visitListLiteral_withConst_withoutTypeArgs() {
@@ -2323,12 +2333,19 @@ void f(x) {
   }
 
   void test_visitMapLiteral_const() {
-    _assertSource(
-        "const {}", AstTestFactory.setOrMapLiteral(Keyword.CONST, null));
+    final code = 'const {}';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.setOrMapLiteral(code));
   }
 
   void test_visitMapLiteral_empty() {
-    _assertSource("{}", AstTestFactory.setOrMapLiteral(null, null));
+    final code = '{}';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.setOrMapLiteral(code));
   }
 
   void test_visitMapLiteral_nonEmpty() {
@@ -2626,7 +2643,11 @@ class A $code {}
   }
 
   void test_visitNativeFunctionBody() {
-    _assertSource("native 'str';", AstTestFactory.nativeFunctionBody("str"));
+    final code = "native 'code';";
+    final findNode = _parseStringToFindNode('''
+void foo() $code
+''');
+    _assertSource(code, findNode.nativeFunctionBody(code));
   }
 
   void test_visitNullLiteral() {
@@ -2660,7 +2681,9 @@ void f(x) {
   }
 
   void test_visitPartDirective() {
-    _assertSource("part 'a.dart';", AstTestFactory.partDirective2("a.dart"));
+    final code = "part 'a.dart';";
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.part(code));
   }
 
   void test_visitPartDirective_withMetadata() {
@@ -3128,7 +3151,11 @@ class A {
   }
 
   void test_visitSimpleStringLiteral() {
-    _assertSource("'a'", AstTestFactory.string2("a"));
+    final code = "'str'";
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.simpleStringLiteral(code));
   }
 
   void test_visitSpreadElement_nonNullable() {
@@ -3176,7 +3203,14 @@ class A extends B {
   }
 
   void test_visitSuperExpression() {
-    _assertSource("super", AstTestFactory.superExpression());
+    final findNode = _parseStringToFindNode('''
+class A {
+  void foo() {
+    super.foo();
+  }
+}
+''');
+    _assertSource('super', findNode.super_('super.foo'));
   }
 
   void test_visitSuperFormalParameter_annotation() {
@@ -3432,20 +3466,41 @@ void f() {
   }
 
   void test_visitSymbolLiteral_multiple() {
-    _assertSource("#a.b.c", AstTestFactory.symbolLiteral(["a", "b", "c"]));
+    final code = '#a.b.c';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.symbolLiteral(code));
   }
 
   void test_visitSymbolLiteral_single() {
-    _assertSource("#a", AstTestFactory.symbolLiteral(["a"]));
+    final code = '#a';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.symbolLiteral(code));
   }
 
   void test_visitThisExpression() {
-    _assertSource("this", AstTestFactory.thisExpression());
+    final code = 'this';
+    final findNode = _parseStringToFindNode('''
+class A {
+  void foo() {
+    $code;
+  }
+}
+''');
+    _assertSource(code, findNode.this_(code));
   }
 
   void test_visitThrowStatement() {
-    _assertSource("throw e",
-        AstTestFactory.throwExpression2(AstTestFactory.identifier3("e")));
+    final code = 'throw 0';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.throw_(code));
   }
 
   void test_visitTopLevelVariableDeclaration_external() {

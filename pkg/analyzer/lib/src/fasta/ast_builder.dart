@@ -411,8 +411,12 @@ class AstBuilder extends StackListener {
     if (initializerObject is FunctionExpressionInvocationImpl) {
       Expression function = initializerObject.function;
       if (function is SuperExpression) {
-        return ast.superConstructorInvocation(
-            function.superKeyword, null, null, initializerObject.argumentList);
+        return SuperConstructorInvocationImpl(
+          superKeyword: function.superKeyword,
+          period: null,
+          constructorName: null,
+          argumentList: initializerObject.argumentList,
+        );
       }
       if (function is ThisExpression) {
         return RedirectingConstructorInvocationImpl(
@@ -428,11 +432,11 @@ class AstBuilder extends StackListener {
     if (initializerObject is MethodInvocationImpl) {
       var target = initializerObject.target;
       if (target is SuperExpressionImpl) {
-        return ast.superConstructorInvocation(
-          target.superKeyword,
-          initializerObject.operator,
-          initializerObject.methodName,
-          initializerObject.argumentList,
+        return SuperConstructorInvocationImpl(
+          superKeyword: target.superKeyword,
+          period: initializerObject.operator,
+          constructorName: initializerObject.methodName,
+          argumentList: initializerObject.argumentList,
         );
       }
       if (target is ThisExpressionImpl) {
@@ -524,8 +528,13 @@ class AstBuilder extends StackListener {
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidSuperInInitializer,
           target.superKeyword, target.superKeyword);
-      return ast.superConstructorInvocation(target.superKeyword, null, null,
-          argumentList ?? _syntheticArgumentList(target.superKeyword));
+      return SuperConstructorInvocationImpl(
+        superKeyword: target.superKeyword,
+        period: null,
+        constructorName: null,
+        argumentList:
+            argumentList ?? _syntheticArgumentList(target.superKeyword),
+      );
     } else if (target is ThisExpression) {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
@@ -2233,7 +2242,12 @@ class AstBuilder extends StackListener {
     if (interpolationCount == 0) {
       var token = pop() as Token;
       String value = unescapeString(token.lexeme, token, this);
-      push(ast.simpleStringLiteral(token, value));
+      push(
+        SimpleStringLiteralImpl(
+          literal: token,
+          value: value,
+        ),
+      );
     } else {
       var parts = popTypedList(1 + interpolationCount * 2)!;
       var first = parts.first as Token;
@@ -2282,7 +2296,12 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralSymbol");
 
     var components = popTypedList2<Token>(tokenCount);
-    push(ast.symbolLiteral(hashToken, components));
+    push(
+      SymbolLiteralImpl(
+        poundSign: hashToken,
+        components: components,
+      ),
+    );
   }
 
   @override
@@ -2786,18 +2805,18 @@ class AstBuilder extends StackListener {
     }) {
       if (member is SwitchCaseImpl) {
         return SwitchCaseImpl(
-          labels ?? member.labels,
-          member.keyword,
-          member.expression,
-          member.colon,
-          statements ?? member.statements,
+          labels: labels ?? member.labels,
+          keyword: member.keyword,
+          expression: member.expression,
+          colon: member.colon,
+          statements: statements ?? member.statements,
         );
       } else if (member is SwitchDefaultImpl) {
         return SwitchDefaultImpl(
-          labels ?? member.labels,
-          member.keyword,
-          member.colon,
-          statements ?? member.statements,
+          labels: labels ?? member.labels,
+          keyword: member.keyword,
+          colon: member.colon,
+          statements: statements ?? member.statements,
         );
       } else if (member is SwitchPatternCaseImpl) {
         return SwitchPatternCaseImpl(
@@ -2820,8 +2839,12 @@ class AstBuilder extends StackListener {
       // Labels and case statements may be intertwined
       if (defaultKeyword != null) {
         final labels = popLabels();
-        final member = ast.switchDefault(
-            labels, defaultKeyword, colonAfterDefault!, <Statement>[]);
+        final member = SwitchDefaultImpl(
+          labels: labels,
+          keyword: defaultKeyword,
+          colon: colonAfterDefault!,
+          statements: <Statement>[],
+        );
         members = List<SwitchMember?>.filled(expressionCount + 1, null);
         members[expressionCount] = member;
       } else {
@@ -2969,11 +2992,18 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('finally', finallyKeyword));
     debugEvent("TryStatement");
 
-    var finallyBlock = popIfNotNull(finallyKeyword) as Block?;
+    var finallyBlock = popIfNotNull(finallyKeyword) as BlockImpl?;
     var catchClauses = popTypedList2<CatchClause>(catchCount);
-    var body = pop() as Block;
-    push(ast.tryStatement(
-        tryKeyword, body, catchClauses, finallyKeyword, finallyBlock));
+    var body = pop() as BlockImpl;
+    push(
+      TryStatementImpl(
+        tryKeyword: tryKeyword,
+        body: body,
+        catchClauses: catchClauses,
+        finallyKeyword: finallyKeyword,
+        finallyBlock: finallyBlock,
+      ),
+    );
   }
 
   @override
@@ -3116,8 +3146,8 @@ class AstBuilder extends StackListener {
     // var comment = _findComment(metadata,
     //     variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
     push(
-      ast.variableDeclarationStatement(
-        VariableDeclarationListImpl(
+      VariableDeclarationStatementImpl(
+        variableList: VariableDeclarationListImpl(
           comment: comment,
           metadata: metadata,
           lateKeyword: modifiers?.lateToken,
@@ -3125,7 +3155,7 @@ class AstBuilder extends StackListener {
           type: type,
           variables: variables,
         ),
-        semicolon ?? Tokens.semicolon(),
+        semicolon: semicolon ?? Tokens.semicolon(),
       ),
     );
   }
@@ -3135,10 +3165,17 @@ class AstBuilder extends StackListener {
     assert(optional('while', whileKeyword));
     debugEvent("WhileStatement");
 
-    var body = pop() as Statement;
+    var body = pop() as StatementImpl;
     var condition = pop() as _ParenthesizedCondition;
-    push(ast.whileStatement(whileKeyword, condition.leftParenthesis,
-        condition.expression, condition.rightParenthesis, body));
+    push(
+      WhileStatementImpl(
+        whileKeyword: whileKeyword,
+        leftParenthesis: condition.leftParenthesis,
+        condition: condition.expression,
+        rightParenthesis: condition.rightParenthesis,
+        body: body,
+      ),
+    );
   }
 
   @override
@@ -3254,9 +3291,16 @@ class AstBuilder extends StackListener {
           colon: colon,
           statements: <Statement>[]));
     } else {
-      var expression = pop() as Expression;
-      push(ast.switchCase(
-          <Label>[], caseKeyword, expression, colon, <Statement>[]));
+      var expression = pop() as ExpressionImpl;
+      push(
+        SwitchCaseImpl(
+          labels: <Label>[],
+          keyword: caseKeyword,
+          expression: expression,
+          colon: colon,
+          statements: <Statement>[],
+        ),
+      );
     }
   }
 
@@ -3404,7 +3448,12 @@ class AstBuilder extends StackListener {
     var mixinTypes = _popNamedTypeList(
       errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
     );
-    push(ast.withClause(withKeyword, mixinTypes));
+    push(
+      WithClauseImpl(
+        withKeyword: withKeyword,
+        mixinTypes: mixinTypes,
+      ),
+    );
   }
 
   @override
@@ -3665,7 +3714,12 @@ class AstBuilder extends StackListener {
     var mixinTypes = _popNamedTypeList(
       errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
     );
-    push(ast.withClause(withKeyword, mixinTypes));
+    push(
+      WithClauseImpl(
+        withKeyword: withKeyword,
+        mixinTypes: mixinTypes,
+      ),
+    );
   }
 
   @override
@@ -3747,7 +3801,10 @@ class AstBuilder extends StackListener {
     ShowClause? showClause;
     if (showKeyword != null) {
       var elements = popTypedList2<ShowHideClauseElement>(showElementCount);
-      showClause = ast.showClause(showKeyword: showKeyword, elements: elements);
+      showClause = ShowClauseImpl(
+        showKeyword: showKeyword,
+        elements: elements,
+      );
     }
 
     push(hideClause ?? NullValue.HideClause);
@@ -4196,10 +4253,17 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralList");
 
     List<CollectionElement> elements = popCollectionElements(count);
-    var typeArguments = pop() as TypeArgumentList?;
+    var typeArguments = pop() as TypeArgumentListImpl?;
 
-    push(ast.listLiteral(
-        constKeyword, typeArguments, leftBracket, elements, rightBracket));
+    push(
+      ListLiteralImpl(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket,
+      ),
+    );
   }
 
   @override
@@ -4242,14 +4306,16 @@ class AstBuilder extends StackListener {
   ) {
     List<CollectionElement> elements = popCollectionElements(count);
 
-    var typeArguments = pop() as TypeArgumentList?;
-    push(ast.setOrMapLiteral(
-      constKeyword: constKeyword,
-      typeArguments: typeArguments,
-      leftBracket: leftBrace,
-      elements: elements,
-      rightBracket: rightBrace,
-    ));
+    var typeArguments = pop() as TypeArgumentListImpl?;
+    push(
+      SetOrMapLiteralImpl(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBrace,
+        elements: elements,
+        rightBracket: rightBrace,
+      ),
+    );
   }
 
   @override
@@ -4349,7 +4415,12 @@ class AstBuilder extends StackListener {
     var mixinTypes = _popNamedTypeList(
       errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
     );
-    push(ast.withClause(withKeyword, mixinTypes));
+    push(
+      WithClauseImpl(
+        withKeyword: withKeyword,
+        mixinTypes: mixinTypes,
+      ),
+    );
   }
 
   @override
@@ -4601,8 +4672,8 @@ class AstBuilder extends StackListener {
         declaration.withClause = withClause;
       } else {
         declaration.withClause = WithClauseImpl(
-          existingClause.withKeyword,
-          [
+          withKeyword: existingClause.withKeyword,
+          mixinTypes: [
             ...existingClause.mixinTypes,
             ...withClause.mixinTypes,
           ],
@@ -4742,18 +4813,20 @@ class AstBuilder extends StackListener {
         modifier.stringValue! == "set" ||
         modifier.stringValue! == "operator");
 
-    SimpleIdentifier name = ast.simpleIdentifier(identifier);
-    ShowHideElement element =
-        ast.showHideElement(modifier: modifier, name: name);
+    var name = ast.simpleIdentifier(identifier);
+    ShowHideElement element = ShowHideElementImpl(
+      modifier: modifier,
+      name: name,
+    );
 
     push(element);
   }
 
   @override
   void handleSpreadExpression(Token spreadToken) {
-    var expression = pop() as Expression;
+    var expression = pop() as ExpressionImpl;
     push(
-      ast.spreadElement(
+      SpreadElementImpl(
         spreadOperator: spreadToken,
         expression: expression,
       ),
@@ -4780,7 +4853,11 @@ class AstBuilder extends StackListener {
   void handleSuperExpression(Token superKeyword, IdentifierContext context) {
     assert(optional('super', superKeyword));
     debugEvent("SuperExpression");
-    push(ast.superExpression(superKeyword));
+    push(
+      SuperExpressionImpl(
+        superKeyword: superKeyword,
+      ),
+    );
   }
 
   @override
@@ -4796,7 +4873,11 @@ class AstBuilder extends StackListener {
     assert(optional('this', thisKeyword));
     debugEvent("ThisExpression");
 
-    push(ast.thisExpression(thisKeyword));
+    push(
+      ThisExpressionImpl(
+        thisKeyword: thisKeyword,
+      ),
+    );
   }
 
   @override
@@ -4804,7 +4885,12 @@ class AstBuilder extends StackListener {
     assert(optional('throw', throwToken));
     debugEvent("ThrowExpression");
 
-    push(ast.throwExpression(throwToken, pop() as Expression));
+    push(
+      ThrowExpressionImpl(
+        throwKeyword: throwToken,
+        expression: pop() as ExpressionImpl,
+      ),
+    );
   }
 
   @override

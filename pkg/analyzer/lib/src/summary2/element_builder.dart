@@ -299,12 +299,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ..isConst = true
         ..isStatic = true
         ..isSynthetic = true;
-      var initializer = astFactory.listLiteral(
-        null,
-        null,
-        Tokens.openSquareBracket(),
-        valuesElements,
-        Tokens.closeSquareBracket(),
+      var initializer = ListLiteralImpl(
+        constKeyword: null,
+        typeArguments: null,
+        leftBracket: Tokens.openSquareBracket(),
+        elements: valuesElements,
+        rightBracket: Tokens.closeSquareBracket(),
       );
       valuesField.constantInitializer = initializer;
 
