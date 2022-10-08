@@ -517,7 +517,7 @@ _nightly_builder(
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-nnbd-precomp-linux-debug-simriscv64",
+    "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
     category = "vm|misc|rv64",
     channels = ["try"],
 )
