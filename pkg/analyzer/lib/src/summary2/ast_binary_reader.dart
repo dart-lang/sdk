@@ -813,15 +813,15 @@ class AstBinaryReader {
 
   ListLiteral _readListLiteral() {
     var flags = _readByte();
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var elements = _readNodeList<CollectionElement>();
 
-    var node = astFactory.listLiteral(
-      AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
-      typeArguments,
-      Tokens.openSquareBracket(),
-      elements,
-      Tokens.closeSquareBracket(),
+    var node = ListLiteralImpl(
+      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
+      typeArguments: typeArguments,
+      leftBracket: Tokens.openSquareBracket(),
+      elements: elements,
+      rightBracket: Tokens.closeSquareBracket(),
     );
     _readExpressionResolution(node);
     return node;
@@ -1043,9 +1043,9 @@ class AstBinaryReader {
   SetOrMapLiteral _readSetOrMapLiteral() {
     var flags = _readByte();
     var isMapOrSetBits = _readByte();
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var elements = _readNodeList<CollectionElement>();
-    var node = astFactory.setOrMapLiteral(
+    var node = SetOrMapLiteralImpl(
       constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
       elements: elements,
       leftBracket: Tokens.openCurlyBracket(),
@@ -1118,9 +1118,9 @@ class AstBinaryReader {
     var lexeme = _readStringReference();
     var value = _readStringReference();
 
-    var node = astFactory.simpleStringLiteral(
-      TokenFactory.tokenFromString(lexeme),
-      value,
+    var node = SimpleStringLiteralImpl(
+      literal: TokenFactory.tokenFromString(lexeme),
+      value: value,
     );
     _readExpressionResolution(node);
     return node;
@@ -1128,8 +1128,8 @@ class AstBinaryReader {
 
   SpreadElement _readSpreadElement() {
     var flags = _readByte();
-    var expression = readNode() as Expression;
-    return astFactory.spreadElement(
+    var expression = readNode() as ExpressionImpl;
+    return SpreadElementImpl(
       spreadOperator: AstBinaryFlags.hasQuestion(flags)
           ? Tokens.periodPeriodPeriodQuestion()
           : Tokens.periodPeriodPeriod(),
@@ -1149,13 +1149,13 @@ class AstBinaryReader {
   }
 
   SuperConstructorInvocation _readSuperConstructorInvocation() {
-    var constructorName = _readOptionalNode() as SimpleIdentifier?;
-    var argumentList = readNode() as ArgumentList;
-    var node = astFactory.superConstructorInvocation(
-      Tokens.super_(),
-      constructorName != null ? Tokens.period() : null,
-      constructorName,
-      argumentList,
+    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var argumentList = readNode() as ArgumentListImpl;
+    var node = SuperConstructorInvocationImpl(
+      superKeyword: Tokens.super_(),
+      period: constructorName != null ? Tokens.period() : null,
+      constructorName: constructorName,
+      argumentList: argumentList,
     );
     node.staticElement = _reader.readElement() as ConstructorElement?;
     _resolveNamedExpressions(node.staticElement, node.argumentList);
@@ -1163,7 +1163,9 @@ class AstBinaryReader {
   }
 
   SuperExpression _readSuperExpression() {
-    var node = astFactory.superExpression(Tokens.super_());
+    var node = SuperExpressionImpl(
+      superKeyword: Tokens.super_(),
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -1173,20 +1175,28 @@ class AstBinaryReader {
         .readStringReferenceList()
         .map(TokenFactory.tokenFromString)
         .toList();
-    var node = astFactory.symbolLiteral(Tokens.hash(), components);
+    var node = SymbolLiteralImpl(
+      poundSign: Tokens.hash(),
+      components: components,
+    );
     _readExpressionResolution(node);
     return node;
   }
 
   ThisExpression _readThisExpression() {
-    var node = astFactory.thisExpression(Tokens.this_());
+    var node = ThisExpressionImpl(
+      thisKeyword: Tokens.this_(),
+    );
     _readExpressionResolution(node);
     return node;
   }
 
   ThrowExpression _readThrowExpression() {
-    var expression = readNode() as Expression;
-    var node = astFactory.throwExpression(Tokens.throw_(), expression);
+    var expression = readNode() as ExpressionImpl;
+    var node = ThrowExpressionImpl(
+      throwKeyword: Tokens.throw_(),
+      expression: expression,
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -1197,8 +1207,10 @@ class AstBinaryReader {
   }
 
   TypeLiteral _readTypeLiteral() {
-    var typeName = readNode() as NamedType;
-    var node = astFactory.typeLiteral(typeName: typeName);
+    var typeName = readNode() as NamedTypeImpl;
+    var node = TypeLiteralImpl(
+      typeName: typeName,
+    );
     _readExpressionResolution(node);
     return node;
   }

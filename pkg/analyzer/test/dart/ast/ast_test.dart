@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1490,275 +1489,132 @@ void f() {
 }
 
 @reflectiveTest
-class SimpleStringLiteralTest extends ParserTestCase {
+class SimpleStringLiteralTest extends ParserDiagnosticsTest {
   void test_contentsEnd() {
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
-            .contentsEnd,
-        2);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('"X"'), "X")
-            .contentsEnd,
-        2);
+    void assertContentsEnd(String code, int expected) {
+      final parseResult = parseStringWithErrors('''
+final v = $code;
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral(code);
+      expect(node.contentsEnd - node.offset, expected);
+    }
 
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('"""X"""'), "X")
-            .contentsEnd,
-        4);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
-            .contentsEnd,
-        4);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("'''  \nX'''"), "X")
-            .contentsEnd,
-        7);
+    assertContentsEnd("'X'", 2);
+    assertContentsEnd('"X"', 2);
 
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
-            .contentsEnd,
-        3);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('r"X"'), "X")
-            .contentsEnd,
-        3);
+    assertContentsEnd('"""X"""', 4);
+    assertContentsEnd("'''X'''", 4);
 
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('r"""X"""'), "X")
-            .contentsEnd,
-        5);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
-            .contentsEnd,
-        5);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("r'''  \nX'''"), "X")
-            .contentsEnd,
-        8);
+    assertContentsEnd("'''  \nX'''", 7);
+    assertContentsEnd('"""  \nX"""', 7);
+
+    assertContentsEnd("r'X'", 3);
+    assertContentsEnd('r"X"', 3);
+
+    assertContentsEnd('r"""X"""', 5);
+    assertContentsEnd("r'''X'''", 5);
+
+    assertContentsEnd("r'''  \nX'''", 8);
+    assertContentsEnd('r"""  \nX"""', 8);
   }
 
   void test_contentsOffset() {
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
-            .contentsOffset,
-        1);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
-            .contentsOffset,
-        1);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X")
-            .contentsOffset,
-        3);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
-            .contentsOffset,
-        3);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
-            .contentsOffset,
-        2);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
-            .contentsOffset,
-        2);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X")
-            .contentsOffset,
-        4);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
-            .contentsOffset,
-        4);
-    // leading whitespace
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("'''  \nX''"), "X")
-            .contentsOffset,
-        6);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString('r"""  \nX"""'), "X")
-            .contentsOffset,
-        7);
+    void assertContentsOffset(String code, int expected) {
+      final parseResult = parseStringWithErrors('''
+final v = $code;
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral(code);
+      expect(node.contentsOffset - node.offset, expected);
+    }
+
+    assertContentsOffset("'X'", 1);
+    assertContentsOffset('"X"', 1);
+
+    assertContentsOffset('"""X"""', 3);
+    assertContentsOffset("'''X'''", 3);
+
+    assertContentsOffset("'''  \nX'''", 6);
+    assertContentsOffset('"""  \nX"""', 6);
+
+    assertContentsOffset("r'X'", 2);
+    assertContentsOffset('r"X"', 2);
+
+    assertContentsOffset("r'''  \nX'''", 7);
+    assertContentsOffset('r"""  \nX"""', 7);
+
+    assertContentsOffset('r"""X"""', 4);
+    assertContentsOffset("r'''X'''", 4);
   }
 
   void test_isMultiline() {
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
-            .isMultiline,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
-            .isMultiline,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
-            .isMultiline,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
-            .isMultiline,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
-            .isMultiline,
-        isTrue);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
-            .isMultiline,
-        isTrue);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X")
-            .isMultiline,
-        isTrue);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X")
-            .isMultiline,
-        isTrue);
+    void assertIsMultiline(String code, bool expected) {
+      final parseResult = parseStringWithErrors('''
+final v = $code;
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral(code);
+      expect(node.isMultiline, expected);
+    }
+
+    assertIsMultiline("'X'", false);
+    assertIsMultiline("r'X'", false);
+
+    assertIsMultiline('"X"', false);
+    assertIsMultiline('r"X"', false);
+
+    assertIsMultiline("'''X'''", true);
+    assertIsMultiline("r'''X'''", true);
+
+    assertIsMultiline('"""X"""', true);
+    assertIsMultiline('r"""X"""', true);
   }
 
   void test_isRaw() {
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
-            .isRaw,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
-            .isRaw,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X")
-            .isRaw,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
-            .isRaw,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
-            .isRaw,
-        isTrue);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
-            .isRaw,
-        isTrue);
-    expect(
-        astFactory
-            .simpleStringLiteral(
-                TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X")
-            .isRaw,
-        isTrue);
-    expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
-            .isRaw,
-        isTrue);
+    void assertIsRaw(String code, bool expected) {
+      final parseResult = parseStringWithErrors('''
+final v = $code;
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral(code);
+      expect(node.isRaw, expected);
+    }
+
+    assertIsRaw("'X'", false);
+    assertIsRaw("r'X'", true);
+
+    assertIsRaw('"X"', false);
+    assertIsRaw('r"X"', true);
+
+    assertIsRaw("'''X'''", false);
+    assertIsRaw("r'''X'''", true);
+
+    assertIsRaw('"""X"""', false);
+    assertIsRaw('r"""X"""', true);
   }
 
   void test_isSingleQuoted() {
-    // '
-    {
-      var token = TokenFactory.tokenFromString("'X'");
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isTrue);
+    void assertIsSingleQuoted(String code, bool expected) {
+      final parseResult = parseStringWithErrors('''
+final v = $code;
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral(code);
+      expect(node.isSingleQuoted, expected);
     }
-    // '''
-    {
-      var token = TokenFactory.tokenFromString("'''X'''");
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isTrue);
-    }
-    // "
-    {
-      var token = TokenFactory.tokenFromString('"X"');
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isFalse);
-    }
-    // """
-    {
-      var token = TokenFactory.tokenFromString('"""X"""');
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isFalse);
-    }
-  }
 
-  void test_isSingleQuoted_raw() {
-    // r'
-    {
-      var token = TokenFactory.tokenFromString("r'X'");
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isTrue);
-    }
-    // r'''
-    {
-      var token = TokenFactory.tokenFromString("r'''X'''");
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isTrue);
-    }
-    // r"
-    {
-      var token = TokenFactory.tokenFromString('r"X"');
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isFalse);
-    }
-    // r"""
-    {
-      var token = TokenFactory.tokenFromString('r"""X"""');
-      var node = astFactory.simpleStringLiteral(token, 'X');
-      expect(node.isSingleQuoted, isFalse);
-    }
-  }
+    assertIsSingleQuoted("'X'", true);
+    assertIsSingleQuoted("r'X'", true);
 
-  void test_simple() {
-    Token token = TokenFactory.tokenFromString("'value'");
-    SimpleStringLiteral stringLiteral =
-        astFactory.simpleStringLiteral(token, "value");
-    expect(stringLiteral.literal, same(token));
-    expect(stringLiteral.beginToken, same(token));
-    expect(stringLiteral.endToken, same(token));
-    expect(stringLiteral.value, "value");
+    assertIsSingleQuoted('"X"', false);
+    assertIsSingleQuoted('r"X"', false);
+
+    assertIsSingleQuoted("'''X'''", true);
+    assertIsSingleQuoted("r'''X'''", true);
+
+    assertIsSingleQuoted('"""X"""', false);
+    assertIsSingleQuoted('r"""X"""', false);
   }
 }
 

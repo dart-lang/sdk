@@ -572,7 +572,9 @@ class AstRewriter {
     );
     typeName.type = element.aliasedType;
     typeName.name.staticType = element.aliasedType;
-    var typeLiteral = astFactory.typeLiteral(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(
+      typeName: typeName,
+    );
     typeLiteral.staticType = _typeProvider.typeType;
     var methodInvocation = MethodInvocationImpl(
       target: typeLiteral,

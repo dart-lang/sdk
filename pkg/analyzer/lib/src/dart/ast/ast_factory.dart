@@ -95,28 +95,6 @@ class AstFactoryImpl {
   LibraryIdentifierImpl libraryIdentifier(List<SimpleIdentifier> components) =>
       LibraryIdentifierImpl(components);
 
-  ListLiteralImpl listLiteral(
-      Token? constKeyword,
-      TypeArgumentList? typeArguments,
-      Token leftBracket,
-      List<CollectionElement> elements,
-      Token rightBracket) {
-    if (elements is List<Expression>) {
-      return ListLiteralImpl(
-          constKeyword,
-          typeArguments as TypeArgumentListImpl?,
-          leftBracket,
-          elements,
-          rightBracket);
-    }
-    return ListLiteralImpl.experimental(
-        constKeyword,
-        typeArguments as TypeArgumentListImpl?,
-        leftBracket,
-        elements,
-        rightBracket);
-  }
-
   NativeFunctionBodyImpl nativeFunctionBody(
           Token nativeKeyword, StringLiteral? stringLiteral, Token semicolon) =>
       NativeFunctionBodyImpl(
@@ -130,24 +108,6 @@ class AstFactoryImpl {
       ParenthesizedExpressionImpl(
           leftParenthesis, expression as ExpressionImpl, rightParenthesis);
 
-  SetOrMapLiteralImpl setOrMapLiteral(
-          {Token? constKeyword,
-          TypeArgumentList? typeArguments,
-          required Token leftBracket,
-          required List<CollectionElement> elements,
-          required Token rightBracket}) =>
-      SetOrMapLiteralImpl(constKeyword, typeArguments as TypeArgumentListImpl?,
-          leftBracket, elements, rightBracket);
-
-  ShowClauseImpl showClause(
-          {required Token showKeyword,
-          required List<ShowHideClauseElement> elements}) =>
-      ShowClauseImpl(showKeyword, elements);
-
-  ShowHideElementImpl showHideElement(
-          {required Token? modifier, required SimpleIdentifier name}) =>
-      ShowHideElementImpl(modifier, name);
-
   SimpleIdentifierImpl simpleIdentifier(Token token,
       {bool isDeclaration = false}) {
     if (isDeclaration) {
@@ -156,39 +116,9 @@ class AstFactoryImpl {
     return SimpleIdentifierImpl(token);
   }
 
-  SimpleStringLiteralImpl simpleStringLiteral(Token literal, String value) =>
-      SimpleStringLiteralImpl(literal, value);
-
-  SpreadElementImpl spreadElement(
-          {required Token spreadOperator, required Expression expression}) =>
-      SpreadElementImpl(spreadOperator, expression as ExpressionImpl);
-
   StringInterpolationImpl stringInterpolation(
           List<InterpolationElement> elements) =>
       StringInterpolationImpl(elements);
-
-  SuperConstructorInvocationImpl superConstructorInvocation(
-          Token superKeyword,
-          Token? period,
-          SimpleIdentifier? constructorName,
-          ArgumentList argumentList) =>
-      SuperConstructorInvocationImpl(
-          superKeyword,
-          period,
-          constructorName as SimpleIdentifierImpl?,
-          argumentList as ArgumentListImpl);
-
-  SuperExpressionImpl superExpression(Token superKeyword) =>
-      SuperExpressionImpl(superKeyword);
-
-  SwitchCaseImpl switchCase(List<Label> labels, Token keyword,
-          Expression expression, Token colon, List<Statement> statements) =>
-      SwitchCaseImpl(
-          labels, keyword, expression as ExpressionImpl, colon, statements);
-
-  SwitchDefaultImpl switchDefault(List<Label> labels, Token keyword,
-          Token colon, List<Statement> statements) =>
-      SwitchDefaultImpl(labels, keyword, colon, statements);
 
   SwitchStatementImpl switchStatement(
           Token switchKeyword,
@@ -207,48 +137,13 @@ class AstFactoryImpl {
           members,
           rightBracket);
 
-  SymbolLiteralImpl symbolLiteral(Token poundSign, List<Token> components) =>
-      SymbolLiteralImpl(poundSign, components);
-
-  ThisExpressionImpl thisExpression(Token thisKeyword) =>
-      ThisExpressionImpl(thisKeyword);
-
-  ThrowExpressionImpl throwExpression(
-          Token throwKeyword, Expression expression) =>
-      ThrowExpressionImpl(throwKeyword, expression as ExpressionImpl);
-
-  TryStatementImpl tryStatement(
-          Token tryKeyword,
-          Block body,
-          List<CatchClause> catchClauses,
-          Token? finallyKeyword,
-          Block? finallyBlock) =>
-      TryStatementImpl(tryKeyword, body as BlockImpl, catchClauses,
-          finallyKeyword, finallyBlock as BlockImpl?);
-
   TypeArgumentListImpl typeArgumentList(Token leftBracket,
           List<TypeAnnotation> arguments, Token rightBracket) =>
       TypeArgumentListImpl(leftBracket, arguments, rightBracket);
 
-  TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
-      TypeLiteralImpl(typeName as NamedTypeImpl);
-
   TypeParameterListImpl typeParameterList(Token leftBracket,
           List<TypeParameter> typeParameters, Token rightBracket) =>
       TypeParameterListImpl(leftBracket, typeParameters, rightBracket);
-
-  VariableDeclarationStatementImpl variableDeclarationStatement(
-          VariableDeclarationList variableList, Token semicolon) =>
-      VariableDeclarationStatementImpl(
-          variableList as VariableDeclarationListImpl, semicolon);
-
-  WhileStatementImpl whileStatement(Token whileKeyword, Token leftParenthesis,
-          Expression condition, Token rightParenthesis, Statement body) =>
-      WhileStatementImpl(whileKeyword, leftParenthesis,
-          condition as ExpressionImpl, rightParenthesis, body as StatementImpl);
-
-  WithClauseImpl withClause(Token withKeyword, List<NamedType> mixinTypes) =>
-      WithClauseImpl(withKeyword, mixinTypes);
 
   YieldStatementImpl yieldStatement(Token yieldKeyword, Token? star,
           Expression expression, Token semicolon) =>
