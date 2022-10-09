@@ -1076,6 +1076,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   /// Cached concrete targets of this call.
   Iterable<MemberEntity>? _concreteTargets;
 
+  /// Recomputed when _concreteTargets changes.
+  bool? _targetsIncludeComplexNoSuchMethod;
+
   DynamicCallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context,
@@ -1109,6 +1112,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
         inferrer.closedWorld.includesClosureCall(selector!, typeMask);
     final concreteTargets = _concreteTargets =
         inferrer.closedWorld.locateMembers(selector!, typeMask);
+    _targetsIncludeComplexNoSuchMethod = null;
     receiver.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1146,7 +1150,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
-    return _concreteTargets!.any((MemberEntity e) {
+    return _targetsIncludeComplexNoSuchMethod ??=
+        _concreteTargets!.any((MemberEntity e) {
       return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
@@ -1278,6 +1283,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
     // Update the call graph if the targets could have changed.
     if (!identical(concreteTargets, oldTargets)) {
+      _targetsIncludeComplexNoSuchMethod = null;
       // Add calls to new targets to the graph.
       concreteTargets
           .where((target) => !oldTargets.contains(target))
@@ -1372,6 +1378,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
           inferrer.closedWorld.includesClosureCall(localSelector, mask);
       final newConcreteTargets = _concreteTargets =
           inferrer.closedWorld.locateMembers(localSelector, mask);
+      _targetsIncludeComplexNoSuchMethod = null;
       for (MemberEntity element in newConcreteTargets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
