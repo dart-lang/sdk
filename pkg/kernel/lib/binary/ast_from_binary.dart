@@ -244,18 +244,6 @@ class BinaryBuilder {
     return readBytes(readUInt30());
   }
 
-  Uint8List readOrViewByteList() {
-    int length = readUInt30();
-    List<int> source = _bytes;
-    if (source is Uint8List) {
-      Uint8List view =
-          source.buffer.asUint8List(source.offsetInBytes + _byteOffset, length);
-      _byteOffset += length;
-      return view;
-    }
-    return readBytes(length);
-  }
-
   String readString() {
     return readStringEntry(readUInt30());
   }
@@ -939,7 +927,7 @@ class BinaryBuilder {
       String uriString = readString();
       Uri uri = Uri.parse(uriString);
       _sourceUriTable[i] = uri;
-      Uint8List sourceCode = readOrViewByteList();
+      Uint8List sourceCode = readByteList();
       int lineCount = readUInt30();
       List<int> lineStarts = new List<int>.filled(
           lineCount,
