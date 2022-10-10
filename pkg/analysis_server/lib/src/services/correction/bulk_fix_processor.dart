@@ -69,6 +69,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.INVALID_OVERRIDE: [
       DataDriven.new,
     ],
+    CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       DataDriven.new,
     ],
@@ -469,7 +472,9 @@ class BulkFixProcessor {
 class BulkFixRequestResult {
   final ChangeBuilder? builder;
   final String? errorMessage;
+
   BulkFixRequestResult(this.builder) : errorMessage = null;
+
   BulkFixRequestResult.error(this.errorMessage) : builder = null;
 }
 
@@ -491,5 +496,6 @@ extension on String {
 
 extension on int {
   String get isAre => this == 1 ? 'is' : 'are';
+
   String get itThem => this == 1 ? 'it' : 'them';
 }
