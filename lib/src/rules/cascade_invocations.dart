@@ -129,12 +129,33 @@ class _CascadableExpression {
 
   /// Whether this expression can be joined with a previous expression via a
   /// cascade operation.
+  ///
+  /// If this expression is a [PropertyAccess], [CascadeExpression], or
+  /// [MethodInvocation] in which the target is not a [SimpleIdentifier], or an
+  /// [AssignmentExpression] in which the left side is not a [SimpleIdentifier],
+  /// it cannot join. See bugs https://github.com/dart-lang/linter/issues/1323
+  /// and https://github.com/dart-lang/linter/issues/3240.
+  // TODO(https://github.com/dart-lang/linter/issues/3240): Refactor this lint
+  // rule to use
+  // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
+  // should remove this need for checking for a simple target.
   final bool canJoin;
 
   /// Whether this expression can receive an additional expression with a
   /// cascade operation.
   ///
   /// For example, `a.b = 1` can receive, but `a = 1` cannot receive.
+  ///
+  /// If this expression is a [PropertyAccess], [CascadeExpression], or
+  /// [MethodInvocation] in which the target is not a [SimpleIdentifier], or an
+  /// [AssignmentExpression] in which the left side is not a [SimpleIdentifier],
+  /// it cannot receive. See bugs
+  /// https://github.com/dart-lang/linter/issues/1323 and
+  /// https://github.com/dart-lang/linter/issues/3240.
+  // TODO(https://github.com/dart-lang/linter/issues/3240): Refactor this lint
+  // rule to use
+  // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
+  // should remove this need for checking for a simple target.
   final bool canReceive;
   final bool canBeCascaded;
 
@@ -193,21 +214,24 @@ class _CascadableExpression {
         canJoin: true, canReceive: canReceive, canBeCascaded: true);
   }
 
-  factory _CascadableExpression._fromCascadeExpression(
-          CascadeExpression node) =>
-      _CascadableExpression._internal(
-          _getTargetElementFromCascadeExpression(node), node.cascadeSections,
-          canJoin: true, canReceive: true, canBeCascaded: true);
+  factory _CascadableExpression._fromCascadeExpression(CascadeExpression node) {
+    var targetIsSimple = node.target is SimpleIdentifier;
+    return _CascadableExpression._internal(
+        _getTargetElementFromCascadeExpression(node), node.cascadeSections,
+        canJoin: targetIsSimple,
+        canReceive: targetIsSimple,
+        canBeCascaded: true);
+  }
 
   factory _CascadableExpression._fromMethodInvocation(MethodInvocation node) {
     var executableElement = _getExecutableElementFromMethodInvocation(node);
     var isNonStatic = executableElement?.isStatic == false;
     if (isNonStatic) {
-      var isSimpleIdentifier = node.target is SimpleIdentifier;
+      var targetIsSimple = node.target is SimpleIdentifier;
       return _CascadableExpression._internal(
           _getTargetElementFromMethodInvocation(node), [node.argumentList],
-          canJoin: isSimpleIdentifier,
-          canReceive: isSimpleIdentifier,
+          canJoin: targetIsSimple,
+          canReceive: targetIsSimple,
           canBeCascaded: true);
     }
     return nullCascadableExpression;
@@ -221,29 +245,6 @@ class _CascadableExpression {
   factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
     var targetIsSimple = node.target is SimpleIdentifier;
     return _CascadableExpression._internal(node.target.canonicalElement, [],
-        // If the target is something like `(a + b).x`, then node can neither
-        // join, nor receive.
-        //
-        // This restriction is quite limiting. It means that this rule cannot
-        // report on the following code:
-        //
-        //     b1.a
-        //       ..f = 1
-        //       ..g = 1;
-        //     b2.a.f = 2; // Could report here.
-        //
-        // But it may be difficult to accurately know if complicated
-        // expressions are cascadable. Just because two expressions are "equal"
-        // or look the same, does not mean they can be cascaded; for example:
-        //
-        //     (b1 + b2).a
-        //       ..f = 1
-        //       ..g = 1;
-        //     (b1 + b2).a.f = 2; // Should not report here.
-        //
-        // TODO(srawlins): Refactor this lint rule to use
-        // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
-        // should fix this issue.
         canJoin: targetIsSimple,
         canReceive: targetIsSimple,
         canBeCascaded: true);

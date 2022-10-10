@@ -120,7 +120,7 @@ class Resource339 {
   dynamic identifier;
 }
 
-class Practitioner339 extends Resource339{
+class Practitioner339 extends Resource339 {
   int foo = 0;
 
   String build() => '';
@@ -201,6 +201,8 @@ class A {
 
   int get p => 7;
   int get q => 6;
+  int m() => 5;
+  void set s(int value) {}
 }
 
 class B {
@@ -227,6 +229,21 @@ void bug1323() {
     ..p
     ..q;
   b2.a.p; // OK
+
+  b1.a
+    ..p
+    ..q;
+  b2.a..p; // OK
+
+  b1.a
+    ..p
+    ..m();
+  b2.a.m(); // OK
+
+  b1.a
+    ..p
+    ..s = 1;
+  b2.a.s = 1; // OK
 }
 
 void bug1317() async {
