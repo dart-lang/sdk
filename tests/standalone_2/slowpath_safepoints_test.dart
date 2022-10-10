@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that safepoints associated with slowpaths don't mark non-existing values
 // alive.
-// VMOptions=--optimization-counter-threshold=5 --no-inline_alloc --no-background-compilation
+// VMOptions=--optimization-counter-threshold=90 --no-inline_alloc --no-background-compilation
 
 // @dart = 2.9
 
@@ -43,7 +43,7 @@ crash(f, i) {
 }
 
 main() {
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 100; i++) {
     print(i);
     crash(noop, 10);
   }

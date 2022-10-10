@@ -4,7 +4,7 @@
 //
 // SharedObjects=ffi_test_functions
 //
-// VMOptions=--deterministic --optimization-counter-threshold=5 --use-slow-path --stacktrace-every=100
+// VMOptions=--deterministic --optimization-counter-threshold=90 --use-slow-path --stacktrace-every=100
 
 // @dart = 2.9
 
@@ -21,7 +21,7 @@ import 'function_structs_by_value_generated_compounds.dart';
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 void main() {
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     recursiveTest(10);
     recursiveTest(11);
     testCopyLogic();

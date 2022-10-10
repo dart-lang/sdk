@@ -8,7 +8,7 @@
 // VMOptions=--intrinsify --no-enable-asserts
 // VMOptions=--intrinsify --enable-asserts
 // VMOptions=--no-intrinsify --enable-asserts
-// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=20 --no-background-compilation
 
 // Test for JavaScript specific BigInt behaviour. Any JavaScript number (double)
 // that is an integral value is a Dart 'int' value, so any BigInt that has a

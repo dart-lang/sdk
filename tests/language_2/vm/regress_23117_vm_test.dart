@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test location summary for Uint32 multiplication.
-// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=20 --no-background-compilation
 
 // @dart = 2.9
 
@@ -12,7 +12,7 @@ mintLeftShift(x, y) => x << y;
 mintRightShift(x, y) => x >> y;
 
 main() {
-  for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < 25; i++) {
     var x = 1 + (1 << (i + 32));
     Expect.equals(x, mintLeftShift(x, 0));
     Expect.equals(x, mintRightShift(x, 0));

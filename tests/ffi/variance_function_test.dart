@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=10
+// VMOptions=--deterministic --optimization-counter-threshold=90
 // VMOptions=--use-slow-path
 // SharedObjects=ffi_test_functions
 //
