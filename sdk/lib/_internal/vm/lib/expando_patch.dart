@@ -28,7 +28,6 @@ class Expando<T> {
 
   @patch
   T? operator [](Object object) {
-    // TODO(http://dartbug.com/48634): Rename to `key`.
     checkValidWeakTarget(object, 'object');
 
     var mask = _size - 1;
@@ -51,7 +50,6 @@ class Expando<T> {
 
   @patch
   void operator []=(Object object, T? value) {
-    // TODO(http://dartbug.com/48634): Rename to `key`.
     checkValidWeakTarget(object, 'object');
 
     var mask = _size - 1;
