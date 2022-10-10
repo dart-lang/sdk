@@ -494,7 +494,7 @@ f() {
   bool b = false && false;
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 26, 5),
+      error(HintCode.DEAD_CODE, 23, 8),
     ]);
   }
 
@@ -513,7 +513,7 @@ f() {
   bool b = false && (false && false);
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 26, 16),
+      error(HintCode.DEAD_CODE, 23, 19),
     ]);
   }
 
@@ -523,7 +523,7 @@ f() {
   bool b = true || true;
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 25, 4),
+      error(HintCode.DEAD_CODE, 22, 7),
     ]);
   }
 
@@ -544,7 +544,7 @@ f() {
   bool b = true || (false && false);
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 25, 16),
+      error(HintCode.DEAD_CODE, 22, 19),
     ]);
   }
 

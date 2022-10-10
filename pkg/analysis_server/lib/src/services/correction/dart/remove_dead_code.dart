@@ -20,6 +20,23 @@ class RemoveDeadCode extends CorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
+  AstNode? get coveredNode {
+    var node = super.coveredNode;
+    if (node is BinaryExpression) {
+      var problemMessage = diagnostic?.problemMessage;
+      if (problemMessage != null) {
+        var operatorOffset = node.operator.offset;
+        var rightOperand = node.rightOperand;
+        if (problemMessage.offset == operatorOffset &&
+            problemMessage.length == rightOperand.end - operatorOffset) {
+          return rightOperand;
+        }
+      }
+    }
+    return node;
+  }
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_DEAD_CODE;
 
   @override
