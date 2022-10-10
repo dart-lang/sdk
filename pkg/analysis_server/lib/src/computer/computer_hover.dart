@@ -42,6 +42,8 @@ class DartUnitHoverComputer {
       locationEntity = node.name;
     } else if (node is MethodDeclaration) {
       locationEntity = node.name;
+    } else if (node is ConstructorDeclaration) {
+      locationEntity = node.name ?? node.returnType;
     } else if (node is VariableDeclaration) {
       locationEntity = node.name;
     }
@@ -58,22 +60,34 @@ class DartUnitHoverComputer {
     } else if (parent is ConstructorName &&
         grandParent is InstanceCreationExpression) {
       node = grandParent;
+    } else if (node is SimpleIdentifier &&
+        parent is ConstructorDeclaration &&
+        parent.name != null) {
+      node = parent;
     }
     if (node != null &&
         (node is CompilationUnitMember ||
             node is Expression ||
             node is FormalParameter ||
             node is MethodDeclaration ||
+            node is ConstructorDeclaration ||
             node is VariableDeclaration)) {
-      // For constructor calls the whole expression is selected (above) but this
-      // results in the range covering the whole call so narrow it to just the
-      // ConstructorName.
-      var hover = node is InstanceCreationExpression
-          ? HoverInformation(
-              node.constructorName.offset,
-              node.constructorName.length,
-            )
-          : HoverInformation(locationEntity.offset, locationEntity.length);
+      // For constructors, the location should cover the type name and
+      // constructor name (for both calls and declarations).
+      HoverInformation hover;
+      if (node is InstanceCreationExpression) {
+        hover = HoverInformation(
+          node.constructorName.offset,
+          node.constructorName.length,
+        );
+      } else if (node is ConstructorDeclaration) {
+        var offset = node.returnType.offset;
+        var end = node.name?.end ?? node.returnType.end;
+        var length = end - node.returnType.offset;
+        hover = HoverInformation(offset, length);
+      } else {
+        hover = HoverInformation(locationEntity.offset, locationEntity.length);
+      }
       // element
       var element = ElementLocator.locate(node);
       if (element != null) {
