@@ -397,14 +397,19 @@ class ProtocolConverter {
       canShowSource = true;
     }
 
-    var line = 0, col = 0;
-    if (scriptRef != null && tokenPos != null) {
-      try {
-        final script = await thread.getScript(scriptRef);
-        line = script.getLineNumberFromTokenPos(tokenPos) ?? 0;
-        col = script.getColumnNumberFromTokenPos(tokenPos) ?? 0;
-      } catch (e) {
-        _adapter.logger?.call('Failed to map frame location to line/col: $e');
+    // First try to use line/col from location to avoid fetching scripts.
+    // LSP doesn't support nullable lines so we use 0 as where we can't map.
+    var line = location.line ?? 0;
+    var col = location.column ?? 0;
+    if (line == 0 || col == 0) {
+      if (scriptRef != null && tokenPos != null) {
+        try {
+          final script = await thread.getScript(scriptRef);
+          line = script.getLineNumberFromTokenPos(tokenPos) ?? 0;
+          col = script.getColumnNumberFromTokenPos(tokenPos) ?? 0;
+        } catch (e) {
+          _adapter.logger?.call('Failed to map frame location to line/col: $e');
+        }
       }
     }
 
