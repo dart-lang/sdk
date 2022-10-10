@@ -51,7 +51,15 @@ class A {}
 class B {}
 class C {}
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+f(A a) {
+  C c = a as C;
+  print(c);
+}
+class A {}
+class B {}
+class C {}
+''');
   }
 
   Future<void> test_assignment_general() async {
