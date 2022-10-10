@@ -30,6 +30,49 @@ void f(Object waldo) {
     ]);
   }
 
+  test_doWhile() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''', [
+      error(HintCode.DEAD_CODE, 19, 4),
+      error(HintCode.DEAD_CODE, 52, 12),
+    ]);
+  }
+
+  test_doWhile_noBrackets() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do
+    return;
+  while (c);
+}
+''', [
+      error(HintCode.DEAD_CODE, 19, 2),
+      error(HintCode.DEAD_CODE, 36, 10),
+    ]);
+  }
+
+  test_doWhile_statements() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+  print('2');
+}
+''', [
+      error(HintCode.DEAD_CODE, 19, 4),
+      error(HintCode.DEAD_CODE, 52, 12),
+      error(HintCode.DEAD_CODE, 67, 11),
+    ]);
+  }
+
   test_flowEnd_tryStatement_body() async {
     await assertErrorsInCode(r'''
 Never foo() => throw 0;

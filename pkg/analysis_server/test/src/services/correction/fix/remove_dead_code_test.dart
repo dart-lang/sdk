@@ -121,6 +121,70 @@ void f(bool c) {
 ''');
   }
 
+  Future<void> test_doWhile_atDo() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    print(c);
+    return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 4);
+  }
+
+  Future<void> test_doWhile_atDo_noBrackets() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do
+    return;
+  while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 2);
+  }
+
+  Future<void> test_doWhile_atWhile() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    print(c);
+    return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 12);
+  }
+
+  Future<void> test_doWhile_atWhile_noBrackets() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do
+    return;
+  while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 10);
+  }
+
   @failingTest
   Future<void> test_for_returnInBody() async {
     // https://github.com/dart-lang/sdk/issues/43511

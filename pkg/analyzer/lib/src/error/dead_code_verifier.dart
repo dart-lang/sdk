@@ -518,9 +518,28 @@ class NullSafetyDeadCodeVerifier {
         } else if (parent is BinaryExpression && node == parent.rightOperand) {
           offset = parent.operator.offset;
         }
+        if (parent is DoStatement) {
+          var doOffset = parent.doKeyword.offset;
+          var doEnd = parent.doKeyword.end;
+          var whileOffset = parent.whileKeyword.offset;
+          var whileEnd = parent.semicolon.end;
+          var body = parent.body;
+          if (body is Block) {
+            doEnd = body.leftBracket.end;
+            whileOffset = body.rightBracket.offset;
+          }
+          _errorReporter.reportErrorForOffset(
+              HintCode.DEAD_CODE, doOffset, doEnd - doOffset);
+          _errorReporter.reportErrorForOffset(
+              HintCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
+          offset = parent.semicolon.next!.offset;
+        }
 
         var length = node.end - offset;
-        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+        if (length > 0) {
+          _errorReporter.reportErrorForOffset(
+              HintCode.DEAD_CODE, offset, length);
+        }
       }
 
       _firstDeadNode = null;
