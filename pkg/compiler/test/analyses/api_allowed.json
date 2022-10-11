@@ -21,13 +21,6 @@
     "Dynamic invocation of '[]'.": 1,
     "Dynamic invocation of 'toLowerCase'.": 1
   },
-  "org-dartlang-sdk:///lib/io/secure_server_socket.dart": {
-    "Dynamic update to 'dart.io::_owner'.": 1
-  },
-  "org-dartlang-sdk:///lib/io/secure_socket.dart": {
-    "Dynamic access of 'closedReadEventSent'.": 1,
-    "Dynamic update to 'dart.io::_owner'.": 1
-  },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_patch.dart": {
     "Dynamic invocation of '[]'.": 1
   },

@@ -1721,7 +1721,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   external static void _nativeFatal(msg);
 }
 
-class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
+class _RawServerSocket extends Stream<RawSocket>
+    implements RawServerSocket, _RawSocketBase {
   final _NativeSocket _socket;
   StreamController<RawSocket>? _controller;
   bool _v6Only;
@@ -1802,12 +1803,15 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
     }
   }
 
+  bool get _closedReadEventSent => _socket.closedReadEventSent;
+
   void set _owner(owner) {
     _socket.owner = owner;
   }
 }
 
-class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
+class _RawSocket extends Stream<RawSocketEvent>
+    implements RawSocket, _RawSocketBase {
   final _NativeSocket _socket;
   final _controller = new StreamController<RawSocketEvent>(sync: true);
   bool _readEventsEnabled = true;
@@ -1989,6 +1993,8 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
       _socket.close();
     }
   }
+
+  bool get _closedReadEventSent => _socket.closedReadEventSent;
 
   void set _owner(owner) {
     _socket.owner = owner;
