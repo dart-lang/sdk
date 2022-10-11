@@ -809,7 +809,13 @@ CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
   status: needsEvaluation
 CompileTimeErrorCode.NOT_BINARY_OPERATOR:
   status: needsEvaluation
-CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS:
+CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
+  status: hasFix
+CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
   status: hasFix
 CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
   status: hasFix

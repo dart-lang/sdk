@@ -50,7 +50,8 @@ import 'dart:ffi';
 @FfiNative()
 external int foo();
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 30, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          31, 1),
     ]);
   }
 

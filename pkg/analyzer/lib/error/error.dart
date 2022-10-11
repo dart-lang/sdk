@@ -103,7 +103,9 @@ class AnalysisError implements Diagnostic {
     assert(
         (arguments ?? const []).length == errorCode.numParameters,
         'Message $errorCode requires ${errorCode.numParameters} '
-        'argument(s), but ${(arguments ?? const []).length} argument(s) were '
+        'argument${errorCode.numParameters == 1 ? '' : 's'}, but '
+        '${(arguments ?? const []).length} '
+        'argument${(arguments ?? const []).length == 1 ? ' was' : 's were'} '
         'provided');
     String problemMessage = formatList(errorCode.problemMessage, arguments);
     String? correctionTemplate = errorCode.correctionMessage;

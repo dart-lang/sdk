@@ -1815,11 +1815,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               .where((e) => e.isRequiredPositional)
               .length;
           if (requiredParameterCount != 0) {
-            errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-              node.name,
-              [requiredParameterCount, 0],
-            );
+            _reportNotEnoughPositionalArguments(
+                token: node.name,
+                requiredParameterCount: requiredParameterCount,
+                actualArgumentCount: 0,
+                nameNode: node,
+                errorReporter: errorReporter);
           }
         }
       }
@@ -3146,9 +3147,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     int positionalArgumentCount = 0;
     bool noBlankArguments = true;
     Expression? firstUnresolvedArgument;
+    Expression? lastPositionalArgument;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
-      if (argument is! NamedExpressionImpl) {
+      if (argument is! NamedExpression) {
         if (argument is SimpleIdentifier && argument.name.isEmpty) {
           noBlankArguments = false;
         }
@@ -3158,6 +3160,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         } else {
           firstUnresolvedArgument ??= argument;
         }
+        lastPositionalArgument = argument;
       }
     }
 
@@ -3196,10 +3199,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
-      errorReporter?.reportErrorForNode(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-          argumentList,
-          [requiredParameterCount, positionalArgumentCount]);
+      var parent = argumentList.parent;
+      if (errorReporter != null && parent != null) {
+        var token = lastPositionalArgument?.endToken.next ??
+            argumentList.leftParenthesis.next ??
+            argumentList.rightParenthesis;
+        _reportNotEnoughPositionalArguments(
+            token: token,
+            requiredParameterCount: requiredParameterCount,
+            actualArgumentCount: positionalArgumentCount,
+            nameNode: parent,
+            errorReporter: errorReporter);
+      }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
       ErrorCode errorCode;
@@ -3217,6 +3228,78 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
     return resolvedParameters;
+  }
+
+  /// Report [CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS] or one of
+  /// its derivatives at the specified [token], considering the name of the
+  /// [nameNode].
+  static void _reportNotEnoughPositionalArguments(
+      {required Token token,
+      required int requiredParameterCount,
+      required int actualArgumentCount,
+      required AstNode nameNode,
+      required ErrorReporter errorReporter}) {
+    String? name;
+    if (nameNode is InstanceCreationExpression) {
+      var constructorName = nameNode.constructorName;
+      name =
+          constructorName.name?.name ?? '${constructorName.type.name.name}.new';
+    } else if (nameNode is SuperConstructorInvocation) {
+      name = nameNode.constructorName?.name;
+      if (name == null) {
+        var staticElement = nameNode.staticElement;
+        if (staticElement != null) {
+          name =
+              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
+        }
+      }
+    } else if (nameNode is MethodInvocation) {
+      name = nameNode.methodName.name;
+    } else if (nameNode is FunctionExpressionInvocation) {
+      var function = nameNode.function;
+      if (function is SimpleIdentifier) {
+        name = function.name;
+      }
+    } else if (nameNode is EnumConstantArguments) {
+      var parent = nameNode.parent;
+      if (parent is EnumConstantDeclaration) {
+        var declaredElement = parent.declaredElement;
+        if (declaredElement is VariableElement) {
+          name = declaredElement.type.getDisplayString(withNullability: true);
+        }
+      }
+    } else if (nameNode is EnumConstantDeclaration) {
+      var declaredElement = nameNode.declaredElement;
+      if (declaredElement is VariableElement) {
+        name = declaredElement.type.getDisplayString(withNullability: true);
+      }
+    } else if (nameNode is Annotation) {
+      var nameNodeName = nameNode.name;
+      name = nameNodeName is PrefixedIdentifier
+          ? nameNodeName.identifier.name
+          : '${nameNodeName.name}.new';
+    } else {
+      throw UnimplementedError('(${nameNode.runtimeType}) $nameNode');
+    }
+
+    var isPlural = requiredParameterCount - actualArgumentCount > 1;
+    var arguments = <Object>[];
+    if (isPlural) {
+      arguments.add(requiredParameterCount);
+      arguments.add(actualArgumentCount);
+    }
+    ErrorCode errorCode;
+    if (name == null) {
+      errorCode = isPlural
+          ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL
+          : CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR;
+    } else {
+      errorCode = isPlural
+          ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL
+          : CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR;
+      arguments.add(name);
+    }
+    errorReporter.reportErrorForToken(errorCode, token, arguments);
   }
 }
 

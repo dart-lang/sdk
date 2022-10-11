@@ -10275,14 +10275,12 @@ CompileTimeErrorCode:
       ```dart
       var a = 5 - 3;
       ```
-  NOT_ENOUGH_POSITIONAL_ARGUMENTS:
-    problemMessage: "{0} positional argument(s) expected, but {1} found."
-    correctionMessage: Try adding the missing arguments.
+  NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
+    sharedName: NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    problemMessage: "1 positional argument expected, but 0 found."
+    correctionMessage: Try adding the missing argument.
     hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the expected number of required arguments
-      1: the actual number of positional arguments given
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -10298,7 +10296,7 @@ CompileTimeErrorCode:
       ```dart
       void f(int a, int b) {}
       void g() {
-        f[!(0)!];
+        f(0[!)!];
       }
       ```
 
@@ -10312,6 +10310,33 @@ CompileTimeErrorCode:
         f(0, 1);
       }
       ```
+  NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL:
+    sharedName: NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    problemMessage: "{0} positional arguments expected, but {1} found."
+    correctionMessage: Try adding the missing arguments.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the expected number of required arguments
+      1: the actual number of positional arguments given
+  NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
+    sharedName: NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    problemMessage: "1 positional argument expected by '{0}', but 0 found."
+    correctionMessage: Try adding the missing argument.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: name of the function or method
+  NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
+    sharedName: NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    problemMessage: "{0} positional arguments expected by '{2}', but {1} found."
+    correctionMessage: Try adding the missing arguments.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the expected number of required arguments
+      1: the actual number of positional arguments given
+      2: name of the function or method
   NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
     problemMessage: "Non-nullable instance field '{0}' must be initialized."
     correctionMessage: "Try adding an initializer expression, or a generative constructor that initializes it, or mark it 'late'."
