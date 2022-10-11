@@ -37,17 +37,30 @@ if (words.length != 0) return words.join(' ');
 ''';
 
 class PreferIsEmpty extends LintRule {
-  static const LintCode alwaysFalse = LintCode('prefer_is_empty',
-      'Always false because length is always greater or equal 0.');
+  // TODO(brianwilkerson) Both `alwaysFalse` and `alwaysTrue` should be warnings
+  //  rather than lints because they represent a bug rather than a style
+  //  preference.
+  static const LintCode alwaysFalse = LintCode(
+      'prefer_is_empty',
+      "The comparison is always 'false' because the length is always greater "
+          'than or equal to 0.');
 
-  static const LintCode alwaysTrue = LintCode('prefer_is_empty',
-      'Always true because length is always greater or equal 0.');
+  static const LintCode alwaysTrue = LintCode(
+      'prefer_is_empty',
+      "The comparison is always 'true' because the length is always greater "
+          'than or equal to 0.');
 
-  static const LintCode useIsEmpty =
-      LintCode('prefer_is_empty', 'Use isEmpty instead of length');
+  static const LintCode useIsEmpty = LintCode(
+      'prefer_is_empty',
+      "Use 'isEmpty' instead of 'length' to test whether the collection is "
+          'empty.',
+      correctionMessage: "Try rewriting the expression to use 'isEmpty'.");
 
-  static const LintCode useIsNotEmpty =
-      LintCode('prefer_is_empty', 'Use isNotEmpty instead of length');
+  static const LintCode useIsNotEmpty = LintCode(
+      'prefer_is_empty',
+      "Use 'isNotEmpty' instead of 'length' to test whether the collection is "
+          'empty.',
+      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.");
 
   PreferIsEmpty()
       : super(
@@ -55,6 +68,10 @@ class PreferIsEmpty extends LintRule {
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  List<LintCode> get lintCodes =>
+      [alwaysFalse, alwaysTrue, useIsEmpty, useIsNotEmpty];
 
   @override
   void registerNodeProcessors(

@@ -32,12 +32,20 @@ void oldFunction(arg1, arg2) {}
 ''';
 
 class ProvideDeprecationMessage extends LintRule {
+  static const LintCode code = LintCode(
+      'provide_deprecation_message', 'Missing a deprecation message.',
+      correctionMessage:
+          "Try using the constructor to provide a message ('@Deprecated(\"message\")').");
+
   ProvideDeprecationMessage()
       : super(
             name: 'provide_deprecation_message',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
