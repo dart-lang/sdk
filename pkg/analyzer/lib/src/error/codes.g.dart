@@ -3353,12 +3353,47 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the expected number of required arguments
   ///  1: the actual number of positional arguments given
-  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS =
-      CompileTimeErrorCode(
+  ///  2: name of the function or method
+  static const CompileTimeErrorCode
+      NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL = CompileTimeErrorCode(
     'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "{0} positional argument(s) expected, but {1} found.",
+    "{0} positional arguments expected by '{2}', but {1} found.",
     correctionMessage: "Try adding the missing arguments.",
     hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
+  );
+
+  ///  Parameters:
+  ///  0: name of the function or method
+  static const CompileTimeErrorCode
+      NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR = CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "1 positional argument expected by '{0}', but 0 found.",
+    correctionMessage: "Try adding the missing argument.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
+  );
+
+  ///  Parameters:
+  ///  0: the expected number of required arguments
+  ///  1: the actual number of positional arguments given
+  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL =
+      CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "{0} positional arguments expected, but {1} found.",
+    correctionMessage: "Try adding the missing arguments.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR =
+      CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "1 positional argument expected, but 0 found.",
+    correctionMessage: "Try adding the missing argument.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
   );
 
   ///  Parameters:

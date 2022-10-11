@@ -78,7 +78,10 @@ class BulkFixProcessor {
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [

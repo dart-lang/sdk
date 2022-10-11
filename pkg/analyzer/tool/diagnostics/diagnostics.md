@@ -13280,7 +13280,13 @@ var a = 5 - 3;
 
 ### not_enough_positional_arguments
 
-_{0} positional argument(s) expected, but {1} found._
+_1 positional argument expected by '{0}', but 0 found._
+
+_1 positional argument expected, but 0 found._
+
+_{0} positional arguments expected by '{2}', but {1} found._
+
+_{0} positional arguments expected, but {1} found._
 
 #### Description
 
@@ -13296,7 +13302,7 @@ required parameters, but only one argument is provided:
 {% prettify dart tag=pre+code %}
 void f(int a, int b) {}
 void g() {
-  f[!(0)!];
+  f(0[!)!];
 }
 {% endprettify %}
 

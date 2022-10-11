@@ -782,7 +782,10 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NOT_A_TYPE: [
       ImportLibrary.forType,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
