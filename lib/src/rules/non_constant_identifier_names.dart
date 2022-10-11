@@ -33,12 +33,20 @@ align(clearItems) {
 ''';
 
 class NonConstantIdentifierNames extends LintRule {
+  static const LintCode code = LintCode('non_constant_identifier_names',
+      "The variable name '{0}' isn't a lowerCamelCase identifier.",
+      correctionMessage:
+          'Try changing the name to follow the lowerCamelCase style.');
+
   NonConstantIdentifierNames()
       : super(
             name: 'non_constant_identifier_names',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -66,12 +74,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (id == null) {
       return;
     }
-    if (underscoresOk && id.lexeme.isJustUnderscores) {
+    var name = id.lexeme;
+    if (underscoresOk && name.isJustUnderscores) {
       // For example, `___` is OK in a callback.
       return;
     }
-    if (!isLowerCamelCase(id.lexeme)) {
-      rule.reportLintForToken(id);
+    if (!isLowerCamelCase(name)) {
+      rule.reportLintForToken(id, arguments: [name]);
     }
   }
 

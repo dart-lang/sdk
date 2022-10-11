@@ -35,12 +35,19 @@ if (!sources.isEmpty) {
 ''';
 
 class PreferIsNotEmpty extends LintRule {
+  static const LintCode code = LintCode('prefer_is_not_empty',
+      "Use 'isNotEmpty' rather than negating the result of 'isEmpty'.",
+      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.");
+
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

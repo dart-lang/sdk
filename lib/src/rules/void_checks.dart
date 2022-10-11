@@ -30,12 +30,20 @@ void main() {
 ''';
 
 class VoidChecks extends LintRule {
+  static const LintCode code = LintCode(
+      'void_checks', "Assignment to a variable of type 'void'.",
+      correctionMessage:
+          'Try removing the assignment or changing the type of the variable.');
+
   VoidChecks()
       : super(
             name: 'void_checks',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -55,17 +63,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule, LinterContext context) : typeSystem = context.typeSystem;
 
-  bool isTypeAcceptableWhenExpectingVoid(DartType type) {
-    if (type.isVoid) return true;
-    if (type.isDartCoreNull) return true;
-    if (type.isDartAsyncFuture &&
-        type is InterfaceType &&
-        isTypeAcceptableWhenExpectingVoid(type.typeArguments.first)) {
-      return true;
-    }
-    return false;
-  }
-
   bool isTypeAcceptableWhenExpectingFutureOrVoid(DartType type) {
     if (type.isDynamic) return true;
     if (isTypeAcceptableWhenExpectingVoid(type)) return true;
@@ -75,6 +72,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       return true;
     }
 
+    return false;
+  }
+
+  bool isTypeAcceptableWhenExpectingVoid(DartType type) {
+    if (type.isVoid) return true;
+    if (type.isDartCoreNull) return true;
+    if (type.isDartAsyncFuture &&
+        type is InterfaceType &&
+        isTypeAcceptableWhenExpectingVoid(type.typeArguments.first)) {
+      return true;
+    }
     return false;
   }
 

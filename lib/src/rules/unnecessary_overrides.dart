@@ -51,12 +51,20 @@ It's valid to override a member in the following cases:
 ''';
 
 class UnnecessaryOverrides extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_overrides', 'Unnecessary override.',
+      correctionMessage:
+          'Try adding behavior in the overriding member or removing the override.');
+
   UnnecessaryOverrides()
       : super(
             name: 'unnecessary_overrides',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -156,20 +164,6 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
     return false;
   }
 
-  /// Returns true if [_inheritedMethod] is `@protected` and [declaration] is
-  /// not `@protected`, and false otherwise.
-  ///
-  /// This indicates that [_inheritedMethod] may have been overridden in order
-  /// to expand its visibility.
-  bool _makesPublicFromProtected() {
-    var declaredElement = declaration.declaredElement;
-    if (declaredElement == null) return false;
-    if (declaredElement.hasProtected) {
-      return false;
-    }
-    return _inheritedMethod.hasProtected;
-  }
-
   bool _haveSameDeclaration() {
     var declaredElement = declaration.declaredElement;
     if (declaredElement == null) {
@@ -192,6 +186,20 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
       if (param.defaultValueCode != superParam.defaultValueCode) return false;
     }
     return true;
+  }
+
+  /// Returns true if [_inheritedMethod] is `@protected` and [declaration] is
+  /// not `@protected`, and false otherwise.
+  ///
+  /// This indicates that [_inheritedMethod] may have been overridden in order
+  /// to expand its visibility.
+  bool _makesPublicFromProtected() {
+    var declaredElement = declaration.declaredElement;
+    if (declaredElement == null) return false;
+    if (declaredElement.hasProtected) {
+      return false;
+    }
+    return _inheritedMethod.hasProtected;
   }
 
   bool _sameKind(ParameterElement first, ParameterElement second) {
