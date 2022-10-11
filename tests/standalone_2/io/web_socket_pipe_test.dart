@@ -14,7 +14,8 @@ import "dart:async";
 import "dart:io";
 
 createReverseStringTransformer() {
-  return new StreamTransformer.fromHandlers(handleData: (String data, sink) {
+  return new StreamTransformer<dynamic, dynamic>.fromHandlers(
+      handleData: (data, sink) {
     var sb = new StringBuffer();
     for (int i = data.length - 1; i >= 0; i--) sb.write(data[i]);
     sink.add(sb.toString());

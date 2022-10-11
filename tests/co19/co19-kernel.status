@@ -11,21 +11,12 @@ LibTest/async/StreamController/StreamController.broadcast_Stream_all_A01_t01: Sk
 LibTest/async/StreamController/stream_all_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/50122
 
 [ $runtime == dart_precompiled ]
-LibTest/io/RawDatagramSocket/join_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/io/RawDatagramSocket/join_A01_t02: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/io/RawDatagramSocket/join_A02_t01: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/io/RawDatagramSocket/multicastInterface_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/io/RawDatagramSocket/receive_A02_t02: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/io/RawDatagramSocket/reduce_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/io/RawDatagramSocket/reduce_A02_t02: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/io/RawDatagramSocket/reduce_A04_t01: Skip # https://github.com/dart-lang/co19/issues/195
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls
 LibTest/core/List/List_class_A01_t02: Slow, Pass # Does many calls
-LibTest/io/RawDatagramSocket/*: Skip # RawDatagramSocket are flaky. https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass

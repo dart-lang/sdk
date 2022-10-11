@@ -30,6 +30,49 @@ void f(Object waldo) {
     ]);
   }
 
+  test_doWhile() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''', [
+      error(HintCode.DEAD_CODE, 19, 4),
+      error(HintCode.DEAD_CODE, 52, 12),
+    ]);
+  }
+
+  test_doWhile_noBrackets() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do
+    return;
+  while (c);
+}
+''', [
+      error(HintCode.DEAD_CODE, 19, 2),
+      error(HintCode.DEAD_CODE, 36, 10),
+    ]);
+  }
+
+  test_doWhile_statements() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+  print('2');
+}
+''', [
+      error(HintCode.DEAD_CODE, 19, 4),
+      error(HintCode.DEAD_CODE, 52, 12),
+      error(HintCode.DEAD_CODE, 67, 11),
+    ]);
+  }
+
   test_flowEnd_tryStatement_body() async {
     await assertErrorsInCode(r'''
 Never foo() => throw 0;
@@ -494,7 +537,7 @@ f() {
   bool b = false && false;
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 26, 5),
+      error(HintCode.DEAD_CODE, 23, 8),
     ]);
   }
 
@@ -513,7 +556,7 @@ f() {
   bool b = false && (false && false);
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 26, 16),
+      error(HintCode.DEAD_CODE, 23, 19),
     ]);
   }
 
@@ -523,7 +566,7 @@ f() {
   bool b = true || true;
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 25, 4),
+      error(HintCode.DEAD_CODE, 22, 7),
     ]);
   }
 
@@ -544,7 +587,7 @@ f() {
   bool b = true || (false && false);
   print(b);
 }''', [
-      error(HintCode.DEAD_CODE, 25, 16),
+      error(HintCode.DEAD_CODE, 22, 19),
     ]);
   }
 

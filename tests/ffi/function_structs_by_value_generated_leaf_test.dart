@@ -7,7 +7,7 @@
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=5
+// VMOptions=--deterministic --optimization-counter-threshold=20
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
@@ -23,7 +23,7 @@ import 'function_structs_by_value_generated_compounds.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 void main() {
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 25; ++i) {
     testPassStruct1ByteIntx10Leaf();
     testPassStruct3BytesHomogeneousUint8x10Leaf();
     testPassStruct3BytesInt2ByteAlignedx10Leaf();

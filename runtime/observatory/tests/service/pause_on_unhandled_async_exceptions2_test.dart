@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // VMOptions=--async_debugger
-// VMOptions=--async_debugger --optimization-counter-threshold=5
+// VMOptions=--async_debugger --optimization-counter-threshold=90
 
 import 'package:observatory/service_io.dart';
 import 'package:observatory/models.dart' as M;

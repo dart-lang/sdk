@@ -4,7 +4,7 @@
 //
 // SharedObjects=ffi_test_functions
 //
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=200
 
 // @dart = 2.9
 

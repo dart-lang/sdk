@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=20
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';

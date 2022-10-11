@@ -97,6 +97,34 @@ void f() {
     }
   }
 
+  Future<void> test_class_constructor_named_declaration() async {
+    newFile(testFilePath, '''
+library my.library;
+class A {
+  /// my doc
+  A.named() {}
+}
+''');
+    void onConstructor(HoverInformation hover) {
+      // range
+      expect(hover.offset, findOffset('A.named'));
+      expect(hover.length, 'A.named'.length);
+      // element
+      expect(hover.dartdoc, 'my doc');
+      expect(hover.elementDescription, 'A A.named()');
+      expect(hover.elementKind, 'constructor');
+    }
+
+    {
+      var hover = await prepareHover('A.');
+      onConstructor(hover);
+    }
+    {
+      var hover = await prepareHover('named()');
+      onConstructor(hover);
+    }
+  }
+
   Future<void> test_class_constructor_noKeyword_const() async {
     newFile(testFilePath, '''
 library my.library;

@@ -954,7 +954,7 @@ ${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=5
+// VMOptions=--deterministic --optimization-counter-threshold=20
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
@@ -984,7 +984,7 @@ Future<void> writeDartCallTest({required bool isLeaf}) async {
     final suffix = isLeaf ? 'Leaf' : '';
     buffer.write("""
     void main() {
-      for (int i = 0; i < 10; ++i) {
+      for (int i = 0; i < 25; ++i) {
         ${functions.map((e) => "${e.dartTestName}$suffix();").join("\n")}
       }
     }
@@ -1014,7 +1014,7 @@ ${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=10
+// VMOptions=--deterministic --optimization-counter-threshold=20
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
