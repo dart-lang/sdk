@@ -266,6 +266,6 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   }
 
   void set _owner(owner) {
-    (_socket as dynamic)._owner = owner;
+    (_socket as _RawSocketBase)._owner = owner;
   }
 }
