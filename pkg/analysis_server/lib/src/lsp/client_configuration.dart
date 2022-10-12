@@ -39,10 +39,23 @@ class LspClientConfiguration {
   LspGlobalClientConfiguration get global => _globalSettings;
 
   /// Returns whether or not the provided new configuration changes any values
+  /// that would affect analysis results.
+  bool affectsAnalysisResults(LspGlobalClientConfiguration otherConfig) {
+    // Check whether TODO settings have changed.
+    final oldFlag = _globalSettings.showAllTodos;
+    final newFlag = otherConfig.showAllTodos;
+    final oldTypes = _globalSettings.showTodoTypes;
+    final newTypes = otherConfig.showTodoTypes;
+    return newFlag != oldFlag ||
+        !const SetEquality().equals(oldTypes, newTypes);
+  }
+
+  /// Returns whether or not the provided new configuration changes any values
   /// that would require analysis roots to be updated.
   bool affectsAnalysisRoots(LspGlobalClientConfiguration otherConfig) {
-    return _globalSettings.analysisExcludedFolders !=
-        otherConfig.analysisExcludedFolders;
+    final oldExclusions = _globalSettings.analysisExcludedFolders;
+    final newExclusions = otherConfig.analysisExcludedFolders;
+    return !const ListEquality().equals(oldExclusions, newExclusions);
   }
 
   /// Returns config for a given resource.

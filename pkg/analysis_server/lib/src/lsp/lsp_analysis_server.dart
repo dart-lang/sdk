@@ -272,6 +272,11 @@ class LspAnalysisServer extends AnalysisServer {
 
         if (clientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
           await _refreshAnalysisRoots();
+        } else if (clientConfiguration
+            .affectsAnalysisResults(oldGlobalConfig)) {
+          // Some settings affect analysis results and require re-analysis
+          // (such as showTodos).
+          await reanalyze();
         }
       }
     }
