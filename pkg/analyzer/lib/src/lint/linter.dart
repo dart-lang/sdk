@@ -697,11 +697,20 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     }
   }
 
-  void reportPubLint(PSNode node) {
+  void reportPubLint(PSNode node,
+      {List<Object> arguments = const [],
+      List<DiagnosticMessage> contextMessages = const [],
+      ErrorCode? errorCode}) {
     var source = node.source;
     // Cache error and location info for creating AnalysisErrorInfos
     AnalysisError error = AnalysisError(
-        source, node.span.start.offset, node.span.length, lintCode);
+      source,
+      node.span.start.offset,
+      node.span.length,
+      errorCode ?? lintCode,
+      arguments,
+      contextMessages,
+    );
     LineInfo lineInfo = LineInfo.fromContent(source.contents.data);
 
     _locationInfo.add(AnalysisErrorInfoImpl([error], lineInfo));
