@@ -772,7 +772,7 @@
   `CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS`.
 
 ## 0.38.1
-* LinterVistor support for extension method AST nodes.
+* LinterVisitor support for extension method AST nodes.
 
 ## 0.38.0
 * The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
@@ -834,7 +834,7 @@
 * Removed methods `AstVisitor.ForStatement2`, `ListLiteral.elements2`,
   `SetOrMapLiteral.elements2`, `AstFactory.forStatement2`, and
   `NodeLintRegistry.addForStatement2`, as well as class `ForStatement2`.  Use
-  the variants with out the "2" suffix instead.
+  the variants without the "2" suffix instead.
 * Changed the signature and behavior of `parseFile` to match `parseFile2`.
   Clients that switched to using `parseFile2` when `parseFile` was deprecated
   should now switch back to `parseFile`.

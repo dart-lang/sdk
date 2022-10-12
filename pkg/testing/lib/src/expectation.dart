@@ -98,7 +98,7 @@ class ExpectationSet {
             break;
 
           default:
-            throw "Unrecoginized key: '$key' in '$map'.";
+            throw "Unrecognized key: '$key' in '$map'.";
         }
       });
       if (name == null) {
