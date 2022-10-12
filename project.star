@@ -129,17 +129,17 @@ luci.realm(
     ],
 )
 
-def led_users(*, pool_realms, builder_realm, groups):
+def led_users(*, pool_realms, builder_realm, **kwargs):
     for realm in pool_realms:
         luci.binding(
             realm = realm,
             roles = "role/swarming.poolUser",
-            groups = groups,
+            **kwargs
         )
     luci.binding(
         realm = builder_realm,
         roles = "role/swarming.taskTriggerer",
-        groups = groups,
+        **kwargs
     )
 
 # Allow admins to use LED and "Debug" button on every Dart builder and bot.
@@ -155,6 +155,16 @@ led_users(
     pool_realms = ["pools/try", "pools/tests"],
     builder_realm = "try",
     groups = ["mdb/dart-build-access"],
+)
+
+# Allow dart-luci-try-builder@dart-ci.iam.gserviceaccount.com to trigger led
+# runs in the try pool.
+led_users(
+    pool_realms = ["pools/try"],
+    builder_realm = "try",
+    users = [
+        "dart-luci-try-builder@dart-ci.iam.gserviceaccount.com",
+    ],
 )
 
 luci.milo(
