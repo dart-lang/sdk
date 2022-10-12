@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'ast_test.dart' as ast;
 import 'collection_test.dart' as collection;
 import 'object_test.dart' as object;
 import 'stream_test.dart' as stream;
@@ -11,6 +12,7 @@ import 'string_test.dart' as string;
 
 main() {
   defineReflectiveSuite(() {
+    ast.main();
     collection.main();
     object.main();
     stream.main();
