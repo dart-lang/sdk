@@ -125,7 +125,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType defaultExpression(Expression node, w.ValueType expectedType) {
-    unimplemented(node, node.runtimeType, [expectedType]);
+    unimplemented(
+        node, node.runtimeType, [if (expectedType != voidMarker) expectedType]);
     return expectedType;
   }
 
