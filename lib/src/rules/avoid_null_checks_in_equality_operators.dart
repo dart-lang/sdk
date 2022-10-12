@@ -62,12 +62,20 @@ bool _isParameterWithQuestionQuestion(
     _isParameter(node.leftOperand, parameter);
 
 class AvoidNullChecksInEqualityOperators extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_null_checks_in_equality_operators',
+      "Unnecessary null comparison in implementation of '=='.",
+      correctionMessage: 'Try removing the comparison.');
+
   AvoidNullChecksInEqualityOperators()
       : super(
             name: 'avoid_null_checks_in_equality_operators',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

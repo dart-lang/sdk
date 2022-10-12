@@ -46,12 +46,21 @@ class Lucky extends Cat {
 ''';
 
 class AnnotateOverrides extends LintRule {
+  static const LintCode code = LintCode(
+      'annotate_overrides',
+      "The member '{0}' overrides an inherited member but isn't annotated "
+          "with '@override'.",
+      correctionMessage: "Try adding the '@override' annotation.");
+
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -73,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var member = getOverriddenMember(element);
     if (member != null) {
-      rule.reportLintForToken(target);
+      rule.reportLintForToken(target, arguments: [member.name!]);
     }
   }
 

@@ -205,12 +205,19 @@ class NonNullableFunction {
 }
 
 class NullClosures extends LintRule {
+  static const LintCode code = LintCode(
+      'null_closures', "Closure can't be 'null' because it might be invoked.",
+      correctionMessage: 'Try providing a non-null closure.');
+
   NullClosures()
       : super(
             name: 'null_closures',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

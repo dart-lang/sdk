@@ -20,6 +20,16 @@ with digits and isn't a reserved word.
 ''';
 
 class PubPackageNames extends LintRule {
+  // TODO(brianwilkerson) Uncomment the following when `reportPubLint` supports
+  //  message arguments.
+  // static const LintCode code = LintCode('package_names',
+  //     "The package name '{0}' isn't a snake_case identifier.",
+  //     correctionMessage:
+  //     'Try changing the name to follow the snake_case style.');
+  //
+  // @override
+  // LintCode get lintCode => code;
+
   PubPackageNames()
       : super(
             name: 'package_names',
@@ -40,7 +50,7 @@ class Visitor extends PubspecVisitor {
   void visitPackageName(PSEntry name) {
     var packageName = name.value.text;
     if (packageName != null && !isValidPackageName(packageName)) {
-      rule.reportPubLint(name.value);
+      rule.reportPubLint(name.value); // arguments: [packageName]
     }
   }
 }

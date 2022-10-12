@@ -35,12 +35,20 @@ file.
 ''';
 
 class LibraryNames extends LintRule {
+  static const LintCode code = LintCode(
+      'library_names', "The library name '{0}' isn't a snake_case identifier.",
+      correctionMessage:
+          'Try changing the name to follow the snake_case style.');
+
   LibraryNames()
       : super(
             name: 'library_names',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -59,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitLibraryDirective(LibraryDirective node) {
     var name = node.name2;
     if (name != null && !isLowerCaseUnderScoreWithDots(name.toString())) {
-      rule.reportLint(name);
+      rule.reportLint(name, arguments: [name.toString()]);
     }
   }
 }

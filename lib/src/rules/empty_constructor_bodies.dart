@@ -37,12 +37,19 @@ class Point {
 ''';
 
 class EmptyConstructorBodies extends LintRule {
+  static const LintCode code = LintCode('empty_constructor_bodies',
+      "Empty constructor bodies should be written using a ';' rather than '{}'.",
+      correctionMessage: "Try replacing the constructor body with ';'.");
+
   EmptyConstructorBodies()
       : super(
             name: 'empty_constructor_bodies',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

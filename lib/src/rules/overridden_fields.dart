@@ -97,12 +97,21 @@ Iterable<InterfaceType> _findAllSupertypesInMixin(MixinElement mixinElement) {
 }
 
 class OverriddenFields extends LintRule {
+  static const LintCode code = LintCode(
+      'overridden_fields', "Field overrides a field inherited from '{0}'.",
+      correctionMessage:
+          'Try removing the field, overriding the getter and setter if '
+          'necessary.');
+
   OverriddenFields()
       : super(
             name: 'overridden_fields',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -124,11 +133,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var variable in node.fields.variables) {
-      var declaredElement = variable.declaredElement;
-      if (declaredElement != null) {
-        var field = _getOverriddenMember(declaredElement);
-        if (field != null && !field.isAbstract) {
-          rule.reportLintForToken(variable.name);
+      var declaredField = variable.declaredElement;
+      if (declaredField != null) {
+        var overriddenField = _getOverriddenMember(declaredField);
+        if (overriddenField != null && !overriddenField.isAbstract) {
+          rule.reportLintForToken(variable.name,
+              arguments: [overriddenField.enclosingElement3.displayName]);
         }
       }
     }

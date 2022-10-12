@@ -42,12 +42,23 @@ Future<void> f2() async {
 ''';
 
 class AvoidReturningNullForVoid extends LintRule {
+  static const LintCode fromFunction = LintCode('avoid_returning_null_for_void',
+      "Don't return 'null' from a function with a return type of 'void'.",
+      correctionMessage: "Try removing the 'null'.");
+
+  static const LintCode fromMethod = LintCode('avoid_returning_null_for_void',
+      "Don't return 'null' from a method with a return type of 'void'.",
+      correctionMessage: "Try removing the 'null'.");
+
   AvoidReturningNullForVoid()
       : super(
             name: 'avoid_returning_null_for_void',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  List<LintCode> get lintCodes => [fromFunction, fromMethod];
 
   @override
   void registerNodeProcessors(
@@ -86,23 +97,26 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     DartType? type;
     bool? isAsync;
+    LintCode code;
     if (parent is FunctionExpression) {
       type = parent.declaredElement?.returnType;
       isAsync = parent.body.isAsynchronous;
+      code = AvoidReturningNullForVoid.fromFunction;
     } else if (parent is MethodDeclaration) {
       type = parent.declaredElement?.returnType;
       isAsync = parent.body.isAsynchronous;
+      code = AvoidReturningNullForVoid.fromMethod;
     } else {
       throw StateError('unexpected type');
     }
     if (type == null) return;
 
     if (!isAsync && type.isVoid) {
-      rule.reportLint(node);
+      rule.reportLint(node, errorCode: code);
     } else if (isAsync &&
         type.isDartAsyncFuture &&
         (type as InterfaceType).typeArguments.first.isVoid) {
-      rule.reportLint(node);
+      rule.reportLint(node, errorCode: code);
     }
   }
 }

@@ -33,12 +33,20 @@ import 'package:javascript_utils/javascript_utils.dart' as jsUtils;
 ''';
 
 class LibraryPrefixes extends LintRule {
+  static const LintCode code = LintCode(
+      'library_prefixes', "The prefix '{0}' isn't a snake_case identifier.",
+      correctionMessage:
+          'Try changing the prefix to follow the snake_case style.');
+
   LibraryPrefixes()
       : super(
             name: 'library_prefixes',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -55,8 +63,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    if (node.prefix != null && !isValidLibraryPrefix(node.prefix.toString())) {
-      rule.reportLint(node.prefix);
+    var prefix = node.prefix;
+    if (prefix != null && !isValidLibraryPrefix(prefix.toString())) {
+      rule.reportLint(prefix, arguments: [prefix.toString()]);
     }
   }
 }
