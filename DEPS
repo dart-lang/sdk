@@ -195,7 +195,7 @@ vars = {
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
-  "emsdk_rev": "d0291b3216fbc9765d9cfc1a2103316b32a555c6",
+  "emsdk_rev": "e41b8c68a248da5f18ebd03bd0420953945d52ff",
   "emsdk_ver": "3.1.3",
 }
 
