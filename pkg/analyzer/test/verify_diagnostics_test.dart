@@ -41,7 +41,7 @@ class DocumentationValidator {
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Has code in the example section that needs to be skipped (because it's
-    // part of the explanitory text not part of the example), but there's
+    // part of the explanatory text not part of the example), but there's
     // currently no way to do that.
     'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
     // Produces two diagnostics when it should only produce one. We could get
