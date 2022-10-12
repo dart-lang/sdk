@@ -48,6 +48,10 @@ Widget buildRow() {
 ''';
 
 class SizedBoxForWhitespace extends LintRule {
+  static const LintCode code = LintCode('sized_box_for_whitespace',
+      "Use a 'SizedBox' to add whitespace to a layout.",
+      correctionMessage: "Try using a 'SizedBox' rather than a 'Container'.");
+
   SizedBoxForWhitespace()
       : super(
             name: 'sized_box_for_whitespace',
@@ -56,11 +60,43 @@ class SizedBoxForWhitespace extends LintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
+  }
+}
+
+class _ArgumentData {
+  var incompatibleParamsFound = false;
+
+  var positionalArgumentFound = false;
+  var seenWidth = false;
+  var seenHeight = false;
+  var seenChild = false;
+  _ArgumentData(ArgumentList node) {
+    for (var argument in node.arguments) {
+      if (argument is! NamedExpression) {
+        positionalArgumentFound = true;
+        return;
+      }
+      var label = argument.name.label;
+      if (label.name == 'width') {
+        seenWidth = true;
+      } else if (label.name == 'height') {
+        seenHeight = true;
+      } else if (label.name == 'child') {
+        seenChild = true;
+      } else if (label.name == 'key') {
+        // key doesn't matter (both SizedBox and Container have it)
+      } else {
+        incompatibleParamsFound = true;
+      }
+    }
   }
 }
 
@@ -85,33 +121,4 @@ class _Visitor extends SimpleAstVisitor {
       rule.reportLint(node.constructorName);
     }
   }
-}
-
-class _ArgumentData {
-  _ArgumentData(ArgumentList node) {
-    for (var argument in node.arguments) {
-      if (argument is! NamedExpression) {
-        positionalArgumentFound = true;
-        return;
-      }
-      var label = argument.name.label;
-      if (label.name == 'width') {
-        seenWidth = true;
-      } else if (label.name == 'height') {
-        seenHeight = true;
-      } else if (label.name == 'child') {
-        seenChild = true;
-      } else if (label.name == 'key') {
-        // key doesn't matter (both SizedBox and Container have it)
-      } else {
-        incompatibleParamsFound = true;
-      }
-    }
-  }
-
-  var incompatibleParamsFound = false;
-  var positionalArgumentFound = false;
-  var seenWidth = false;
-  var seenHeight = false;
-  var seenChild = false;
 }

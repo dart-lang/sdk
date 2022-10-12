@@ -48,12 +48,21 @@ Widget buildRow() {
 ''';
 
 class AvoidUnnecessaryContainers extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_unnecessary_containers', "Unnecessary instance of 'Container'.",
+      correctionMessage:
+          "Try removing the 'Constructor' (but not it's children) from the "
+          'widget tree.');
+
   AvoidUnnecessaryContainers()
       : super(
             name: 'avoid_unnecessary_containers',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

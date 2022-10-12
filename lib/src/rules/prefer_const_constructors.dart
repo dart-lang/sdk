@@ -52,12 +52,20 @@ void accessA() {
 ''';
 
 class PreferConstConstructors extends LintRule {
+  static const LintCode code = LintCode('prefer_const_constructors',
+      "Use 'const' with the constructor to improve performance.",
+      correctionMessage:
+          "Try adding the 'const' keyword to the constructor invocation.");
+
   PreferConstConstructors()
       : super(
             name: 'prefer_const_constructors',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

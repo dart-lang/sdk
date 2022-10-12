@@ -34,12 +34,19 @@ class MyPublicWidget extends StatelessWidget {
 ''';
 
 class UseKeyInWidgetConstructors extends LintRule {
+  static const LintCode code = LintCode('use_key_in_widget_constructors',
+      "Constructors for public widgets should have a named 'key' parameter.",
+      correctionMessage: 'Try adding a named parameter to the constructor.');
+
   UseKeyInWidgetConstructors()
       : super(
             name: 'use_key_in_widget_constructors',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -107,8 +114,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _defineKeyParameter(ConstructorElement element) =>
       element.parameters.any((e) => e.name == 'key' && _isKeyType(e.type));
 
-  bool _isKeyType(DartType type) => type.implementsInterface('Key', '');
-
   bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
     for (var parameter in node.parameters.parameters) {
       var element = parameter.declaredElement;
@@ -119,4 +124,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     return false;
   }
+
+  bool _isKeyType(DartType type) => type.implementsInterface('Key', '');
 }

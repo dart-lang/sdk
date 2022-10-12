@@ -81,12 +81,20 @@ Exception: It's allowed to have parameter with a function expression after the
 ''';
 
 class SortChildPropertiesLast extends LintRule {
+  static const LintCode code = LintCode('sort_child_properties_last',
+      "The '{0}' argument should be last in widget constructor invocations.",
+      correctionMessage:
+          'Try moving the argument to the end of the argument list.');
+
   SortChildPropertiesLast()
       : super(
             name: 'sort_child_properties_last',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -123,7 +131,9 @@ class _Visitor extends SimpleAstVisitor {
             element.expression is! FunctionExpression)
         .isEmpty;
     if (!onlyClosuresAfterChild) {
-      rule.reportLint(arguments.firstWhere(isChildArg));
+      var argument = arguments.firstWhere(isChildArg);
+      var name = (argument as NamedExpression).name.label.name;
+      rule.reportLint(argument, arguments: [name]);
     }
   }
 
