@@ -287,8 +287,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// ```dart
   /// final characters1 = <String>{'A', 'B', 'C'};
   /// final characters2 = <String>{'A', 'E', 'F'};
-  /// final unionSet = characters1.intersection(characters2);
-  /// print(unionSet); // {A}
+  /// final intersectionSet = characters1.intersection(characters2);
+  /// print(intersectionSet); // {A}
   /// ```
   Set<E> intersection(Set<Object?> other);
 
