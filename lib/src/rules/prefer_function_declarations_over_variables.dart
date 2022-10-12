@@ -36,12 +36,22 @@ void main() {
 ''';
 
 class PreferFunctionDeclarationsOverVariables extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_function_declarations_over_variables',
+      'Use a function declaration rather than a variable assignment to bind a '
+          'function to a name.',
+      correctionMessage:
+          'Try rewriting the closure assignment as a function declaration.');
+
   PreferFunctionDeclarationsOverVariables()
       : super(
             name: 'prefer_function_declarations_over_variables',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -95,12 +95,19 @@ bool _containedInInitializer(
     initializer.fieldName.canonicalElement == element;
 
 class PreferFinalFields extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_final_fields', "The private field {0} could be 'final'.",
+      correctionMessage: "Try making the field 'final'.");
+
   PreferFinalFields()
       : super(
             name: 'prefer_final_fields',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -188,10 +195,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
         if (isFieldInConstructors) {
           if (isFieldInAllConstructors) {
-            rule.reportLint(variable);
+            rule.reportLint(variable, arguments: [variable.name.lexeme]);
           }
         } else if (element.hasInitializer) {
-          rule.reportLint(variable);
+          rule.reportLint(variable, arguments: [variable.name.lexeme]);
         }
       }
     }

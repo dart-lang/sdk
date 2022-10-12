@@ -34,12 +34,19 @@ bool isIdentifierPart(Token? token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
 class UnnecessaryBraceInStringInterps extends LintRule {
+  static const LintCode code = LintCode('unnecessary_brace_in_string_interps',
+      'Unnecessary braces in a string interpolation.',
+      correctionMessage: 'Try removing the braces.');
+
   UnnecessaryBraceInStringInterps()
       : super(
             name: 'unnecessary_brace_in_string_interps',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

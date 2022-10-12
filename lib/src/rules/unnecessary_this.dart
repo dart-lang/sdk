@@ -49,12 +49,19 @@ class Box {
 ''';
 
 class UnnecessaryThis extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_this', "Unnecessary 'this.' qualifier.",
+      correctionMessage: "Try removing 'this.'.");
+
   UnnecessaryThis()
       : super(
             name: 'unnecessary_this',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

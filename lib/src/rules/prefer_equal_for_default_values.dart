@@ -28,12 +28,19 @@ m({a = 1})
 ''';
 
 class PreferEqualForDefaultValues extends LintRule {
+  static const LintCode code = LintCode('prefer_equal_for_default_values',
+      "Default values should be introduced by '=' rather than ':'.",
+      correctionMessage: "Try using '=' to introduce the default value.");
+
   PreferEqualForDefaultValues()
       : super(
             name: 'prefer_equal_for_default_values',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

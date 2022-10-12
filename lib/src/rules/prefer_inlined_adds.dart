@@ -28,12 +28,23 @@ var l2 = ['a', 'b', 'c'];
 ''';
 
 class PreferInlinedAdds extends LintRule {
+  static const LintCode single = LintCode(
+      'prefer_inlined_adds', 'The addition of a list item could be inlined.',
+      correctionMessage: 'Try adding the item to the list literal directly.');
+
+  static const LintCode multiple = LintCode('prefer_inlined_adds',
+      'The addition of multiple list items could be inlined.',
+      correctionMessage: 'Try adding the items to the list literal directly.');
+
   PreferInlinedAdds()
       : super(
             name: 'prefer_inlined_adds',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  List<LintCode> get lintCodes => [multiple, single];
 
   @override
   void registerNodeProcessors(
@@ -71,6 +82,8 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    rule.reportLint(invocation.methodName);
+    rule.reportLint(invocation.methodName,
+        errorCode:
+            addAll ? PreferInlinedAdds.multiple : PreferInlinedAdds.single);
   }
 }

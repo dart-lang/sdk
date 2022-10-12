@@ -29,12 +29,21 @@ and read than concatenation.
 ''';
 
 class PreferInterpolationToComposeStrings extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_interpolation_to_compose_strings',
+      'Use interpolation to compose strings and values.',
+      correctionMessage:
+          'Try using string interpolation to build the composite string.');
+
   PreferInterpolationToComposeStrings()
       : super(
             name: 'prefer_interpolation_to_compose_strings',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

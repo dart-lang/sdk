@@ -52,12 +52,21 @@ final pizzaRecipients = {
 ''';
 
 class PreferForElementsToMapFromIterable extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_for_elements_to_map_fromIterable',
+      "Use 'for' elements when building maps from iterables.",
+      correctionMessage:
+          "Try using a collection literal with a 'for' element.");
+
   PreferForElementsToMapFromIterable()
       : super(
             name: 'prefer_for_elements_to_map_fromIterable',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

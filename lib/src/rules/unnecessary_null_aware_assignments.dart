@@ -33,12 +33,19 @@ x ??= null;
 ''';
 
 class UnnecessaryNullAwareAssignments extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_null_aware_assignments', "Unnecessary assignment of 'null'.",
+      correctionMessage: 'Try removing the assignment.');
+
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

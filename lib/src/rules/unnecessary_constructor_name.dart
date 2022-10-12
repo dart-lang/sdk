@@ -40,12 +40,19 @@ var makeA = A.new;
 ''';
 
 class UnnecessaryConstructorName extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_constructor_name', "Unnecessary '.new' constructor name.",
+      correctionMessage: "Try removing the '.new'.");
+
   UnnecessaryConstructorName()
       : super(
             name: 'unnecessary_constructor_name',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
