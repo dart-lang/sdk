@@ -44,8 +44,8 @@ class LibraryPrivateTypesInPublicAPI extends LintRule {
   static const LintCode code = LintCode('library_private_types_in_public_api',
       'Invalid use of a private type in a public API.',
       correctionMessage:
-          'Try using a public supertype of the private type, or making the '
-          'API private.');
+          'Try making the private type public, or making the API that uses the '
+          'private type also be private.');
 
   LibraryPrivateTypesInPublicAPI()
       : super(
