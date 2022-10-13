@@ -13,6 +13,7 @@ import 'import_elements_computer_test.dart' as import_elements_computer;
 import 'imported_elements_computer_test.dart' as imported_elements_computer;
 import 'outline_computer_test.dart' as outline_computer;
 import 'selection_range_computer_test.dart' as selection_range;
+import 'type_hierarchy_computer_test.dart' as type_hierarchy_computer_test;
 
 void main() {
   defineReflectiveSuite(() {
@@ -25,5 +26,6 @@ void main() {
     imported_elements_computer.main();
     outline_computer.main();
     selection_range.main();
+    type_hierarchy_computer_test.main();
   });
 }
