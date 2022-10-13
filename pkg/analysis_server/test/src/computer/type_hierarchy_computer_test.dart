@@ -25,6 +25,18 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
   final startOfFile = SourceRange(0, 0);
   late TestCode code;
 
+  /// Matches a [TypeHierarchyItem] for [Enum].
+  Matcher get _isEnum => TypeMatcher<TypeHierarchyItem>()
+      .having((e) => e.displayName, 'displayName', 'Enum')
+      // Check some basic things without hard-coding values that will make
+      // this test brittle.
+      .having((e) => e.file, 'file', convertPath('/sdk/lib/core/core.dart'))
+      .having((e) => e.nameRange.offset, 'nameRange.offset', isPositive)
+      .having((e) => e.nameRange.length, 'nameRange.length', 'Enum'.length)
+      .having((e) => e.codeRange.offset, 'codeRange.offset', isPositive)
+      .having((e) => e.codeRange.length, 'codeRange.length',
+          greaterThan('class Enum {}'.length));
+
   /// Matches a [TypeHierarchyItem] for [Object].
   Matcher get _isObject => TypeMatcher<TypeHierarchyItem>()
       .having((e) => e.displayName, 'displayName', 'Object')
@@ -53,7 +65,7 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
   Future<ResolvedUnitResult> getResolvedUnit(String file) async =>
       await (await session).getResolvedUnit(file) as ResolvedUnitResult;
 
-  /// Matches a [TypeHierarchyItem] with the given name/kind/file.
+  /// Matches a [TypeHierarchyItem] with the given values.
   Matcher _isItem(
     String displayName,
     String file, {
@@ -65,6 +77,20 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
           .having((e) => e.file, 'file', file)
           .having((e) => e.nameRange, 'nameRange', nameRange)
           .having((e) => e.codeRange, 'codeRange', codeRange);
+
+  /// Matches a [TypeHierarchyRelatedItem] with the given values.
+  Matcher _isRelatedItem(
+    String displayName,
+    String file, {
+    required TypeHierarchyItemRelationship relationship,
+    required SourceRange nameRange,
+    required SourceRange codeRange,
+  }) =>
+      allOf([
+        _isItem(displayName, file, nameRange: nameRange, codeRange: codeRange),
+        TypeMatcher<TypeHierarchyRelatedItem>()
+            .having((e) => e.relationship, 'relationship', relationship)
+      ]);
 }
 
 @reflectiveTest
@@ -86,6 +112,26 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
     ]);
   }
 
+  Future<void> test_class_interfaces() async {
+    final content = '''
+class ^MyClass1 {}
+/*[0*/class /*[1*/MyClass2/*1]*/ implements MyClass1 {}/*0]*/
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final supertypes = await findSubtypes(target!);
+    expect(supertypes, [
+      _isRelatedItem(
+        'MyClass2',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
   Future<void> test_class_mixins() async {
     final content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ with MyMixin1 {}/*0]*/
@@ -97,15 +143,17 @@ mixin MyMi^xin1 {}
     final target = await findTarget();
     final subtypes = await findSubtypes(target!);
     expect(subtypes, [
-      _isItem(
+      _isRelatedItem(
         'MyClass1',
         testFile,
+        relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
-      _isItem(
+      _isRelatedItem(
         'MyClass2',
         testFile,
+        relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[2].sourceRange,
         nameRange: code.ranges[3].sourceRange,
       ),
@@ -122,28 +170,94 @@ class ^MyClass1 {}
     final target = await findTarget();
     final supertypes = await findSubtypes(target!);
     expect(supertypes, [
-      _isItem(
+      _isRelatedItem(
         'MyClass2',
         testFile,
+        relationship: TypeHierarchyItemRelationship.extends_,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
     ]);
   }
 
-  Future<void> test_mixin() async {
+  Future<void> test_enum_interfaces() async {
     final content = '''
-class MyCl^ass1 {}
-/*[0*/mixin /*[1*/MyMixin1/*1]*/ on MyClass1 {}/*0]*/
+/*[0*/enum /*[1*/MyEnum1/*1]*/ implements MyClass1 {
+  one,
+}/*0]*/
+class MyCla^ss1 {}
     ''';
 
     addTestSource(content);
     final target = await findTarget();
-    final supertypes = await findSubtypes(target!);
-    expect(supertypes, [
-      _isItem(
+    final subtypes = await findSubtypes(target!);
+    expect(subtypes, [
+      _isRelatedItem(
+        'MyEnum1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_enum_mixins() async {
+    final content = '''
+/*[0*/enum /*[1*/MyEnum1/*1]*/ with MyMixin1 {
+  one,
+}/*0]*/
+mixin MyMi^xin1 {}
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final subtypes = await findSubtypes(target!);
+    expect(subtypes, [
+      _isRelatedItem(
+        'MyEnum1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.mixesIn,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_mixin_interfaces() async {
+    final content = '''
+/*[0*/mixin /*[1*/MyMixin1/*1]*/ implements MyClass1 {}/*0]*/
+class MyCl^ass1 {}
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final subtypes = await findSubtypes(target!);
+    expect(subtypes, [
+      _isRelatedItem(
         'MyMixin1',
         testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_mixin_superclassConstaints() async {
+    final content = '''
+/*[0*/mixin /*[1*/MyMixin1/*1]*/ on MyClass1 {}/*0]*/
+class MyCl^ass1 {}
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final subtypes = await findSubtypes(target!);
+    expect(subtypes, [
+      _isRelatedItem(
+        'MyMixin1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.constrainedTo,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -176,9 +290,31 @@ class ^MyClass2 extends MyClass1 {}
 
     final supertypes = await findSupertypes(target!);
     expect(supertypes, [
-      _isItem(
+      _isRelatedItem(
         'MyClass1',
         testFile,
+        relationship: TypeHierarchyItemRelationship.extends_,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_class_interfaces() async {
+    final content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
+class ^MyClass2 implements MyClass1 {}
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final supertypes = await findSupertypes(target!);
+    expect(supertypes, [
+      _isObject,
+      _isRelatedItem(
+        'MyClass1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
@@ -197,15 +333,17 @@ class ^MyClass1 with MyMixin1, MyMixin2 {}
     final supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isObject,
-      _isItem(
+      _isRelatedItem(
         'MyMixin1',
         testFile,
+        relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
-      _isItem(
+      _isRelatedItem(
         'MyMixin2',
         testFile,
+        relationship: TypeHierarchyItemRelationship.mixesIn,
         codeRange: code.ranges[2].sourceRange,
         nameRange: code.ranges[3].sourceRange,
       ),
@@ -222,27 +360,97 @@ class ^MyClass2 extends MyClass1 {}
     final target = await findTarget();
     final supertypes = await findSupertypes(target!);
     expect(supertypes, [
-      _isItem(
+      _isRelatedItem(
         'MyClass1',
         testFile,
+        relationship: TypeHierarchyItemRelationship.extends_,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
     ]);
   }
 
-  /// Mixins have no supertypes and are provided only for subtype search,
-  /// mirroring that they appear in the supertypes list of classes.
-  Future<void> test_mixin() async {
+  Future<void> test_enum_interfaces() async {
     final content = '''
-class MyClass1 {}
+enum MyEn^um1 implements MyClass1 { one }
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final supertypes = await findSupertypes(target!);
+    expect(supertypes, [
+      _isEnum,
+      _isRelatedItem(
+        'MyClass1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_enum_mixins() async {
+    final content = '''
+enum MyEn^um1 with MyMixin1 { one }
+/*[0*/mixin /*[1*/MyMixin1/*1]*/ {}/*0]*/
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final supertypes = await findSupertypes(target!);
+    expect(supertypes, [
+      _isEnum,
+      _isRelatedItem(
+        'MyMixin1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.mixesIn,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_mixin_interfaces() async {
+    final content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
+mixin MyMix^in2 implements MyClass1 {}
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final supertypes = await findSupertypes(target!);
+    expect(supertypes, [
+      _isObject,
+      _isRelatedItem(
+        'MyClass1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_mixin_superclassConstraints() async {
+    final content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
 mixin MyMix^in2 on MyClass1 {}
     ''';
 
     addTestSource(content);
     final target = await findTarget();
     final supertypes = await findSupertypes(target!);
-    expect(supertypes, isEmpty);
+    expect(supertypes, [
+      _isRelatedItem(
+        'MyClass1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.constrainedTo,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
   }
 }
 
@@ -302,6 +510,58 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyClass1',
+        testFile,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_enum_body() async {
+    final content = '''
+/*[0*/enum /*[1*/MyEnum1/*1]*/ {
+  ^
+}/*0]*/
+    ''';
+
+    addTestSource(content);
+    await expectTarget(
+      _isItem(
+        'MyEnum1',
+        testFile,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_enum_keyword() async {
+    final content = '''
+/*[0*/en^um /*[1*/MyEnum1/*1]*/ {
+}/*0]*/
+    ''';
+
+    addTestSource(content);
+    await expectTarget(
+      _isItem(
+        'MyEnum1',
+        testFile,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_enumName() async {
+    final content = '''
+/*[0*/enum /*[1*/MyEn^um1/*1]*/ {
+}/*0]*/
+    ''';
+
+    addTestSource(content);
+    await expectTarget(
+      _isItem(
+        'MyEnum1',
         testFile,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
