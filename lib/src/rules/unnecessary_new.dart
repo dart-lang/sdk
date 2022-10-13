@@ -32,12 +32,19 @@ m(){
 ''';
 
 class UnnecessaryNew extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_new', "Unnecessary 'new' keyword.",
+      correctionMessage: "Try removing the 'new' keyword.");
+
   UnnecessaryNew()
       : super(
             name: 'unnecessary_new',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

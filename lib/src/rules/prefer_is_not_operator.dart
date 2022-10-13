@@ -30,12 +30,22 @@ if (foo is! Foo) {
 ''';
 
 class PreferIsNotOperator extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_is_not_operator',
+      "Use the 'is!' operator rather than negating the value of the 'is' "
+          'operator.',
+      correctionMessage:
+          "Try rewriting the condition to use the 'is!' operator.");
+
   PreferIsNotOperator()
       : super(
             name: 'prefer_is_not_operator',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

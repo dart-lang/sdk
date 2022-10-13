@@ -34,12 +34,19 @@ m(){
 ''';
 
 class UnnecessaryConst extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_const', "Unnecessary 'const' keyword.",
+      correctionMessage: 'Try removing the keyword.');
+
   UnnecessaryConst()
       : super(
             name: 'unnecessary_const',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

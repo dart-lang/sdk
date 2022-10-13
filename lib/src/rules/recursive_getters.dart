@@ -36,12 +36,19 @@ int get field => _field;
 ''';
 
 class RecursiveGetters extends LintRule {
+  static const LintCode code = LintCode(
+      'recursive_getters', "The getter '{0}' recursively returns itself.",
+      correctionMessage: 'Try changing the value being returned.');
+
   RecursiveGetters()
       : super(
             name: 'recursive_getters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -73,7 +80,7 @@ class _BodyVisitor extends RecursiveAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.staticElement == element) {
       if (node.parent is! PrefixedIdentifier) {
-        rule.reportLint(node);
+        rule.reportLint(node, arguments: [node.name]);
       }
     }
 

@@ -69,12 +69,20 @@ var l = ['a', ...?things];
 ''';
 
 class PreferSpreadCollections extends LintRule {
+  static const LintCode code = LintCode('prefer_spread_collections',
+      'The addition of multiple elements could be inlined.',
+      correctionMessage:
+          "Try using the spread operator ('...') to inline the addition.");
+
   PreferSpreadCollections()
       : super(
             name: 'prefer_spread_collections',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -31,12 +31,20 @@ var y = null ?? 1;
 ''';
 
 class UnnecessaryNullInIfNullOperators extends LintRule {
+  static const LintCode code = LintCode('unnecessary_null_in_if_null_operators',
+      "Unnecessary use of '??' with 'null'.",
+      correctionMessage:
+          "Try removing the '??' operator and the 'null' operand.");
+
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

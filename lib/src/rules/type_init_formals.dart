@@ -66,12 +66,19 @@ class B extends A {
 ''';
 
 class TypeInitFormals extends LintRule {
+  static const LintCode code = LintCode('type_init_formals',
+      "Don't needlessly type annotate initializing formals.",
+      correctionMessage: 'Try removing the type.');
+
   TypeInitFormals()
       : super(
             name: 'type_init_formals',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

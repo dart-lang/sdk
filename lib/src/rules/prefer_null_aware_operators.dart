@@ -27,12 +27,21 @@ v = a?.b;
 ''';
 
 class PreferNullAwareOperators extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_null_aware_operators',
+      "Use the null-aware operator '?.' rather than an explicit 'null' "
+          'comparison.',
+      correctionMessage: "Try using '?.'.");
+
   PreferNullAwareOperators()
       : super(
             name: 'prefer_null_aware_operators',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -89,7 +98,6 @@ class _Visitor extends SimpleAstVisitor {
         }
         if (exp.toString() == expression.toString()) {
           rule.reportLint(node);
-          return;
         }
       }
     }

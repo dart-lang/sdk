@@ -116,12 +116,20 @@ Element? _getRightElement(AssignmentExpression assignment) =>
     assignment.rightHandSide.canonicalElement;
 
 class PreferInitializingFormals extends LintRule {
+  static const LintCode code = LintCode('prefer_initializing_formals',
+      'Use an initializing formal to assign a parameter to a field.',
+      correctionMessage:
+          "Try using an initialing formal ('this.{0}') to initialize the field.");
+
   PreferInitializingFormals()
       : super(
             name: 'prefer_initializing_formals',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -216,13 +224,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var assignment in assignments) {
       if (isAssignmentExpressionToLint(assignment)) {
-        rule.reportLint(assignment);
+        var rightElement = _getRightElement(assignment)!;
+        rule.reportLint(assignment, arguments: [rightElement.displayName]);
       }
     }
 
     for (var initializer in initializers) {
       if (isConstructorFieldInitializerToLint(initializer)) {
-        rule.reportLint(initializer);
+        var name = initializer.fieldName.staticElement!.name!;
+        rule.reportLint(initializer, arguments: [name]);
       }
     }
   }
