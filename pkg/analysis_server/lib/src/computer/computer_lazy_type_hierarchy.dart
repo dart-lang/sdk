@@ -94,18 +94,23 @@ class DartLazyTypeHierarchyComputer {
       InterfaceElement target, SearchEngine searchEngine) async {
     final targetType = target.thisType;
 
+    /// Helper to check whether [type] refers to the same class as [target]
+    /// irrespective of any concrete type arguments.
+    bool isTargetClass(InterfaceType? type) =>
+        type?.element == targetType.element;
+
     /// Helper to convert an [InterfaceElement] to a [TypeHierarchyRelatedItem].
     TypeHierarchyRelatedItem toHierarchyItem(InterfaceElement element) {
       final type = element.thisType;
       if (element is MixinElement &&
-          element.superclassConstraints.contains(targetType)) {
+          element.superclassConstraints.any(isTargetClass)) {
         return TypeHierarchyRelatedItem.constrainedTo(type);
-      } else if (element.supertype == targetType) {
+      } else if (isTargetClass(element.supertype)) {
         return TypeHierarchyRelatedItem.extends_(type);
-      } else if (element.interfaces.contains(targetType)) {
+      } else if (element.interfaces.any(isTargetClass)) {
         return TypeHierarchyRelatedItem.implements(type);
-      } else if (element.mixins.contains(targetType)) {
-        return TypeHierarchyRelatedItem.with_(type);
+      } else if (element.mixins.any(isTargetClass)) {
+        return TypeHierarchyRelatedItem.mixesIn(type);
       } else {
         assert(false, 'Subtype found with unknown relationship type');
         return TypeHierarchyRelatedItem.unknown(type);
@@ -136,7 +141,7 @@ class DartLazyTypeHierarchyComputer {
       if (supertype != null) TypeHierarchyRelatedItem.extends_(supertype),
       ...?superclassConstraints?.map(TypeHierarchyRelatedItem.constrainedTo),
       ...?interfaces?.map(TypeHierarchyRelatedItem.implements),
-      ...?mixins?.map(TypeHierarchyRelatedItem.with_),
+      ...?mixins?.map(TypeHierarchyRelatedItem.mixesIn),
     ];
   }
 
@@ -213,13 +218,13 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
       : this._forElement(type.element,
             relationship: TypeHierarchyItemRelationship.implements);
 
+  TypeHierarchyRelatedItem.mixesIn(InterfaceType type)
+      : this._forElement(type.element,
+            relationship: TypeHierarchyItemRelationship.mixesIn);
+
   TypeHierarchyRelatedItem.unknown(InterfaceType type)
       : this._forElement(type.element,
             relationship: TypeHierarchyItemRelationship.unknown);
-
-  TypeHierarchyRelatedItem.with_(InterfaceType type)
-      : this._forElement(type.element,
-            relationship: TypeHierarchyItemRelationship.mixesIn);
 
   TypeHierarchyRelatedItem._forElement(super.element,
       {required this.relationship})

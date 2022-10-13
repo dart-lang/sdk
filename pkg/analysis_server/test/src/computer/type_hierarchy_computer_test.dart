@@ -112,6 +112,26 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
     ]);
   }
 
+  Future<void> test_class_generic() async {
+    final content = '''
+class My^Class1<T> {}
+/*[0*/class /*[1*/MyClass2/*1]*/ implements MyClass1<String> {}/*0]*/
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final supertypes = await findSubtypes(target!);
+    expect(supertypes, [
+      _isRelatedItem(
+        'MyClass2',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
   Future<void> test_class_interfaces() async {
     final content = '''
 class ^MyClass1 {}
@@ -294,6 +314,27 @@ class ^MyClass2 extends MyClass1 {}
         'MyClass1',
         testFile,
         relationship: TypeHierarchyItemRelationship.extends_,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    ]);
+  }
+
+  Future<void> test_class_generic() async {
+    final content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/<T> {}/*0]*/
+class ^MyClass2 implements MyClass1<String> {}
+    ''';
+
+    addTestSource(content);
+    final target = await findTarget();
+    final supertypes = await findSupertypes(target!);
+    expect(supertypes, [
+      _isObject,
+      _isRelatedItem(
+        'MyClass1',
+        testFile,
+        relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
