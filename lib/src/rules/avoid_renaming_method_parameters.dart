@@ -54,6 +54,9 @@ class AvoidRenamingMethodParameters extends LintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => _Visitor.parameterCode;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     if (!isInLibDir(context.currentUnit.unit, context.package)) {
@@ -67,10 +70,10 @@ class AvoidRenamingMethodParameters extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   static const LintCode parameterCode = LintCode(
-      "avoid_renaming_method_parameters", // ignore: prefer_single_quotes
-      "The parameter '{0}' should have the name '{1}' to match the name used in the overridden method.",
-      correctionMessage:
-          "Try renaming the parameter."); // ignore: prefer_single_quotes
+      'avoid_renaming_method_parameters',
+      "The parameter name '{0}' doesn't match the name '{1}' in the overridden "
+          'method.',
+      correctionMessage: "Try changing the name to '{1}'.");
 
   final LintRule rule;
 

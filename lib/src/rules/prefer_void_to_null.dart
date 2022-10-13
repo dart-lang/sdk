@@ -47,12 +47,19 @@ for any type of map or list:
 ''';
 
 class PreferVoidToNull extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_void_to_null', "Unnecessary use of the type 'Null'.",
+      correctionMessage: "Try using 'void' instead.");
+
   PreferVoidToNull()
       : super(
             name: 'prefer_void_to_null',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

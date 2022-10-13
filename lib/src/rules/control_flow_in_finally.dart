@@ -84,12 +84,19 @@ class BadBreak {
 ''';
 
 class ControlFlowInFinally extends LintRule {
+  static const LintCode code = LintCode(
+      'control_flow_in_finally', "Use of '{0}' in a 'finally' clause.",
+      correctionMessage: 'Try restructuring the code.');
+
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -108,7 +115,8 @@ class ControlFlowInFinally extends LintRule {
 abstract class ControlFlowInFinallyBlockReporterMixin {
   LintRule get rule;
 
-  void reportIfFinallyAncestorExists(AstNode node, {AstNode? ancestor}) {
+  void reportIfFinallyAncestorExists(AstNode node,
+      {required String kind, AstNode? ancestor}) {
     var tryStatement = node.thisOrAncestorOfType<TryStatement>();
     var finallyBlock = tryStatement?.finallyBlock;
     bool finallyBlockAncestorPredicate(AstNode n) => n == finallyBlock;
@@ -121,7 +129,7 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
     var enablerNode = _findEnablerNode(
         ancestor, finallyBlockAncestorPredicate, node, tryStatement);
     if (enablerNode == null) {
-      rule.reportLint(node);
+      rule.reportLint(node, arguments: [kind]);
     }
   }
 
@@ -153,16 +161,17 @@ class _Visitor extends SimpleAstVisitor<void>
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    reportIfFinallyAncestorExists(node, ancestor: node.target);
+    reportIfFinallyAncestorExists(node, ancestor: node.target, kind: 'break');
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    reportIfFinallyAncestorExists(node, ancestor: node.target);
+    reportIfFinallyAncestorExists(node,
+        ancestor: node.target, kind: 'continue');
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    reportIfFinallyAncestorExists(node);
+    reportIfFinallyAncestorExists(node, kind: 'return');
   }
 }

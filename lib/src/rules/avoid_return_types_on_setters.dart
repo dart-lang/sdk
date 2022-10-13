@@ -27,12 +27,19 @@ void set speed(int ms);
 ''';
 
 class AvoidReturnTypesOnSetters extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_return_types_on_setters', 'Unnecessary return type on a setter.',
+      correctionMessage: 'Try removing the return type.');
+
   AvoidReturnTypesOnSetters()
       : super(
             name: 'avoid_return_types_on_setters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

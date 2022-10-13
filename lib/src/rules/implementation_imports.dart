@@ -59,12 +59,21 @@ bool samePackage(Uri? uri1, Uri? uri2) {
 }
 
 class ImplementationImports extends LintRule {
+  static const LintCode code = LintCode('implementation_imports',
+      "Import of a library in the 'lib/src' directory of another package.",
+      correctionMessage:
+          'Try importing a public library that exports this library, or '
+          'removing the import.');
+
   ImplementationImports()
       : super(
             name: 'implementation_imports',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

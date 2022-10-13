@@ -75,12 +75,19 @@ void ok(EnumLike e) {
 ''';
 
 class ExhaustiveCases extends LintRule {
+  static const LintCode code = LintCode(
+      'exhaustive_cases', "Missing case clauses for some constants in '{0}'.",
+      correctionMessage: 'Try adding case clauses for the missing constants.');
+
   ExhaustiveCases()
       : super(
             name: 'exhaustive_cases',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -91,12 +98,6 @@ class ExhaustiveCases extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor {
-  static const LintCode lintCode = LintCode(
-    'exhaustive_cases',
-    "Missing case clause for '{0}'.",
-    correctionMessage: 'Try adding a case clause for the missing constant.',
-  );
-
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -152,7 +153,6 @@ class _Visitor extends SimpleAstVisitor {
           offset,
           end - offset,
           arguments: [preferredElement.name],
-          errorCode: lintCode,
         );
       }
     }

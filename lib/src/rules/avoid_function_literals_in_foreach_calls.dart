@@ -58,12 +58,20 @@ bool _isNonNullableIterable(DartType? type) =>
     type.implementsInterface('Iterable', 'dart.core');
 
 class AvoidFunctionLiteralInForeachMethod extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_function_literals_in_foreach_calls',
+      "Function literals should not be passed to 'forEach'.",
+      correctionMessage: "Try using a 'for' loop.");
+
   AvoidFunctionLiteralInForeachMethod()
       : super(
             name: 'avoid_function_literals_in_foreach_calls',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

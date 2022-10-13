@@ -67,12 +67,19 @@ Expression? _getExpressionCondition(Expression rawExpression) {
 }
 
 class PreferConditionalAssignment extends LintRule {
+  static const LintCode code = LintCode('prefer_conditional_assignment',
+      "Unnecessary 'null' comparison before assigning a value.",
+      correctionMessage: "Try using the '??=' assignment operator.");
+
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

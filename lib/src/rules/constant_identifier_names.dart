@@ -45,12 +45,20 @@ class Dice {
 ''';
 
 class ConstantIdentifierNames extends LintRule {
+  static const LintCode code = LintCode('constant_identifier_names',
+      "The constant name '{0}' isn't a lowerCamelCase identifier.",
+      correctionMessage:
+          'Try changing the name to follow the lowerCamelCase style.');
+
   ConstantIdentifierNames()
       : super(
             name: 'constant_identifier_names',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -68,8 +76,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   void checkIdentifier(Token id) {
-    if (!isLowerCamelCase(id.lexeme)) {
-      rule.reportLintForToken(id);
+    var name = id.lexeme;
+    if (!isLowerCamelCase(name)) {
+      rule.reportLintForToken(id, arguments: [name]);
     }
   }
 

@@ -39,12 +39,20 @@ NOTE: Only asserts at the start of the bodies will be taken into account.
 ''';
 
 class AlwaysRequireNonNullNamedParameters extends LintRule {
+  static const LintCode code = LintCode(
+      'always_require_non_null_named_parameters',
+      "Named parameters without a default value should be annotated with '@required'.",
+      correctionMessage: "Try adding the '@required' annotation.");
+
   AlwaysRequireNonNullNamedParameters()
       : super(
             name: 'always_require_non_null_named_parameters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
