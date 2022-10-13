@@ -336,7 +336,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable'),
         _asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl'),
         _assertInteropMethod = sdk.getTopLevelMember(
-            'dart:_runtime', 'assertInterop') as Procedure;
+            'dart:_runtime', 'assertInterop') as Procedure,
+        _futureOrNormalizer = FutureOrNormalizer(_coreTypes);
 
   @override
   Library? get currentLibrary => _currentLibrary;
@@ -354,6 +355,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   InterfaceType get internalSymbolType =>
       _coreTypes.legacyRawType(_coreTypes.internalSymbolClass);
+
+  final FutureOrNormalizer _futureOrNormalizer;
 
   /// Module can be emitted only once, and the compiler can be reused after
   /// only in incremental mode, for expression compilation only.
@@ -942,7 +945,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
           return _emitInterfaceType(t, emitNullability: emitNullability);
         } else if (t is FutureOrType) {
-          var normalizedType = normalizeFutureOr(t, _coreTypes);
+          var normalizedType = _futureOrNormalizer.normalize(t);
           if (normalizedType is FutureOrType) {
             _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
             var typeRep = _emitFutureOrTypeWithArgument(
@@ -2933,7 +2936,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFutureOrType(FutureOrType type) {
-    var normalizedType = normalizeFutureOr(type, _coreTypes);
+    var normalizedType = _futureOrNormalizer.normalize(type);
     return normalizedType is FutureOrType
         ? _emitFutureOrType(normalizedType)
         : normalizedType.accept(this);
