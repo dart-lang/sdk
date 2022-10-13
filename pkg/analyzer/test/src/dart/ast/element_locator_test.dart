@@ -86,6 +86,17 @@ enum E {
     expect(element, findElement.constructor('named'));
   }
 
+  test_locate_EnumConstantDeclaration() async {
+    await resolveTestCode(r'''
+enum E {
+  one
+}
+''');
+    var node = findNode.enumConstantDeclaration('one');
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.field('one', of: 'E'));
+  }
+
   test_locate_ExportDirective() async {
     await resolveTestCode("export 'dart:code';");
     var node = findNode.export('export');

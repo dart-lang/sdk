@@ -74,6 +74,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitEnumDeclaration(EnumDeclaration node) {
     return node.declaredElement;
   }
