@@ -167,6 +167,13 @@ class TypeHierarchyItem {
   /// The range of the code for the declaration of this item.
   final SourceRange codeRange;
 
+  TypeHierarchyItem({
+    required this.displayName,
+    required this.file,
+    required this.nameRange,
+    required this.codeRange,
+  });
+
   TypeHierarchyItem.forElement(Element element)
       : displayName = element.displayName,
         nameRange = _nameRangeForElement(element),

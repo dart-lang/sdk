@@ -41,7 +41,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   ) {
     final options = registrationFor(registrations, method)?.registerOptions;
     if (options == null) {
-      throw 'Registration options for $method were not found';
+      throw 'Registration options for $method were not found. '
+          'Perhaps dynamicRegistration is missing from '
+          'withAllSupportedTextDocumentDynamicRegistrations?';
     }
     return TextDocumentRegistrationOptions.fromJson(
         options as Map<String, Object?>);

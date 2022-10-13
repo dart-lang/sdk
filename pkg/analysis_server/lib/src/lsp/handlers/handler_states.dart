@@ -38,6 +38,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_type_definition.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_type_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_will_rename_files.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_configuration.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart';
@@ -102,6 +103,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(PrepareCallHierarchyHandler(server));
     registerHandler(IncomingCallHierarchyHandler(server));
     registerHandler(OutgoingCallHierarchyHandler(server));
+    registerHandler(PrepareTypeHierarchyHandler(server));
+    registerHandler(TypeHierarchySubtypesHandler(server));
+    registerHandler(TypeHierarchySupertypesHandler(server));
     registerHandler(FoldingHandler(server));
     registerHandler(DiagnosticServerHandler(server));
     registerHandler(WorkspaceSymbolHandler(server));

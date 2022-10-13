@@ -46,6 +46,7 @@ import 'signature_help_test.dart' as signature_help;
 import 'snippets_test.dart' as snippets;
 import 'super_test.dart' as get_super;
 import 'type_definition_test.dart' as type_definition;
+import 'type_hierarchy_test.dart' as type_hierarchy;
 import 'will_rename_files_test.dart' as will_rename_files;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
@@ -93,6 +94,7 @@ void main() {
     signature_help.main();
     snippets.main();
     type_definition.main();
+    type_hierarchy.main();
     will_rename_files.main();
     workspace_symbols.main();
   }, name: 'lsp');
