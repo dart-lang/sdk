@@ -38,12 +38,19 @@ class A {
 ''';
 
 class PreferConstDeclarations extends LintRule {
+  static const LintCode code = LintCode('prefer_const_declarations',
+      "Use 'const' for final variables initialized to a constant value.",
+      correctionMessage: "Try replacing 'final' with 'const'.");
+
   PreferConstDeclarations()
       : super(
             name: 'prefer_const_declarations',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

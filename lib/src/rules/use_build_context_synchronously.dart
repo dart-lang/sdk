@@ -50,6 +50,11 @@ void onButtonTapped() async {
 ''';
 
 class UseBuildContextSynchronously extends LintRule {
+  static const LintCode code = LintCode('use_build_context_synchronously',
+      "Don't use 'BuildContext's across async gaps.",
+      correctionMessage:
+          "Try rewriting the code to not reference the 'BuildContext'.");
+
   /// Flag to short-circuit `inTestDir` checking when running tests.
   final bool inTestMode;
 
@@ -60,6 +65,9 @@ class UseBuildContextSynchronously extends LintRule {
             details: _details,
             group: Group.errors,
             maturity: Maturity.experimental);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

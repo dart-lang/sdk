@@ -48,12 +48,21 @@ bool _isImmutable(Element? element) =>
     element.library.name == _metaLibName;
 
 class PreferConstLiteralsToCreateImmutables extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_const_literals_to_create_immutables',
+      "Use 'const' literals as arguments to constructors of '@immutable' "
+          'classes.',
+      correctionMessage: "Try adding 'const' before the literal.");
+
   PreferConstLiteralsToCreateImmutables()
       : super(
             name: 'prefer_const_literals_to_create_immutables',
             description: desc,
             details: details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

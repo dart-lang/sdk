@@ -49,12 +49,20 @@ bool _isImmutable(Element? element) =>
     element.library.name == _metaLibName;
 
 class PreferConstConstructorsInImmutables extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_const_constructors_in_immutables',
+      "Constructors in '@immutable' classes should be declared as 'const'.",
+      correctionMessage: "Try adding 'const' to the constructor declaration.");
+
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

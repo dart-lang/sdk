@@ -30,12 +30,22 @@ Color(0x00000001);
 ''';
 
 class UseFullHexValuesForFlutterColors extends LintRule {
+  static const LintCode code = LintCode(
+      'use_full_hex_values_for_flutter_colors',
+      "Instances of 'Color' should be created using an 8-digit hexadecimal "
+          "integer (such as '0xFFFFFFFF').",
+      correctionMessage:
+          "Try using an 8-digit hexadecimal integer to create the 'Color'.");
+
   UseFullHexValuesForFlutterColors()
       : super(
             name: 'use_full_hex_values_for_flutter_colors',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
