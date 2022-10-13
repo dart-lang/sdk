@@ -219,11 +219,6 @@ class _RandomAccessFileOps {
 }
 
 @patch
-bool _isDirectIOCapableTypedList(List<int> buffer) {
-  throw UnsupportedError("_isDirectIOCapableTypedList");
-}
-
-@patch
 class _IOCrypto {
   @patch
   static Uint8List getRandomBytes(int count) {

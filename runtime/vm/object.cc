@@ -4830,17 +4830,15 @@ bool Class::InjectCIDFields() const {
 #define ADD_SET_FIELD(clazz) {"cid" #clazz, k##clazz##Cid},
       CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
-#define ADD_SET_FIELD(clazz) {"cid" #clazz "View", kTypedData##clazz##ViewCid},
+#undef CLASS_LIST_WITH_NULL
+#define ADD_SET_FIELD(clazz)                                                   \
+  {"cid" #clazz, kTypedData##clazz##Cid},                                      \
+      {"cid" #clazz "View", kTypedData##clazz##ViewCid},                       \
+      {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},                  \
+      {"cidUnmodifiable" #clazz "View",                                        \
+       kUnmodifiableTypedData##clazz##ViewCid},
           CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
-#define ADD_SET_FIELD(clazz) {"cid" #clazz, kTypedData##clazz##Cid},
-              CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
-#undef ADD_SET_FIELD
-#define ADD_SET_FIELD(clazz)                                                   \
-  {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},
-                  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
-#undef ADD_SET_FIELD
-#undef CLASS_LIST_WITH_NULL
       // Used in const hashing to determine whether we're dealing with a
       // user-defined const. See lib/_internal/vm/lib/compact_hash.dart.
       {"numPredefinedCids", kNumPredefinedCids},
