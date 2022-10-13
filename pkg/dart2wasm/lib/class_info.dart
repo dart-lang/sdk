@@ -26,6 +26,9 @@ class FieldIndex {
   static const closureContext = 2;
   static const closureVtable = 3;
   static const closureRuntimeType = 4;
+  static const vtableInstantiationFunction = 0;
+  static const instantiationContextInner = 0;
+  static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsNullable = 2;
   static const interfaceTypeTypeArguments = 4;
   static const functionTypeNamedParameters = 6;
