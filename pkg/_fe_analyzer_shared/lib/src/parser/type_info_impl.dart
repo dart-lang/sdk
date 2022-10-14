@@ -600,9 +600,11 @@ class ComplexTypeInfo implements TypeInfo {
       // generate the full type.
       noType.parseType(token, parser);
     } else if (recordType) {
-      token = parser.parseRecordType(start, token, beforeQuestionMark != null);
+      token = parser.parseRecordType(start, token,
+          /* questionMarkPartOfType = */ beforeQuestionMark != null);
     } else if (gftReturnTypeHasRecordType) {
-      token = parser.parseRecordType(start, token, true);
+      token = parser.parseRecordType(
+          start, token, /* questionMarkPartOfType = */ true);
     } else {
       Token typeRefOrPrefix = token.next!;
       if (optional('void', typeRefOrPrefix)) {

@@ -403,7 +403,7 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
   } else if (optional('(', next)) {
     bool recordType = false;
     if (isPossibleRecordType(next)) {
-      TypeInfo type = computeType(beginGroup, false);
+      TypeInfo type = computeType(beginGroup, /* required = */ false);
       if (type is ComplexTypeInfo &&
           (type.recordType || type.gftReturnTypeHasRecordType) &&
           !type.recovered) {

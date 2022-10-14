@@ -261,7 +261,7 @@ abstract class StackListener extends Listener {
       String s = "  $o";
       int index = s.indexOf("\n");
       if (index != -1) {
-        s = s.substring(/* startIndex = */ 0, index) + "...";
+        s = s.substring(/* start = */ 0, index) + "...";
       }
       print(s);
     }

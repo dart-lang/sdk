@@ -1266,7 +1266,7 @@ class Parser {
               // Insert missing 'Function' below.
               reportRecoverableError(endGroup,
                   missingParameterMessage(MemberKind.FunctionTypeAlias));
-              rewriter.insertParens(endGroup, /*includeIdentifier =*/ false);
+              rewriter.insertParens(endGroup, /* includeIdentifier = */ false);
               recover = true;
             } else if (optional('(', endGroup.next!) &&
                 endGroup.next!.endGroup != null &&
@@ -2856,7 +2856,7 @@ class Parser {
           } else {
             token = IdentifierContext.extensionShowHideElementMemberOrType
                 .ensureIdentifier(token.next!, this);
-            listener.handleShowHideIdentifier(null, token);
+            listener.handleShowHideIdentifier(/* modifier = */ null, token);
           }
         }
         ++elementCount;
@@ -4447,7 +4447,7 @@ class Parser {
               codes.templateExperimentNotEnabled
                   .withArguments("triple-shift", "2.14"));
           operator = rewriter.replaceNextTokensWithSyntheticToken(
-              name, 2, TokenType.GT_GT_GT);
+              name, /* count = */ 2, TokenType.GT_GT_GT);
         }
       }
     }
@@ -5520,7 +5520,7 @@ class Parser {
                     .withArguments("triple-shift", "2.14"));
             assert(next == operator);
             next = rewriter.replaceNextTokensWithSyntheticToken(
-                token, 2, TokenType.GT_GT_GT_EQ);
+                token, /* count = */ 2, TokenType.GT_GT_GT_EQ);
             operator = next;
           }
           token = optional('throw', next.next!)
@@ -5615,7 +5615,7 @@ class Parser {
                       .withArguments("triple-shift", "2.14"));
               assert(next == operator);
               next = rewriter.replaceNextTokensWithSyntheticToken(
-                  token, 2, TokenType.GT_GT_GT);
+                  token, /* count = */ 2, TokenType.GT_GT_GT);
               operator = next;
             }
           }
@@ -5646,7 +5646,7 @@ class Parser {
     if (!enteredLoop && _recoverAtPrecedenceLevel && !_currentlyRecovering) {
       // Attempt recovery
       if (_attemptPrecedenceLevelRecovery(
-          token, precedence, /*currentLevel = */ -1, allowCascades, typeArg)) {
+          token, precedence, /* currentLevel = */ -1, allowCascades, typeArg)) {
         return _parsePrecedenceExpressionLoop(
             precedence, allowCascades, typeArg, token);
       }
@@ -6121,7 +6121,8 @@ class Parser {
     }
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseParenthesizedExpressionOrRecordLiteral(token, null);
+    token = parseParenthesizedExpressionOrRecordLiteral(
+        token, /* constKeywordForRecord = */ null);
     mayParseFunctionExpressions = old;
     return token;
   }
@@ -6243,7 +6244,7 @@ class Parser {
       listener.handleParenthesizedCondition(begin, case_);
     } else {
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, null);
+      listener.handleParenthesizedCondition(begin, /* case_ = */ null);
     }
     assert(optional(')', token));
     return token;
@@ -9293,7 +9294,7 @@ class Parser {
     // grammar
     token = parsePrecedenceExpression(
         token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-    listener.handleConstantPattern(null);
+    listener.handleConstantPattern(/* constKeyword = */ null);
     return token;
   }
 
