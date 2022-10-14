@@ -1012,7 +1012,8 @@ class ResolutionWorldBuilder extends WorldBuilder
         closurizedMembersWithFreeTypeVariables:
             _closurizedMembersWithFreeTypeVariables,
         localFunctions: _localFunctions,
-        instantiatedTypes: instantiatedTypes);
+        instantiatedTypes: instantiatedTypes,
+        namedTypeVariablesNewRti: _namedTypeVariablesNewRti);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }
