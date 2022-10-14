@@ -9286,6 +9286,10 @@ class Parser {
         token = parseExtractorPatternRest(token);
         listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
         return token;
+      } else if (firstIdentifier.lexeme == '_' && dot == null) {
+        // It's a wildcard pattern with no preceding type, so parse it as a
+        // variable pattern.
+        return parseVariablePattern(beforeFirstIdentifier, typeInfo: typeInfo);
       }
       // It's not an extractor pattern so parse it as an expression.
       token = beforeFirstIdentifier;
@@ -9308,13 +9312,18 @@ class Parser {
       token = typeInfo.parseType(token, this);
     } else {
       Token next = token.next!;
-      assert(optional('var', next) || optional('final', next));
-      token = keyword = next;
-      // TODO(paulberry): this accepts `var <type> name` as a variable pattern.
-      // We want to accept that for error recovery, but don't forget to report
-      // the appropriate error.
-      typeInfo = computeVariablePatternType(token);
-      token = typeInfo.parseType(token, this);
+      if (optional('var', next) || optional('final', next)) {
+        token = keyword = next;
+        // TODO(paulberry): this accepts `var <type> name` as a variable
+        // pattern.  We want to accept that for error recovery, but don't forget
+        // to report the appropriate error.
+        typeInfo = computeVariablePatternType(token);
+        token = typeInfo.parseType(token, this);
+      } else {
+        // Bare wildcard pattern
+        assert(next.lexeme == '_');
+        listener.handleNoType(token);
+      }
     }
     Token next = token.next!;
     if (next.isIdentifier) {
