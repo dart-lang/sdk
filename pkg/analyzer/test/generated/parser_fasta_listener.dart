@@ -598,9 +598,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token? when, Token colon) {
     end('CaseExpression');
-    super.endCaseExpression(colon);
+    super.endCaseExpression(when, colon);
   }
 
   @override

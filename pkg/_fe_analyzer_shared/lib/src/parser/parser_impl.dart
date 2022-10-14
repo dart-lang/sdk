@@ -6241,10 +6241,11 @@ class Parser {
       Token case_ = token = next;
       token = parsePattern(token);
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, case_);
+      listener.handleParenthesizedCondition(begin, case_, null);
     } else {
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, /* case_ = */ null);
+      listener.handleParenthesizedCondition(
+          begin, /* case_ = */ null, /* when = */ null);
     }
     assert(optional(')', token));
     return token;
@@ -8258,8 +8259,8 @@ class Parser {
             token = parseExpression(caseKeyword);
           }
           token = ensureColon(token);
-          listener.endCaseExpression(token);
-          listener.handleCaseMatch(caseKeyword, token);
+          listener.endCaseExpression(null, token);
+          listener.handleCaseMatch(caseKeyword, null, token);
           expressionCount++;
           peek = peekPastLabels(token.next!);
         } else if (expressionCount > 0) {

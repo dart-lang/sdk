@@ -141,9 +141,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token? when, Token colon) {
     CaseExpressionEnd data =
-        new CaseExpressionEnd(ParserAstType.END, colon: colon);
+        new CaseExpressionEnd(ParserAstType.END, when: when, colon: colon);
     seen(data);
   }
 
@@ -1780,9 +1780,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
+  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
     CaseMatchHandle data = new CaseMatchHandle(ParserAstType.HANDLE,
-        caseKeyword: caseKeyword, colon: colon);
+        caseKeyword: caseKeyword, when: when, colon: colon);
     seen(data);
   }
 
@@ -2511,11 +2511,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     ParenthesizedConditionHandle data = new ParenthesizedConditionHandle(
         ParserAstType.HANDLE,
         token: token,
-        case_: case_);
+        case_: case_,
+        when: when);
     seen(data);
   }
 
@@ -3024,13 +3025,15 @@ class CaseExpressionBegin extends ParserAstNode {
 }
 
 class CaseExpressionEnd extends ParserAstNode {
+  final Token? when;
   final Token colon;
 
-  CaseExpressionEnd(ParserAstType type, {required this.colon})
+  CaseExpressionEnd(ParserAstType type, {this.when, required this.colon})
       : super("CaseExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "when": when,
         "colon": colon,
       };
 }
@@ -6005,15 +6008,17 @@ class TryStatementBegin extends ParserAstNode {
 
 class CaseMatchHandle extends ParserAstNode {
   final Token caseKeyword;
+  final Token? when;
   final Token colon;
 
   CaseMatchHandle(ParserAstType type,
-      {required this.caseKeyword, required this.colon})
+      {required this.caseKeyword, this.when, required this.colon})
       : super("CaseMatch", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "caseKeyword": caseKeyword,
+        "when": when,
         "colon": colon,
       };
 }
@@ -7314,15 +7319,17 @@ class InvalidOperatorNameHandle extends ParserAstNode {
 class ParenthesizedConditionHandle extends ParserAstNode {
   final Token token;
   final Token? case_;
+  final Token? when;
 
   ParenthesizedConditionHandle(ParserAstType type,
-      {required this.token, this.case_})
+      {required this.token, this.case_, this.when})
       : super("ParenthesizedCondition", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "case_": case_,
+        "when": when,
       };
 }
 

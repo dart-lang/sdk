@@ -428,7 +428,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     debugEvent("handleParenthesizedCondition");
   }
 
@@ -482,7 +482,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token? when, Token colon) {
     debugEvent("CaseExpression");
   }
 

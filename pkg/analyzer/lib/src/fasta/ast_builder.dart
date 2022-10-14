@@ -3276,7 +3276,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
+  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
     assert(optional('case', caseKeyword));
     assert(optional(':', colon));
     debugEvent("CaseMatch");
@@ -4556,7 +4556,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleParenthesizedCondition(Token leftParenthesis, Token? case_) {
+  void handleParenthesizedCondition(
+      Token leftParenthesis, Token? case_, Token? when) {
     ExpressionImpl condition;
     CaseClauseImpl? caseClause;
     if (case_ != null) {

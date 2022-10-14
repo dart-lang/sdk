@@ -176,10 +176,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token? when, Token colon) {
     indent--;
+    seen(when);
     seen(colon);
-    doPrint('endCaseExpression(' '$colon)');
+    doPrint('endCaseExpression(' '$when, ' '$colon)');
   }
 
   @override
@@ -1941,10 +1942,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
+  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
     seen(caseKeyword);
+    seen(when);
     seen(colon);
-    doPrint('handleCaseMatch(' '$caseKeyword, ' '$colon)');
+    doPrint('handleCaseMatch(' '$caseKeyword, ' '$when, ' '$colon)');
   }
 
   @override
@@ -2652,10 +2654,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     seen(token);
     seen(case_);
-    doPrint('handleParenthesizedCondition(' '$token, ' '$case_)');
+    seen(when);
+    doPrint('handleParenthesizedCondition(' '$token, ' '$case_, ' '$when)');
   }
 
   @override

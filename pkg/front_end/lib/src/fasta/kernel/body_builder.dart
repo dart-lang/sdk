@@ -2279,7 +2279,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     if (case_ != null) {
       assert(checkState(token, [
         unionOfKinds([
@@ -2507,7 +2507,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token? when, Token colon) {
     assert(checkState(colon, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -7208,7 +7208,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
+  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
     debugEvent("CaseMatch");
     // Do nothing. Handled by [handleSwitchCase].
   }

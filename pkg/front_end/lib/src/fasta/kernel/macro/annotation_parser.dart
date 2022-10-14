@@ -986,7 +986,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token? when, Token colon) {
     _unsupported();
   }
 
@@ -1580,7 +1580,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
+  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
     _unsupported();
   }
 
@@ -2003,7 +2003,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     _unknown();
   }
 
