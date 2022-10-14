@@ -13,7 +13,7 @@ import '../common/elements.dart';
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../compiler.dart';
+import '../compiler_interfaces.dart';
 import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -134,7 +134,7 @@ class KernelFrontendStrategy
   }
 
   ResolutionEnqueuer createResolutionEnqueuer(
-      CompilerTask task, Compiler compiler) {
+      CompilerTask task, CompilerKernelStrategyFacade compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
     BackendImpacts impacts = BackendImpacts(commonElements, compiler.options);
     final nativeBasicData = _elementMap.nativeBasicData;
@@ -260,7 +260,8 @@ class KernelFrontendStrategy
   KernelToElementMap get elementMap => _elementMap;
 
   /// Creates a [DeferredLoadTask] for the element model used in this strategy.
-  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+  DeferredLoadTask createDeferredLoadTask(
+          CompilerDeferredLoadingFacade compiler) =>
       DeferredLoadTask(compiler, _elementMap);
 
   /// Computes the main function from [mainLibrary] adding additional world

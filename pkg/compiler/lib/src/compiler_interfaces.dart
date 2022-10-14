@@ -9,6 +9,7 @@ library compiler.src.compiler_interfaces;
 import '../compiler_api.dart' show CompilerOutput, Diagnostic;
 
 import 'common/tasks.dart' show Measurer;
+import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/program_split_constraints/nodes.dart' show ConstraintData;
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticMessage;
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -63,4 +64,19 @@ abstract class CompilerDiagnosticsFacade {
   bool get compilationFailed;
 
   SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement);
+}
+
+/// Subset of [Compiler] needed by kernel strategy
+///
+/// See definitions on [Compiler] for documentation.
+abstract class CompilerKernelStrategyFacade {
+  bool get compilationFailed;
+  Measurer get measurer;
+  DiagnosticReporter get reporter;
+  Map<Entity, WorldImpact> get impactCache;
+  CompilerOptions get options;
+  KernelFrontendStrategyForDeferredLoading get frontendStrategy;
+  CompilerOutput get outputProvider;
+  ConstraintData? get programSplitConstraintsData;
+  DeferredLoadTask get deferredLoadTask;
 }

@@ -24,6 +24,7 @@ import 'compiler_interfaces.dart'
     show
         CompilerDeferredLoadingFacade,
         CompilerDiagnosticsFacade,
+        CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
@@ -78,6 +79,7 @@ class Compiler
     implements
         CompilerDiagnosticsFacade,
         CompilerDeferredLoadingFacade,
+        CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade {
   @override
   final Measurer measurer;
@@ -137,6 +139,7 @@ class Compiler
   GenericTask selfTask;
 
   GenericTask enqueueTask;
+  @override
   DeferredLoadTask deferredLoadTask;
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
