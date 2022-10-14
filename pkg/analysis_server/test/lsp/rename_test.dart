@@ -36,6 +36,31 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_prepare(content, 'MyClass');
   }
 
+  Future<void> test_prepare_enum() {
+    const content = '''
+    enum [[My^Enum]] { one }
+    ''';
+
+    return _test_prepare(content, 'MyEnum');
+  }
+
+  Future<void> test_prepare_enumMember() {
+    const content = '''
+    enum MyEnum { [[o^ne]] }
+    ''';
+
+    return _test_prepare(content, 'one');
+  }
+
+  Future<void> test_prepare_enumMember_reference() {
+    const content = '''
+    enum MyEnum { one }
+    final a = MyEnum.[[o^ne]];
+    ''';
+
+    return _test_prepare(content, 'one');
+  }
+
   Future<void> test_prepare_function_startOfParameterList() {
     const content = '''
     void [[aaaa]]^() {}
@@ -400,6 +425,31 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       WorkspaceEdit.fromJson(response.result as Map<String, Object?>),
       equals(emptyWorkspaceEdit),
     );
+  }
+
+  Future<void> test_rename_enum() {
+    const content = '''
+    enum MyEnum { one }
+    final a = MyE^num.one;
+    ''';
+    const expectedContent = '''
+    enum MyNewEnum { one }
+    final a = MyNewEnum.one;
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewEnum', expectedContent);
+  }
+
+  Future<void> test_rename_enumMember() {
+    const content = '''
+    enum MyEnum { one }
+    final a = MyEnum.o^ne;
+    ''';
+    const expectedContent = '''
+    enum MyEnum { newOne }
+    final a = MyEnum.newOne;
+    ''';
+    return _test_rename_withDocumentChanges(content, 'newOne', expectedContent);
   }
 
   Future<void> test_rename_function_startOfParameterList() {

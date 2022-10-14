@@ -1686,14 +1686,6 @@ class _Utf8Decoder {
     return size;
   }
 
-  @pragma("vm:prefer-inline")
-  static bool _isNativeUint8List(List<int> array) {
-    final int cid = ClassID.getID(array);
-    return cid == ClassID.cidUint8ArrayView ||
-        cid == ClassID.cidUint8Array ||
-        cid == ClassID.cidExternalUint8Array;
-  }
-
   // The VM decoder handles BOM explicitly instead of via the state machine.
   @patch
   _Utf8Decoder(this.allowMalformed) : _state = initial;
@@ -1705,7 +1697,7 @@ class _Utf8Decoder {
     // Have bytes as Uint8List.
     Uint8List bytes;
     int errorOffset;
-    if (_isNativeUint8List(codeUnits)) {
+    if (codeUnits is Uint8List) {
       bytes = unsafeCast<Uint8List>(codeUnits);
       errorOffset = 0;
     } else {
@@ -1769,7 +1761,7 @@ class _Utf8Decoder {
     // Have bytes as Uint8List.
     Uint8List bytes;
     int errorOffset;
-    if (_isNativeUint8List(codeUnits)) {
+    if (codeUnits is Uint8List) {
       bytes = unsafeCast<Uint8List>(codeUnits);
       errorOffset = 0;
     } else {

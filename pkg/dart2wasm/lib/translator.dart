@@ -803,6 +803,9 @@ class Translator {
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
     w.Instructions ib = vtable.initializer;
+    if (representation.isGeneric) {
+      ib.ref_func(representation.instantiationFunction);
+    }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
       fillVtableEntry(ib, posArgCount, const []);
     }

@@ -694,6 +694,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       }
 
       void makeVtable() {
+        if (representation.isGeneric) {
+          b.ref_func(representation.instantiationFunction);
+        }
         for (int posArgCount = 0;
             posArgCount <= positionalCount;
             posArgCount++) {

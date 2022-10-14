@@ -74,7 +74,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_version": "git_revision:60d276923902051192eba692e5312e605c9d9f65",
+  "clang_version": "git_revision:f85c1f3b7c0bda64aef12201e2f5bbad6028582d",
   "gn_version": "git_revision:0bcd37bd2b83f1a9ee17088037ebdfe6eab6d31a",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
@@ -106,7 +106,7 @@ vars = {
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev": "97026d1657566bb0c9f5a33642712ec350e45084",
   "collection_rev": "ca45fc4cb2ec4d6aece51cd8e61c8eed5a207c4e",
-  "convert_rev": "f0acc6b1ec7878117117a81ea8212615153ec6c0",
+  "convert_rev": "4feeb10d2f26d22eab461469da0739a57d001edf",
   "crypto_rev": "7cf89d35b3d90786d9f7f75211b3b3cd7e4d173f",
   "csslib_rev": "ba2eb2d80530eedefadaade338a09c2dd60410f3",
 
@@ -122,7 +122,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "f79a9828ad07e50d6e8352ac154cc16eb4d78d5c", # manually rev'd
 
-  "dartdoc_rev": "b3856970e4abb695fecba9b38e88e69832469c2e",
+  "dartdoc_rev": "c8bc0655bbd4949cb49ca24ee9ff493439b7594c",
   "devtools_rev": "b21cd59f1f6bb60cacd59ba39e376d2a50d82f74",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
@@ -158,7 +158,7 @@ vars = {
   "source_maps_rev": "e93565b43a7b6b367789de8ffba969c4ebeeb317",
   "source_span_rev": "ff03af16474ce91c89eb3bc28182866f4cb6dfb0",
   "sse_rev": "00084c43684ddaf7e09c19c5364c4a27eb04efda",
-  "stack_trace_rev": "2194227245513190cc29eebb9f2e4d885cdb0899",
+  "stack_trace_rev": "9697e4cc4762af104280594ea1e170b808a0e198",
   "stream_channel_rev": "a5129ca44322a7024074ca38fb98e343dcb638c7",
   "string_scanner_rev": "2d84b16d8ae03c3a8c2417b71abe0fe6de7d8bf6",
   "sync_http_rev": "f5c1f18f579752112870fa2f1860470d28c6f605",
@@ -175,7 +175,7 @@ vars = {
   "web_socket_channel_rev": "4b46c0c4196a5e76c2b0e2589ed37de247d35938",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "69aac60e848c9f6ae18fd8768d508f8eda1872f6",
-  "webdriver_rev": "e1a9ad671ee82e05eee463f922a34585ed2d2f15",
+  "webdriver_rev": "f56cc6a2f9612a0a13fec4282dc61b90df384033",
   "webkit_inspection_protocol_rev": "b825c8f6a12200d619729903207ac826cce278da",
   "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",
   "yaml_rev": "fda5b15692ccfa0feb7793a27fe3829b3d0f77fa",

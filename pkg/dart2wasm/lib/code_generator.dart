@@ -2151,6 +2151,45 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
+  w.ValueType visitInstantiation(Instantiation node, w.ValueType expectedType) {
+    DartType type = dartTypeOf(node.expression);
+    if (type is FunctionType) {
+      int typeCount = type.typeParameters.length;
+      int posArgCount = type.positionalParameters.length;
+      List<String> argNames = type.namedParameters.map((a) => a.name).toList();
+      ClosureRepresentation representation = translator.closureLayouter
+          .getClosureRepresentation(typeCount, posArgCount, argNames)!;
+
+      // Operand closure
+      w.RefType closureType =
+          w.RefType.def(representation.closureStruct, nullable: false);
+      w.Local closureTemp = addLocal(closureType);
+      wrap(node.expression, closureType);
+      b.local_tee(closureTemp);
+
+      // Type arguments
+      for (DartType typeArg in node.typeArguments) {
+        types.makeType(this, typeArg);
+      }
+
+      // Instantiation function
+      b.local_get(closureTemp);
+      b.struct_get(representation.closureStruct, FieldIndex.closureVtable);
+      b.struct_get(
+          representation.vtableStruct, FieldIndex.vtableInstantiationFunction);
+
+      // Call instantiation function
+      b.call_ref();
+      return representation.instantiationFunctionType.outputs.single;
+    } else {
+      // Only other alternative is `NeverType`.
+      assert(type is NeverType);
+      b.unreachable();
+      return voidMarker;
+    }
+  }
+
+  @override
   w.ValueType visitLogicalExpression(
       LogicalExpression node, w.ValueType expectedType) {
     _conditional(node, () => b.i32_const(1), () => b.i32_const(0),
@@ -2272,11 +2311,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
     b.rethrow_(tryLabels.last);
     return expectedType;
-  }
-
-  @override
-  w.ValueType visitInstantiation(Instantiation node, w.ValueType expectedType) {
-    throw "Not supported: Generic function instantiation at ${node.location}";
   }
 
   @override

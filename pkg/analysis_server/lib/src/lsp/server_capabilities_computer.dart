@@ -41,6 +41,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_selectionRange,
     Method.textDocument_typeDefinition,
     Method.textDocument_prepareCallHierarchy,
+    Method.textDocument_prepareTypeHierarchy,
     // workspace.fileOperations covers all file operation methods but we only
     // support this one.
     Method.workspace_willRenameFiles,
@@ -123,6 +124,9 @@ class ClientDynamicRegistrations {
   bool get typeFormatting =>
       _capabilities.textDocument?.onTypeFormatting?.dynamicRegistration ??
       false;
+
+  bool get typeHierarchy =>
+      _capabilities.textDocument?.typeHierarchy?.dynamicRegistration ?? false;
 }
 
 class ServerCapabilitiesComputer {
@@ -296,6 +300,10 @@ class ServerCapabilitiesComputer {
                 range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
               ),
             ),
+      typeHierarchyProvider: dynamicRegistrations.typeHierarchy
+          ? null
+          : Either3<bool, TypeHierarchyOptions,
+              TypeHierarchyRegistrationOptions>.t1(true),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
@@ -544,6 +552,13 @@ class ServerCapabilitiesComputer {
           SemanticTokensOptionsFull(delta: false),
         ),
         range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+      ),
+    );
+    register(
+      dynamicRegistrations.typeHierarchy,
+      Method.textDocument_prepareTypeHierarchy,
+      TypeHierarchyRegistrationOptions(
+        documentSelector: [dartFiles],
       ),
     );
     register(
