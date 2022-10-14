@@ -11,14 +11,12 @@
 // Getter called get.
 (int a, String b) get get => (42, "fortytwo");
 (int a, String b) get get { return (42, "fortytwo"); }
-// The below is commented out for now --- probably that's a general
-// parser bug that should be fixed.
-// (int a, String b) get get async => throw "hello";
-// (int a, String b) get get async { throw "hello"; }
-// (int a, String b) get get async* => throw "hello";
-// (int a, String b) get get async* { throw "hello"; }
-// (int a, String b) get get sync* => throw "hello";
-// (int a, String b) get get sync* { throw "hello"; }
+(int a, String b) get get async => throw "hello";
+(int a, String b) get get async { throw "hello"; }
+(int a, String b) get get async* => throw "hello";
+(int a, String b) get get async* { throw "hello"; }
+(int a, String b) get get sync* => throw "hello";
+(int a, String b) get get sync* { throw "hello"; }
 
 // Getter called something else.
 (int a, String b) get topLevelGetter => (42, "fortytwo");

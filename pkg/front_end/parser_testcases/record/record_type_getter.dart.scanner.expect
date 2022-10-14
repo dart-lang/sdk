@@ -10,14 +10,12 @@
 
 (int a, String b) get get => (42, "fortytwo");
 (int a, String b) get get { return (42, "fortytwo"); }
-
-
-
-
-
-
-
-
+(int a, String b) get get async => throw "hello";
+(int a, String b) get get async { throw "hello"; }
+(int a, String b) get get async* => throw "hello";
+(int a, String b) get get async* { throw "hello"; }
+(int a, String b) get get sync* => throw "hello";
+(int a, String b) get get sync* { throw "hello"; }
 
 
 (int a, String b) get topLevelGetter => (42, "fortytwo");
@@ -106,14 +104,12 @@ static (int a, String b) get staticGetter sync* { throw "hello"; }
 
 ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
 ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] {[BeginToken] return[KeywordToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken] }[SimpleToken]
-
-
-
-
-
-
-
-
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] async[KeywordToken] =>[SimpleToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken]
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] async[KeywordToken] {[BeginToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken] }[SimpleToken]
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] async[KeywordToken]*[SimpleToken] =>[SimpleToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken]
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] async[KeywordToken]*[SimpleToken] {[BeginToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken] }[SimpleToken]
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] sync[KeywordToken]*[SimpleToken] =>[SimpleToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken]
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] get[KeywordToken] sync[KeywordToken]*[SimpleToken] {[BeginToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken] }[SimpleToken]
 
 
 ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] topLevelGetter[StringToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
