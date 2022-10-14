@@ -596,7 +596,8 @@ class Parser {
       bool typedefWithRecord = false;
       if (identical(value, 'typedef') && identical(nextValue, '(')) {
         Token? endParen = keyword.next!.endGroup;
-        if (endParen != null && endParen.next!.isIdentifier) {
+        if (endParen != null &&
+            _isIdentifierOrQuestionIdentifier(endParen.next!)) {
           // Looks like a typedef with a record.
           TypeInfo typeInfo = computeType(keyword, /* required = */ false);
           if (typeInfo is ComplexTypeInfo && typeInfo.recordType) {
@@ -661,6 +662,14 @@ class Parser {
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
+  }
+
+  bool _isIdentifierOrQuestionIdentifier(Token token) {
+    if (token.isIdentifier) return true;
+    if (optional("?", token)) {
+      return token.next!.isIdentifier;
+    }
+    return false;
   }
 
   /// ```

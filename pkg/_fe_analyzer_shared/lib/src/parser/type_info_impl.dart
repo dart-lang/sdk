@@ -739,14 +739,20 @@ class ComplexTypeInfo implements TypeInfo {
         // * `]` e.g. `x([(int, int) x = (42, 42)]) {}`.
         if (!isOneOfOrEof(afterIdentifier,
             const [";", "=", "<", "(", ",", ")", "in", "}", ":", "]"])) {
-          if (getOrSet && isOneOfOrEof(afterIdentifier, const ["=>", "{"])) {
+          if (getOrSet &&
+              isOneOfOrEof(
+                  afterIdentifier, const ["=>", "{", "async", "sync"])) {
             // With a getter/setter in the mix we can accept more stuff, e.g.
-            // these would be fine:
+            // these would be "fine":
             // * `=>`: e.g. `(int, int) get x => (42, 42);`.
             // * `{`: e.g. `(int, int) get x { }`.
-            // TODO(jensj): A setter would need parenthesis so technically
-            // couldn't look like this, but I don't think any other valid thing
-            // could either. Should we handle that specifically?
+            // * `async`: e.g. `(int, int) get x async {}`.
+            // * `sync`: e.g. `(int, int) get x sync* {}`.
+            // Not all of this is valid (e.g. a setter can't be async, sync has
+            // to be followed by *, return type of async has to be Future etc),
+            // but for disambiguation we'll assume it's enough, and we'd rather
+            // have an error saying "return time has to be Future" than "I don't
+            // know what these parenthesis mean".
           } else if (optional("operator", next) &&
               afterIdentifier.isUserDefinableOperator) {
             // E.g.
@@ -756,12 +762,20 @@ class ComplexTypeInfo implements TypeInfo {
             return noType;
           }
         }
-      } else if (optional("this", next) && optional(".", next.next!)) {
-        // E.g. C(({int n, String s}) this.x);
+      } else if ((optional("this", next) || optional("super", next)) &&
+          optional(".", next.next!)) {
+        // E.g.
+        // * C(({int n, String s}) this.x);
+        // * C((int, int) super.x);
       } else {
-        // Is it e.g. List<(int, int)> or Map<(int, int), (String, String)>?
-        // or List<List<(int, int)>> or List<List<List<(int, int)>>>.
-        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>>"])) {
+        // Is it e.g.
+        // * List<(int, int)>
+        // * Map<(int, int), (String, String)>?
+        // * List<List<(int, int)>>
+        // * List<List<List<(int, int)>>>
+        // * typedef F2<T extends List<(int, int)>>= T Function();
+        // * typedef F3<T extends List<List<(int, int)>>>= T Function();
+        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>=", ">>>", ">>>="])) {
           return noType;
         }
       }

@@ -125,6 +125,7 @@ cmp
 cnn
 coded
 codepath
+coincidences
 collisions
 columns
 commented
