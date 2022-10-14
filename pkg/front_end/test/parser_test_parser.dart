@@ -439,11 +439,11 @@ class TestParser extends Parser {
 
   @override
   Token parseRecordType(
-      final Token start, Token token, bool questionMarkPartOfType) {
+      final Token start, Token token, bool isQuestionMarkPartOfType) {
     doPrint(
-        'parseRecordType(' '$start, ' '$token, ' '$questionMarkPartOfType)');
+        'parseRecordType(' '$start, ' '$token, ' '$isQuestionMarkPartOfType)');
     indent++;
-    var result = super.parseRecordType(start, token, questionMarkPartOfType);
+    var result = super.parseRecordType(start, token, isQuestionMarkPartOfType);
     indent--;
     return result;
   }

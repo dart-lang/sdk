@@ -510,7 +510,7 @@ class ComplexTypeInfo implements TypeInfo {
   bool? gftHasReturnType;
 
   /// If the type is a record type.
-  bool recordType = false;
+  bool isRecordType = false;
 
   /// If this is a generalized function type with a record type included in the
   /// return type. E.g. `(int, int) Function(bool) Function(int)`.
@@ -532,7 +532,7 @@ class ComplexTypeInfo implements TypeInfo {
       this.end,
       this.typeVariableStarters,
       this.gftHasReturnType,
-      this.recordType,
+      this.isRecordType,
       this.gftReturnTypeHasRecordType,
       this.recovered);
 
@@ -546,7 +546,7 @@ class ComplexTypeInfo implements TypeInfo {
             beforeQuestionMark,
             typeVariableStarters,
             gftHasReturnType,
-            recordType,
+            isRecordType,
             gftReturnTypeHasRecordType,
             recovered);
   }
@@ -599,12 +599,12 @@ class ComplexTypeInfo implements TypeInfo {
       // Push the non-existing return type first. The loop below will
       // generate the full type.
       noType.parseType(token, parser);
-    } else if (recordType) {
+    } else if (isRecordType) {
       token = parser.parseRecordType(start, token,
-          /* questionMarkPartOfType = */ beforeQuestionMark != null);
+          /* isQuestionMarkPartOfType = */ beforeQuestionMark != null);
     } else if (gftReturnTypeHasRecordType) {
       token = parser.parseRecordType(
-          start, token, /* questionMarkPartOfType = */ true);
+          start, token, /* isQuestionMarkPartOfType = */ true);
     } else {
       Token typeRefOrPrefix = token.next!;
       if (optional('void', typeRefOrPrefix)) {
@@ -794,7 +794,7 @@ class ComplexTypeInfo implements TypeInfo {
       token = token.next!;
     }
 
-    recordType = true;
+    isRecordType = true;
 
     assert(end != null);
     return this;

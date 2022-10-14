@@ -600,7 +600,7 @@ class Parser {
             _isIdentifierOrQuestionIdentifier(endParen.next!)) {
           // Looks like a typedef with a record.
           TypeInfo typeInfo = computeType(keyword, /* required = */ false);
-          if (typeInfo is ComplexTypeInfo && typeInfo.recordType) {
+          if (typeInfo is ComplexTypeInfo && typeInfo.isRecordType) {
             typedefWithRecord = true;
           }
         }
@@ -1423,7 +1423,7 @@ class Parser {
   ///                           ( ',' recordTypeNamedField )* ','? '}'
   /// recordTypeNamedField  ::= metadata type identifier
   Token parseRecordType(
-      final Token start, Token token, bool questionMarkPartOfType) {
+      final Token start, Token token, bool isQuestionMarkPartOfType) {
     token = token.next!;
     assert(optional('(', token));
 
@@ -1503,7 +1503,7 @@ class Parser {
 
     // Only consume the `?` if it is part of the type.
     Token? questionMark = token.next!;
-    if (optional('?', questionMark) && questionMarkPartOfType) {
+    if (optional('?', questionMark) && isQuestionMarkPartOfType) {
       token = questionMark;
     } else {
       questionMark = null;
