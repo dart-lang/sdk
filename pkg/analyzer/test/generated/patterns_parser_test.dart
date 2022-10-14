@@ -21,6 +21,238 @@ main() {
 class PatternsTest extends ParserDiagnosticsTest {
   late FindNode findNode;
 
+  test_caseHead_withClassicPattern_guarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0 when true) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BooleanLiteral
+        literal: true
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withClassicPattern_guarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0 when true:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 0
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_caseHead_withClassicPattern_unguarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withClassicPattern_unguarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 0
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_caseHead_withNewPattern_guarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0 as int when true) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: CastPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+      asToken: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BooleanLiteral
+        literal: true
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withNewPattern_guarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0 as int when true:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_caseHead_withNewPattern_unguarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0 as int) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: CastPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+      asToken: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withNewPattern_unguarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0 as int:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
   test_cast_insideCase() {
     _parse('''
 void f(x) {

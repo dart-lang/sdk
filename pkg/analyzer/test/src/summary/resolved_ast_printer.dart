@@ -1439,6 +1439,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitWhenClause(WhenClause node) {
+    _writeln('WhenClause');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
     _writeln('WhileStatement');
     _withIndent(() {

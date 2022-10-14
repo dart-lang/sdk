@@ -3282,12 +3282,17 @@ class AstBuilder extends StackListener {
     debugEvent("CaseMatch");
 
     if (_featureSet.isEnabled(Feature.patterns)) {
+      WhenClauseImpl? whenClause;
+      if (when != null) {
+        var expression = pop() as ExpressionImpl;
+        whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
+      }
       var pattern = pop() as DartPatternImpl;
       push(SwitchPatternCaseImpl(
           labels: <Label>[],
           keyword: caseKeyword,
           pattern: pattern,
-          whenClause: null,
+          whenClause: whenClause,
           colon: colon,
           statements: <Statement>[]));
     } else {
@@ -4561,10 +4566,14 @@ class AstBuilder extends StackListener {
     ExpressionImpl condition;
     CaseClauseImpl? caseClause;
     if (case_ != null) {
-      // TODO(paulberry): what about a guard?
+      WhenClauseImpl? whenClause;
+      if (when != null) {
+        var expression = pop() as ExpressionImpl;
+        whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
+      }
       var pattern = pop() as DartPatternImpl;
       caseClause = CaseClauseImpl(
-          caseKeyword: case_, pattern: pattern, whenClause: null);
+          caseKeyword: case_, pattern: pattern, whenClause: whenClause);
     }
     condition = pop() as ExpressionImpl;
     push(_ParenthesizedCondition(leftParenthesis, condition, caseClause));

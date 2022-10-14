@@ -6240,8 +6240,14 @@ class Parser {
     if (allowPatterns && optional('case', next)) {
       Token case_ = token = next;
       token = parsePattern(token);
+      next = token.next!;
+      Token? when;
+      if (optional('when', next)) {
+        when = token = next;
+        token = parseExpression(token);
+      }
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, case_, null);
+      listener.handleParenthesizedCondition(begin, case_, when);
     } else {
       token = ensureCloseParen(token, begin);
       listener.handleParenthesizedCondition(
@@ -8258,9 +8264,15 @@ class Parser {
           } else {
             token = parseExpression(caseKeyword);
           }
+          Token? next = token.next!;
+          Token? when;
+          if (optional('when', next)) {
+            when = token = next;
+            token = parseExpression(token);
+          }
           token = ensureColon(token);
-          listener.endCaseExpression(null, token);
-          listener.handleCaseMatch(caseKeyword, null, token);
+          listener.endCaseExpression(when, token);
+          listener.handleCaseMatch(caseKeyword, when, token);
           expressionCount++;
           peek = peekPastLabels(token.next!);
         } else if (expressionCount > 0) {

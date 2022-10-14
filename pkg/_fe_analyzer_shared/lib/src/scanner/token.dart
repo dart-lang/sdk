@@ -327,14 +327,17 @@ class Keyword extends TokenType {
   static const Keyword VOID =
       const Keyword(/* index = */ 145, "void", "VOID", KeywordStyle.reserved);
 
+  static const Keyword WHEN =
+      const Keyword(/* index = */ 146, "when", 'WHEN', KeywordStyle.pseudo);
+
   static const Keyword WHILE =
-      const Keyword(/* index = */ 146, "while", "WHILE", KeywordStyle.reserved);
+      const Keyword(/* index = */ 147, "while", "WHILE", KeywordStyle.reserved);
 
   static const Keyword WITH =
-      const Keyword(/* index = */ 147, "with", "WITH", KeywordStyle.reserved);
+      const Keyword(/* index = */ 148, "with", "WITH", KeywordStyle.reserved);
 
   static const Keyword YIELD =
-      const Keyword(/* index = */ 148, "yield", "YIELD", KeywordStyle.pseudo);
+      const Keyword(/* index = */ 149, "yield", "YIELD", KeywordStyle.pseudo);
 
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,
@@ -404,6 +407,7 @@ class Keyword extends TokenType {
     TYPEDEF,
     VAR,
     VOID,
+    WHEN,
     WHILE,
     WITH,
     YIELD,
@@ -1978,6 +1982,7 @@ const List<TokenType> _tokenTypesByIndex = [
   Keyword.TYPEDEF,
   Keyword.VAR,
   Keyword.VOID,
+  Keyword.WHEN,
   Keyword.WHILE,
   Keyword.WITH,
   Keyword.YIELD,
