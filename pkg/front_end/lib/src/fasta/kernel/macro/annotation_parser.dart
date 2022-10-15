@@ -986,7 +986,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token? when, Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     _unsupported();
   }
 
@@ -1576,11 +1576,6 @@ class _MacroListener implements Listener {
   @override
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
-    _unsupported();
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
     _unsupported();
   }
 

@@ -8271,8 +8271,7 @@ class Parser {
             token = parseExpression(token);
           }
           token = ensureColon(token);
-          listener.endCaseExpression(when, token);
-          listener.handleCaseMatch(caseKeyword, when, token);
+          listener.endCaseExpression(caseKeyword, when, token);
           expressionCount++;
           peek = peekPastLabels(token.next!);
         } else if (expressionCount > 0) {

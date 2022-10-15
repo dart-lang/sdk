@@ -894,6 +894,40 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
+    assert(optional('case', caseKeyword));
+    assert(optional(':', colon));
+    debugEvent("CaseMatch");
+
+    if (_featureSet.isEnabled(Feature.patterns)) {
+      WhenClauseImpl? whenClause;
+      if (when != null) {
+        var expression = pop() as ExpressionImpl;
+        whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
+      }
+      var pattern = pop() as DartPatternImpl;
+      push(SwitchPatternCaseImpl(
+          labels: <Label>[],
+          keyword: caseKeyword,
+          pattern: pattern,
+          whenClause: whenClause,
+          colon: colon,
+          statements: <Statement>[]));
+    } else {
+      var expression = pop() as ExpressionImpl;
+      push(
+        SwitchCaseImpl(
+          labels: <Label>[],
+          keyword: caseKeyword,
+          expression: expression,
+          colon: colon,
+          statements: <Statement>[],
+        ),
+      );
+    }
+  }
+
+  @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     assert(getOrSet == null ||
@@ -3273,40 +3307,6 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
-    assert(optional('case', caseKeyword));
-    assert(optional(':', colon));
-    debugEvent("CaseMatch");
-
-    if (_featureSet.isEnabled(Feature.patterns)) {
-      WhenClauseImpl? whenClause;
-      if (when != null) {
-        var expression = pop() as ExpressionImpl;
-        whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
-      }
-      var pattern = pop() as DartPatternImpl;
-      push(SwitchPatternCaseImpl(
-          labels: <Label>[],
-          keyword: caseKeyword,
-          pattern: pattern,
-          whenClause: whenClause,
-          colon: colon,
-          statements: <Statement>[]));
-    } else {
-      var expression = pop() as ExpressionImpl;
-      push(
-        SwitchCaseImpl(
-          labels: <Label>[],
-          keyword: caseKeyword,
-          expression: expression,
-          colon: colon,
-          statements: <Statement>[],
-        ),
-      );
-    }
   }
 
   @override

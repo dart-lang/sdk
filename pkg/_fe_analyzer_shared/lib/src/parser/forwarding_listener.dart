@@ -577,8 +577,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token? when, Token colon) {
-    listener?.endCaseExpression(when, colon);
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
+    listener?.endCaseExpression(caseKeyword, when, colon);
   }
 
   @override
@@ -1289,11 +1289,6 @@ class ForwardingListener implements Listener {
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
     listener?.handleBreakStatement(hasTarget, breakKeyword, endToken);
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
-    listener?.handleCaseMatch(caseKeyword, when, colon);
   }
 
   @override

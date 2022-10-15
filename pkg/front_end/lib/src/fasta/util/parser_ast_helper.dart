@@ -141,9 +141,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token? when, Token colon) {
-    CaseExpressionEnd data =
-        new CaseExpressionEnd(ParserAstType.END, when: when, colon: colon);
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
+    CaseExpressionEnd data = new CaseExpressionEnd(ParserAstType.END,
+        caseKeyword: caseKeyword, when: when, colon: colon);
     seen(data);
   }
 
@@ -1780,13 +1780,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
-    CaseMatchHandle data = new CaseMatchHandle(ParserAstType.HANDLE,
-        caseKeyword: caseKeyword, when: when, colon: colon);
-    seen(data);
-  }
-
-  @override
   void beginCatchClause(Token token) {
     CatchClauseBegin data =
         new CatchClauseBegin(ParserAstType.BEGIN, token: token);
@@ -3025,14 +3018,17 @@ class CaseExpressionBegin extends ParserAstNode {
 }
 
 class CaseExpressionEnd extends ParserAstNode {
+  final Token caseKeyword;
   final Token? when;
   final Token colon;
 
-  CaseExpressionEnd(ParserAstType type, {this.when, required this.colon})
+  CaseExpressionEnd(ParserAstType type,
+      {required this.caseKeyword, this.when, required this.colon})
       : super("CaseExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "caseKeyword": caseKeyword,
         "when": when,
         "colon": colon,
       };
@@ -6003,23 +5999,6 @@ class TryStatementBegin extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
-      };
-}
-
-class CaseMatchHandle extends ParserAstNode {
-  final Token caseKeyword;
-  final Token? when;
-  final Token colon;
-
-  CaseMatchHandle(ParserAstType type,
-      {required this.caseKeyword, this.when, required this.colon})
-      : super("CaseMatch", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-        "caseKeyword": caseKeyword,
-        "when": when,
-        "colon": colon,
       };
 }
 

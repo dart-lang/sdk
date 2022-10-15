@@ -2529,7 +2529,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endCaseExpression(Token? when, Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     // ignore: unused_local_variable
     Expression? guard;
     if (when != null) {
@@ -7249,12 +7249,6 @@ class BodyBuilder extends StackListenerImpl
     }
 
     push(cases);
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token? when, Token colon) {
-    debugEvent("CaseMatch");
-    // Do nothing. Handled by [handleSwitchCase].
   }
 
   @override
