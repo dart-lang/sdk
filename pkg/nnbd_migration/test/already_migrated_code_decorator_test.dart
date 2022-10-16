@@ -510,7 +510,7 @@ class _ContextWithElement with EdgeTester {
 
   void checkDynamic(DecoratedType? decoratedType, String displayName) {
     expect(decoratedType!.type, same(typeProvider.dynamicType));
-    checkAlwaysNullable(decoratedType.node!, displayName);
+    checkAlwaysNullable(decoratedType.node, displayName);
   }
 
   void checkExplicitlyNonNullable(NullabilityNode? node, String displayName) {
@@ -603,7 +603,7 @@ class _ContextWithElement with EdgeTester {
 
   void checkVoid(DecoratedType decoratedType, String displayName) {
     expect(decoratedType.type, same(typeProvider.voidType));
-    checkAlwaysNullable(decoratedType.node!, displayName);
+    checkAlwaysNullable(decoratedType.node, displayName);
   }
 
   DecoratedType decorate(DartType type) {

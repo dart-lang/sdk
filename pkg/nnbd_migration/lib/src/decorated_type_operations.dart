@@ -53,7 +53,7 @@ class DecoratedTypeOperations
     if (!isSubtypeOf(to, from)) {
       return false;
     }
-    var fromSources = from.node!.upstreamEdges;
+    var fromSources = from.node.upstreamEdges;
     // Do not force promotion if [to] already points to [from].
     if (fromSources.length == 1 && fromSources.single.sourceNode == to.node) {
       return false;
@@ -144,8 +144,8 @@ class DecoratedTypeOperations
         // TODO(srawlins): How to get the source or astNode from within here...
         GreatestLowerBoundOrigin(null /* source */, null /* astNode */);
     _graph.connect(firstType.node, node, origin, guards: [secondType.node]);
-    _graph.connect(node, firstType.node!, origin);
-    _graph.connect(node, secondType.node!, origin);
+    _graph.connect(node, firstType.node, origin);
+    _graph.connect(node, secondType.node, origin);
 
     return result..add(firstType.withNode(node));
   }

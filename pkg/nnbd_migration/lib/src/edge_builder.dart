@@ -770,7 +770,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         thenType = _dispatch(node.thenExpression);
         if (trueGuard != null) {
           thenType = thenType!.withNode(
-              _nullabilityNodeForGLB(node, thenType!.node!, trueGuard));
+              _nullabilityNodeForGLB(node, thenType!.node, trueGuard));
         }
       } finally {
         if (trueGuard != null) {
@@ -785,7 +785,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         elseType = _dispatch(node.elseExpression);
         if (falseGuard != null) {
           elseType = elseType!.withNode(
-              _nullabilityNodeForGLB(node, elseType!.node!, falseGuard));
+              _nullabilityNodeForGLB(node, elseType!.node, falseGuard));
         }
       } finally {
         if (falseGuard != null) {
@@ -863,7 +863,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           // default value doesn't mean the parameter has to be nullable.
         } else {
           _graph.makeNullable(
-              getOrComputeElementType(node, declaredElement).node!,
+              getOrComputeElementType(node, declaredElement).node,
               OptionalFormalParameterOrigin(source, node));
         }
       }
@@ -1262,7 +1262,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.staticType!.isDartCoreList &&
         callee.name == '' &&
         node.argumentList.arguments.length == 1) {
-      _graph.connect(_graph.always, decoratedTypeArguments[0].node!,
+      _graph.connect(_graph.always, decoratedTypeArguments[0].node,
           ListLengthConstructorOrigin(source, node));
     }
 
@@ -1374,7 +1374,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _variables
               .decoratedElementType(node.declaredElement!.declaration)
               .returnType!
-              .node!,
+              .node,
           BuiltValueNullableOrigin(source, node));
     }
     _handleExecutableDeclaration(node, node.declaredElement!, node.metadata,
@@ -1563,7 +1563,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var target = NullabilityNodeTarget.text('null literal').withCodeRef(node);
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, node.staticType, _graph, target);
-    _graph.makeNullable(decoratedType.node!, LiteralOrigin(source, node));
+    _graph.makeNullable(decoratedType.node, LiteralOrigin(source, node));
     return decoratedType;
   }
 
@@ -1703,7 +1703,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var implicitNullType = DecoratedType.forImplicitType(
           typeProvider, typeProvider.nullType, _graph, target);
       var origin = ImplicitNullReturnOrigin(source, node);
-      _graph.makeNullable(implicitNullType.node!, origin);
+      _graph.makeNullable(implicitNullType.node, origin);
       _checkAssignment(origin, FixReasonTarget.root,
           source:
               isAsync ? _futureOf(implicitNullType, node) : implicitNullType,
@@ -1805,7 +1805,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           node.inGetterContext() &&
           !_lateHintedLocals.contains(staticElement) &&
           !_flowAnalysis!.isAssigned(staticElement)) {
-        _graph.makeNullable(type.node!, UninitializedReadOrigin(source, node));
+        _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
       }
       result = type;
     } else if (staticElement is FunctionElement ||
@@ -2055,7 +2055,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               _variables.getLateHint(source, node) == null &&
               !(declaredElement is FieldElement && !declaredElement.isStatic)) {
             _graph.makeNullable(
-                type.node!, ImplicitNullInitializerOrigin(source, node));
+                type.node, ImplicitNullInitializerOrigin(source, node));
           }
         } else {
           _handleAssignment(initializer, destinationType: type);
@@ -2234,7 +2234,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     node ??= isLUB
         ? NullabilityNode.forLUB(left.node, right.node)
-        : _nullabilityNodeForGLB(astNode, left.node!, right.node!);
+        : _nullabilityNodeForGLB(astNode, left.node, right.node);
 
     if (type!.isDynamic || type.isVoid) {
       return DecoratedType(type, node);
@@ -2551,7 +2551,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis!.ifNullExpression_end();
         // a ??= b is only nullable if both a and b are nullable.
         sourceType = destinationType!.withNode(_nullabilityNodeForGLB(
-            questionAssignNode, sourceType.node!, destinationType.node!));
+            questionAssignNode, sourceType.node, destinationType.node));
         _variables.recordDecoratedExpressionType(
             questionAssignNode, sourceType);
       }
@@ -3113,7 +3113,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Any parameters not supplied must be optional.
     for (var entry in calleeType.namedParameters!.entries) {
       if (suppliedNamedParameters.contains(entry.key)) continue;
-      entry.value.node!.recordNamedParameterNotSupplied(
+      entry.value.node.recordNamedParameterNotSupplied(
           _guards, _graph, NamedParameterNotSuppliedOrigin(source, node));
     }
     return calleeType.returnType;
@@ -3126,8 +3126,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (targetElement is ParameterElement &&
           targetElement.enclosingElement == _currentExecutable &&
           !_currentExecutable!.name.startsWith('_')) {
-        _graph.makeNullable(
-            _variables.decoratedElementType(targetElement).node!,
+        _graph.makeNullable(_variables.decoratedElementType(targetElement).node,
             NullAwareAccessOrigin(source, node));
       }
     }
@@ -3271,7 +3270,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   void _handleUninitializedFields(AstNode node, Set<FieldElement?> fields) {
     for (var field in fields) {
-      _graph.makeNullable(_variables.decoratedElementType(field!).node!,
+      _graph.makeNullable(_variables.decoratedElementType(field!).node,
           FieldNotInitializedOrigin(source, node));
     }
   }
@@ -3338,9 +3337,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _linkDecoratedTypes(DecoratedType x, DecoratedType? y, EdgeOrigin origin,
       {bool isUnion = true}) {
     if (isUnion) {
-      _graph.union(x.node!, y!.node!, origin);
+      _graph.union(x.node, y!.node, origin);
     } else {
-      _graph.connect(x.node, y!.node!, origin, hard: true);
+      _graph.connect(x.node, y!.node, origin, hard: true);
     }
     _linkDecoratedTypeParameters(x, y, origin, isUnion: isUnion);
     for (int i = 0;
@@ -3396,7 +3395,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.dynamicType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node!, AlwaysNullableTypeOrigin(source, astNode, false));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, false));
     return decoratedType;
   }
 
@@ -3405,7 +3404,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.voidType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node!, AlwaysNullableTypeOrigin(source, astNode, true));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, true));
     return decoratedType;
   }
 

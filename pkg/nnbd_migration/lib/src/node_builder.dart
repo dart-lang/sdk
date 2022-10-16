@@ -241,7 +241,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       throw StateError('No type computed for ${node.parameter.runtimeType} '
           '(${node.parent!.parent!.toSource()}) offset=${node.offset}');
     }
-    decoratedType.node!.trackPossiblyOptional();
+    decoratedType.node.trackPossiblyOptional();
     return null;
   }
 
@@ -455,8 +455,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _variables!.recordDecoratedElementType(declaredElement.variable, type,
             soft: true);
         if (_getAngularAnnotation(node.metadata) == _AngularAnnotation.child) {
-          _graph.makeNullable(
-              type.node!, AngularAnnotationOrigin(source, node));
+          _graph.makeNullable(type.node, AngularAnnotationOrigin(source, node));
         }
       }
     }
@@ -666,11 +665,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           switch (angularAnnotation) {
             case _AngularAnnotation.child:
               _graph.makeNullable(
-                  type.node!, AngularAnnotationOrigin(source, node));
+                  type.node, AngularAnnotationOrigin(source, node));
               break;
             case _AngularAnnotation.children:
               _graph.preventLate(
-                  type.node!, AngularAnnotationOrigin(source, node));
+                  type.node, AngularAnnotationOrigin(source, node));
               break;
           }
         }
@@ -754,7 +753,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
         if (isExternal && functionType.returnType.isDynamic) {
           _graph.makeNullableUnion(
-              decoratedReturnType.node!, ExternalDynamicOrigin(source, node));
+              decoratedReturnType.node, ExternalDynamicOrigin(source, node));
         }
       }
       var previousPositionalParameters = _positionalParameters;
@@ -801,7 +800,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _typeProvider, declaredElement.type, _graph, target);
         if (_visitingExternalDeclaration) {
           _graph.makeNullableUnion(
-              decoratedType.node!, ExternalDynamicOrigin(source, node));
+              decoratedType.node, ExternalDynamicOrigin(source, node));
         }
         instrumentation?.implicitType(source, node, decoratedType);
       }
@@ -813,7 +812,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
         if (_visitingExternalDeclaration) {
           _graph.makeNullableUnion(
-              decoratedReturnType.node!, ExternalDynamicOrigin(source, node));
+              decoratedReturnType.node, ExternalDynamicOrigin(source, node));
         }
       } else {
         decoratedReturnType = type.accept(this);
@@ -849,7 +848,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           element.enclosingElement.name == 'Optional' &&
           _isAngularUri(element.librarySource.uri)) {
         _graph.makeNullable(
-            decoratedType!.node!, AngularAnnotationOrigin(source, node));
+            decoratedType!.node, AngularAnnotationOrigin(source, node));
       }
     }
     if (declaredElement.isNamed) {
@@ -871,30 +870,29 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (hint != null) {
       switch (hint.kind) {
         case HintCommentKind.bang:
-          _graph.makeNonNullableUnion(decoratedType.node!,
+          _graph.makeNonNullableUnion(decoratedType.node,
               NullabilityCommentOrigin(source, node, false));
           _variables!.recordNullabilityHint(source, node, hint);
-          decoratedType
-                  .node!.hintActions[HintActionKind.removeNonNullableHint] =
+          decoratedType.node.hintActions[HintActionKind.removeNonNullableHint] =
               hint.changesToRemove(source!.contents.data);
-          decoratedType.node!.hintActions[HintActionKind.changeToNullableHint] =
+          decoratedType.node.hintActions[HintActionKind.changeToNullableHint] =
               hint.changesToReplace(source!.contents.data, '/*?*/');
           break;
         case HintCommentKind.question:
-          _graph.makeNullableUnion(decoratedType.node!,
-              NullabilityCommentOrigin(source, node, true));
+          _graph.makeNullableUnion(
+              decoratedType.node, NullabilityCommentOrigin(source, node, true));
           _variables!.recordNullabilityHint(source, node, hint);
-          decoratedType.node!.hintActions[HintActionKind.removeNullableHint] =
+          decoratedType.node.hintActions[HintActionKind.removeNullableHint] =
               hint.changesToRemove(source!.contents.data);
           decoratedType
-                  .node!.hintActions[HintActionKind.changeToNonNullableHint] =
+                  .node.hintActions[HintActionKind.changeToNonNullableHint] =
               hint.changesToReplace(source!.contents.data, '/*!*/');
           break;
         default:
           break;
       }
 
-      decoratedType.node!.hintActions
+      decoratedType.node.hintActions
         ..remove(HintActionKind.addNonNullableHint)
         ..remove(HintActionKind.addNullableHint);
     }
