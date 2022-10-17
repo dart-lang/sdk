@@ -2176,6 +2176,7 @@ class Int8List {
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _Int8List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
