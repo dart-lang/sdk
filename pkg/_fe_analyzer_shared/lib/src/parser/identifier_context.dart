@@ -149,7 +149,8 @@ abstract class IdentifierContext {
   /// Identifier is the name being declared by a top level function declaration.
   static const TopLevelDeclarationIdentifierContext
       topLevelFunctionDeclaration = const TopLevelDeclarationIdentifierContext(
-          'topLevelFunctionDeclaration', const ['<', '(', '{', '=>']);
+          'topLevelFunctionDeclaration',
+          const ['<', '(', '{', '=>', 'async', 'sync']);
 
   /// Identifier is the start of the name being declared by a method
   /// declaration.

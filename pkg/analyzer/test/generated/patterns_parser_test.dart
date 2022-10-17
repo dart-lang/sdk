@@ -21,6 +21,238 @@ main() {
 class PatternsTest extends ParserDiagnosticsTest {
   late FindNode findNode;
 
+  test_caseHead_withClassicPattern_guarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0 when true) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BooleanLiteral
+        literal: true
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withClassicPattern_guarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0 when true:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 0
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_caseHead_withClassicPattern_unguarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withClassicPattern_unguarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 0
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_caseHead_withNewPattern_guarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0 as int when true) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: CastPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+      asToken: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BooleanLiteral
+        literal: true
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withNewPattern_guarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0 as int when true:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_caseHead_withNewPattern_unguarded_insideIfStatement() {
+    _parse('''
+void f(x) {
+  if (x case 0 as int) {}
+}
+''');
+    var node = findNode.ifStatement('case');
+    assertParsedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: CastPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+      asToken: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseHead_withNewPattern_unguarded_insideSwitchStatement() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case 0 as int:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
   test_cast_insideCase() {
     _parse('''
 void f(x) {
@@ -694,6 +926,28 @@ PostfixPattern
       identifier: SimpleIdentifier
         token: b
   operator: ?
+''');
+  }
+
+  test_constant_identifier_prefixedWithUnderscore_insideCase() {
+    // We need to make sure the `_` isn't misinterpreted as a wildcard pattern
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _.b:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: _
+    period: .
+    identifier: SimpleIdentifier
+      token: b
 ''');
   }
 
@@ -2334,6 +2588,63 @@ PostfixPattern
 ''');
   }
 
+  test_extractor_prefixedNamedUnderscore_withoutTypeArgs_insideCase() {
+    // We need to make sure the `_` isn't misinterpreted as a wildcard pattern
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _.Future():
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: _
+      period: .
+      identifier: SimpleIdentifier
+        token: Future
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_extractor_prefixedNamedUnderscore_withTypeArgs_insideCase() {
+    // We need to make sure the `_` isn't misinterpreted as a wildcard pattern
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _.Future<int>():
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: _
+      period: .
+      identifier: SimpleIdentifier
+        token: Future
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
   test_extractor_unprefixed_withoutTypeArgs_insideCast() {
     _parse('''
 class C {
@@ -2501,6 +2812,55 @@ PostfixPattern
             literal: 1
     rightParenthesis: )
   operator: !
+''');
+  }
+
+  test_extractor_unprefixedNamedUnderscore_withoutTypeArgs_insideCase() {
+    // We need to make sure the `_` isn't misinterpreted as a wildcard pattern
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _():
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: _
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_extractor_unprefixedNamedUnderscore_withTypeArgs_insideCase() {
+    // We need to make sure the `_` isn't misinterpreted as a wildcard pattern
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _<int>():
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: _
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+  leftParenthesis: (
+  rightParenthesis: )
 ''');
   }
 
@@ -4223,6 +4583,26 @@ RecordPattern
 ''');
   }
 
+  test_parenthesized_insideCase() {
+    _parse('''
+f(x) {
+  switch (x) {
+    case (1):
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+  rightParenthesis: )
+''');
+  }
+
   test_parenthesized_insideCast() {
     _parse('''
 void f(x) {
@@ -5572,6 +5952,26 @@ RecordPattern
 ''');
   }
 
+  test_variable_typedNamedUnderscore_insideCase() {
+    // We need to make sure the `_` isn't misinterpreted as a wildcard pattern
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _ y:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: _
+  name: y
+''');
+  }
+
   test_variable_var_insideCase() {
     _parse('''
 void f(x) {
@@ -5661,6 +6061,491 @@ PostfixPattern
   operand: VariablePattern
     keyword: var
     name: y
+  operator: ?
+''');
+  }
+
+  test_wildcard_bare_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  name: _
+''');
+  }
+
+  test_wildcard_bare_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _ as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    name: _
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_wildcard_bare_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case _) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    name: _
+''');
+  }
+
+  test_wildcard_bare_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    name: _
+  operator: !
+''');
+  }
+
+  test_wildcard_bare_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    name: _
+  operator: ?
+''');
+  }
+
+  test_wildcard_final_typed_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final int _:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  keyword: final
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+  name: _
+''');
+  }
+
+  test_wildcard_final_typed_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final int _ as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_wildcard_final_typed_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case final int _) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+''');
+  }
+
+  test_wildcard_final_typed_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final int _!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  operator: !
+''');
+  }
+
+  test_wildcard_final_typed_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final int _?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  operator: ?
+''');
+  }
+
+  test_wildcard_final_untyped_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final _:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  keyword: final
+  name: _
+''');
+  }
+
+  test_wildcard_final_untyped_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final _ as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    keyword: final
+    name: _
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_wildcard_final_untyped_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case final _) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    keyword: final
+    name: _
+''');
+  }
+
+  test_wildcard_final_untyped_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final _!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    name: _
+  operator: !
+''');
+  }
+
+  test_wildcard_final_untyped_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case final _?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: final
+    name: _
+  operator: ?
+''');
+  }
+
+  test_wildcard_typed_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int _:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+  name: _
+''');
+  }
+
+  test_wildcard_typed_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int _ as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_wildcard_typed_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case int _) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+''');
+  }
+
+  test_wildcard_typed_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int _!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  operator: !
+''');
+  }
+
+  test_wildcard_typed_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int _?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  operator: ?
+''');
+  }
+
+  test_wildcard_var_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var _:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  keyword: var
+  name: _
+''');
+  }
+
+  test_wildcard_var_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var _ as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    keyword: var
+    name: _
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
+  test_wildcard_var_insideIfCase() {
+    _parse('''
+void f(x) {
+  if (x case var _) {}
+}
+''');
+    var node = findNode.caseClause('case');
+    assertParsedNodeText(node, r'''
+CaseClause
+  caseKeyword: case
+  pattern: VariablePattern
+    keyword: var
+    name: _
+''');
+  }
+
+  test_wildcard_var_insideNullAssert() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var _!:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: var
+    name: _
+  operator: !
+''');
+  }
+
+  test_wildcard_var_insideNullCheck() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var _?:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case').pattern;
+    assertParsedNodeText(node, r'''
+PostfixPattern
+  operand: VariablePattern
+    keyword: var
+    name: _
   operator: ?
 ''');
   }

@@ -18,7 +18,8 @@ abstract class Node {
 class StringNode extends Node {
   StringNode(super.payload, super.next);
 
-  int get hash => StringCanonicalizer.hashString(payload, 0, payload.length);
+  int get hash =>
+      StringCanonicalizer.hashString(payload, /* start = */ 0, payload.length);
 }
 
 class Utf8Node extends Node {
@@ -163,7 +164,8 @@ class StringCanonicalizer {
 
   String canonicalizeString(String data) {
     if (_count > _size) rehash();
-    final int index = hashString(data, 0, data.length) & (_size - 1);
+    final int index =
+        hashString(data, /* start = */ 0, data.length) & (_size - 1);
     Node? s = _nodes[index];
     Node? t = s;
     while (t != null) {

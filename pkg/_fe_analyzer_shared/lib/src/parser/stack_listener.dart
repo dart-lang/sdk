@@ -261,7 +261,7 @@ abstract class StackListener extends Listener {
       String s = "  $o";
       int index = s.indexOf("\n");
       if (index != -1) {
-        s = s.substring(/* startIndex = */ 0, index) + "...";
+        s = s.substring(/* start = */ 0, index) + "...";
       }
       print(s);
     }
@@ -428,7 +428,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     debugEvent("handleParenthesizedCondition");
   }
 
@@ -482,7 +482,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     debugEvent("CaseExpression");
   }
 

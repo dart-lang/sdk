@@ -596,10 +596,11 @@ class Parser {
       bool typedefWithRecord = false;
       if (identical(value, 'typedef') && identical(nextValue, '(')) {
         Token? endParen = keyword.next!.endGroup;
-        if (endParen != null && endParen.next!.isIdentifier) {
+        if (endParen != null &&
+            _isIdentifierOrQuestionIdentifier(endParen.next!)) {
           // Looks like a typedef with a record.
           TypeInfo typeInfo = computeType(keyword, /* required = */ false);
-          if (typeInfo is ComplexTypeInfo && typeInfo.recordType) {
+          if (typeInfo is ComplexTypeInfo && typeInfo.isRecordType) {
             typedefWithRecord = true;
           }
         }
@@ -661,6 +662,14 @@ class Parser {
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
+  }
+
+  bool _isIdentifierOrQuestionIdentifier(Token token) {
+    if (token.isIdentifier) return true;
+    if (optional("?", token)) {
+      return token.next!.isIdentifier;
+    }
+    return false;
   }
 
   /// ```
@@ -1257,7 +1266,7 @@ class Parser {
               // Insert missing 'Function' below.
               reportRecoverableError(endGroup,
                   missingParameterMessage(MemberKind.FunctionTypeAlias));
-              rewriter.insertParens(endGroup, /*includeIdentifier =*/ false);
+              rewriter.insertParens(endGroup, /* includeIdentifier = */ false);
               recover = true;
             } else if (optional('(', endGroup.next!) &&
                 endGroup.next!.endGroup != null &&
@@ -1414,7 +1423,7 @@ class Parser {
   ///                           ( ',' recordTypeNamedField )* ','? '}'
   /// recordTypeNamedField  ::= metadata type identifier
   Token parseRecordType(
-      final Token start, Token token, bool questionMarkPartOfType) {
+      final Token start, Token token, bool isQuestionMarkPartOfType) {
     token = token.next!;
     assert(optional('(', token));
 
@@ -1494,7 +1503,7 @@ class Parser {
 
     // Only consume the `?` if it is part of the type.
     Token? questionMark = token.next!;
-    if (optional('?', questionMark) && questionMarkPartOfType) {
+    if (optional('?', questionMark) && isQuestionMarkPartOfType) {
       token = questionMark;
     } else {
       questionMark = null;
@@ -2847,7 +2856,7 @@ class Parser {
           } else {
             token = IdentifierContext.extensionShowHideElementMemberOrType
                 .ensureIdentifier(token.next!, this);
-            listener.handleShowHideIdentifier(null, token);
+            listener.handleShowHideIdentifier(/* modifier = */ null, token);
           }
         }
         ++elementCount;
@@ -4438,7 +4447,7 @@ class Parser {
               codes.templateExperimentNotEnabled
                   .withArguments("triple-shift", "2.14"));
           operator = rewriter.replaceNextTokensWithSyntheticToken(
-              name, 2, TokenType.GT_GT_GT);
+              name, /* count = */ 2, TokenType.GT_GT_GT);
         }
       }
     }
@@ -5511,7 +5520,7 @@ class Parser {
                     .withArguments("triple-shift", "2.14"));
             assert(next == operator);
             next = rewriter.replaceNextTokensWithSyntheticToken(
-                token, 2, TokenType.GT_GT_GT_EQ);
+                token, /* count = */ 2, TokenType.GT_GT_GT_EQ);
             operator = next;
           }
           token = optional('throw', next.next!)
@@ -5606,7 +5615,7 @@ class Parser {
                       .withArguments("triple-shift", "2.14"));
               assert(next == operator);
               next = rewriter.replaceNextTokensWithSyntheticToken(
-                  token, 2, TokenType.GT_GT_GT);
+                  token, /* count = */ 2, TokenType.GT_GT_GT);
               operator = next;
             }
           }
@@ -5637,7 +5646,7 @@ class Parser {
     if (!enteredLoop && _recoverAtPrecedenceLevel && !_currentlyRecovering) {
       // Attempt recovery
       if (_attemptPrecedenceLevelRecovery(
-          token, precedence, /*currentLevel = */ -1, allowCascades, typeArg)) {
+          token, precedence, /* currentLevel = */ -1, allowCascades, typeArg)) {
         return _parsePrecedenceExpressionLoop(
             precedence, allowCascades, typeArg, token);
       }
@@ -6112,7 +6121,8 @@ class Parser {
     }
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseParenthesizedExpressionOrRecordLiteral(token, null);
+    token = parseParenthesizedExpressionOrRecordLiteral(
+        token, /* constKeywordForRecord = */ null);
     mayParseFunctionExpressions = old;
     return token;
   }
@@ -6230,11 +6240,18 @@ class Parser {
     if (allowPatterns && optional('case', next)) {
       Token case_ = token = next;
       token = parsePattern(token);
+      next = token.next!;
+      Token? when;
+      if (optional('when', next)) {
+        when = token = next;
+        token = parseExpression(token);
+      }
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, case_);
+      listener.handleParenthesizedCondition(begin, case_, when);
     } else {
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, null);
+      listener.handleParenthesizedCondition(
+          begin, /* case_ = */ null, /* when = */ null);
     }
     assert(optional(')', token));
     return token;
@@ -8247,9 +8264,14 @@ class Parser {
           } else {
             token = parseExpression(caseKeyword);
           }
+          Token? next = token.next!;
+          Token? when;
+          if (optional('when', next)) {
+            when = token = next;
+            token = parseExpression(token);
+          }
           token = ensureColon(token);
-          listener.endCaseExpression(token);
-          listener.handleCaseMatch(caseKeyword, token);
+          listener.endCaseExpression(caseKeyword, when, token);
           expressionCount++;
           peek = peekPastLabels(token.next!);
         } else if (expressionCount > 0) {
@@ -9276,6 +9298,10 @@ class Parser {
         token = parseExtractorPatternRest(token);
         listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
         return token;
+      } else if (firstIdentifier.lexeme == '_' && dot == null) {
+        // It's a wildcard pattern with no preceding type, so parse it as a
+        // variable pattern.
+        return parseVariablePattern(beforeFirstIdentifier, typeInfo: typeInfo);
       }
       // It's not an extractor pattern so parse it as an expression.
       token = beforeFirstIdentifier;
@@ -9284,7 +9310,7 @@ class Parser {
     // grammar
     token = parsePrecedenceExpression(
         token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-    listener.handleConstantPattern(null);
+    listener.handleConstantPattern(/* constKeyword = */ null);
     return token;
   }
 
@@ -9298,13 +9324,18 @@ class Parser {
       token = typeInfo.parseType(token, this);
     } else {
       Token next = token.next!;
-      assert(optional('var', next) || optional('final', next));
-      token = keyword = next;
-      // TODO(paulberry): this accepts `var <type> name` as a variable pattern.
-      // We want to accept that for error recovery, but don't forget to report
-      // the appropriate error.
-      typeInfo = computeVariablePatternType(token);
-      token = typeInfo.parseType(token, this);
+      if (optional('var', next) || optional('final', next)) {
+        token = keyword = next;
+        // TODO(paulberry): this accepts `var <type> name` as a variable
+        // pattern.  We want to accept that for error recovery, but don't forget
+        // to report the appropriate error.
+        typeInfo = computeVariablePatternType(token);
+        token = typeInfo.parseType(token, this);
+      } else {
+        // Bare wildcard pattern
+        assert(next.lexeme == '_');
+        listener.handleNoType(token);
+      }
     }
     Token next = token.next!;
     if (next.isIdentifier) {

@@ -2279,8 +2279,30 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     if (case_ != null) {
+      // ignore: unused_local_variable
+      Expression? guard;
+      if (when != null) {
+        assert(checkState(token, [
+          unionOfKinds([
+            ValueKinds.Expression,
+            ValueKinds.Generator,
+            ValueKinds.ProblemBuilder,
+          ]),
+          unionOfKinds([
+            ValueKinds.Expression,
+            ValueKinds.Matcher,
+            ValueKinds.Binder,
+          ]),
+          unionOfKinds([
+            ValueKinds.Expression,
+            ValueKinds.Generator,
+            ValueKinds.ProblemBuilder,
+          ]),
+        ]));
+        guard = popForValue();
+      }
       assert(checkState(token, [
         unionOfKinds([
           ValueKinds.Expression,
@@ -2507,7 +2529,27 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
+    // ignore: unused_local_variable
+    Expression? guard;
+    if (when != null) {
+      assert(checkState(colon, [
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.ProblemBuilder,
+        ]),
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.ProblemBuilder,
+          ValueKinds.Matcher,
+          ValueKinds.Binder,
+        ]),
+        ValueKinds.ConstantContext,
+      ]));
+      guard = popForValue();
+    }
     assert(checkState(colon, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -2522,10 +2564,12 @@ class BodyBuilder extends StackListenerImpl
     Object? value = pop();
     if (value is Matcher || value is Binder) {
       constantContext = pop() as ConstantContext;
+      // TODO(paulberry): handle guard
       super.push(toMatcher(value));
     } else {
       Expression expression = toValue(value);
       constantContext = pop() as ConstantContext;
+      // TODO(paulberry): handle guard
       super.push(expression);
     }
     assert(checkState(colon, [
@@ -7205,12 +7249,6 @@ class BodyBuilder extends StackListenerImpl
     }
 
     push(cases);
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    debugEvent("CaseMatch");
-    // Do nothing. Handled by [handleSwitchCase].
   }
 
   @override

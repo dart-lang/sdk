@@ -1483,6 +1483,7 @@ class CaseClauseImpl extends AstNodeImpl implements CaseClause {
     required this.whenClause,
   }) {
     _becomeParentOf(pattern);
+    _becomeParentOf(whenClause);
   }
 
   @override

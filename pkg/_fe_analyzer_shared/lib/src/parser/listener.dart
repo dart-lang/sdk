@@ -100,7 +100,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginCaseExpression(Token caseKeyword) {}
 
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     logEvent("CaseExpression");
   }
 
@@ -1351,10 +1351,6 @@ class Listener implements UnescapeErrorListener {
 
   void beginTryStatement(Token token) {}
 
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    logEvent("CaseMatch");
-  }
-
   void beginCatchClause(Token token) {}
 
   void endCatchClause(Token token) {
@@ -1849,7 +1845,7 @@ class Listener implements UnescapeErrorListener {
   /// - do while loop
   /// - switch statement
   /// - while loop
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     logEvent("ParenthesizedCondition");
   }
 

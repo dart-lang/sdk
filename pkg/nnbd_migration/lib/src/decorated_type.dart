@@ -21,7 +21,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
   final DartType? type;
 
   @override
-  final NullabilityNode? node;
+  final NullabilityNode node;
 
   @override
   final DecoratedType? returnType;
@@ -47,7 +47,6 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
       this.namedParameters = const {},
       this.typeArguments = const []}) {
     assert(() {
-      assert(node != null);
       var type = this.type;
       if (type is InterfaceType) {
         assert(returnType == null);
@@ -316,7 +315,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
 
   @override
   String toString() {
-    var trailing = node == null ? '' : node!.debugSuffix;
+    var trailing = node.debugSuffix;
     var type = this.type;
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
@@ -366,7 +365,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
   DecoratedTypeInfo? typeArgument(int i) => typeArguments[i];
 
   /// Creates a shallow copy of `this`, replacing the nullability node.
-  DecoratedType withNode(NullabilityNode? node) => DecoratedType(type, node,
+  DecoratedType withNode(NullabilityNode node) => DecoratedType(type, node,
       returnType: returnType,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
@@ -692,5 +691,5 @@ class _TypeVariableReplacement implements SubstitutedType {
   @override
   DecoratedType _performSubstitution(
           DecoratedType other, DartType undecoratedResult) =>
-      other.withNodeAndType(other.node!, undecoratedResult);
+      other.withNodeAndType(other.node, undecoratedResult);
 }

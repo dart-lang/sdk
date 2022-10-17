@@ -1205,7 +1205,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       var variableElement = node.variables.single.declaredElement!;
       var lateCondition = _fixBuilder._variables!
           .decoratedElementType(variableElement)
-          .node!
+          .node
           .lateCondition;
       switch (lateCondition) {
         case LateCondition.possiblyLate:
@@ -1276,7 +1276,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       var requiredHint =
           _fixBuilder._variables!.getRequiredHint(_fixBuilder.source, node);
       var nullabilityNode =
-          _fixBuilder._variables!.decoratedElementType(element!).node!;
+          _fixBuilder._variables!.decoratedElementType(element!).node;
       if (!nullabilityNode.isNullable) {
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ConstructorElement &&
@@ -1323,9 +1323,9 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       // Handle function-typed field formal parameters.
       var decoratedType =
           _fixBuilder._variables!.decoratedElementType(node.declaredElement!);
-      if (decoratedType.node!.isNullable) {
+      if (decoratedType.node.isNullable) {
         (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
-            .recordNullability(decoratedType, decoratedType.node!.isNullable,
+            .recordNullability(decoratedType, decoratedType.node.isNullable,
                 nullabilityHint:
                     _fixBuilder._variables!.getNullabilityHint(source, node));
       }
@@ -1337,10 +1337,10 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     var decoratedType =
         _fixBuilder._variables!.decoratedElementType(node.declaredElement!);
-    if (decoratedType.node!.isNullable) {
+    if (decoratedType.node.isNullable) {
       (_fixBuilder._getChange(node)
               as NodeChangeForFunctionTypedFormalParameter)
-          .recordNullability(decoratedType, decoratedType.node!.isNullable,
+          .recordNullability(decoratedType, decoratedType.node.isNullable,
               nullabilityHint:
                   _fixBuilder._variables!.getNullabilityHint(source, node));
     }
@@ -1428,13 +1428,13 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {
-    bool makeNullable = decoratedType.node!.isNullable;
+    bool makeNullable = decoratedType.node.isNullable;
     if (decoratedType.type!.isDartAsyncFutureOr) {
       var typeArguments = decoratedType.typeArguments;
       if (typeArguments.length == 1) {
         var typeArgument = typeArguments[0]!;
         if ((_typeIsNaturallyNullable(typeArgument.type!) ||
-            typeArgument.node!.isNullable)) {
+            typeArgument.node.isNullable)) {
           // FutureOr<T?>? is equivalent to FutureOr<T?>, so there is no need to
           // make this type nullable.
           makeNullable = false;
