@@ -179,6 +179,13 @@ Updated the Linter to `1.28.0`, which includes changes that
 - **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
   dart2js no longer supports HTTP URIs as inputs.
 
+## 2.18.3 - 2022-10-19
+
+This is a patch release that fixes a regression in code coverage computation
+(issue [#49887][]).
+
+[#49887]: https://github.com/dart-lang/sdk/issues/49887
+
 ## 2.18.2 - 2022-09-28
 
 This is a patch release that:
