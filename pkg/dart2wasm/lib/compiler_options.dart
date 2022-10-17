@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:dart2wasm/translator.dart';
+import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
 class CompilerOptions {
   final TranslatorOptions translatorOptions = TranslatorOptions();
@@ -16,6 +17,7 @@ class CompilerOptions {
   Uri mainUri;
   String outputFile;
   Map<String, String> environment = const {};
+  Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
 
   factory CompilerOptions.defaultOptions() =>
       CompilerOptions(mainUri: Uri(), outputFile: '');

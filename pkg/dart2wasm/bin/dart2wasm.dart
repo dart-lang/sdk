@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart'
     show printDiagnosticMessage, resolveInputUri;
+import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
 import 'package:dart2wasm/compile.dart';
 import 'package:dart2wasm/compiler_options.dart';
@@ -51,8 +52,16 @@ final List<Option> options = [
       "watch", (o, values) => o.translatorOptions.watchPoints = values),
   StringMultiOption(
       "define", (o, values) => o.environment = processEnvironment(values),
-      abbr: "D")
+      abbr: "D"),
+  StringMultiOption("enable-experiment",
+      (o, values) => o.feExperimentalFlags = processFeExperimentalFlags(values))
 ];
+
+Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
+        List<String> experiments) =>
+    fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
+        onError: (error) => throw ArgumentError(error),
+        onWarning: (warning) => print(warning));
 
 Map<String, String> processEnvironment(List<String> defines) =>
     Map<String, String>.fromEntries(defines.map((d) {

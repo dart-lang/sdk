@@ -48,6 +48,7 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
     ..librariesSpecificationUri = options.librariesSpecPath
     ..packagesFileUri = options.packagesPath
     ..environmentDefines = options.environment
+    ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler
     ..nnbdMode = NnbdMode.Strong;
