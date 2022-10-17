@@ -729,7 +729,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      types.encodeNullability(b, type);
+      b.i32_const(types.encodedNullability(type));
       b.i64_const(typeInfo.classId);
       constants.instantiateConstant(
           function, b, typeArgs, typeListExpectedType);
@@ -744,7 +744,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     return createConstant(constant, info.nonNullableType, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      types.encodeNullability(b, type);
+      b.i32_const(types.encodedNullability(type));
       constants.instantiateConstant(
           function, b, typeArgument, types.nonNullableTypeType);
       b.struct_new(info.struct);
@@ -768,7 +768,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     return createConstant(constant, info.nonNullableType, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      types.encodeNullability(b, type);
+      b.i32_const(types.encodedNullability(type));
       constants.instantiateConstant(
           function, b, returnTypeConstant, types.nonNullableTypeType);
       constants.instantiateConstant(function, b, positionalParametersConstant,
@@ -798,7 +798,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         return createConstant(constant, info.nonNullableType, (function, b) {
           b.i32_const(info.classId);
           b.i32_const(initialIdentityHash);
-          types.encodeNullability(b, type);
+          b.i32_const(types.encodedNullability(type));
           b.struct_new(info.struct);
         });
       } else {
@@ -812,13 +812,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-
-        // A type parameter's type nullability is undetermined when it's
-        // syntactically not declared nullable and the bound of the type
-        // parameter is nullable. Because we are encoding the declared
-        // nullability, we only declare a type parameter to be nullable if it is
-        // explicitly declared to be nullabe.
-        b.i32_const(type.declaredNullability == Nullability.nullable ? 1 : 0);
+        b.i32_const(types.encodedNullability(type));
         b.i64_const(environmentIndex);
         b.struct_new(info.struct);
       });
@@ -830,7 +824,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-        types.encodeNullability(b, type);
+        b.i32_const(types.encodedNullability(type));
         b.struct_new(info.struct);
       });
     }

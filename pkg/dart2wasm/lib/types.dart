@@ -308,7 +308,7 @@ class Types {
       CodeGenerator codeGen, ClassInfo info, InterfaceType type) {
     w.Instructions b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-    encodeNullability(b, type);
+    b.i32_const(encodedNullability(type));
     b.i64_const(typeInfo.classId);
     _makeTypeList(codeGen, type.typeArguments);
   }
@@ -366,29 +366,14 @@ class Types {
 
   void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
     w.Instructions b = codeGen.b;
-    w.DefinedFunction function = codeGen.function;
-
-    // We canonicalize `FutureOr<T?>` to `FutureOr<T?>?`. However, we have to
-    // take special care to handle the case where we have
-    // undetermined nullability. To handle this, we emit the type argument, and
-    // read back its nullability at runtime.
-    if (type.nullability == Nullability.undetermined) {
-      w.ValueType typeArgumentType = makeType(codeGen, type.typeArgument);
-      w.Local typeArgumentTemporary = codeGen.addLocal(typeArgumentType);
-      b.local_tee(typeArgumentTemporary);
-      b.struct_get(typeClassInfo.struct, FieldIndex.typeIsNullable);
-      b.local_get(typeArgumentTemporary);
-      translator.convertType(function, typeArgumentType, nonNullableTypeType);
-    } else {
-      encodeNullability(b, type);
-      makeType(codeGen, type.typeArgument);
-    }
+    b.i32_const(encodedNullability(type));
+    makeType(codeGen, type.typeArgument);
   }
 
   void _makeFunctionType(
       CodeGenerator codeGen, ClassInfo info, FunctionType type) {
     w.Instructions b = codeGen.b;
-    encodeNullability(b, type);
+    b.i32_const(encodedNullability(type));
     makeType(codeGen, type.returnType);
     if (type.positionalParameters.every(_isTypeConstant)) {
       translator.constants.instantiateConstant(
@@ -469,7 +454,7 @@ class Types {
         // TODO(joshualitt): Implement generic function types and share most of
         // the logic with _makeFunctionType.
         print("Not implemented: RTI ${type}");
-        encodeNullability(b, type);
+        b.i32_const(encodedNullability(type));
       } else {
         _makeFunctionType(codeGen, info, type);
       }
@@ -515,7 +500,7 @@ class Types {
       if (isPotentiallyNullable) {
         b.br(resultLabel!);
         b.end(); // nullLabel
-        encodeNullability(b, type);
+        b.i32_const(encodedNullability(type));
         b.end(); // resultLabel
       }
     }
@@ -570,15 +555,6 @@ class Types {
     _endPotentiallyNullableBlock();
   }
 
-  /// Returns true if a given type is nullable, and false otherwise. This
-  /// function should not be used on [DartType]s with undetermined nullability.
-  bool isNullable(DartType type) {
-    Nullability nullability = type.nullability;
-    assert(nullability == Nullability.nullable ||
-        nullability == Nullability.nonNullable);
-    return nullability == Nullability.nullable ? true : false;
-  }
-
-  void encodeNullability(w.Instructions b, DartType type) =>
-      b.i32_const(isNullable(type) ? 1 : 0);
+  int encodedNullability(DartType type) =>
+      type.declaredNullability == Nullability.nullable ? 1 : 0;
 }
