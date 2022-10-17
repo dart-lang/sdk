@@ -19,12 +19,12 @@ extension GetterSetterReference on Reference {
 
   bool get isGetter {
     Member member = asMember;
-    return member is Procedure && member.isGetter || isImplicitGetter;
+    return (member is Procedure && member.isGetter) || isImplicitGetter;
   }
 
   bool get isSetter {
     Member member = asMember;
-    return member is Procedure && member.isSetter || isImplicitSetter;
+    return (member is Procedure && member.isSetter) || isImplicitSetter;
   }
 }
 

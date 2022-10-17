@@ -230,8 +230,8 @@ class DispatchTable {
         ? metadata.getterSelectorId
         : metadata.methodOrSetterSelectorId;
     ParameterInfo paramInfo = ParameterInfo.fromMember(target);
-    int returnCount = isGetter ||
-            member is Procedure && member.function.returnType is! VoidType
+    final int returnCount = (isGetter && member.getterType is! VoidType) ||
+            (member is Procedure && member.function.returnType is! VoidType)
         ? 1
         : 0;
 
