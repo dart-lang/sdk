@@ -646,7 +646,7 @@ class _CatchClausesVerifier {
       return;
     }
 
-    // An on-catch clause was found; verify that the exception type is not a
+    // An on-catch clause was found; verify that the exception type is not a
     // subtype of a previous on-catch exception type.
     for (var type in _visitedTypes) {
       if (_typeSystem.isSubtypeOf(currentType, type)) {
