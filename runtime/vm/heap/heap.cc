@@ -436,9 +436,9 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 }
 
-void Heap::NotifyDetach() {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "NotifyDetach");
-  CollectAllGarbage(GCReason::kDetach, /*compact=*/true);
+void Heap::NotifyDestroyed() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "NotifyDestroyed");
+  CollectAllGarbage(GCReason::kDestroyed, /*compact=*/true);
   Page::ClearCache();
 }
 
@@ -878,8 +878,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "external";
     case GCReason::kIdle:
       return "idle";
-    case GCReason::kDetach:
-      return "detach";
+    case GCReason::kDestroyed:
+      return "destroyed";
     case GCReason::kDebugging:
       return "debugging";
     case GCReason::kCatchUp:

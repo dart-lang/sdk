@@ -10008,17 +10008,18 @@ void main() {
   EXPECT_VALID(result);
 }
 
-static void NotifyDetachNative(Dart_NativeArguments args) {
-  Dart_NotifyDetach();
+static void NotifyDestroyedNative(Dart_NativeArguments args) {
+  Dart_NotifyDestroyed();
 }
 
-static Dart_NativeFunction NotifyDetach_native_lookup(Dart_Handle name,
-                                                      int argument_count,
-                                                      bool* auto_setup_scope) {
-  return NotifyDetachNative;
+static Dart_NativeFunction NotifyDestroyed_native_lookup(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  return NotifyDestroyedNative;
 }
 
-TEST_CASE(DartAPI_NotifyDetach) {
+TEST_CASE(DartAPI_NotifyDestroyed) {
   const char* kScriptChars = R"(
 import 'dart:isolate';
 @pragma("vm:external-name", "Test_nativeFunc")
@@ -10035,7 +10036,7 @@ void main() {
   }
 })";
   Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, &NotifyDetach_native_lookup);
+      TestCase::LoadTestScript(kScriptChars, &NotifyDestroyed_native_lookup);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }

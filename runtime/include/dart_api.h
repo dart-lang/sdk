@@ -1277,7 +1277,7 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT void Dart_NotifyDetach(void);
+DART_EXPORT void Dart_NotifyDestroyed(void);
 
 /**
  * Notifies the VM that the system is running low on memory.
