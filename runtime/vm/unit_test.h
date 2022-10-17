@@ -103,7 +103,7 @@
   ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                 \
     volatile intptr_t far_branch_level = 0;                                    \
     while (true) {                                                             \
-      LongJumpScope jump;                                                      \
+      LongJumpScope jump(thread);                                              \
       if (setjmp(*jump.Set()) == 0) {                                          \
         compiler::ObjectPoolBuilder object_pool_builder;                       \
         compiler::Assembler assembler(&object_pool_builder, far_branch_level); \
@@ -113,9 +113,9 @@
         AssemblerTestRun##name(&test);                                         \
         return;                                                                \
       } else {                                                                 \
-        const Error& error = Error::Handle(Thread::Current()->sticky_error()); \
+        const Error& error = Error::Handle(thread->sticky_error());            \
         if (error.ptr() == Object::branch_offset_error().ptr()) {              \
-          ASSERT(far_branch_level < 2);                                        \
+          RELEASE_ASSERT(far_branch_level < 2);                                \
           far_branch_level++;                                                  \
         } else {                                                               \
           FATAL1("Unexpected error: %s\n", error.ToErrorCString());            \
