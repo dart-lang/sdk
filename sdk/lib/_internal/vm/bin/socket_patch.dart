@@ -1295,13 +1295,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   InternetAddress get remoteAddress {
     if (isClosing || isClosed) throw const SocketException.closed();
     var result = nativeGetRemotePeer();
-    var addr = result[0];
-    var type = new InternetAddressType._from(addr[0]);
+    var addr = result[0] as List<Object?>;
+    var type = new InternetAddressType._from(addr[0] as int);
     if (type == InternetAddressType.unix) {
-      return _InternetAddress.fromString(addr[1],
+      return _InternetAddress.fromString(addr[1] as String,
           type: InternetAddressType.unix);
     }
-    return _InternetAddress(type, addr[1], null, addr[2]);
+    return _InternetAddress(
+        type, addr[1] as String, null, addr[2] as Uint8List);
   }
 
   void issueReadEvent() {

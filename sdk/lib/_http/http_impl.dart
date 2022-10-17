@@ -706,8 +706,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       if (onError is void Function(Object, StackTrace)) {
         onError(e, st);
       } else {
-        assert(onError is void Function(Object));
-        onError(e);
+        (onError as void Function(Object))(e);
       }
     }, onDone: () {
       _profileData?.finishResponse();

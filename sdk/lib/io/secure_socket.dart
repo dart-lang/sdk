@@ -1348,7 +1348,7 @@ abstract class _SecureFilter {
   void init();
   X509Certificate? get peerCertificate;
   int processBuffer(int bufferIndex);
-  void registerBadCertificateCallback(Function callback);
+  void registerBadCertificateCallback(bool Function(X509Certificate) callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
   void registerKeyLogPort(SendPort port);
 

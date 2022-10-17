@@ -167,11 +167,12 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   external X509Certificate? get peerCertificate;
 
   @pragma("vm:external-name", "SecureSocket_RegisterBadCertificateCallback")
-  external void _registerBadCertificateCallback(Function callback);
+  external void _registerBadCertificateCallback(
+      bool Function(X509Certificate) callback);
 
-  Function? badCertificateCallback;
+  bool Function(X509Certificate)? badCertificateCallback;
 
-  void registerBadCertificateCallback(Function callback) {
+  void registerBadCertificateCallback(bool Function(X509Certificate) callback) {
     badCertificateCallback = callback;
     _registerBadCertificateCallback(callback);
   }

@@ -42,7 +42,7 @@ class WCharArrayStruct extends ffi::Struct {
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5] [@vm.unboxing-info.metadata=(i)->b]  method allocate<T extends ffi::NativeType>([@vm.inferred-type.metadata=int] core::int byteCount) → ffi::Pointer<self::_DummyAllocator::allocate::T> {
-    return [@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::Pointer::fromAddress<self::_DummyAllocator::allocate::T>(0);
+    return [@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::Pointer::fromAddress<self::_DummyAllocator::allocate::T>();
   }
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method free([@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::Pointer<ffi::NativeType> pointer) → void {}
 }
