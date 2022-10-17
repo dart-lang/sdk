@@ -1,3 +1,7 @@
+# 2.5.0-dev
+- [DAP] `variables` requests now treat lists from `dart:typed_data` (such as `Uint8List`) like standard `List` instances and return their elements instead of class fields.
+- [DAP] `variables` requests now return information about the number of items in lists to allow the client to page through them.
+
 # 2.4.0
 - [DAP] Added support for sending progress notifications via `DartDebugAdapter.startProgressNotification`.
   Standard progress events are sent when a clients sets `supportsProgressReporting: true` in its capabilities,

@@ -1619,8 +1619,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         ]);
       }
     } else if (vmData is vm.ObjRef) {
-      final object =
-          await _isolateManager.getObject(storedData.thread.isolate, vmData);
+      final object = await _isolateManager.getObject(
+        storedData.thread.isolate,
+        vmData,
+        offset: childStart,
+        count: childCount,
+      );
 
       if (object is vm.Sentinel) {
         variables.add(Variable(
