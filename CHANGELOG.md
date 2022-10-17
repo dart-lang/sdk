@@ -1,3 +1,10 @@
+## 2.18.3 - 2022-10-19
+
+This is a patch release that fixes a regression in code coverage computation
+(issue [#49887][]).
+
+[#49887]: https://github.com/dart-lang/sdk/issues/49887
+
 ## 2.18.2 - 2022-09-28
 
 This is a patch release that:
