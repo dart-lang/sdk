@@ -5266,6 +5266,10 @@ JsInteropStaticInteropMockNotStaticInteropType:
   problemMessage: "First type argument '#type' is not a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
 
+JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
+  problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
+  correctionMessage: "Try using a Dart extension member if you need type parameters instead."
+
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."

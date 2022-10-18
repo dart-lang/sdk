@@ -19,6 +19,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         messageJsInteropOperatorsNotSupported,
+        messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
         messageJsInteropStaticInteropGenerativeConstructor,
         templateJsInteropDartClassExtendsJSClass,
         templateJsInteropStaticInteropWithInstanceMembers,
@@ -34,6 +35,7 @@ class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   final Map<String, Class> _nativeClasses;
+  final _TypeParameterVisitor _typeParameterVisitor = _TypeParameterVisitor();
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _classHasStaticInteropAnnotation = false;
@@ -301,6 +303,26 @@ class JsInteropChecks extends RecursiveVisitor {
           procedure.name.text.length,
           procedure.fileUri);
     }
+
+    if (procedure.isExternal &&
+        procedure.isExtensionMember &&
+        _isStaticInteropExtensionMember(procedure)) {
+      // If the extension has type parameters of its own, it copies those type
+      // parameters to the procedure's type parameters (in the front) as well.
+      // Ignore these for the analysis.
+      var extensionTypeParams =
+          _libraryExtensionsIndex![procedure.reference]!.typeParameters;
+      var procedureTypeParams = List.from(procedure.function.typeParameters);
+      procedureTypeParams.removeRange(0, extensionTypeParams.length);
+      if (procedureTypeParams.isNotEmpty ||
+          _typeParameterVisitor.usesTypeParameters(procedure)) {
+        _diagnosticsReporter.report(
+            messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
+            procedure.fileOffset,
+            procedure.name.text.length,
+            procedure.fileUri);
+      }
+    }
   }
 
   @override
@@ -450,6 +472,12 @@ class JsInteropChecks extends RecursiveVisitor {
     return _checkExtensionMember(member, hasJSInteropAnnotation);
   }
 
+  /// Returns whether given extension [member] is in an extension that is on a
+  /// `@staticInterop` class.
+  bool _isStaticInteropExtensionMember(Member member) {
+    return _checkExtensionMember(member, hasStaticInteropAnnotation);
+  }
+
   /// Returns whether given extension [member] is in an extension on a Native
   /// class.
   bool _isNativeExtensionMember(Member member) {
@@ -469,5 +497,20 @@ class JsInteropChecks extends RecursiveVisitor {
 
     var onType = _libraryExtensionsIndex![member.reference]!.onType;
     return onType is InterfaceType && validateExtensionClass(onType.classNode);
+  }
+}
+
+class _TypeParameterVisitor extends RecursiveVisitor {
+  bool _visitedTypeParameterType = false;
+
+  bool usesTypeParameters(Node node) {
+    _visitedTypeParameterType = false;
+    node.accept(this);
+    return _visitedTypeParameterType;
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    _visitedTypeParameterType = true;
   }
 }

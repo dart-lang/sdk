@@ -7121,6 +7121,22 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     problemMessage: r"""JS interop classes do not support operator methods.""",
     correctionMessage: r"""Try replacing this with a normal method.""");
 
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null>
+    codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    const MessageCode(
+        "JsInteropStaticInteropExternalExtensionMembersWithTypeParameters",
+        problemMessage:
+            r"""`@staticInterop` classes cannot have external extension members with type parameters.""",
+        correctionMessage:
+            r"""Try using a Dart extension member if you need type parameters instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
     messageJsInteropStaticInteropGenerativeConstructor;
 
