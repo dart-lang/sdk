@@ -13703,13 +13703,15 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
 ///        'when' [Expression]
 @experimental
 class WhenClauseImpl extends AstNodeImpl implements WhenClause {
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   @override
   final Token whenKeyword;
 
-  WhenClauseImpl({required this.whenKeyword, required this.expression}) {
+  WhenClauseImpl({
+    required this.whenKeyword,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(expression);
   }
 
@@ -13718,6 +13720,13 @@ class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 
   @override
   Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities

@@ -3437,6 +3437,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool? visitWhenClause(covariant WhenClauseImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitWhileStatement(covariant WhileStatementImpl node) {
     if (identical(node.condition, _oldNode)) {
       node.condition = _newNode as Expression;
