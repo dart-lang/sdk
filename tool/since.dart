@@ -12,65 +12,55 @@ import 'package:yaml/yaml.dart';
 import 'crawl.dart';
 
 void main() async {
-// Uncomment to (re)generate since/linter.yaml contents.
-//  for (var lint in registeredLints) {
-//    var since = await findSinceLinter(lint.name);
-//    if (since != null) {
-//      print('${lint.name}: $since');
-//    }
-//  }
+  // ignore: unused_local_variable
+  var sinceInfo = await getSinceMap();
 
-// Uncomment to (re)generate since/dart_sdk.yaml contents.
-//  var tags = await sdkTags;
-//  for (var tag in sdkTags)) {
-//    var version = await fetchLinterForVersion(tag);
-//    if (version.startsWith('@')) {
-//      version = version.substring(1);
-//    }
-//    print('$tag: $version');
-//  }
+  // Uncomment to (re)generate since/linter.yaml contents.
+  // for (var info in sinceInfo.entries) {
+  //   var sinceLinter = info.value.sinceLinter;
+  //   if (sinceLinter != null) {
+  //     print('${info.key}: $sinceLinter');
+  //   }
+  // }
 
-  await getSinceMap().then((m) => m.entries.forEach(print));
+  // Uncomment to (re)generate since/dart_sdk.yaml contents.
+  // for (var info in sinceInfo.entries) {
+  //   var sinceSdk = info.value.sinceLinter;
+  //   if (sinceSdk != null) {
+  //     print('${info.key}: $sinceSdk}');
+  //   }
+  // }
 }
 
-Version earliestLinterInDart2 = Version.parse('0.1.58');
+final Version earliestLinterInDart2 = Version.parse('0.1.58');
 
 Map<String, String>? _dartSdkMap;
 
-List<String>? _linterVersions;
-
 Map<String, SinceInfo>? _sinceMap;
 
-Future<List<String>?> get linterVersions async {
-  if (_linterVersions == null) {
-    _linterVersions = <String>[];
-    for (var minor = 0; minor <= await latestMinor; ++minor) {
-      _linterVersions!.add('0.1.$minor');
-    }
-  }
-  return _linterVersions;
-}
-
-Future<Map<String, String>?> getDartSdkMap(Authentication? auth) async {
-  if (_dartSdkMap == null) {
-    var dartSdkCache = await File('tool/since/dart_sdk.yaml').readAsString();
+Future<Map<String, String>> getDartSdkMap(Authentication? auth) async {
+  var dartSdkMap = _dartSdkMap;
+  if (dartSdkMap == null) {
+    var dartSdkCache = File('tool/since/dart_sdk.yaml').readAsStringSync();
     var yamlMap = loadYamlNode(dartSdkCache) as YamlMap;
-    _dartSdkMap = yamlMap.map((k, v) => MapEntry(k.toString(), v.toString()));
+    dartSdkMap = yamlMap.map((k, v) => MapEntry(k.toString(), v.toString()));
 
-    var sdks = await getSdkTags(auth);
+    var sdks = await getSdkTags(auth, onlyStable: true);
     for (var sdk in sdks) {
-      if (!_dartSdkMap!.containsKey(sdk)) {
+      if (!dartSdkMap.containsKey(sdk)) {
         var linterVersion = await linterForDartSdk(sdk);
         if (linterVersion != null) {
-          _dartSdkMap![sdk] = linterVersion;
+          dartSdkMap[sdk] = linterVersion;
           print('fetched...');
           print('$sdk : $linterVersion');
           print('(consider caching in tool/since/dart_sdk.yaml)');
         }
       }
     }
+
+    _dartSdkMap = dartSdkMap;
   }
-  return _dartSdkMap;
+  return dartSdkMap;
 }
 
 Future<Map<String, SinceInfo>> getSinceMap([Authentication? auth]) async =>
@@ -84,7 +74,7 @@ Future<Map<String, SinceInfo>> _getSinceInfo(Authentication? auth) async {
   for (var lint in registeredLints.map((l) => l.name)) {
     var linterVersion = linterVersionCache[lint] as String?;
     if (linterVersion == null) {
-      linterVersion = await findSinceLinter(lint, auth: auth);
+      linterVersion = await findSinceLinter(lint, auth);
       if (linterVersion != null) {
         print('fetched...');
         print('$lint : $linterVersion');
@@ -92,29 +82,26 @@ Future<Map<String, SinceInfo>> _getSinceInfo(Authentication? auth) async {
       }
     }
     sinceMap[lint] = SinceInfo(
-      sinceLinter: linterVersion ?? await findSinceLinter(lint),
-      // See: https://github.com/dart-lang/linter/issues/2824
-      //sinceDartSdk: await _sinceSdkForLinter(linterVersion, auth),
+      sinceLinter: linterVersion,
+      sinceDartSdk: await _sinceSdkForLinter(linterVersion, auth),
     );
   }
   return sinceMap;
 }
 
-Future<String?> _nextLinterVersion(Version linterVersion) async {
-  var versions = await linterVersions;
-  if (versions != null) {
-    for (var version in versions) {
-      if (Version.parse(version).compareTo(linterVersion) > 0) {
-        return version;
-      }
+Future<String?> _nextLinterVersion(
+    Version linterVersion, Authentication? auth) async {
+  var versions = await getLinterReleases(auth);
+  for (var version in versions) {
+    if (Version.parse(version) > linterVersion) {
+      return version;
     }
   }
   return null;
 }
 
-@Deprecated('See: https://github.com/dart-lang/linter/issues/2824')
-Future<String?> _sinceSdkForLinter // ignore: unused_element
-    (String? linterVersionString, Authentication? auth) async {
+Future<String?> _sinceSdkForLinter(
+    String? linterVersionString, Authentication? auth) async {
   if (linterVersionString == null) {
     return null;
   }
@@ -127,15 +114,13 @@ Future<String?> _sinceSdkForLinter // ignore: unused_element
 
     var sdkVersions = <String>[];
     var sdkCache = await getDartSdkMap(auth);
-    if (sdkCache != null) {
-      for (var sdkEntry in sdkCache.entries) {
-        if (Version.parse(sdkEntry.value) == linterVersion) {
-          sdkVersions.add(sdkEntry.key);
-        }
+    for (var sdkEntry in sdkCache.entries) {
+      if (Version.parse(sdkEntry.value) == linterVersion) {
+        sdkVersions.add(sdkEntry.key);
       }
     }
     if (sdkVersions.isEmpty) {
-      var nextLinter = await _nextLinterVersion(linterVersion);
+      var nextLinter = await _nextLinterVersion(linterVersion, auth);
       return _sinceSdkForLinter(nextLinter, auth);
     }
 
@@ -148,12 +133,10 @@ Future<String?> _sinceSdkForLinter // ignore: unused_element
 
 class SinceInfo {
   final String? sinceLinter;
-  // See: https://github.com/dart-lang/linter/issues/2824
-  //final String? sinceDartSdk;
-  SinceInfo({this.sinceLinter});
+  final String? sinceDartSdk;
+
+  SinceInfo({this.sinceLinter, this.sinceDartSdk});
 
   @override
-  String toString() => 'linter: $sinceLinter';
-  // See: https://github.com/dart-lang/linter/issues/2824
-  // 'linter: $sinceLinter | sdk: $sinceDartSdk';
+  String toString() => 'linter: $sinceLinter | sdk: $sinceDartSdk';
 }

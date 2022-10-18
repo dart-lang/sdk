@@ -20,7 +20,7 @@ const _allPathSuffix = '/example/all.yaml';
 
 /// We don't care about SDKs previous to this bottom.
 final Version bottomDartSdk = Version(2, 0, 0);
-Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
+final Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
 
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
@@ -37,6 +37,8 @@ final _repoPathPrefix =
     Uri.https('raw.githubusercontent.com', '/dart-lang/linter/');
 
 List<String>? _sdkTags;
+
+List<String>? _linterTags;
 
 Map<String, List<String?>> _sinceMap = <String, List<String>>{};
 
@@ -80,13 +82,14 @@ Future<String?> findSinceDartSdk(String linterVersion,
         {Authentication? auth}) async =>
     await dartSdkForLinter(linterVersion, auth);
 
-Future<String?> findSinceLinter(String lint, {Authentication? auth}) async {
-  var latest = await latestMinor;
-  for (var minor = 0; minor <= latest; ++minor) {
-    var rules = await rulesForVersion(minor);
+Future<String?> findSinceLinter(String lint, [Authentication? auth]) async {
+  var linterReleases = await getLinterReleases(auth);
+
+  for (var version in linterReleases) {
+    var rules = await rulesForVersion(version);
     if (rules != null) {
       if (rules.contains(lint)) {
-        return '1.$minor';
+        return version;
       }
     }
   }
@@ -94,17 +97,19 @@ Future<String?> findSinceLinter(String lint, {Authentication? auth}) async {
   return null;
 }
 
-Future<List<String>> getSdkTags(Authentication? auth) async =>
-    _sdkTags ??= await _fetchSdkTags(auth);
+Future<List<String>> getSdkTags(Authentication? auth,
+        {bool onlyStable = false}) async =>
+    _sdkTags ??= await _fetchSdkTags(auth, onlyStable: onlyStable);
+
+Future<List<String>> getLinterReleases([Authentication? auth]) async =>
+    _linterTags ??=
+        (await _fetchLinterReleaseTags(auth)).reversed.toList(growable: false);
 
 Future<String?> linterForDartSdk(String sdk) async =>
     _dartSdkToLinterMap[sdk] ??= await _fetchLinterForVersion(sdk);
 
-Future<List<String?>?> rulesForVersion(int minor) async {
-  var version = '1.$minor.0';
-  var rules = await fetchRulesForVersion(version);
-  return _sinceMap[version] ??= rules;
-}
+Future<List<String?>?> rulesForVersion(String version) async =>
+    _sinceMap[version] ??= await fetchRulesForVersion(version);
 
 Future<String> _fetchDEPSforVersion(String version) async {
   var client = http.Client();
@@ -114,24 +119,90 @@ Future<String> _fetchDEPSforVersion(String version) async {
   return req.body;
 }
 
+final _linterReleasePattern = RegExp(r'\d+\.\d+(\.\d+)');
+
+Future<String?> _commitReferenceToVersion(String version) async {
+  if (_linterReleasePattern.hasMatch(version)) {
+    return version;
+  }
+
+  // Get all tags which include this commit reference
+  var result = await Process.run('git', ['tag', '--contains', version]);
+  var output = result.stdout;
+  if (output is String) {
+    var tags = _linterReleasePattern.allMatches(output);
+    // Take the earliest (first) release which includes this commit
+    var latestTag = tags.first.group(0);
+    if (latestTag != null) {
+      return latestTag;
+    }
+  }
+
+  return null;
+}
+
 Future<String?> _fetchLinterForVersion(String version) async {
   var deps = await _fetchDEPSforVersion(version);
-  for (var line in deps.split('\n')) {
-    if (line.trim().startsWith('"lint')) {
+  for (var untrimmedLine in deps.split('\n')) {
+    var line = untrimmedLine.trim();
+    if (line.startsWith('"lint')) {
       // "linter_tag": "0.1.59",
-      var split = line.trim().split('"linter_tag":');
-      if (split.length == 2) {
+      var oldSplit = line.split('"linter_tag":');
+      if (oldSplit.length == 2) {
         //  "0.1.59",
-        return split[1].split('"')[1];
+        return _commitReferenceToVersion(oldSplit[1].split('"')[1]);
+      }
+
+      // "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca",
+      var newSplit = line.split('"linter_rev":');
+      if (newSplit.length == 2) {
+        // "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca",
+        var parsedLinterVersion = newSplit[1].split('"')[1];
+        return _commitReferenceToVersion(parsedLinterVersion);
       }
     }
   }
   return null;
 }
 
-Future<List<String>> _fetchSdkTags(Authentication? auth) async {
+final _releaseTagPattern = RegExp(r'\d+');
+final _stableReleasePattern = RegExp(r'^\d+\.\d+\.\d+$');
+
+Future<List<String>> _fetchLinterReleaseTags(Authentication? auth) async =>
+    await _fetchRepoTags(
+        'dart-lang', 'linter', auth, _stableReleasePattern.hasMatch);
+
+Future<List<String>> _fetchSdkTags(Authentication? auth,
+        {bool onlyStable = false}) async =>
+    await _fetchRepoTags('dart-lang', 'linter', auth, (t) {
+      // Filter on numeric release tags.
+      if (!t.startsWith(_releaseTagPattern)) {
+        return false;
+      }
+
+      // Filter on bottom.
+      try {
+        var version = Version.parse(t);
+        if (version < bottomDartSdk) {
+          return false;
+        }
+      } on FormatException {
+        return false;
+      }
+
+      if (onlyStable) {
+        if (!_stableReleasePattern.hasMatch(t)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+Future<List<String>> _fetchRepoTags(String org, String repo,
+    Authentication? auth, bool Function(String) where) async {
   var github = GitHub(auth: auth);
-  var slug = RepositorySlug('dart-lang', 'sdk');
+  var slug = RepositorySlug(org, repo);
 
   print('list repository tags: $slug');
   print('authentication:  ${auth != null ? "(token)" : "(anonymous)"}');
@@ -141,26 +212,13 @@ Future<List<String>> _fetchSdkTags(Authentication? auth) async {
       .map((t) => t.name)
       .toList()
       .catchError((e) {
-    print('exception caught fetching SDK tags');
+    print('exception caught fetching $repo tags');
     print(e);
-    print('(using cached SDK values)');
+    print('(using cached $repo values)');
     return Future.value(<String>[]);
   });
 
-  return tags.whereType<String>().where((t) {
-    // Filter on numeric release tags.
-    if (!t.startsWith(RegExp(r'\d+'))) {
-      return false;
-    }
-
-    // Filter on bottom.
-    try {
-      var version = Version.parse(t);
-      return version.compareTo(bottomDartSdk) >= 0;
-    } on FormatException {
-      return false;
-    }
-  }).toList();
+  return tags.whereType<String>().where(where).toList(growable: false);
 }
 
 Future<int> _readLatestMinorVersion() async {
