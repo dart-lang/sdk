@@ -2291,7 +2291,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
   const intptr_t field_index =
       Record::GetPositionalFieldIndexFromFieldName(name);
   if (field_index >= 0) {
-    // Get record field by index.
+    // Get positional record field by index.
     body += IntConstant(field_index);
 
     // num_positional = num_fields - field_names.length
@@ -2307,85 +2307,86 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
     TargetEntryInstr* valid_index;
     TargetEntryInstr* invalid_index;
     body += BranchIfTrue(&valid_index, &invalid_index);
-    Fragment(invalid_index) + Goto(nsm);
 
     body.current = valid_index;
     body += LoadLocal(parsed_function_->receiver_var());
     body += LoadNativeField(Slot::GetRecordFieldSlot(
         thread_, compiler::target::Record::field_offset(field_index)));
     body += Return(TokenPosition::kNoSource);
-  } else {
-    // Search field among named fields.
-    body += LoadLocal(parsed_function_->receiver_var());
-    body += LoadNativeField(Slot::Record_field_names());
-    LocalVariable* field_names = MakeTemporary("field_names");
 
-    body += LoadLocal(field_names);
-    body += LoadNativeField(Slot::Array_length());
-    LocalVariable* num_named = MakeTemporary("num_named");
-
-    body += IntConstant(0);
-    body += LoadLocal(num_named);
-    body += SmiRelationalOp(Token::kLT);
-    TargetEntryInstr* has_named_fields;
-    TargetEntryInstr* no_named_fields;
-    body += BranchIfTrue(&has_named_fields, &no_named_fields);
-
-    Fragment(no_named_fields) + Goto(nsm);
-    body.current = has_named_fields;
-
-    LocalVariable* index = parsed_function_->expression_temp_var();
-    body += IntConstant(0);
-    body += StoreLocal(TokenPosition::kNoSource, index);
-    body += Drop();
-
-    JoinEntryInstr* loop = BuildJoinEntry();
-    body += Goto(loop);
-    body.current = loop;
-
-    body += LoadLocal(field_names);
-    body += LoadLocal(index);
-    body += LoadIndexed(kArrayCid,
-                        /*index_scale*/ compiler::target::kCompressedWordSize);
-    body += Constant(name);
-    TargetEntryInstr* found;
-    TargetEntryInstr* continue_search;
-    body += BranchIfEqual(&found, &continue_search);
-
-    body.current = continue_search;
-    body += LoadLocal(index);
-    body += IntConstant(1);
-    body += SmiBinaryOp(Token::kADD);
-    body += StoreLocal(TokenPosition::kNoSource, index);
-    body += Drop();
-
-    body += LoadLocal(index);
-    body += LoadLocal(num_named);
-    body += SmiRelationalOp(Token::kLT);
-    TargetEntryInstr* has_more_fields;
-    TargetEntryInstr* no_more_fields;
-    body += BranchIfTrue(&has_more_fields, &no_more_fields);
-
-    Fragment(has_more_fields) + Goto(loop);
-    Fragment(no_more_fields) + Goto(nsm);
-
-    body.current = found;
-
-    body += LoadLocal(parsed_function_->receiver_var());
-
-    body += LoadLocal(parsed_function_->receiver_var());
-    body += LoadNativeField(Slot::Record_num_fields());
-    body += Box(Slot::Record_num_fields().representation());
-    body += LoadLocal(num_named);
-    body += SmiBinaryOp(Token::kSUB);
-    body += LoadLocal(index);
-    body += SmiBinaryOp(Token::kADD);
-
-    body += LoadIndexed(kRecordCid,
-                        /*index_scale*/ compiler::target::kCompressedWordSize);
-    body += DropTempsPreserveTop(2);
-    body += Return(TokenPosition::kNoSource);
+    body.current = invalid_index;
   }
+
+  // Search field among named fields.
+  body += LoadLocal(parsed_function_->receiver_var());
+  body += LoadNativeField(Slot::Record_field_names());
+  LocalVariable* field_names = MakeTemporary("field_names");
+
+  body += LoadLocal(field_names);
+  body += LoadNativeField(Slot::Array_length());
+  LocalVariable* num_named = MakeTemporary("num_named");
+
+  body += IntConstant(0);
+  body += LoadLocal(num_named);
+  body += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr* has_named_fields;
+  TargetEntryInstr* no_named_fields;
+  body += BranchIfTrue(&has_named_fields, &no_named_fields);
+
+  Fragment(no_named_fields) + Goto(nsm);
+  body.current = has_named_fields;
+
+  LocalVariable* index = parsed_function_->expression_temp_var();
+  body += IntConstant(0);
+  body += StoreLocal(TokenPosition::kNoSource, index);
+  body += Drop();
+
+  JoinEntryInstr* loop = BuildJoinEntry();
+  body += Goto(loop);
+  body.current = loop;
+
+  body += LoadLocal(field_names);
+  body += LoadLocal(index);
+  body += LoadIndexed(kArrayCid,
+                      /*index_scale*/ compiler::target::kCompressedWordSize);
+  body += Constant(name);
+  TargetEntryInstr* found;
+  TargetEntryInstr* continue_search;
+  body += BranchIfEqual(&found, &continue_search);
+
+  body.current = continue_search;
+  body += LoadLocal(index);
+  body += IntConstant(1);
+  body += SmiBinaryOp(Token::kADD);
+  body += StoreLocal(TokenPosition::kNoSource, index);
+  body += Drop();
+
+  body += LoadLocal(index);
+  body += LoadLocal(num_named);
+  body += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr* has_more_fields;
+  TargetEntryInstr* no_more_fields;
+  body += BranchIfTrue(&has_more_fields, &no_more_fields);
+
+  Fragment(has_more_fields) + Goto(loop);
+  Fragment(no_more_fields) + Goto(nsm);
+
+  body.current = found;
+
+  body += LoadLocal(parsed_function_->receiver_var());
+
+  body += LoadLocal(parsed_function_->receiver_var());
+  body += LoadNativeField(Slot::Record_num_fields());
+  body += Box(Slot::Record_num_fields().representation());
+  body += LoadLocal(num_named);
+  body += SmiBinaryOp(Token::kSUB);
+  body += LoadLocal(index);
+  body += SmiBinaryOp(Token::kADD);
+
+  body += LoadIndexed(kRecordCid,
+                      /*index_scale*/ compiler::target::kCompressedWordSize);
+  body += DropTempsPreserveTop(2);
+  body += Return(TokenPosition::kNoSource);
 
   Fragment throw_nsm(nsm);
   throw_nsm += LoadLocal(parsed_function_->receiver_var());
