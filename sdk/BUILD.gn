@@ -513,7 +513,8 @@ copy("copy_dart2wasm_snapshot") {
     "../utils/dart2wasm:dart2wasm_snapshot",
   ]
   sources = [ "$root_out_dir/dart2wasm.snapshot" ]
-  outputs = [ "$root_out_dir/$dart_sdk_output/snapshots/{{source_file_part}}" ]
+  outputs =
+      [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
 }
 
 # Copies DDC's SDK weak outline .dill to lib/_internal

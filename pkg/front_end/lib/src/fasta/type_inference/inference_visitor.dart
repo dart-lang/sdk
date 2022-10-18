@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
@@ -42,6 +45,7 @@ import 'inference_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
+import 'shared_type_analyzer.dart';
 import 'type_constraint_gatherer.dart';
 import 'type_inference_engine.dart';
 import 'type_inferrer.dart' show TypeInferrerImpl;
@@ -74,19 +78,62 @@ abstract class InferenceVisitor {
 }
 
 class InferenceVisitorImpl extends InferenceVisitorBase
+    with
+        TypeAnalyzer<Node, Statement, Expression, VariableDeclaration, DartType>
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
         InitializerVisitor<InitializerInferenceResult>,
         InferenceVisitor {
+  /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
+  /// [popRewrite] and [pushRewrite] will be printed.
+  static const bool _debugRewriteStack = false;
+
   Class? mapEntryClass;
+
+  @override
+  final TypeOperations2<DartType> typeOperations;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext? _closureContext;
 
-  InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper? helper)
-      : super(inferrer, helper);
+  /// If a switch statement is being visited and the type being switched on is a
+  /// (possibly nullable) enumerated type, the set of enum values for which no
+  /// case head has been seen yet; otherwise `null`.
+  ///
+  /// Enum values are represented by the [Field] object they are desugared into.
+  /// If the type being switched on is nullable, then this set also includes a
+  /// value of `null` if no case head has been seen yet that handles `null`.
+  Set<Field?>? _enumFields;
+
+  /// Stack for obtaining rewritten expressions and statements.  After
+  /// [dispatchExpression] or [dispatchStatement] visits a node for type
+  /// inference, the visited node (which may have been changed by the inference
+  /// process) is pushed onto this stack.  Later, during the processing of the
+  /// enclosing node, the visited node is popped off the stack again, and the
+  /// enclosing node is updated to point to the new, rewritten node.
+  ///
+  /// The stack sometimes contains `null`s.  These account for situations where
+  /// it's necessary to push a value onto the stack to balance a later pop, but
+  /// there is no suitable expression or statement to push.
+  final List<Node?> _rewriteStack = [];
+
+  @override
+  final TypeAnalyzerOptions options;
+
+  @override
+  late final SharedTypeAnalyzerErrors? errors = isTopLevel
+      ? null
+      : new SharedTypeAnalyzerErrors(
+          helper: helper, uriForInstrumentation: uriForInstrumentation);
+
+  InferenceVisitorImpl(
+      TypeInferrerImpl inferrer, InferenceHelper? helper, this.typeOperations)
+      : options = new TypeAnalyzerOptions(
+            nullSafetyEnabled: inferrer.libraryBuilder.isNonNullableByDefault,
+            patternsEnabled: false),
+        super(inferrer, helper);
 
   ClosureContext get closureContext => _closureContext!;
 
@@ -6580,111 +6627,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult visitSwitchStatement(SwitchStatement node) {
-    ExpressionInferenceResult expressionResult = inferExpression(
-        node.expression, const UnknownType(), true,
-        isVoidAllowed: false);
-    node.expression = expressionResult.expression..parent = node;
-    DartType expressionType = expressionResult.inferredType;
-
-    Set<Field?>? enumFields;
-    if (expressionType is InterfaceType && expressionType.classNode.isEnum) {
-      enumFields = <Field?>{
-        ...expressionType.classNode.fields
-            .where((Field field) => field.isEnumElement)
-      };
-      if (expressionType.isPotentiallyNullable) {
-        enumFields.add(null);
-      }
+    // Stack: ()
+    Set<Field?>? previousEnumFields = _enumFields;
+    Expression expression = node.expression;
+    SwitchStatementTypeAnalysisResult<DartType> analysisResult =
+        analyzeSwitchStatement(node, expression, node.cases.length);
+    // Note that a switch statement with a `default` clause is always considered
+    // exhaustive, but the kernel format also keeps track of whether the switch
+    // statement is "explicitly exhaustive", meaning that it has a `case` clause
+    // for every possible enum value.  So if there's a `default` clause we need
+    // to call `isSwitchExhaustive` to figure out whether the switch is
+    // *explicitly* exhaustive.
+    node.isExplicitlyExhaustive = analysisResult.hasDefault
+        ? isSwitchExhaustive(node, analysisResult.scrutineeType)
+        : analysisResult.isExhaustive;
+    _enumFields = previousEnumFields;
+    // Stack: (Expression)
+    Node? rewrite = popRewrite();
+    if (!identical(expression, rewrite)) {
+      expression = rewrite as Expression;
+      node.expression = expression..parent = node;
     }
-
-    flowAnalysis.switchStatement_expressionEnd(node);
-
-    bool hasDefault = false;
-    bool lastCaseTerminates = true;
-    for (int caseIndex = 0; caseIndex < node.cases.length; ++caseIndex) {
-      SwitchCaseImpl switchCase = node.cases[caseIndex] as SwitchCaseImpl;
-      hasDefault = hasDefault || switchCase.isDefault;
-      flowAnalysis.switchStatement_beginCase();
-      flowAnalysis.switchStatement_beginAlternatives();
-      flowAnalysis.switchStatement_endAlternative();
-      flowAnalysis.switchStatement_endAlternatives(node,
-          hasLabels: switchCase.hasLabel);
-      for (int index = 0; index < switchCase.expressions.length; index++) {
-        ExpressionInferenceResult caseExpressionResult = inferExpression(
-            switchCase.expressions[index], expressionType, true,
-            isVoidAllowed: false);
-        Expression caseExpression = caseExpressionResult.expression;
-        switchCase.expressions[index] = caseExpression..parent = switchCase;
-        DartType caseExpressionType = caseExpressionResult.inferredType;
-        if (enumFields != null) {
-          if (caseExpression is StaticGet) {
-            enumFields.remove(caseExpression.target);
-          } else if (caseExpression is NullLiteral) {
-            enumFields.remove(null);
-          }
-        }
-
-        if (!isTopLevel) {
-          if (libraryBuilder.isNonNullableByDefault) {
-            if (!typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
-                expressionType, SubtypeCheckMode.withNullabilities)) {
-              helper.addProblem(
-                  templateSwitchExpressionNotSubtype.withArguments(
-                      caseExpressionType,
-                      expressionType,
-                      isNonNullableByDefault),
-                  caseExpression.fileOffset,
-                  noLength,
-                  context: [
-                    messageSwitchExpressionNotAssignableCause.withLocation(
-                        uriForInstrumentation,
-                        node.expression.fileOffset,
-                        noLength)
-                  ]);
-            }
-          } else {
-            // Check whether the expression type is assignable to the case
-            // expression type.
-            if (!isAssignable(expressionType, caseExpressionType)) {
-              helper.addProblem(
-                  templateSwitchExpressionNotAssignable.withArguments(
-                      expressionType,
-                      caseExpressionType,
-                      isNonNullableByDefault),
-                  caseExpression.fileOffset,
-                  noLength,
-                  context: [
-                    messageSwitchExpressionNotAssignableCause.withLocation(
-                        uriForInstrumentation,
-                        node.expression.fileOffset,
-                        noLength)
-                  ]);
-            }
-          }
-        }
-      }
-      StatementInferenceResult bodyResult = inferStatement(switchCase.body);
-      if (bodyResult.hasChanged) {
-        switchCase.body = bodyResult.statement..parent = switchCase;
-      }
-
-      if (isNonNullableByDefault) {
-        lastCaseTerminates = !flowAnalysis.isReachable;
-        if (!isTopLevel) {
-          // The last case block is allowed to complete normally.
-          if (caseIndex < node.cases.length - 1 && flowAnalysis.isReachable) {
-            libraryBuilder.addProblem(messageSwitchCaseFallThrough,
-                switchCase.fileOffset, noLength, helper.uri);
-          }
-        }
-      }
-    }
-    node.isExplicitlyExhaustive = enumFields != null && enumFields.isEmpty;
-    bool isExhaustive = node.isExplicitlyExhaustive || hasDefault;
-    flowAnalysis.switchStatement_end(isExhaustive);
     Statement? replacement;
-    if (isExhaustive && !hasDefault && shouldThrowUnsoundnessException) {
-      if (!lastCaseTerminates) {
+    if (analysisResult.isExhaustive &&
+        !analysisResult.hasDefault &&
+        shouldThrowUnsoundnessException) {
+      if (!analysisResult.lastCaseTerminates) {
         LabeledStatement breakTarget;
         if (node.parent is LabeledStatement) {
           breakTarget = node.parent as LabeledStatement;
@@ -7568,6 +7536,219 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             helper.uri);
       }
     }
+  }
+
+  /// Pops the top entry off of [_rewriteStack].
+  Node? popRewrite() {
+    Node? expression = _rewriteStack.removeLast();
+    if (_debugRewriteStack) {
+      assert(_debugPrint('POP ${expression.runtimeType} $expression'));
+    }
+    return expression;
+  }
+
+  /// Pushes an entry onto [_rewriteStack].
+  void pushRewrite(Node? node) {
+    if (_debugRewriteStack) {
+      assert(_debugPrint('PUSH ${node.runtimeType} $node'));
+    }
+    _rewriteStack.add(node);
+  }
+
+  /// Helper function used to print information to the console in debug mode.
+  /// This method returns `true` so that it can be conveniently called inside of
+  /// an `assert` statement.
+  bool _debugPrint(String s) {
+    print(s);
+    return true;
+  }
+
+  @override
+  DartType get boolType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  ExpressionTypeAnalysisResult<DartType> dispatchExpression(
+      Expression node, DartType context) {
+    ExpressionInferenceResult expressionResult =
+        inferExpression(node, context, true).stopShorting();
+    pushRewrite(expressionResult.expression);
+    return new SimpleTypeAnalysisResult(type: expressionResult.inferredType);
+  }
+
+  @override
+  void dispatchPattern(
+      DartType matchedType,
+      Map<VariableDeclaration, VariableTypeInfo<Node, DartType>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node) {
+    // The front end's representation of a switch cases currently doesn't have
+    // any support for patterns; each case is represented as an expression.  So
+    // analyze it as a constant pattern.
+    return analyzeConstantPattern(
+        matchedType, typeInfos, context, node, node as Expression);
+  }
+
+  @override
+  DartType dispatchPatternSchema(Node node) {
+    // The front end's representation of a switch cases currently doesn't have
+    // any support for patterns; each case is represented as an expression.  So
+    // analyze it as a constant pattern.
+    return analyzeConstantPatternSchema();
+  }
+
+  @override
+  void dispatchStatement(Statement statement) {
+    StatementInferenceResult result = inferStatement(statement);
+    pushRewrite(result.hasChanged ? result.statement : statement);
+  }
+
+  @override
+  DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  DartType get dynamicType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  void finishExpressionCase(Expression node, int caseIndex) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void handleMergedStatementCase(covariant SwitchStatement node,
+      {required int caseIndex,
+      required int executionPathIndex,
+      required int numStatements}) {
+    assert(numStatements == 1 || numStatements == 0);
+    if (numStatements == 1) {
+      // Stack: (Statement)
+      SwitchCase case_ = node.cases[executionPathIndex];
+      Statement body = case_.body;
+      Node? rewrite = popRewrite();
+      // Stack: ()
+      if (!identical(body, rewrite)) {
+        body = rewrite as Statement;
+        case_.body = body..parent = case_;
+      }
+    }
+  }
+
+  @override
+  FlowAnalysis<Node, Statement, Expression, VariableDeclaration, DartType>?
+      get flow => flowAnalysis;
+
+  @override
+  SwitchExpressionMemberInfo<Node, Expression> getSwitchExpressionMemberInfo(
+      Expression node, int index) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  SwitchStatementMemberInfo<Node, Statement, Expression>
+      getSwitchStatementMemberInfo(
+          covariant SwitchStatement node, int caseIndex) {
+    SwitchCaseImpl case_ = node.cases[caseIndex] as SwitchCaseImpl;
+    return new SwitchStatementMemberInfo([
+      for (Expression expression in case_.expressions)
+        new CaseHeadOrDefaultInfo(pattern: expression),
+      if (case_.isDefault) new CaseHeadOrDefaultInfo(pattern: null)
+    ], [
+      case_.body
+    ], labels: case_.hasLabel ? [case_] : const []);
+  }
+
+  @override
+  void handleCaseHead(covariant SwitchStatement node,
+      {required int caseIndex, required int subIndex}) {
+    // Stack: (Pattern, Expression)
+    popRewrite(); // "when" expression
+    // Stack: (Pattern)
+    SwitchCaseImpl case_ = node.cases[caseIndex] as SwitchCaseImpl;
+    Expression expression = case_.expressions[subIndex];
+    Node? rewrite = popRewrite();
+    // Stack: ()
+    if (!identical(expression, rewrite)) {
+      expression = rewrite as Expression;
+      case_.expressions[subIndex] = expression..parent = case_;
+    }
+    Set<Field?>? enumFields = _enumFields;
+    if (enumFields != null) {
+      if (expression is StaticGet) {
+        enumFields.remove(expression.target);
+      } else if (expression is NullLiteral) {
+        enumFields.remove(null);
+      }
+    }
+  }
+
+  @override
+  void handleCase_afterCaseHeads(Statement node, int caseIndex, int numHeads) {}
+
+  @override
+  void handleDefault(Node node, int caseIndex) {}
+
+  @override
+  void handleNoStatement(Statement node) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void handleNoGuard(Node node, int caseIndex) {
+    // Stack: ()
+    pushRewrite(null);
+    // Stack: (Expression)
+  }
+
+  @override
+  void handleSwitchScrutinee(DartType type) {
+    if (type is InterfaceType && type.classNode.isEnum) {
+      _enumFields = <Field?>{
+        ...type.classNode.fields.where((Field field) => field.isEnumElement),
+        if (type.isPotentiallyNullable) null
+      };
+    } else {
+      _enumFields = null;
+    }
+  }
+
+  @override
+  DartType get intType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  bool isSwitchExhaustive(Node node, DartType expressionType) {
+    Set<Field?>? enumFields = _enumFields;
+    return enumFields != null && enumFields.isEmpty;
+  }
+
+  @override
+  bool isVariablePattern(Node node) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType listType(DartType elementType) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType get objectQuestionType =>
+      throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  void setVariableType(VariableDeclaration variable, DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType get unknownType => const UnknownType();
+
+  @override
+  DartType variableTypeFromInitializerType(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void checkCleanState() {
+    assert(_rewriteStack.isEmpty);
   }
 }
 

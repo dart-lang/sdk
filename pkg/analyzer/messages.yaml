@@ -808,7 +808,7 @@ CompileTimeErrorCode:
       }
       ```
   ASSIGNMENT_TO_FINAL_NO_SETTER:
-    problemMessage: "There isn’t a setter named '{0}' in class '{1}'."
+    problemMessage: "There isn't a setter named '{0}' in class '{1}'."
     correctionMessage: Try correcting the name to reference an existing setter, or declare the setter.
     hasPublishedDocs: true
     comment: |-
@@ -1262,7 +1262,7 @@ CompileTimeErrorCode:
 
       The analyzer produces this diagnostic when the name used in the declaration
       of a class, extension, mixin, typedef, type parameter, or import prefix is
-      a built-in identifier. Built-in identifiers can’t be used to name any of
+      a built-in identifier. Built-in identifiers can't be used to name any of
       these kinds of declarations.
 
       #### Example
@@ -5652,7 +5652,7 @@ CompileTimeErrorCode:
       the name doesn't shadow the imported name.
 
       If the name is the name of an existing class or mixin that isn't being
-      imported, then add an import, with a prefix, for the library in which it’s
+      imported, then add an import, with a prefix, for the library in which it's
       declared.
 
       Otherwise, either replace the name in the `implements` clause with the name
@@ -6284,7 +6284,7 @@ CompileTimeErrorCode:
       #### Example
 
       The following code produces this diagnostic because `zero` is a static
-      field, but it’s being accessed as if it were an instance field:
+      field, but it's being accessed as if it were an instance field:
 
       ```dart
       void f(C c) {
@@ -6492,7 +6492,7 @@ CompileTimeErrorCode:
 
       The analyzer produces this diagnostic when a constructor invocation is
       found where the type being instantiated is a type alias for one of the type
-      parameters of the type alias. This isn’t allowed because the value of the
+      parameters of the type alias. This isn't allowed because the value of the
       type parameter is a type rather than a class.
 
       #### Example
@@ -6806,7 +6806,7 @@ CompileTimeErrorCode:
       String s = i.toString();
       ```
 
-      If you can’t change the value, then change the type of the variable to be
+      If you can't change the value, then change the type of the variable to be
       compatible with the type of the value being assigned:
 
       ```dart
@@ -8269,7 +8269,7 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when either the Dart or Flutter SDK
-      isn’t installed correctly, and, as a result, one of the `dart:` libraries
+      isn't installed correctly, and, as a result, one of the `dart:` libraries
       can't be found.
 
       #### Common fixes
@@ -8911,7 +8911,7 @@ CompileTimeErrorCode:
       #### Example
 
       The following code produces this diagnostic because the initializer list
-      for `B`’s constructor invokes both the constructor `one` and the
+      for `B`'s constructor invokes both the constructor `one` and the
       constructor `two` from the superclass `A`:
 
       ```dart
@@ -9012,7 +9012,7 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when an unnamed constructor is
-      invoked on a class that defines named constructors but the class doesn’t
+      invoked on a class that defines named constructors but the class doesn't
       have an unnamed constructor.
 
       #### Example
@@ -10176,7 +10176,7 @@ CompileTimeErrorCode:
       }
       ```
 
-      If `null` isn’t a valid value, and there's a reasonable default value, then
+      If `null` isn't a valid value, and there's a reasonable default value, then
       add an initializer:
 
       ```dart
@@ -10381,7 +10381,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If there's a reasonable default value for the field that’s the same for all
+      If there's a reasonable default value for the field that's the same for all
       instances, then add an initializer expression:
 
       ```dart
@@ -12099,7 +12099,7 @@ CompileTimeErrorCode:
 
       The analyzer produces this diagnostic when a redirecting factory
       constructor redirects to a type alias, and the type alias expands to one of
-      the type parameters of the type alias. This isn’t allowed because the value
+      the type parameters of the type alias. This isn't allowed because the value
       of the type parameter is a type rather than a class.
 
       #### Example
@@ -12141,7 +12141,7 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when a variable is referenced before
-      it’s declared. In Dart, variables are visible everywhere in the block in
+      it's declared. In Dart, variables are visible everywhere in the block in
       which they are declared, but can only be referenced after they are
       declared.
 
@@ -13548,7 +13548,7 @@ CompileTimeErrorCode:
       }
       ```
 
-      Note, however, that there isn’t a relationship between `T` and `S`, so this
+      Note, however, that there isn't a relationship between `T` and `S`, so this
       second option changes the semantics from what was likely to be intended.
   TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND:
     problemMessage: "'{0}' can't be a supertype of its upper bound."
@@ -13822,7 +13822,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If the name is correct, but it isn’t declared yet, then declare the name as
+      If the name is correct, but it isn't declared yet, then declare the name as
       a constant value:
 
       ```dart
@@ -14865,7 +14865,7 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when an inherited member (method,
-      getter, setter, or operator) is referenced using `super`, but there’s no
+      getter, setter, or operator) is referenced using `super`, but there's no
       member with that name in the superclass chain.
 
       #### Examples
@@ -14900,7 +14900,7 @@ CompileTimeErrorCode:
       If the member you intend to invoke is defined in the same class, then
       remove the `super.`.
 
-      If the member isn’t defined, then either add the member to one of the
+      If the member isn't defined, then either add the member to one of the
       superclasses or remove the invocation.
   UNDEFINED_SUPER_OPERATOR:
     sharedName: UNDEFINED_SUPER_MEMBER
@@ -15106,7 +15106,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the string literal in an
       `import`, `export`, or `part` directive contains an interpolation. The
       resolution of the URIs in directives must happen before the declarations
-      are compiled, so expressions can’t be  evaluated  while determining the
+      are compiled, so expressions can't be  evaluated  while determining the
       values of the URIs.
 
       #### Example
@@ -15130,7 +15130,7 @@ CompileTimeErrorCode:
       var zero = min(0, 0);
       ```
   USE_OF_NATIVE_EXTENSION:
-    problemMessage: Dart native extensions are deprecated and aren’t available in Dart 2.15.
+    problemMessage: Dart native extensions are deprecated and aren't available in Dart 2.15.
     correctionMessage: "Try using dart:ffi for C interop."
     hasPublishedDocs: true
     comment: No parameters.
@@ -17717,7 +17717,7 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when a `catch` clause is found that
-      can't be executed because it’s after a `catch` clause of the form
+      can't be executed because it's after a `catch` clause of the form
       `catch (e)` or `on Object catch (e)`. The first `catch` clause that matches
       the thrown object is selected, and both of those forms will match any
       object, so no `catch` clauses that follow them will be selected.
@@ -17759,7 +17759,7 @@ HintCode:
       }
       ```
   DEAD_CODE_ON_CATCH_SUBTYPE:
-    problemMessage: "Dead code: This on-catch block won’t be executed because '{0}' is a subtype of '{1}' and hence will have been caught already."
+    problemMessage: "Dead code: This on-catch block won't be executed because '{0}' is a subtype of '{1}' and hence will have been caught already."
     correctionMessage: Try reordering the catch clauses so that this block can be reached, or removing the unreachable catch clause.
     hasPublishedDocs: true
     comment: |-
@@ -18133,7 +18133,7 @@ HintCode:
 
       The analyzer produces this diagnostic when an import directive is found
       that is the same as an import before it in the file. The second import
-      doesn’t add value and should be removed.
+      doesn't add value and should be removed.
 
       #### Example
 
@@ -19933,7 +19933,7 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when a class member is annotated with
-      the `@override` annotation, but the member isn’t declared in any of the
+      the `@override` annotation, but the member isn't declared in any of the
       supertypes of the class.
 
       #### Example
@@ -21725,7 +21725,7 @@ HintCode:
       0: the name of the annotated method, property or function
       1: message details
   UNUSED_SHOWN_NAME:
-    problemMessage: "The name {0} is shown, but isn’t used."
+    problemMessage: "The name {0} is shown, but isn't used."
     correctionMessage: Try removing the name from the list of shown members.
     hasPublishedDocs: true
     comment: |-

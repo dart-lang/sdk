@@ -399,6 +399,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// VM Service disconnects.
   bool isTerminating = false;
 
+  /// Whether or not the current termination is happening because the user
+  /// chose to detach from an attached process.
+  ///
+  /// This affects the message a user sees when the adapter shuts down ('exited'
+  /// vs 'detached').
+  bool isDetaching = false;
+
   /// Whether isolates that pause in the PauseExit state should be automatically
   /// resumed after any in-process log events have completed.
   ///
@@ -955,6 +962,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     return shortError ?? rawError;
   }
 
+  /// Handles a detach request, removing breakpoints and unpausing paused
+  /// isolates.
+  Future<void> handleDetach() async {
+    isDetaching = true;
+    await preventBreakingAndResume();
+  }
+
   /// Sends a [TerminatedEvent] if one has not already been sent.
   ///
   /// Waits for any in-progress output events to complete first.
@@ -967,10 +981,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     isTerminating = true;
     _hasSentTerminatedEvent = true;
+
     // Always add a leading newline since the last written text might not have
     // had one. Send directly via sendEvent and not sendOutput to ensure no
     // async since we're about to terminate.
-    sendEvent(OutputEventBody(output: '\nExited$exitSuffix.'));
+    final reason = isDetaching ? 'Detached' : 'Exited';
+    sendEvent(OutputEventBody(output: '\n$reason$exitSuffix.'));
     sendEvent(TerminatedEventBody());
   }
 
@@ -1276,8 +1292,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// debugee if required.
   @nonVirtual
   Future<void> shutdown() async {
-    await _waitForPendingOutputEvents();
     await shutdownDebugee();
+    await _waitForPendingOutputEvents();
+    handleSessionTerminate();
 
     // Delay the shutdown slightly to allow any pending responses (such as the
     // terminate response) to be sent.

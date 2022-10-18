@@ -69,7 +69,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// app being run (or in the case of an attach, disconnect).
   Future<void> disconnectImpl() async {
     if (isAttach) {
-      await preventBreakingAndResume();
+      await handleDetach();
     }
     terminatePids(ProcessSignal.sigkill);
   }
@@ -289,7 +289,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// app being run (or in the case of an attach, disconnect).
   Future<void> terminateImpl() async {
     if (isAttach) {
-      await preventBreakingAndResume();
+      await handleDetach();
     }
     terminatePids(ProcessSignal.sigterm);
     await _process?.exitCode;

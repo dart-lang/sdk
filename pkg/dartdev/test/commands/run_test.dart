@@ -107,6 +107,39 @@ void run() {
     expect(result.exitCode, 255);
   });
 
+  test('experiments are enabled correctly', () async {
+    // TODO(bkonyi): find a more robust way to test experiments by exposing
+    // enabled experiments for an isolate (e.g., through dart:developer or the
+    // VM service).
+    //
+    // See https://github.com/dart-lang/sdk/issues/50230
+    p = project();
+    p.file('main.dart', 'void main(args) { print("Record: \${(1, 2)}"); }');
+    ProcessResult result = await p.run([
+      'run',
+      '--enable-experiment=records',
+      'main.dart',
+    ]);
+
+    // The records experiment should be enabled.
+    expect(result.stdout, contains('Record: '));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    // Run again with the experiment disabled to make sure the test is actually
+    // working as expected.
+    result = await p.run([
+      'run',
+      'main.dart',
+    ]);
+
+    // The records experiment should not be enabled and the program should fail
+    // to run.
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, isNotEmpty);
+    expect(result.exitCode, 254);
+  });
+
   test('arguments are properly passed', () async {
     p = project();
     p.file('main.dart', 'void main(args) { print(args); }');
