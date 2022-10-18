@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/computer/computer_call_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -78,9 +77,6 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
 
     return DartCallHierarchyComputer(result).findTarget(marker);
   }
-
-  Future<ResolvedUnitResult> getResolvedUnit(String file) async =>
-      await (await session).getResolvedUnit(file) as ResolvedUnitResult;
 
   // Gets the expected range that follows the string [prefix] in [code] with a
   // length of [match.length].

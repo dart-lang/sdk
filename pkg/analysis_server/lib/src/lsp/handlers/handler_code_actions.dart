@@ -629,7 +629,7 @@ class CodeActionHandler
         // Getter to Method
         if (element is PropertyAccessorElement &&
             ConvertGetterToMethodRefactoring(
-                    server.searchEngine, unit.session, element)
+                    server.refactoringWorkspace, unit.session, element)
                 .isAvailable()) {
           refactorActions.add(createRefactor(
               CodeActionKind.RefactorRewrite,
@@ -640,7 +640,7 @@ class CodeActionHandler
         // Method to Getter
         if (element is ExecutableElement &&
             ConvertMethodToGetterRefactoring(
-                    server.searchEngine, unit.session, element)
+                    server.refactoringWorkspace, unit.session, element)
                 .isAvailable()) {
           refactorActions.add(createRefactor(
               CodeActionKind.RefactorRewrite,

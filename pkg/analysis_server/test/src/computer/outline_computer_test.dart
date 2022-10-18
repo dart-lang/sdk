@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,8 +31,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, code);
-    var resolveResult =
-        await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
+    var resolveResult = await getResolvedUnit(testPath);
     return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,
