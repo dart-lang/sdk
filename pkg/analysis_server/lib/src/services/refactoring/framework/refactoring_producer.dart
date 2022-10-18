@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// An object that can compute a refactoring in a Dart file.
@@ -35,9 +34,9 @@ abstract class RefactoringProducer {
   /// invoked.
   ResolvedUnitResult get result => _context.resolvedResult;
 
-  /// Return the node that was selected.
-  AstNode? get selectedNode =>
-      NodeLocator2(selectionOffset, selectionEnd).searchWithin(result.unit);
+  /// Return the node that was selected, or `null` if the selection is not
+  /// valid.
+  AstNode? get selectedNode => _context.selectedNode;
 
   /// Return the offset of the first character after the selection range.
   int get selectionEnd => selectionOffset + selectionLength;
