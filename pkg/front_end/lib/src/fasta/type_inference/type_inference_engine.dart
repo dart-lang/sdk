@@ -300,11 +300,13 @@ class FlowAnalysisResult {
 
 /// CFE-specific implementation of [TypeOperations].
 class OperationsCfe
-    with TypeOperations<DartType>
+    with TypeOperations<DartType>, TypeOperations2<DartType>
     implements Operations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
-  OperationsCfe(this.typeEnvironment);
+  final bool isNonNullableByDefault;
+
+  OperationsCfe(this.typeEnvironment, {required this.isNonNullableByDefault});
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -381,6 +383,44 @@ class OperationsCfe
       }
     }
     return from;
+  }
+
+  @override
+  DartType glb(DartType type1, DartType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  bool isAssignableTo(DartType fromType, DartType toType) {
+    if (isNonNullableByDefault) {
+      if (fromType is DynamicType) return true;
+      return typeEnvironment
+          .performNullabilityAwareSubtypeCheck(fromType, toType)
+          .isSubtypeWhenUsingNullabilities();
+    } else {
+      return typeEnvironment
+          .performNullabilityAwareSubtypeCheck(fromType, toType)
+          .orSubtypeCheckFor(toType, fromType, typeEnvironment)
+          .isSubtypeWhenIgnoringNullabilities();
+    }
+  }
+
+  @override
+  bool isDynamic(DartType type) => type is DynamicType;
+
+  @override
+  DartType lub(DartType type1, DartType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType makeNullable(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType? matchListType(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
   }
 }
 

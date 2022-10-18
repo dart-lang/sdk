@@ -94,16 +94,16 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final TypeInferenceEngine engine;
 
+  final OperationsCfe operations;
+
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      DartType> flowAnalysis = libraryBuilder
-          .isNonNullableByDefault
-      ? new FlowAnalysis(
-          new OperationsCfe(engine.typeSchemaEnvironment), assignedVariables,
-          respectImplicitlyTypedVarInitializers:
-              libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled)
-      : new FlowAnalysis.legacy(
-          new OperationsCfe(engine.typeSchemaEnvironment), assignedVariables);
+          DartType> flowAnalysis =
+      libraryBuilder.isNonNullableByDefault
+          ? new FlowAnalysis(operations, assignedVariables,
+              respectImplicitlyTypedVarInitializers:
+                  libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled)
+          : new FlowAnalysis.legacy(operations, assignedVariables);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
@@ -142,12 +142,14 @@ class TypeInferrerImpl implements TypeInferrer {
             const [], const DynamicType(), libraryBuilder.nonNullable),
         classHierarchy = engine.classHierarchy,
         instrumentation = isTopLevel ? null : engine.instrumentation,
-        typeSchemaEnvironment = engine.typeSchemaEnvironment {}
+        typeSchemaEnvironment = engine.typeSchemaEnvironment,
+        operations = new OperationsCfe(engine.typeSchemaEnvironment,
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper? helper) {
     // For full (non-top level) inference, we need access to the
     // InferenceHelper so that we can perform error reporting.
-    return new InferenceVisitorImpl(this, helper);
+    return new InferenceVisitorImpl(this, helper, operations);
   }
 
   @override
@@ -157,7 +159,9 @@ class TypeInferrerImpl implements TypeInferrer {
     ExpressionInferenceResult result = visitor.inferExpression(
         initializer, const UnknownType(), true,
         isVoidAllowed: true);
-    return visitor.inferDeclarationType(result.inferredType);
+    DartType type = visitor.inferDeclarationType(result.inferredType);
+    visitor.checkCleanState();
+    return type;
   }
 
   @override
@@ -170,6 +174,7 @@ class TypeInferrerImpl implements TypeInferrer {
     initializerResult = visitor.ensureAssignableResult(
         declaredType, initializerResult,
         isVoidAllowed: declaredType is VoidType);
+    visitor.checkCleanState();
     return initializerResult;
   }
 
@@ -191,6 +196,7 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     result =
         closureContext.handleImplicitReturn(visitor, body, result, fileOffset);
+    visitor.checkCleanState();
     DartType? futureValueType = closureContext.futureValueType;
     assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
         "No future value type computed.");
@@ -231,6 +237,7 @@ class TypeInferrerImpl implements TypeInferrer {
     InvocationInferenceResult result = visitor.inferInvocation(
         visitor, typeContext, fileOffset, targetType, targetInvocationArguments,
         staticTarget: target);
+    visitor.checkCleanState();
     DartType resultType = result.inferredType;
     if (resultType is InterfaceType) {
       return resultType.typeArguments;
@@ -247,8 +254,10 @@ class TypeInferrerImpl implements TypeInferrer {
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
-    InferenceVisitor visitor = _createInferenceVisitor(helper);
-    return visitor.inferInitializer(initializer);
+    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+    InitializerInferenceResult result = visitor.inferInitializer(initializer);
+    visitor.checkCleanState();
+    return result;
   }
 
   @override
@@ -260,6 +269,7 @@ class TypeInferrerImpl implements TypeInferrer {
       // because inference on metadata requires the helper.
       InferenceVisitorBase visitor = _createInferenceVisitor(helper);
       visitor.inferMetadata(visitor, parent, annotations);
+      visitor.checkCleanState();
     }
   }
 
@@ -278,6 +288,7 @@ class TypeInferrerImpl implements TypeInferrer {
       initializer =
           visitor.ensureAssignableResult(declaredType, result).expression;
     }
+    visitor.checkCleanState();
     return initializer;
   }
 }
