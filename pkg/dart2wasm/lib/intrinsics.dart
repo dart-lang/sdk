@@ -32,7 +32,35 @@ class Intrinsifier {
         '+': (b) => b.i64_add(),
         '-': (b) => b.i64_sub(),
         '*': (b) => b.i64_mul(),
-        '~/': (b) => b.i64_div_s(),
+        '~/': (b) {
+          final arg2Local = b.addLocal(intType, isParameter: false);
+          b.local_set(arg2Local);
+
+          final arg1Local = b.addLocal(intType, isParameter: false);
+          b.local_set(arg1Local);
+
+          // Division special case: overflow in I64.
+          // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
+          b.local_get(arg2Local);
+          b.i64_const(-1);
+          b.i64_eq();
+          b.if_([], [intType]);
+          b.local_get(arg1Local);
+          b.i64_const(-9223372036854775808); // MIN_VALUE
+          b.i64_eq();
+          b.if_([], [intType]);
+          b.i64_const(-9223372036854775808); // MIN_VALUE
+          b.else_();
+          b.local_get(arg1Local);
+          b.local_get(arg2Local);
+          b.i64_div_s();
+          b.end();
+          b.else_();
+          b.local_get(arg1Local);
+          b.local_get(arg2Local);
+          b.i64_div_s();
+          b.end();
+        },
         '&': (b) => b.i64_and(),
         '|': (b) => b.i64_or(),
         '^': (b) => b.i64_xor(),
