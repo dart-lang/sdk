@@ -12,8 +12,7 @@ import 'package:js/js.dart';
 @JS()
 @staticInterop
 class StaticJSClass {
-  external StaticJSClass();
-  external StaticJSClass.namedConstructor();
+  external factory StaticJSClass();
   external factory StaticJSClass.externalFactory();
   factory StaticJSClass.redirectingFactory() = StaticJSClass;
   factory StaticJSClass.factory() => StaticJSClass();

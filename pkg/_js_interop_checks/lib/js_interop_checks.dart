@@ -19,6 +19,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         messageJsInteropOperatorsNotSupported,
+        messageJsInteropStaticInteropGenerativeConstructor,
         templateJsInteropDartClassExtendsJSClass,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
@@ -318,15 +319,22 @@ class JsInteropChecks extends RecursiveVisitor {
   @override
   void visitConstructor(Constructor constructor) {
     _checkInstanceMemberJSAnnotation(constructor);
-    if (_classHasJSAnnotation &&
-        !constructor.isExternal &&
-        !constructor.isSynthetic) {
-      // Non-synthetic constructors must be annotated with `external`.
-      _diagnosticsReporter.report(
-          messageJsInteropNonExternalConstructor,
-          constructor.fileOffset,
-          constructor.name.text.length,
-          constructor.fileUri);
+    if (!constructor.isSynthetic) {
+      if (_classHasJSAnnotation && !constructor.isExternal) {
+        // Non-synthetic constructors must be annotated with `external`.
+        _diagnosticsReporter.report(
+            messageJsInteropNonExternalConstructor,
+            constructor.fileOffset,
+            constructor.name.text.length,
+            constructor.fileUri);
+      }
+      if (_classHasStaticInteropAnnotation) {
+        _diagnosticsReporter.report(
+            messageJsInteropStaticInteropGenerativeConstructor,
+            constructor.fileOffset,
+            constructor.name.text.length,
+            constructor.fileUri);
+      }
     }
 
     if (!_isJSInteropMember(constructor)) {

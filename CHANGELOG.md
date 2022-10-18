@@ -108,6 +108,17 @@
 [`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
 [`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
 
+### Other libraries
+
+#### `package:js`
+
+- **Breaking change**: Classes with the preview annotation `@staticInterop` are
+  now disallowed from using `external` generative constructors. Use
+  `external factory`s for these classes instead. See [#48730][] for more
+  details.
+
+[#48730]: https://github.com/dart-lang/sdk/issues/48730
+
 ### Tools
 
 #### Analyzer

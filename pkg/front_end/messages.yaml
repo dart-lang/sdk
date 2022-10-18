@@ -5242,6 +5242,10 @@ JsInteropOperatorsNotSupported:
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
+JsInteropStaticInteropGenerativeConstructor:
+  problemMessage: "`@staticInterop` classes should not contain any generative constructors."
+  correctionMessage: "Use factory constructors instead."
+
 JsInteropStaticInteropMockExternalExtensionMemberConflict:
   problemMessage: "External extension member with name '#name' is defined in the following extensions and none are more specific: #string."
   correctionMessage: "Try using the `@JS` annotation to rename conflicting members."

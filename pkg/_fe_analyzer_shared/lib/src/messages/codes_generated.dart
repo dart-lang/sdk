@@ -7121,6 +7121,16 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     problemMessage: r"""JS interop classes do not support operator methods.""",
     correctionMessage: r"""Try replacing this with a normal method.""");
 
+const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
+    messageJsInteropStaticInteropGenerativeConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropGenerativeConstructor =
+    const MessageCode("JsInteropStaticInteropGenerativeConstructor",
+        problemMessage:
+            r"""`@staticInterop` classes should not contain any generative constructors.""",
+        correctionMessage: r"""Use factory constructors instead.""");
+
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
     templateJsInteropStaticInteropMockExternalExtensionMemberConflict =
