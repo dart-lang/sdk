@@ -60,13 +60,6 @@
                      __LINE__, ##__VA_ARGS__);                                 \
     errno = err;                                                               \
   }
-#define LOG_WARN(msg, ...)                                                      \
-  {                                                                            \
-    int err = errno;                                                           \
-    Syslog::PrintErr("Dart EventHandler WARNING: %s:%d: " msg, __FILE__,         \
-                     __LINE__, ##__VA_ARGS__);                                 \
-    errno = err;                                                               \
-  }
 #if defined(EVENTHANDLER_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
   Syslog::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__, __LINE__,     \
@@ -561,7 +554,7 @@ void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
   }
 
   if (pkt->type != ZX_PKT_TYPE_SIGNAL_ONE) {
-    LOG_WARN("HandlePacket: Got unexpected packet type: key=%x\n", pkt->type);
+    LOG_ERR("HandlePacket: Got unexpected packet type: key=%x\n", pkt->type);
     return;
   }
   
