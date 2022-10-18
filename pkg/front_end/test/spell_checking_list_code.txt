@@ -71,6 +71,7 @@ artifacts
 artificial
 asgerf
 askesc
+asking
 aspect
 aspx
 asserting
@@ -101,6 +102,7 @@ backping
 backstop
 badly
 bail
+balance
 bang
 bar
 basically
@@ -274,6 +276,7 @@ containers
 continuations
 contra
 contribute
+conveniently
 convention
 conversely
 coordinated
@@ -437,6 +440,7 @@ emitting
 en
 encapsulation
 end'ed
+end's
 enforce
 enforced
 enforces
@@ -634,6 +638,7 @@ ideal
 identifies
 identifying
 ideographic
+idle
 idn
 ids
 idx
@@ -826,6 +831,7 @@ malbounded
 manage
 mangled
 manipulation
+manipulations
 manner
 markdown
 masking
@@ -918,6 +924,7 @@ obligated
 observatory
 observe
 obstruct
+obtaining
 occasionally
 occupied
 offending
@@ -1402,6 +1409,7 @@ svg
 sw
 swapped
 sweep
+switched
 symbolic
 synchronously
 syncs

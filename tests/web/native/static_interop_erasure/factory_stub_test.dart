@@ -26,7 +26,7 @@ class NativeClass extends JavaScriptObject {
 @JS('NativeClass')
 @staticInterop
 class StaticNativeClass {
-  external StaticNativeClass();
+  external factory StaticNativeClass();
   factory StaticNativeClass.redirectingFactory() = StaticNativeClass;
   factory StaticNativeClass.simpleFactory() => StaticNativeClass();
   factory StaticNativeClass.factoryWithParam(

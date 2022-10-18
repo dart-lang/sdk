@@ -38,9 +38,9 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 abstract class ConvertGetterToMethodRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertGetterToMethodRefactoring(SearchEngine searchEngine,
+  factory ConvertGetterToMethodRefactoring(RefactoringWorkspace workspace,
       AnalysisSession session, PropertyAccessorElement element) {
-    return ConvertGetterToMethodRefactoringImpl(searchEngine, session, element);
+    return ConvertGetterToMethodRefactoringImpl(workspace, session, element);
   }
 
   /// Return `true` if refactoring is available, possibly without checking all
@@ -58,9 +58,9 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
 abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
+  factory ConvertMethodToGetterRefactoring(RefactoringWorkspace workspace,
       AnalysisSession session, ExecutableElement element) {
-    return ConvertMethodToGetterRefactoringImpl(searchEngine, session, element);
+    return ConvertMethodToGetterRefactoringImpl(workspace, session, element);
   }
 
   /// Return `true` if refactoring is available, possibly without checking all

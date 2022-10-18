@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
@@ -52,8 +51,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   Future<void> createBuilder(String content) async {
     originalContent = content;
     newFile(path, content);
-    var result =
-        await (await session).getResolvedUnit(path) as ResolvedUnitResult;
+    var result = await getResolvedUnit(path);
     computer = ImportElementsComputer(resourceProvider, result);
   }
 

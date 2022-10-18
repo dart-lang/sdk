@@ -64,8 +64,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
       useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
 
   Future<void> resolveFile2(String path) async {
-    var result =
-        await (await session).getResolvedUnit(path) as ResolvedUnitResult;
+    var result = await getResolvedUnit(path);
     testAnalysisResult = result;
     testCode = result.content;
     testUnit = result.unit;

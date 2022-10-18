@@ -164,7 +164,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL_NO_SETTER =
       CompileTimeErrorCode(
     'ASSIGNMENT_TO_FINAL_NO_SETTER',
-    "There isn’t a setter named '{0}' in class '{1}'.",
+    "There isn't a setter named '{0}' in class '{1}'.",
     correctionMessage:
         "Try correcting the name to reference an existing setter, or declare "
         "the setter.",
@@ -4825,7 +4825,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode USE_OF_NATIVE_EXTENSION =
       CompileTimeErrorCode(
     'USE_OF_NATIVE_EXTENSION',
-    "Dart native extensions are deprecated and aren’t available in Dart 2.15.",
+    "Dart native extensions are deprecated and aren't available in Dart 2.15.",
     correctionMessage: "Try using dart:ffi for C interop.",
     hasPublishedDocs: true,
   );

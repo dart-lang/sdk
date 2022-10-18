@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -174,6 +175,24 @@ class A {
         'Only class methods or top-level functions can be converted to getters.');
   }
 
+  Future<void> test_checkInitialConditions_outsideOfProject() async {
+    // File outside of project.
+    var externalPath = '$workspaceRootPath/aaa/lib/a.dart';
+    newFile(externalPath, r'''
+String foo() => '';
+''');
+    var externalUnit = await getResolvedUnit(externalPath);
+
+    await indexTestUnit(''); // Initialize project.
+
+    var element = FindElement(externalUnit.unit).topFunction('foo');
+    _createRefactoringForElement(element);
+
+    // check conditions
+    await _assertInitialConditions_fatal(
+        'Only methods in your workspace can be converted.');
+  }
+
   Future<void> test_checkInitialConditions_returnTypeVoid() async {
     await indexTestUnit('''
 void test() {}
@@ -202,6 +221,6 @@ void test() {}
 
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = ConvertMethodToGetterRefactoring(
-        searchEngine, testAnalysisResult.session, element);
+        refactoringWorkspace, testAnalysisResult.session, element);
   }
 }

@@ -100,7 +100,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  1: name of the supertype
   static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = HintCode(
     'DEAD_CODE_ON_CATCH_SUBTYPE',
-    "Dead code: This on-catch block won’t be executed because '{0}' is a "
+    "Dead code: This on-catch block won't be executed because '{0}' is a "
         "subtype of '{1}' and hence will have been caught already.",
     correctionMessage:
         "Try reordering the catch clauses so that this block can be reached, "
@@ -1460,7 +1460,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  0: the name that is shown but not used
   static const HintCode UNUSED_SHOWN_NAME = HintCode(
     'UNUSED_SHOWN_NAME',
-    "The name {0} is shown, but isn’t used.",
+    "The name {0} is shown, but isn't used.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
   );

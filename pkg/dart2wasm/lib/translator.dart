@@ -135,6 +135,7 @@ class Translator {
   late final Procedure invocationGenericMethodFactory;
   late final Procedure nullToString;
   late final Procedure nullNoSuchMethod;
+  late final Procedure createNormalizedFutureOrType;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -315,6 +316,8 @@ class Translator {
     nullNoSuchMethod = lookupCore("Object")
         .procedures
         .firstWhere((p) => p.name.text == "_nullNoSuchMethod");
+    createNormalizedFutureOrType = typeUniverseClass.procedures
+        .firstWhere((p) => p.name.text == "createNormalizedFutureOrType");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,

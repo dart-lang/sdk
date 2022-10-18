@@ -7122,6 +7122,32 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null>
+    codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    const MessageCode(
+        "JsInteropStaticInteropExternalExtensionMembersWithTypeParameters",
+        problemMessage:
+            r"""`@staticInterop` classes cannot have external extension members with type parameters.""",
+        correctionMessage:
+            r"""Try using a Dart extension member if you need type parameters instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
+    messageJsInteropStaticInteropGenerativeConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropGenerativeConstructor =
+    const MessageCode("JsInteropStaticInteropGenerativeConstructor",
+        problemMessage:
+            r"""`@staticInterop` classes should not contain any generative constructors.""",
+        correctionMessage: r"""Use factory constructors instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
     templateJsInteropStaticInteropMockExternalExtensionMemberConflict =
     const Template<Message Function(String name, String string)>(

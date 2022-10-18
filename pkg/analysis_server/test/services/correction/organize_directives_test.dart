@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -943,8 +942,7 @@ class NonLibraryAnnotation {
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    var result =
-        await (await session).getResolvedUnit(testFile) as ResolvedUnitResult;
+    var result = await getResolvedUnit(testFile);
     testUnit = result.unit;
     testErrors = result.errors;
   }

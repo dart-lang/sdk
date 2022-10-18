@@ -166,6 +166,9 @@ class AbstractContextTest with ResourceProviderMixin {
     return context.driver;
   }
 
+  Future<ResolvedUnitResult> getResolvedUnit(String path) async =>
+      await (await session).getResolvedUnit(path) as ResolvedUnitResult;
+
   @override
   File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {

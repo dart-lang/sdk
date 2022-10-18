@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -61,9 +60,6 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
     return DartLazyTypeHierarchyComputer(result)
         .findTarget(code.position.offset);
   }
-
-  Future<ResolvedUnitResult> getResolvedUnit(String file) async =>
-      await (await session).getResolvedUnit(file) as ResolvedUnitResult;
 
   /// Matches a [TypeHierarchyItem] with the given values.
   Matcher _isItem(

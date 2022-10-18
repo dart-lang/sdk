@@ -13,6 +13,8 @@ import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
 
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+
 int findIdentifierLength(String search) {
   var length = 0;
   while (length < search.length) {
@@ -29,6 +31,7 @@ int findIdentifierLength(String search) {
 
 /// The base class for all [Refactoring] tests.
 abstract class RefactoringTest extends AbstractSingleUnitTest {
+  late RefactoringWorkspace refactoringWorkspace;
   late SearchEngine searchEngine;
 
   late SourceChange refactoringChange;
@@ -141,8 +144,8 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     super.verifyCreatedCollection();
     // TODO(dantup): Get these tests passing with either line ending and change this to true.
     useLineEndingsForPlatform = false;
-    searchEngine = SearchEngineImpl([
-      driverFor(testPackageRootPath),
-    ]);
+    final drivers = [driverFor(testPackageRootPath)];
+    searchEngine = SearchEngineImpl(drivers);
+    refactoringWorkspace = RefactoringWorkspace(drivers, searchEngine);
   }
 }

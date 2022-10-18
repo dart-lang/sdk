@@ -179,6 +179,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
       get flowAnalysis => _inferrer.flowAnalysis;
 
+  /// Provides access to the [OperationsCfe] object.  This is needed by
+  /// [isAssignable].
+  OperationsCfe get operations => _inferrer.operations;
+
   TypeSchemaEnvironment get typeSchemaEnvironment =>
       _inferrer.typeSchemaEnvironment;
 
@@ -386,18 +390,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeContext.classNode == coreTypes.doubleClass;
   }
 
-  bool isAssignable(DartType contextType, DartType expressionType) {
-    if (isNonNullableByDefault) {
-      if (expressionType is DynamicType) return true;
-      return typeSchemaEnvironment
-          .performNullabilityAwareSubtypeCheck(expressionType, contextType)
-          .isSubtypeWhenUsingNullabilities();
-    }
-    return typeSchemaEnvironment
-        .performNullabilityAwareSubtypeCheck(expressionType, contextType)
-        .orSubtypeCheckFor(contextType, expressionType, typeSchemaEnvironment)
-        .isSubtypeWhenIgnoringNullabilities();
-  }
+  bool isAssignable(DartType contextType, DartType expressionType) =>
+      operations.isAssignableTo(expressionType, contextType);
 
   /// Ensures that [expressionType] is assignable to [contextType].
   ///
@@ -4098,6 +4092,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         charOffset,
         length);
   }
+
+  /// The client of type inference should call this method after asking
+  /// inference to visit a node.  This performs assertions to make sure that
+  /// temporary type inference state has been properly cleaned up.
+  void checkCleanState();
 }
 
 /// Describes assignability kind of one type to another.

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -50,8 +49,7 @@ part 'test.dart';
     await resolveFile('$testPackageLibPath/b.dart');
 
     // Build the request
-    var resolvedUnit =
-        await (await session).getResolvedUnit(testFile) as ResolvedUnitResult;
+    var resolvedUnit = await getResolvedUnit(testFile);
     request = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: resolvedUnit,
       offset: completionOffset,
