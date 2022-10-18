@@ -460,6 +460,25 @@ class BlazeWorkspace extends Workspace
     return null;
   }
 
+  /// Create the Blaze workspace with the given [root].
+  ///
+  /// This method should be used during build in google3, when we know for
+  /// sure the workspace root, but [file_paths.blazeWorkspaceMarker] is not
+  /// available.
+  static BlazeWorkspace forBuild({
+    required Folder root,
+  }) {
+    var provider = root.provider;
+    var blazeBin = root.getChildAssumingFolder('blaze-bin');
+    var blazeGenfiles = root.getChildAssumingFolder('blaze-genfiles');
+
+    var binPaths = _findBinFolderPaths(root);
+    binPaths.add(blazeBin.path);
+
+    return BlazeWorkspace._(provider, root.path, binPaths, blazeGenfiles.path,
+        lookForBuildFileSubstitutes: true);
+  }
+
   /// Find the "bin" folder path, by searching for it.
   ///
   /// Depending on the environment we're working in (source code tree, build

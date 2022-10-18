@@ -980,6 +980,16 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
         equals: '/workspace/blaze-genfiles/my/module/test3.dart');
   }
 
+  void test_forBuild() {
+    // We don't have to create any resources, `forBuild()` does not check.
+    var workspace = BlazeWorkspace.forBuild(
+      root: getFolder('/workspace'),
+    );
+    expect(workspace.root, convertPath('/workspace'));
+    expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
+  }
+
   /// Create new files and directories from [paths].
   void _addResources(List<String> paths) {
     for (String path in paths) {
