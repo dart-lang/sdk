@@ -158,8 +158,16 @@ Updated the Linter to `1.28.0`, which includes changes that
 
 - Treats packages with sdk constraint lower bound `>=2.12.0` or more and upper
   bound `<3.0.0` as compatible with `<4.0.0`.
+- Introduces content-hashes in pubspec.lock, to protect against corrupted
+  package repositories.
+
+  These will show up in the lock file on the first run of `dart pub get`.
+
+  See https://dart.dev/go/content-hashes for more details.
 - Remove remaining support for `.packages` files. The flag
   `--legacy-packages-file` is no longer supported.
+- The client will now default to the `pub.dev` repository instead of `pub.dartlang.org`.
+  This will cause a change in pubspec.lock.
 - Support a new field [`funding`](https://dart.dev/tools/pub/pubspec#funding) in pubspec.yaml.
 - Validate the CRC32c checksum of downloaded archives and retry on failure.
 - `dart pub add foo:<constraint>` with an existing dependency will now update
