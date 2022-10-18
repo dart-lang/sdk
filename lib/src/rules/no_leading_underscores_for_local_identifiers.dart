@@ -109,8 +109,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parameter is DefaultFormalParameter) {
         parameter = parameter.parameter;
       }
-      // Named parameters produce a `private_optional_parameter` diagnostic.
-      if (parameter is! FieldFormalParameter && !parameter.isNamed) {
+      if (parameter is FieldFormalParameter ||
+          parameter is SuperFormalParameter) {
+        // These are not local identifiers.
+        return;
+      }
+      if (!parameter.isNamed) {
+        // Named parameters produce a `private_optional_parameter` diagnostic.
         checkIdentifier(parameter.name);
       }
     }

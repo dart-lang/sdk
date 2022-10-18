@@ -140,3 +140,12 @@ class TestClass {
 }
 
 typedef _OutputFunction = void Function(String msg); // OK
+
+class C {
+  int _i;
+  C(this._i);
+}
+
+class D extends C {
+  D(super._i); // OK
+}
