@@ -552,6 +552,7 @@ void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
   LOG_INFO("HandlePacket: Got event packet: key=%lx\n", pkt->key);
   LOG_INFO("HandlePacket: Got event packet: type=%x\n", pkt->type);
   LOG_INFO("HandlePacket: Got event packet: status=%d\n", pkt->status);
+
   if (pkt->type == ZX_PKT_TYPE_USER) {
     ASSERT(pkt->key == kInterruptPacketKey);
     InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(&pkt->user);
@@ -559,36 +560,37 @@ void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
     return;
   }
 
-  if (pkt->type == ZX_PKT_TYPE_SIGNAL_ONE) {
-    LOG_INFO("HandlePacket: Got event packet: observed = %x\n", 
-        pkt->signal.observed);
-    LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);
-    ZX_ASSERT(pkt->key != 0);
-    DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(pkt->key);
-    zx_signals_t observed = pkt->signal.observed;
-    const intptr_t old_mask = di->Mask();
-    const uint32_t epoll_event = di->io_handle()->WaitEnd(observed);
-    intptr_t event_mask = IOHandle::EpollEventsToMask(epoll_event);
-    if ((event_mask & (1 << kErrorEvent)) != 0) {
-      di->NotifyAllDartPorts(event_mask);
-    } else if (event_mask != 0) {
-      event_mask = di->io_handle()->ToggleEvents(event_mask);
-      if (event_mask != 0) {
-        Dart_Port port = di->NextNotifyDartPort(event_mask);
-        ASSERT(port != 0);
-        bool success = DartUtils::PostInt32(port, event_mask);
-        if (!success) {
-          // This can happen if e.g. the isolate that owns the port has died
-          // for some reason.
-          LOG_INFO("Failed to post event to port %ld\n", port);
-        }
-      }
-    }
-    UpdatePort(old_mask, di);
+  if (pkt->type != ZX_PKT_TYPE_SIGNAL_ONE) {
+    LOG_WARN("HandlePacket: Got unexpected packet type: key=%x\n", pkt->type);
     return;
   }
-
-  LOG_WARN("HandlePacket: Got unexpected packet type: key=%x\n", pkt->type);
+  
+  // Handle pkt->type == ZX_PKT_TYPE_SIGNAL_ONE
+  ZX_ASSERT(pkt->key != 0);
+  LOG_INFO("HandlePacket: Got event packet: observed = %x\n",
+          pkt->signal.observed);
+  LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);
+  DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(pkt->key);
+  zx_signals_t observed = pkt->signal.observed;
+  const intptr_t old_mask = di->Mask();
+  const uint32_t epoll_event = di->io_handle()->WaitEnd(observed);
+  intptr_t event_mask = IOHandle::EpollEventsToMask(epoll_event);
+  if ((event_mask & (1 << kErrorEvent)) != 0) {
+    di->NotifyAllDartPorts(event_mask);
+  } else if (event_mask != 0) {
+    event_mask = di->io_handle()->ToggleEvents(event_mask);
+    if (event_mask != 0) {
+      Dart_Port port = di->NextNotifyDartPort(event_mask);
+      ASSERT(port != 0);
+      bool success = DartUtils::PostInt32(port, event_mask);
+      if (!success) {
+        // This can happen if e.g. the isolate that owns the port has died
+        // for some reason.
+        LOG_INFO("Failed to post event to port %ld\n", port);
+      }
+    }
+  }
+  UpdatePort(old_mask, di);
 }
 
 int64_t EventHandlerImplementation::GetTimeout() const {
