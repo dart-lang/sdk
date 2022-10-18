@@ -23,7 +23,6 @@ void main() async {
     Detail.linter,
     Detail.sdk,
     Detail.fix,
-    Detail.pedantic,
     Detail.flutterUser,
     Detail.flutterRepo,
     Detail.status,
@@ -53,20 +52,12 @@ Iterable<LintRule>? get registeredLints {
 }
 
 StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
-  var pedanticLintCount = 0;
   var flutterUserLintCount = 0;
   var flutterRepoLintCount = 0;
   var fixCount = 0;
-  var pedanticFixCount = 0;
 
   for (var score in scorecard.scores) {
     for (var ruleSet in score.ruleSets!) {
-      if (ruleSet == 'pedantic') {
-        ++pedanticLintCount;
-        if (score.hasFix!) {
-          ++pedanticFixCount;
-        }
-      }
       if (ruleSet == 'flutter') {
         ++flutterUserLintCount;
       }
@@ -82,9 +73,6 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   var footer = StringBuffer('\n_${scorecard.lintCount} lints');
 
   var breakdowns = StringBuffer();
-  if (details.contains(Detail.pedantic)) {
-    breakdowns.write('$pedanticLintCount pedantic');
-  }
   if (details.contains(Detail.flutterUser)) {
     if (breakdowns.isNotEmpty) {
       breakdowns.write(', ');
@@ -102,9 +90,6 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
     breakdowns.write('; ');
   }
   breakdowns.write('$fixCount w/ fixes');
-  if (details.contains(Detail.pedantic)) {
-    breakdowns.write(' ($pedanticFixCount pedantic)');
-  }
 
   if (breakdowns.isNotEmpty) {
     footer.write(': $breakdowns');
@@ -121,7 +106,6 @@ class Detail {
   static const Detail sdk = Detail('dart sdk', header: Header.left);
 
   static const Detail fix = Detail('fix');
-  static const Detail pedantic = Detail('pedantic');
   static const Detail flutterUser = Detail('flutter user');
   static const Detail flutterRepo = Detail('flutter repo');
   static const Detail status = Detail('status');
@@ -175,9 +159,6 @@ class LintScore {
           break;
         case Detail.fix:
           sb.write('${hasFix! ? " $bulb" : ""} |');
-          break;
-        case Detail.pedantic:
-          sb.write('${ruleSets!.contains('pedantic') ? " $checkMark" : ""} |');
           break;
         case Detail.flutterUser:
           sb.write('${ruleSets!.contains('flutter') ? " $checkMark" : ""} |');
@@ -240,7 +221,6 @@ class ScoreCard {
     var lintsWithAssists = await _getLintsWithAssists();
     var flutterRuleset = await flutterRules;
     var flutterRepoRuleset = await flutterRepoRules;
-    var pedanticRuleset = await pedanticRules;
 
     var issues = await getLinterIssues();
     var bugs = issues.where(isBug).toList();
@@ -254,9 +234,6 @@ class ScoreCard {
       }
       if (flutterRepoRuleset.contains(lint.name)) {
         ruleSets.add('flutter_repo');
-      }
-      if (pedanticRuleset.contains(lint.name)) {
-        ruleSets.add('pedantic');
       }
 
       var bugReferences = <String>[];

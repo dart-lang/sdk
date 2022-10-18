@@ -84,7 +84,6 @@ const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 final coreRules = <String?>[];
 final flutterRules = <String?>[];
-final pedanticRules = <String?>[];
 final recommendedRules = <String?>[];
 
 /// Sorted list of contributed lint rules.
@@ -94,16 +93,6 @@ final List<LintRule> rules =
 late Map<String, SinceInfo> sinceInfo;
 
 final Map<String, String> _fixStatusMap = <String, String>{};
-
-Future<String> get pedanticLatestVersion async {
-  var url =
-      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
-  var client = http.Client();
-  print('loading $url...');
-  var req = await client.get(Uri.parse(url));
-  var parts = req.body.split('package:pedantic/analysis_options.');
-  return parts[1].split('.yaml')[0];
-}
 
 String describeMaturity(LintRule r) =>
     r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})';
@@ -123,15 +112,6 @@ Future<void> fetchBadgeInfo() async {
     recommendedRules.addAll(coreRules);
     for (var ruleConfig in recommended.ruleConfigs) {
       recommendedRules.add(ruleConfig.name);
-    }
-  }
-
-  var latestPedantic = await pedanticLatestVersion;
-  var pedantic = await fetchConfig(
-      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml');
-  if (pedantic != null) {
-    for (var ruleConfig in pedantic.ruleConfigs) {
-      pedanticRules.add(ruleConfig.name);
     }
   }
 
@@ -256,11 +236,6 @@ String getBadges(String rule, [String? fixStatus]) {
     sb.write(
         '<a class="style-type" href="https://github.com/flutter/packages/blob/main/packages/flutter_lints/lib/flutter.yaml">'
         '<!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a>');
-  }
-  if (pedanticRules.contains(rule)) {
-    sb.write(
-        '<a class="style-type" href="https://github.com/dart-lang/pedantic/#enabled-lints">'
-        '<!--suppress HtmlUnknownTarget --><img alt="pedantic" src="style-pedantic.svg"></a>');
   }
   if (fixStatus == 'hasFix') {
     sb.write(
@@ -461,10 +436,6 @@ class MarkdownIndexer {
         buffer.writeln('[![flutter](style-flutter.svg)]'
             '(https://github.com/flutter/packages/blob/main/packages/'
             'flutter_lints/lib/flutter.yaml)');
-      }
-      if (pedanticRules.contains(rule.name)) {
-        buffer.writeln('[![pedantic](style-pedantic.svg)]'
-            '(https://github.com/dart-lang/pedantic/#enabled-lints)');
       }
       if (fixStatusMap[rule.name] == 'hasFix') {
         buffer.writeln('[![has-fix](has-fix.svg)]'
@@ -747,10 +718,6 @@ class RuleMarkdownGenerator {
       buffer.writeln('[![flutter](style-flutter.svg)]'
           '(https://github.com/flutter/packages/blob/main/packages/'
           'flutter_lints/lib/flutter.yaml)');
-    }
-    if (pedanticRules.contains(name)) {
-      buffer.writeln('[![pedantic](style-pedantic.svg)]'
-          '(https://github.com/dart-lang/pedantic/#enabled-lints)');
     }
     if (fixStatus == 'hasFix') {
       buffer.writeln('[![has-fix](has-fix.svg)]'

@@ -51,8 +51,6 @@ Future<List<String>> get flutterRules async =>
 Future<int> get latestMinor async =>
     _latestMinor ??= await _readLatestMinorVersion();
 
-Future<List<String>> get pedanticRules async => score_utils.pedanticRules;
-
 Iterable<LintRule> get registeredLints {
   if (_registeredLints == null) {
     registerLintRules();
