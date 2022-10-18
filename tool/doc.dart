@@ -403,7 +403,8 @@ class MachineSummaryGenerator {
   MachineSummaryGenerator(this.rules, this.fixStatusMap);
 
   void generate(String? filePath) {
-    var generated = getMachineListing(rules, fixStatusMap: fixStatusMap);
+    var generated = getMachineListing(rules,
+        fixStatusMap: fixStatusMap, sinceInfo: sinceInfo);
     if (filePath != null) {
       var outPath = '$filePath/machine/rules.json';
       print('Writing to $outPath');

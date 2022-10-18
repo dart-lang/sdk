@@ -10,6 +10,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 
 import 'doc.dart';
+import 'since.dart';
 
 /// Generates a list of lint rules in machine format suitable for consumption by
 /// other tools.
@@ -30,7 +31,9 @@ void main(List<String> args) async {
 }
 
 String getMachineListing(Iterable<LintRule> ruleRegistry,
-    {Map<String, String>? fixStatusMap, bool pretty = true}) {
+    {Map<String, String>? fixStatusMap,
+    bool pretty = true,
+    Map<String, SinceInfo>? sinceInfo}) {
   var rules = List<LintRule>.of(ruleRegistry, growable: false)..sort();
   var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
   fixStatusMap ??= {};
@@ -50,6 +53,10 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
         ],
         'fixStatus': fixStatusMap[rule.name] ?? 'unregistered',
         'details': rule.details,
+        if (sinceInfo != null)
+          'sinceDartSdk': sinceInfo[rule.name]?.sinceDartSdk ?? 'Unreleased',
+        if (sinceInfo != null)
+          'sinceLinter': sinceInfo[rule.name]?.sinceLinter ?? 'Unreleased',
       }
   ]);
   return json;

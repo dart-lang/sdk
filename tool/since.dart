@@ -25,7 +25,7 @@ void main() async {
 
   // Uncomment to (re)generate since/dart_sdk.yaml contents.
   // for (var info in sinceInfo.entries) {
-  //   var sinceSdk = info.value.sinceLinter;
+  //   var sinceSdk = info.value.sinceDartSdk;
   //   if (sinceSdk != null) {
   //     print('${info.key}: $sinceSdk}');
   //   }
