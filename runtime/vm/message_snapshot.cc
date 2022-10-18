@@ -2140,45 +2140,59 @@ class TypedDataViewMessageDeserializationCluster
     Dart_TypedData_Type type;
     switch (cid_) {
       case kTypedDataInt8ArrayViewCid:
+      case kUnmodifiableTypedDataInt8ArrayViewCid:
         type = Dart_TypedData_kInt8;
         break;
       case kTypedDataUint8ArrayViewCid:
+      case kUnmodifiableTypedDataUint8ArrayViewCid:
         type = Dart_TypedData_kUint8;
         break;
       case kTypedDataUint8ClampedArrayViewCid:
+      case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
         type = Dart_TypedData_kUint8Clamped;
         break;
       case kTypedDataInt16ArrayViewCid:
+      case kUnmodifiableTypedDataInt16ArrayViewCid:
         type = Dart_TypedData_kInt16;
         break;
       case kTypedDataUint16ArrayViewCid:
+      case kUnmodifiableTypedDataUint16ArrayViewCid:
         type = Dart_TypedData_kUint16;
         break;
       case kTypedDataInt32ArrayViewCid:
+      case kUnmodifiableTypedDataInt32ArrayViewCid:
         type = Dart_TypedData_kInt32;
         break;
       case kTypedDataUint32ArrayViewCid:
+      case kUnmodifiableTypedDataUint32ArrayViewCid:
         type = Dart_TypedData_kUint32;
         break;
       case kTypedDataInt64ArrayViewCid:
+      case kUnmodifiableTypedDataInt64ArrayViewCid:
         type = Dart_TypedData_kInt64;
         break;
       case kTypedDataUint64ArrayViewCid:
+      case kUnmodifiableTypedDataUint64ArrayViewCid:
         type = Dart_TypedData_kUint64;
         break;
       case kTypedDataFloat32ArrayViewCid:
+      case kUnmodifiableTypedDataFloat32ArrayViewCid:
         type = Dart_TypedData_kFloat32;
         break;
       case kTypedDataFloat64ArrayViewCid:
+      case kUnmodifiableTypedDataFloat64ArrayViewCid:
         type = Dart_TypedData_kFloat64;
         break;
       case kTypedDataInt32x4ArrayViewCid:
+      case kUnmodifiableTypedDataInt32x4ArrayViewCid:
         type = Dart_TypedData_kInt32x4;
         break;
       case kTypedDataFloat32x4ArrayViewCid:
+      case kUnmodifiableTypedDataFloat32x4ArrayViewCid:
         type = Dart_TypedData_kFloat32x4;
         break;
       case kTypedDataFloat64x2ArrayViewCid:
+      case kUnmodifiableTypedDataFloat64x2ArrayViewCid:
         type = Dart_TypedData_kFloat64x2;
         break;
       default:
