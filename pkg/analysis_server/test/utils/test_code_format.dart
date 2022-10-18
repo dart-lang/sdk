@@ -121,10 +121,7 @@ class TestCode {
     final positions = positionOffsets.map(
       (number, offset) => MapEntry(
         number,
-        TestCodePosition(
-          offset,
-          toPosition(lineInfo.getLocation(offset)),
-        ),
+        TestCodePosition(lineInfo, offset),
       ),
     );
 
@@ -132,9 +129,9 @@ class TestCode {
       (number, offset) => MapEntry(
         number,
         TestCodeRange(
+          lineInfo,
           code.substring(offset, rangeEndOffsets[number]!),
           SourceRange(offset, rangeEndOffsets[number]! - offset),
-          toRange(lineInfo, offset, rangeEndOffsets[number]! - offset),
         ),
       ),
     );
@@ -150,20 +147,21 @@ class TestCode {
 
 /// A marked position in the test code.
 class TestCodePosition {
+  /// Line break information for the test code.
+  final LineInfo lineInfo;
+
   /// The 0-based offset of the marker.
   ///
   /// Offsets are based on [TestCode.code], with all parsed markers removed.
   final int offset;
 
-  /// The LSP [Position] of the marker.
-  ///
-  /// Positions are based on [TestCode.code], with all parsed markers removed.
-  final Position lsp;
-
-  TestCodePosition(this.offset, this.lsp);
+  TestCodePosition(this.lineInfo, this.offset);
 }
 
 class TestCodeRange {
+  /// Line break information for the test code.
+  final LineInfo lineInfo;
+
   /// The text from [TestCode.code] covered by this range.
   final String text;
 
@@ -173,10 +171,19 @@ class TestCodeRange {
   /// removed.
   final SourceRange sourceRange;
 
+  TestCodeRange(this.lineInfo, this.text, this.sourceRange);
+}
+
+extension TestCodePositionExtension on TestCodePosition {
+  /// Return the LSP [Position] of the marker.
+  ///
+  /// Positions are based on [TestCode.code], with all parsed markers removed.
+  Position get position => toPosition(lineInfo.getLocation(offset));
+}
+
+extension TestCodeRangeExtension on TestCodeRange {
   /// The LSP [Range] indicated by the markers.
   ///
   /// Ranges are based on [TestCode.code], with all parsed markers removed.
-  final Range lsp;
-
-  TestCodeRange(this.text, this.sourceRange, this.lsp);
+  Range get range => toRange(lineInfo, sourceRange.offset, sourceRange.length);
 }
