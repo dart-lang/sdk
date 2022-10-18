@@ -1094,10 +1094,11 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
   @override
   final DartPatternImpl rightOperand;
 
-  BinaryPatternImpl(
-      {required this.leftOperand,
-      required this.operator,
-      required this.rightOperand}) {
+  BinaryPatternImpl({
+    required this.leftOperand,
+    required this.operator,
+    required this.rightOperand,
+  }) {
     _becomeParentOf(leftOperand);
     _becomeParentOf(rightOperand);
   }
@@ -1523,8 +1524,11 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   final TypeAnnotationImpl type;
 
-  CastPatternImpl(
-      {required this.pattern, required this.asToken, required this.type}) {
+  CastPatternImpl({
+    required this.pattern,
+    required this.asToken,
+    required this.type,
+  }) {
     _becomeParentOf(pattern);
     _becomeParentOf(type);
   }
@@ -4727,11 +4731,12 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
   @override
   final NamedTypeImpl type;
 
-  ExtractorPatternImpl(
-      {required this.type,
-      required this.leftParenthesis,
-      required List<RecordPatternFieldImpl> fields,
-      required this.rightParenthesis}) {
+  ExtractorPatternImpl({
+    required this.type,
+    required this.leftParenthesis,
+    required List<RecordPatternFieldImpl> fields,
+    required this.rightParenthesis,
+  }) {
     _becomeParentOf(type);
     _fields._initialize(this, fields);
   }
@@ -8120,11 +8125,12 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @override
   DartType? requiredType;
 
-  ListPatternImpl(
-      {required this.typeArguments,
-      required this.leftBracket,
-      required List<DartPattern> elements,
-      required this.rightBracket}) {
+  ListPatternImpl({
+    required this.typeArguments,
+    required this.leftBracket,
+    required List<DartPattern> elements,
+    required this.rightBracket,
+  }) {
     _becomeParentOf(typeArguments);
     _elements._initialize(this, elements);
   }
@@ -8285,8 +8291,11 @@ class MapPatternEntryImpl extends AstNodeImpl implements MapPatternEntry {
   @override
   final DartPatternImpl value;
 
-  MapPatternEntryImpl(
-      {required this.key, required this.separator, required this.value}) {
+  MapPatternEntryImpl({
+    required this.key,
+    required this.separator,
+    required this.value,
+  }) {
     _becomeParentOf(key);
     _becomeParentOf(value);
   }
@@ -8331,11 +8340,12 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
 
-  MapPatternImpl(
-      {required this.typeArguments,
-      required this.leftBracket,
-      required List<MapPatternEntry> entries,
-      required this.rightBracket}) {
+  MapPatternImpl({
+    required this.typeArguments,
+    required this.leftBracket,
+    required List<MapPatternEntry> entries,
+    required this.rightBracket,
+  }) {
     _becomeParentOf(typeArguments);
     _entries._initialize(this, entries);
   }
@@ -9580,10 +9590,11 @@ class ParenthesizedPatternImpl extends DartPatternImpl
   @override
   final Token rightParenthesis;
 
-  ParenthesizedPatternImpl(
-      {required this.leftParenthesis,
-      required this.pattern,
-      required this.rightParenthesis}) {
+  ParenthesizedPatternImpl({
+    required this.leftParenthesis,
+    required this.pattern,
+    required this.rightParenthesis,
+  }) {
     _becomeParentOf(pattern);
   }
 
@@ -9774,8 +9785,11 @@ class PatternAssignmentImpl extends ExpressionImpl
   @override
   final DartPatternImpl pattern;
 
-  PatternAssignmentImpl(
-      {required this.pattern, required this.equals, required this.expression}) {
+  PatternAssignmentImpl({
+    required this.pattern,
+    required this.equals,
+    required this.expression,
+  }) {
     _becomeParentOf(pattern);
     _becomeParentOf(expression);
   }
@@ -9825,8 +9839,10 @@ class PatternAssignmentStatementImpl extends StatementImpl
   @override
   final Token semicolon;
 
-  PatternAssignmentStatementImpl(
-      {required this.assignment, required this.semicolon}) {
+  PatternAssignmentStatementImpl({
+    required this.assignment,
+    required this.semicolon,
+  }) {
     _becomeParentOf(assignment);
   }
 
@@ -9870,11 +9886,12 @@ class PatternVariableDeclarationImpl extends AstNodeImpl
   @override
   final DartPatternImpl pattern;
 
-  PatternVariableDeclarationImpl(
-      {required this.keyword,
-      required this.pattern,
-      required this.equals,
-      required this.expression}) {
+  PatternVariableDeclarationImpl({
+    required this.keyword,
+    required this.pattern,
+    required this.equals,
+    required this.expression,
+  }) {
     _becomeParentOf(pattern);
     _becomeParentOf(expression);
   }
@@ -9916,8 +9933,10 @@ class PatternVariableDeclarationStatementImpl extends StatementImpl
   @override
   final Token semicolon;
 
-  PatternVariableDeclarationStatementImpl(
-      {required this.declaration, required this.semicolon}) {
+  PatternVariableDeclarationStatementImpl({
+    required this.declaration,
+    required this.semicolon,
+  }) {
     _becomeParentOf(declaration);
   }
 
@@ -10398,11 +10417,12 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   Token rightParenthesis;
 
   /// Initialize a newly created record literal.
-  RecordLiteralImpl(
-      {required this.constKeyword,
-      required this.leftParenthesis,
-      required List<ExpressionImpl> fields,
-      required this.rightParenthesis}) {
+  RecordLiteralImpl({
+    required this.constKeyword,
+    required this.leftParenthesis,
+    required List<ExpressionImpl> fields,
+    required this.rightParenthesis,
+  }) {
     _fields._initialize(this, fields);
   }
 
@@ -10531,10 +10551,11 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   final Token rightParenthesis;
 
-  RecordPatternImpl(
-      {required this.leftParenthesis,
-      required List<RecordPatternField> fields,
-      required this.rightParenthesis}) {
+  RecordPatternImpl({
+    required this.leftParenthesis,
+    required List<RecordPatternField> fields,
+    required this.rightParenthesis,
+  }) {
     _fields._initialize(this, fields);
   }
 
@@ -12283,12 +12304,13 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
   @override
   final DartPatternImpl pattern;
 
-  SwitchExpressionCaseImpl(
-      {required super.keyword,
-      required this.pattern,
-      required this.whenClause,
-      required super.arrow,
-      required super.expression}) {
+  SwitchExpressionCaseImpl({
+    required super.keyword,
+    required this.pattern,
+    required this.whenClause,
+    required super.arrow,
+    required super.expression,
+  }) {
     _becomeParentOf(whenClause);
     _becomeParentOf(pattern);
   }
@@ -12326,10 +12348,11 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
 @experimental
 class SwitchExpressionDefaultImpl extends SwitchExpressionMemberImpl
     implements SwitchExpressionDefault {
-  SwitchExpressionDefaultImpl(
-      {required super.keyword,
-      required super.arrow,
-      required super.expression});
+  SwitchExpressionDefaultImpl({
+    required super.keyword,
+    required super.arrow,
+    required super.expression,
+  });
 
   @override
   Token get beginToken => keyword;
@@ -12380,14 +12403,15 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   @override
   final Token switchKeyword;
 
-  SwitchExpressionImpl(
-      {required this.switchKeyword,
-      required this.leftParenthesis,
-      required this.expression,
-      required this.rightParenthesis,
-      required this.leftBracket,
-      required List<SwitchExpressionMember> members,
-      required this.rightBracket}) {
+  SwitchExpressionImpl({
+    required this.switchKeyword,
+    required this.leftParenthesis,
+    required this.expression,
+    required this.rightParenthesis,
+    required this.leftBracket,
+    required List<SwitchExpressionMember> members,
+    required this.rightBracket,
+  }) {
     _becomeParentOf(expression);
     _members._initialize(this, members);
   }
@@ -12447,8 +12471,11 @@ abstract class SwitchExpressionMemberImpl extends AstNodeImpl
   @override
   final Token keyword;
 
-  SwitchExpressionMemberImpl(
-      {required this.keyword, required this.arrow, required this.expression}) {
+  SwitchExpressionMemberImpl({
+    required this.keyword,
+    required this.arrow,
+    required this.expression,
+  }) {
     _becomeParentOf(expression);
   }
 }
@@ -13622,8 +13649,11 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   @override
   final TypeAnnotationImpl? type;
 
-  VariablePatternImpl(
-      {required this.name, required this.keyword, required this.type}) {
+  VariablePatternImpl({
+    required this.name,
+    required this.keyword,
+    required this.type,
+  }) {
     _becomeParentOf(type);
   }
 
