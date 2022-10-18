@@ -140,8 +140,17 @@ class IsolateManager {
   }
 
   Future<T> getObject<T extends vm.Response>(
-      vm.IsolateRef isolate, vm.ObjRef object) async {
-    final res = await _adapter.vmService?.getObject(isolate.id!, object.id!);
+    vm.IsolateRef isolate,
+    vm.ObjRef object, {
+    int? offset,
+    int? count,
+  }) async {
+    final res = await _adapter.vmService?.getObject(
+      isolate.id!,
+      object.id!,
+      offset: offset,
+      count: count,
+    );
     return res as T;
   }
 

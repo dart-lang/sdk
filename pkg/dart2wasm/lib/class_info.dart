@@ -29,7 +29,7 @@ class FieldIndex {
   static const vtableInstantiationFunction = 0;
   static const instantiationContextInner = 0;
   static const instantiationContextTypeArgumentsBase = 1;
-  static const typeIsNullable = 2;
+  static const typeIsDeclaredNullable = 2;
   static const interfaceTypeTypeArguments = 4;
   static const functionTypeNamedParameters = 6;
   static const typedListBaseLength = 2;
@@ -57,7 +57,8 @@ class FieldIndex {
     check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.functionClass, "context", FieldIndex.closureContext);
-    check(translator.typeClass, "isNullable", FieldIndex.typeIsNullable);
+    check(translator.typeClass, "isDeclaredNullable",
+        FieldIndex.typeIsDeclaredNullable);
     check(translator.interfaceTypeClass, "typeArguments",
         FieldIndex.interfaceTypeTypeArguments);
     check(translator.functionTypeClass, "namedParameters",

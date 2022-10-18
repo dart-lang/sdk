@@ -15,9 +15,9 @@ part of 'core_patch.dart';
 //   * [_FutureOrType.asFuture].
 // TODO(joshualitt): Make `Function` a canonical type.
 abstract class _Type implements Type {
-  final bool isNullable;
+  final bool isDeclaredNullable;
 
-  const _Type(this.isNullable);
+  const _Type(this.isDeclaredNullable);
 
   bool _testID(int value) => ClassID.getID(this) == value;
   bool get isNever => _testID(ClassID.cidNeverType);
@@ -33,8 +33,8 @@ abstract class _Type implements Type {
 
   T as<T>() => unsafeCast<T>(this);
 
-  _Type get asNonNullable => isNullable ? _asNonNullable : this;
-  _Type get asNullable => isNullable ? this : _asNullable;
+  _Type get asNonNullable => isDeclaredNullable ? _asNonNullable : this;
+  _Type get asNullable => isDeclaredNullable ? this : _asNullable;
 
   _Type get _asNonNullable;
   _Type get _asNullable;
@@ -115,7 +115,8 @@ class _InterfaceTypeParameterType extends _Type {
   final int environmentIndex;
 
   @pragma("wasm:entry-point")
-  const _InterfaceTypeParameterType(super.isNullable, this.environmentIndex);
+  const _InterfaceTypeParameterType(
+      super.isDeclaredNullable, this.environmentIndex);
 
   @override
   _Type get _asNonNullable =>
@@ -134,7 +135,7 @@ class _GenericFunctionTypeParameterType extends _Type {
   final int environmentIndex;
 
   const _GenericFunctionTypeParameterType(
-      super.isNullable, this.environmentIndex);
+      super.isDeclaredNullable, this.environmentIndex);
 
   @override
   _Type get _asNonNullable =>
@@ -153,16 +154,13 @@ class _FutureOrType extends _Type {
   final _Type typeArgument;
 
   @pragma("wasm:entry-point")
-  const _FutureOrType(bool isNullable, this.typeArgument) : super(isNullable);
+  const _FutureOrType(super.isDeclaredNullable, this.typeArgument);
 
   _InterfaceType get asFuture =>
-      _InterfaceType(ClassID.cid_Future, isNullable, [typeArgument]);
+      _InterfaceType(ClassID.cid_Future, isDeclaredNullable, [typeArgument]);
 
   @override
-  _Type get _asNonNullable {
-    if (!typeArgument.isNullable) return _FutureOrType(false, typeArgument);
-    throw '`$this` cannot be non nullable.';
-  }
+  _Type get _asNonNullable => _FutureOrType(false, typeArgument);
 
   @override
   _Type get _asNullable => _FutureOrType(true, typeArgument);
@@ -171,14 +169,14 @@ class _FutureOrType extends _Type {
   bool operator ==(Object o) {
     if (!(super == o)) return false;
     _FutureOrType other = unsafeCast<_FutureOrType>(o);
-    if (isNullable != other.isNullable) return false;
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
     return typeArgument == other.typeArgument;
   }
 
   @override
   int get hashCode {
     int hash = super.hashCode;
-    hash = mix64(hash ^ (isNullable ? 1 : 0));
+    hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     return mix64(hash ^ typeArgument.hashCode);
   }
 
@@ -189,7 +187,7 @@ class _FutureOrType extends _Type {
     s.write("<");
     s.write(typeArgument);
     s.write(">");
-    if (isNullable) s.write("?");
+    if (isDeclaredNullable) s.write("?");
     return s.toString();
   }
 }
@@ -199,9 +197,8 @@ class _InterfaceType extends _Type {
   final List<_Type> typeArguments;
 
   @pragma("wasm:entry-point")
-  const _InterfaceType(this.classId, bool isNullable,
-      [this.typeArguments = const []])
-      : super(isNullable);
+  const _InterfaceType(this.classId, super.isDeclaredNullable,
+      [this.typeArguments = const []]);
 
   @override
   _Type get _asNonNullable => _InterfaceType(classId, false, typeArguments);
@@ -214,7 +211,7 @@ class _InterfaceType extends _Type {
     if (!(super == o)) return false;
     _InterfaceType other = unsafeCast<_InterfaceType>(o);
     if (classId != other.classId) return false;
-    if (isNullable != other.isNullable) return false;
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
     assert(typeArguments.length == other.typeArguments.length);
     for (int i = 0; i < typeArguments.length; i++) {
       if (typeArguments[i] != other.typeArguments[i]) return false;
@@ -226,7 +223,7 @@ class _InterfaceType extends _Type {
   int get hashCode {
     int hash = super.hashCode;
     hash = mix64(hash ^ classId);
-    hash = mix64(hash ^ (isNullable ? 1 : 0));
+    hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     for (int i = 0; i < typeArguments.length; i++) {
       hash = mix64(hash ^ typeArguments[i].hashCode);
     }
@@ -245,7 +242,7 @@ class _InterfaceType extends _Type {
       }
       s.write(">");
     }
-    if (isNullable) s.write("?");
+    if (isDeclaredNullable) s.write("?");
     return s.toString();
   }
 }
@@ -293,9 +290,12 @@ class _FunctionType extends _Type {
   final List<_NamedParameter> namedParameters;
 
   @pragma("wasm:entry-point")
-  const _FunctionType(this.returnType, this.positionalParameters,
-      this.requiredParameterCount, this.namedParameters, bool isNullable)
-      : super(isNullable);
+  const _FunctionType(
+      this.returnType,
+      this.positionalParameters,
+      this.requiredParameterCount,
+      this.namedParameters,
+      super.isDeclaredNullable);
 
   @override
   _Type get _asNonNullable => _FunctionType(returnType, positionalParameters,
@@ -308,7 +308,7 @@ class _FunctionType extends _Type {
   bool operator ==(Object o) {
     if (!(super == o)) return false;
     _FunctionType other = unsafeCast<_FunctionType>(o);
-    if (isNullable != other.isNullable) return false;
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
     if (returnType != other.returnType) ;
     if (positionalParameters.length != other.positionalParameters.length) {
       return false;
@@ -329,7 +329,7 @@ class _FunctionType extends _Type {
   @override
   int get hashCode {
     int hash = super.hashCode;
-    hash = mix64(hash ^ (isNullable ? 1 : 0));
+    hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     hash = mix64(hash ^ returnType.hashCode);
     for (int i = 0; i < positionalParameters.length; i++) {
       hash = mix64(hash ^ positionalParameters[i].hashCode);
@@ -362,7 +362,7 @@ class _FunctionType extends _Type {
       s.write("}");
     }
     s.write(")");
-    if (isNullable) s.write("?");
+    if (isDeclaredNullable) s.write("?");
     return s.toString();
   }
 }
@@ -370,7 +370,7 @@ class _FunctionType extends _Type {
 // TODO(joshualitt): Implement. This should probably extend _FunctionType.
 class _GenericFunctionType extends _Type {
   @pragma("wasm:entry-point")
-  const _GenericFunctionType(bool isNullable) : super(isNullable);
+  const _GenericFunctionType(super.isDeclaredNullable);
 
   @override
   _Type get _asNonNullable => throw 'unimplemented';
@@ -407,7 +407,7 @@ class _Environment {
     // [type] as nullable.
     // Note: This will throw if the required nullability is impossible to
     // generate.
-    if (!declaredNullable || type.isNullable) {
+    if (!declaredNullable || type.isDeclaredNullable) {
       return type;
     }
     return type.asNullable;
@@ -417,8 +417,8 @@ class _Environment {
     // Lookup `InterfaceType` parameters in the top environment.
     // TODO(joshualitt): When we implement generic functions be sure to keep the
     // environments distinct.
-    return _substituteTypeParameter(
-        typeParameter.isNullable, scopes.last[typeParameter.environmentIndex]);
+    return _substituteTypeParameter(typeParameter.isDeclaredNullable,
+        scopes.last[typeParameter.environmentIndex]);
   }
 }
 
@@ -442,7 +442,7 @@ class _TypeUniverse {
     return type.classId == classId;
   }
 
-  bool isObjectQuestionType(_Type t) => isObjectType(t) && t.isNullable;
+  bool isObjectQuestionType(_Type t) => isObjectType(t) && t.isDeclaredNullable;
 
   bool isObjectType(_Type t) => isSpecificInterfaceType(t, ClassID.cidObject);
 
@@ -605,15 +605,18 @@ class _TypeUniverse {
     }
 
     // Left Null:
-    // TODO(joshualitt): Combine with 'Right Null', and this can just be:
-    // `if (s.isNullable && !t.isNullable) return false`
     if (s.isNull) {
-      return t.isNullable;
+      return (t.isFutureOr &&
+              isSubtype(s, sEnv, t.as<_FutureOrType>().typeArgument, tEnv)) ||
+          t.isDeclaredNullable;
     }
 
     // Right Object:
     if (isObjectType(t)) {
-      return !s.isNullable;
+      if (s.isFutureOr) {
+        return isSubtype(s.as<_FutureOrType>().typeArgument, sEnv, t, tEnv);
+      }
+      return !s.isDeclaredNullable;
     }
 
     // Left FutureOr:
@@ -626,8 +629,9 @@ class _TypeUniverse {
     }
 
     // Left Nullable:
-    if (s.isNullable) {
-      return t.isNullable && isSubtype(s.asNonNullable, sEnv, t, tEnv);
+    if (s.isDeclaredNullable) {
+      return isSubtype(const _NullType(), sEnv, t, tEnv) &&
+          isSubtype(s.asNonNullable, sEnv, t, tEnv);
     }
 
     // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
@@ -645,7 +649,10 @@ class _TypeUniverse {
     }
 
     // Right Nullable:
-    if (t.isNullable) {
+    if (t.isDeclaredNullable) {
+      // `s` is neither null nor declared nullable so return false if `t` is
+      // truly `null`.
+      if (t.isNull) return false;
       return isSubtype(s, sEnv, t.asNonNullable, tEnv);
     }
 

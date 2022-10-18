@@ -77,10 +77,10 @@ class _IOService {
     if (_receivePort == null) {
       _receivePort = new RawReceivePort(null, 'IO Service');
       _replyToPort = _receivePort!.sendPort;
-      _receivePort!.handler = (data) {
-        assert(data is List && data.length == 2);
+      _receivePort!.handler = (List<Object?> data) {
+        assert(data.length == 2);
         _messageMap.remove(data[0])!.complete(data[1]);
-        _servicePorts._returnPort(data[0]);
+        _servicePorts._returnPort(data[0] as int);
         if (_messageMap.length == 0) {
           _finalize();
         }

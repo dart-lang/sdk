@@ -529,6 +529,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
       ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       // The file being compiled is the last argument.
       args.last
     ];
