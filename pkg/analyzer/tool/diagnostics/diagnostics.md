@@ -1424,7 +1424,7 @@ void f() {
 
 ### assignment_to_final_no_setter
 
-_There isn’t a setter named '{0}' in class '{1}'._
+_There isn't a setter named '{0}' in class '{1}'._
 
 #### Description
 
@@ -1901,7 +1901,7 @@ _The built-in identifier '{0}' can't be used as an extension name._
 
 The analyzer produces this diagnostic when the name used in the declaration
 of a class, extension, mixin, typedef, type parameter, or import prefix is
-a built-in identifier. Built-in identifiers can’t be used to name any of
+a built-in identifier. Built-in identifiers can't be used to name any of
 these kinds of declarations.
 
 #### Example
@@ -3382,7 +3382,7 @@ never reached._
 #### Description
 
 The analyzer produces this diagnostic when a `catch` clause is found that
-can't be executed because it’s after a `catch` clause of the form
+can't be executed because it's after a `catch` clause of the form
 `catch (e)` or `on Object catch (e)`. The first `catch` clause that matches
 the thrown object is selected, and both of those forms will match any
 object, so no `catch` clauses that follow them will be selected.
@@ -3426,7 +3426,7 @@ void f() {
 
 ### dead_code_on_catch_subtype
 
-_Dead code: This on-catch block won’t be executed because '{0}' is a subtype of
+_Dead code: This on-catch block won't be executed because '{0}' is a subtype of
 '{1}' and hence will have been caught already._
 
 #### Description
@@ -4327,7 +4327,7 @@ _Duplicate import._
 
 The analyzer produces this diagnostic when an import directive is found
 that is the same as an import before it in the file. The second import
-doesn’t add value and should be removed.
+doesn't add value and should be removed.
 
 #### Example
 
@@ -6937,7 +6937,7 @@ imported, then add a prefix to the import so that the local definition of
 the name doesn't shadow the imported name.
 
 If the name is the name of an existing class or mixin that isn't being
-imported, then add an import, with a prefix, for the library in which it’s
+imported, then add an import, with a prefix, for the library in which it's
 declared.
 
 Otherwise, either replace the name in the `implements` clause with the name
@@ -7602,7 +7602,7 @@ access a static member through an instance of the class.
 #### Example
 
 The following code produces this diagnostic because `zero` is a static
-field, but it’s being accessed as if it were an instance field:
+field, but it's being accessed as if it were an instance field:
 
 {% prettify dart tag=pre+code %}
 void f(C c) {
@@ -7794,7 +7794,7 @@ _Type aliases that expand to a type parameter can't be instantiated._
 
 The analyzer produces this diagnostic when a constructor invocation is
 found where the type being instantiated is a type alias for one of the type
-parameters of the type alias. This isn’t allowed because the value of the
+parameters of the type alias. This isn't allowed because the value of the
 type parameter is a type rather than a class.
 
 #### Example
@@ -8122,7 +8122,7 @@ int i = 0;
 String s = i.toString();
 {% endprettify %}
 
-If you can’t change the value, then change the type of the variable to be
+If you can't change the value, then change the type of the variable to be
 compatible with the type of the value being assigned:
 
 {% prettify dart tag=pre+code %}
@@ -10615,7 +10615,7 @@ _Required library '{0}' is missing._
 #### Description
 
 The analyzer produces this diagnostic when either the Dart or Flutter SDK
-isn’t installed correctly, and, as a result, one of the `dart:` libraries
+isn't installed correctly, and, as a result, one of the `dart:` libraries
 can't be found.
 
 #### Common fixes
@@ -11529,7 +11529,7 @@ which can either be explicit or implicit.
 #### Example
 
 The following code produces this diagnostic because the initializer list
-for `B`’s constructor invokes both the constructor `one` and the
+for `B`'s constructor invokes both the constructor `one` and the
 constructor `two` from the superclass `A`:
 
 {% prettify dart tag=pre+code %}
@@ -11850,7 +11850,7 @@ _The class '{0}' doesn't have an unnamed constructor._
 #### Description
 
 The analyzer produces this diagnostic when an unnamed constructor is
-invoked on a class that defines named constructors but the class doesn’t
+invoked on a class that defines named constructors but the class doesn't
 have an unnamed constructor.
 
 #### Example
@@ -13183,7 +13183,7 @@ String f() {
 }
 {% endprettify %}
 
-If `null` isn’t a valid value, and there's a reasonable default value, then
+If `null` isn't a valid value, and there's a reasonable default value, then
 add an initializer:
 
 {% prettify dart tag=pre+code %}
@@ -13357,7 +13357,7 @@ class C {
 
 #### Common fixes
 
-If there's a reasonable default value for the field that’s the same for all
+If there's a reasonable default value for the field that's the same for all
 instances, then add an initializer expression:
 
 {% prettify dart tag=pre+code %}
@@ -14010,7 +14010,7 @@ _The setter doesn't override an inherited setter._
 #### Description
 
 The analyzer produces this diagnostic when a class member is annotated with
-the `@override` annotation, but the member isn’t declared in any of the
+the `@override` annotation, but the member isn't declared in any of the
 supertypes of the class.
 
 #### Example
@@ -15223,7 +15223,7 @@ parameter._
 
 The analyzer produces this diagnostic when a redirecting factory
 constructor redirects to a type alias, and the type alias expands to one of
-the type parameters of the type alias. This isn’t allowed because the value
+the type parameters of the type alias. This isn't allowed because the value
 of the type parameter is a type rather than a class.
 
 #### Example
@@ -15262,7 +15262,7 @@ _Local variable '{0}' can't be referenced before it is declared._
 #### Description
 
 The analyzer produces this diagnostic when a variable is referenced before
-it’s declared. In Dart, variables are visible everywhere in the block in
+it's declared. In Dart, variables are visible everywhere in the block in
 which they are declared, but can only be referenced after they are
 declared.
 
@@ -17555,7 +17555,7 @@ class C<T> {
 }
 {% endprettify %}
 
-Note, however, that there isn’t a relationship between `T` and `S`, so this
+Note, however, that there isn't a relationship between `T` and `S`, so this
 second option changes the semantics from what was likely to be intended.
 
 ### type_parameter_supertype_of_its_bound
@@ -17785,7 +17785,7 @@ void f() {}
 
 #### Common fixes
 
-If the name is correct, but it isn’t declared yet, then declare the name as
+If the name is correct, but it isn't declared yet, then declare the name as
 a constant value:
 
 {% prettify dart tag=pre+code %}
@@ -18808,7 +18808,7 @@ _The setter '{0}' isn't defined in a superclass of '{1}'._
 #### Description
 
 The analyzer produces this diagnostic when an inherited member (method,
-getter, setter, or operator) is referenced using `super`, but there’s no
+getter, setter, or operator) is referenced using `super`, but there's no
 member with that name in the superclass chain.
 
 #### Examples
@@ -18843,7 +18843,7 @@ make the name of the invoked member match the inherited member.
 If the member you intend to invoke is defined in the same class, then
 remove the `super.`.
 
-If the member isn’t defined, then either add the member to one of the
+If the member isn't defined, then either add the member to one of the
 superclasses or remove the invocation.
 
 ### unnecessary_cast
@@ -19661,7 +19661,7 @@ void f(C c) {
 
 ### unused_shown_name
 
-_The name {0} is shown, but isn’t used._
+_The name {0} is shown, but isn't used._
 
 #### Description
 
@@ -19757,7 +19757,7 @@ _URIs can't use string interpolation._
 The analyzer produces this diagnostic when the string literal in an
 `import`, `export`, or `part` directive contains an interpolation. The
 resolution of the URIs in directives must happen before the declarations
-are compiled, so expressions can’t be  evaluated  while determining the
+are compiled, so expressions can't be  evaluated  while determining the
 values of the URIs.
 
 #### Example
@@ -19783,7 +19783,7 @@ var zero = min(0, 0);
 
 ### use_of_native_extension
 
-_Dart native extensions are deprecated and aren’t available in Dart 2.15._
+_Dart native extensions are deprecated and aren't available in Dart 2.15._
 
 #### Description
 
