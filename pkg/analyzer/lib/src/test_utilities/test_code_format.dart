@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart'
-    show Position, Range;
-import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:collection/collection.dart';
@@ -228,18 +225,4 @@ class _StringScanner {
     }
     return false;
   }
-}
-
-extension TestCodePositionExtension on TestCodePosition {
-  /// Return the LSP [Position] of the marker.
-  ///
-  /// Positions are based on [TestCode.code], with all parsed markers removed.
-  Position get position => toPosition(lineInfo.getLocation(offset));
-}
-
-extension TestCodeRangeExtension on TestCodeRange {
-  /// The LSP [Range] indicated by the markers.
-  ///
-  /// Ranges are based on [TestCode.code], with all parsed markers removed.
-  Range get range => toRange(lineInfo, sourceRange.offset, sourceRange.length);
 }

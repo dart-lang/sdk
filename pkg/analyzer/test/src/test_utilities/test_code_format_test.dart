@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import 'utils/test_code_format.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -45,10 +43,6 @@ int b = 2;
     expect(code.positions[0].offset, 4);
     expect(code.positions[1].offset, 10);
     expect(code.positions[2].offset, 16);
-
-    expect(code.positions[0].position, lsp.Position(line: 0, character: 4));
-    expect(code.positions[1].position, lsp.Position(line: 0, character: 10));
-    expect(code.positions[2].position, lsp.Position(line: 1, character: 5));
   }
 
   void test_positions_nonShorthandCaret() {
@@ -65,8 +59,6 @@ String a = '^^^';
     expect(code.positions, hasLength(1));
     expect(code.position.offset, 7);
     expect(code.position.offset, code.positions[0].offset);
-    expect(code.position.position, lsp.Position(line: 0, character: 7));
-    expect(code.position.position, code.positions[0].position);
 
     expect(code.ranges, isEmpty);
   }
@@ -92,8 +84,6 @@ int a = 1
     expect(code.positions, hasLength(1));
     expect(code.position.offset, 4);
     expect(code.position.offset, code.positions[0].offset);
-    expect(code.position.position, lsp.Position(line: 0, character: 4));
-    expect(code.position.position, code.positions[0].position);
 
     expect(code.ranges, isEmpty);
   }
@@ -129,16 +119,6 @@ int b = 2;
     expect(code.ranges, hasLength(2));
     expect(code.ranges[0].sourceRange, SourceRange(4, 6));
     expect(code.ranges[1].sourceRange, SourceRange(11, 10));
-    expect(
-        code.ranges[0].range,
-        lsp.Range(
-            start: lsp.Position(line: 0, character: 4),
-            end: lsp.Position(line: 0, character: 10)));
-    expect(
-        code.ranges[1].range,
-        lsp.Range(
-            start: lsp.Position(line: 1, character: 0),
-            end: lsp.Position(line: 1, character: 10)));
 
     expect(code.ranges[0].text, 'a = 1;');
     expect(code.ranges[1].text, 'int b = 2;');
@@ -187,11 +167,6 @@ int b = 2;
 
     expect(code.ranges, hasLength(1));
     expect(code.ranges[0].sourceRange, SourceRange(4, 6));
-    expect(
-        code.ranges[0].range,
-        lsp.Range(
-            start: lsp.Position(line: 0, character: 4),
-            end: lsp.Position(line: 0, character: 10)));
 
     expect(code.ranges[0].text, 'a = 1;');
   }
