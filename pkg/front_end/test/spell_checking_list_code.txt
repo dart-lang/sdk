@@ -1050,6 +1050,7 @@ product
 profile
 progresses
 promo
+promotability
 proof
 prop
 property's
@@ -1551,6 +1552,7 @@ unpaired
 unparenthesized
 unparsed
 unpleasant
+unpromotable
 unqualified
 unreachable
 unregister

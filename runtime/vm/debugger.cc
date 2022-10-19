@@ -327,11 +327,17 @@ ActivationFrame::ActivationFrame(const Closure& async_activation,
 }
 
 bool Debugger::NeedsIsolateEvents() {
+  ASSERT(isolate_ == Isolate::Current());
   return !Isolate::IsSystemIsolate(isolate_) &&
          Service::isolate_stream.enabled();
 }
 
 bool Debugger::NeedsDebugEvents() {
+  if (Isolate::Current() == nullptr) {
+    // E.g., NoActiveIsolateScope.
+    return false;
+  }
+  ASSERT(isolate_ == Isolate::Current());
   ASSERT(!Isolate::IsSystemIsolate(isolate_));
   return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }

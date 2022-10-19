@@ -2279,32 +2279,32 @@ class Event extends Response {
   // This is provided for the event kinds:
   //   ServiceRegistered
   //   ServiceUnregistered
-  String service [optional];
+  string service [optional];
 
   // The RPC method that should be used to invoke the service.
   //
   // This is provided for the event kinds:
   //   ServiceRegistered
   //   ServiceUnregistered
-  String method [optional];
+  string method [optional];
 
   // The alias of the registered service.
   //
   // This is provided for the event kinds:
   //   ServiceRegistered
-  String alias [optional];
+  string alias [optional];
 
   // The name of the changed flag.
   //
   // This is provided for the event kinds:
   //   VMFlagUpdate
-  String flag [optional];
+  string flag [optional];
 
   // The new value of the changed flag.
   //
   // This is provided for the event kinds:
   //   VMFlagUpdate
-  String newValue [optional];
+  string newValue [optional];
 
   // Specifies whether this event is the last of a group of events.
   //
@@ -3408,7 +3408,7 @@ class LibraryDependency {
   bool isDeferred;
 
   // The prefix of an 'as' import, or null.
-  String prefix;
+  string prefix;
 
   // The library being imported or exported.
   @Library target;

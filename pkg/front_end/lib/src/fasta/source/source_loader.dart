@@ -2272,6 +2272,21 @@ severity: $severity
     ticker.logMs("Added noSuchMethod forwarders");
   }
 
+  /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] based on all the
+  /// classes in [sourceClasses].
+  void computeFieldPromotability(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+      if (!libraryBuilder.isInferenceUpdate2Enabled) continue;
+      Set<String> unpromotablePrivateFieldNames =
+          libraryBuilder.unpromotablePrivateFieldNames ??= {};
+      if (libraryBuilder.loader == this && !builder.isPatch) {
+        builder.addUnpromotablePrivateFieldNames(unpromotablePrivateFieldNames);
+      }
+    }
+    ticker.logMs("Computed unpromotable private field names");
+  }
+
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (!builder.isPatch) {

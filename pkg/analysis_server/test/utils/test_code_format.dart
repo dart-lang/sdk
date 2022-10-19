@@ -8,7 +8,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:collection/collection.dart';
-import 'package:string_scanner/string_scanner.dart';
 
 /// A class for parsing and representing test code that contains special markup
 /// to simplify marking up positions and ranges in test code.
@@ -50,7 +49,7 @@ class TestCode {
   TestCodeRange get range => ranges.single;
 
   static TestCode parse(String rawCode, {bool treatCaretAsPosition = true}) {
-    final scanner = StringScanner(rawCode);
+    final scanner = _StringScanner(rawCode);
     final codeBuffer = StringBuffer();
     final positionOffsets = <int, int>{};
     final rangeStartOffsets = <int, int>{};
@@ -172,6 +171,52 @@ class TestCodeRange {
   final SourceRange sourceRange;
 
   TestCodeRange(this.lineInfo, this.text, this.sourceRange);
+}
+
+/// A simple scanner to read characters and [Pattern]s from a source string.
+class _StringScanner {
+  final String _source;
+  int _position = 0;
+  int? _lastMatchPosition;
+  Match? _lastMatch;
+
+  _StringScanner(this._source);
+
+  /// Returns whether the end of the string has been reached.
+  bool get isDone => _position == _source.length;
+
+  /// Returns the last match from scalling [scan] if the position has not
+  /// advanced since.
+  Match? get lastMatch {
+    return _position == _lastMatchPosition ? _lastMatch : null;
+  }
+
+  /// Scans forwards a single character, returning its character code.
+  int readChar() {
+    if (isDone) {
+      throw StateError('Unable to scan past the end of string');
+    }
+    return _source.codeUnitAt(_position++);
+  }
+
+  /// Scans forwards to the end of the match if the string from the current
+  /// position starts with [pattern].
+  ///
+  /// Returns whether any match occurred.
+  bool scan(Pattern pattern) {
+    if (isDone) {
+      throw StateError('Unable to scan past the end of string');
+    }
+
+    final match = pattern.matchAsPrefix(_source, _position);
+    if (match != null) {
+      _position = match.end;
+      _lastMatch = match;
+      _lastMatchPosition = _position;
+      return true;
+    }
+    return false;
+  }
 }
 
 extension TestCodePositionExtension on TestCodePosition {

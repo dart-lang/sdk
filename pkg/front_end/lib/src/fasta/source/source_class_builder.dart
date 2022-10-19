@@ -1659,6 +1659,34 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.stubTarget = null;
   }
 
+  /// If any private field names in this library are unpromotable due to fields
+  /// in this class, adds them to [unpromotablePrivateFieldNames].
+  void addUnpromotablePrivateFieldNames(
+      Set<String> unpromotablePrivateFieldNames) {
+    for (Field field in cls.fields) {
+      // An instance field is unpromotable (and makes other fields with the same
+      // name unpromotable) if it's not final.
+      if (field.isInstanceMember &&
+          !field.isFinal &&
+          _isPrivateNameInThisLibrary(field.name)) {
+        unpromotablePrivateFieldNames.add(field.name.text);
+      }
+    }
+    for (Procedure procedure in cls.procedures) {
+      // An instance getter makes fields with the same name unpromotable if it's
+      // concrete.
+      if (procedure.isGetter &&
+          procedure.isInstanceMember &&
+          !procedure.isAbstract &&
+          _isPrivateNameInThisLibrary(procedure.name)) {
+        unpromotablePrivateFieldNames.add(procedure.name.text);
+      }
+    }
+  }
+
+  bool _isPrivateNameInThisLibrary(Name name) =>
+      name.isPrivate && name.library == libraryBuilder.library;
+
   void _addRedirectingConstructor(
       SourceFactoryBuilder constructorBuilder,
       SourceLibraryBuilder library,

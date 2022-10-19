@@ -542,6 +542,10 @@ class KernelTarget extends TargetImplementation {
           ?.enterPhase(BenchmarkPhases.outline_addNoSuchMethodForwarders);
       loader.addNoSuchMethodForwarders(sortedSourceClassBuilders);
 
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
+      loader.computeFieldPromotability(sortedSourceClassBuilders);
+
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sortedSourceClassBuilders);
 

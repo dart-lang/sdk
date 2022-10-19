@@ -3048,8 +3048,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         kind, originalReceiver, originalName,
         resultType: calleeType, interfaceTarget: originalTarget)
       ..fileOffset = fileOffset;
-    flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
-        originalName.text, originalTarget, calleeType);
+    calleeType = flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
+            originalName.text, originalTarget, calleeType) ??
+        calleeType;
+    originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
@@ -3133,8 +3135,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullAwareAction.receiver == originalPropertyGet) {
         invocationResult = new ExpressionInferenceResult(
             invocationResult.inferredType,
-            new InstanceGetterInvocation(originalPropertyGet.kind,
-                originalReceiver, originalName, nullAwareAction.arguments,
+            new InstanceGetterInvocation(originalPropertyGet.kind, receiver,
+                originalName, nullAwareAction.arguments,
                 interfaceTarget: originalTarget,
                 functionType: nullAwareAction.functionType)
               ..fileOffset = nullAwareAction.fileOffset);
@@ -3142,16 +3144,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullAwareAction.receiver == originalPropertyGet) {
         invocationResult = new ExpressionInferenceResult(
             invocationResult.inferredType,
-            new InstanceGetterInvocation(originalPropertyGet.kind,
-                originalReceiver, originalName, nullAwareAction.arguments,
+            new InstanceGetterInvocation(originalPropertyGet.kind, receiver,
+                originalName, nullAwareAction.arguments,
                 interfaceTarget: originalTarget, functionType: null)
               ..fileOffset = nullAwareAction.fileOffset);
       } else if (nullAwareAction is FunctionInvocation &&
           nullAwareAction.receiver == originalPropertyGet) {
         invocationResult = new ExpressionInferenceResult(
             invocationResult.inferredType,
-            new InstanceGetterInvocation(originalPropertyGet.kind,
-                originalReceiver, originalName, nullAwareAction.arguments,
+            new InstanceGetterInvocation(originalPropertyGet.kind, receiver,
+                originalName, nullAwareAction.arguments,
                 interfaceTarget: originalTarget,
                 functionType: nullAwareAction.functionType)
               ..fileOffset = nullAwareAction.fileOffset);
