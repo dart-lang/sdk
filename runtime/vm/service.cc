@@ -4904,7 +4904,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       JSONArray persistent_handles(&obj, "persistentHandles");
       api_state->RunWithLockedPersistentHandles(
           [&](PersistentHandles& handles) {
-            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+            PersistentHandleVisitor<PersistentHandle> visitor(
                 thread, &persistent_handles);
             handles.Visit(&visitor);
           });
