@@ -552,7 +552,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
 
   @override
   void visitTypeLiteral(ir.TypeLiteral node) {
-    if (node.type is! ir.TypeParameterType) add(node);
+    if (node.type is! ir.TypeParameterType) add(node, requireConstant: false);
   }
 
   @override
