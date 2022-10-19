@@ -145,7 +145,7 @@ void f(A a, B b) {
 
   Future<void> test_checkInitialConditions_outsideOfProject() async {
     // File outside of project.
-    var externalPath = '$workspaceRootPath/aaa/lib/a.dart';
+    var externalPath = convertPath('$workspaceRootPath/aaa/lib/a.dart');
     newFile(externalPath, r'''
 String get foo => '';
 ''');
