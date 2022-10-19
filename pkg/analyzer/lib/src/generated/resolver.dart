@@ -423,7 +423,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType get boolType => throw UnimplementedError('TODO(paulberry)');
+  DartType get boolType => typeProvider.boolType;
 
   @override
   DartType get doubleType => throw UnimplementedError('TODO(paulberry)');
@@ -786,6 +786,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return SwitchStatementMemberInfo(
         [CaseHeadOrDefaultInfo(pattern: pattern)], member.statements,
         labels: member.labels);
+  }
+
+  @override
+  void handle_ifStatement_conditionEnd(Statement node) {
+    // Stack: (Expression condition)
+    var condition = popRewrite()!;
+
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition,
+        whyNotPromoted: whyNotPromoted);
+  }
+
+  @override
+  void handle_ifStatement_elseEnd(Statement node, Statement ifFalse) {
+    nullSafetyDeadCodeVerifier.flowEnd(ifFalse);
+  }
+
+  @override
+  void handle_ifStatement_thenEnd(Statement node, Statement ifTrue) {
+    nullSafetyDeadCodeVerifier.flowEnd(ifTrue);
   }
 
   @override
@@ -2138,29 +2158,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       popRewrite(); // guard
       popRewrite()!; // expression
     } else {
-      flowAnalysis.flow?.ifStatement_conditionBegin();
-
-      Expression condition = node.condition;
-
-      analyzeExpression(condition, typeProvider.boolType);
-      condition = popRewrite()!;
-      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
-
-      boolExpressionVerifier.checkForNonBoolCondition(condition,
-          whyNotPromoted: whyNotPromoted);
-
-      flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-      node.thenStatement.accept(this);
-      nullSafetyDeadCodeVerifier.flowEnd(node.thenStatement);
-
-      var elseStatement = node.elseStatement;
-      if (elseStatement != null) {
-        flowAnalysis.flow?.ifStatement_elseBegin();
-        elseStatement.accept(this);
-        nullSafetyDeadCodeVerifier.flowEnd(elseStatement);
-      }
-
-      flowAnalysis.flow?.ifStatement_end(elseStatement != null);
+      analyzeIfStatement(
+        node,
+        node.expression,
+        node.thenStatement,
+        node.elseStatement,
+      );
     }
   }
 

@@ -667,6 +667,36 @@ main() {
 ''', expectedErrors);
   }
 
+  test_ifStatement_noCase_conditionFalse() async {
+    await assertErrorsInCode(r'''
+void f() {
+  if (false) {
+    1;
+  } else {
+    2;
+  }
+  3;
+}
+''', [
+      error(HintCode.DEAD_CODE, 24, 12),
+    ]);
+  }
+
+  test_ifStatement_noCase_conditionTrue() async {
+    await assertErrorsInCode(r'''
+void f() {
+  if (true) {
+    1;
+  } else {
+    2;
+  }
+  3;
+}
+''', [
+      error(HintCode.DEAD_CODE, 41, 12),
+    ]);
+  }
+
   test_statementAfterAlwaysThrowsFunction() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

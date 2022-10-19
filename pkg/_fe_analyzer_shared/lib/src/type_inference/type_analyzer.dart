@@ -303,6 +303,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     // Stack: ()
     flow?.ifStatement_conditionBegin();
     analyzeExpression(condition, boolType);
+    handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
     flow?.ifStatement_thenBegin(condition, node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
@@ -843,6 +844,15 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   SwitchStatementMemberInfo<Node, Statement, Expression>
       getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
+  /// Called after visiting the expression of an `if` statement.
+  void handle_ifStatement_conditionEnd(Statement node) {}
+
+  /// Called after visiting the `else` statement of an `if` statement.
+  void handle_ifStatement_elseEnd(Statement node, Statement ifFalse) {}
+
+  /// Called after visiting the `then` statement of an `if` statement.
+  void handle_ifStatement_thenEnd(Statement node, Statement ifTrue) {}
+
   /// Called after visiting a merged set of `case` / `default` clauses.
   ///
   /// [node] is the enclosing switch statement, [caseIndex] is the index of the
@@ -941,6 +951,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   void _analyzeIfCommon(Statement node, Statement ifTrue, Statement? ifFalse) {
     // Stack: ()
     dispatchStatement(ifTrue);
+    handle_ifStatement_thenEnd(node, ifTrue);
     // Stack: (Statement ifTrue)
     if (ifFalse == null) {
       handleNoStatement(node);
@@ -949,6 +960,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       flow?.ifStatement_elseBegin();
       dispatchStatement(ifFalse);
       flow?.ifStatement_end(true);
+      handle_ifStatement_elseEnd(node, ifFalse);
     }
     // Stack: (Statement ifTrue, Statement ifFalse)
   }
