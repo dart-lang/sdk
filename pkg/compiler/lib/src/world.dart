@@ -100,13 +100,13 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   /// directly instantiated or a superclass of all directly instantiated
   /// subclasses. If [cls] is not instantiated, `null` is returned.
   @override
-  ClassEntity getLubOfInstantiatedSubclasses(ClassEntity cls);
+  ClassEntity? getLubOfInstantiatedSubclasses(ClassEntity cls);
 
   /// Returns the most specific subtype of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
   @override
-  ClassEntity getLubOfInstantiatedSubtypes(ClassEntity cls);
+  ClassEntity? getLubOfInstantiatedSubtypes(ClassEntity cls);
 
   /// Returns an iterable over the common supertypes of the [classes].
   @override
@@ -241,11 +241,11 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
 
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
   /// [receiver]. If multiple targets exist, `null` is returned.
-  MemberEntity locateSingleMember(Selector selector, AbstractValue receiver);
+  MemberEntity? locateSingleMember(Selector selector, AbstractValue receiver);
 
   /// Returns the set of read, write, and invocation accesses found on [member]
   /// during the closed world computation.
-  MemberAccess getMemberAccess(MemberEntity member);
+  MemberAccess? getMemberAccess(MemberEntity member);
 
   /// Registers [interface] as a type argument to `extractTypeArguments`.
   void registerExtractTypeArguments(ClassEntity interface);
