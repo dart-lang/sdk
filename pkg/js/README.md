@@ -14,7 +14,6 @@ Instead, import `package:js/js.dart`.
 A second library in this package, `js_util`, provides low-level utilities
 that you can use when it isn't possible to wrap JavaScript with a static, annotated API.
 
-
 ## Example
 
 See the [Chart.js Dart API](https://github.com/google/chartjs.dart/) for an
