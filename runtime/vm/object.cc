@@ -27787,10 +27787,8 @@ intptr_t Record::GetFieldIndexByName(const String& field_name) const {
   ASSERT(field_name.IsSymbol());
   const intptr_t field_index =
       Record::GetPositionalFieldIndexFromFieldName(field_name);
-  if (field_index >= 0) {
-    if (field_index < NumPositionalFields()) {
-      return field_index;
-    }
+  if ((field_index >= 0) && (field_index < NumPositionalFields())) {
+    return field_index;
   } else {
     const Array& field_names = Array::Handle(this->field_names());
     for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {

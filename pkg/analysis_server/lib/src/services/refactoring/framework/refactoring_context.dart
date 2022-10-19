@@ -7,7 +7,9 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// The context in which a refactoring was requested.
@@ -26,6 +28,10 @@ class RefactoringContext {
 
   /// Utilities available to be used in the process of computing the edits.
   late final CorrectionUtils utils = CorrectionUtils(resolvedResult);
+
+  /// The node that was selected, or `null` if the selection is not valid.
+  late final AstNode? selectedNode = resolvedResult.unit
+      .nodeCovering(offset: selectionOffset, length: selectionLength);
 
   /// The helper used to efficiently access resolved units.
   late final AnalysisSessionHelper sessionHelper =

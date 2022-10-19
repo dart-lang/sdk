@@ -1922,6 +1922,22 @@ void f() {
     );
   }
 
+  void test_whenClause() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  if (x case 0 when 1) {}
+  if (x case 0 when 2) {}
+}
+''');
+    _assertReplacementForChildren<WhenClause>(
+      destination: findNode.whenClause('when 1'),
+      source: findNode.whenClause('when 2'),
+      childAccessors: [
+        (node) => node.expression,
+      ],
+    );
+  }
+
   void test_whileStatement() {
     var findNode = _parseStringToFindNode(r'''
 void f() {

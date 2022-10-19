@@ -12,18 +12,19 @@ import 'package:test/test.dart';
 
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
 File file(String path) => File.fromUri(tmp.uri.resolve(path));
+String _resolvePath(String executableRelativePath) {
+  return Uri.file(Platform.resolvedExecutable)
+      .resolve(executableRelativePath)
+      .toFilePath();
+}
 
 void main() {
   var baseArgs = <String>[];
   final executableArgs = <String>[
-    Platform.script
-        .resolve('../../bin/dartdevc.dart')
-        .toFilePath(windows: Platform.isWindows),
+    _resolvePath('gen/dartdevc.dart.snapshot'),
     '--sound-null-safety',
     '--dart-sdk-summary',
-    Uri.file(Platform.resolvedExecutable, windows: Platform.isWindows)
-        .resolve('ddc_outline_sound.dill')
-        .path
+    _resolvePath('ddc_outline_sound.dill'),
   ];
   group('DDC: Hello World', () {
     final argsFile = file('hello_world.args');

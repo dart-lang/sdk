@@ -917,9 +917,6 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("_intrinsic", false);
     jsobj.AddProperty("_native", false);
   }
-  if (ref) {
-    return;
-  }
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
   } else {
@@ -930,6 +927,9 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     ASSERT(strcmp(qualified_name, vm_name) == 0);
     func.AddProperty("name", vm_name);
     AddNameProperties(&func, vm_name, vm_name);
+  }
+  if (ref) {
+    return;
   }
   jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
   jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
