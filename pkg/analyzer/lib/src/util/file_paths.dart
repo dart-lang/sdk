@@ -20,6 +20,9 @@ const String blazeBuild = 'BUILD';
 /// to the workspace root.
 const String blazeWorkspaceMarker = 'dart/config/ide/flutter.json';
 
+/// File name of GN `BUILD.gn` files.
+const String buildGn = 'BUILD.gn';
+
 /// The name of the `.dart_tool` directory.
 const String dotDartTool = '.dart_tool';
 

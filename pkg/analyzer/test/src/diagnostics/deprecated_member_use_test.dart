@@ -370,9 +370,15 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
+  String get genPath => '$outPath/dartlang/gen';
+
   String get myPackageLibPath => '$myPackageRootPath/lib';
 
   String get myPackageRootPath => '$workspaceRootPath/my';
+
+  Folder get outFolder => getFolder(outPath);
+
+  String get outPath => '$workspaceRootPath/out/default';
 
   @override
   File get testFile => getFile('$myPackageLibPath/my.dart');
@@ -383,16 +389,19 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
   void setUp() {
     super.setUp();
     newFolder('$workspaceRootPath/.jiri_root');
+
+    newFile('$workspaceRootPath/.fx-build-dir', '''
+${outFolder.path}
+''');
+
+    newBuildGnFile(myPackageRootPath, '');
   }
 
   test_differentPackage() async {
-    newPubspecYamlFile('$workspaceRootPath/my', '');
-    newFile('$workspaceRootPath/my/BUILD.gn', '');
+    newBuildGnFile('$workspaceRootPath/aaa', '');
 
-    newPubspecYamlFile('$workspaceRootPath/aaa', '');
-    newFile('$workspaceRootPath/aaa/BUILD.gn', '');
-
-    _writeWorkspacePackagesFile({
+    var myPackageConfig = getFile('$genPath/my/my_package_config.json');
+    _writeWorkspacePackagesFile(myPackageConfig, {
       'aaa': '$workspaceRootPath/aaa/lib',
       'my': myPackageLibPath,
     });
@@ -412,10 +421,8 @@ void f(A a) {}
   }
 
   test_samePackage() async {
-    newPubspecYamlFile('$workspaceRootPath/my', '');
-    newFile('$workspaceRootPath/my/BUILD.gn', '');
-
-    _writeWorkspacePackagesFile({
+    var myPackageConfig = getFile('$genPath/my/my_package_config.json');
+    _writeWorkspacePackagesFile(myPackageConfig, {
       'my': myPackageLibPath,
     });
 
@@ -439,7 +446,8 @@ void f(A a) {}
     assertGnWorkspaceFor(testFile);
   }
 
-  void _writeWorkspacePackagesFile(Map<String, String> nameToLibPath) {
+  void _writeWorkspacePackagesFile(
+      File file, Map<String, String> nameToLibPath) {
     var packages = nameToLibPath.entries.map((entry) => '''{
     "languageVersion": "2.2",
     "name": "${entry.key}",
@@ -447,9 +455,7 @@ void f(A a) {}
     "rootUri": "${toUriStr(entry.value)}"
   }''');
 
-    var buildDir = 'out/debug-x87_128';
-    var genPath = '$workspaceRootPath/$buildDir/dartlang/gen';
-    newFile('$genPath/foo_package_config.json', '''{
+    newFile(file.path, '''{
   "configVersion": 2,
   "packages": [ ${packages.join(', ')} ]
 }''');

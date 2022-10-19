@@ -15,7 +15,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
-import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show KytheEntry, KytheVName;
 import 'package:path/path.dart' show relative;
@@ -88,10 +87,6 @@ String _getPath(ResourceProvider provider, Element? e,
   var blazeWorkspace = BlazeWorkspace.find(provider, path);
   if (blazeWorkspace != null) {
     return provider.pathContext.relative(path, from: blazeWorkspace.root);
-  }
-  var gnWorkspace = GnWorkspace.find(provider, path);
-  if (gnWorkspace != null) {
-    return provider.pathContext.relative(path, from: gnWorkspace.root);
   }
   if (path.lastIndexOf('CORPUS_NAME') != -1) {
     return path.substring(path.lastIndexOf('CORPUS_NAME') + 12);

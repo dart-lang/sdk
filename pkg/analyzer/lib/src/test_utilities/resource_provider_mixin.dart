@@ -79,6 +79,11 @@ mixin ResourceProviderMixin {
     return newFile(path, content);
   }
 
+  File newBuildGnFile(String directoryPath, String content) {
+    String path = join(directoryPath, file_paths.buildGn);
+    return newFile(path, content);
+  }
+
   File newFile(String path, String content) {
     String convertedPath = convertPath(path);
     return resourceProvider.newFile(convertedPath, content);
