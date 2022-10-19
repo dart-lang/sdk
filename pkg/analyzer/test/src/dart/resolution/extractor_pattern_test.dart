@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ExtractorPatternResolutionTest extends PatternsResolutionTest {
-  test_generic_noTypeArguments_infer_interfaceType() async {
+  test_class_generic_noTypeArguments_infer_interfaceType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
 class B<T> extends A<T> {}
@@ -40,7 +40,7 @@ ExtractorPattern
 ''');
   }
 
-  test_generic_noTypeArguments_infer_interfaceType_viaTypeAlias() async {
+  test_class_generic_noTypeArguments_infer_interfaceType_viaTypeAlias() async {
     await assertNoErrorsInCode(r'''
 class A<T, U> {}
 class B<T, U> extends A<T, U> {}
@@ -69,7 +69,7 @@ ExtractorPattern
 ''');
   }
 
-  test_generic_withTypeArguments_hasName_variable_untyped() async {
+  test_class_generic_withTypeArguments_hasName_variable_untyped() async {
     await assertNoErrorsInCode(r'''
 abstract class A<T> {
   T get foo;
@@ -119,7 +119,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_hasName_constant() async {
+  test_class_notGeneric_hasName_constant() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -156,7 +156,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_hasName_extensionGetter() async {
+  test_class_notGeneric_hasName_extensionGetter() async {
     await assertNoErrorsInCode(r'''
 abstract class A {}
 
@@ -195,48 +195,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_hasName_extensionGetter_functionType() async {
-    await assertNoErrorsInCode(r'''
-typedef A = void Function();
-
-extension E on A {
-  int get foo => 0;
-}
-
-void f(x) {
-  switch (x) {
-    case A(foo: var y):
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertResolvedNodeText(node, r'''
-ExtractorPattern
-  type: NamedType
-    name: SimpleIdentifier
-      token: A
-      staticElement: self::@typeAlias::A
-      staticType: null
-    type: void Function()
-      alias: self::@typeAlias::A
-  leftParenthesis: (
-  fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
-        name: foo
-        colon: :
-      pattern: VariablePattern
-        keyword: var
-        name: y
-        declaredElement: hasImplicitType y@119
-          type: int
-      fieldElement: self::@extension::E::@getter::foo
-  rightParenthesis: )
-''');
-  }
-
-  test_notGeneric_hasName_method() async {
+  test_class_notGeneric_hasName_method() async {
     await assertErrorsInCode(r'''
 abstract class A {
   void foo();
@@ -276,81 +235,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_hasName_recordField_named() async {
-    await assertNoErrorsInCode(r'''
-typedef A = ({int foo});
-
-void f(x) {
-  switch (x) {
-    case A(foo: var y):
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertResolvedNodeText(node, r'''
-ExtractorPattern
-  type: NamedType
-    name: SimpleIdentifier
-      token: A
-      staticElement: self::@typeAlias::A
-      staticType: null
-    type: ({int foo})
-      alias: self::@typeAlias::A
-  leftParenthesis: (
-  fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
-        name: foo
-        colon: :
-      pattern: VariablePattern
-        keyword: var
-        name: y
-        declaredElement: hasImplicitType y@73
-          type: int
-      fieldElement: <null>
-  rightParenthesis: )
-''');
-  }
-
-  test_notGeneric_hasName_recordField_positional() async {
-    await assertNoErrorsInCode(r'''
-typedef A = (int foo,);
-
-void f(x) {
-  switch (x) {
-    case A($0: var y):
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertResolvedNodeText(node, r'''
-ExtractorPattern
-  type: NamedType
-    name: SimpleIdentifier
-      token: A
-      staticElement: self::@typeAlias::A
-      staticType: null
-    type: (int)
-      alias: self::@typeAlias::A
-  leftParenthesis: (
-  fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
-        name: $0
-        colon: :
-      pattern: VariablePattern
-        keyword: var
-        name: y
-        declaredElement: hasImplicitType y@71
-          type: int
-      fieldElement: <null>
-  rightParenthesis: )
-''');
-  }
-
-  test_notGeneric_hasName_variable_untyped() async {
+  test_class_notGeneric_hasName_variable_untyped() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -388,7 +273,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noName_constant() async {
+  test_class_notGeneric_noName_constant() async {
     await assertErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -426,7 +311,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noName_variable() async {
+  test_class_notGeneric_noName_variable() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -463,7 +348,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noName_variable_nullCheck() async {
+  test_class_notGeneric_noName_variable_nullCheck() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int? get foo;
@@ -502,7 +387,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_noName_variable_parenthesis() async {
+  test_class_notGeneric_noName_variable_parenthesis() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
   int get foo;
@@ -542,7 +427,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_unresolved_hasName() async {
+  test_class_notGeneric_unresolved_hasName() async {
     await assertErrorsInCode(r'''
 abstract class A {}
 
@@ -579,7 +464,7 @@ ExtractorPattern
 ''');
   }
 
-  test_notGeneric_unresolved_noName() async {
+  test_class_notGeneric_unresolved_noName() async {
     await assertErrorsInCode(r'''
 abstract class A {}
 
@@ -611,6 +496,286 @@ ExtractorPattern
         name: foo
         declaredElement: hasImplicitType foo@65
           type: dynamic
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_typedef_dynamic_hasName_unresolved() async {
+    await assertNoErrorsInCode(r'''
+typedef A = dynamic;
+
+void f(Object? x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: dynamic
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@77
+          type: dynamic
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_typedef_functionType_generic_withTypeArguments_hasName_extensionGetter() async {
+    await assertNoErrorsInCode(r'''
+typedef A<T> = T Function();
+
+extension E on int Function() {
+  int get foo => 0;
+}
+
+void f(Object? x) {
+  switch (x) {
+    case A<int>(foo: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: int Function()
+      alias: self::@typeAlias::A
+        typeArguments
+          int
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@145
+          type: int
+      fieldElement: self::@extension::E::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_typedef_functionType_notGeneric_hasName_extensionGetter() async {
+    await assertNoErrorsInCode(r'''
+typedef A = void Function();
+
+extension E on void Function() {
+  int get foo => 0;
+}
+
+void f(Object? x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: void Function()
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@141
+          type: int
+      fieldElement: self::@extension::E::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_typedef_functionType_notGeneric_hasName_hashCode() async {
+    await assertNoErrorsInCode(r'''
+typedef A = void Function();
+
+void f(Object? x) {
+  switch (x) {
+    case A(hashCode: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: void Function()
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: hashCode
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@90
+          type: int
+      fieldElement: dart:core::@class::Object::@getter::hashCode
+  rightParenthesis: )
+''');
+  }
+
+  test_typedef_functionType_notGeneric_hasName_unresolved() async {
+    await assertErrorsInCode(r'''
+typedef A = void Function();
+
+void f(Object? x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 76, 3),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: void Function()
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@85
+          type: dynamic
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_typedef_recordType_notGeneric_hasName_named() async {
+    await assertNoErrorsInCode(r'''
+typedef A = ({int foo});
+
+void f(x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: ({int foo})
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@73
+          type: int
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_typedef_recordType_notGeneric_hasName_positional() async {
+    await assertNoErrorsInCode(r'''
+typedef A = (int foo,);
+
+void f(x) {
+  switch (x) {
+    case A($0: var y):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ExtractorPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: (int)
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: $0
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@71
+          type: int
       fieldElement: <null>
   rightParenthesis: )
 ''');
