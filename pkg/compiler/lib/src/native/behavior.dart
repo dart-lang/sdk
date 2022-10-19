@@ -669,7 +669,7 @@ class NativeBehavior {
       // TODO(johnniwinther): Avoid free variables in types. If the type
       // pulled from a generic function type it might contain a function
       // type variable that should probably have been replaced by its bound.
-      return map.toBackendType(type, allowFreeVariables: true);
+      return map.toBackendType(type, allowFreeVariables: true)!;
     }
     assert(type is SpecialType);
     return type;
