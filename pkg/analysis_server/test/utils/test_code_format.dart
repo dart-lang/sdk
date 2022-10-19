@@ -26,6 +26,9 @@ import 'package:collection/collection.dart';
 /// For convenience, a single position can also be marked with a `^` (which
 /// behaves the same as `/*0*/).
 class TestCode {
+  static final _positionShorthand = '^';
+  static final _rangeStartShorthand = '[!';
+  static final _rangeEndShorthand = '!]';
   static final _positionPattern = RegExp(r'\/\*(\d+)\*\/');
   static final _rangeStartPattern = RegExp(r'\/\*\[(\d+)\*\/');
   static final _rangeEndPattern = RegExp(r'\/\*(\d+)\]\*\/');
@@ -48,7 +51,11 @@ class TestCode {
   TestCodePosition get position => positions.single;
   TestCodeRange get range => ranges.single;
 
-  static TestCode parse(String rawCode, {bool treatCaretAsPosition = true}) {
+  static TestCode parse(
+    String rawCode, {
+    bool positionShorthand = true,
+    bool rangeShorthand = true,
+  }) {
     final scanner = _StringScanner(rawCode);
     final codeBuffer = StringBuffer();
     final positionOffsets = <int, int>{};
@@ -94,10 +101,14 @@ class TestCode {
 
     while (!scanner.isDone) {
       start = codeBuffer.length;
-      if (treatCaretAsPosition && scanner.scan('^')) {
+      if (positionShorthand && scanner.scan(_positionShorthand)) {
         recordPosition(0);
       } else if (scanner.scan(_positionPattern)) {
         recordPosition(scannedNumber());
+      } else if (rangeShorthand && scanner.scan(_rangeStartShorthand)) {
+        recordRangeStart(0);
+      } else if (rangeShorthand && scanner.scan(_rangeEndShorthand)) {
+        recordRangeEnd(0);
       } else if (scanner.scan(_rangeStartPattern)) {
         recordRangeStart(scannedNumber());
       } else if (scanner.scan(_rangeEndPattern)) {
