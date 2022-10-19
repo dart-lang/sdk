@@ -31,8 +31,8 @@ int a = 1
     expect(code.positions, hasLength(1));
     expect(code.position.offset, 4);
     expect(code.position.offset, code.positions[0].offset);
-    expect(code.position.lsp, lsp.Position(line: 0, character: 4));
-    expect(code.position.lsp, code.positions[0].lsp);
+    expect(code.position.position, lsp.Position(line: 0, character: 4));
+    expect(code.position.position, code.positions[0].position);
 
     expect(code.ranges, isEmpty);
   }
@@ -62,8 +62,8 @@ String a = '^^^';
     expect(code.positions, hasLength(1));
     expect(code.position.offset, 7);
     expect(code.position.offset, code.positions[0].offset);
-    expect(code.position.lsp, lsp.Position(line: 0, character: 7));
-    expect(code.position.lsp, code.positions[0].lsp);
+    expect(code.position.position, lsp.Position(line: 0, character: 7));
+    expect(code.position.position, code.positions[0].position);
 
     expect(code.ranges, isEmpty);
   }
@@ -86,9 +86,9 @@ int b = 2;
     expect(code.positions[1].offset, 10);
     expect(code.positions[2].offset, 16);
 
-    expect(code.positions[0].lsp, lsp.Position(line: 0, character: 4));
-    expect(code.positions[1].lsp, lsp.Position(line: 0, character: 10));
-    expect(code.positions[2].lsp, lsp.Position(line: 1, character: 5));
+    expect(code.positions[0].position, lsp.Position(line: 0, character: 4));
+    expect(code.positions[1].position, lsp.Position(line: 0, character: 10));
+    expect(code.positions[2].position, lsp.Position(line: 1, character: 5));
   }
 
   void test_positions_reused() {
@@ -130,12 +130,12 @@ int b = 2;
     expect(code.ranges[0].sourceRange, SourceRange(4, 6));
     expect(code.ranges[1].sourceRange, SourceRange(11, 10));
     expect(
-        code.ranges[0].lsp,
+        code.ranges[0].range,
         lsp.Range(
             start: lsp.Position(line: 0, character: 4),
             end: lsp.Position(line: 0, character: 10)));
     expect(
-        code.ranges[1].lsp,
+        code.ranges[1].range,
         lsp.Range(
             start: lsp.Position(line: 1, character: 0),
             end: lsp.Position(line: 1, character: 10)));

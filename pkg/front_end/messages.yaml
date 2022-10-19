@@ -5242,6 +5242,10 @@ JsInteropOperatorsNotSupported:
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
+JsInteropStaticInteropGenerativeConstructor:
+  problemMessage: "`@staticInterop` classes should not contain any generative constructors."
+  correctionMessage: "Use factory constructors instead."
+
 JsInteropStaticInteropMockExternalExtensionMemberConflict:
   problemMessage: "External extension member with name '#name' is defined in the following extensions and none are more specific: #string."
   correctionMessage: "Try using the `@JS` annotation to rename conflicting members."
@@ -5261,6 +5265,10 @@ JsInteropStaticInteropMockNotDartInterfaceType:
 JsInteropStaticInteropMockNotStaticInteropType:
   problemMessage: "First type argument '#type' is not a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
+
+JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
+  problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
+  correctionMessage: "Try using a Dart extension member if you need type parameters instead."
 
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."

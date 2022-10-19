@@ -18,6 +18,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// [ConvertMethodToGetterRefactoring] implementation.
 class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     implements ConvertMethodToGetterRefactoring {
+  final RefactoringWorkspace workspace;
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
   final ExecutableElement element;
@@ -25,8 +26,9 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   late SourceChange change;
 
   ConvertMethodToGetterRefactoringImpl(
-      this.searchEngine, AnalysisSession session, this.element)
-      : sessionHelper = AnalysisSessionHelper(session);
+      this.workspace, AnalysisSession session, this.element)
+      : sessionHelper = AnalysisSessionHelper(session),
+        searchEngine = workspace.searchEngine;
 
   @override
   String get refactoringName => 'Convert Method To Getter';
@@ -70,6 +72,11 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
   /// Checks if [element] is valid to perform this refactor.
   RefactoringStatus _checkElement() {
+    if (!workspace.containsElement(element)) {
+      return RefactoringStatus.fatal(
+          'Only methods in your workspace can be converted.');
+    }
+
     // check Element type
     if (element is FunctionElement) {
       if (element.enclosingElement is! CompilationUnitElement) {

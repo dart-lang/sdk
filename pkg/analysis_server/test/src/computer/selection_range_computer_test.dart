@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -242,8 +241,7 @@ void f() {
   Future<List<SelectionRange>?> _computeSelectionRanges(
       String sourceContent, int offset) async {
     newFile(sourcePath, sourceContent);
-    var result =
-        await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
+    var result = await getResolvedUnit(sourcePath);
     var computer = DartSelectionRangeComputer(result.unit, offset);
     return computer.compute();
   }

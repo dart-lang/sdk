@@ -29,20 +29,20 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     method instanceMethod() → dart._interceptors::JavaScriptObject
       return sta::StaticJSClass::factory|staticInteropFactoryStub();
     get instanceGetter() → dart._interceptors::JavaScriptObject
-      return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
+      return sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
     set instanceSetter((dart._interceptors::JavaScriptObject) → void f) → void {}
     static method staticMethod() → dart._interceptors::JavaScriptObject
       return sta::StaticJSClass::factory|staticInteropFactoryStub();
     static get staticGetter() → dart._interceptors::JavaScriptObject
-      return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
+      return sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
     static set staticSetter((dart._interceptors::JavaScriptObject) → void f) → void {}
     static method _#new#tearOff() → lib1::Class
       return new lib1::Class::•();
   }
   static method topLevelMethod() → dart._interceptors::JavaScriptObject
-    return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
+    return sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
   static get topLevelGetter() → dart._interceptors::JavaScriptObject
-    return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
+    return sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
   static set topLevelSetter((dart._interceptors::JavaScriptObject) → void f) → void {}
 }
 @#C3
@@ -53,17 +53,16 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
   @#C5
   @#C2
   class StaticJSClass extends dart.core::Object {
-    external constructor •() → sta::StaticJSClass
-      ;
+    external static factory •() → sta::StaticJSClass;
     static method _#new#tearOff() → dart._interceptors::JavaScriptObject
-      return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
+      return sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
     static factory factory() → sta::StaticJSClass {
-      return new sta::StaticJSClass::•();
+      return sta::StaticJSClass::•();
     }
     static method _#factory#tearOff() → dart._interceptors::JavaScriptObject
       return sta::StaticJSClass::factory|staticInteropFactoryStub();
     static method /*isLegacy*/ factory|staticInteropFactoryStub() → dart._interceptors::JavaScriptObject {
-      return (new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject) as dart._interceptors::JavaScriptObject;
+      return (sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject) as dart._interceptors::JavaScriptObject;
     }
   }
   @#C3

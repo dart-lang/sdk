@@ -368,6 +368,7 @@ class Types {
     w.Instructions b = codeGen.b;
     b.i32_const(encodedNullability(type));
     makeType(codeGen, type.typeArgument);
+    codeGen.call(translator.createNormalizedFutureOrType.reference);
   }
 
   void _makeFunctionType(
@@ -441,14 +442,18 @@ class Types {
       }
       return nonNullableTypeType;
     }
+
     ClassInfo info = translator.classInfo[classForType(type)]!;
+    if (type is FutureOrType) {
+      _makeFutureOrType(codeGen, type);
+      return info.nonNullableType;
+    }
+
     translator.functions.allocateClass(info.classId);
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     if (type is InterfaceType) {
       _makeInterfaceType(codeGen, info, type);
-    } else if (type is FutureOrType) {
-      _makeFutureOrType(codeGen, type);
     } else if (type is FunctionType) {
       if (isGenericFunction(type)) {
         // TODO(joshualitt): Implement generic function types and share most of

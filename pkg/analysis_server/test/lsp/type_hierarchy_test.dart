@@ -91,7 +91,7 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
     await initialize();
     final result = await prepareTypeHierarchy(
       mainFileUri,
-      code.position.lsp,
+      code.position.position,
     );
     prepareResult = result?.singleOrNull;
   }
@@ -109,8 +109,8 @@ class PrepareTypeHierarchyTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyClass1',
         mainFileUri,
-        range: code.ranges[0].lsp,
-        selectionRange: code.ranges[1].lsp,
+        range: code.ranges[0].range,
+        selectionRange: code.ranges[1].range,
       ),
     );
   }
@@ -155,8 +155,8 @@ import 'main.dart';
             'MyClass2',
             otherFileUri,
             detail: 'extends',
-            range: otherCode.ranges[0].lsp,
-            selectionRange: otherCode.ranges[1].lsp,
+            range: otherCode.ranges[0].range,
+            selectionRange: otherCode.ranges[1].range,
           ),
         ]));
   }
@@ -174,8 +174,8 @@ class MyCla^ss1 {}
             'MyClass2',
             mainFileUri,
             detail: 'extends',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }
@@ -193,8 +193,8 @@ class MyCla^ss1 {}
             'MyClass2',
             mainFileUri,
             detail: 'implements',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }
@@ -212,8 +212,8 @@ class MyCla^ss1 {}
             'MyMixin1',
             mainFileUri,
             detail: 'constrained to',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }
@@ -231,8 +231,8 @@ mixin MyMi^xin1 {}
             'MyClass1',
             mainFileUri,
             detail: 'mixes in',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }
@@ -266,8 +266,8 @@ class MyCla^ss2 extends MyClass1 {}
             'MyClass1',
             otherFileUri,
             detail: 'extends',
-            range: otherCode.ranges[0].lsp,
-            selectionRange: otherCode.ranges[1].lsp,
+            range: otherCode.ranges[0].range,
+            selectionRange: otherCode.ranges[1].range,
           ),
         ]));
   }
@@ -285,8 +285,8 @@ class MyCla^ss2 extends MyClass1 {}
             'MyClass1',
             mainFileUri,
             detail: 'extends',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }
@@ -305,8 +305,8 @@ class MyCla^ss2 implements MyClass1 {}
             'MyClass1',
             mainFileUri,
             detail: 'implements',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }
@@ -324,8 +324,8 @@ mixin MyMix^in1 on MyClass1 {}
             'MyClass1',
             mainFileUri,
             detail: 'constrained to',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }
@@ -344,8 +344,8 @@ class MyCla^ss1 with MyMixin1 {}
             'MyMixin1',
             mainFileUri,
             detail: 'mixes in',
-            range: code.ranges[0].lsp,
-            selectionRange: code.ranges[1].lsp,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }

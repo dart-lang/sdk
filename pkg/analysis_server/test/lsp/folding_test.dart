@@ -50,7 +50,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   void expectRanges(Map<int, FoldingRangeKind?> expected,
       {bool requireAll = true}) {
     final expectedRanges = expected.entries.map((entry) {
-      final range = code.ranges[entry.key].lsp;
+      final range = code.ranges[entry.key].range;
       return FoldingRange(
         startLine: range.start.line,
         startCharacter: lineFoldingOnly ? null : range.start.character,

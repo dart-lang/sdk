@@ -8,14 +8,42 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IfStatementCaseResolutionTest);
-    defineReflectiveTests(IfStatementResolutionTest);
+    defineReflectiveTests(IfStatementTest);
   });
 }
 
 @reflectiveTest
-class IfStatementCaseResolutionTest extends PatternsResolutionTest {
-  test_caseClause_rewrite() async {
+class IfStatementTest extends PatternsResolutionTest {
+  test_caseClause() async {
+    await assertNoErrorsInCode(r'''
+void f(x) {
+  if (x case 0) {}
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_rewrite_caseClause_pattern() async {
     await assertNoErrorsInCode(r'''
 void f(x, int Function() a) {
   if (x case const a()) {}
@@ -53,7 +81,37 @@ IfStatement
 ''');
   }
 
-  test_expression_rewrite() async {
+  test_rewrite_expression() async {
+    await assertNoErrorsInCode(r'''
+void f(bool Function() a) {
+  if (a()) {}
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: bool Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: bool Function()
+    staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_rewrite_expression_caseClause() async {
     await assertNoErrorsInCode(r'''
 void f(int Function() a) {
   if (a() case 42) {}
@@ -82,39 +140,6 @@ IfStatement
       expression: IntegerLiteral
         literal: 42
         staticType: int
-  rightParenthesis: )
-  thenStatement: Block
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-}
-
-@reflectiveTest
-class IfStatementResolutionTest extends PubPackageResolutionTest {
-  test_expression_rewrite() async {
-    await assertNoErrorsInCode(r'''
-void f(bool Function() a) {
-  if (a()) {}
-}
-''');
-
-    final node = findNode.ifStatement('if');
-    assertResolvedNodeText(node, r'''
-IfStatement
-  ifKeyword: if
-  leftParenthesis: (
-  condition: FunctionExpressionInvocation
-    function: SimpleIdentifier
-      token: a
-      staticElement: self::@function::f::@parameter::a
-      staticType: bool Function()
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticElement: <null>
-    staticInvokeType: bool Function()
-    staticType: bool
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {
