@@ -107,12 +107,24 @@ cc/IsolateReload_KernelIncrementalCompileExpression: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
+dart/appjit*: SkipByDesign # Test needs to run from source
 dart/b162922506_test: SkipByDesign # Only run in JIT
 dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
+dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
+dart/minimal_kernel_test: SkipByDesign # Test needs to run from source
+dart/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
+dart/regress_44026_test: SkipByDesign # Test needs to run from source
+dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 dart/spawn_uri_from_kernel_blob_test: SkipByDesign # Only run in JIT.
+dart/type_casts_with_null_safety_autodetection_test: SkipByDesign # Test needs to run from source
+dart_2/appjit*: SkipByDesign # Test needs to run from source
 dart_2/b162922506_test: SkipByDesign # Only run in JIT
 dart_2/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 dart_2/isolates/reload_*: SkipByDesign # These tests only run on normal JIT.
+dart_2/kernel_determinism_test: SkipByDesign # Test needs to run from source
+dart_2/minimal_kernel_test: SkipByDesign # Test needs to run from source
+dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
+dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp ]
 dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
@@ -292,20 +304,6 @@ dart_2/data_uri_spawn_test: Skip # Timeout
 dart_2/heap_snapshot_referrers_test: SkipSlow
 dart_2/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart_2/kernel_determinism_test: SkipSlow
-
-[ $compiler != dartk && $compiler != none ]
-dart/appjit*: SkipByDesign # Test needs to run from source
-dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
-dart/minimal_kernel_test: SkipByDesign # Test needs to run from source
-dart/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
-dart/regress_44026_test: SkipByDesign # Test needs to run from source
-dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
-dart/type_casts_with_null_safety_autodetection_test: SkipByDesign # Test needs to run from source
-dart_2/appjit*: SkipByDesign # Test needs to run from source
-dart_2/kernel_determinism_test: SkipByDesign # Test needs to run from source
-dart_2/minimal_kernel_test: SkipByDesign # Test needs to run from source
-dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
-dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && $system == windows ]
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.

@@ -1027,7 +1027,6 @@ class StandardTestSuite extends TestSuite {
 
   List<List<String>> getVmOptions(TestFile testFile) {
     const compilers = [
-      Compiler.none,
       Compiler.dartk,
       Compiler.dartkp,
       Compiler.appJitk,

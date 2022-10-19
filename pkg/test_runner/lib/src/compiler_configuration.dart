@@ -114,9 +114,6 @@ abstract class CompilerConfiguration {
 
       case Compiler.fasta:
         return FastaCompilerConfiguration(configuration);
-
-      case Compiler.none:
-        return NoneCompilerConfiguration(configuration);
     }
 
     throw "unreachable";

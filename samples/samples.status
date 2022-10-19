@@ -14,10 +14,7 @@ sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This te
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
-sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
-
-[ $compiler == none && $runtime == vm && $system == fuchsia ]
+[ $compiler == dartk && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
