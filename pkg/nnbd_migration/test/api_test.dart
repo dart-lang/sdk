@@ -8154,6 +8154,55 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_nullTestOnGenericType_implicitBound() async {
+    var content = '''
+void f<T>(T x, T y) {
+  if (x == null) return;
+  if (y == null) return;
+}
+g() => f(1, null);
+''';
+    var expected = '''
+void f<T>(T x, T y) {
+  if (x == null) return;
+  if (y == null) return;
+}
+g() => f(1, null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_nullTestOnGenericType_nonNullableBound() async {
+    var content = '''
+void f<T extends Object/*!*/>(T x, T y) {
+  if (x == null) return;
+  if (y == null) return;
+}
+''';
+    var expected = '''
+void f<T extends Object>(T x, T y) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_nullTestOnGenericType_nullableBound() async {
+    var content = '''
+void f<T extends Object>(T x, T y) {
+  if (x == null) return;
+  if (y == null) return;
+}
+g() => f(1, null);
+''';
+    var expected = '''
+void f<T extends Object?>(T x, T y) {
+  if (x == null) return;
+  if (y == null) return;
+}
+g() => f(1, null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_operator_eq_with_inferred_parameter_type() async {
     var content = '''
 class C {
