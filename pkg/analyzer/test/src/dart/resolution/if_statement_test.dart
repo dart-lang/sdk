@@ -146,4 +146,80 @@ IfStatement
     rightBracket: }
 ''');
   }
+
+  test_rewrite_whenClause() async {
+    await assertNoErrorsInCode(r'''
+void f(x, bool Function() a) {
+  if (x case 0 when a()) {}
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: a
+          staticElement: self::@function::f::@parameter::a
+          staticType: bool Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: bool Function()
+        staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_whenClause() async {
+    await assertNoErrorsInCode(r'''
+void f(x) {
+  if (x case 0 when true) {}
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: BooleanLiteral
+        literal: true
+        staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
 }
