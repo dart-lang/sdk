@@ -306,7 +306,15 @@ class OperationsCfe
 
   final bool isNonNullableByDefault;
 
-  OperationsCfe(this.typeEnvironment, {required this.isNonNullableByDefault});
+  /// If `null`, field promotion is disabled for this library.  If not `null`,
+  /// field promotion is enabled for this library and this is the set of private
+  /// field names for which promotion is blocked due to the presence of a
+  /// non-final field or a concrete getter.
+  final Set<String>? unpromotablePrivateFieldNames;
+
+  OperationsCfe(this.typeEnvironment,
+      {required this.isNonNullableByDefault,
+      this.unpromotablePrivateFieldNames});
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -334,7 +342,15 @@ class OperationsCfe
   }
 
   @override
-  bool isPropertyPromotable(Object property) => false;
+  bool isPropertyPromotable(covariant Member property) {
+    Set<String>? unpromotablePrivateFieldNames =
+        this.unpromotablePrivateFieldNames;
+    if (unpromotablePrivateFieldNames == null) return false;
+    if (property is! Field) return false;
+    String name = property.name.text;
+    if (!name.startsWith('_')) return false;
+    return !unpromotablePrivateFieldNames.contains(name);
+  }
 
   // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
   @override

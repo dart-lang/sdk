@@ -144,7 +144,9 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
+            unpromotablePrivateFieldNames:
+                libraryBuilder.unpromotablePrivateFieldNames);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper? helper) {
     // For full (non-top level) inference, we need access to the

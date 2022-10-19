@@ -5011,15 +5011,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Name propertyName,
       DartType typeContext,
       {required bool isThisReceiver,
-      ObjectAccessTarget? readTarget}) {
+      ObjectAccessTarget? readTarget,
+      Expression? propertyGetNode}) {
     // ignore: unnecessary_null_comparison
     assert(isThisReceiver != null);
+    Map<DartType, NonPromotionReason> Function() whyNotPromoted =
+        flowAnalysis.whyNotPromoted(receiver);
 
     readTarget ??= findInterfaceMember(receiverType, propertyName, fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
     DartType readType = readTarget.getGetterType(this);
+    readType = flowAnalysis.propertyGet(propertyGetNode, receiver,
+            propertyName.text, readTarget.member, readType) ??
+        readType;
 
     Expression read;
     ExpressionInferenceResult? readResult;
@@ -5160,9 +5166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           read.fileOffset,
           propertyName.text.length,
           context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(receiver)(),
-              read,
-              (type) => !type.isPotentiallyNullable));
+              whyNotPromoted(), read, (type) => !type.isPotentiallyNullable));
     }
     return new PropertyGetInferenceResult(readResult, readTarget.member);
   }
@@ -6175,11 +6179,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,
-        isThisReceiver: node.receiver is ThisExpression);
+        isThisReceiver: node.receiver is ThisExpression, propertyGetNode: node);
     ExpressionInferenceResult readResult =
         propertyGetInferenceResult.expressionInferenceResult;
-    flowAnalysis.propertyGet(node, node.receiver, node.name.text,
-        propertyGetInferenceResult.member, readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
@@ -6282,7 +6284,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       PropertyGetInferenceResult propertyGetInferenceResult =
           _computePropertyGet(
               node.fileOffset, receiver, receiverType, member.name, typeContext,
-              isThisReceiver: true, readTarget: target);
+              isThisReceiver: true, readTarget: target, propertyGetNode: node);
       ExpressionInferenceResult readResult =
           propertyGetInferenceResult.expressionInferenceResult;
       return new ExpressionInferenceResult(

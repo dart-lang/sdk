@@ -266,6 +266,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   MergedLibraryScope? _mergedScope;
 
+  /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
+  /// yet, or field promotion is disabled for this library.  If not `null`,
+  /// field promotion is enabled for this library and this is the set of private
+  /// field names for which promotion is blocked due to the presence of a
+  /// non-final field or a concrete getter.
+  Set<String>? unpromotablePrivateFieldNames;
+
   SourceLibraryBuilder.internal(
       SourceLoader loader,
       Uri importUri,
@@ -515,6 +522,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       libraryFeatures.inferenceUpdate1.isSupported &&
       languageVersion.version >=
           libraryFeatures.inferenceUpdate1.enabledVersion;
+
+  bool get isInferenceUpdate2Enabled =>
+      libraryFeatures.inferenceUpdate2.isEnabled;
 
   bool? _isNonNullableByDefault;
 

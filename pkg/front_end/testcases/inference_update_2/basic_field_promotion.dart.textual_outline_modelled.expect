@@ -1,0 +1,24 @@
+abstract class C {
+  C(int? i)
+      : _privateFinalField = i,
+        publicFinalField = i;
+  final int? _privateFinalField;
+  final int? publicFinalField;
+  int? _privateField;
+  int? get _privateAbstractGetter;
+  int? get _privateConcreteGetter => 0;
+  int? get publicAbstractGetter;
+  int? get publicConcreteGetter => 0;
+  int? publicField;
+}
+
+main() {}
+void acceptsInt(int x) {}
+void testPrivateAbstractGetter(C c) {}
+void testPrivateConcreteGetter(C c) {}
+void testPrivateField(C c) {}
+void testPrivateFinalField(C c) {}
+void testPublicAbstractGetter(C c) {}
+void testPublicConcreteGetter(C c) {}
+void testPublicField(C c) {}
+void testPublicFinalField(C c) {}
