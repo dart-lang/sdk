@@ -453,13 +453,9 @@ class VmTarget extends Target {
   }
 
   @override
-  Class concreteRecordLiteralClass(CoreTypes coreTypes) {
+  Class concreteRecordClass(CoreTypes coreTypes) {
     return _record ??= coreTypes.index.getClass('dart:core', '_Record');
   }
-
-  @override
-  Class concreteConstRecordLiteralClass(CoreTypes coreTypes) =>
-      concreteRecordLiteralClass(coreTypes);
 
   @override
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) {
