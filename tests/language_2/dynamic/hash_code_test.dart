@@ -8,5 +8,5 @@ import "package:expect/expect.dart";
 
 void main() {
   dynamic x = 3;
-  Expect.equals(3, x.hashCode);
+  Expect.equals(3.0.hashCode, x.hashCode);
 }

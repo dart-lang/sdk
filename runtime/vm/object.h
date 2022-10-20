@@ -9222,7 +9222,7 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uint32_t CanonicalizeHash() const { return AsTruncatedUint32Value(); }
+  virtual uint32_t CanonicalizeHash() const;
   virtual bool Equals(const Instance& other) const;
 
   virtual ObjectPtr HashCode() const { return ptr(); }

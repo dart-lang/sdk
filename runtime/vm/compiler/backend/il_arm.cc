@@ -5877,6 +5877,50 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::WritableRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  Register temp = locs()->temp(0).reg();
+
+  if (smi_) {
+    __ SmiUntag(value);
+    __ SignFill(temp, value);
+  } else {
+    __ LoadFieldFromOffset(temp, value,
+                           Mint::value_offset() + compiler::target::kWordSize);
+    __ LoadFieldFromOffset(value, value, Mint::value_offset());
+  }
+
+  Register value_lo = value;
+  Register value_hi = temp;
+  __ LoadImmediate(TMP, compiler::Immediate(0x2d51));
+  __ umull(result, value_lo, value_lo, TMP);  // (lo:result) = lo32 * 0x2d51
+  __ umull(TMP, value_hi, value_hi, TMP);     // (hi:TMP) = hi32 * 0x2d51
+  __ add(TMP, TMP, compiler::Operand(value_lo));
+  //  (0:hi:TMP:result) is 128-bit product
+  __ eor(result, value_hi, compiler::Operand(result));
+  __ eor(result, TMP, compiler::Operand(result));
+
+  __ AndImmediate(result, result, 0x3fffffff);
+  __ SmiTag(result);
+}
+
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   // Branches don't produce a result.

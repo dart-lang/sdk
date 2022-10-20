@@ -1021,6 +1021,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kSmi_hashCode:
+    case MethodRecognizer::kMint_hashCode:
 #define CASE(method, slot) case MethodRecognizer::k##method:
       LOAD_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD(CASE)
@@ -1488,6 +1490,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += IntToBool();
 #endif  // PRODUCT
     } break;
+    case MethodRecognizer::kSmi_hashCode: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += BuildHashCode(/*smi=*/true);
+    } break;
+    case MethodRecognizer::kMint_hashCode: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += BuildHashCode(/*smi=*/false);
+    } break;
+    // case MethodRecognizer::kDouble_hashCode:
     case MethodRecognizer::kFfiAsExternalTypedDataInt8:
     case MethodRecognizer::kFfiAsExternalTypedDataInt16:
     case MethodRecognizer::kFfiAsExternalTypedDataInt32:
@@ -5083,6 +5096,16 @@ const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {
     ASSERT(!prepend_type_arguments_.IsNull());
   }
   return prepend_type_arguments_;
+}
+
+Fragment FlowGraphBuilder::BuildHashCode(bool smi) {
+  Fragment body;
+  Value* unboxed_value = Pop();
+  HashIntegerOpInstr* hash =
+      new HashIntegerOpInstr(unboxed_value, smi, DeoptId::kNone);
+  Push(hash);
+  body <<= hash;
+  return body;
 }
 
 int64_t SwitchHelper::ExpressionRange() const {

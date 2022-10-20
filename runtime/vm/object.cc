@@ -8,6 +8,7 @@
 
 #include "compiler/method_recognizer.h"
 #include "include/dart_api.h"
+#include "lib/integers.h"
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
@@ -22753,6 +22754,10 @@ int Integer::CompareWith(const Integer& other) const {
   // Integer is an abstract class.
   UNREACHABLE();
   return 0;
+}
+
+uint32_t Integer::CanonicalizeHash() const {
+  return Multiply64Hash(AsInt64Value());
 }
 
 IntegerPtr Integer::AsValidInteger() const {

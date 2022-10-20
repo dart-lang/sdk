@@ -972,6 +972,24 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
+// Input: tagged integer in RAX
+// Output: tagged hash code value in RAX
+// Should be kept in sync with
+//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
+//  - asm_intrinsifier(...).cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+static void Multiply64Hash(Assembler* assembler) {
+  __ SmiUntagAndSignExtend(RAX);
+  __ movq(RDX, Immediate(0x2d51));
+  __ mulq(RDX);
+  __ xorq(RAX, RDX);
+  __ movq(RDX, RAX);
+  __ shrq(RDX, Immediate(32));
+  __ xorq(RAX, RDX);
+  __ andq(RAX, Immediate(0x3fffffff));
+  __ SmiTag(RAX);
+}
+
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
@@ -995,6 +1013,8 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   Label double_hash;
   __ comisd(XMM0, XMM1);
   __ j(NOT_EQUAL, &double_hash, Assembler::kNearJump);
+
+  Multiply64Hash(assembler);
   __ ret();
 
   // Convert the double bits to a hash code that fits in a Smi.

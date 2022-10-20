@@ -575,6 +575,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
     return instructions;
   }
 
+  Fragment BuildHashCode(bool smi);
+
   TranslationHelper translation_helper_;
   Thread* thread_;
   Zone* zone_;

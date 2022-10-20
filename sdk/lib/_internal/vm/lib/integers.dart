@@ -563,8 +563,11 @@ class _Smi extends _IntegerImplementation {
     throw "Unreachable";
   }
 
-  int get hashCode => this;
-  int get _identityHashCode => this;
+  @pragma("vm:recognized", "other")
+  external int get hashCode;
+
+  int get _identityHashCode => hashCode;
+
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:disable-unboxed-parameters")
@@ -774,8 +777,10 @@ class _Mint extends _IntegerImplementation {
     throw "Unreachable";
   }
 
-  int get hashCode => this;
-  int get _identityHashCode => this;
+  @pragma("vm:recognized", "other")
+  external int get hashCode;
+
+  int get _identityHashCode => hashCode;
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:external-name", "Mint_bitNegate")
   external int operator ~();

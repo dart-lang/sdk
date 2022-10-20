@@ -5145,6 +5145,78 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+#if XLEN == 32
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_temp(0, Location::RequiresRegister());
+#else
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+#endif
+  summary->set_in(0, Location::WritableRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out(0).reg();
+  Register value = locs()->in(0).reg();
+
+#if XLEN == 32
+  Register value_hi = locs()->temp(0).reg();
+
+  if (smi_) {
+    __ SmiUntag(value);
+    __ srai(value_hi, value, XLEN - 1);  // SignFill
+  } else {
+    __ LoadFieldFromOffset(value_hi, value,
+                           Mint::value_offset() + compiler::target::kWordSize);
+    __ LoadFieldFromOffset(value, value, Mint::value_offset());
+  }
+  Register value_lo = value;
+
+  __ LoadImmediate(TMP, 0x2d51);
+  // (value_hi:value_lo) * (0:TMP) =
+  //   value_lo * TMP + (value_hi * TMP) * 2^32 =
+  //   lo32(value_lo * TMP) +
+  //     (hi32(value_lo * TMP) + lo32(value_hi * TMP) * 2^32 +
+  //     hi32(value_hi * TMP) * 2^64
+  __ mulhu(TMP2, value_lo, TMP);
+  __ mul(result, value_lo, TMP);  // (TMP2:result) = lo32 * 0x2d51
+  __ mulhu(value_lo, value_hi, TMP);
+  __ mul(TMP, value_hi, TMP);  // (value_lo:TMP) = hi32 * 0x2d51
+  __ add(TMP, TMP, TMP2);
+  //  (0:value_lo:TMP:result) is 128-bit product
+  __ xor_(result, value_lo, result);
+  __ xor_(result, TMP, result);
+#else
+  if (smi_) {
+    __ SmiUntag(value);
+  } else {
+    __ LoadFieldFromOffset(value, value, Mint::value_offset());
+  }
+
+  __ LoadImmediate(TMP, 0x2d51);
+  __ mul(result, TMP, value);
+  __ mulhu(TMP, TMP, value);
+  __ xor_(result, result, TMP);
+  __ srai(TMP, result, 32);
+  __ xor_(result, result, TMP);
+#endif
+
+  __ AndImmediate(result, result, 0x3fffffff);
+  __ SmiTag(result);
+}
+
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   // Branches don't produce a result.
