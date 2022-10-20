@@ -74,6 +74,9 @@ class RemoveDeadCode extends CorrectionProducer {
         });
       }
     } else if (coveredNode is Statement) {
+      if (coveredNode is EmptyStatement) {
+        return;
+      }
       if (coveredNode is DoStatement &&
           await _computeDoStatement(builder, coveredNode)) {
         return;
