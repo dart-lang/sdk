@@ -13,8 +13,6 @@ class DynamicLibrary {
   ///
   /// Any symbol in a library currently loaded with global visibility
   /// (including the executable itself) may be resolved through this library.
-  ///
-  /// This feature is not available on Windows.
   external factory DynamicLibrary.process();
 
   /// Creates a [DynamicLibrary] containing all the symbols of the running
