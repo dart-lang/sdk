@@ -3,7 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 function_callbacks_structs_by_value_test: Pass, Slow # https://dartbug.com/47304 https://dartbug.com/45007
-function_structs_by_value_generated_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_args_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_args_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_arg_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_arg_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
 
 [ $compiler == app_jitk ]
 vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to generate.
