@@ -6,6 +6,7 @@
   HiddenExtension2,
   ShownExtension2,
   async.dart.FutureExtensions,
+  core.dart.DateTimeCopyWith,
   core.dart.EnumByName,
   core.dart.EnumName]*/
 
