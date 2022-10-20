@@ -2,75 +2,122 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/sort_members.dart';
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
+import 'dart:async';
+import 'dart:io';
+
+import 'package:analysis_server_client/handler/connection_handler.dart';
+import 'package:analysis_server_client/handler/notification_handler.dart';
+import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 
-void main() {
+void main() async {
   var provider = PhysicalResourceProvider.INSTANCE;
   var normalizedRoot = provider.pathContext.normalize(packageRoot);
   var packagePath =
       provider.pathContext.join(normalizedRoot, 'analysis_server_client');
-  // TODO(brianwilkerson) Fix the generator to sort the generated files and
-  //  remove these exclusions.
-  var generatedFilePaths = [
-    provider.pathContext
-        .join(packagePath, 'lib', 'src', 'protocol', 'protocol_common.dart'),
-    provider.pathContext
-        .join(packagePath, 'lib', 'src', 'protocol', 'protocol_constants.dart'),
-    provider.pathContext
-        .join(packagePath, 'lib', 'src', 'protocol', 'protocol_generated.dart'),
-  ];
 
-  var collection = AnalysisContextCollection(
-      includedPaths: <String>[packagePath],
-      excludedPaths: generatedFilePaths,
-      resourceProvider: provider);
-  var contexts = collection.contexts;
-  if (contexts.length != 1) {
-    fail('The directory $packagePath contains multiple analysis contexts.');
-  }
+  group('validate member sort order', () {
+    late Server server;
 
-  buildTestsIn(contexts[0].currentSession, packagePath, generatedFilePaths,
-      provider.getFolder(packagePath));
+    setUpAll(() async {
+      server = await connectToServer(packagePath);
+    });
+
+    tearDownAll(() async {
+      await server.stop();
+    });
+
+    // define tests
+    for (var file in listPackageDartFiles(provider.getFolder(packagePath))) {
+      var relativePath =
+          provider.pathContext.relative(file.path, from: packagePath);
+
+      test(relativePath, () async {
+        var response = await server.send(EDIT_REQUEST_SORT_MEMBERS,
+            EditSortMembersParams(file.path).toJson());
+        var result = EditSortMembersResult.fromJson(
+            ResponseDecoder(null), 'result', response);
+
+        expect(result.edit.edits, isEmpty);
+      });
+    }
+  });
 }
 
-void buildTestsIn(AnalysisSession session, String testDirPath,
-    List<String> generatedFilePaths, Folder directory) {
-  var pathContext = session.resourceProvider.pathContext;
-  var children = directory.getChildren();
-  children.sort((first, second) => first.shortName.compareTo(second.shortName));
+/// Returns a path to the pkg directory.
+String get packageRoot {
+  var scriptPath = pathos.fromUri(Platform.script);
+  var parts = pathos.split(scriptPath);
+  var pkgIndex = parts.indexOf('pkg');
+  return pathos.joinAll(parts.sublist(0, pkgIndex + 1)) + pathos.separator;
+}
+
+Future<Server> connectToServer(String packagePath) async {
+  // start the server
+  var server = Server();
+  await server.start();
+
+  // connect to the server
+  var handler = StatusHandler(server);
+  server.listenToOutput(notificationProcessor: handler.handleEvent);
+  if (!await handler.serverConnected(timeLimit: const Duration(seconds: 15))) {
+    stderr.writeln('server failed to start');
+    exit(1);
+  }
+
+  // start analysis
+  await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
+      ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
+  await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+      AnalysisSetAnalysisRootsParams([packagePath], const []).toJson());
+
+  // wait for analysis to complete
+  await handler.analysisFinshed.future;
+
+  return server;
+}
+
+Iterable<File> listPackageDartFiles(Folder folder) sync* {
+  // TODO(brianwilkerson) Fix the generator to sort the generated files and
+  // remove these exclusions.
+  const exclusions = <String>{
+    'protocol_common.dart',
+    'protocol_constants.dart',
+    'protocol_generated.dart',
+  };
+
+  var children = folder.getChildren()
+    ..sort((a, b) => a.shortName.compareTo(b.shortName));
+
   for (var child in children) {
-    if (child is Folder) {
-      buildTestsIn(session, testDirPath, generatedFilePaths, child);
-    } else if (child is File && child.shortName.endsWith('.dart')) {
-      var path = child.path;
-      if (generatedFilePaths.contains(path)) {
-        continue;
+    if (child is File && child.shortName.endsWith('.dart')) {
+      if (!exclusions.contains(child.shortName)) {
+        yield child;
       }
-      var relativePath = pathContext.relative(path, from: testDirPath);
-      test(relativePath, () async {
-        var result = session.getParsedUnit(path);
-        if (result is! ParsedUnitResult) {
-          fail('Could not parse $path');
-        }
-        var code = result.content;
-        var unit = result.unit;
-        var errors = result.errors;
-        if (errors.isNotEmpty) {
-          fail('Errors found when parsing $path');
-        }
-        var sorter = MemberSorter(code, unit, result.lineInfo);
-        var edits = sorter.sort();
-        if (edits.isNotEmpty) {
-          fail('Unsorted file $path');
-        }
-      });
+    } else if (child is Folder) {
+      yield* listPackageDartFiles(child);
+    }
+  }
+}
+
+class StatusHandler with NotificationHandler, ConnectionHandler {
+  @override
+  final Server server;
+
+  final Completer<bool> analysisFinshed = Completer();
+
+  StatusHandler(this.server);
+
+  @override
+  void onServerStatus(ServerStatusParams params) {
+    if (params.analysis != null) {
+      if (!params.analysis!.isAnalyzing) {
+        analysisFinshed.complete(true);
+      }
     }
   }
 }
