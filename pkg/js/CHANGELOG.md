@@ -1,3 +1,9 @@
+## 0.6.5
+
+* Populate the pubspec repository field.
+* Add a dependency on `package:meta`.
+* Add an experimental `@trustTypes` annotation.
+
 ## 0.6.4
 
 * Includes `@staticInterop` to allow interop with native types from `dart:html`.

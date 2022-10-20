@@ -728,7 +728,7 @@ abstract class RuntimeTypesNeed {
   /// arguments.
   // TODO(johnniwinther): Use [functionType].
   bool instantiationNeedsTypeArguments(
-      FunctionType functionType, int typeArgumentCount);
+      FunctionType? functionType, int typeArgumentCount);
 }
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
@@ -762,7 +762,7 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-      FunctionType functionType, int typeArgumentCount) {
+      FunctionType? functionType, int typeArgumentCount) {
     return true;
   }
 }
@@ -861,7 +861,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-      FunctionType functionType, int typeArgumentCount) {
+      FunctionType? functionType, int typeArgumentCount) {
     return instantiationsNeedingTypeArguments.contains(typeArgumentCount);
   }
 }

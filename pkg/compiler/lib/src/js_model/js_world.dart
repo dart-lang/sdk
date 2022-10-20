@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
@@ -15,6 +13,7 @@ import '../deferred_load/output_unit.dart'
     show LateOutputUnitDataBuilder, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/indexed.dart' show IndexedClass;
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
@@ -52,10 +51,35 @@ class JsClosedWorld implements JClosedWorld {
   @override
   final NoSuchMethodData noSuchMethodData;
 
-  FunctionSet _allFunctions;
+  // [_allFunctions] is created lazily because it is not used when we switch
+  // from a frontend to a backend model before inference.
+  late final FunctionSet _allFunctions = FunctionSet(liveInstanceMembers);
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
-  Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
+
+  late final Map<ClassEntity, List<ClassEntity>> _liveMixinUses = () {
+    final result = Map<ClassEntity, List<ClassEntity>>();
+    for (ClassEntity mixin in mixinUses.keys) {
+      List<ClassEntity> uses = <ClassEntity>[];
+
+      void addLiveUse(ClassEntity mixinApplication) {
+        if (classHierarchy.isInstantiated(mixinApplication)) {
+          uses.add(mixinApplication);
+        } else if (_isNamedMixinApplication(mixinApplication)) {
+          Set<ClassEntity>? next = mixinUses[mixinApplication];
+          if (next != null) {
+            next.forEach(addLiveUse);
+          }
+        }
+      }
+
+      mixinUses[mixin]!.forEach(addLiveUse);
+      if (uses.isNotEmpty) {
+        result[mixin] = uses;
+      }
+    }
+    return result;
+  }();
 
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
@@ -86,7 +110,7 @@ class JsClosedWorld implements JClosedWorld {
   final JsKernelToElementMap elementMap;
   @override
   final RuntimeTypesNeed rtiNeed;
-  AbstractValueDomain /*!*/ _abstractValueDomain;
+  late AbstractValueDomain _abstractValueDomain;
   @override
   final JFieldAnalysis fieldAnalysis;
   @override
@@ -95,7 +119,7 @@ class JsClosedWorld implements JClosedWorld {
   final ClosureData closureDataLookup;
   @override
   final OutputUnitData outputUnitData;
-  Sorter _sorter;
+  Sorter? _sorter;
 
   final Map<MemberEntity, MemberAccess> memberAccess;
 
@@ -248,23 +272,23 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
-  ClassEntity getLubOfInstantiatedSubclasses(ClassEntity cls) {
+  ClassEntity? getLubOfInstantiatedSubclasses(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubclasses(
           commonElements.jsLegacyJavaScriptObjectClass);
     }
     ClassHierarchyNode hierarchy = classHierarchy.getClassHierarchyNode(cls);
-    return hierarchy?.getLubOfInstantiatedSubclasses();
+    return hierarchy.getLubOfInstantiatedSubclasses();
   }
 
   @override
-  ClassEntity getLubOfInstantiatedSubtypes(ClassEntity cls) {
+  ClassEntity? getLubOfInstantiatedSubtypes(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubtypes(
           commonElements.jsLegacyJavaScriptObjectClass);
     }
     ClassSet classSet = classHierarchy.getClassSet(cls);
-    return classSet?.getLubOfInstantiatedSubtypes();
+    return classSet.getLubOfInstantiatedSubtypes();
   }
 
   @override
@@ -290,7 +314,7 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
-    Set<ClassEntity> subclasses = typesImplementedBySubclasses[superclass];
+    Set<ClassEntity>? subclasses = typesImplementedBySubclasses[superclass];
     if (subclasses == null) return false;
     return subclasses.contains(type);
   }
@@ -330,7 +354,6 @@ class JsClosedWorld implements JClosedWorld {
     }
 
     ClassSet classSet = classHierarchy.getClassSet(base);
-    assert(classSet != null, failedAt(base, "No class set for $base."));
     ClassHierarchyNode node = classSet.node;
     if (query == ClassQuery.EXACT) {
       return node.isExplicitlyInstantiated &&
@@ -352,14 +375,15 @@ class JsClosedWorld implements JClosedWorld {
     if (!iterator.moveNext()) return const <ClassEntity>[];
 
     ClassEntity cls = iterator.current;
-    OrderedTypeSet typeSet = elementMap.getOrderedTypeSet(cls);
+    OrderedTypeSet typeSet = elementMap.getOrderedTypeSet(cls as IndexedClass);
     if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
 
     int depth = typeSet.maxDepth;
     Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
     do {
       ClassEntity otherClass = iterator.current;
-      OrderedTypeSet otherTypeSet = elementMap.getOrderedTypeSet(otherClass);
+      OrderedTypeSet otherTypeSet =
+          elementMap.getOrderedTypeSet(otherClass as IndexedClass);
       otherTypeSets = otherTypeSets.prepend(otherTypeSet);
       if (otherTypeSet.maxDepth < depth) {
         depth = otherTypeSet.maxDepth;
@@ -370,12 +394,13 @@ class JsClosedWorld implements JClosedWorld {
     OUTER:
     for (Link<InterfaceType> link = typeSet[depth];
         link.head.element != commonElements.objectClass;
-        link = link.tail) {
+        link = link.tail!) {
       ClassEntity cls = link.head.element;
       for (Link<OrderedTypeSet> link = otherTypeSets;
           !link.isEmpty;
-          link = link.tail) {
-        if (link.head.asInstanceOf(cls, elementMap.getHierarchyDepth(cls)) ==
+          link = link.tail!) {
+        if (link.head.asInstanceOf(
+                cls, elementMap.getHierarchyDepth(cls as IndexedClass)) ==
             null) {
           continue OUTER;
         }
@@ -388,30 +413,7 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
-    if (_liveMixinUses == null) {
-      _liveMixinUses = Map<ClassEntity, List<ClassEntity>>();
-      for (ClassEntity mixin in mixinUses.keys) {
-        List<ClassEntity> uses = <ClassEntity>[];
-
-        void addLiveUse(ClassEntity mixinApplication) {
-          if (classHierarchy.isInstantiated(mixinApplication)) {
-            uses.add(mixinApplication);
-          } else if (_isNamedMixinApplication(mixinApplication)) {
-            Set<ClassEntity> next = mixinUses[mixinApplication];
-            if (next != null) {
-              next.forEach(addLiveUse);
-            }
-          }
-        }
-
-        mixinUses[mixin].forEach(addLiveUse);
-        if (uses.isNotEmpty) {
-          _liveMixinUses[mixin] = uses;
-        }
-      }
-    }
-    Iterable<ClassEntity> uses = _liveMixinUses[cls];
-    return uses ?? const <ClassEntity>[];
+    return _liveMixinUses[cls] ?? const <ClassEntity>[];
   }
 
   @override
@@ -424,9 +426,10 @@ class JsClosedWorld implements JClosedWorld {
   @override
   bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin) {
     if (isUsedAsMixin(mixin)) {
-      ClassEntity current = cls;
+      ClassEntity? current = cls;
       while (current != null) {
-        ClassEntity currentMixin = elementMap.getAppliedMixin(current);
+        ClassEntity? currentMixin =
+            elementMap.getAppliedMixin(current as IndexedClass);
         if (currentMixin == mixin) return true;
         current = elementEnvironment.getSuperClass(current);
       }
@@ -434,20 +437,11 @@ class JsClosedWorld implements JClosedWorld {
     return false;
   }
 
-  void _ensureFunctionSet() {
-    if (_allFunctions == null) {
-      // [FunctionSet] is created lazily because it is not used when we switch
-      // from a frontend to a backend model before inference.
-      _allFunctions = FunctionSet(liveInstanceMembers);
-    }
-  }
-
-  ClassEntity __functionLub;
-  ClassEntity get _functionLub => __functionLub ??=
-      getLubOfInstantiatedSubtypes(commonElements.functionClass);
+  late final ClassEntity _functionLub =
+      getLubOfInstantiatedSubtypes(commonElements.functionClass)!;
 
   @override
-  bool includesClosureCallInDomain(Selector selector, AbstractValue receiver,
+  bool includesClosureCallInDomain(Selector selector, AbstractValue? receiver,
       AbstractValueDomain abstractValueDomain) {
     return selector.name == Identifiers.call &&
         (receiver == null ||
@@ -471,7 +465,7 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
-  bool includesClosureCall(Selector selector, AbstractValue receiver) {
+  bool includesClosureCall(Selector selector, AbstractValue? receiver) {
     return includesClosureCallInDomain(selector, receiver, abstractValueDomain);
   }
 
@@ -480,7 +474,6 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
-    _ensureFunctionSet();
     if (includesClosureCall(selector, receiver)) {
       return abstractValueDomain.dynamicType;
     }
@@ -489,30 +482,25 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   Iterable<MemberEntity> locateMembersInDomain(Selector selector,
-      AbstractValue /*?*/ receiver, AbstractValueDomain abstractValueDomain) {
-    _ensureFunctionSet();
+      AbstractValue? receiver, AbstractValueDomain abstractValueDomain) {
     return _allFunctions.filter(selector, receiver, abstractValueDomain);
   }
 
   @override
   Iterable<MemberEntity> locateMembers(
-      Selector selector, AbstractValue /*?*/ receiver) {
+      Selector selector, AbstractValue? receiver) {
     return locateMembersInDomain(selector, receiver, abstractValueDomain);
   }
 
   bool hasAnyUserDefinedGetter(Selector selector, AbstractValue receiver) {
-    _ensureFunctionSet();
     return _allFunctions
         .filter(selector, receiver, abstractValueDomain)
         .any((each) => each.isGetter);
   }
 
   @override
-  MemberEntity locateSingleMember(Selector selector, AbstractValue receiver) {
-    if (includesClosureCall(selector, receiver)) {
-      return null;
-    }
-    receiver ??= abstractValueDomain.dynamicType;
+  MemberEntity? locateSingleMember(Selector selector, AbstractValue receiver) {
+    if (includesClosureCall(selector, receiver)) return null;
     return abstractValueDomain.locateSingleMember(receiver, selector);
   }
 
@@ -548,13 +536,14 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   bool hasElementIn(ClassEntity cls, Name name, Entity element) {
-    while (cls != null) {
-      MemberEntity member =
-          elementEnvironment.lookupLocalClassMember(cls, name);
+    ClassEntity? current = cls;
+    while (current != null) {
+      MemberEntity? member =
+          elementEnvironment.lookupLocalClassMember(current, name);
       if (member != null && !member.isAbstract) {
         return member == element;
       }
-      cls = elementEnvironment.getSuperClass(cls);
+      current = elementEnvironment.getSuperClass(current);
     }
     return false;
   }
@@ -562,17 +551,17 @@ class JsClosedWorld implements JClosedWorld {
   /// Returns whether a [selector] call on an instance of [cls]
   /// will hit a method at runtime, and not go through [noSuchMethod].
   bool _hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity stopAtSuperclass}) {
+      {ClassEntity? stopAtSuperclass}) {
     assert(classHierarchy.isInstantiated(cls),
         failedAt(cls, '$cls has not been instantiated.'));
-    MemberEntity element =
+    MemberEntity? element =
         elementEnvironment.lookupClassMember(cls, selector.memberName);
     if (element == null) return false;
 
     if (element.isAbstract) {
-      ClassEntity enclosingClass = element.enclosingClass;
+      ClassEntity enclosingClass = element.enclosingClass!;
       return _hasConcreteMatch(
-          elementEnvironment.getSuperClass(enclosingClass), selector);
+          elementEnvironment.getSuperClass(enclosingClass)!, selector);
     }
     return selector.appliesUnnamed(element);
   }
@@ -583,7 +572,7 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
-  MemberAccess getMemberAccess(MemberEntity member) {
+  MemberAccess? getMemberAccess(MemberEntity member) {
     return memberAccess[member];
   }
 

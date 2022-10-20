@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -21,7 +22,7 @@ import 'package:vm/transformations/type_flow/types.dart';
 
 import '../../common_test_utils.dart';
 
-final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
+final Uri pkgVmDir = Platform.script.resolve('../../..');
 
 class FakeTypesBuilder extends TypesBuilder {
   final Map<Class, TFClass> _classes = <Class, TFClass>{};
@@ -50,6 +51,13 @@ class FakeEntryPointsListener implements EntryPointsListener {
   ConcreteType addAllocatedClass(Class c) {
     return new ConcreteType(_typesBuilder.getTFClass(c), null);
   }
+
+  @override
+  Field getRecordPositionalField(int pos) => getRecordNamedField("\$$pos");
+
+  @override
+  Field getRecordNamedField(String name) =>
+      Field.immutable(Name(name), fileUri: dummyUri);
 
   @override
   void recordMemberCalledViaInterfaceSelector(Member target) {}
@@ -96,9 +104,17 @@ class PrintSummaries extends RecursiveVisitor {
   }
 }
 
-runTestCase(Uri source) async {
+class TestOptions {
+  static const Option<List<String>?> enableExperiment =
+      Option('--enable-experiment', StringListValue());
+
+  static const List<Option> options = [enableExperiment];
+}
+
+runTestCase(Uri source, List<String>? experimentalFlags) async {
   final Target target = new TestingVmTarget(new TargetFlags());
-  final Component component = await compileTestCaseToKernelProgram(source);
+  final Component component = await compileTestCaseToKernelProgram(source,
+      experimentalFlags: experimentalFlags);
   final Library library = component.mainMethod!.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
@@ -115,13 +131,22 @@ runTestCase(Uri source) async {
 
 main() {
   group('collect-summary', () {
-    final testCasesDir = new Directory(
-        pkgVmDir + '/testcases/transformations/type_flow/summary_collector');
+    final testCasesDir = Directory.fromUri(pkgVmDir
+        .resolve('testcases/transformations/type_flow/summary_collector'));
 
     for (var entry
         in testCasesDir.listSync(recursive: true, followLinks: false)) {
-      if (entry.path.endsWith(".dart")) {
-        test(entry.path, () => runTestCase(entry.uri));
+      final path = entry.path;
+      if (path.endsWith(".dart")) {
+        List<String>? experimentalFlags;
+        final File optionsFile = new File('${path}.options');
+        if (optionsFile.existsSync()) {
+          ParsedOptions parsedOptions = ParsedOptions.parse(
+              ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
+              TestOptions.options);
+          experimentalFlags = TestOptions.enableExperiment.read(parsedOptions);
+        }
+        test(path, () => runTestCase(entry.uri, experimentalFlags));
       }
     }
   });

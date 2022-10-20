@@ -20,6 +20,7 @@ import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
 import 'summary2/test_all.dart' as summary2;
 import 'task/test_all.dart' as task;
+import 'test_utilities/test_all.dart' as test_utilities;
 import 'util/test_all.dart' as util;
 import 'utilities/test_all.dart' as utilities;
 import 'workspace/test_all.dart' as workspace;
@@ -42,6 +43,7 @@ main() {
     summary.main();
     summary2.main();
     task.main();
+    test_utilities.main();
     util.main();
     utilities.main();
     workspace.main();

@@ -538,12 +538,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           notEqual: notEqual);
 
       void buildNullConditionInfo(NullLiteral nullLiteral,
-          Expression otherOperand, NullabilityNode? otherNode) {
+          Expression otherOperand, DecoratedType otherType) {
         assert(nullLiteral != otherOperand);
         // TODO(paulberry): only set falseChecksNonNull in unconditional
         // control flow
         // TODO(paulberry): figure out what the rules for isPure should be.
         bool isPure = otherOperand is SimpleIdentifier;
+        var otherNode = otherType.node;
+        var otherTypeType = otherType.type;
+        if (otherTypeType is TypeParameterType) {
+          var boundNullability =
+              DecoratedTypeParameterBounds.current!.get(otherTypeType.element);
+          if (boundNullability != null) {
+            otherNode =
+                NullabilityNode.forLUB(otherNode, boundNullability.node);
+          }
+        }
         var conditionInfo = _ConditionInfo(node,
             isPure: isPure,
             postDominatingIntent: _isReferenceInScope(otherOperand),
@@ -553,9 +563,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
 
       if (rightOperand is NullLiteral) {
-        buildNullConditionInfo(rightOperand, leftOperand, leftType.node);
+        buildNullConditionInfo(rightOperand, leftOperand, leftType);
       } else if (leftOperand is NullLiteral) {
-        buildNullConditionInfo(leftOperand, rightOperand, rightType.node);
+        buildNullConditionInfo(leftOperand, rightOperand, rightType);
       }
 
       return _makeNonNullableBoolType(node);

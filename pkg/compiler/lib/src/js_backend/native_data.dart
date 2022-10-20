@@ -335,7 +335,10 @@ class NativeBasicData {
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
         <ClassEntity, NativeClassTag>{};
     _nativeClassTagInfo.forEach((ClassEntity cls, NativeClassTag tag) {
-      nativeClassTagInfo[map.toBackendClass(cls)] = tag;
+      ClassEntity? backendClass = map.toBackendClass(cls);
+      if (backendClass != null) {
+        nativeClassTagInfo[backendClass] = tag;
+      }
     });
     Map<LibraryEntity, String> jsInteropLibraries =
         map.toBackendLibraryMap(_jsInteropLibraries, identity);

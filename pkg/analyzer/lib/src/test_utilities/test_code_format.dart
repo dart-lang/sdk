@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart'
-    show Position, Range;
-import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:collection/collection.dart';
@@ -26,6 +23,9 @@ import 'package:collection/collection.dart';
 /// For convenience, a single position can also be marked with a `^` (which
 /// behaves the same as `/*0*/).
 class TestCode {
+  static final _positionShorthand = '^';
+  static final _rangeStartShorthand = '[!';
+  static final _rangeEndShorthand = '!]';
   static final _positionPattern = RegExp(r'\/\*(\d+)\*\/');
   static final _rangeStartPattern = RegExp(r'\/\*\[(\d+)\*\/');
   static final _rangeEndPattern = RegExp(r'\/\*(\d+)\]\*\/');
@@ -48,7 +48,11 @@ class TestCode {
   TestCodePosition get position => positions.single;
   TestCodeRange get range => ranges.single;
 
-  static TestCode parse(String rawCode, {bool treatCaretAsPosition = true}) {
+  static TestCode parse(
+    String rawCode, {
+    bool positionShorthand = true,
+    bool rangeShorthand = true,
+  }) {
     final scanner = _StringScanner(rawCode);
     final codeBuffer = StringBuffer();
     final positionOffsets = <int, int>{};
@@ -94,10 +98,14 @@ class TestCode {
 
     while (!scanner.isDone) {
       start = codeBuffer.length;
-      if (treatCaretAsPosition && scanner.scan('^')) {
+      if (positionShorthand && scanner.scan(_positionShorthand)) {
         recordPosition(0);
       } else if (scanner.scan(_positionPattern)) {
         recordPosition(scannedNumber());
+      } else if (rangeShorthand && scanner.scan(_rangeStartShorthand)) {
+        recordRangeStart(0);
+      } else if (rangeShorthand && scanner.scan(_rangeEndShorthand)) {
+        recordRangeEnd(0);
       } else if (scanner.scan(_rangeStartPattern)) {
         recordRangeStart(scannedNumber());
       } else if (scanner.scan(_rangeEndPattern)) {
@@ -217,18 +225,4 @@ class _StringScanner {
     }
     return false;
   }
-}
-
-extension TestCodePositionExtension on TestCodePosition {
-  /// Return the LSP [Position] of the marker.
-  ///
-  /// Positions are based on [TestCode.code], with all parsed markers removed.
-  Position get position => toPosition(lineInfo.getLocation(offset));
-}
-
-extension TestCodeRangeExtension on TestCodeRange {
-  /// The LSP [Range] indicated by the markers.
-  ///
-  /// Ranges are based on [TestCode.code], with all parsed markers removed.
-  Range get range => toRange(lineInfo, sourceRange.offset, sourceRange.length);
 }

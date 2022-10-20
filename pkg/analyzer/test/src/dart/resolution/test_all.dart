@@ -77,6 +77,7 @@ import 'record_type_annotation_test.dart' as record_type_annotation;
 import 'relational_pattern_test.dart' as relational_pattern;
 import 'simple_identifier_test.dart' as simple_identifier;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
+import 'switch_statement_test.dart' as super_formal_parameter2;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
@@ -158,6 +159,7 @@ main() {
     relational_pattern.main();
     simple_identifier.main();
     super_formal_parameter.main();
+    super_formal_parameter2.main();
     top_level_variable.main();
     top_type_inference.main();
     try_statement.main();

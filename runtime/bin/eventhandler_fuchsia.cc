@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <zircon/assert.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
@@ -545,16 +546,24 @@ void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
   LOG_INFO("HandlePacket: Got event packet: key=%lx\n", pkt->key);
   LOG_INFO("HandlePacket: Got event packet: type=%x\n", pkt->type);
   LOG_INFO("HandlePacket: Got event packet: status=%d\n", pkt->status);
+
   if (pkt->type == ZX_PKT_TYPE_USER) {
     ASSERT(pkt->key == kInterruptPacketKey);
     InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(&pkt->user);
     HandleInterrupt(msg);
     return;
   }
-  LOG_INFO("HandlePacket: Got event packet: observed = %x\n",
-           pkt->signal.observed);
-  LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);
 
+  if (pkt->type != ZX_PKT_TYPE_SIGNAL_ONE) {
+    LOG_ERR("HandlePacket: Got unexpected packet type: key=%x\n", pkt->type);
+    return;
+  }
+  
+  // Handle pkt->type == ZX_PKT_TYPE_SIGNAL_ONE
+  ZX_ASSERT(pkt->key != 0);
+  LOG_INFO("HandlePacket: Got event packet: observed = %x\n",
+          pkt->signal.observed);
+  LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(pkt->key);
   zx_signals_t observed = pkt->signal.observed;
   const intptr_t old_mask = di->Mask();

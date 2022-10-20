@@ -6,11 +6,11 @@ import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../utils/test_code_format.dart';
 
 void main() {
   defineReflectiveSuite(() {
