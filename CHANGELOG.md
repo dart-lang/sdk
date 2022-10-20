@@ -56,6 +56,12 @@
 
 ### Libraries
 
+#### `dart:core`
+
+- Added `copyWith` extension method on `DateTime` (see [#24644][]).
+
+[#24644]: https://github.com/dart-lang/sdk/issues/24644
+
 #### `dart:convert`
 
 - **Breaking change** [#34233][]: The previously deprecated API

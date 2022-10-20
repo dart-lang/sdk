@@ -5,6 +5,7 @@
 /*library: scope=[
   Extension1,
   async.dart.FutureExtensions,
+  core.dart.DateTimeCopyWith,
   core.dart.EnumByName,
   core.dart.EnumName]*/
 
