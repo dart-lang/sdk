@@ -241,6 +241,8 @@ constexpr bool FLAG_support_il_printer = false;
     "Enables heap verification before GC.")                                    \
   R(verify_store_buffer, false, bool, false,                                   \
     "Enables store buffer verification before and after scavenges.")           \
+  R(verify_after_marking, false, bool, false,                                  \
+    "Enables heap verification after marking.")                                \
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
     "TESTING: slow-path triggers a GC.")                                       \
