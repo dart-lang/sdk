@@ -988,43 +988,6 @@ void GCMarker::IncrementalMarkWithTimeBudget(PageSpace* page_space,
   }
 }
 
-class VerifyAfterMarkingVisitor : public ObjectVisitor,
-                                  public ObjectPointerVisitor {
- public:
-  VerifyAfterMarkingVisitor()
-      : ObjectVisitor(), ObjectPointerVisitor(IsolateGroup::Current()) {}
-
-  void VisitObject(ObjectPtr obj) {
-    if (obj->IsNewObject() || obj->untag()->IsMarked()) {
-      obj->untag()->VisitPointers(this);
-    }
-  }
-
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
-    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
-      ObjectPtr obj = *ptr;
-      if (obj->IsHeapObject() && obj->IsOldObject() &&
-          !obj->untag()->IsMarked()) {
-        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
-              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
-      }
-    }
-  }
-
-  void VisitCompressedPointers(uword heap_base,
-                               CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
-    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
-      ObjectPtr obj = ptr->Decompress(heap_base);
-      if (obj->IsHeapObject() && obj->IsOldObject() &&
-          !obj->untag()->IsMarked()) {
-        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
-              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
-      }
-    }
-  }
-};
-
 void GCMarker::MarkObjects(PageSpace* page_space) {
   if (isolate_group_->marking_stack() != NULL) {
     isolate_group_->DisableIncrementalBarrier();
@@ -1110,16 +1073,6 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       ASSERT(global_list_.IsEmpty());
     }
   }
-
-  // Separate from verify_after_gc because that verification interferes with
-  // concurrent marking.
-  if (FLAG_verify_after_marking) {
-    OS::PrintErr("Verifying after marking...");
-    VerifyAfterMarkingVisitor visitor;
-    heap_->VisitObjects(&visitor);
-    OS::PrintErr(" done.\n");
-  }
-
   Epilogue();
 }
 
