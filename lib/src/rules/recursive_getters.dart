@@ -64,6 +64,16 @@ class _BodyVisitor extends RecursiveAstVisitor {
   final ExecutableElement element;
   _BodyVisitor(this.element, this.rule);
 
+  bool isSelfReference(SimpleIdentifier node) {
+    if (node.staticElement != element) return false;
+    var parent = node.parent;
+    if (parent is PrefixedIdentifier) return false;
+    if (parent is PropertyAccess && parent.target is! ThisExpression) {
+      return false;
+    }
+    return true;
+  }
+
   @override
   visitListLiteral(ListLiteral node) {
     if (node.isConst) return null;
@@ -78,13 +88,11 @@ class _BodyVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == element) {
-      if (node.parent is! PrefixedIdentifier) {
-        rule.reportLint(node, arguments: [node.name]);
-      }
+    if (isSelfReference(node)) {
+      rule.reportLint(node, arguments: [node.name]);
     }
 
-    return super.visitSimpleIdentifier(node);
+    // No need to call super visit (SimpleIdentifiers have no children).
   }
 }
 

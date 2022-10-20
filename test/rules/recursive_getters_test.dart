@@ -60,6 +60,19 @@ class Nested {
 ''');
   }
 
+  test_nestedReference_property() async {
+    await assertNoDiagnostics(r'''
+class Nested {
+  final Nested target;
+  Nested(this.target);
+  bool get isFoo {
+    var self = this;
+    return self.target.isFoo;
+  }
+}
+''');
+  }
+
   test_referenceInListLiteral() async {
     await assertDiagnostics(r'''
 class C {
