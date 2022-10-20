@@ -140,11 +140,13 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
+    if (node.beginToken.precedingComments != null) return;
     node.expression?.accept(this);
   }
 
   @override
   void visitSuperExpression(SuperExpression node) {
+    if (node.beginToken.precedingComments != null) return;
     rule.reportLintForToken(declaration.name);
   }
 

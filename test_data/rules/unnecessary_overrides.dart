@@ -33,7 +33,8 @@ class Parent extends Base {
   int get x => super.x; // LINT
 
   @override
-  set x(other) { // LINT
+  set x(other)  // LINT
+  {
     super.x = other;
   }
 
@@ -101,7 +102,8 @@ class A {
 
 class B extends A {
   @override
-  void foo() { // LINT
+  void foo() // LINT
+  {
     super.foo();
   }
 
@@ -114,7 +116,8 @@ class B extends A {
   int getA(Iterable a) => super.getA(a); // LINT
 
   @override
-  int getB(Iterable a) { // LINT
+  int getB(Iterable a) // LINT
+  {
     return super.getB(a);
   }
 
