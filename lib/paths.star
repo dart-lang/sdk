@@ -61,6 +61,10 @@ _ANALYZER_PATHS = _STANDARD_PATHS + [
     "pkg/.+",
 ]
 
+_DART2WASM_PATHS = _CFE_PATHS + [
+    "pkg/(dart2wasm|vm|wasm_builder|_js_interop_checks)/.+",
+]
+
 def _to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
 
@@ -70,6 +74,7 @@ paths = struct(
     cfe = _CFE_PATHS,
     cfe_only = _CFE_PATHS_ONLY,
     dart2js = _DART2JS_PATHS,
+    dart2wasm = _DART2WASM_PATHS,
     ddc = _DDC_PATHS,
     standard = _STANDARD_PATHS,
     test_py = _TEST_PY_PATHS,

@@ -279,8 +279,10 @@ cron.weekly_builder(
 )
 cron.nightly_builder(
     "dart2wasm-linux-x64-d8",
+    category = "d2w|d",
     channels = ["try"],
     properties = emscripten,
+    location_regexp = paths.to_location_regexp(paths.dart2wasm),
 )
 
 # flutter
