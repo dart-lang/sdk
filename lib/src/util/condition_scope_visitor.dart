@@ -350,6 +350,8 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
         return false;
       }
 
+      // todo(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
+      // ignore: deprecated_member_use_from_same_package
       for (var ref in condition.traverseNodesInDFS()) {
         if (ref is SimpleIdentifier) {
           var element = ref.staticElement;

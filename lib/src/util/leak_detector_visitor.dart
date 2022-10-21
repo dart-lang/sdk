@@ -54,6 +54,8 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
+      // todo(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
+      // ignore: deprecated_member_use_from_same_package
       var containerNodes = container.traverseNodesInDFS();
 
       var validators = <Iterable<AstNode>>[];
