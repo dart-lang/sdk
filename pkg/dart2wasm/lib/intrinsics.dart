@@ -1307,8 +1307,9 @@ class Intrinsifier {
       if (member.isFactory) {
         String className = member.enclosingClass!.name;
 
-        Match? match = RegExp("^(Int|Uint|Float)(8|16|32|64)(Clamped)?List\$")
-            .matchAsPrefix(className);
+        Match? match =
+            RegExp("^(Int|Uint|Float)(8|16|32|64|32x4|64x2)(Clamped)?List\$")
+                .matchAsPrefix(className);
         if (match != null) {
           int shift = int.parse(match.group(2)!).bitLength - 4;
           Class cls = member.enclosingLibrary.classes
@@ -1334,10 +1335,7 @@ class Intrinsifier {
           return true;
         }
 
-        match = RegExp("^_(Int|Uint|Float)(8|16|32|64)(Clamped)?ArrayView\$")
-            .matchAsPrefix(className);
-        if (match != null ||
-            member.enclosingClass == translator.byteDataViewClass) {
+        bool _createView() {
           ClassInfo info = translator.classInfo[member.enclosingClass]!;
           translator.functions.allocateClass(info.classId);
 
@@ -1353,6 +1351,22 @@ class Intrinsifier {
           b.i32_wrap_i64();
           b.struct_new(info.struct);
           return true;
+        }
+
+        match = RegExp(
+                "^_(Int|Uint|Float)(8|16|32|64|32x4|64x2)(Clamped)?ArrayView\$")
+            .matchAsPrefix(className);
+        if (match != null ||
+            member.enclosingClass == translator.byteDataViewClass) {
+          return _createView();
+        }
+
+        match = RegExp(
+                "^_Unmodifiable(Int|Uint|Float)(8|16|32|64|32x4|64x2)(Clamped)?ArrayView\$")
+            .matchAsPrefix(className);
+        if (match != null ||
+            member.enclosingClass == translator.unmodifiableByteDataViewClass) {
+          return _createView();
         }
       }
 

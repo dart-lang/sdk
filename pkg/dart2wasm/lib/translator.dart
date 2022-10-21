@@ -105,6 +105,7 @@ class Translator {
   late final Class typedListClass;
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
+  late final Class unmodifiableByteDataViewClass;
   late final Class typeErrorClass;
   late final Class typeUniverseClass;
   late final Class symbolClass;
@@ -249,6 +250,8 @@ class Translator {
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
     byteDataViewClass = lookupTypedData("_ByteDataView");
+    unmodifiableByteDataViewClass =
+        lookupTypedData("_UnmodifiableByteDataView");
     symbolClass = lookupInternal("Symbol");
     wasmFunctionCall =
         wasmFunctionClass.procedures.firstWhere((p) => p.name.text == "call");
