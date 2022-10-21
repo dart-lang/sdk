@@ -8164,11 +8164,12 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    typeArguments?.accept(resolverVisitor);
-    requiredType = resolverVisitor.analyzeListPattern(
-        matchedType, typeInfos, context, this,
-        elementType: typeArguments?.arguments.first.typeOrThrow,
-        elements: elements);
+    resolverVisitor.listPatternResolver.resolve(
+      node: this,
+      matchedType: matchedType,
+      typeInfos: typeInfos,
+      context: context,
+    );
   }
 
   @override

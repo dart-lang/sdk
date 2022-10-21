@@ -148,6 +148,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
   CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
   CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+  CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS,
   CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
   CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS,
   CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS,

@@ -386,6 +386,8 @@ CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
   status: needsEvaluation
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
   status: needsEvaluation
+CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
+  status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
   status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:

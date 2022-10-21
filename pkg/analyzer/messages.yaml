@@ -3788,6 +3788,12 @@ CompileTimeErrorCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which keys and values
       are returned by an iterator.
+  EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
+    problemMessage: List patterns require one type argument or none, but {0} found.
+    correctionMessage: Try adjusting the number of type arguments.
+    comment: |-
+      Parameters:
+      0: the number of provided type arguments
   EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
     problemMessage: "List literals require one type argument or none, but {0} found."
     correctionMessage: Try adjusting the number of type arguments.
