@@ -1408,4 +1408,10 @@ class _DataDrivenTest extends BulkFixProcessorTest {
         ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
   }
+
+  @override
+  void tearDown() {
+    TransformSetManager.instance.clearCache();
+    super.tearDown();
+  }
 }

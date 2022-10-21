@@ -21,6 +21,12 @@ void main() {
 class TransformSetManagerTest extends AbstractContextTest {
   TransformSetManager manager = TransformSetManager.instance;
 
+  @override
+  void tearDown() {
+    super.tearDown();
+    manager.clearCache();
+  }
+
   Future<void> test_twoFiles_onePackage() async {
     var folder = '$workspaceRootPath/p1/lib/fix_data';
 
