@@ -52,25 +52,25 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
+  void checkComments(Token token) {
+    Token? comment = token.precedingComments;
+    while (comment != null) {
+      _checkComment(comment);
+      comment = comment.next;
+    }
+  }
+
   @override
   void visitCompilationUnit(CompilationUnit node) {
     Token? token = node.beginToken;
     while (token != null) {
-      _getPrecedingComments(token).forEach(_visitComment);
+      checkComments(token);
       if (token == token.next) break;
       token = token.next;
     }
   }
 
-  Iterable<Token> _getPrecedingComments(Token token) sync* {
-    Token? comment = token.precedingComments;
-    while (comment != null) {
-      yield comment;
-      comment = comment.next;
-    }
-  }
-
-  void _visitComment(Token node) {
+  void _checkComment(Token node) {
     var content = node.lexeme;
     if (content.startsWith(_todoRegExp) &&
         !content.startsWith(_todoExpectedRegExp)) {
