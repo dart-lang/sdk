@@ -20,8 +20,8 @@ class ConstructorInitializerResolver {
     for (var unitElement in _libraryElement.units) {
       var interfaceElements = [
         ...unitElement.classes,
-        ...unitElement.enums2,
-        ...unitElement.mixins2,
+        ...unitElement.enums,
+        ...unitElement.mixins,
       ];
       for (var interfaceElement in interfaceElements) {
         for (var constructorElement in interfaceElement.constructors) {

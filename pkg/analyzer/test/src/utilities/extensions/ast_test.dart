@@ -303,7 +303,7 @@ class C { void call() {} }  Function f = C^();
     // TODO(brianwilkerson) Move TestCode to the analyzer package and make use
     //  of it here.
     var offset = sourceCode.indexOf('^');
-    if (offset < 0 || sourceCode.indexOf('^', offset + 1) >= 0) {
+    if (offset < 0 || sourceCode.contains('^', offset + 1)) {
       fail('Tests must contain a single selection range');
     }
     var testCode =

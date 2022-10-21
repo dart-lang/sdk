@@ -291,13 +291,13 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
-              !method.isAbstract && method.isAccessibleIn2(library)));
+              !method.isAbstract && method.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement? lookUpGetter(
           String getterName, LibraryElement library) =>
       _first(_implementationsOfGetter(getterName).where(
-          (PropertyAccessorElement getter) => getter.isAccessibleIn2(library)));
+          (PropertyAccessorElement getter) => getter.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement? lookUpInheritedConcreteGetter(
@@ -306,7 +306,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (PropertyAccessorElement getter) =>
               !getter.isAbstract &&
               !getter.isStatic &&
-              getter.isAccessibleIn2(library) &&
+              getter.isAccessibleIn(library) &&
               getter.enclosingElement != this));
 
   ExecutableElement? lookUpInheritedConcreteMember(
@@ -326,7 +326,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (MethodElement method) =>
               !method.isAbstract &&
               !method.isStatic &&
-              method.isAccessibleIn2(library) &&
+              method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
   @override
@@ -336,7 +336,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (PropertyAccessorElement setter) =>
               !setter.isAbstract &&
               !setter.isStatic &&
-              setter.isAccessibleIn2(library) &&
+              setter.isAccessibleIn(library) &&
               setter.enclosingElement != this));
 
   @override
@@ -345,19 +345,19 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
               !method.isStatic &&
-              method.isAccessibleIn2(library) &&
+              method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
   @override
   MethodElement? lookUpMethod(String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName)
-          .where((MethodElement method) => method.isAccessibleIn2(library)));
+          .where((MethodElement method) => method.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement? lookUpSetter(
           String setterName, LibraryElement library) =>
       _first(_implementationsOfSetter(setterName).where(
-          (PropertyAccessorElement setter) => setter.isAccessibleIn2(library)));
+          (PropertyAccessorElement setter) => setter.isAccessibleIn(library)));
 
   /// Return the static getter with the [name], accessible to the [library].
   ///
@@ -367,7 +367,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   PropertyAccessorElement? lookupStaticGetter(
       String name, LibraryElement library) {
     return _first(_implementationsOfGetter(name).where((element) {
-      return element.isStatic && element.isAccessibleIn2(library);
+      return element.isStatic && element.isAccessibleIn(library);
     }));
   }
 
@@ -378,7 +378,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// or a superclass.
   MethodElement? lookupStaticMethod(String name, LibraryElement library) {
     return _first(_implementationsOfMethod(name).where((element) {
-      return element.isStatic && element.isAccessibleIn2(library);
+      return element.isStatic && element.isAccessibleIn(library);
     }));
   }
 
@@ -390,7 +390,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   PropertyAccessorElement? lookupStaticSetter(
       String name, LibraryElement library) {
     return _first(_implementationsOfSetter(name).where((element) {
-      return element.isStatic && element.isAccessibleIn2(library);
+      return element.isStatic && element.isAccessibleIn(library);
     }));
   }
 
@@ -796,7 +796,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     if (!superElement.isMixinApplication) {
       final library = this.library;
       constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn2(library))
+          .where((constructor) => constructor.isAccessibleIn(library))
           .where((constructor) => !constructor.isFactory);
     } else {
       if (visitedClasses == null) {
@@ -1131,10 +1131,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         ...super.children,
         ...accessors,
         ...classes,
-        ...enums2,
+        ...enums,
         ...extensions,
         ...functions,
-        ...mixins2,
+        ...mixins,
         ...typeAliases,
         ...topLevelVariables,
       ];
@@ -1172,16 +1172,22 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<EnumElement> get enums2 {
+  List<EnumElement> get enums {
     return _enums;
   }
 
   /// Set the enums contained in this compilation unit to the given [enums].
-  set enums2(List<EnumElement> enums) {
+  set enums(List<EnumElement> enums) {
     for (final element in enums) {
       (element as EnumElementImpl).enclosingElement = this;
     }
     _enums = enums;
+  }
+
+  @Deprecated('Use enums instead')
+  @override
+  List<EnumElement> get enums2 {
+    return enums;
   }
 
   @override
@@ -1228,16 +1234,22 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<MixinElement> get mixins2 {
+  List<MixinElement> get mixins {
     return _mixins;
   }
 
   /// Set the mixins contained in this compilation unit to the given [mixins].
-  set mixins2(List<MixinElement> mixins) {
+  set mixins(List<MixinElement> mixins) {
     for (var type in mixins) {
       (type as MixinElementImpl).enclosingElement = this;
     }
     _mixins = mixins;
+  }
+
+  @Deprecated('Use mixins instead')
+  @override
+  List<MixinElement> get mixins2 {
+    return mixins;
   }
 
   @override
@@ -1297,13 +1309,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  EnumElement? getEnum2(String name) {
-    for (final element in enums2) {
+  EnumElement? getEnum(String name) {
+    for (final element in enums) {
       if (element.name == name) {
         return element;
       }
     }
     return null;
+  }
+
+  @Deprecated('Use getEnum() instead')
+  @override
+  EnumElement? getEnum2(String name) {
+    return getEnum(name);
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -2667,11 +2685,17 @@ abstract class ElementImpl implements Element {
       BooleanArray.get(_modifiers, modifier.ordinal);
 
   @override
-  bool isAccessibleIn2(LibraryElement library) {
+  bool isAccessibleIn(LibraryElement library) {
     if (Identifier.isPrivateName(name!)) {
       return library == this.library;
     }
     return true;
+  }
+
+  @Deprecated('Use isAccessibleIn() instead')
+  @override
+  bool isAccessibleIn2(LibraryElement library) {
+    return isAccessibleIn(library);
   }
 
   void resetMetadataFlags() {
@@ -3854,7 +3878,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   FunctionElement? _entryPoint;
 
   /// The list of `part` directives of this library.
-  List<PartElement> _parts2 = const <PartElement>[];
+  List<PartElement> _parts = const <PartElement>[];
 
   /// The element representing the synthetic function `loadLibrary` that is
   /// defined for this library, or `null` if the element has not yet been
@@ -3898,7 +3922,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   List<Element> get children => [
         ...super.children,
-        ...parts2,
+        ...parts,
         ..._partUnits,
       ];
 
@@ -4061,9 +4085,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   String get name => super.name!;
 
   @override
-  List<PartElement> get parts2 => _parts2;
+  List<PartElement> get parts => _parts;
 
-  set parts2(List<PartElement> parts) {
+  set parts(List<PartElement> parts) {
     for (final part in parts) {
       part as PartElementImpl;
       part.enclosingElement = this;
@@ -4072,8 +4096,12 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         uri.unit.enclosingElement = this;
       }
     }
-    _parts2 = parts;
+    _parts = parts;
   }
+
+  @Deprecated('Use parts instead')
+  @override
+  List<PartElement> get parts2 => parts;
 
   @override
   List<PrefixElement> get prefixes =>
@@ -4099,10 +4127,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     for (var unit in units) {
       yield* unit.accessors;
       yield* unit.classes;
-      yield* unit.enums2;
+      yield* unit.enums;
       yield* unit.extensions;
       yield* unit.functions;
-      yield* unit.mixins2;
+      yield* unit.mixins;
       yield* unit.topLevelVariables;
       yield* unit.typeAliases;
     }
@@ -4118,7 +4146,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   List<CompilationUnitElement> get _partUnits {
-    return parts2
+    return parts
         .map((e) => e.uri)
         .whereType<DirectiveUriWithUnit>()
         .map((e) => e.unit)
@@ -4151,7 +4179,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   EnumElement? getEnum(String name) {
     for (final unitElement in units) {
-      final element = unitElement.getEnum2(name);
+      final element = unitElement.getEnum(name);
       if (element != null) {
         return element;
       }
@@ -4199,7 +4227,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
           return true;
         }
       }
-      for (var partElement in parts2) {
+      for (var partElement in parts) {
         final uri = partElement.uri;
         if (uri is DirectiveUriWithSource &&
             uri is! DirectiveUriWithUnit &&
@@ -5036,13 +5064,19 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
-  bool isAccessibleIn2(LibraryElement library) {
+  bool isAccessibleIn(LibraryElement library) {
     for (Element element in conflictingElements) {
-      if (element.isAccessibleIn2(library)) {
+      if (element.isAccessibleIn(library)) {
         return true;
       }
     }
     return false;
+  }
+
+  @Deprecated('Use isAccessibleIn() instead')
+  @override
+  bool isAccessibleIn2(LibraryElement library) {
+    return isAccessibleIn(library);
   }
 
   @override
@@ -5436,10 +5470,16 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   LibraryOrAugmentationElementImpl get enclosingElement3 => enclosingElement;
 
   @override
-  List<LibraryImportElement> get imports2 {
+  List<LibraryImportElement> get imports {
     return enclosingElement.libraryImports
         .where((import) => import.prefix?.element == this)
         .toList();
+  }
+
+  @Deprecated('Use imports instead')
+  @override
+  List<LibraryImportElement> get imports2 {
+    return imports;
   }
 
   @override

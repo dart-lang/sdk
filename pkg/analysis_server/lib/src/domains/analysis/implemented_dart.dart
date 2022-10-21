@@ -21,10 +21,10 @@ class ImplementedComputer {
     for (var element in unitElement.classes) {
       await _computeForClassElement(element);
     }
-    for (var element in unitElement.enums2) {
+    for (var element in unitElement.enums) {
       await _computeForClassElement(element);
     }
-    for (var element in unitElement.mixins2) {
+    for (var element in unitElement.mixins) {
       await _computeForClassElement(element);
     }
   }

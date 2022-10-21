@@ -645,8 +645,12 @@ abstract class Member implements Element {
       _declaration.getExtendedDisplayName(shortName);
 
   @override
-  bool isAccessibleIn2(LibraryElement library) =>
-      _declaration.isAccessibleIn2(library);
+  bool isAccessibleIn(LibraryElement library) =>
+      _declaration.isAccessibleIn(library);
+
+  @Deprecated('Use isAccessibleIn() instead')
+  @override
+  bool isAccessibleIn2(LibraryElement library) => isAccessibleIn(library);
 
   @override
   E? thisOrAncestorMatching<E extends Element>(

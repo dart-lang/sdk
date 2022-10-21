@@ -402,7 +402,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   @override
   void _read(element, reader) {
     _readLibraryOrAugmentation(element, reader);
-    for (final part in element.parts2) {
+    for (final part in element.parts) {
       part as PartElementImpl;
       part.metadata = reader._readAnnotationList(
         unitElement: unitElement,
@@ -516,7 +516,7 @@ class LibraryReader {
       unitContainerRef: _reference.getChild('@unit'),
     );
 
-    libraryElement.parts2 = _reader.readTypedList(() {
+    libraryElement.parts = _reader.readTypedList(() {
       return _readPartElement(
         libraryElement: libraryElement,
       );
@@ -802,7 +802,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var count = _reader.readUInt30();
-    unitElement.enums2 = List.generate(count, (_) {
+    unitElement.enums = List.generate(count, (_) {
       return _readEnumElement(unitElement, unitReference);
     });
   }
@@ -1147,7 +1147,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var length = _reader.readUInt30();
-    unitElement.mixins2 = List.generate(length, (index) {
+    unitElement.mixins = List.generate(length, (index) {
       return _readMixinElement(unitElement, unitReference);
     });
   }

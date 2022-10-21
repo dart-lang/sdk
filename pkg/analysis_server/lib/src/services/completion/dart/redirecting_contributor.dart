@@ -38,7 +38,7 @@ class RedirectingContributor extends DartCompletionContributor {
             parent.enclosingInterfaceElement?.supertype?.element;
         if (superclassElement != null) {
           for (var constructor in superclassElement.constructors) {
-            if (constructor.isAccessibleIn2(request.libraryElement)) {
+            if (constructor.isAccessibleIn(request.libraryElement)) {
               builder.suggestConstructor(constructor, hasClassName: true);
             }
           }
@@ -64,7 +64,7 @@ class RedirectingContributor extends DartCompletionContributor {
                 class_.thisType, classElement.thisType)) {
               for (var constructor in class_.constructors) {
                 if (constructor != constructorElement &&
-                    constructor.isAccessibleIn2(request.libraryElement)) {
+                    constructor.isAccessibleIn(request.libraryElement)) {
                   builder.suggestConstructor(constructor);
                 }
               }

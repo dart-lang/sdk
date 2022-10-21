@@ -10146,7 +10146,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   bool get isDeferred {
     Element? element = _prefix.staticElement;
     if (element is PrefixElement) {
-      final imports = element.imports2;
+      final imports = element.imports;
       if (imports.length != 1) {
         return false;
       }

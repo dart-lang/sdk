@@ -33,7 +33,7 @@ class InstanceMemberInferrer {
     typeSystem = unit.library.typeSystem as TypeSystemImpl;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.classes);
-    _inferClasses(unit.mixins2);
+    _inferClasses(unit.mixins);
   }
 
   /// Return `true` if the elements corresponding to the [elements] have the

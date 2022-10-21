@@ -43,9 +43,9 @@ class ConstantInitializersResolver {
       for (var unit in _library.units) {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_resolveInterfaceFields);
-        unit.enums2.forEach(_resolveInterfaceFields);
+        unit.enums.forEach(_resolveInterfaceFields);
         unit.extensions.forEach(_resolveExtensionFields);
-        unit.mixins2.forEach(_resolveInterfaceFields);
+        unit.mixins.forEach(_resolveInterfaceFields);
 
         _scope = unit.enclosingElement.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
@@ -180,7 +180,7 @@ class _ConstructorInferenceNode extends _InferenceNode {
       if (superType != null) {
         var index = classElement.constructors.indexOf(_constructor);
         var superConstructors = superType.element.constructors
-            .where((element) => element.isAccessibleIn2(classElement.library))
+            .where((element) => element.isAccessibleIn(classElement.library))
             .toList();
         if (index < superConstructors.length) {
           _baseConstructor = _BaseConstructor(
@@ -351,10 +351,10 @@ class _InitializerInference {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_addClassConstructorFieldFormals);
         unit.classes.forEach(_addClassElementFields);
-        unit.enums2.forEach(_addClassConstructorFieldFormals);
-        unit.enums2.forEach(_addClassElementFields);
+        unit.enums.forEach(_addClassConstructorFieldFormals);
+        unit.enums.forEach(_addClassElementFields);
         unit.extensions.forEach(_addExtensionElementFields);
-        unit.mixins2.forEach(_addClassElementFields);
+        unit.mixins.forEach(_addClassElementFields);
 
         _scope = unit.enclosingElement.scope;
         for (var element in unit.topLevelVariables) {

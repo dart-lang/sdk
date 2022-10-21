@@ -53,10 +53,10 @@ class ElementWalker {
       {this.libraryFilePath, this.unitFilePath})
       : _accessors = element.accessors.where(_isNotSynthetic).toList(),
         _classes = element.classes,
-        _enums = element.enums2,
+        _enums = element.enums,
         _extensions = element.extensions,
         _functions = element.functions,
-        _mixins = element.mixins2,
+        _mixins = element.mixins,
         _typedefs = element.typeAliases,
         _variables = element.topLevelVariables.where(_isNotSynthetic).toList();
 

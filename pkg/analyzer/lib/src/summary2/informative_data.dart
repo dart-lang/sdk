@@ -109,7 +109,7 @@ class InformativeDataApplier {
         );
 
         forCorrespondingPairs(
-            unitElement.enums2, unitInfo.enums, _applyToEnumDeclaration);
+            unitElement.enums, unitInfo.enums, _applyToEnumDeclaration);
 
         forCorrespondingPairs(unitElement.extensions, unitInfo.extensions,
             _applyToExtensionDeclaration);
@@ -117,7 +117,7 @@ class InformativeDataApplier {
         forCorrespondingPairs(unitElement.functions, unitInfo.functions,
             _applyToFunctionDeclaration);
 
-        forCorrespondingPairs(unitElement.mixins2, unitInfo.mixinDeclarations,
+        forCorrespondingPairs(unitElement.mixins, unitInfo.mixinDeclarations,
             _applyToMixinDeclaration);
 
         forCorrespondingPairs(unitElement.topLevelVariables,
@@ -518,7 +518,7 @@ class InformativeDataApplier {
     _applyToExports(element, info);
 
     forCorrespondingPairs<PartElement, _InfoPart>(
-      element.parts2,
+      element.parts,
       info.parts,
       (element, info) {
         element as PartElementImpl;
@@ -533,7 +533,7 @@ class InformativeDataApplier {
         applier.applyToImports(element.libraryImports);
         applier.applyToExports(element.libraryExports);
         applier.applyToAugmentationImports(element.augmentationImports);
-        applier.applyToPartDirectives(element.parts2);
+        applier.applyToPartDirectives(element.parts);
       },
     );
   }
