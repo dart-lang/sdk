@@ -5011,8 +5011,16 @@ class InternalRecordLiteral extends InternalExpression {
 }
 
 abstract class Matcher extends TreeNode {
+  Matcher(int fileOffset) {
+    this.fileOffset = fileOffset;
+  }
+
   @override
   R accept<R>(TreeVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultTreeNode(this);
+    }
     return unsupported(
         "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
   }
@@ -5042,6 +5050,8 @@ abstract class Matcher extends TreeNode {
 }
 
 class DummyMatcher extends Matcher {
+  DummyMatcher(int fileOffset) : super(fileOffset);
+
   @override
   void toTextInternal(AstPrinter printer) {}
 
@@ -5051,10 +5061,211 @@ class DummyMatcher extends Matcher {
   }
 }
 
+/// A [Matcher] based on an [Expression]. This corresponds to a constant
+/// matcher (pattern) in the specification.
+class ExpressionMatcher extends Matcher {
+  Expression expression;
+
+  ExpressionMatcher(this.expression) : super(expression.fileOffset) {
+    expression.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    expression.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "ExpressionMatcher(${toStringInternal()})";
+  }
+}
+
+enum BinaryMatcherKind {
+  and,
+  or,
+}
+
+/// A [Matcher] for `matcher | matcher` and `matcher & matcher`.
+class BinaryMatcher extends Matcher {
+  Matcher left;
+  BinaryMatcherKind kind;
+  Matcher right;
+
+  BinaryMatcher(this.left, this.kind, this.right, int fileOffset)
+      : super(fileOffset) {
+    left.parent = this;
+    right.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    left.toTextInternal(printer);
+    switch (kind) {
+      case BinaryMatcherKind.and:
+        printer.write(' & ');
+        break;
+      case BinaryMatcherKind.or:
+        printer.write(' | ');
+        break;
+    }
+    right.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "BinaryMatcher(${toStringInternal()})";
+  }
+}
+
+/// A [Matcher] for `matcher as type`.
+class CastMatcher extends Matcher {
+  Matcher matcher;
+  DartType type;
+
+  CastMatcher(this.matcher, this.type, int fileOffset) : super(fileOffset) {
+    matcher.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    matcher.toTextInternal(printer);
+    printer.write(' as ');
+    printer.writeType(type);
+  }
+
+  @override
+  String toString() {
+    return "CastMatcher(${toStringInternal()})";
+  }
+}
+
+/// A [Matcher] for `matcher!`.
+class NullAssertMatcher extends Matcher {
+  Matcher matcher;
+
+  NullAssertMatcher(this.matcher, int fileOffset) : super(fileOffset) {
+    matcher.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    matcher.toTextInternal(printer);
+    printer.write('!');
+  }
+
+  @override
+  String toString() {
+    return "NullAssertMatcher(${toStringInternal()})";
+  }
+}
+
+/// A [Matcher] for `matcher?`.
+class NullCheckMatcher extends Matcher {
+  Matcher matcher;
+
+  NullCheckMatcher(this.matcher, int fileOffset) : super(fileOffset) {
+    matcher.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    matcher.toTextInternal(printer);
+    printer.write('?');
+  }
+
+  @override
+  String toString() {
+    return "NullCheckMatcher(${toStringInternal()})";
+  }
+}
+
+/// A [Matcher] for `<typeArgument>[matcher0, ... matcherN]`.
+class ListMatcher extends Matcher {
+  DartType typeArgument;
+  List<Matcher> matchers;
+
+  ListMatcher(this.typeArgument, this.matchers, int fileOffset)
+      : super(fileOffset) {
+    setParents(matchers, this);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<');
+    printer.writeType(typeArgument);
+    printer.write('>');
+    printer.write('[');
+    String comma = '';
+    for (Matcher matcher in matchers) {
+      printer.write(comma);
+      matcher.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write(']');
+  }
+
+  @override
+  String toString() {
+    return "ListMatcher(${toStringInternal()})";
+  }
+}
+
+enum RelationalMatcherKind {
+  equals,
+  notEquals,
+  lessThan,
+  lessThanEqual,
+  greaterThan,
+  greaterThanEqual,
+}
+
+/// A [Matcher] for `operator expression` where `operator  is either ==, !=,
+/// <, <=, >, or >=.
+class RelationalMatcher extends Matcher {
+  final RelationalMatcherKind kind;
+  Expression expression;
+
+  RelationalMatcher(this.kind, this.expression, int fileOffset)
+      : super(fileOffset) {
+    expression.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    switch (kind) {
+      case RelationalMatcherKind.equals:
+        printer.write('== ');
+        break;
+      case RelationalMatcherKind.notEquals:
+        printer.write('!= ');
+        break;
+      case RelationalMatcherKind.lessThan:
+        printer.write('< ');
+        break;
+      case RelationalMatcherKind.lessThanEqual:
+        printer.write('<= ');
+        break;
+      case RelationalMatcherKind.greaterThan:
+        printer.write('> ');
+        break;
+      case RelationalMatcherKind.greaterThanEqual:
+        printer.write('>= ');
+        break;
+    }
+    printer.writeExpression(expression);
+  }
+
+  @override
+  String toString() {
+    return "RelationalMatcher(${toStringInternal()})";
+  }
+}
+
 class BinderMatcher extends Matcher {
   final Binder binder;
 
-  BinderMatcher(this.binder);
+  BinderMatcher(this.binder) : super(binder.fileOffset);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5245,5 +5456,64 @@ class PatternVariableDeclaration extends Statement {
   @override
   String toString() {
     return "PatternVariableDeclaration(${toStringInternal()})";
+  }
+}
+
+final Matcher dummyMatcher = new ExpressionMatcher(dummyExpression);
+
+class IfCaseStatement extends InternalStatement {
+  Expression expression;
+  Matcher matcher;
+  Statement then;
+  Statement? otherwise;
+
+  IfCaseStatement(this.expression, this.matcher, this.then, this.otherwise,
+      int fileOffset) {
+    this.fileOffset = fileOffset;
+    expression.parent = this;
+    matcher.parent = this;
+    then.parent = this;
+    otherwise?.parent = this;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitIfCaseStatement(this);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('if (');
+    printer.writeExpression(expression);
+    printer.write(' case ');
+    matcher.toTextInternal(printer);
+    printer.write(') ');
+    printer.writeStatement(then);
+    if (otherwise != null) {
+      printer.write(' else ');
+      printer.writeStatement(otherwise!);
+    }
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "IfCaseStatement(${toStringInternal()})";
   }
 }

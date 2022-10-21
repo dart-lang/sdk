@@ -1801,6 +1801,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
+  StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
+    // TODO(cstefantsova): Handle if-case statements.
+    return new StatementInferenceResult.single(
+        new EmptyStatement()..fileOffset = node.fileOffset);
+  }
+
   ExpressionInferenceResult visitIntJudgment(
       IntJudgment node, DartType typeContext) {
     if (isDoubleContext(typeContext)) {

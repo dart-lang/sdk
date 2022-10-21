@@ -42,6 +42,16 @@ void testExpression(Expression node, String normal,
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
+void testMatcher(Matcher node, String normal,
+    {String? verbose, String? limited}) {
+  Expect.stringEquals(normal, node.toText(normalStrategy),
+      "Unexpected normal strategy text for ${node.runtimeType}");
+  Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
+      "Unexpected verbose strategy text for ${node.runtimeType}");
+  Expect.stringEquals(limited ?? normal, node.toText(limitedStrategy),
+      "Unexpected limited strategy text for ${node.runtimeType}");
+}
+
 final Uri dummyUri = Uri.parse('test:dummy');
 
 void main() {
@@ -108,6 +118,14 @@ void main() {
     _testIfMapEntry();
     _testForMapEntry();
     _testForInMapEntry();
+    _testExpressionMatcher();
+    _testBinaryMatcher();
+    _testCastMatcher();
+    _testNullAssertMatcher();
+    _testNullCheckMatcher();
+    _testListMatcher();
+    _testRelationalMatcher();
+    _testIfCaseStatement();
   });
 }
 
@@ -1037,3 +1055,108 @@ void _testIfMapEntry() {}
 void _testForMapEntry() {}
 
 void _testForInMapEntry() {}
+
+void _testExpressionMatcher() {
+  testMatcher(new ExpressionMatcher(new IntLiteral(0)), '''
+0''');
+
+  testMatcher(new ExpressionMatcher(new BoolLiteral(true)), '''
+true''');
+}
+
+void _testBinaryMatcher() {
+  testMatcher(
+      new BinaryMatcher(
+          new ExpressionMatcher(new IntLiteral(0)),
+          BinaryMatcherKind.and,
+          new ExpressionMatcher(new IntLiteral(1)),
+          TreeNode.noOffset),
+      '''
+0 & 1''');
+
+  testMatcher(
+      new BinaryMatcher(
+          new ExpressionMatcher(new IntLiteral(0)),
+          BinaryMatcherKind.or,
+          new ExpressionMatcher(new IntLiteral(1)),
+          TreeNode.noOffset),
+      '''
+0 | 1''');
+}
+
+void _testCastMatcher() {
+  testMatcher(
+      new CastMatcher(new ExpressionMatcher(new IntLiteral(0)),
+          const DynamicType(), TreeNode.noOffset),
+      '''
+0 as dynamic''');
+}
+
+void _testNullAssertMatcher() {
+  testMatcher(
+      new NullAssertMatcher(
+          new ExpressionMatcher(new IntLiteral(0)), TreeNode.noOffset),
+      '''
+0!''');
+}
+
+void _testNullCheckMatcher() {
+  testMatcher(
+      new NullCheckMatcher(
+          new ExpressionMatcher(new IntLiteral(0)), TreeNode.noOffset),
+      '''
+0?''');
+}
+
+void _testListMatcher() {
+  testMatcher(
+      new ListMatcher(
+          const DynamicType(),
+          [
+            new ExpressionMatcher(new IntLiteral(0)),
+            new ExpressionMatcher(new IntLiteral(1)),
+          ],
+          TreeNode.noOffset),
+      '''
+<dynamic>[0, 1]''');
+}
+
+void _testRelationalMatcher() {
+  testMatcher(
+      new RelationalMatcher(
+          RelationalMatcherKind.equals, new IntLiteral(0), TreeNode.noOffset),
+      '''
+== 0''');
+  testMatcher(
+      new RelationalMatcher(RelationalMatcherKind.notEquals, new IntLiteral(1),
+          TreeNode.noOffset),
+      '''
+!= 1''');
+  testMatcher(
+      new RelationalMatcher(
+          RelationalMatcherKind.lessThan, new IntLiteral(2), TreeNode.noOffset),
+      '''
+< 2''');
+}
+
+void _testIfCaseStatement() {
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new ExpressionMatcher(new IntLiteral(1)),
+          new ReturnStatement(),
+          null,
+          TreeNode.noOffset),
+      '''
+if (0 case 1) return;''');
+
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new ExpressionMatcher(new IntLiteral(1)),
+          new ReturnStatement(new IntLiteral(2)),
+          new ReturnStatement(new IntLiteral(3)),
+          TreeNode.noOffset),
+      '''
+if (0 case 1) return 2; else return 3;''');
+}

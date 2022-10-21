@@ -12,6 +12,9 @@ import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as type
     show Token;
 
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart'
+    as type;
+
 import 'package:kernel/ast.dart' as type;
 
 import '../builder/formal_parameter_builder.dart' as type;
@@ -23,7 +26,8 @@ import '../builder/type_variable_builder.dart' as type;
 
 import '../identifiers.dart' as type;
 
-import '../kernel/body_builder.dart' as type show FormalParameters;
+import '../kernel/body_builder.dart' as type
+    show Condition, FormalParameters, JumpTarget;
 import '../kernel/expression_generator.dart' as type;
 import '../kernel/internal_ast.dart' as type;
 
@@ -45,14 +49,21 @@ class ValueKinds {
   static const ValueKind Arguments = const SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
       const SingleValueKind<type.Arguments>(NullValue.Arguments);
+  static const ValueKind AssignedVariablesNodeInfo =
+      const SingleValueKind<type.AssignedVariablesNodeInfo>();
   static const ValueKind AsyncMarker =
       const SingleValueKind<type.AsyncMarker>();
   static const ValueKind AsyncModifier =
       const SingleValueKind<type.AsyncMarker>();
   static const ValueKind Binder = const SingleValueKind<type.Binder>();
+  static const ValueKind BreakTarget =
+      const SingleValueKind<type.JumpTarget>(NullValue.BreakTarget);
   static const ValueKind Bool = const SingleValueKind<bool>();
+  static const ValueKind Condition = const SingleValueKind<type.Condition>();
   static const ValueKind ConstantContext =
       const SingleValueKind<type.ConstantContext>();
+  static const ValueKind ContinueTarget =
+      const SingleValueKind<type.JumpTarget>(NullValue.ContinueTarget);
   static const ValueKind Expression = const SingleValueKind<type.Expression>();
   static const ValueKind ExpressionOrNull =
       const SingleValueKind<type.Expression>(NullValue.Expression);
@@ -75,6 +86,8 @@ class ValueKinds {
   static const ValueKind MapLiteralEntry =
       const SingleValueKind<type.MapLiteralEntry>();
   static const ValueKind Matcher = const SingleValueKind<type.Matcher>();
+  static const ValueKind MatcherOrNull =
+      const SingleValueKind<type.Matcher>(NullValue.Matcher);
   static const ValueKind MatcherListOrNull =
       const SingleValueKind<List<type.Matcher>>(NullValue.MatcherList);
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
@@ -125,6 +138,8 @@ class ValueKinds {
           NullValue.RecordTypeFieldList);
   static const ValueKind Scope = const SingleValueKind<type.Scope>();
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
+  static const ValueKind SwitchCaseList =
+      const SingleValueKind<List<type.SwitchCase>>();
   static const ValueKind SwitchScopeOrNull =
       const SingleValueKind<type.Scope>(NullValue.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
