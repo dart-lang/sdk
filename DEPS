@@ -92,8 +92,8 @@ vars = {
   # Note that putting an EOL comment after a dependency below will prevent the
   # 'tools/rev_sdk_deps.dart' tool from attempting to rev to a newer revision.
 
-  "args_rev": "80d4abbd6b38b79bcdbc411b4b517628c7611232",
-  "async_rev": "f3ed5f690e2ec9dbe1bfc5184705575b4f6480e5",
+  "args_rev": "aaf671c1462108d62b1dba0e4a74f98ed233d939",
+  "async_rev": "18a780efd914c3d848ddc1af5f6c83903a8b2d2d",
   "bazel_worker_rev": "03717ca4c2bbf1d74f26c89673426e076288242a",
   "benchmark_harness_rev": "6a116758f2b96e92659194bcda990f42106a01d3",
   "boolean_selector_rev": "1d3565e2651d16566bb556955b96ea75018cbd0c",
@@ -137,7 +137,7 @@ vars = {
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
-  "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
+  "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
   "markdown_rev": "93d0eee771f6355be6737c2a865f613f6b105bf1",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
@@ -168,13 +168,13 @@ vars = {
   "test_reflective_loader_rev": "ef934b7a894d78601ba67d8f6207bd4505690456",
   "test_rev": "f704d5afe9667ee1cc35b8575822629091fd6441",
   "typed_data_rev": "6369490ede1c87a4a5758304a606a6e4eee364b9",
-  "usage_rev": "9a98c89163c7122bf946954209a69718300392d9",
+  "usage_rev": "fee1d9d9c295362f6edebfeebb9f8187711c55ab",
   "vector_math_rev": "1eee95b15e5d35cf519514cc253037b19705fb7a",
   "watcher_rev": "32591071a83f632478e702f67e29de6e54428ce9",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "4b46c0c4196a5e76c2b0e2589ed37de247d35938",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "a02f073aecb4c4e7befdf4c1fcc4c83e67af8bf2",
+  "webdev_rev": "81c538442412d53daa5fba0b0e227167dad50c2f",
   "webdriver_rev": "f56cc6a2f9612a0a13fec4282dc61b90df384033",
   "webkit_inspection_protocol_rev": "b825c8f6a12200d619729903207ac826cce278da",
   "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",
