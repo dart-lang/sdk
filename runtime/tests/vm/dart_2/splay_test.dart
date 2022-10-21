@@ -29,6 +29,7 @@
 // VMOptions=--verify_after_gc
 // VMOptions=--verify_before_gc --verify_after_gc
 // VMOptions=--verify_store_buffer
+// VMOptions=--verify_after_marking
 // VMOptions=--stress_write_barrier_elimination
 // VMOptions=--old_gen_heap_size=100
 // VMOptions=--mark_when_idle
