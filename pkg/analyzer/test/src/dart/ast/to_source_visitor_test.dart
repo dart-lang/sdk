@@ -712,10 +712,13 @@ class A {
   }
 
   void test_visitConstructorDeclaration_external() {
-    _assertSource(
-        "external C();",
-        AstTestFactory.constructorDeclaration(AstTestFactory.identifier3("C"),
-            null, AstTestFactory.formalParameterList(), []));
+    final code = 'external A();';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorDeclaration_minimal() {
@@ -1461,7 +1464,11 @@ final v = [ $code ];
   }
 
   void test_visitFormalParameterList_empty() {
-    _assertSource("()", AstTestFactory.formalParameterList());
+    final code = '()';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_n() {
@@ -2124,14 +2131,19 @@ final x = $code;
   }
 
   void test_visitInterpolationExpression_expression() {
-    _assertSource(
-        "\${a}",
-        AstTestFactory.interpolationExpression(
-            AstTestFactory.identifier3("a")));
+    final code = r'${foo}';
+    final findNode = _parseStringToFindNode('''
+final x = "$code";
+''');
+    _assertSource(code, findNode.interpolationExpression(code));
   }
 
   void test_visitInterpolationExpression_identifier() {
-    _assertSource("\$a", AstTestFactory.interpolationExpression2("a"));
+    final code = r'$foo';
+    final findNode = _parseStringToFindNode('''
+final x = "$code";
+''');
+    _assertSource(code, findNode.interpolationExpression(code));
   }
 
   void test_visitInterpolationString() {
@@ -2199,7 +2211,11 @@ library augment 'a.dart';
   }
 
   void test_visitLibraryDirective() {
-    _assertSource("library l;", AstTestFactory.libraryDirective2("l"));
+    var code = 'library my;';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.library(code));
   }
 
   void test_visitLibraryDirective_withMetadata() {
@@ -2209,18 +2225,19 @@ library augment 'a.dart';
   }
 
   void test_visitLibraryIdentifier_multiple() {
-    _assertSource(
-        "a.b.c",
-        AstTestFactory.libraryIdentifier([
-          AstTestFactory.identifier3("a"),
-          AstTestFactory.identifier3("b"),
-          AstTestFactory.identifier3("c")
-        ]));
+    var code = 'a.b.c';
+    var findNode = _parseStringToFindNode('''
+library $code;
+''');
+    _assertSource(code, findNode.libraryIdentifier(code));
   }
 
   void test_visitLibraryIdentifier_single() {
-    _assertSource("a",
-        AstTestFactory.libraryIdentifier([AstTestFactory.identifier3("a")]));
+    var code = 'my';
+    var findNode = _parseStringToFindNode('''
+library $code;
+''');
+    _assertSource(code, findNode.libraryIdentifier(code));
   }
 
   void test_visitListLiteral_complex() {
@@ -2425,15 +2442,13 @@ void f(x) {
   }
 
   void test_visitMethodDeclaration_external() {
-    _assertSource(
-        "external m();",
-        AstTestFactory.methodDeclaration(
-            null,
-            null,
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList()));
+    final code = 'external foo();';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_external_returnType() {
@@ -2659,10 +2674,11 @@ final x = $code;
   }
 
   void test_visitParenthesizedExpression() {
-    _assertSource(
-        "(a)",
-        AstTestFactory.parenthesizedExpression(
-            AstTestFactory.identifier3("a")));
+    final code = '(a)';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.parenthesized(code));
   }
 
   void test_visitParenthesizedPattern() {
@@ -3664,11 +3680,19 @@ class A<$code> {}
   }
 
   void test_visitTypeParameterList_multiple() {
-    _assertSource("<E, F>", AstTestFactory.typeParameterList2(["E", "F"]));
+    final code = '<T, U>';
+    final findNode = _parseStringToFindNode('''
+class A$code {}
+''');
+    _assertSource(code, findNode.typeParameterList(code));
   }
 
   void test_visitTypeParameterList_single() {
-    _assertSource("<E>", AstTestFactory.typeParameterList2(["E"]));
+    final code = '<T>';
+    final findNode = _parseStringToFindNode('''
+class A$code {}
+''');
+    _assertSource(code, findNode.typeParameterList(code));
   }
 
   void test_visitVariableDeclaration_initialized() {
@@ -3764,13 +3788,23 @@ class X $code {}
   }
 
   void test_visitYieldStatement() {
-    _assertSource("yield e;",
-        AstTestFactory.yieldStatement(AstTestFactory.identifier3("e")));
+    final code = 'yield e;';
+    final findNode = _parseStringToFindNode('''
+void f() sync* {
+  $code
+}
+''');
+    _assertSource(code, findNode.yieldStatement(code));
   }
 
   void test_visitYieldStatement_each() {
-    _assertSource("yield* e;",
-        AstTestFactory.yieldEachStatement(AstTestFactory.identifier3("e")));
+    final code = 'yield* e;';
+    final findNode = _parseStringToFindNode('''
+void f() sync* {
+  $code
+}
+''');
+    _assertSource(code, findNode.yieldStatement(code));
   }
 
   /// Assert that a [ToSourceVisitor] will produce the [expectedSource] when

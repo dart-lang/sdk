@@ -200,16 +200,16 @@ part 'foo.dart';
 
   CompilationUnitImpl _moveFirstDirectiveToEnd(CompilationUnitImpl unit) {
     return CompilationUnitImpl(
-      unit.directives.skip(1).first.beginToken,
-      unit.scriptTag,
-      [
+      beginToken: unit.directives.skip(1).first.beginToken,
+      scriptTag: unit.scriptTag,
+      directives: [
         ...unit.directives.skip(1),
         unit.directives.first,
       ],
-      unit.declarations,
-      unit.endToken,
-      unit.featureSet,
-      unit.lineInfo,
+      declarations: unit.declarations,
+      endToken: unit.endToken,
+      featureSet: unit.featureSet,
+      lineInfo: unit.lineInfo,
     );
   }
 

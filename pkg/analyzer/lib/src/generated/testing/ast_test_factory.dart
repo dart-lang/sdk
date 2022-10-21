@@ -89,15 +89,6 @@ class AstTestFactory {
         rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
       );
 
-  static ExtensionOverrideImpl extensionOverride(
-          {required Identifier extensionName,
-          TypeArgumentList? typeArguments,
-          required ArgumentList argumentList}) =>
-      astFactory.extensionOverride(
-          extensionName: extensionName,
-          typeArguments: typeArguments,
-          argumentList: argumentList);
-
   static FieldDeclarationImpl fieldDeclaration(bool isStatic, Keyword? keyword,
           TypeAnnotation? type, List<VariableDeclaration> variables,
           {bool isAbstract = false, bool isExternal = false}) =>
@@ -120,15 +111,6 @@ class AstTestFactory {
           List<VariableDeclaration> variables) =>
       fieldDeclaration(isStatic, keyword, null, variables);
 
-  static FormalParameterListImpl formalParameterList(
-          [List<FormalParameter> parameters = const []]) =>
-      astFactory.formalParameterList(
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          parameters,
-          null,
-          null,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
   static SimpleIdentifierImpl identifier3(String lexeme) =>
       astFactory.simpleIdentifier(
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, lexeme));
@@ -139,32 +121,6 @@ class AstTestFactory {
         .toList();
   }
 
-  static InterpolationExpressionImpl interpolationExpression(
-          Expression expression) =>
-      astFactory.interpolationExpression(
-          TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
-          expression,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static InterpolationExpressionImpl interpolationExpression2(
-          String identifier) =>
-      astFactory.interpolationExpression(
-          TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_IDENTIFIER),
-          identifier3(identifier),
-          null);
-
-  static IsExpressionImpl isExpression(
-          Expression expression, bool negated, TypeAnnotation type) =>
-      astFactory.isExpression(
-          expression,
-          TokenFactory.tokenFromKeyword(Keyword.IS),
-          negated ? TokenFactory.tokenFromType(TokenType.BANG) : null,
-          type);
-
-  static LabeledStatementImpl labeledStatement(
-          List<Label> labels, Statement statement) =>
-      astFactory.labeledStatement(labels, statement);
-
   static LibraryDirectiveImpl libraryDirective(
           List<Annotation> metadata, LibraryIdentifier? libraryName) =>
       LibraryDirectiveImpl(
@@ -174,20 +130,6 @@ class AstTestFactory {
         name: libraryName as LibraryIdentifierImpl?,
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
-
-  static LibraryDirectiveImpl libraryDirective2(String? libraryName) =>
-      libraryDirective(
-        <Annotation>[],
-        libraryName == null ? null : libraryIdentifier2([libraryName]),
-      );
-
-  static LibraryIdentifierImpl libraryIdentifier(
-          List<SimpleIdentifier> components) =>
-      astFactory.libraryIdentifier(components);
-
-  static LibraryIdentifierImpl libraryIdentifier2(List<String> components) {
-    return astFactory.libraryIdentifier(identifierList(components));
-  }
 
   static List list(List<Object> elements) {
     return elements;
@@ -219,13 +161,6 @@ class AstTestFactory {
         ),
       );
 
-  static ParenthesizedExpressionImpl parenthesizedExpression(
-          Expression expression) =>
-      astFactory.parenthesizedExpression(
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          expression,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
   static PartOfDirectiveImpl partOfDirective(LibraryIdentifier libraryName) =>
       partOfDirective2(<Annotation>[], libraryName);
 
@@ -240,21 +175,6 @@ class AstTestFactory {
         libraryName: libraryName as LibraryIdentifierImpl,
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
-
-  static StringInterpolationImpl string(
-          [List<InterpolationElement> elements = const []]) =>
-      astFactory.stringInterpolation(elements);
-
-  static SwitchStatementImpl switchStatement(
-          Expression expression, List<SwitchMember> members) =>
-      astFactory.switchStatement(
-          TokenFactory.tokenFromKeyword(Keyword.SWITCH),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          expression,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          members,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static TopLevelVariableDeclarationImpl topLevelVariableDeclaration(
           Keyword? keyword,
@@ -280,18 +200,6 @@ class AstTestFactory {
             isExternal ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL) : null,
       );
 
-  static TypeArgumentList? typeArgumentList(List<TypeAnnotation>? types) {
-    if (types == null || types.isEmpty) {
-      return null;
-    }
-    return typeArgumentList2(types);
-  }
-
-  static TypeArgumentListImpl typeArgumentList2(List<TypeAnnotation> types) {
-    return astFactory.typeArgumentList(TokenFactory.tokenFromType(TokenType.LT),
-        types, TokenFactory.tokenFromType(TokenType.GT));
-  }
-
   static TypeParameterImpl typeParameter(String name) => TypeParameterImpl(
         comment: null,
         metadata: null,
@@ -311,25 +219,6 @@ class AstTestFactory {
         bound: null,
         varianceKeyword: TokenFactory.tokenFromString(varianceLexeme),
       );
-
-  static TypeParameterList? typeParameterList([List<String>? typeNames]) {
-    if (typeNames == null || typeNames.isEmpty) {
-      return null;
-    }
-    return typeParameterList2(typeNames);
-  }
-
-  static TypeParameterListImpl typeParameterList2(List<String> typeNames) {
-    var typeParameters = <TypeParameter>[];
-    for (String typeName in typeNames) {
-      typeParameters.add(typeParameter(typeName));
-    }
-
-    return astFactory.typeParameterList(
-        TokenFactory.tokenFromType(TokenType.LT),
-        typeParameters,
-        TokenFactory.tokenFromType(TokenType.GT));
-  }
 
   static VariableDeclarationImpl variableDeclaration(String name) =>
       VariableDeclarationImpl(
@@ -361,18 +250,4 @@ class AstTestFactory {
   static VariableDeclarationListImpl variableDeclarationList2(
           Keyword? keyword, List<VariableDeclaration> variables) =>
       variableDeclarationList(keyword, null, variables);
-
-  static YieldStatementImpl yieldEachStatement(Expression expression) =>
-      astFactory.yieldStatement(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"),
-          TokenFactory.tokenFromType(TokenType.STAR),
-          expression,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static YieldStatementImpl yieldStatement(Expression expression) =>
-      astFactory.yieldStatement(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"),
-          null,
-          expression,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 }

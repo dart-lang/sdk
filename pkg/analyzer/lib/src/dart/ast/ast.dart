@@ -2418,14 +2418,15 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// in the compilation unit. The list of [directives] can be `null` if there
   /// are no directives in the compilation unit. The list of [declarations] can
   /// be `null` if there are no declarations in the compilation unit.
-  CompilationUnitImpl(
-      this.beginToken,
-      this._scriptTag,
-      List<Directive>? directives,
-      List<CompilationUnitMember>? declarations,
-      this.endToken,
-      this.featureSet,
-      this.lineInfo) {
+  CompilationUnitImpl({
+    required this.beginToken,
+    required ScriptTagImpl? scriptTag,
+    required List<Directive>? directives,
+    required List<CompilationUnitMember>? declarations,
+    required this.endToken,
+    required this.featureSet,
+    required this.lineInfo,
+  }) : _scriptTag = scriptTag {
     _becomeParentOf(_scriptTag);
     _directives._initialize(this, directives);
     _declarations._initialize(this, declarations);
@@ -4624,10 +4625,6 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 ///        [Identifier] [TypeArgumentList]? [ArgumentList]
 class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
-  /// The list of arguments to the override. In valid code this will contain a
-  /// single argument, which evaluates to the object being extended.
-  ArgumentListImpl _argumentList;
-
   /// The name of the extension being selected.
   IdentifierImpl _extensionName;
 
@@ -4635,14 +4632,23 @@ class ExtensionOverrideImpl extends ExpressionImpl
   /// arguments were provided.
   TypeArgumentListImpl? _typeArguments;
 
+  /// The list of arguments to the override. In valid code this will contain a
+  /// single argument, which evaluates to the object being extended.
+  ArgumentListImpl _argumentList;
+
   @override
   List<DartType>? typeArgumentTypes;
 
   @override
   DartType? extendedType;
 
-  ExtensionOverrideImpl(
-      this._extensionName, this._typeArguments, this._argumentList) {
+  ExtensionOverrideImpl({
+    required IdentifierImpl extensionName,
+    required TypeArgumentListImpl? typeArguments,
+    required ArgumentListImpl argumentList,
+  })  : _extensionName = extensionName,
+        _typeArguments = typeArguments,
+        _argumentList = argumentList {
     _becomeParentOf(_extensionName);
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_argumentList);
@@ -5365,12 +5371,13 @@ class FormalParameterListImpl extends AstNodeImpl
   /// Initialize a newly created parameter list. The list of [parameters] can be
   /// `null` if there are no parameters. The [leftDelimiter] and
   /// [rightDelimiter] can be `null` if there are no optional parameters.
-  FormalParameterListImpl(
-      this.leftParenthesis,
-      List<FormalParameter> parameters,
-      this.leftDelimiter,
-      this.rightDelimiter,
-      this.rightParenthesis) {
+  FormalParameterListImpl({
+    required this.leftParenthesis,
+    required List<FormalParameter> parameters,
+    required this.leftDelimiter,
+    required this.rightDelimiter,
+    required this.rightParenthesis,
+  }) {
     _parameters._initialize(this, parameters);
   }
 
@@ -6907,12 +6914,13 @@ class ImplicitCallReferenceImpl extends ExpressionImpl
   @override
   MethodElement staticElement;
 
-  ImplicitCallReferenceImpl(
-    this._expression, {
+  ImplicitCallReferenceImpl({
+    required ExpressionImpl expression,
     required this.staticElement,
     required TypeArgumentListImpl? typeArguments,
     required this.typeArgumentTypes,
-  }) : _typeArguments = typeArguments {
+  })  : _expression = expression,
+        _typeArguments = typeArguments {
     _becomeParentOf(_expression);
     _becomeParentOf(_typeArguments);
   }
@@ -7336,13 +7344,17 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   ArgumentListImpl _argumentList;
 
   /// Initialize a newly created instance creation expression.
-  InstanceCreationExpressionImpl(
-      this.keyword, this._constructorName, this._argumentList,
-      {TypeArgumentListImpl? typeArguments})
-      : _typeArguments = typeArguments {
+  InstanceCreationExpressionImpl({
+    required this.keyword,
+    required ConstructorNameImpl constructorName,
+    required ArgumentListImpl argumentList,
+    required TypeArgumentListImpl? typeArguments,
+  })  : _constructorName = constructorName,
+        _argumentList = argumentList,
+        _typeArguments = typeArguments {
     _becomeParentOf(_constructorName);
-    _becomeParentOf(_typeArguments);
     _becomeParentOf(_argumentList);
+    _becomeParentOf(_typeArguments);
   }
 
   @override
@@ -7564,8 +7576,11 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   Token? rightBracket;
 
   /// Initialize a newly created interpolation expression.
-  InterpolationExpressionImpl(
-      this.leftBracket, this._expression, this.rightBracket) {
+  InterpolationExpressionImpl({
+    required this.leftBracket,
+    required ExpressionImpl expression,
+    required this.rightBracket,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -7714,8 +7729,13 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   /// Initialize a newly created is expression. The [notOperator] can be `null`
   /// if the sense of the test is not negated.
-  IsExpressionImpl(
-      this._expression, this.isOperator, this.notOperator, this._type) {
+  IsExpressionImpl({
+    required ExpressionImpl expression,
+    required this.isOperator,
+    required this.notOperator,
+    required TypeAnnotationImpl type,
+  })  : _expression = expression,
+        _type = type {
     _becomeParentOf(_expression);
     _becomeParentOf(_type);
   }
@@ -7777,7 +7797,10 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   StatementImpl _statement;
 
   /// Initialize a newly created labeled statement.
-  LabeledStatementImpl(List<Label> labels, this._statement) {
+  LabeledStatementImpl({
+    required List<Label> labels,
+    required StatementImpl statement,
+  }) : _statement = statement {
     _labels._initialize(this, labels);
     _becomeParentOf(_statement);
   }
@@ -7984,7 +8007,9 @@ class LibraryIdentifierImpl extends IdentifierImpl
   final NodeListImpl<SimpleIdentifier> _components = NodeListImpl._();
 
   /// Initialize a newly created prefixed identifier.
-  LibraryIdentifierImpl(List<SimpleIdentifier> components) {
+  LibraryIdentifierImpl({
+    required List<SimpleIdentifier> components,
+  }) {
     _components._initialize(this, components);
   }
 
@@ -9139,8 +9164,11 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 
   /// Initialize a newly created function body consisting of the 'native' token,
   /// a string literal, and a semicolon.
-  NativeFunctionBodyImpl(
-      this.nativeKeyword, this._stringLiteral, this.semicolon) {
+  NativeFunctionBodyImpl({
+    required this.nativeKeyword,
+    required StringLiteralImpl? stringLiteral,
+    required this.semicolon,
+  }) : _stringLiteral = stringLiteral {
     _becomeParentOf(_stringLiteral);
   }
 
@@ -9522,8 +9550,11 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   Token rightParenthesis;
 
   /// Initialize a newly created parenthesized expression.
-  ParenthesizedExpressionImpl(
-      this.leftParenthesis, this._expression, this.rightParenthesis) {
+  ParenthesizedExpressionImpl({
+    required this.leftParenthesis,
+    required ExpressionImpl expression,
+    required this.rightParenthesis,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -11756,7 +11787,9 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
   final NodeListImpl<InterpolationElement> _elements = NodeListImpl._();
 
   /// Initialize a newly created string interpolation expression.
-  StringInterpolationImpl(List<InterpolationElement> elements) {
+  StringInterpolationImpl({
+    required List<InterpolationElement> elements,
+  }) {
     // TODO(scheglov) Replace asserts with appropriately typed parameters.
     assert(elements.length > 2, 'Expected at last three elements.');
     assert(
@@ -12621,14 +12654,15 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 
   /// Initialize a newly created switch statement. The list of [members] can be
   /// `null` if there are no switch members.
-  SwitchStatementImpl(
-      this.switchKeyword,
-      this.leftParenthesis,
-      this._expression,
-      this.rightParenthesis,
-      this.leftBracket,
-      List<SwitchMember> members,
-      this.rightBracket) {
+  SwitchStatementImpl({
+    required this.switchKeyword,
+    required this.leftParenthesis,
+    required ExpressionImpl expression,
+    required this.rightParenthesis,
+    required this.leftBracket,
+    required List<SwitchMember> members,
+    required this.rightBracket,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
     _members._initialize(this, members);
   }
@@ -13034,8 +13068,11 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   Token rightBracket;
 
   /// Initialize a newly created list of type arguments.
-  TypeArgumentListImpl(
-      this.leftBracket, List<TypeAnnotation> arguments, this.rightBracket) {
+  TypeArgumentListImpl({
+    required this.leftBracket,
+    required List<TypeAnnotation> arguments,
+    required this.rightBracket,
+  }) {
     _arguments._initialize(this, arguments);
   }
 
@@ -13267,8 +13304,11 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   final Token rightBracket;
 
   /// Initialize a newly created list of type parameters.
-  TypeParameterListImpl(
-      this.leftBracket, List<TypeParameter> typeParameters, this.rightBracket) {
+  TypeParameterListImpl({
+    required this.leftBracket,
+    required List<TypeParameter> typeParameters,
+    required this.rightBracket,
+  }) {
     _typeParameters._initialize(this, typeParameters);
   }
 
@@ -13888,8 +13928,12 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
 
   /// Initialize a newly created yield expression. The [star] can be `null` if
   /// no star was provided.
-  YieldStatementImpl(
-      this.yieldKeyword, this.star, this._expression, this.semicolon) {
+  YieldStatementImpl({
+    required this.yieldKeyword,
+    required this.star,
+    required ExpressionImpl expression,
+    required this.semicolon,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -119,10 +118,11 @@ class AstRewriter {
           typeIdentifier: methodName,
         );
       } else if (element is ExtensionElement) {
-        ExtensionOverride extensionOverride = astFactory.extensionOverride(
-            extensionName: methodName,
-            typeArguments: node.typeArguments,
-            argumentList: node.argumentList);
+        var extensionOverride = ExtensionOverrideImpl(
+          extensionName: methodName,
+          typeArguments: node.typeArguments,
+          argumentList: node.argumentList,
+        );
         NodeReplacer.replace(node, extensionOverride);
         return extensionOverride;
       } else if (element is TypeAliasElement &&
@@ -158,15 +158,16 @@ class AstRewriter {
             typeIdentifier: methodName,
           );
         } else if (prefixedElement is ExtensionElement) {
-          PrefixedIdentifier extensionName = PrefixedIdentifierImpl(
+          var extensionName = PrefixedIdentifierImpl(
             prefix: target,
             period: node.operator!,
             identifier: methodName,
           );
-          ExtensionOverride extensionOverride = astFactory.extensionOverride(
-              extensionName: extensionName,
-              typeArguments: node.typeArguments,
-              argumentList: node.argumentList);
+          var extensionOverride = ExtensionOverrideImpl(
+            extensionName: extensionName,
+            typeArguments: node.typeArguments,
+            argumentList: node.argumentList,
+          );
           NodeReplacer.replace(node, extensionOverride);
           return extensionOverride;
         } else if (prefixedElement is TypeAliasElement &&
@@ -406,8 +407,12 @@ class AstRewriter {
       period: node.operator,
       name: constructorIdentifier,
     );
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList);
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }
@@ -497,8 +502,12 @@ class AstRewriter {
       period: null,
       name: null,
     );
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList);
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }
@@ -517,8 +526,12 @@ class AstRewriter {
       period: null,
       name: null,
     );
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList);
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }
@@ -553,9 +566,12 @@ class AstRewriter {
       name: constructorIdentifier,
     );
     // TODO(scheglov) I think we should drop "typeArguments" below.
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList,
-        typeArguments: typeArguments);
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: typeArguments,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }

@@ -5,19 +5,18 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 
 FunctionExpressionImpl emptyFunctionExpression() {
   return FunctionExpressionImpl(
     typeParameters: null,
-    parameters: astFactory.formalParameterList(
-      Tokens.openParenthesis(),
-      [],
-      null,
-      null,
-      Tokens.closeParenthesis(),
+    parameters: FormalParameterListImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      parameters: [],
+      leftDelimiter: null,
+      rightDelimiter: null,
+      rightParenthesis: Tokens.closeParenthesis(),
     ),
     body: BlockFunctionBodyImpl(
       keyword: null,

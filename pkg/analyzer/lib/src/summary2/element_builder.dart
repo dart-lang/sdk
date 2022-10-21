@@ -241,9 +241,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var constructorSelector = constant.arguments?.constructorSelector;
       var constructorName = constructorSelector?.name.name;
 
-      var initializer = astFactory.instanceCreationExpression(
-        null,
-        ConstructorNameImpl(
+      var initializer = InstanceCreationExpressionImpl(
+        keyword: null,
+        constructorName: ConstructorNameImpl(
           type: NamedTypeImpl(
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
@@ -258,13 +258,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
                 )
               : null,
         ),
-        ArgumentListImpl(
+        argumentList: ArgumentListImpl(
           leftParenthesis: Tokens.openParenthesis(),
           arguments: [
             ...?constant.arguments?.argumentList.arguments,
           ],
           rightParenthesis: Tokens.closeParenthesis(),
         ),
+        typeArguments: null,
       );
 
       var variableDeclaration = VariableDeclarationImpl(
@@ -317,9 +318,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, 'List', -1),
         ),
-        typeArguments: astFactory.typeArgumentList(
-          Tokens.lt(),
-          [
+        typeArguments: TypeArgumentListImpl(
+          leftBracket: Tokens.lt(),
+          arguments: [
             NamedTypeImpl(
               name: astFactory.simpleIdentifier(
                 StringToken(TokenType.STRING, element.name, -1),
@@ -328,7 +329,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
               question: null,
             )
           ],
-          Tokens.gt(),
+          rightBracket: Tokens.gt(),
         ),
         question: null,
       );

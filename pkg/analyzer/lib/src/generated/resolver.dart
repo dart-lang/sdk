@@ -22,7 +22,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -3043,7 +3042,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       typeArgumentTypes = [];
     }
 
-    var callReference = astFactory.implicitCallReference(
+    var callReference = ImplicitCallReferenceImpl(
       expression: expression,
       staticElement: callMethod,
       typeArguments: null,

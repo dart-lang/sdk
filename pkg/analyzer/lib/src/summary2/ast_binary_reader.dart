@@ -452,10 +452,10 @@ class AstBinaryReader {
   }
 
   ExtensionOverride _readExtensionOverride() {
-    var extensionName = readNode() as Identifier;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
-    var argumentList = readNode() as ArgumentList;
-    var node = astFactory.extensionOverride(
+    var extensionName = readNode() as IdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var argumentList = readNode() as ArgumentListImpl;
+    var node = ExtensionOverrideImpl(
       extensionName: extensionName,
       argumentList: argumentList,
       typeArguments: typeArguments,
@@ -525,22 +525,22 @@ class AstBinaryReader {
     var flags = _readByte();
     var parameters = _readNodeList<FormalParameter>();
 
-    return astFactory.formalParameterList(
-      Tokens.openParenthesis(),
-      parameters,
-      Tokens.choose(
+    return FormalParameterListImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      parameters: parameters,
+      leftDelimiter: Tokens.choose(
         AstBinaryFlags.isDelimiterCurly(flags),
         Tokens.openCurlyBracket(),
         AstBinaryFlags.isDelimiterSquare(flags),
         Tokens.openSquareBracket(),
       ),
-      Tokens.choose(
+      rightDelimiter: Tokens.choose(
         AstBinaryFlags.isDelimiterCurly(flags),
         Tokens.closeCurlyBracket(),
         AstBinaryFlags.isDelimiterSquare(flags),
         Tokens.closeSquareBracket(),
       ),
-      Tokens.closeParenthesis(),
+      rightParenthesis: Tokens.closeParenthesis(),
     );
   }
 
@@ -667,12 +667,12 @@ class AstBinaryReader {
   }
 
   ImplicitCallReference _readImplicitCallReference() {
-    var expression = readNode() as Expression;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+    var expression = readNode() as ExpressionImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var typeArgumentTypes = _reader.readOptionalTypeList()!;
     var staticElement = _reader.readElement() as MethodElement;
 
-    var node = astFactory.implicitCallReference(
+    var node = ImplicitCallReferenceImpl(
       expression: expression,
       staticElement: staticElement,
       typeArguments: typeArguments,
@@ -714,18 +714,19 @@ class AstBinaryReader {
 
   InstanceCreationExpression _readInstanceCreationExpression() {
     var flags = _readByte();
-    var constructorName = readNode() as ConstructorName;
-    var argumentList = readNode() as ArgumentList;
+    var constructorName = readNode() as ConstructorNameImpl;
+    var argumentList = readNode() as ArgumentListImpl;
 
-    var node = astFactory.instanceCreationExpression(
-      Tokens.choose(
+    var node = InstanceCreationExpressionImpl(
+      keyword: Tokens.choose(
         AstBinaryFlags.isConst(flags),
         Tokens.const_(),
         AstBinaryFlags.isNew(flags),
         Tokens.new_(),
       ),
-      constructorName,
-      argumentList,
+      constructorName: constructorName,
+      argumentList: argumentList,
+      typeArguments: null,
     );
     _readExpressionResolution(node);
     _resolveNamedExpressions(
@@ -771,14 +772,14 @@ class AstBinaryReader {
 
   InterpolationExpression _readInterpolationExpression() {
     var flags = _readByte();
-    var expression = readNode() as Expression;
+    var expression = readNode() as ExpressionImpl;
     var isIdentifier = AstBinaryFlags.isStringInterpolationIdentifier(flags);
-    return astFactory.interpolationExpression(
-      isIdentifier
+    return InterpolationExpressionImpl(
+      leftBracket: isIdentifier
           ? Tokens.openCurlyBracket()
           : Tokens.stringInterpolationExpression(),
-      expression,
-      isIdentifier ? null : Tokens.closeCurlyBracket(),
+      expression: expression,
+      rightBracket: isIdentifier ? null : Tokens.closeCurlyBracket(),
     );
   }
 
@@ -799,13 +800,13 @@ class AstBinaryReader {
 
   IsExpression _readIsExpression() {
     var flags = _readByte();
-    var expression = readNode() as Expression;
-    var type = readNode() as TypeAnnotation;
-    var node = astFactory.isExpression(
-      expression,
-      Tokens.is_(),
-      AstBinaryFlags.hasNot(flags) ? Tokens.bang() : null,
-      type,
+    var expression = readNode() as ExpressionImpl;
+    var type = readNode() as TypeAnnotationImpl;
+    var node = IsExpressionImpl(
+      expression: expression,
+      isOperator: Tokens.is_(),
+      notOperator: AstBinaryFlags.hasNot(flags) ? Tokens.bang() : null,
+      type: type,
     );
     _readExpressionResolution(node);
     return node;
@@ -930,11 +931,11 @@ class AstBinaryReader {
   }
 
   ParenthesizedExpression _readParenthesizedExpression() {
-    var expression = readNode() as Expression;
-    var node = astFactory.parenthesizedExpression(
-      Tokens.openParenthesis(),
-      expression,
-      Tokens.closeParenthesis(),
+    var expression = readNode() as ExpressionImpl;
+    var node = ParenthesizedExpressionImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      expression: expression,
+      rightParenthesis: Tokens.closeParenthesis(),
     );
     _readExpressionResolution(node);
     return node;
@@ -1139,7 +1140,9 @@ class AstBinaryReader {
 
   StringInterpolation _readStringInterpolation() {
     var elements = _readNodeList<InterpolationElement>();
-    var node = astFactory.stringInterpolation(elements);
+    var node = StringInterpolationImpl(
+      elements: elements,
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -1203,7 +1206,11 @@ class AstBinaryReader {
 
   TypeArgumentList _readTypeArgumentList() {
     var arguments = _readNodeList<TypeAnnotation>();
-    return astFactory.typeArgumentList(Tokens.lt(), arguments, Tokens.gt());
+    return TypeArgumentListImpl(
+      leftBracket: Tokens.lt(),
+      arguments: arguments,
+      rightBracket: Tokens.gt(),
+    );
   }
 
   TypeLiteral _readTypeLiteral() {
@@ -1233,10 +1240,10 @@ class AstBinaryReader {
 
   TypeParameterList _readTypeParameterList() {
     var typeParameters = _readNodeList<TypeParameter>();
-    return astFactory.typeParameterList(
-      Tokens.lt(),
-      typeParameters,
-      Tokens.gt(),
+    return TypeParameterListImpl(
+      leftBracket: Tokens.lt(),
+      typeParameters: typeParameters,
+      rightBracket: Tokens.gt(),
     );
   }
 
