@@ -11324,12 +11324,6 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   /// does not have a declared type.
   TypeAnnotationImpl? _type;
 
-  @override
-  // TODO(brianwilkerson) This overrides a concrete implementation in which the
-  // element is assumed to be stored in the `identifier`, but there is no
-  // corresponding inherited setter. This seems inconsistent and error prone.
-  ParameterElement? declaredElement;
-
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [keyword] can be `null` if a type was
