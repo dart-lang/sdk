@@ -101,6 +101,16 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
+  List<Element> get children => [
+        ...super.children,
+        ...accessors,
+        ...fields,
+        ...constructors,
+        ...methods,
+        ...typeParameters,
+      ];
+
+  @override
   String get displayName => name;
 
   @override
@@ -382,16 +392,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     return _first(_implementationsOfSetter(name).where((element) {
       return element.isStatic && element.isAccessibleIn2(library);
     }));
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(accessors, visitor);
-    safelyVisitChildren(fields, visitor);
-    safelyVisitChildren(constructors, visitor);
-    safelyVisitChildren(methods, visitor);
-    safelyVisitChildren(typeParameters, visitor);
   }
 
   /// Return an iterable containing all of the implementations of a getter with
@@ -1127,6 +1127,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  List<Element> get children => [
+        ...super.children,
+        ...accessors,
+        ...classes,
+        ...enums2,
+        ...extensions,
+        ...functions,
+        ...mixins2,
+        ...typeAliases,
+        ...topLevelVariables,
+      ];
+
+  @override
   List<ClassElement> get classes {
     return _classes;
   }
@@ -1298,19 +1311,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     reference.element = this;
 
     this.linkedData = linkedData;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(accessors, visitor);
-    safelyVisitChildren(classes, visitor);
-    safelyVisitChildren(enums2, visitor);
-    safelyVisitChildren(extensions, visitor);
-    safelyVisitChildren(functions, visitor);
-    safelyVisitChildren(mixins2, visitor);
-    safelyVisitChildren(typeAliases, visitor);
-    safelyVisitChildren(topLevelVariables, visitor);
   }
 }
 
@@ -2204,6 +2204,9 @@ abstract class ElementImpl implements Element {
     reference?.element = this;
   }
 
+  @override
+  List<Element> get children => const [];
+
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
 
@@ -2675,13 +2678,6 @@ abstract class ElementImpl implements Element {
     _metadataFlags = 0;
   }
 
-  /// Use the given [visitor] to visit all of the [children] in the given array.
-  void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
-    for (Element child in children) {
-      child.accept(visitor);
-    }
-  }
-
   /// Set the code range for this element.
   void setCodeRange(int offset, int length) {
     _codeOffset = offset;
@@ -2723,9 +2719,13 @@ abstract class ElementImpl implements Element {
     return getDisplayString(withNullability: true);
   }
 
+  /// Use the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
   @override
   void visitChildren(ElementVisitor visitor) {
-    // There are no children to visit
+    for (Element child in children) {
+      child.accept(visitor);
+    }
   }
 
   /// Return flags that denote presence of a few specific annotations.
@@ -3026,6 +3026,13 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   ExecutableElementImpl(String super.name, super.offset, {super.reference});
 
   @override
+  List<Element> get children => [
+        ...super.children,
+        ...typeParameters,
+        ...parameters,
+      ];
+
+  @override
   Element get enclosingElement => super.enclosingElement!;
 
   @Deprecated('Use enclosingElement instead')
@@ -3198,13 +3205,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
     this.linkedData = linkedData;
   }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(typeParameters, visitor);
-    safelyVisitChildren(parameters, visitor);
-  }
 }
 
 /// A concrete implementation of an [ExtensionElement].
@@ -3242,6 +3242,15 @@ class ExtensionElementImpl extends _ExistingElementImpl
     }
     _accessors = accessors;
   }
+
+  @override
+  List<Element> get children => [
+        ...super.children,
+        ...accessors,
+        ...fields,
+        ...methods,
+        ...typeParameters,
+      ];
 
   @override
   String get displayName => name ?? '';
@@ -3385,15 +3394,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
     reference.element = this;
 
     this.linkedData = linkedData;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(accessors, visitor);
-    safelyVisitChildren(fields, visitor);
-    safelyVisitChildren(methods, visitor);
-    safelyVisitChildren(typeParameters, visitor);
   }
 }
 
@@ -3582,6 +3582,13 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
       : super("", nameOffset);
 
   @override
+  List<Element> get children => [
+        ...super.children,
+        ...typeParameters,
+        ...parameters,
+      ];
+
+  @override
   String get identifier => '-';
 
   @override
@@ -3656,13 +3663,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeGenericFunctionTypeElement(this);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(typeParameters, visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 }
 
@@ -3894,6 +3894,13 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     _readLinkedData();
     return super.augmentationImports;
   }
+
+  @override
+  List<Element> get children => [
+        ...super.children,
+        ...parts2,
+        ..._partUnits,
+      ];
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -4233,15 +4240,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return NullabilityEliminator.perform(typeProvider, type);
   }
 
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(parts2, visitor);
-    for (final partUnit in _partUnits) {
-      partUnit.accept(visitor);
-    }
-  }
-
   List<LibraryAugmentationElementImpl> _computeAugmentations() {
     final result = <LibraryAugmentationElementImpl>[];
 
@@ -4445,6 +4443,14 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   }
 
   @override
+  List<Element> get children => [
+        ...super.children,
+        definingCompilationUnit,
+        ...libraryExports,
+        ...libraryImports,
+      ];
+
+  @override
   CompilationUnitElementImpl get definingCompilationUnit =>
       _definingCompilationUnit;
 
@@ -4515,14 +4521,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   Source get source {
     return _definingCompilationUnit.source;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    _definingCompilationUnit.accept(visitor);
-    safelyVisitChildren(libraryExports, visitor);
-    safelyVisitChildren(libraryImports, visitor);
   }
 
   void _readLinkedData();
@@ -4891,6 +4889,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       this.context, this.session, this.name, this.conflictingElements);
 
   @override
+  List<Element> get children => const [];
+
+  @override
   Element? get declaration => null;
 
   @override
@@ -5077,9 +5078,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return buffer.toString();
   }
 
+  /// Use the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
   @override
   void visitChildren(ElementVisitor visitor) {
-    // There are no children to visit
+    for (Element child in children) {
+      child.accept(visitor);
+    }
   }
 }
 
@@ -5187,6 +5192,9 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  List<Element> get children => parameters;
+
+  @override
   ParameterElement get declaration => this;
 
   @override
@@ -5260,12 +5268,6 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 }
 

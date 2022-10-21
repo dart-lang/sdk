@@ -481,6 +481,10 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Element implements AnalysisTarget {
+  /// A list of this element's children.
+  /// There is no guarantee of the order in which the children will be included.
+  List<Element> get children;
+
   /// Return the analysis context in which this element is defined.
   AnalysisContext get context;
 

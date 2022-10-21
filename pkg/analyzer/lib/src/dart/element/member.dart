@@ -156,6 +156,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   );
 
   @override
+  List<Element> get children => parameters;
+
+  @override
   ExecutableElement get declaration => super.declaration as ExecutableElement;
 
   @override
@@ -224,12 +227,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, displayName);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 
   static ExecutableElement from2(
@@ -494,6 +491,9 @@ abstract class Member implements Element {
   }
 
   @override
+  List<Element> get children => const [];
+
+  @override
   AnalysisContext get context => _declaration.context;
 
   @override
@@ -648,14 +648,6 @@ abstract class Member implements Element {
   bool isAccessibleIn2(LibraryElement library) =>
       _declaration.isAccessibleIn2(library);
 
-  /// Use the given [visitor] to visit all of the [children].
-  void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
-    // TODO(brianwilkerson) Make this private
-    for (Element child in children) {
-      child.accept(visitor);
-    }
-  }
-
   @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
@@ -672,9 +664,13 @@ abstract class Member implements Element {
     return getDisplayString(withNullability: false);
   }
 
+  /// Use the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
   @override
   void visitChildren(ElementVisitor visitor) {
-    // There are no children to visit
+    for (Element child in children) {
+      child.accept(visitor);
+    }
   }
 
   /// If this member is a legacy view, erase nullability from the [type].
@@ -877,6 +873,9 @@ class ParameterMember extends VariableMember
   );
 
   @override
+  List<Element> get children => parameters;
+
+  @override
   ParameterElement get declaration => super.declaration as ParameterElement;
 
   @override
@@ -930,12 +929,6 @@ class ParameterMember extends VariableMember
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 
   static ParameterElement from(
