@@ -397,14 +397,6 @@ abstract class ServerPlugin {
     return null;
   }
 
-  /// Handle a 'kythe.getKytheEntries' request.
-  ///
-  /// Throw a [RequestFailure] if the request could not be handled.
-  Future<KytheGetKytheEntriesResult?> handleKytheGetKytheEntries(
-      KytheGetKytheEntriesParams parameters) async {
-    return null;
-  }
-
   /// Handle a 'plugin.shutdown' request. Subclasses can override this method to
   /// perform any required clean-up, but cannot prevent the plugin from shutting
   /// down.
@@ -574,10 +566,6 @@ abstract class ServerPlugin {
       case EDIT_REQUEST_GET_REFACTORING:
         var params = EditGetRefactoringParams.fromRequest(request);
         result = await handleEditGetRefactoring(params);
-        break;
-      case KYTHE_REQUEST_GET_KYTHE_ENTRIES:
-        var params = KytheGetKytheEntriesParams.fromRequest(request);
-        result = await handleKytheGetKytheEntries(params);
         break;
       case PLUGIN_REQUEST_SHUTDOWN:
         var params = PluginShutdownParams();

@@ -64,7 +64,6 @@ import 'package:analysis_server/src/handler/legacy/execution_set_subscriptions.d
 import 'package:analysis_server/src/handler/legacy/flutter_get_widget_description.dart';
 import 'package:analysis_server/src/handler/legacy/flutter_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/flutter_set_widget_property_value.dart';
-import 'package:analysis_server/src/handler/legacy/kythe_get_kythe_entries.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_element_references.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_member_declarations.dart';
@@ -234,8 +233,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE:
         FlutterSetWidgetPropertyValueHandler.new,
     FLUTTER_REQUEST_SET_SUBSCRIPTIONS: FlutterSetSubscriptionsHandler.new,
-    //
-    KYTHE_REQUEST_GET_KYTHE_ENTRIES: KytheGetKytheEntriesHandler.new,
     //
     SEARCH_REQUEST_FIND_ELEMENT_REFERENCES:
         SearchFindElementReferencesHandler.new,
