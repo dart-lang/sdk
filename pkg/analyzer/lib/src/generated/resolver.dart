@@ -57,6 +57,7 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/record_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
@@ -280,6 +281,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final ExtractorPatternResolver extractorPatternResolver =
       ExtractorPatternResolver(this);
+
+  late final RecordPatternResolver recordPatternResolver =
+      RecordPatternResolver(this);
 
   final bool genericMetadataIsEnabled;
 

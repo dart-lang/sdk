@@ -10543,7 +10543,7 @@ class RecordPatternFieldNameImpl extends AstNodeImpl
 ///        '(' [RecordPatternField] (',' [RecordPatternField])* ')'
 @experimental
 class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
-  final NodeListImpl<RecordPatternField> _fields = NodeListImpl._();
+  final NodeListImpl<RecordPatternFieldImpl> _fields = NodeListImpl._();
 
   @override
   final Token leftParenthesis;
@@ -10553,7 +10553,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 
   RecordPatternImpl({
     required this.leftParenthesis,
-    required List<RecordPatternField> fields,
+    required List<RecordPatternFieldImpl> fields,
     required this.rightParenthesis,
   }) {
     _fields._initialize(this, fields);
@@ -10566,7 +10566,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   Token get endToken => rightParenthesis;
 
   @override
-  NodeList<RecordPatternField> get fields => _fields;
+  NodeList<RecordPatternFieldImpl> get fields => _fields;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -10587,7 +10587,12 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.recordPatternResolver.resolve(
+      node: this,
+      matchedType: matchedType,
+      typeInfos: typeInfos,
+      context: context,
+    );
   }
 
   @override

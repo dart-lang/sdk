@@ -4634,11 +4634,14 @@ class AstBuilder extends StackListener {
   void handleRecordPattern(Token token, int count) {
     debugEvent("RecordPattern");
 
-    var fields = popTypedList2<RecordPatternField>(count);
-    push(RecordPatternImpl(
+    var fields = popTypedList2<RecordPatternFieldImpl>(count);
+    push(
+      RecordPatternImpl(
         leftParenthesis: token,
         fields: fields,
-        rightParenthesis: token.endGroup!));
+        rightParenthesis: token.endGroup!,
+      ),
+    );
   }
 
   @override
