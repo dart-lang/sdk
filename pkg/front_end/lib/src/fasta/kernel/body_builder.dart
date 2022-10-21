@@ -4214,9 +4214,22 @@ class BodyBuilder extends StackListenerImpl
     List<Expression> positional = [];
     List<NamedExpression> named = [];
     Map<String, NamedExpression>? namedElements;
+    const List<String> forbiddenObjectMemberNames = [
+      "noSuchMethod",
+      "toString",
+      "hashCode",
+      "runtimeType"
+    ];
     if (elements != null) {
       for (Object? element in elements) {
         if (element is NamedExpression) {
+          if (forbiddenObjectMemberNames.contains(element.name)) {
+            libraryBuilder.addProblem(
+                fasta.messageObjectMemberNameUsedForRecordField,
+                element.fileOffset,
+                element.name.length,
+                uri);
+          }
           namedElements ??= {};
           NamedExpression? existingExpression = namedElements[element.name];
           if (existingExpression != null) {

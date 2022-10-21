@@ -9,6 +9,7 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart'
     show
+        messageObjectMemberNameUsedForRecordField,
         messageSupertypeIsFunction,
         noLength,
         templateDuplicatedRecordTypeFieldName,
@@ -127,6 +128,12 @@ abstract class RecordTypeBuilder extends TypeBuilder {
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
+    const List<String> forbiddenObjectMemberNames = [
+      "noSuchMethod",
+      "toString",
+      "hashCode",
+      "runtimeType"
+    ];
     List<DartType> positionalEntries = <DartType>[];
     Map<String, RecordTypeFieldBuilder> fieldsMap =
         <String, RecordTypeFieldBuilder>{};
@@ -170,6 +177,12 @@ abstract class RecordTypeBuilder extends TypeBuilder {
             .buildAliased(library, TypeUse.recordEntryType, hierarchy);
         String? name = field.name;
         if (name == null) {
+          hasErrors = true;
+          continue;
+        }
+        if (forbiddenObjectMemberNames.contains(name)) {
+          library.addProblem(messageObjectMemberNameUsedForRecordField,
+              field.charOffset, name.length, fileUri);
           hasErrors = true;
           continue;
         }

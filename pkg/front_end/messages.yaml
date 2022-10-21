@@ -5923,3 +5923,6 @@ IndexOutOfBoundInRecordIndexGet:
 
 NameNotFoundInRecordNameGet:
   problemMessage: "Field name #string isn't found in records of type #type."
+
+ObjectMemberNameUsedForRecordField:
+  problemMessage: "Record field names can't be the same as a member from 'Object'."

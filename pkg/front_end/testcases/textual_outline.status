@@ -152,6 +152,7 @@ records/record_literal_errors: FormatterCrash
 records/record_type: FormatterCrash
 records/record_type_errors: FormatterCrash
 records/record_type_unsupported: FormatterCrash
+records/restricted_object_member_names: FormatterCrash
 records/simple_inference: FormatterCrash
 records/structurally_constant: FormatterCrash
 records/type_record: FormatterCrash
