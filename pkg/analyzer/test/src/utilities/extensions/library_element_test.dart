@@ -171,7 +171,7 @@ mixin ^M {}
 
   void test_setter() async {
     await assertLocation('''
-Set f^(String v) => '';
+set f^(String v) {}
 ''');
   }
 
