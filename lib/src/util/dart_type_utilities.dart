@@ -290,16 +290,17 @@ extension DartTypeExtensions on DartType {
   /// promoted bound or bound is returned. Otherwise, `this` is returned.
   // TODO(srawlins): Move to extensions.dart.
   DartType get typeForInterfaceCheck {
-    if (this is TypeParameterType) {
-      if (this is TypeParameterTypeImpl) {
-        var promotedType = (this as TypeParameterTypeImpl).promotedBound;
+    var self = this;
+    if (self is TypeParameterType) {
+      if (self is TypeParameterTypeImpl) {
+        var promotedType = self.promotedBound;
         if (promotedType != null) {
           return promotedType.typeForInterfaceCheck;
         }
       }
-      return (this as TypeParameterType).bound.typeForInterfaceCheck;
+      return self.bound.typeForInterfaceCheck;
     } else {
-      return this;
+      return self;
     }
   }
 }
