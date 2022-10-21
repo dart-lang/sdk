@@ -128,19 +128,43 @@ abstract class RecordTypeBuilder extends TypeBuilder {
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
     List<DartType> positionalEntries = <DartType>[];
+    Map<String, RecordTypeFieldBuilder> fieldsMap =
+        <String, RecordTypeFieldBuilder>{};
+    bool hasErrors = false;
     if (positionalFields != null) {
       for (RecordTypeFieldBuilder field in positionalFields!) {
         DartType type = field.type
             .buildAliased(library, TypeUse.recordEntryType, hierarchy);
         positionalEntries.add(type);
+        String? fieldName = field.name;
+        if (fieldName != null) {
+          RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
+          if (existingField != null) {
+            library.addProblem(
+                templateDuplicatedRecordTypeFieldName.withArguments(fieldName),
+                field.charOffset,
+                fieldName.length,
+                fileUri,
+                context: [
+                  templateDuplicatedRecordTypeFieldNameContext
+                      .withArguments(fieldName)
+                      .withLocation(
+                          fileUri, existingField.charOffset, fieldName.length)
+                ]);
+            hasErrors = true;
+          } else {
+            fieldsMap[fieldName] = field;
+          }
+        }
+      }
+      if (hasErrors) {
+        return const InvalidType();
       }
     }
 
     List<NamedType>? namedEntries;
     if (namedFields != null) {
       namedEntries = <NamedType>[];
-      Map<String, RecordTypeFieldBuilder> namedFieldsMap = {};
-      bool hasErrors = false;
       for (RecordTypeFieldBuilder field in namedFields!) {
         DartType type = field.type
             .buildAliased(library, TypeUse.recordEntryType, hierarchy);
@@ -149,7 +173,7 @@ abstract class RecordTypeBuilder extends TypeBuilder {
           hasErrors = true;
           continue;
         }
-        RecordTypeFieldBuilder? existingField = namedFieldsMap[name];
+        RecordTypeFieldBuilder? existingField = fieldsMap[name];
         if (existingField != null) {
           library.addProblem(
               templateDuplicatedRecordTypeFieldName.withArguments(name),
@@ -167,7 +191,7 @@ abstract class RecordTypeBuilder extends TypeBuilder {
         }
 
         namedEntries.add(new NamedType(name, type, isRequired: true));
-        namedFieldsMap[name] = field;
+        fieldsMap[name] = field;
       }
       if (hasErrors) {
         // An error has already been reported in the parser.

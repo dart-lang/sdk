@@ -146,6 +146,7 @@ rasta/malformed_const_constructor: FormatterCrash
 rasta/mandatory_parameter_initializer: FormatterCrash
 records/access_through_type_variable: FormatterCrash
 records/const_record_literal: FormatterCrash
+records/duplicated_name_errors: FormatterCrash
 records/issue50133: FormatterCrash
 records/record_literal_errors: FormatterCrash
 records/record_type: FormatterCrash
