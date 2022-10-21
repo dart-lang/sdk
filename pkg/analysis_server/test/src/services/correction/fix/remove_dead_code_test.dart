@@ -185,6 +185,15 @@ void f(bool c) {
 ''', errorFilter: (err) => err.problemMessage.length == 10);
   }
 
+  Future<void> test_emptyStatement() async {
+    await resolveTestCode('''
+void f() {
+  for (var i = 0; false; i++);
+}
+''');
+    await assertNoFix();
+  }
+
   @failingTest
   Future<void> test_for_returnInBody() async {
     // https://github.com/dart-lang/sdk/issues/43511

@@ -4999,6 +4999,39 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+
+  if (smi_) {
+    __ SmiUntag(TMP2, value);
+  } else {
+    __ LoadFieldFromOffset(TMP2, value, Mint::value_offset());
+  }
+
+  __ LoadImmediate(TMP, compiler::Immediate(0x2d51));
+  __ mul(result, TMP, TMP2);
+  __ umulh(TMP, TMP, TMP2);
+  __ eor(result, result, compiler::Operand(TMP));
+  __ eor(result, result, compiler::Operand(result, LSR, 32));
+  __ ubfm(result, result, 63, 29);  // SmiTag(result & 0x3fffffff)
+}
+
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   // Branches don't produce a result.

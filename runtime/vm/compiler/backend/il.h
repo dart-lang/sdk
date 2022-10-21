@@ -469,6 +469,7 @@ struct InstrAttrs {
   M(CloneContext, _)                                                           \
   M(BinarySmiOp, kNoGC)                                                        \
   M(BinaryInt32Op, kNoGC)                                                      \
+  M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
   M(UnaryDoubleOp, kNoGC)                                                      \
   M(CheckStackOverflow, _)                                                     \
@@ -8366,6 +8367,53 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
+};
+
+class HashIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  HashIntegerOpInstr(Value* value, bool smi, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), smi_(smi) {
+    SetInputAt(0, value);
+  }
+
+  static HashIntegerOpInstr* Create(Value* value, bool smi, intptr_t deopt_id) {
+    return new HashIntegerOpInstr(value, smi, deopt_id);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return GetDeoptId();
+  }
+
+  virtual Representation representation() const { return kTagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kTagged;
+  }
+
+  DECLARE_INSTRUCTION(HashIntegerOp)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual CompileType ComputeType() const { return CompileType::Smi(); }
+
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+
+#define FIELD_LIST(F) F(const bool, smi_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(HashIntegerOpInstr,
+                                          TemplateDefinition,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(HashIntegerOpInstr);
 };
 
 class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {

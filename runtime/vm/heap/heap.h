@@ -390,7 +390,6 @@ class Heap {
   friend class ProgramReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
-  friend class GCMarker;              // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages
   friend class Serializer;            // VisitObjectsImagePages
   friend class HeapTestHelper;

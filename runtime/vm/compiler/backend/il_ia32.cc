@@ -5066,6 +5066,65 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(EDX);
 }
 
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
+  summary->set_temp(2, Location::RegisterLocation(EDX));
+  return summary;
+}
+
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  Register temp = locs()->temp(0).reg();
+  Register temp1 = locs()->temp(1).reg();
+  ASSERT(value == EAX);
+  ASSERT(result == EAX);
+
+  if (smi_) {
+    __ SmiUntag(EAX);
+    __ cdq();  // sign-extend EAX to EDX
+    __ movl(temp, EDX);
+  } else {
+    __ LoadFieldFromOffset(temp, EAX,
+                           Mint::value_offset() + compiler::target::kWordSize);
+    __ LoadFieldFromOffset(EAX, EAX, Mint::value_offset());
+  }
+
+  // value = value_hi << 32 + value_lo
+  //
+  // value * 0x2d51 = (value_hi * 0x2d51) << 32 + value_lo * 0x2d51
+  // prod_lo32 = value_lo * 0x2d51
+  // prod_hi32 = carry(value_lo * 0x2d51) + value_hi * 0x2d51
+  // prod_lo64 = prod_hi32 << 32 + prod_lo32
+  // prod_hi64_lo32 = carry(value_hi * 0x2d51)
+  // result = prod_lo32 ^ prod_hi32 ^ prod_hi64_lo32
+  // return result & 0x3fffffff
+
+  // EAX has value_lo
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(
+      EDX);  // EAX = lo32(value_lo * 0x2d51), EDX = carry(value_lo * 0x2d51)
+  __ movl(temp1, EAX);  // save prod_lo32
+  __ movl(EAX, temp);   // get saved value_hi
+  __ movl(temp, EDX);   // save carry
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(EDX);  // EAX = lo32(value_hi * 0x2d51, EDX = carry(value_hi * 0x2d51)
+  __ addl(EAX, temp);  // EAX has prod_hi32, EDX has prod_hi64_lo32
+
+  __ xorl(EAX, EDX);    // EAX = prod_hi32 ^ prod_hi64_lo32
+  __ xorl(EAX, temp1);  // result = prod_hi32 ^ prod_hi64_lo32 ^ prod_lo32
+  __ andl(EAX, compiler::Immediate(0x3fffffff));
+  __ SmiTag(EAX);
+}
+
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   // Branches don't produce a result.

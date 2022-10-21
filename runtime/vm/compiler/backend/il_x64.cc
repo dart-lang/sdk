@@ -5318,6 +5318,46 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // in-range arguments, cannot create out-of-range result.
 }
 
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_temp(0, Location::RegisterLocation(RDX));
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(value == RAX);
+  ASSERT(result == RAX);
+  ASSERT(temp == RDX);
+
+  if (smi_) {
+    __ SmiUntagAndSignExtend(RAX);
+  } else {
+    __ LoadFieldFromOffset(RAX, RAX, Mint::value_offset());
+  }
+
+  __ movq(RDX, compiler::Immediate(0x2d51));  // 1b873593cc9e2d51));
+  __ mulq(RDX);
+  __ xorq(RAX, RDX);  // RAX = xor(hi64, lo64)
+  __ movq(RDX, RAX);
+  __ shrq(RDX, compiler::Immediate(32));
+  __ xorq(RAX, RDX);
+  __ andq(RAX, compiler::Immediate(0x3fffffff));
+  __ SmiTag(RAX);
+}
+
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   // Branches don't produce a result.

@@ -1073,6 +1073,30 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
+// Input: tagged integer in EAX
+// Output: tagged hash code value in EAX
+//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
+//  - asm_intrinsifier(...).cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+static void Multiply64Hash(Assembler* assembler) {
+  __ SmiUntag(EAX);
+  __ cdq();           // // sign-extend EAX to EDX
+  __ movl(ECX, EDX);  // save "value_hi" in ECX
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(EDX);       // (EDX:EAX) = value_lo * 0x2d51
+  __ movl(EBX, EAX);  // save lo32 in EBX
+  __ movl(EAX, ECX);  // get saved value_hi
+  __ movl(ECX, EDX);  // save hi32 in ECX
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(EDX);       // (EDX:EAX) = value_hi * 0x2d51
+  __ addl(EAX, ECX);  // EAX has prod_hi32, EDX has prod_hi64_lo32
+
+  __ xorl(EAX, EDX);  // EAX = prod_hi32 ^ prod_hi64_lo32
+  __ xorl(EAX, EBX);  // result = prod_hi32 ^ prod_hi64_lo32 ^ prod_lo32
+  __ andl(EAX, compiler::Immediate(0x3fffffff));
+  __ SmiTag(EAX);
+}
+
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
@@ -1096,6 +1120,8 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   Label double_hash;
   __ comisd(XMM0, XMM1);
   __ j(NOT_EQUAL, &double_hash, Assembler::kNearJump);
+
+  Multiply64Hash(assembler);
   __ ret();
 
   // Convert the double bits to a hash code that fits in a Smi.

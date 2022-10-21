@@ -1100,6 +1100,23 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ ret();
 }
 
+// Input: tagged integer in R0
+// Output: tagged hash code value in R0
+// Should be kept in sync with
+//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
+//  - asm_intrinsifier(...).cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+static void Multiply64Hash(Assembler* assembler) {
+  __ SmiUntag(R0);
+  __ LoadImmediate(TMP, compiler::Immediate(0x2d51));
+  __ mul(R1, TMP, R0);
+  __ umulh(TMP, TMP, R0);
+  __ eor(R0, R1, compiler::Operand(TMP));
+  __ eor(R0, R0, compiler::Operand(R0, LSR, 32));
+  __ AndImmediate(R0, R0, 0x3fffffff);
+  __ SmiTag(R0);
+}
+
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
@@ -1136,6 +1153,8 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   // Smi tagged result immediately as the hash code.
   __ fcmpd(V0, V1);
   __ b(&double_hash, NE);
+
+  Multiply64Hash(assembler);
   __ ret();
 
   // Convert the double bits to a hash code that fits in a Smi.

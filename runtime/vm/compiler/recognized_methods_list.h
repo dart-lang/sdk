@@ -320,6 +320,8 @@ namespace dart {
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x25b39832)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b56f1)                                \
   V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfab46343)\
+  V(_Smi, get:hashCode, Smi_hashCode, 0x75e0ccd2)                              \
+  V(_Mint, get:hashCode, Mint_hashCode, 0x75e0ccd2)                            \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

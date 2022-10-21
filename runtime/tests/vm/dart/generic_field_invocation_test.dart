@@ -16,5 +16,5 @@ class C {
 main() {
   var c = C();
   c.field = <T>(T x) => x.hashCode;
-  Expect.equals(3, c.field<dynamic>(3));
+  Expect.equals(3.hashCode, c.field<dynamic>(3));
 }

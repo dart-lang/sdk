@@ -6534,7 +6534,11 @@ TEST_CASE(HashCode_Double) {
   // cannot be used as keys in constant sets and maps. However, doubles
   // _can_ be used for lookups in which case they are equal to their integer
   // value.
-  const uint32_t kInt1HashCode = 1;
+  uint32_t kInt1HashCode = 0;
+  {
+    TransitionNativeToVM transition(thread);
+    kInt1HashCode = Integer::Handle(Integer::New(1)).CanonicalizeHash();
+  }
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kInt1HashCode));
 }
 
