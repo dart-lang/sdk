@@ -50,10 +50,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
-    _unitElement.enums2 = _enclosingContext.enums;
+    _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
-    _unitElement.mixins2 = _enclosingContext.mixins;
+    _unitElement.mixins = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.properties
         .whereType<TopLevelVariableElementImpl>()
         .toList();
@@ -241,9 +241,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var constructorSelector = constant.arguments?.constructorSelector;
       var constructorName = constructorSelector?.name.name;
 
-      var initializer = astFactory.instanceCreationExpression(
-        null,
-        ConstructorNameImpl(
+      var initializer = InstanceCreationExpressionImpl(
+        keyword: null,
+        constructorName: ConstructorNameImpl(
           type: NamedTypeImpl(
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
@@ -258,13 +258,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
                 )
               : null,
         ),
-        ArgumentListImpl(
+        argumentList: ArgumentListImpl(
           leftParenthesis: Tokens.openParenthesis(),
           arguments: [
             ...?constant.arguments?.argumentList.arguments,
           ],
           rightParenthesis: Tokens.closeParenthesis(),
         ),
+        typeArguments: null,
       );
 
       var variableDeclaration = VariableDeclarationImpl(
@@ -317,9 +318,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, 'List', -1),
         ),
-        typeArguments: astFactory.typeArgumentList(
-          Tokens.lt(),
-          [
+        typeArguments: TypeArgumentListImpl(
+          leftBracket: Tokens.lt(),
+          arguments: [
             NamedTypeImpl(
               name: astFactory.simpleIdentifier(
                 StringToken(TokenType.STRING, element.name, -1),
@@ -328,7 +329,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
               question: null,
             )
           ],
-          Tokens.gt(),
+          rightBracket: Tokens.gt(),
         ),
         question: null,
       );
@@ -895,7 +896,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     final libraryElement = _container;
     if (libraryElement is LibraryElementImpl) {
       final index = _partDirectiveIndex++;
-      final partElement = libraryElement.parts2[index];
+      final partElement = libraryElement.parts[index];
       partElement as PartElementImpl;
       partElement.metadata = _buildAnnotations(node.metadata);
     }

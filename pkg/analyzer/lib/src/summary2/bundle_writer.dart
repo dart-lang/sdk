@@ -103,13 +103,13 @@ class BundleWriter {
     _writeFeatureSet(libraryElement.featureSet);
     _writeLanguageVersion(libraryElement.languageVersion);
     _writeLibraryOrAugmentationElement(libraryElement);
-    for (final partElement in libraryElement.parts2) {
+    for (final partElement in libraryElement.parts) {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
     _resolutionSink.writeElement(libraryElement.entryPoint);
     LibraryElementFlags.write(_sink, libraryElement);
     _writeUnitElement(libraryElement.definingCompilationUnit);
-    _writeList(libraryElement.parts2, _writePartElement);
+    _writeList(libraryElement.parts, _writePartElement);
 
     _writeExportedReferences(libraryElement.exportedReferences);
 
@@ -546,10 +546,10 @@ class BundleWriter {
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
     _writeList(unitElement.classes, _writeClassElement);
-    _writeList(unitElement.enums2, _writeEnumElement);
+    _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
     _writeList(unitElement.functions, _writeFunctionElement);
-    _writeList(unitElement.mixins2, _writeMixinElement);
+    _writeList(unitElement.mixins, _writeMixinElement);
     _writeList(unitElement.typeAliases, _writeTypeAliasElement);
 
     _writeList(

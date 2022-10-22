@@ -123,7 +123,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           continue;
         }
         // check the element being renamed is accessible
-        if (!element.isAccessibleIn2(reference.libraryElement)) {
+        if (!element.isAccessibleIn(reference.libraryElement)) {
           continue;
         }
         // add edit

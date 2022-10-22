@@ -713,7 +713,7 @@ class LibraryAnalyzer {
           _resolvePartDirective(
             directive: directive,
             partState: containerKind.parts[index],
-            partElement: containerElement.parts2[index],
+            partElement: containerElement.parts[index],
             errorReporter: containerErrorReporter,
             libraryNameNode: libraryNameNode,
             units: units,

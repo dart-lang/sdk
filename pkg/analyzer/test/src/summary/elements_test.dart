@@ -27228,7 +27228,7 @@ import 'dart:math' as p1;
     final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
     final import_async = library.libraryImports[0];
     final import_math = library.libraryImports[2];
-    expect(p1.imports2, unorderedEquals([import_async, import_math]));
+    expect(p1.imports, unorderedEquals([import_async, import_math]));
   }
 
   test_library_imports_syntheticDartCore() async {
@@ -31991,7 +31991,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(library.parts2[0].metadata, isEmpty);
+    expect(library.parts[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {
@@ -32859,7 +32859,7 @@ mixin M {}
 
     // We intentionally ask `mixins` directly, to check that we can ask them
     // separately, without asking classes.
-    var mixins = library.definingCompilationUnit.mixins2;
+    var mixins = library.definingCompilationUnit.mixins;
     expect(mixins, hasLength(1));
     expect(mixins[0].name, 'M');
   }

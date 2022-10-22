@@ -162,7 +162,7 @@ class _ElementWriter {
 
       _writeLibraryOrAugmentationElement(e);
 
-      _writeElements('parts', e.parts2, _writePartElement);
+      _writeElements('parts', e.parts, _writePartElement);
 
       if (withExportScope) {
         _writelnWithIndent('exportedReferences');
@@ -1026,9 +1026,9 @@ class _ElementWriter {
 
   void _writeUnitElement(CompilationUnitElement e) {
     _writeElements('classes', e.classes, _writeClassElement);
-    _writeElements('enums', e.enums2, _writeClassElement);
+    _writeElements('enums', e.enums, _writeClassElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
-    _writeElements('mixins', e.mixins2, _writeClassElement);
+    _writeElements('mixins', e.mixins, _writeClassElement);
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
     _writeElements(
       'topLevelVariables',

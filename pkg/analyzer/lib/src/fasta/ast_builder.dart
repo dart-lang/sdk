@@ -75,7 +75,7 @@ class AstBuilder extends StackListener {
 
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
-  ScriptTag? scriptTag;
+  ScriptTagImpl? scriptTag;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
 
@@ -1270,14 +1270,15 @@ class AstBuilder extends StackListener {
     var beginToken = pop() as Token;
     checkEmpty(endToken.charOffset);
 
-    CompilationUnitImpl unit = ast.compilationUnit(
-        beginToken: beginToken,
-        scriptTag: scriptTag,
-        directives: directives,
-        declarations: declarations,
-        endToken: endToken,
-        featureSet: _featureSet,
-        lineInfo: _lineInfo);
+    CompilationUnitImpl unit = CompilationUnitImpl(
+      beginToken: beginToken,
+      scriptTag: scriptTag,
+      directives: directives,
+      declarations: declarations,
+      endToken: endToken,
+      featureSet: _featureSet,
+      lineInfo: _lineInfo,
+    );
     push(unit);
   }
 
@@ -1880,10 +1881,10 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameters(
-      int count, Token leftParen, Token rightParen, MemberKind kind) {
-    assert(optional('(', leftParen));
-    assert(optional(')', rightParen));
+  void endFormalParameters(int count, Token leftParenthesis,
+      Token rightParenthesis, MemberKind kind) {
+    assert(optional('(', leftParenthesis));
+    assert(optional(')', rightParenthesis));
     debugEvent("FormalParameters");
 
     var rawParameters = popTypedList(count) ?? const <Object>[];
@@ -1899,8 +1900,15 @@ class AstBuilder extends StackListener {
         parameters.add(raw as FormalParameter);
       }
     }
-    push(ast.formalParameterList(
-        leftParen, parameters, leftDelimiter, rightDelimiter, rightParen));
+    push(
+      FormalParameterListImpl(
+        leftParenthesis: leftParenthesis,
+        parameters: parameters,
+        leftDelimiter: leftDelimiter,
+        rightDelimiter: rightDelimiter,
+        rightParenthesis: rightParenthesis,
+      ),
+    );
   }
 
   @override
@@ -2218,9 +2226,14 @@ class AstBuilder extends StackListener {
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
 
-    var statement = pop() as Statement;
+    var statement = pop() as StatementImpl;
     var labels = popTypedList2<Label>(labelCount);
-    push(ast.labeledStatement(labels, statement));
+    push(
+      LabeledStatementImpl(
+        labels: labels,
+        statement: statement,
+      ),
+    );
   }
 
   @override
@@ -2255,7 +2268,11 @@ class AstBuilder extends StackListener {
         startToken: libraryKeyword,
       );
     }
-    var name = libraryName == null ? null : ast.libraryIdentifier(libraryName);
+    var name = libraryName == null
+        ? null
+        : LibraryIdentifierImpl(
+            components: libraryName,
+          );
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, libraryKeyword);
     directives.add(
@@ -2320,7 +2337,11 @@ class AstBuilder extends StackListener {
               last.lexeme, quote, last, last.isSynthetic, this),
         ),
       );
-      push(ast.stringInterpolation(elements));
+      push(
+        StringInterpolationImpl(
+          elements: elements,
+        ),
+      );
     }
   }
 
@@ -2572,9 +2593,14 @@ class AstBuilder extends StackListener {
     assert(optional('(', leftParenthesis));
     debugEvent("ParenthesizedExpression");
 
-    var expression = pop() as Expression;
-    push(ast.parenthesizedExpression(
-        leftParenthesis, expression, leftParenthesis.endGroup!));
+    var expression = pop() as ExpressionImpl;
+    push(
+      ParenthesizedExpressionImpl(
+        leftParenthesis: leftParenthesis,
+        expression: expression,
+        rightParenthesis: leftParenthesis.endGroup!,
+      ),
+    );
   }
 
   @override
@@ -2610,7 +2636,9 @@ class AstBuilder extends StackListener {
     if (libraryNameOrUri is StringLiteralImpl) {
       uri = libraryNameOrUri;
     } else {
-      name = ast.libraryIdentifier(libraryNameOrUri as List<SimpleIdentifier>);
+      name = LibraryIdentifierImpl(
+        components: libraryNameOrUri as List<SimpleIdentifier>,
+      );
     }
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, partKeyword);
@@ -2916,14 +2944,17 @@ class AstBuilder extends StackListener {
     var members = pop() as List<SwitchMember>;
     var leftBracket = pop() as Token;
     var condition = pop() as _ParenthesizedCondition;
-    push(ast.switchStatement(
-        switchKeyword,
-        condition.leftParenthesis,
-        condition.expression,
-        condition.rightParenthesis,
-        leftBracket,
-        members,
-        rightBracket));
+    push(
+      SwitchStatementImpl(
+        switchKeyword: switchKeyword,
+        leftParenthesis: condition.leftParenthesis,
+        expression: condition.expression,
+        rightParenthesis: condition.rightParenthesis,
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      ),
+    );
   }
 
   @override
@@ -3047,7 +3078,13 @@ class AstBuilder extends StackListener {
     debugEvent("TypeArguments");
 
     var arguments = popTypedList2<TypeAnnotation>(count);
-    push(ast.typeArgumentList(leftBracket, arguments, rightBracket));
+    push(
+      TypeArgumentListImpl(
+        leftBracket: leftBracket,
+        arguments: arguments,
+        rightBracket: rightBracket,
+      ),
+    );
   }
 
   @override
@@ -3146,7 +3183,13 @@ class AstBuilder extends StackListener {
     debugEvent("TypeVariables");
 
     var typeParameters = pop() as List<TypeParameter>;
-    push(ast.typeParameterList(beginToken, typeParameters, endToken));
+    push(
+      TypeParameterListImpl(
+        leftBracket: beginToken,
+        typeParameters: typeParameters,
+        rightBracket: endToken,
+      ),
+    );
   }
 
   @override
@@ -3224,8 +3267,15 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("YieldStatement");
 
-    var expression = pop() as Expression;
-    push(ast.yieldStatement(yieldToken, starToken, expression, semicolon));
+    var expression = pop() as ExpressionImpl;
+    push(
+      YieldStatementImpl(
+        yieldKeyword: yieldToken,
+        star: starToken,
+        expression: expression,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -4094,8 +4144,14 @@ class AstBuilder extends StackListener {
 
   @override
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
-    var expression = pop() as Expression;
-    push(ast.interpolationExpression(leftBracket, expression, rightBracket));
+    var expression = pop() as ExpressionImpl;
+    push(
+      InterpolationExpressionImpl(
+        leftBracket: leftBracket,
+        expression: expression,
+        rightBracket: rightBracket,
+      ),
+    );
   }
 
   @override
@@ -4158,9 +4214,9 @@ class AstBuilder extends StackListener {
 
   @override
   void handleInvalidTypeArguments(Token token) {
-    var invalidTypeArgs = pop() as TypeArgumentList;
+    var invalidTypeArgs = pop() as TypeArgumentListImpl;
     var node = pop();
-    if (node is ConstructorName) {
+    if (node is ConstructorNameImpl) {
       push(_ConstructorNameWithInvalidTypeArgs(node, invalidTypeArgs));
     } else {
       throw UnimplementedError(
@@ -4174,9 +4230,16 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('!', not));
     debugEvent("IsOperator");
 
-    var type = pop() as TypeAnnotation;
-    var expression = pop() as Expression;
-    push(ast.isExpression(expression, isOperator, not, type));
+    var type = pop() as TypeAnnotationImpl;
+    var expression = pop() as ExpressionImpl;
+    push(
+      IsExpressionImpl(
+        expression: expression,
+        isOperator: isOperator,
+        notOperator: not,
+        type: type,
+      ),
+    );
   }
 
   @override
@@ -4451,7 +4514,13 @@ class AstBuilder extends StackListener {
     // TODO(danrubel) Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
-    push(ast.nativeFunctionBody(nativeToken, nativeName, semicolon));
+    push(
+      NativeFunctionBodyImpl(
+        nativeKeyword: nativeToken,
+        stringLiteral: nativeName,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -5170,19 +5239,24 @@ class AstBuilder extends StackListener {
   }
 
   void _handleInstanceCreation(Token? token) {
-    var arguments = pop() as MethodInvocation;
-    ConstructorName constructorName;
-    TypeArgumentList? typeArguments;
+    var arguments = pop() as MethodInvocationImpl;
+    ConstructorNameImpl constructorName;
+    TypeArgumentListImpl? typeArguments;
     var object = pop();
     if (object is _ConstructorNameWithInvalidTypeArgs) {
       constructorName = object.name;
       typeArguments = object.invalidTypeArgs;
     } else {
-      constructorName = object as ConstructorName;
+      constructorName = object as ConstructorNameImpl;
     }
-    push(ast.instanceCreationExpression(
-        token, constructorName, arguments.argumentList,
-        typeArguments: typeArguments));
+    push(
+      InstanceCreationExpressionImpl(
+        keyword: token,
+        constructorName: constructorName,
+        argumentList: arguments.argumentList,
+        typeArguments: typeArguments,
+      ),
+    );
   }
 
   List<NamedType> _popNamedTypeList({
@@ -5322,8 +5396,8 @@ class _ClassLikeDeclarationBuilder {
 }
 
 class _ConstructorNameWithInvalidTypeArgs {
-  final ConstructorName name;
-  final TypeArgumentList invalidTypeArgs;
+  final ConstructorNameImpl name;
+  final TypeArgumentListImpl invalidTypeArgs;
 
   _ConstructorNameWithInvalidTypeArgs(this.name, this.invalidTypeArgs);
 }

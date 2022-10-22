@@ -288,6 +288,11 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// Return a list containing all of the enums contained in this compilation
   /// unit.
+  List<EnumElement> get enums;
+
+  /// Return a list containing all of the enums contained in this compilation
+  /// unit.
+  @Deprecated('Use enum instead')
   List<EnumElement> get enums2;
 
   /// Return a list containing all of the extensions contained in this
@@ -303,6 +308,11 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// Return a list containing all of the mixins contained in this compilation
   /// unit.
+  List<MixinElement> get mixins;
+
+  /// Return a list containing all of the mixins contained in this compilation
+  /// unit.
+  @Deprecated('Use mixins instead')
   List<MixinElement> get mixins2;
 
   @override
@@ -324,6 +334,12 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// Return the enum defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define an enum with
   /// the given name.
+  EnumElement? getEnum(String name);
+
+  /// Return the enum defined in this compilation unit that has the given
+  /// [name], or `null` if this compilation unit does not define an enum with
+  /// the given name.
+  @Deprecated('Use getEnum() instead')
   EnumElement? getEnum2(String name);
 }
 
@@ -695,6 +711,16 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
+  bool isAccessibleIn(LibraryElement library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// accessible to code in the given [library]. This is defined by the Dart
+  /// Language Specification in section 6.2:
+  /// <blockquote>
+  /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
+  /// declared in <i>L</i> or if <i>m</i> is public.
+  /// </blockquote>
+  @Deprecated('Use isAccessibleIn() instead')
   bool isAccessibleIn2(LibraryElement library);
 
   /// Return either this element or the most immediate ancestor of this element
@@ -1673,6 +1699,10 @@ abstract class LibraryElement
   String get name;
 
   /// Returns the list of `part` directives of this library.
+  List<PartElement> get parts;
+
+  /// Returns the list of `part` directives of this library.
+  @Deprecated('Use parts instead')
   List<PartElement> get parts2;
 
   /// The public [Namespace] of this library.
@@ -2053,6 +2083,10 @@ abstract class PrefixElement implements _ExistingElement {
   LibraryOrAugmentationElement get enclosingElement3;
 
   /// Return the imports that share this prefix.
+  List<LibraryImportElement> get imports;
+
+  /// Return the imports that share this prefix.
+  @Deprecated('Use imports instead')
   List<LibraryImportElement> get imports2;
 
   @override

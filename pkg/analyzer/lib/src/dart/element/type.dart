@@ -735,7 +735,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     // not found or not accessible
     if (constructorElement == null ||
-        !constructorElement.isAccessibleIn2(library)) {
+        !constructorElement.isAccessibleIn(library)) {
       return null;
     }
     // return member

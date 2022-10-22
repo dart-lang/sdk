@@ -3165,7 +3165,7 @@ class B extends A {
     {
       var unitResult = (await resolveFile(path)).unit;
       if (targetMixinName != null) {
-        targetElement = unitResult.declaredElement!.mixins2
+        targetElement = unitResult.declaredElement!.mixins
             .firstWhere((e) => e.name == targetMixinName);
       } else {
         targetElement = unitResult.declaredElement!.classes

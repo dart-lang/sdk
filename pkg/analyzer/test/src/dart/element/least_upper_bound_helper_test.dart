@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,9 +21,6 @@ main() {
 
 @reflectiveTest
 class PathToObjectTest extends AbstractTypeSystemTest {
-  @override
-  final TestTypeProvider typeProvider = TestTypeProvider();
-
   void test_class_mixins1() {
     var M1 = mixin_(name: 'M1');
     expect(_longestPathToObject(M1), 1);
@@ -352,9 +348,6 @@ class PathToObjectTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class SuperinterfaceSetTest extends AbstractTypeSystemTest {
-  @override
-  final TestTypeProvider typeProvider = TestTypeProvider();
-
   void test_genericInterfacePath() {
     //
     //  A

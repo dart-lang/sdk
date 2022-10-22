@@ -9204,6 +9204,16 @@ const MessageCode messageObjectImplements = const MessageCode(
     problemMessage: r"""The class 'Object' can't implement anything.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectMemberNameUsedForRecordField =
+    messageObjectMemberNameUsedForRecordField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectMemberNameUsedForRecordField = const MessageCode(
+    "ObjectMemberNameUsedForRecordField",
+    problemMessage:
+        r"""Record field names can't be the same as a member from 'Object'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectMixesIn = messageObjectMixesIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

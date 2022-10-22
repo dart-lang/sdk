@@ -22,7 +22,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -51,6 +50,7 @@ import 'package:analyzer/src/dart/resolver/instance_creation_expression_resolver
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
+import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
@@ -281,6 +281,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final ExtractorPatternResolver extractorPatternResolver =
       ExtractorPatternResolver(this);
+
+  late final ListPatternResolver listPatternResolver =
+      ListPatternResolver(this);
 
   late final RecordPatternResolver recordPatternResolver =
       RecordPatternResolver(this);
@@ -3039,7 +3042,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       typeArgumentTypes = [];
     }
 
-    var callReference = astFactory.implicitCallReference(
+    var callReference = ImplicitCallReferenceImpl(
       expression: expression,
       staticElement: callMethod,
       typeArguments: null,

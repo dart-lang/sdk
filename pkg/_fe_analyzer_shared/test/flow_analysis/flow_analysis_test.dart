@@ -588,7 +588,7 @@ main() {
       var e = expr('Null');
       var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
-          h, AssignedVariables<Node, Var>(),
+          h.typeOperations, AssignedVariables<Node, Var>(),
           respectImplicitlyTypedVarInitializers: true);
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
@@ -3619,7 +3619,7 @@ main() {
         // This should not happen in valid code, but test that we don't crash.
 
         var s = FlowModel<Type>(Reachability.initial)._write(
-            h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null), h);
+            h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null));
         expect(s.variableInfo[objectQVar], isNull);
       });
 
@@ -3627,7 +3627,7 @@ main() {
         var s1 =
             FlowModel<Type>(Reachability.initial)._declare(h, objectQVar, true);
         var s2 = s1._write(
-            h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null), h);
+            h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null));
         expect(s2, isNot(same(s1)));
         expect(s2.reachable, same(s1.reachable));
         expect(
@@ -3643,7 +3643,7 @@ main() {
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(h, objectQVar, false);
         var s2 = s1._write(
-            h, null, objectQVar, Type('int?'), new SsaNode<Type>(null), h);
+            h, null, objectQVar, Type('int?'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(
             s2._infoFor(h, objectQVar),
@@ -3662,7 +3662,7 @@ main() {
         expect(s1.variableInfo,
             contains(h.promotionKeyStore.keyForVariable(objectQVar)));
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('int?'), new SsaNode<Type>(null), h);
+            Type('int?'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -3688,7 +3688,7 @@ main() {
               unassigned: false)
         });
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('num'), new SsaNode<Type>(null), h);
+            Type('num'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -3716,7 +3716,7 @@ main() {
               unassigned: false)
         });
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('num'), new SsaNode<Type>(null), h);
+            Type('num'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -3742,7 +3742,7 @@ main() {
               unassigned: false)
         });
         var s2 = s1._write(
-            h, null, objectQVar, Type('num'), new SsaNode<Type>(null), h);
+            h, null, objectQVar, Type('num'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, isNot(same(s1.variableInfo)));
         expect(s2.variableInfo, {
@@ -3769,7 +3769,7 @@ main() {
               unassigned: false)
         });
         var s2 = s1._write(
-            h, null, objectQVar, Type('int'), new SsaNode<Type>(null), h);
+            h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, isNot(same(s1.variableInfo)));
         expect(s2.variableInfo, {
@@ -3791,8 +3791,7 @@ main() {
                 _matchVariableModel(chain: null),
           });
 
-          var s2 =
-              s1._write(h, null, x, Type('int'), new SsaNode<Type>(null), h);
+          var s2 = s1._write(h, null, x, Type('int'), new SsaNode<Type>(null));
           expect(s2.variableInfo, {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: ['int']),
@@ -3815,8 +3814,7 @@ main() {
           });
 
           // 'x' is write-captured, so not promoted
-          var s3 =
-              s2._write(h, null, x, Type('int'), new SsaNode<Type>(null), h);
+          var s3 = s2._write(h, null, x, Type('int'), new SsaNode<Type>(null));
           expect(s3.variableInfo, {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null, writeCaptured: true),
@@ -3835,7 +3833,7 @@ main() {
             ),
           });
           var s2 = s1._write(
-              h, null, objectQVar, Type('int'), new SsaNode<Type>(null), h);
+              h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
           expect(s2.variableInfo, {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['int?', 'int'],
@@ -3856,7 +3854,7 @@ main() {
             ),
           });
           var s2 = s1._write(
-              h, null, objectQVar, Type('int'), new SsaNode<Type>(null), h);
+              h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
           expect(s2.variableInfo, {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['Object', 'int'],
@@ -3878,7 +3876,7 @@ main() {
           ),
         });
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('num?'), new SsaNode<Type>(null), h);
+            Type('num?'), new SsaNode<Type>(null));
         expect(s2.variableInfo, {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?'],
@@ -3901,7 +3899,7 @@ main() {
           ),
         });
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('int?'), new SsaNode<Type>(null), h);
+            Type('int?'), new SsaNode<Type>(null));
         expect(s2.variableInfo, {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'int?'],
@@ -3966,8 +3964,7 @@ main() {
               ),
             });
 
-            var s2 =
-                s1._write(h, null, x, Type('C'), new SsaNode<Type>(null), h);
+            var s2 = s1._write(h, null, x, Type('C'), new SsaNode<Type>(null));
             expect(s2.variableInfo, {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -3992,8 +3989,7 @@ main() {
               ),
             });
 
-            var s2 =
-                s1._write(h, null, x, Type('C'), new SsaNode<Type>(null), h);
+            var s2 = s1._write(h, null, x, Type('C'), new SsaNode<Type>(null));
             expect(s2.variableInfo, {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -4018,8 +4014,7 @@ main() {
               ),
             });
 
-            var s2 =
-                s1._write(h, null, x, Type('B'), new SsaNode<Type>(null), h);
+            var s2 = s1._write(h, null, x, Type('B'), new SsaNode<Type>(null));
             expect(s2.variableInfo, {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'A'],
@@ -4045,7 +4040,7 @@ main() {
               ),
             });
             var s2 = s1._write(
-                h, null, objectQVar, Type('int'), new SsaNode<Type>(null), h);
+                h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
             // It's ambiguous whether to promote to num? or num*, so we don't
             // promote.
             expect(s2, isNot(same(s1)));
@@ -4073,7 +4068,7 @@ main() {
             ),
           });
           var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-              Type('num?'), new SsaNode<Type>(null), h);
+              Type('num?'), new SsaNode<Type>(null));
           // It's ambiguous whether to promote to num? or num*, but since the
           // written type is exactly num?, we use that.
           expect(s2.variableInfo, {
@@ -4104,7 +4099,7 @@ main() {
         });
 
         var s2 = s1._write(h, _MockNonPromotionReason(), x, Type('double'),
-            new SsaNode<Type>(null), h);
+            new SsaNode<Type>(null));
         expect(s2.variableInfo, {
           h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
             chain: ['num?', 'num'],
@@ -4234,14 +4229,21 @@ main() {
       test('reachability', () {
         var reachable = FlowModel<Type>(Reachability.initial);
         var unreachable = reachable.setUnreachable();
-        expect(reachable.rebaseForward(h, reachable), same(reachable));
-        expect(reachable.rebaseForward(h, unreachable), same(unreachable));
+        expect(reachable.rebaseForward(h.typeOperations, reachable),
+            same(reachable));
+        expect(reachable.rebaseForward(h.typeOperations, unreachable),
+            same(unreachable));
         expect(
-            unreachable.rebaseForward(h, reachable).reachable.overallReachable,
+            unreachable
+                .rebaseForward(h.typeOperations, reachable)
+                .reachable
+                .overallReachable,
             false);
-        expect(unreachable.rebaseForward(h, reachable).variableInfo,
+        expect(
+            unreachable.rebaseForward(h.typeOperations, reachable).variableInfo,
             same(unreachable.variableInfo));
-        expect(unreachable.rebaseForward(h, unreachable), same(unreachable));
+        expect(unreachable.rebaseForward(h.typeOperations, unreachable),
+            same(unreachable));
       });
 
       test('assignments', () {
@@ -4255,12 +4257,12 @@ main() {
             ._declare(h, c, false)
             ._declare(h, d, false);
         var s1 = s0
-            ._write(h, null, a, Type('int'), new SsaNode<Type>(null), h)
-            ._write(h, null, b, Type('int'), new SsaNode<Type>(null), h);
+            ._write(h, null, a, Type('int'), new SsaNode<Type>(null))
+            ._write(h, null, b, Type('int'), new SsaNode<Type>(null));
         var s2 = s0
-            ._write(h, null, a, Type('int'), new SsaNode<Type>(null), h)
-            ._write(h, null, c, Type('int'), new SsaNode<Type>(null), h);
-        var result = s1.rebaseForward(h, s2);
+            ._write(h, null, a, Type('int'), new SsaNode<Type>(null))
+            ._write(h, null, c, Type('int'), new SsaNode<Type>(null));
+        var result = s1.rebaseForward(h.typeOperations, s2);
         expect(result._infoFor(h, a).assigned, true);
         expect(result._infoFor(h, b).assigned, true);
         expect(result._infoFor(h, c).assigned, true);
@@ -4280,7 +4282,7 @@ main() {
         // In s1, a and b are write captured.  In s2, a and c are.
         var s1 = s0._conservativeJoin(h, [a, b], [a, b]);
         var s2 = s1._conservativeJoin(h, [a, c], [a, c]);
-        var result = s1.rebaseForward(h, s2);
+        var result = s1.rebaseForward(h.typeOperations, s2);
         expect(
           result._infoFor(h, a),
           _matchVariableModel(writeCaptured: true, unassigned: false),
@@ -4306,11 +4308,11 @@ main() {
         var s1 = s0._conservativeJoin(h, [a], [a]);
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'int').ifTrue;
         expect(
-          s1.rebaseForward(h, s2)._infoFor(h, a),
+          s1.rebaseForward(h.typeOperations, s2)._infoFor(h, a),
           _matchVariableModel(writeCaptured: true, chain: isNull),
         );
         expect(
-          s2.rebaseForward(h, s1)._infoFor(h, a),
+          s2.rebaseForward(h.typeOperations, s1)._infoFor(h, a),
           _matchVariableModel(writeCaptured: true, chain: isNull),
         );
       });
@@ -4322,8 +4324,8 @@ main() {
           var s0 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
           var s1 = s0;
           if (unsafe) {
-            s1 = s1._write(
-                h, null, x, Type('Object?'), new SsaNode<Type>(null), h);
+            s1 =
+                s1._write(h, null, x, Type('Object?'), new SsaNode<Type>(null));
           }
           if (thisType != null) {
             s1 = s1._tryPromoteForTypeCheck(h, x, thisType).ifTrue;
@@ -4331,7 +4333,7 @@ main() {
           var s2 = otherType == null
               ? s0
               : s0._tryPromoteForTypeCheck(h, x, otherType).ifTrue;
-          var result = s2.rebaseForward(h, s1);
+          var result = s2.rebaseForward(h.typeOperations, s1);
           if (expectedChain == null) {
             expect(result.variableInfo,
                 contains(h.promotionKeyStore.keyForVariable(x)));
@@ -4400,7 +4402,7 @@ main() {
           var expectedFinallyChain = before.toList()..addAll(inFinally);
           _checkChain(
               finallyModel._infoFor(h, x).promotedTypes, expectedFinallyChain);
-          var result = tryModel.rebaseForward(h, finallyModel);
+          var result = tryModel.rebaseForward(h.typeOperations, finallyModel);
           _checkChain(result._infoFor(h, x).promotedTypes, expectedResult);
           // And verify that the inputs are unchanged.
           _checkChain(initialModel._infoFor(h, x).promotedTypes, before);
@@ -4436,11 +4438,11 @@ main() {
         var s1 = s0._tryPromoteForTypeCheck(h, a, 'int').ifFalse;
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'String').ifFalse;
         expect(
-          s1.rebaseForward(h, s2)._infoFor(h, a),
+          s1.rebaseForward(h.typeOperations, s2)._infoFor(h, a),
           _matchVariableModel(ofInterest: ['int', 'String']),
         );
         expect(
-          s2.rebaseForward(h, s1)._infoFor(h, a),
+          s2.rebaseForward(h.typeOperations, s1)._infoFor(h, a),
           _matchVariableModel(ofInterest: ['int', 'String']),
         );
       });
@@ -4449,8 +4451,8 @@ main() {
         var x = Var('x')..type = Type('Object?');
         var s0 = FlowModel<Type>(Reachability.initial);
         var s1 = s0._declare(h, x, true);
-        expect(s1.rebaseForward(h, s0), same(s0));
-        expect(s0.rebaseForward(h, s1), same(s1));
+        expect(s1.rebaseForward(h.typeOperations, s0), same(s0));
+        expect(s0.rebaseForward(h.typeOperations, s1), same(s1));
       });
     });
   });
@@ -4462,34 +4464,45 @@ main() {
     var objectType = Type('Object');
 
     test('should handle nulls', () {
-      expect(VariableModel.joinPromotedTypes(null, null, h), null);
-      expect(VariableModel.joinPromotedTypes(null, [intType], h), null);
-      expect(VariableModel.joinPromotedTypes([intType], null, h), null);
+      expect(
+          VariableModel.joinPromotedTypes(null, null, h.typeOperations), null);
+      expect(VariableModel.joinPromotedTypes(null, [intType], h.typeOperations),
+          null);
+      expect(VariableModel.joinPromotedTypes([intType], null, h.typeOperations),
+          null);
     });
 
     test('should return null if there are no common types', () {
-      expect(VariableModel.joinPromotedTypes([intType], [doubleType], h), null);
+      expect(
+          VariableModel.joinPromotedTypes(
+              [intType], [doubleType], h.typeOperations),
+          null);
     });
 
     test('should return common prefix if there are common types', () {
       expect(
-          VariableModel.joinPromotedTypes(
-              [objectType, intType], [objectType, doubleType], h),
+          VariableModel.joinPromotedTypes([objectType, intType],
+              [objectType, doubleType], h.typeOperations),
           _matchPromotionChain(['Object']));
       expect(
           VariableModel.joinPromotedTypes([objectType, numType, intType],
-              [objectType, numType, doubleType], h),
+              [objectType, numType, doubleType], h.typeOperations),
           _matchPromotionChain(['Object', 'num']));
     });
 
     test('should return an input if it is a prefix of the other', () {
       var prefix = [objectType, numType];
       var largerChain = [objectType, numType, intType];
-      expect(VariableModel.joinPromotedTypes(prefix, largerChain, h),
+      expect(
+          VariableModel.joinPromotedTypes(
+              prefix, largerChain, h.typeOperations),
           same(prefix));
-      expect(VariableModel.joinPromotedTypes(largerChain, prefix, h),
+      expect(
+          VariableModel.joinPromotedTypes(
+              largerChain, prefix, h.typeOperations),
           same(prefix));
-      expect(VariableModel.joinPromotedTypes(prefix, prefix, h), same(prefix));
+      expect(VariableModel.joinPromotedTypes(prefix, prefix, h.typeOperations),
+          same(prefix));
     });
 
     test('should intersect', () {
@@ -4519,12 +4532,12 @@ main() {
 
       void check(List<Type> chain1, List<Type> chain2, Matcher matcher) {
         expect(
-          VariableModel.joinPromotedTypes(chain1, chain2, h),
+          VariableModel.joinPromotedTypes(chain1, chain2, h.typeOperations),
           matcher,
         );
 
         expect(
-          VariableModel.joinPromotedTypes(chain2, chain1, h),
+          VariableModel.joinPromotedTypes(chain2, chain1, h.typeOperations),
           matcher,
         );
       }
@@ -4575,24 +4588,24 @@ main() {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'bool']);
-      expect(VariableModel.joinTested(s1, s2, h), expected);
-      expect(VariableModel.joinTested(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h.typeOperations), expected);
+      expect(VariableModel.joinTested(s2, s1, h.typeOperations), expected);
     });
 
     test('common prefix', () {
       var s1 = _makeTypes(['double', 'int', 'String']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'String', 'bool']);
-      expect(VariableModel.joinTested(s1, s2, h), expected);
-      expect(VariableModel.joinTested(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h.typeOperations), expected);
+      expect(VariableModel.joinTested(s2, s1, h.typeOperations), expected);
     });
 
     test('order mismatch', () {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['int', 'double']);
       var expected = _matchOfInterestSet(['double', 'int']);
-      expect(VariableModel.joinTested(s1, s2, h), expected);
-      expect(VariableModel.joinTested(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h.typeOperations), expected);
+      expect(VariableModel.joinTested(s2, s1, h.typeOperations), expected);
     });
 
     test('small common prefix', () {
@@ -4600,8 +4613,8 @@ main() {
       var s2 = _makeTypes(['int', 'List', 'bool', 'Future']);
       var expected = _matchOfInterestSet(
           ['int', 'double', 'String', 'bool', 'List', 'Future']);
-      expect(VariableModel.joinTested(s1, s2, h), expected);
-      expect(VariableModel.joinTested(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h.typeOperations), expected);
+      expect(VariableModel.joinTested(s2, s1, h.typeOperations), expected);
     });
   });
 
@@ -4641,7 +4654,7 @@ main() {
           x: model(null),
           y: model([intType])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), {
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap), {
           x: _matchVariableModel(chain: null, ofInterest: ['int']),
           y: _matchVariableModel(chain: null, ofInterest: ['int'])
         });
@@ -4653,7 +4666,8 @@ main() {
           x: model([intType]),
           y: model([stringType])
         };
-        expect(FlowModel.joinVariableInfo(h, p, p, emptyMap), same(p));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p, p, emptyMap),
+            same(p));
       });
 
       test('one input empty', () {
@@ -4662,8 +4676,10 @@ main() {
           y: model([stringType])
         };
         var p2 = <int, VariableModel<Type>>{};
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), same(emptyMap));
-        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), same(emptyMap));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
+            same(emptyMap));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
+            same(emptyMap));
       });
 
       test('promoted with unpromoted', () {
@@ -4674,8 +4690,10 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
+            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
+            expected);
       });
 
       test('related type chains', () {
@@ -4688,8 +4706,10 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
+            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
+            expected);
       });
 
       test('unrelated type chains', () {
@@ -4702,8 +4722,10 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['String', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
+            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
+            expected);
       });
 
       test('sub-map', () {
@@ -4713,8 +4735,10 @@ main() {
           y: model([stringType])
         };
         var p2 = {x: xModel};
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), same(p2));
-        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), same(p2));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
+            same(p2));
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
+            same(p2));
       });
 
       test('sub-map with matched subtype', () {
@@ -4728,8 +4752,10 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
+            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
+            expected);
       });
 
       test('sub-map with mismatched subtype', () {
@@ -4743,8 +4769,10 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap),
+            expected);
+        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1, emptyMap),
+            expected);
       });
 
       test('assigned', () {
@@ -4752,7 +4780,8 @@ main() {
         var assigned = model(null, assigned: true);
         var p1 = {x: assigned, y: assigned, z: unassigned, w: unassigned};
         var p2 = {x: assigned, y: unassigned, z: assigned, w: unassigned};
-        var joined = FlowModel.joinVariableInfo(h, p1, p2, emptyMap);
+        var joined =
+            FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap);
         expect(joined, {
           x: same(assigned),
           y: _matchVariableModel(
@@ -4778,7 +4807,8 @@ main() {
           z: writeCapturedModel,
           w: intQModel
         };
-        var joined = FlowModel.joinVariableInfo(h, p1, p2, emptyMap);
+        var joined =
+            FlowModel.joinVariableInfo(h.typeOperations, p1, p2, emptyMap);
         expect(joined, {
           x: same(writeCapturedModel),
           y: same(writeCapturedModel),
@@ -4810,7 +4840,7 @@ main() {
 
     test('first is null', () {
       var s1 = FlowModel.withInfo(Reachability.initial.split(), emptyMap);
-      var result = FlowModel.merge(h, null, s1, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, null, s1, emptyMap);
       expect(result.reachable, same(Reachability.initial));
     });
 
@@ -4818,7 +4848,7 @@ main() {
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit, emptyMap);
-      var result = FlowModel.merge(h, s1, null, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, null, emptyMap);
       expect(result.reachable, same(splitPoint));
     });
 
@@ -4831,7 +4861,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit, {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo[x]!.promotedTypes, isNull);
     });
@@ -4845,7 +4875,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit, {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo, same(s2.variableInfo));
     });
@@ -4859,7 +4889,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo, same(s1.variableInfo));
     });
@@ -4873,7 +4903,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      var result = FlowModel.merge(h.typeOperations, s1, s2, emptyMap);
       expect(result.reachable.locallyReachable, false);
       expect(result.reachable.parent, same(splitPoint.parent));
       expect(result.variableInfo[x]!.promotedTypes, isNull);
@@ -4905,7 +4935,7 @@ main() {
       var m2 = FlowModel.withInfo(Reachability.initial, {
         x: model([stringType])
       });
-      expect(m1.inheritTested(h, m2).variableInfo[x]!.tested,
+      expect(m1.inheritTested(h.typeOperations, m2).variableInfo[x]!.tested,
           _matchOfInterestSet(['int', 'String']));
     });
 
@@ -4914,7 +4944,7 @@ main() {
         x: model([intType])
       });
       var m2 = FlowModel.withInfo(Reachability.initial, emptyMap);
-      expect(m1.inheritTested(h, m2), same(m1));
+      expect(m1.inheritTested(h.typeOperations, m2), same(m1));
     });
 
     test('returns identical model when no changes', () {
@@ -4924,7 +4954,7 @@ main() {
       var m2 = FlowModel.withInfo(Reachability.initial, {
         x: model([intType])
       });
-      expect(m1.inheritTested(h, m2), same(m1));
+      expect(m1.inheritTested(h.typeOperations, m2), same(m1));
     });
   });
 
@@ -6449,8 +6479,7 @@ extension on FlowModel<Type> {
           NonPromotionReason? nonPromotionReason,
           Var variable,
           Type writtenType,
-          SsaNode<Type> newSsaNode,
-          Operations<Var, Type> operations) =>
+          SsaNode<Type> newSsaNode) =>
       write(
           h,
           nonPromotionReason,
@@ -6458,5 +6487,5 @@ extension on FlowModel<Type> {
           h.promotionKeyStore.keyForVariable(variable),
           writtenType,
           newSsaNode,
-          operations);
+          h.typeOperations);
 }

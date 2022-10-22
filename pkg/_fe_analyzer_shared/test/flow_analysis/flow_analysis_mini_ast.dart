@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 
 import '../mini_ast.dart';
 import '../mini_ir.dart';
@@ -30,7 +29,7 @@ class FlowAnalysisTestHarness extends Harness implements FlowModelHelper<Type> {
   final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
 
   @override
-  TypeOperations<Type> get typeOperations => this;
+  Operations<Var, Type> get typeOperations => typeAnalyzer.typeOperations;
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.

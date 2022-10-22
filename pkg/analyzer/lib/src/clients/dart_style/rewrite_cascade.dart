@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 
 /// Parenthesize the target of the [expressionStatement]'s expression (assumed
 /// to [cascadeExpression]) before removing the cascade.
@@ -16,12 +15,12 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
   cascadeExpression as CascadeExpressionImpl;
   assert(cascadeExpression.cascadeSections.length == 1);
 
-  var newTarget = astFactory.parenthesizedExpression(
-    Token(TokenType.OPEN_PAREN, 0)
+  var newTarget = ParenthesizedExpressionImpl(
+    leftParenthesis: Token(TokenType.OPEN_PAREN, 0)
       ..previous = expressionStatement.beginToken.previous
       ..next = cascadeExpression.target.beginToken,
-    cascadeExpression.target,
-    Token(TokenType.CLOSE_PAREN, 0)
+    expression: cascadeExpression.target,
+    rightParenthesis: Token(TokenType.CLOSE_PAREN, 0)
       ..previous = cascadeExpression.target.endToken
       ..next = expressionStatement.semicolon,
   );

@@ -354,7 +354,7 @@ class LibraryBuilder {
     var unitReference = reference.getChild('@unit').getChild('$unitUri');
     _bindReference(unitReference, unitElement);
 
-    element.parts2.add(
+    element.parts.add(
       PartElementImpl(
         uri: DirectiveUriWithUnitImpl(
           relativeUriString: '_macro_types.dart',
@@ -879,7 +879,7 @@ class LibraryBuilder {
       );
     }
 
-    libraryElement.parts2 = parts;
+    libraryElement.parts = parts;
 
     final builder = LibraryBuilder._(
       linker: linker,

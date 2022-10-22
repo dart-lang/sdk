@@ -196,7 +196,7 @@ class TypeHierarchyComputer {
         result = clazz.getSetter(pivotName);
       }
     }
-    if (result != null && result.isAccessibleIn2(_pivotLibrary)) {
+    if (result != null && result.isAccessibleIn(_pivotLibrary)) {
       return result;
     }
     // try to find in the class mixin

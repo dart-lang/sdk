@@ -4,6 +4,12 @@
 * Deprecated `CatchClause.exceptionParameter2`, use `exceptionParameter` instead.
 * Deprecated `CatchClause.stackTraceParameter2`, use `stackTraceParameter` instead.
 * Deprecated `DartType.element2`, use `element` instead.
+* Deprecated `Element.isAccessibleIn2()`, use `isAccessibleIn()` instead.
+* Deprecated `CompilationUnitElement.enums2`, use `enums` instead.
+* Deprecated `CompilationUnitElement.getEnum2()`, use `getEnum()` instead.
+* Deprecated `CompilationUnitElement.mixins2`, use `mixins` instead.
+* Deprecated `LibraryElement.parts2`, use `parts` instead.
+* Deprecated `ImportElement.imports2`, use `imports` instead.
 
 ## 5.1.0
 * Deprecated `AstNode.name2`, use `name` instead.

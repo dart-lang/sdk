@@ -1249,6 +1249,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the number of provided type arguments
+  static const CompileTimeErrorCode EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
+    'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
+    "List patterns require one type argument or none, but {0} found.",
+    correctionMessage: "Try adjusting the number of type arguments.",
+  );
+
+  ///  Parameters:
+  ///  0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_ONE_LIST_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
     'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',

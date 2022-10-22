@@ -1806,7 +1806,7 @@ class A {}
     }
 
     if (expected != null) {
-      final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+      final partUri = library.parts.single.uri as DirectiveUriWithUnit;
       final x = partUri.unit.topLevelVariables.single;
       expect(x.name, 'x');
       x as ConstTopLevelVariableElementImpl;
@@ -1869,7 +1869,7 @@ $declarationCode
       library.definingCompilationUnit.getClass('A'),
     );
 
-    final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+    final partUri = library.parts.single.uri as DirectiveUriWithUnit;
     final x = partUri.unit.topLevelVariables.single;
     expect(x.name, 'x');
     x as ConstTopLevelVariableElementImpl;
