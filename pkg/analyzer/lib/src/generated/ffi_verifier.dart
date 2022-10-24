@@ -1323,7 +1323,8 @@ extension on Annotation {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name == 'FfiNative';
+        (element.enclosingElement.name == 'Native' ||
+            element.enclosingElement.name == 'FfiNative');
   }
 
   bool get isPacked {
