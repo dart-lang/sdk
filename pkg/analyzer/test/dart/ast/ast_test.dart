@@ -1783,6 +1783,37 @@ final v = """a${bb}ccc""";
       expect(node.isSingleQuoted, isFalse);
     }
   }
+
+  void test_this_followedByDollar() {
+    final parseResult = parseStringWithErrors(r'''
+class C {
+  void m(int foo) {
+    '$this$foo';
+  }
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.stringInterpolation('this');
+    assertParsedNodeText(node, r'''
+StringInterpolation
+  elements
+    InterpolationString
+      contents: '
+    InterpolationExpression
+      leftBracket: $
+      expression: ThisExpression
+        thisKeyword: this
+    InterpolationString
+      contents: <empty> <synthetic>
+    InterpolationExpression
+      leftBracket: $
+      expression: SimpleIdentifier
+        token: foo
+    InterpolationString
+      contents: '
+  stringValue: null
+''');
+  }
 }
 
 @reflectiveTest

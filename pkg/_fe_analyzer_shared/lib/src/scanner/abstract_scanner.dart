@@ -1632,7 +1632,7 @@ abstract class AbstractScanner implements Scanner {
     if (($A <= next && next <= $Z) ||
         ($0 <= next && next <= $9) ||
         identical(next, $_) ||
-        identical(next, $$)) {
+        (allowDollar && identical(next, $$))) {
       return tokenizeIdentifier(next, start, allowDollar);
     } else {
       appendKeywordToken(keyword);
