@@ -6974,6 +6974,155 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
         problemMessage: r"""This is the enclosing class.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropExportClassNotMarkedExportable =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Class '#name' does not have a `@JSExport` on it or any of its members.""",
+        correctionMessageTemplate:
+            r"""Use the `@JSExport` annotation on this class.""",
+        withArguments: _withArgumentsJsInteropExportClassNotMarkedExportable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportClassNotMarkedExportable =
+    const Code<Message Function(String name)>(
+  "JsInteropExportClassNotMarkedExportable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportClassNotMarkedExportable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportClassNotMarkedExportable,
+      problemMessage:
+          """Class '${name}' does not have a `@JSExport` on it or any of its members.""",
+      correctionMessage: """Use the `@JSExport` annotation on this class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored.""",
+        correctionMessageTemplate: r"""Remove the value in the annotation.""",
+        withArguments:
+            _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
+    const Code<Message Function(String name)>(
+        "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
+      problemMessage:
+          """The value in the `@JSExport` annotation on the class or mixin '${name}' will be ignored.""",
+      correctionMessage: """Remove the value in the annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropExportDisallowedMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' is not a concrete instance member, and therefore can't be exported.""",
+    correctionMessageTemplate:
+        r"""Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
+    withArguments: _withArgumentsJsInteropExportDisallowedMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeJsInteropExportDisallowedMember =
+    const Code<Message Function(String name)>(
+  "JsInteropExportDisallowedMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportDisallowedMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportDisallowedMember,
+      problemMessage:
+          """Member '${name}' is not a concrete instance member, and therefore can't be exported.""",
+      correctionMessage: """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateJsInteropExportMemberCollision = const Template<
+        Message Function(String name, String string)>(
+    problemMessageTemplate:
+        r"""The following class members collide with the same export '#name': #string.""",
+    correctionMessageTemplate:
+        r"""Either remove the conflicting members or use a different export name.""",
+    withArguments: _withArgumentsJsInteropExportMemberCollision);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeJsInteropExportMemberCollision =
+    const Code<Message Function(String name, String string)>(
+  "JsInteropExportMemberCollision",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportMemberCollision(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropExportMemberCollision,
+      problemMessage:
+          """The following class members collide with the same export '${name}': ${string}.""",
+      correctionMessage: """Either remove the conflicting members or use a different export name.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropExportNoExportableMembers = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Class '#name' has no exportable members in the class or the inheritance chain.""",
+    correctionMessageTemplate:
+        r"""Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
+    withArguments: _withArgumentsJsInteropExportNoExportableMembers);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportNoExportableMembers =
+    const Code<Message Function(String name)>(
+  "JsInteropExportNoExportableMembers",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportNoExportableMembers(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportNoExportableMembers,
+      problemMessage:
+          """Class '${name}' has no exportable members in the class or the inheritance chain.""",
+      correctionMessage: """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalExtensionMemberOnTypeInvalid =
     messageJsInteropExternalExtensionMemberOnTypeInvalid;
 

@@ -25,6 +25,11 @@ bool hasStaticInteropAnnotation(Annotatable a) =>
 bool hasTrustTypesAnnotation(Annotatable a) =>
     a.annotations.any(_isTrustTypesAnnotation);
 
+/// Returns true iff the node has an `@JSExport(...)` annotation from
+/// `package:js` or from the internal `dart:_js_annotations`.
+bool hasJSExportAnnotation(Annotatable a) =>
+    a.annotations.any(_isJSExportAnnotation);
+
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///
@@ -59,6 +64,21 @@ List<String> getNativeNames(Annotatable a) {
   return nativeClasses;
 }
 
+/// If [a] has a `@JSExport('...')` annotation, returns the value inside the
+/// parentheses.
+///
+/// If the class does not have a `@JSExport()` annotation, returns an empty
+/// String. Note that a value is guaranteed to exist.
+String getJSExportName(Annotatable a) {
+  String jsExportValue = '';
+  for (var annotation in a.annotations) {
+    if (_isJSExportAnnotation(annotation)) {
+      return _stringAnnotationValues(annotation)[0];
+    }
+  }
+  return jsExportValue;
+}
+
 final _packageJs = Uri.parse('package:js/js.dart');
 final _internalJs = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
@@ -85,6 +105,9 @@ bool _isStaticInteropAnnotation(Expression value) =>
 
 bool _isTrustTypesAnnotation(Expression value) =>
     _isInteropAnnotation(value, '_TrustTypes');
+
+bool _isJSExportAnnotation(Expression value) =>
+    _isInteropAnnotation(value, 'JSExport');
 
 /// Returns true if [value] is the `Native` annotation from `dart:_js_helper`.
 bool _isNativeAnnotation(Expression value) {

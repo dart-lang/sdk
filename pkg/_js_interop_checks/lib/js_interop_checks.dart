@@ -28,12 +28,14 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
         templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
+import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
 
 import 'src/js_interop.dart';
 
 class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
+  final ExportChecker exportChecker;
   final Map<String, Class> _nativeClasses;
   final _TypeParameterVisitor _typeParameterVisitor = _TypeParameterVisitor();
   bool _classHasJSAnnotation = false;
@@ -81,7 +83,9 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _libraryIsGlobalNamespace = false;
 
   JsInteropChecks(
-      this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
+      this._coreTypes, this._diagnosticsReporter, this._nativeClasses)
+      : exportChecker =
+            ExportChecker(_diagnosticsReporter, _coreTypes.objectClass);
 
   /// Extract all native class names from the [component].
   ///
@@ -107,6 +111,7 @@ class JsInteropChecks extends RecursiveVisitor {
     if (!_isJSInteropMember(member)) _checkDisallowedExternal(member);
     // TODO(43530): Disallow having JS interop annotations on non-external
     // members (class members or otherwise). Currently, they're being ignored.
+    exportChecker.visitMember(member);
     super.defaultMember(member);
   }
 
@@ -206,6 +211,9 @@ class JsInteropChecks extends RecursiveVisitor {
       }
     }
     super.visitClass(cls);
+    // Validate `@JSExport` usage after so we know if the members have the
+    // annotation.
+    exportChecker.visitClass(cls);
     _classHasAnonymousAnnotation = false;
     _classHasJSAnnotation = false;
   }
@@ -323,6 +331,7 @@ class JsInteropChecks extends RecursiveVisitor {
             procedure.fileUri);
       }
     }
+    super.visitProcedure(procedure);
   }
 
   @override
@@ -364,6 +373,12 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkNoNamedParameters(constructor.function);
     }
+  }
+
+  @override
+  void visitExtension(Extension extension) {
+    exportChecker.visitExtension(extension);
+    super.visitExtension(extension);
   }
 
   /// Reports an error if [functionNode] has named parameters.

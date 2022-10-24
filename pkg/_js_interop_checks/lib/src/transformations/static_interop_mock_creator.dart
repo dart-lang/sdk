@@ -4,6 +4,8 @@
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
+        templateJsInteropExportInvalidInteropTypeArgument,
+        templateJsInteropExportInvalidTypeArgument,
         templateJsInteropStaticInteropMockMemberNotSubtype,
         templateJsInteropStaticInteropMockNotDartInterfaceType,
         templateJsInteropStaticInteropMockNotStaticInteropType;
@@ -14,16 +16,190 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         Message,
         LocatedMessage,
+        templateJsInteropExportClassNotMarkedExportable,
+        templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
+        templateJsInteropExportDisallowedMember,
+        templateJsInteropExportMemberCollision,
+        templateJsInteropExportNoExportableMembers,
         templateJsInteropStaticInteropMockMissingOverride,
         templateJsInteropStaticInteropMockExternalExtensionMemberConflict;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 
-class _ExtensionVisitor extends RecursiveVisitor {
-  final Map<Reference, Extension> staticInteropClassesWithExtensions;
+enum _ExportStatus {
+  EXPORT_ERROR,
+  NON_EXPORTABLE,
+  EXPORTABLE,
+}
 
-  _ExtensionVisitor(this.staticInteropClassesWithExtensions);
+class ExportChecker {
+  final DiagnosticReporter<Message, LocatedMessage> _diagnosticReporter;
+  final Map<Class, Map<String, Set<Member>>> exportClassToMemberMap = {};
+  final Map<Class, _ExportStatus> exportStatus = {};
+  final Class _objectClass;
+  final Map<Class, Map<String, Member>> _overrideMap = {};
+  final Map<Reference, Extension> staticInteropClassesWithExtensions = {};
 
-  @override
+  ExportChecker(this._diagnosticReporter, this._objectClass);
+
+  /// Calculates the overrides, including inheritance, for [cls].
+  ///
+  /// Note that we use a map from the unique name (with setter renaming) to
+  /// avoid duplicate checks on classes, and to store the overrides.
+  void _collectOverrides(Class cls) {
+    if (_overrideMap.containsKey(cls)) return;
+    Map<String, Member> memberMap;
+    var superclass = cls.superclass;
+    if (superclass != null && superclass != _objectClass) {
+      _collectOverrides(superclass);
+      memberMap = Map.from(_overrideMap[superclass]!);
+    } else {
+      memberMap = {};
+    }
+    // If this is a mixin application, fetch the members from the mixin.
+    var demangledCls = cls.isMixinApplication ? cls.mixin : cls;
+    for (var member in [
+      ...demangledCls.procedures.where((proc) => proc.exportable),
+      ...demangledCls.fields.where((field) => field.exportable)
+    ]) {
+      var memberName = member.name.text;
+      if (member is Procedure && member.isSetter) {
+        memberMap[memberName + '='] = member;
+      } else {
+        if (member is Field && !member.isFinal) {
+          memberMap[memberName + '='] = member;
+        }
+        memberMap[memberName] = member;
+      }
+    }
+    _overrideMap[cls] = memberMap;
+  }
+
+  /// Determine if [cls] is exportable, and if so, compute the export members.
+  ///
+  ///
+  /// Check the following:
+  /// - If the class has a `@JSExport` annotation, the value should be empty.
+  /// - If the class has the annotation, it should have at least one exportable
+  /// member in the class or in any superclass (ignoring `Object`).
+  /// - Accounting for Dart overrides, the export member map of the class or
+  /// any of its superclasses do not contain unresolvable name collisions. An
+  /// explanation of the resolvable collisions is below.
+  void visitClass(Class cls) {
+    var classHasJSExport = js_interop.hasJSExportAnnotation(cls);
+    // If the class doesn't have the annotation or if the class wasn't marked
+    // when we visited the members and checked their annotations, there's
+    // nothing to do for this class.
+    if (!classHasJSExport && exportStatus[cls] != _ExportStatus.EXPORTABLE) {
+      exportStatus[cls] = _ExportStatus.NON_EXPORTABLE;
+      return;
+    }
+
+    if (classHasJSExport && js_interop.getJSExportName(cls).isNotEmpty) {
+      _diagnosticReporter.report(
+          templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue
+              .withArguments(cls.name),
+          cls.fileOffset,
+          cls.name.length,
+          cls.location?.file);
+      exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+    }
+
+    _collectOverrides(cls);
+
+    var allExportableMembers = _overrideMap[cls]!.values.where((member) =>
+        // Only members that qualify are those that are exportable, and either
+        // their class has the annotation or they have it themselves.
+        member.exportable &&
+        (js_interop.hasJSExportAnnotation(member) ||
+            js_interop.hasJSExportAnnotation(member.enclosingClass!)));
+    var exports = <String, Set<Member>>{};
+
+    // Store the exportable members.
+    for (var member in allExportableMembers) {
+      var exportName = member.exportPropertyName;
+      exports.putIfAbsent(exportName, () => {}).add(member);
+    }
+
+    // Walk through the export map and determine if there are any unresolvable
+    // conflicts.
+    for (var exportName in exports.keys) {
+      var existingMembers = exports[exportName]!;
+      if (existingMembers.length == 1) continue;
+      if (existingMembers.length == 2) {
+        // There are two instances where you can resolve collisions:
+        // 1. One of the members is a non-final field, and the other one is
+        // either a strict getter or a strict setter that overrides part of
+        // that field.
+        // 2. One of the members is a strict getter, and the other one is a
+        // strict setter or vice versa.
+        // Any other case is an error to have more than 1 member per name.
+        bool isCollisionOkay(Member m1, Member m2) {
+          if (m1.isNonFinalField &&
+              (m2.isStrictGetter || m2.isStrictSetter) &&
+              // Is an override if the same name and across different classes.
+              (m1.name.text == m2.name.text &&
+                  m1.enclosingClass != m2.enclosingClass)) {
+            return true;
+          } else if (m1.isStrictGetter && m2.isStrictSetter) {
+            return true;
+          }
+          return false;
+        }
+
+        var first = existingMembers.elementAt(0);
+        var second = existingMembers.elementAt(1);
+        if (isCollisionOkay(first, second) || isCollisionOkay(second, first)) {
+          continue;
+        }
+      }
+      // Sort to get deterministic order.
+      var sortedExistingMembers =
+          existingMembers.map((member) => member.toString()).toList()..sort();
+      _diagnosticReporter.report(
+          templateJsInteropExportMemberCollision.withArguments(
+              exportName, sortedExistingMembers.join(', ')),
+          cls.fileOffset,
+          cls.name.length,
+          cls.location?.file);
+      exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+    }
+
+    if (exports.isEmpty) {
+      _diagnosticReporter.report(
+          templateJsInteropExportNoExportableMembers.withArguments(cls.name),
+          cls.fileOffset,
+          cls.name.length,
+          cls.location?.file);
+      exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+    }
+
+    exportClassToMemberMap[cls] = exports;
+    exportStatus[cls] ??= _ExportStatus.EXPORTABLE;
+  }
+
+  /// Check that the [member] can be exportable if it has an annotation, and if
+  /// so, mark the enclosing class as exportable.
+  void visitMember(Member member) {
+    var memberHasJSExportAnnotation = js_interop.hasJSExportAnnotation(member);
+    var cls = member.enclosingClass;
+    if (memberHasJSExportAnnotation) {
+      if (!member.exportable) {
+        _diagnosticReporter.report(
+            templateJsInteropExportDisallowedMember
+                .withArguments(member.name.text),
+            member.fileOffset,
+            member.name.text.length,
+            member.location?.file);
+        if (cls != null) exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+      } else {
+        // Mark as exportable so we know that the class has an exportable member
+        // when we process the class later.
+        if (cls != null) exportStatus[cls] = _ExportStatus.EXPORTABLE;
+      }
+    }
+  }
+
+  /// Store the [extension] if the on-type is a `@staticInterop` class.
   void visitExtension(Extension extension) {
     // TODO(srujzs): This code was written with the assumption there would be
     // one single extension per `@staticInterop` class. This is no longer true
@@ -35,29 +211,34 @@ class _ExtensionVisitor extends RecursiveVisitor {
         staticInteropClassesWithExtensions[onType.className] = extension;
       }
     }
-    super.visitExtension(extension);
   }
 }
 
+// TODO(srujzs): Rename this class and file to focus on exports. Separate out
+// the export creation, export validation, and mock validation into three
+// separate files to make this cleaner.
 class StaticInteropMockCreator extends Transformer {
   final Procedure _allowInterop;
   final Procedure _callMethod;
+  final Procedure _createDartExport;
   final Procedure _createStaticInteropMock;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticReporter;
-  late final _ExtensionVisitor _extensionVisitor;
+  final ExportChecker _exportChecker;
   final InterfaceType _functionType;
   final Procedure _getProperty;
   final Procedure _globalThis;
   final InterfaceType _objectType;
   final Procedure _setProperty;
-  final Map<Reference, Extension> _staticInteropClassesWithExtensions = {};
   final TypeEnvironment _typeEnvironment;
 
-  StaticInteropMockCreator(this._typeEnvironment, this._diagnosticReporter)
+  StaticInteropMockCreator(
+      this._typeEnvironment, this._diagnosticReporter, this._exportChecker)
       : _allowInterop = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js', 'allowInterop'),
         _callMethod = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'callMethod'),
+        _createDartExport = _typeEnvironment.coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'createDartExport'),
         _createStaticInteropMock = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock'),
         _functionType = _typeEnvironment.coreTypes.functionNonNullableRawType,
@@ -67,16 +248,19 @@ class StaticInteropMockCreator extends Transformer {
             .getTopLevelProcedure('dart:js_util', 'get:globalThis'),
         _objectType = _typeEnvironment.coreTypes.objectNonNullableRawType,
         _setProperty = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'setProperty') {
-    _extensionVisitor = _ExtensionVisitor(_staticInteropClassesWithExtensions);
-  }
-
-  void processExtensions(Library library) =>
-      _extensionVisitor.visitLibrary(library);
+            .getTopLevelProcedure('dart:js_util', 'setProperty');
 
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
+    if (node.target == _createDartExport) {
+      if (_verifyExportable(node)) {
+        // TODO(srujzs): Create the export by refactoring `_createMock`. For
+        // now, don't do anything.
+      }
+      return node;
+    }
     if (node.target != _createStaticInteropMock) return node;
+
     var typeArguments = node.arguments.types;
     assert(typeArguments.length == 2);
     var staticInteropType = typeArguments[0];
@@ -114,21 +298,12 @@ class StaticInteropMockCreator extends Transformer {
 
     var dartMemberMap = <String, Member>{};
     for (var procedure in dartClass.allInstanceProcedures) {
-      // We only care about concrete instance getters, setters, and methods.
-      if (procedure.isAbstract ||
-          procedure.isStatic ||
-          procedure.isExtensionMember ||
-          procedure.isFactory) {
-        continue;
-      }
       var name = procedure.name.text;
       // Add a suffix to differentiate getters and setters.
       if (procedure.isSetter) name += '=';
       dartMemberMap[name] = procedure;
     }
     for (var field in dartClass.allInstanceFields) {
-      // We only care about concrete instance fields.
-      if (field.isAbstract || field.isStatic) continue;
       var name = field.name.text;
       dartMemberMap[name] = field;
       if (!field.isFinal) {
@@ -144,7 +319,7 @@ class StaticInteropMockCreator extends Transformer {
     staticInteropClass.computeAllNonStaticExternalExtensionMembers(
         nameToDescriptors,
         descriptorToClass,
-        _staticInteropClassesWithExtensions,
+        _exportChecker.staticInteropClassesWithExtensions,
         _typeEnvironment);
     for (var descriptorName in nameToDescriptors.keys) {
       var descriptors = nameToDescriptors[descriptorName]!;
@@ -163,7 +338,8 @@ class StaticInteropMockCreator extends Transformer {
         var violations = <String>[];
         for (var descriptor in descriptorConflicts) {
           var cls = descriptorToClass[descriptor]!;
-          var extension = _staticInteropClassesWithExtensions[cls.reference]!;
+          var extension =
+              _exportChecker.staticInteropClassesWithExtensions[cls.reference]!;
           var extensionName =
               extension.isUnnamedExtension ? 'unnamed' : extension.name;
           violations.add("'${cls.name}.$extensionName'");
@@ -306,6 +482,52 @@ class StaticInteropMockCreator extends Transformer {
     // invocation with it.
     return _createMock(
         node, nameToDescriptors, descriptorToClass, dartMemberMap);
+  }
+
+  /// Validate that the class provided via `createDartExport` can be exported
+  /// safely.
+  ///
+  /// Checks that:
+  /// - Type argument is a valid Dart interface type.
+  /// - Type argument is not a JS interop type.
+  /// - Type argument was not marked as non-exportable.
+  ///
+  /// If there were no errors with processing the class, returns true.
+  /// Otherwise, returns false.
+  bool _verifyExportable(StaticInvocation node) {
+    var dartType = node.arguments.types[0];
+    if (dartType is! InterfaceType) {
+      _diagnosticReporter.report(
+          templateJsInteropExportInvalidTypeArgument.withArguments(
+              dartType, true),
+          node.fileOffset,
+          node.name.text.length,
+          node.location?.file);
+      return false;
+    }
+    var dartClass = dartType.classNode;
+    if (js_interop.hasJSInteropAnnotation(dartClass) ||
+        js_interop.hasStaticInteropAnnotation(dartClass) ||
+        js_interop.hasAnonymousAnnotation(dartClass)) {
+      _diagnosticReporter.report(
+          templateJsInteropExportInvalidInteropTypeArgument.withArguments(
+              dartType, true),
+          node.fileOffset,
+          node.name.text.length,
+          node.location?.file);
+      return false;
+    }
+    var exportStatus = _exportChecker.exportStatus[dartClass]!;
+    if (exportStatus == _ExportStatus.NON_EXPORTABLE) {
+      _diagnosticReporter.report(
+          templateJsInteropExportClassNotMarkedExportable
+              .withArguments(dartClass.name),
+          node.fileOffset,
+          node.name.text.length,
+          node.location?.file);
+      return false;
+    }
+    return exportStatus == _ExportStatus.EXPORTABLE;
   }
 
   TreeNode _createMock(
@@ -528,22 +750,18 @@ class StaticInteropMockCreator extends Transformer {
   }
 }
 
+// TODO(srujzs): Remove once we refactor the mock conformance. For now, the
+// logic here is semi-duplicated above for exporting.
 extension _DartClassExtension on Class {
   List<Procedure> get allInstanceProcedures {
     var allProcs = <Procedure>[];
     Class? cls = this;
-    // We only care about instance procedures that have a body.
-    bool isInstanceProcedure(Procedure proc) =>
-        !proc.isAbstract &&
-        !proc.isStatic &&
-        !proc.isExtensionMember &&
-        !proc.isFactory;
     while (cls != null) {
-      allProcs.addAll(cls.procedures.where(isInstanceProcedure));
+      allProcs.addAll(cls.procedures.where((proc) => proc.exportable));
       // Mixin members override the given superclass' members, but are
       // overridden by the class' instance members, so they are inserted next.
       if (cls.isMixinApplication) {
-        allProcs.addAll(cls.mixin.procedures.where(isInstanceProcedure));
+        allProcs.addAll(cls.mixin.procedures.where((proc) => proc.exportable));
       }
       cls = cls.superclass;
     }
@@ -555,11 +773,10 @@ extension _DartClassExtension on Class {
   List<Field> get allInstanceFields {
     var allFields = <Field>[];
     Class? cls = this;
-    bool isInstanceField(Field field) => !field.isAbstract && !field.isStatic;
     while (cls != null) {
-      allFields.addAll(cls.fields.where(isInstanceField));
+      allFields.addAll(cls.fields.where((field) => field.exportable));
       if (cls.isMixinApplication) {
-        allFields.addAll(cls.mixin.fields.where(isInstanceField));
+        allFields.addAll(cls.mixin.fields.where((field) => field.exportable));
       }
       cls = cls.superclass;
     }
@@ -674,4 +891,42 @@ extension ExtensionMemberDescriptorExtension on ExtensionMemberDescriptor {
   bool get isMethod => this.kind == ExtensionMemberKind.Method;
 
   bool get isExternal => (this.member.asProcedure).isExternal;
+}
+
+extension ProcedureExtension on Procedure {
+  // We only care about concrete instance procedures.
+  bool get exportable =>
+      !this.isAbstract &&
+      !this.isStatic &&
+      !this.isExtensionMember &&
+      !this.isFactory &&
+      !this.isExternal &&
+      this.kind != ProcedureKind.Operator;
+}
+
+extension FieldExtension on Field {
+  // We only care about concrete instance fields.
+  bool get exportable => !this.isAbstract && !this.isStatic && !this.isExternal;
+}
+
+extension MemberExtension on Member {
+  // Get the property name that this member will be exported as.
+  String get exportPropertyName {
+    var rename = js_interop.getJSExportName(this);
+    return rename.isEmpty ? this.name.text : rename;
+  }
+
+  bool get exportable =>
+      (this is Procedure && (this as Procedure).exportable) ||
+      (this is Field && (this as Field).exportable);
+
+  // Only a getter and not a setter.
+  bool get isStrictGetter =>
+      (this is Procedure && (this as Procedure).isGetter) ||
+      (this is Field && (this as Field).isFinal);
+
+  // Only a setter and not a getter.
+  bool get isStrictSetter => this is Procedure && (this as Procedure).isSetter;
+
+  bool get isNonFinalField => this is Field && !(this as Field).isFinal;
 }

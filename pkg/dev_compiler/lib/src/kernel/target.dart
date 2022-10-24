@@ -170,16 +170,17 @@ class DevCompilerTarget extends Target {
         coreTypes,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
-    var staticInteropMockCreator = StaticInteropMockCreator(
-        TypeEnvironment(coreTypes, hierarchy), diagnosticReporter);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    // Cache extensions for entire component before creating mock.
+    // Process and validate first before doing anything with exports.
     for (var library in libraries) {
-      staticInteropMockCreator.processExtensions(library);
+      jsInteropChecks.visitLibrary(library);
     }
+    var staticInteropMockCreator = StaticInteropMockCreator(
+        TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter,
+        jsInteropChecks.exportChecker);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      jsInteropChecks.visitLibrary(library);
       staticInteropMockCreator.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
     }

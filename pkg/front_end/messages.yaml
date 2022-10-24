@@ -5207,6 +5207,35 @@ JsInteropEnclosingClassJSAnnotationContext:
   problemMessage: "This is the enclosing class."
   severity: CONTEXT
 
+JsInteropExportClassNotMarkedExportable:
+  problemMessage: "Class '#name' does not have a `@JSExport` on it or any of its members."
+  correctionMessage: "Use the `@JSExport` annotation on this class."
+
+JsInteropExportDartInterfaceHasNonEmptyJSExportValue:
+  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored."
+  correctionMessage: "Remove the value in the annotation."
+  severity: WARNING
+
+JsInteropExportDisallowedMember:
+  problemMessage: "Member '#name' is not a concrete instance member, and therefore can't be exported."
+  correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
+
+JsInteropExportInvalidInteropTypeArgument:
+  problemMessage: "Type argument '#type' needs to be a non-JS interop type."
+  correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
+
+JsInteropExportInvalidTypeArgument:
+  problemMessage: "Type argument '#type' needs to be an interface type."
+  correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
+
+JsInteropExportMemberCollision:
+  problemMessage: "The following class members collide with the same export '#name': #string."
+  correctionMessage: "Either remove the conflicting members or use a different export name."
+
+JsInteropExportNoExportableMembers:
+  problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
+  correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
+
 JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."

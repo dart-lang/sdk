@@ -3659,6 +3659,70 @@ Message _withArgumentsInvalidReturnPartNullability(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropExportInvalidInteropTypeArgument = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Type argument '#type' needs to be a non-JS interop type.""",
+        correctionMessageTemplate:
+            r"""Use a non-JS interop class that uses `@JSExport` instead.""",
+        withArguments: _withArgumentsJsInteropExportInvalidInteropTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropExportInvalidInteropTypeArgument =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropExportInvalidInteropTypeArgument",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportInvalidInteropTypeArgument(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropExportInvalidInteropTypeArgument,
+      problemMessage:
+          """Type argument '${type}' needs to be a non-JS interop type.""" +
+              labeler.originMessages,
+      correctionMessage:
+          """Use a non-JS interop class that uses `@JSExport` instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropExportInvalidTypeArgument = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Type argument '#type' needs to be an interface type.""",
+        correctionMessageTemplate:
+            r"""Use a non-JS interop class that uses `@JSExport` instead.""",
+        withArguments: _withArgumentsJsInteropExportInvalidTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropExportInvalidTypeArgument =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropExportInvalidTypeArgument",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportInvalidTypeArgument(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropExportInvalidTypeArgument,
+      problemMessage:
+          """Type argument '${type}' needs to be an interface type.""" +
+              labeler.originMessages,
+      correctionMessage:
+          """Use a non-JS interop class that uses `@JSExport` instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
             String name,
