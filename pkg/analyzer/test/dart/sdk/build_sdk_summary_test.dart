@@ -51,7 +51,7 @@ embedded_libs:
   "dart:ui": "ui/ui.dart"
 ''');
 
-    final sdkSummaryBytes = await buildSdkSummary2(
+    final sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       embedderYamlPath: embedderFile.path,
@@ -100,7 +100,7 @@ embedded_libs:
       root: sdkRoot,
     );
 
-    final sdkSummaryBytes = await buildSdkSummary2(
+    final sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );

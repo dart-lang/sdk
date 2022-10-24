@@ -416,7 +416,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   Future<File> writeSdkSummary() async {
     final file = getFile('/home/summaries/sdk.sum');
-    final bytes = await buildSdkSummary2(
+    final bytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );

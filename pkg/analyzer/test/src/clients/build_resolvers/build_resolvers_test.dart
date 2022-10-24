@@ -25,7 +25,7 @@ class AnalysisDriverForPackageBuildTest with ResourceProviderMixin {
       root: sdkRoot,
     );
 
-    var sdkSummaryBytes = await buildSdkSummary2(
+    var sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );

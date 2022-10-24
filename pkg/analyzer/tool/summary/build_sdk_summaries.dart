@@ -52,7 +52,7 @@ const binaryName = "build_sdk_summaries";
 Future<void> _buildSummary(String sdkPath, String outPath) async {
   print('Generating summary.');
   Stopwatch sw = Stopwatch()..start();
-  List<int> bytes = await buildSdkSummary2(
+  List<int> bytes = await buildSdkSummary(
     resourceProvider: PhysicalResourceProvider.INSTANCE,
     sdkPath: sdkPath,
   );
