@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -96,8 +97,18 @@ class MoveTopLevelToFile extends RefactoringProducer {
     if (importUri == null) {
       return;
     }
+    var destinationExists =
+        result.session.resourceProvider.getFile(destinationFilePath).exists;
+    String? fileHeader;
+    if (!destinationExists) {
+      var headerTokens = result.unit.fileHeader;
+      if (headerTokens.isNotEmpty) {
+        var offset = headerTokens.first.offset;
+        var end = headerTokens.last.end;
+        fileHeader = utils.getText(offset, end - offset);
+      }
+    }
     await builder.addDartFileEdit(destinationFilePath, (builder) {
-      // TODO(brianwilkerson) Copy the file header to the new file.
       // TODO(brianwilkerson) Use `ImportedElementsComputer` to add imports
       //  required by the newly copied code. Better yet, combine that with the
       //  import analysis used to find unused and unnecessary imports so that we
@@ -106,6 +117,10 @@ class MoveTopLevelToFile extends RefactoringProducer {
       // TODO(dantup): Ensure the range inserted and deleted match (allowing for
       //  whitespace), including handling of leading/trailing comments etc.
       builder.addInsertion(0, (builder) {
+        if (fileHeader != null) {
+          builder.writeln(fileHeader);
+          builder.writeln();
+        }
         builder.writeln(utils.getNodeText(member.node));
       });
     });
