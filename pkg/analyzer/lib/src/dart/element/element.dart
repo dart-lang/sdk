@@ -682,8 +682,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
 
   bool get isEnumLike {
     // Must be a concrete class.
-    // TODO(scheglov) `is MixinElement` after the separation.
-    if (isAbstract || this is MixinElement) {
+    if (isAbstract) {
       return false;
     }
 
