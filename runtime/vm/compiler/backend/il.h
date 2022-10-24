@@ -6982,24 +6982,31 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 };
 
 // Allocates and null initializes a record object.
-class AllocateRecordInstr : public TemplateAllocation<0> {
+class AllocateRecordInstr : public TemplateAllocation<1> {
  public:
+  enum { kFieldNamesPos = 0 };
   AllocateRecordInstr(const InstructionSource& source,
                       intptr_t num_fields,
-                      const Array& field_names,
+                      Value* field_names,
                       intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id),
-        num_fields_(num_fields),
-        field_names_(field_names) {
-    ASSERT(field_names.IsNotTemporaryScopedHandle());
-    ASSERT(field_names.IsCanonical());
+      : TemplateAllocation(source, deopt_id), num_fields_(num_fields) {
+    SetInputAt(kFieldNamesPos, field_names);
   }
 
   DECLARE_INSTRUCTION(AllocateRecord)
   virtual CompileType ComputeType() const;
 
   intptr_t num_fields() const { return num_fields_; }
-  const Array& field_names() const { return field_names_; }
+  Value* field_names() const { return InputAt(kFieldNamesPos); }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kFieldNamesPos:
+        return &Slot::Record_field_names();
+      default:
+        return TemplateAllocation::SlotForInput(pos);
+    }
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -7008,9 +7015,7 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
         compiler::target::Record::InstanceSize(num_fields_));
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, num_fields_)                                               \
-  F(const Array&, field_names_)
+#define FIELD_LIST(F) F(const intptr_t, num_fields_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
                                           TemplateAllocation,

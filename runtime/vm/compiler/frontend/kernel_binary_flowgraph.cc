@@ -4066,7 +4066,8 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
   // records.
 
   Fragment instructions;
-  instructions += B->AllocateRecord(position, num_fields, *field_names);
+  instructions += Constant(*field_names);
+  instructions += B->AllocateRecord(position, num_fields);
   LocalVariable* record = MakeTemporary();
 
   // List of positional.

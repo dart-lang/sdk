@@ -10784,6 +10784,13 @@ class Record : public Instance {
     return OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data) +
            kBytesPerElement * index;
   }
+  static intptr_t field_index_at_offset(intptr_t offset_in_bytes) {
+    const intptr_t index =
+        (offset_in_bytes - OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data)) /
+        kBytesPerElement;
+    ASSERT(index >= 0);
+    return index;
+  }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedRecord) ==
@@ -10826,6 +10833,7 @@ class Record : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
   friend class Class;
+  friend class DeferredObject;  // For set_field_names.
   friend class Object;
 };
 

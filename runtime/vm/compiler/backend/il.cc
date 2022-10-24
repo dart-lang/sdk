@@ -7660,10 +7660,12 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateRecordInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  const intptr_t kNumInputs = 0;
+  const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0,
+               Location::RegisterLocation(AllocateRecordABI::kFieldNamesReg));
   locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
   return locs;
 }
@@ -7673,7 +7675,6 @@ void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->zone(),
       compiler->isolate_group()->object_store()->allocate_record_stub());
   __ LoadImmediate(AllocateRecordABI::kNumFieldsReg, num_fields());
-  __ LoadObject(AllocateRecordABI::kFieldNamesReg, field_names());
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }
