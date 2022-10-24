@@ -13,6 +13,7 @@ JS
 abispecificinteger
 abispecificintegermapping
 adjusting
+annotate
 api
 argument(s)
 assigning
@@ -35,6 +36,7 @@ dart_runner
 dartbug.com
 dname
 e.g
+exportable
 f
 ffi
 flutter_runner
