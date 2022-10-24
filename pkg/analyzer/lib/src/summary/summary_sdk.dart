@@ -41,6 +41,11 @@ class SummaryBasedDartSdk implements DartSdk {
     );
   }
 
+  /// Returns URIs of all libraries.
+  List<Uri> get libraryUris {
+    return _bundle.libraries.map((e) => Uri.parse(e.uriStr)).toList();
+  }
+
   @override
   List<SdkLibrary> get sdkLibraries {
     throw UnimplementedError();
