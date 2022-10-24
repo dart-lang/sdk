@@ -5235,7 +5235,11 @@ class AstBuilder extends StackListener {
         dartdoc = dartdoc.next;
       }
     }
-    return ast.documentationComment(tokens, references);
+    return CommentImpl(
+      tokens: tokens,
+      type: CommentType.DOCUMENTATION,
+      references: references,
+    );
   }
 
   void _handleInstanceCreation(Token? token) {

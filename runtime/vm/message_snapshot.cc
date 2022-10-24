@@ -216,7 +216,7 @@ class BaseSerializer : public StackResource {
 
 class MessageSerializer : public BaseSerializer {
  public:
-  MessageSerializer(Thread* thread, bool can_send_any_object);
+  explicit MessageSerializer(Thread* thread);
   ~MessageSerializer();
 
   bool MarkObjectId(ObjectPtr object, intptr_t id) {
@@ -276,8 +276,6 @@ class MessageSerializer : public BaseSerializer {
     WriteUnsigned(index);
   }
 
-  bool can_send_any_object() const { return can_send_any_object_; }
-  const char* exception_message() const { return exception_message_; }
   Thread* thread() const {
     return static_cast<Thread*>(StackResource::thread());
   }
@@ -292,8 +290,6 @@ class MessageSerializer : public BaseSerializer {
   WeakTable* forward_table_new_;
   WeakTable* forward_table_old_;
   GrowableArray<Object*> stack_;
-  bool const can_send_any_object_;
-  const char* exception_message_;
 };
 
 class ApiMessageSerializer : public BaseSerializer {
@@ -1147,82 +1143,6 @@ class TypeRefMessageDeserializationCluster
   void ReadEdgesApi(ApiMessageDeserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       d->ReadRef();  // Type.
-    }
-  }
-};
-
-class ClosureMessageSerializationCluster : public MessageSerializationCluster {
- public:
-  explicit ClosureMessageSerializationCluster(bool is_canonical)
-      : MessageSerializationCluster("Closure",
-                                    MessagePhase::kCanonicalInstances,
-                                    kClosureCid,
-                                    is_canonical) {}
-  ~ClosureMessageSerializationCluster() {}
-
-  void Trace(MessageSerializer* s, Object* object) {
-    Closure* closure = static_cast<Closure*>(object);
-
-    if (!s->can_send_any_object() ||
-        !Function::IsImplicitStaticClosureFunction(closure->function())) {
-      const char* message = OS::SCreate(
-          s->zone(),
-          "Illegal argument in isolate message : (object is a closure - %s)",
-          Function::Handle(closure->function()).ToCString());
-      s->IllegalObject(*object, message);
-    }
-
-    objects_.Add(closure);
-
-    s->Push(closure->function());
-    s->Push(closure->delayed_type_arguments());
-  }
-
-  void WriteNodes(MessageSerializer* s) {
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      Closure* closure = objects_[i];
-      s->AssignRef(closure);
-      s->WriteRef(closure->function());
-      s->WriteRef(closure->delayed_type_arguments());
-    }
-  }
-
- private:
-  GrowableArray<Closure*> objects_;
-};
-
-class ClosureMessageDeserializationCluster
-    : public MessageDeserializationCluster {
- public:
-  explicit ClosureMessageDeserializationCluster(bool is_canonical)
-      : MessageDeserializationCluster("Closure", is_canonical) {}
-  ~ClosureMessageDeserializationCluster() {}
-
-  void ReadNodes(MessageDeserializer* d) {
-    const Context& null_context = Context::Handle(d->zone());
-    TypeArguments& delayed_type_arguments = TypeArguments::Handle(d->zone());
-    Function& func = Function::Handle(d->zone());
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      func ^= d->ReadRef();
-      ASSERT(func.is_static());
-      func = func.ImplicitClosureFunction();
-      delayed_type_arguments ^= d->ReadRef();
-      if (delayed_type_arguments.IsNull()) {
-        d->AssignRef(func.ImplicitStaticClosure());
-      } else {
-        // If delayed type arguments were provided, create and return new
-        // closure with those, otherwise return associated implicit static
-        // closure. Note that static closures can't have instantiator or
-        // function types since statics can't refer to class type arguments,
-        // don't have outer functions.
-        d->AssignRef(Closure::New(
-            /*instantiator_type_arguments=*/Object::null_type_arguments(),
-            /*function_type_arguments=*/Object::null_type_arguments(),
-            delayed_type_arguments, func, null_context, Heap::kOld));
-      }
     }
   }
 };
@@ -2239,10 +2159,8 @@ class TransferableTypedDataMessageSerializationCluster
     TransferableTypedDataPeer* tpeer =
         reinterpret_cast<TransferableTypedDataPeer*>(peer);
     if (tpeer->data() == nullptr) {
-      s->IllegalObject(
-          *object,
-          "Illegal argument in isolate message"
-          " : (TransferableTypedData has been transferred already)");
+      s->IllegalObject(*object,
+                       "TransferableTypedData has been transferred already");
     }
   }
 
@@ -3292,13 +3210,11 @@ BaseSerializer::~BaseSerializer() {
   delete finalizable_data_;
 }
 
-MessageSerializer::MessageSerializer(Thread* thread, bool can_send_any_object)
+MessageSerializer::MessageSerializer(Thread* thread)
     : BaseSerializer(thread, thread->zone()),
       forward_table_new_(),
       forward_table_old_(),
-      stack_(thread->zone(), 0),
-      can_send_any_object_(can_send_any_object),
-      exception_message_(nullptr) {
+      stack_(thread->zone(), 0) {
   isolate()->set_forward_table_new(new WeakTable());
   isolate()->set_forward_table_old(new WeakTable());
 }
@@ -3349,33 +3265,24 @@ void MessageSerializer::Trace(Object* object) {
     if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
       const Class& clazz =
           Class::Handle(zone(), isolate_group()->class_table()->At(cid));
-      if (!can_send_any_object()) {
-        ObjectStore* object_store = isolate_group()->object_store();
-        if ((clazz.library() != object_store->core_library()) &&
-            (clazz.library() != object_store->collection_library()) &&
-            (clazz.library() != object_store->typed_data_library())) {
-          IllegalObject(*object,
-                        "Illegal argument in isolate message"
-                        " : (object is a regular Dart Instance)");
-        }
+      ObjectStore* object_store = isolate_group()->object_store();
+      if ((clazz.library() != object_store->core_library()) &&
+          (clazz.library() != object_store->collection_library()) &&
+          (clazz.library() != object_store->typed_data_library())) {
+        IllegalObject(*object, "is a regular instance");
       }
       if (clazz.num_native_fields() != 0) {
-        char* chars = OS::SCreate(thread()->zone(),
-                                  "Illegal argument in isolate message"
-                                  " : (object extends NativeWrapper - %s)",
-                                  clazz.ToCString());
-        IllegalObject(*object, chars);
+        IllegalObject(*object, "is a NativeWrapper");
       }
     }
 
     // Keep the list in sync with the one in lib/isolate.cc
 #define ILLEGAL(type)                                                          \
   if (cid == k##type##Cid) {                                                   \
-    IllegalObject(*object,                                                     \
-                  "Illegal argument in isolate message"                        \
-                  " : (object is a " #type ")");                               \
+    IllegalObject(*object, "is a " #type);                                     \
   }
 
+    ILLEGAL(Closure)
     ILLEGAL(FunctionType)
     ILLEGAL(MirrorReference)
     ILLEGAL(ReceivePort)
@@ -3642,8 +3549,10 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
 
 void MessageSerializer::IllegalObject(const Object& object,
                                       const char* message) {
-  exception_message_ = message;
-  thread()->long_jump_base()->Jump(1, Object::snapshot_writer_error());
+  const Array& args = Array::Handle(zone(), Array::New(3));
+  args.SetAt(0, object);
+  args.SetAt(2, String::Handle(zone(), String::New(message)));
+  Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
 }
 
 BaseDeserializer::BaseDeserializer(Zone* zone, Message* message)
@@ -3687,8 +3596,6 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       return new (Z) TypeMessageSerializationCluster(is_canonical);
     case kTypeRefCid:
       return new (Z) TypeRefMessageSerializationCluster(is_canonical);
-    case kClosureCid:
-      return new (Z) ClosureMessageSerializationCluster(is_canonical);
     case kSmiCid:
       return new (Z) SmiMessageSerializationCluster(Z);
     case kMintCid:
@@ -3784,8 +3691,6 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
       return new (Z) TypeMessageDeserializationCluster(is_canonical);
     case kTypeRefCid:
       return new (Z) TypeRefMessageDeserializationCluster(is_canonical);
-    case kClosureCid:
-      return new (Z) ClosureMessageDeserializationCluster(is_canonical);
     case kSmiCid:
       ASSERT(is_canonical);
       return new (Z) SmiMessageDeserializationCluster();
@@ -4069,32 +3974,8 @@ std::unique_ptr<Message> WriteMessage(bool same_group,
   }
 
   Thread* thread = Thread::Current();
-  MessageSerializer serializer(thread, /*can_send_any_object=*/false);
-
-  volatile bool has_exception = false;
-  {
-    LongJumpScope jump(thread);
-    if (setjmp(*jump.Set()) == 0) {
-      serializer.Serialize(obj);
-    } else {
-      has_exception = true;
-    }
-  }
-
-  if (has_exception) {
-    {
-      NoSafepointScope no_safepoint;
-      ErrorPtr error = thread->StealStickyError();
-      ASSERT(error == Object::snapshot_writer_error().ptr());
-    }
-
-    const String& msg_obj =
-        String::Handle(String::New(serializer.exception_message()));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, msg_obj);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
-  }
-
+  MessageSerializer serializer(thread);
+  serializer.Serialize(obj);
   return serializer.Finish(dest_port, priority);
 }
 

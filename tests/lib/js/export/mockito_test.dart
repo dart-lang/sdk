@@ -24,6 +24,7 @@ extension on StaticInterop {
   external set getSet(int? val);
 }
 
+@JSExport()
 class Dart {
   int? method(int? val) => throw '';
   int? field = throw '';
@@ -34,6 +35,7 @@ class Dart {
 
 // Have the mock class implement the class interface you defined to mock the
 // @staticInterop interface.
+@JSExport()
 class DartMock extends Mock implements Dart {}
 
 void main() {

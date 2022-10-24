@@ -60,3 +60,31 @@ class _TrustTypes {
 }
 
 const _TrustTypes trustTypes = _TrustTypes();
+
+/// Annotation to mark Dart classes as exportable and allow instance members to
+/// be wrapped with an object literal.
+///
+/// Dart classes with this annotation can be used for exporting in `js_util`'s
+/// `createDartExport`, which returns a JS object that forwards to the Dart
+/// class. You may either annotate specific instance members to only export
+/// those members or you can annotate the entire class (which will export all
+/// instance members) to mark the class as exportable.
+///
+/// Classes and mixins in the hierarchy are included only if they are annotated
+/// or specific members in them are annotated. If a superclass does not have an
+/// annotation anywhere, its members are not included. Only concrete instance
+/// members can and will be exported, and it's an error to annotate other
+/// members with this annotation. In order to do renaming for members, you can
+/// provide a name for the `@JSExport` on the members e.g.
+/// ```
+/// class Export {
+///   @JSExport('printHelloWorld')
+///   void printMessage() => print('Hello World!');
+/// }
+/// ```
+/// which will then set 'printHelloWorld' to forward to `printMessage` in the
+/// object literal.
+class JSExport {
+  final String name;
+  const JSExport([this.name = '']);
+}

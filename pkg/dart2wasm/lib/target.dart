@@ -105,15 +105,16 @@ class WasmTarget extends Target {
         coreTypes,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
-    final staticInteropMockCreator = StaticInteropMockCreator(
-        TypeEnvironment(coreTypes, hierarchy), diagnosticReporter);
-    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
-    // Cache extensions for entire component before creating mock.
-    for (Library library in interopDependentLibraries) {
-      staticInteropMockCreator.processExtensions(library);
-    }
+    // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
+    }
+    final staticInteropMockCreator = StaticInteropMockCreator(
+        TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter,
+        jsInteropChecks.exportChecker);
+    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
+    for (Library library in interopDependentLibraries) {
       staticInteropMockCreator.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
     }

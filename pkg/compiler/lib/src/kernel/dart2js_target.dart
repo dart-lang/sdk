@@ -156,15 +156,16 @@ class Dart2jsTarget extends Target {
         coreTypes,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
-    var staticInteropMockCreator = StaticInteropMockCreator(
-        TypeEnvironment(coreTypes, hierarchy), diagnosticReporter);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    // Cache extensions for entire component before creating mock.
-    for (var library in libraries) {
-      staticInteropMockCreator.processExtensions(library);
-    }
+    // Process and validate first before doing anything with exports.
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
+    }
+    var staticInteropMockCreator = StaticInteropMockCreator(
+        TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter,
+        jsInteropChecks.exportChecker);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    for (var library in libraries) {
       staticInteropMockCreator.visitLibrary(library);
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.

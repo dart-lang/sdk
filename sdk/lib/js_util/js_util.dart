@@ -171,8 +171,8 @@ external Object? dartify(Object? o);
 /// `@Native` types to pass with the returned forwarding mock.
 ///
 /// When external extension members are called, they will forward to the
-/// corresponding implementing member in [dartMock]. If U does not implement all
-/// the external extension members of T, or if U does not properly override
+/// corresponding implementing member in [dartMock]. If U does not implement the
+/// needed external extension members of T, or if U does not properly override
 /// them, it will be considered a compile-time error.
 ///
 /// For example:
@@ -186,6 +186,7 @@ external Object? dartify(Object? o);
 ///   external String stringify(int param);
 /// }
 ///
+/// @JSExport()
 /// class DartClass {
 ///   String stringify(num param) => param.toString();
 /// }
@@ -194,8 +195,43 @@ external Object? dartify(Object? o);
 ///
 /// JSClass mock = createStaticInteropMock<JSClass, DartClass>(DartClass());
 /// ```
+external T createStaticInteropMock<T extends Object, U extends Object>(
+    U dartMock,
+    [Object? proto = null]);
+
+/// DO NOT USE - THIS IS UNIMPLEMENTED.
 ///
-/// TODO(srujzs): Add more detail on how inherited extension members need to be
-/// implemented, as well as how conflicts are resolved (if they are resolvable).
-/// The semantics here tries to conform to the view type specification.
-external T createStaticInteropMock<T, U>(U dartMock, [Object? proto = null]);
+/// Given a Dart object that is marked exportable, creates a JS object literal
+/// that forwards to that Dart class. Look at the `@JSExport` annotation to
+/// determine what constitutes "exportable" for a Dart class. The object literal
+/// will be a map of export names (which are either the written instance member
+/// names or their rename) to their respective Dart instance members.
+///
+/// For example:
+///
+/// ```
+/// @JSExport()
+/// class ExportCounter {
+///   int value = 0;
+///   String stringify() => value.toString();
+/// }
+///
+/// @JS()
+/// @staticInterop
+/// class Counter {}
+///
+/// extension on Counter {
+///   external int get value;
+///   external set value(int val);
+///   external String stringify();
+/// }
+///
+/// ...
+///
+/// var export = ExportCounter();
+/// var counter = createDartExport(export) as Counter;
+/// export.value = 1;
+/// Expect.isTrue(counter.value, export.value);
+/// Expect.isTrue(counter.stringify(), export.stringify());
+/// ```
+external Object createDartExport<T extends Object>(T dartObject);

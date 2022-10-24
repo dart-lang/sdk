@@ -141,8 +141,7 @@ class LibraryIndex {
   }
 
   /// Like [getTopLevelMember] but returns `null` if not found.
-  Member? tryGetTopLevelMember(
-      String library, String className, String memberName) {
+  Member? tryGetTopLevelMember(String library, String memberName) {
     return tryGetMember(library, topLevel, memberName);
   }
 

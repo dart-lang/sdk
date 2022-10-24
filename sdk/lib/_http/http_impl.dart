@@ -2077,9 +2077,16 @@ class _HttpClientConnection {
         _nextResponseCompleter = null;
       }
     }, onError: (dynamic error, StackTrace stackTrace) {
-      if (error is! HttpException) throw error; // Rethrow.
+      String message;
+      if (error is HttpException) {
+        message = error.message;
+      } else if (error is SocketException) {
+        message = error.message;
+      } else {
+        throw error;
+      }
       _nextResponseCompleter?.completeError(
-          HttpException(error.message, uri: _currentUri), stackTrace);
+          HttpException(message, uri: _currentUri), stackTrace);
       _nextResponseCompleter = null;
     }, onDone: () {
       _nextResponseCompleter?.completeError(HttpException(

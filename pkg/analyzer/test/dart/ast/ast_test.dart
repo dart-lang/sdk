@@ -6,10 +6,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1785,6 +1783,37 @@ final v = """a${bb}ccc""";
       expect(node.isSingleQuoted, isFalse);
     }
   }
+
+  void test_this_followedByDollar() {
+    final parseResult = parseStringWithErrors(r'''
+class C {
+  void m(int foo) {
+    '$this$foo';
+  }
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.stringInterpolation('this');
+    assertParsedNodeText(node, r'''
+StringInterpolation
+  elements
+    InterpolationString
+      contents: '
+    InterpolationExpression
+      leftBracket: $
+      expression: ThisExpression
+        thisKeyword: this
+    InterpolationString
+      contents: <empty> <synthetic>
+    InterpolationExpression
+      leftBracket: $
+      expression: SimpleIdentifier
+        token: foo
+    InterpolationString
+      contents: '
+  stringValue: null
+''');
+  }
 }
 
 @reflectiveTest
@@ -1809,31 +1838,22 @@ class A {
 }
 
 @reflectiveTest
-class VariableDeclarationTest extends ParserTestCase {
+class VariableDeclarationTest extends _AstTest {
   void test_getDocumentationComment_onGrandParent() {
-    VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
-    var decl =
-        AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = astFactory.documentationComment([]);
-    expect(varDecl.documentationComment, isNull);
-    decl.documentationComment = comment;
-    expect(varDecl.documentationComment, isNotNull);
-    expect(decl.documentationComment, isNotNull);
-  }
-
-  void test_getDocumentationComment_onNode() {
-    var decl = AstTestFactory.variableDeclaration("a");
-    Comment comment = astFactory.documentationComment([]);
-    decl.documentationComment = comment;
-    expect(decl.documentationComment, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+/// text
+var a = 0;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.variableDeclaration('a =');
+    expect(node.documentationComment, isNotNull);
   }
 
   test_sortedCommentAndAnnotations_noComment() {
-    var result = parseString(content: '''
-int i = 0;
+    var parseResult = parseStringWithErrors('''
+var a = 0;
 ''');
-    var variables = result.unit.declarations[0] as TopLevelVariableDeclaration;
-    var variable = variables.variables.variables[0];
+    var variable = parseResult.findNode.variableDeclaration('a =');
     expect(variable.sortedCommentAndAnnotations, isEmpty);
   }
 }

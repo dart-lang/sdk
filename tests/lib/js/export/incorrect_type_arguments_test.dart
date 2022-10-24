@@ -24,26 +24,29 @@ class StaticInterop {
   external factory StaticInterop();
 }
 
-class Dart {}
+@JSExport()
+class Dart {
+  int _unused = 0;
+}
 
 void main() {
   createStaticInteropMock<StaticInterop, Dart>(Dart());
   createStaticInteropMock<Dart, StaticInterop>(StaticInterop());
 //^
-// [web] First type argument 'Dart' is not a `@staticInterop` type.
-// [web] Second type argument 'StaticInterop' is not a Dart interface type.
+// [web] Type argument 'Dart' needs to be a `@staticInterop` type.
+// [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
   createStaticInteropMock<Dart, Js>(Js());
 //^
-// [web] First type argument 'Dart' is not a `@staticInterop` type.
-// [web] Second type argument 'Js' is not a Dart interface type.
+// [web] Type argument 'Dart' needs to be a `@staticInterop` type.
+// [web] Type argument 'Js' needs to be a non-JS interop type.
   createStaticInteropMock<Dart, Anonymous>(Anonymous());
 //^
-// [web] First type argument 'Dart' is not a `@staticInterop` type.
-// [web] Second type argument 'Anonymous' is not a Dart interface type.
+// [web] Type argument 'Anonymous' needs to be a non-JS interop type.
+// [web] Type argument 'Dart' needs to be a `@staticInterop` type.
   createStaticInteropMock<StaticInterop, void Function()>(() {});
 //^
-// [web] Second type argument 'void Function()' is not a Dart interface type.
+// [web] Type argument 'void Function()' needs to be an interface type.
   createStaticInteropMock(Dart());
 //^
-// [web] First type argument 'dynamic' is not a `@staticInterop` type.
+// [web] Type argument 'Object' needs to be a `@staticInterop` type.
 }

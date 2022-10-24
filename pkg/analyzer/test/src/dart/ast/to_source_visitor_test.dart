@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -104,10 +101,13 @@ void f() {
   }
 
   void test_visitAssignmentExpression() {
-    _assertSource(
-        "a = b",
-        AstTestFactory.assignmentExpression(AstTestFactory.identifier3("a"),
-            TokenType.EQ, AstTestFactory.identifier3("b")));
+    final code = 'a = b';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.assignment(code));
   }
 
   void test_visitAugmentationImportDirective() {
@@ -602,10 +602,15 @@ $code
   }
 
   void test_visitComment() {
-    _assertSource(
-        "",
-        astFactory.blockComment(
-            <Token>[TokenFactory.tokenFromString("/* comment */")]));
+    final code = r'''
+/// foo
+/// bar
+''';
+    final findNode = _parseStringToFindNode('''
+$code
+void f() {}
+''');
+    _assertSource('', findNode.comment(code));
   }
 
   void test_visitCommentReference() {
@@ -1299,33 +1304,43 @@ void f(x) {
   }
 
   void test_visitFieldDeclaration_abstract() {
-    _assertSource(
-        "abstract var a;",
-        AstTestFactory.fieldDeclaration(
-            false, Keyword.VAR, null, [AstTestFactory.variableDeclaration("a")],
-            isAbstract: true));
+    final code = 'abstract var a;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.fieldDeclaration(code));
   }
 
   void test_visitFieldDeclaration_external() {
-    _assertSource(
-        "external var a;",
-        AstTestFactory.fieldDeclaration(
-            false, Keyword.VAR, null, [AstTestFactory.variableDeclaration("a")],
-            isExternal: true));
+    final code = 'external var a;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.fieldDeclaration(code));
   }
 
   void test_visitFieldDeclaration_instance() {
-    _assertSource(
-        "var a;",
-        AstTestFactory.fieldDeclaration2(
-            false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")]));
+    final code = 'var a;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.fieldDeclaration(code));
   }
 
   void test_visitFieldDeclaration_static() {
-    _assertSource(
-        "static var a;",
-        AstTestFactory.fieldDeclaration2(
-            true, Keyword.VAR, [AstTestFactory.variableDeclaration("a")]));
+    final code = 'static var a;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.fieldDeclaration(code));
   }
 
   void test_visitFieldDeclaration_withMetadata() {
@@ -3163,7 +3178,11 @@ class A {
   }
 
   void test_visitSimpleIdentifier() {
-    _assertSource("a", AstTestFactory.identifier3("a"));
+    final code = 'foo';
+    final findNode = _parseStringToFindNode('''
+var x = $code;
+''');
+    _assertSource(code, findNode.simple(code));
   }
 
   void test_visitSimpleStringLiteral() {
@@ -3520,27 +3539,27 @@ void f() {
   }
 
   void test_visitTopLevelVariableDeclaration_external() {
-    _assertSource(
-        "external var a;",
-        AstTestFactory.topLevelVariableDeclaration2(
-            Keyword.VAR, [AstTestFactory.variableDeclaration("a")],
-            isExternal: true));
+    final code = 'external var a;';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
   }
 
   void test_visitTopLevelVariableDeclaration_multiple() {
-    _assertSource(
-        "var a;",
-        AstTestFactory.topLevelVariableDeclaration2(
-            Keyword.VAR, [AstTestFactory.variableDeclaration("a")]));
+    final code = 'var a = 0, b = 1;';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
   }
 
   void test_visitTopLevelVariableDeclaration_single() {
-    _assertSource(
-        "var a, b;",
-        AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [
-          AstTestFactory.variableDeclaration("a"),
-          AstTestFactory.variableDeclaration("b")
-        ]));
+    final code = 'var a;';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
   }
 
   void test_visitTryStatement_catch() {
@@ -3648,15 +3667,27 @@ final x = <$code>[];
   }
 
   void test_visitTypeParameter_variance_contravariant() {
-    _assertSource("in E", AstTestFactory.typeParameter3("E", "in"));
+    final code = 'in T';
+    final findNode = _parseStringToFindNode('''
+class A<$code> {}
+''', featureSet: FeatureSets.latestWithVariance);
+    _assertSource(code, findNode.typeParameter(code));
   }
 
   void test_visitTypeParameter_variance_covariant() {
-    _assertSource("out E", AstTestFactory.typeParameter3("E", "out"));
+    final code = 'out T';
+    final findNode = _parseStringToFindNode('''
+class A<$code> {}
+''', featureSet: FeatureSets.latestWithVariance);
+    _assertSource(code, findNode.typeParameter(code));
   }
 
   void test_visitTypeParameter_variance_invariant() {
-    _assertSource("inout E", AstTestFactory.typeParameter3("E", "inout"));
+    final code = 'inout T';
+    final findNode = _parseStringToFindNode('''
+class A<$code> {}
+''', featureSet: FeatureSets.latestWithVariance);
+    _assertSource(code, findNode.typeParameter(code));
   }
 
   void test_visitTypeParameter_withExtends() {
@@ -3676,7 +3707,11 @@ class A<$code> {}
   }
 
   void test_visitTypeParameter_withoutExtends() {
-    _assertSource("E", AstTestFactory.typeParameter("E"));
+    final code = 'T';
+    final findNode = _parseStringToFindNode('''
+class A<$code> {}
+''', featureSet: FeatureSets.latestWithVariance);
+    _assertSource(code, findNode.typeParameter(code));
   }
 
   void test_visitTypeParameterList_multiple() {
@@ -3696,14 +3731,19 @@ class A$code {}
   }
 
   void test_visitVariableDeclaration_initialized() {
-    _assertSource(
-        "a = b",
-        AstTestFactory.variableDeclaration2(
-            "a", AstTestFactory.identifier3("b")));
+    final code = 'foo = bar';
+    final findNode = _parseStringToFindNode('''
+var $code;
+''', featureSet: FeatureSets.latestWithVariance);
+    _assertSource(code, findNode.variableDeclaration(code));
   }
 
   void test_visitVariableDeclaration_uninitialized() {
-    _assertSource("a", AstTestFactory.variableDeclaration("a"));
+    final code = 'foo';
+    final findNode = _parseStringToFindNode('''
+var $code;
+''', featureSet: FeatureSets.latestWithVariance);
+    _assertSource(code, findNode.variableDeclaration(code));
   }
 
   void test_visitVariableDeclarationList_const_type() {
@@ -3816,10 +3856,13 @@ void f() sync* {
   }
 
   /// TODO(scheglov) Use [parseStringWithErrors] everywhere? Or just there?
-  FindNode _parseStringToFindNode(String content) {
+  FindNode _parseStringToFindNode(
+    String content, {
+    FeatureSet? featureSet,
+  }) {
     var parseResult = parseString(
       content: content,
-      featureSet: FeatureSets.latestWithExperiments,
+      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
     );
     return FindNode(parseResult.content, parseResult.unit);
   }
