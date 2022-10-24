@@ -13252,14 +13252,11 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @override
   Token get endToken {
-    if (_bound == null) {
-      return name;
-    }
-    return _bound!.endToken;
+    return _bound?.endToken ?? name;
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name;
+  Token get firstTokenAfterCommentAndMetadata => varianceKeyword ?? name;
 
   @Deprecated('Use name instead')
   @override
