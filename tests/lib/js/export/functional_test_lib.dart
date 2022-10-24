@@ -23,10 +23,11 @@ extension on Methods {
   external int optionalAdd(int a, int b, [int c = 0, int? d]);
 }
 
+@JSExport()
 class MethodsDart {
   int add(int a, int b) => a + b;
   int nonExternal() => 1;
-  int rename() => 1;
+  int _rename() => 1;
   int optionalAdd(int a, int b, [int? c, int? d]) =>
       a + b + (c ?? 0) + (d ?? 0);
 }
@@ -44,11 +45,12 @@ extension on Fields {
   external final int renamedFinalField;
 }
 
+@JSExport()
 class FieldsDart {
   int field = 1;
   int finalField = 1;
-  int renamedField = 1;
-  final int renamedFinalField = 1;
+  int _renamedField = 1;
+  final int _renamedFinalField = 1;
 }
 
 @JS()
@@ -72,12 +74,13 @@ extension on GetSet {
   external set differentNameSameRenameSet(int val);
 }
 
+@JSExport()
 class GetSetDart {
   int getSet = 1;
-  int renamedGetSet = 1;
-  int sameNameDifferentRename = 1;
-  int differentNameSameRenameGet = 1;
-  int differentNameSameRenameSet = 1;
+  int _renamedGetSet = 1;
+  int _sameNameDifferentRenameGet = 1;
+  int _sameNameDifferentRenameSet = 1;
+  int _differentNameSameRename = 1;
 }
 
 void test([Object? proto]) {
@@ -99,11 +102,11 @@ void test([Object? proto]) {
   jsFields.field = 2;
   jsFields.renamedField = 2;
   expect(dartFields.field, 2);
-  expect(dartFields.renamedField, 2);
+  expect(dartFields._renamedField, 2);
   // Modify the Dart mock and check for updates in the JS mock.
   dartFields.field = 3;
   dartFields.finalField = 3;
-  dartFields.renamedField = 3;
+  dartFields._renamedField = 3;
   expect(jsFields.field, 3);
   expect(jsFields.finalField, 3);
   expect(jsFields.renamedField, 3);
@@ -119,17 +122,17 @@ void test([Object? proto]) {
   jsGetSet.sameNameDifferentRename = 2;
   jsGetSet.differentNameSameRenameSet = 2;
   expect(dartGetSet.getSet, 2);
-  expect(dartGetSet.renamedGetSet, 2);
-  expect(dartGetSet.sameNameDifferentRename, 2);
-  expect(dartGetSet.differentNameSameRenameGet, 1);
-  expect(dartGetSet.differentNameSameRenameSet, 2);
+  expect(dartGetSet._renamedGetSet, 2);
+  expect(dartGetSet._sameNameDifferentRenameGet, 1);
+  expect(dartGetSet._sameNameDifferentRenameSet, 2);
+  expect(dartGetSet._differentNameSameRename, 2);
   // Modify the Dart mock and check for updates in the JS mock.
   dartGetSet.getSet = 3;
-  dartGetSet.renamedGetSet = 3;
-  dartGetSet.sameNameDifferentRename = 3;
+  dartGetSet._renamedGetSet = 3;
   // Use different values to disambiguate.
-  dartGetSet.differentNameSameRenameGet = 3;
-  dartGetSet.differentNameSameRenameSet = 4;
+  dartGetSet._sameNameDifferentRenameGet = 3;
+  dartGetSet._sameNameDifferentRenameSet = 4;
+  dartGetSet._differentNameSameRename = 3;
   expect(jsGetSet.getSet, 3);
   expect(jsGetSet.renamedGetSet, 3);
   expect(jsGetSet.sameNameDifferentRename, 3);

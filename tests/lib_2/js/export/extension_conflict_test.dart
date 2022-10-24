@@ -3,176 +3,102 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test that `createStaticInteropMock` checks for extension member conflicts.
+// We should only require users to implement one of these conflicts (or a
+// getter/setter pair).
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
-class EmptyDart {}
-
 @JS()
 @staticInterop
-class Method {}
+class SameKindConflict {}
 
-extension on Method {
-  external void member();
+extension E1 on SameKindConflict {
+  external int get getter;
+  external set setter(int val);
+  external int method();
 }
 
-@JS()
-@staticInterop
-class Getter {}
-
-extension NamedExtension on Getter {
-  external int get member;
+extension E2 on SameKindConflict {
+  external String get getter;
+  external set setter(int val);
+  external String method();
 }
 
-@JS()
-@staticInterop
-class Field {}
-
-extension on Field {
-  external final String member;
+@JSExport()
+class DartSameKindConflict {
+  String getter = '';
+  set setter(int val) => throw '';
+  String method() => throw '';
 }
 
-@JS()
-@staticInterop
-class ExtendsImplementsConflict extends Method implements Getter {}
-
-@JS()
-@staticInterop
-class ImplementsConflict implements Method, Getter {}
-
-@JS()
-@staticInterop
-class ManyConflicts extends Method implements Getter, Field {}
-
-@JS()
-@staticInterop
-class Override implements Method {}
-
-extension on Override {
-  external int member();
+@JSExport()
+class IncorrectDartSameKindConflict {
+  bool getter = true;
+  set setter(bool val) => throw '';
+  bool method() => throw '';
 }
 
-@JS()
-@staticInterop
-class OverrideOneConflictButNotAll implements Override, Getter {}
-
-@JS()
-@staticInterop
-class ConflictThroughInheritance implements OverrideOneConflictButNotAll {}
-
-@JS()
-@staticInterop
-class ResolveThroughOverride implements ConflictThroughInheritance {}
-
-extension on ResolveThroughOverride {
-  external int member;
-}
-
-class ResolveThroughOverrideDart {
-  int member = throw '';
-}
-
-@JS()
-@staticInterop
-class Setter {}
-
-extension on Setter {
-  external set member(int val);
-}
-
-@JS()
-@staticInterop
-class NoConflictDueToSubtype implements Override, Method {}
-
-class NoConflictDueToSubtypeDart {
-  int member() => throw '';
-}
-
-@JS()
-@staticInterop
-class GetterSetterConflict implements Setter, Getter {}
-
-@JS()
-@staticInterop
-class GetterSetterSameExtension {}
-
-extension on GetterSetterSameExtension {
-  external int get member;
-  external set member(int val);
-}
-
-class GetterSetterSameExtensionDart extends ResolveThroughOverrideDart {}
-
-@JS()
-@staticInterop
-class GetterSetterMethodConflict implements GetterSetterSameExtension, Method {}
-
-@JS()
-@staticInterop
-class NonExternal {}
-
-extension on NonExternal {
-  int get member => throw '';
-}
-
-@JS()
-@staticInterop
-class ExternalNonExternal implements NonExternal, GetterSetterSameExtension {}
-
-class ExternalNonExternalDart extends ResolveThroughOverrideDart {}
-
-void main() {
-  // Test name conflicts between extended and implemented members.
-  createStaticInteropMock<ExtendsImplementsConflict, EmptyDart>(
+void testSameKindConflict() {
+  // No error as one of the extension members are implemented for each export
+  // name.
+  createStaticInteropMock<SameKindConflict, DartSameKindConflict>(
+      DartSameKindConflict());
+  // Error as none of them are implemented for each export name.
+  createStaticInteropMock<SameKindConflict, IncorrectDartSameKindConflict>(
 //^
-// [web] External extension member with name 'member' is defined in the following extensions and none are more specific: 'Getter.NamedExtension', 'Method.unnamed'.
-      EmptyDart());
-  // Test name conflicts between implemented members.
-  createStaticInteropMock<ImplementsConflict, EmptyDart>(EmptyDart());
-//^
-// [web] External extension member with name 'member' is defined in the following extensions and none are more specific: 'Getter.NamedExtension', 'Method.unnamed'.
+// [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'getter': E1.getter (FunctionType(int Function())), E2.getter (FunctionType(String Function())).
+// [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'method': E1.method (FunctionType(int Function())), E2.method (FunctionType(String Function())).
+// [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'setter': E1.setter= (FunctionType(void Function(int))), E2.setter= (FunctionType(void Function(int))).
+      IncorrectDartSameKindConflict());
+}
 
-  // Test multiple name conflicts.
-  createStaticInteropMock<ManyConflicts, EmptyDart>(EmptyDart());
-//^
-// [web] External extension member with name 'member' is defined in the following extensions and none are more specific: 'Field.unnamed', 'Getter.NamedExtension', 'Method.unnamed'.
+@JS()
+@staticInterop
+class DifferentKindConflict {}
 
-  // Test name conflicts where one definition is overridden, but there is still
-  // a name conflict between the other two.
-  createStaticInteropMock<OverrideOneConflictButNotAll, EmptyDart>(
-//^
-// [web] External extension member with name 'member' is defined in the following extensions and none are more specific: 'Getter.NamedExtension', 'Override.unnamed'.
-      EmptyDart());
-  // Test case where if we inherit a class with a conflict, the conflict still
-  // exists.
-  createStaticInteropMock<ConflictThroughInheritance, EmptyDart>(
-//^
-// [web] External extension member with name 'member' is defined in the following extensions and none are more specific: 'Getter.NamedExtension', 'Override.unnamed'.
-      EmptyDart());
-  // Test case where name conflicts are resolved using derived class.
-  createStaticInteropMock<ResolveThroughOverride, ResolveThroughOverrideDart>(
-      ResolveThroughOverrideDart());
-  // Test case where you inherit two classes with the same member name but they
-  // have a subtype relation, so there is no conflict.
-  createStaticInteropMock<NoConflictDueToSubtype, NoConflictDueToSubtypeDart>(
-      NoConflictDueToSubtypeDart());
-  // Test conflict where getter and setter collide when they are in different
-  // extensions.
-  createStaticInteropMock<GetterSetterConflict, EmptyDart>(EmptyDart());
-//^
-// [web] External extension member with name 'member' is defined in the following extensions and none are more specific: 'Getter.NamedExtension', 'Setter.unnamed'.
+extension E3 on DifferentKindConflict {
+  external int getSet;
+  @JS('getSet')
+  external void method();
+}
 
-  // Test no conflict where getter and setter are on the same extension.
-  createStaticInteropMock<GetterSetterSameExtension,
-      GetterSetterSameExtensionDart>(GetterSetterSameExtensionDart());
-  // Test conflict where getter and setter are in one extension, but there is
-  // a conflict with another extension.
-  createStaticInteropMock<GetterSetterMethodConflict, EmptyDart>(EmptyDart());
-//^
-// [web] External extension member with name 'member' is defined in the following extensions and none are more specific: 'GetterSetterSameExtension.unnamed', 'Method.unnamed'.
+@JSExport()
+class ImplementGetter {
+  int get getSet => throw '';
+}
 
-  // Test no conflict between external and non-external members.
-  createStaticInteropMock<ExternalNonExternal, ExternalNonExternalDart>(
-      ExternalNonExternalDart());
+@JSExport()
+class ImplementSetter {
+  set getSet(int val) => throw '';
+}
+
+@JSExport()
+class ImplementBoth {
+  int getSet = 0;
+}
+
+@JSExport()
+class ImplementMethod {
+  void getSet() {}
+}
+
+void testDifferentKindConflict() {
+  // Missing setter error.
+  createStaticInteropMock<DifferentKindConflict, ImplementGetter>(
+//^
+// [web] Dart class 'ImplementGetter' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet': E3.getSet= (FunctionType(void Function(int))).
+      ImplementGetter());
+  // Missing getter error.
+  createStaticInteropMock<DifferentKindConflict, ImplementSetter>(
+//^
+// [web] Dart class 'ImplementSetter' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'getSet': E3.getSet (FunctionType(int Function())).
+      ImplementSetter());
+  // No error as both getter and setter are there, and we've satisfied an export
+  // for `getSet`.
+  createStaticInteropMock<DifferentKindConflict, ImplementBoth>(
+      ImplementBoth());
+  // No error as we've satisfied an export for `getSet`.
+  createStaticInteropMock<DifferentKindConflict, ImplementMethod>(
+      ImplementMethod());
 }

@@ -26,7 +26,10 @@ external Object get windowType;
 @staticInterop
 class JSWindow {}
 
-class DartWindow {}
+@JSExport()
+class DartWindow {
+  int _unused = 0;
+}
 
 void main() {
   // Test that everything still works the same.
