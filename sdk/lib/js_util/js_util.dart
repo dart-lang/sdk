@@ -171,8 +171,8 @@ external Object? dartify(Object? o);
 /// `@Native` types to pass with the returned forwarding mock.
 ///
 /// When external extension members are called, they will forward to the
-/// corresponding implementing member in [dartMock]. If U does not implement all
-/// the external extension members of T, or if U does not properly override
+/// corresponding implementing member in [dartMock]. If U does not implement the
+/// needed external extension members of T, or if U does not properly override
 /// them, it will be considered a compile-time error.
 ///
 /// For example:
@@ -186,6 +186,7 @@ external Object? dartify(Object? o);
 ///   external String stringify(int param);
 /// }
 ///
+/// @JSExport()
 /// class DartClass {
 ///   String stringify(num param) => param.toString();
 /// }
@@ -194,11 +195,9 @@ external Object? dartify(Object? o);
 ///
 /// JSClass mock = createStaticInteropMock<JSClass, DartClass>(DartClass());
 /// ```
-///
-/// TODO(srujzs): Add more detail on how inherited extension members need to be
-/// implemented, as well as how conflicts are resolved (if they are resolvable).
-/// The semantics here tries to conform to the view type specification.
-external T createStaticInteropMock<T, U>(U dartMock, [Object? proto = null]);
+external T createStaticInteropMock<T extends Object, U extends Object>(
+    U dartMock,
+    [Object? proto = null]);
 
 /// DO NOT USE - THIS IS UNIMPLEMENTED.
 ///

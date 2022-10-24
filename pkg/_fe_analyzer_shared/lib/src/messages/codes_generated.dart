@@ -7297,73 +7297,89 @@ const MessageCode messageJsInteropStaticInteropGenerativeConstructor =
         correctionMessage: r"""Use factory constructors instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateJsInteropStaticInteropMockExternalExtensionMemberConflict =
-    const Template<Message Function(String name, String string)>(
+const Template<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>
+    templateJsInteropStaticInteropMockMissingGetterOrSetter = const Template<
+            Message Function(
+                String name,
+                String string,
+                String string2,
+                String name2,
+                String
+                    string3)>(
         problemMessageTemplate:
-            r"""External extension member with name '#name' is defined in the following extensions and none are more specific: #string.""",
+            r"""Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3.""",
         correctionMessageTemplate:
-            r"""Try using the `@JS` annotation to rename conflicting members.""",
+            r"""Declare an exportable #string2 that implements one of these extension members.""",
         withArguments:
-            _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict);
+            _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeJsInteropStaticInteropMockExternalExtensionMemberConflict =
-    const Code<Message Function(String name, String string)>(
-  "JsInteropStaticInteropMockExternalExtensionMemberConflict",
+const Code<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>
+    codeJsInteropStaticInteropMockMissingGetterOrSetter = const Code<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>(
+  "JsInteropStaticInteropMockMissingGetterOrSetter",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict(
-    String name, String string) {
+Message _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter(
+    String name, String string, String string2, String name2, String string3) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (string.isEmpty) throw 'No string provided';
-  return new Message(
-      codeJsInteropStaticInteropMockExternalExtensionMemberConflict,
+  if (string2.isEmpty) throw 'No string provided';
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string3.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropStaticInteropMockMissingGetterOrSetter,
       problemMessage:
-          """External extension member with name '${name}' is defined in the following extensions and none are more specific: ${string}.""",
-      correctionMessage: """Try using the `@JS` annotation to rename conflicting members.""",
-      arguments: {'name': name, 'string': string});
+          """Dart class '${name}' has a ${string}, but does not have a ${string2} to implement any of the following extension member(s) with export name '${name2}': ${string3}.""",
+      correctionMessage:
+          """Declare an exportable ${string2} that implements one of these extension members.""",
+      arguments: {
+        'name': name,
+        'string': string,
+        'string2': string2,
+        'name2': name2,
+        'string3': string3
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        String name2,
-        String
-            name3)> templateJsInteropStaticInteropMockMissingOverride = const Template<
-        Message Function(
-            String name, String name2, String name3)>(
-    problemMessageTemplate:
-        r"""`@staticInterop` class '#name' has external extension member '#name2', but Dart class '#name3' does not have an overriding instance member.""",
-    correctionMessageTemplate:
-        r"""Add a Dart instance member in '#name3' that overrides '#name.#name2'.""",
-    withArguments: _withArgumentsJsInteropStaticInteropMockMissingOverride);
+const Template<Message Function(String name, String name2, String string)>
+    templateJsInteropStaticInteropMockMissingImplements =
+    const Template<Message Function(String name, String name2, String string)>(
+        problemMessageTemplate:
+            r"""Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string.""",
+        correctionMessageTemplate:
+            r"""Declare an exportable member that implements one of these extension members.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockMissingImplements);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2, String name3)>
-    codeJsInteropStaticInteropMockMissingOverride =
-    const Code<Message Function(String name, String name2, String name3)>(
-  "JsInteropStaticInteropMockMissingOverride",
+const Code<Message Function(String name, String name2, String string)>
+    codeJsInteropStaticInteropMockMissingImplements =
+    const Code<Message Function(String name, String name2, String string)>(
+  "JsInteropStaticInteropMockMissingImplements",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockMissingOverride(
-    String name, String name2, String name3) {
+Message _withArgumentsJsInteropStaticInteropMockMissingImplements(
+    String name, String name2, String string) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
-  return new Message(codeJsInteropStaticInteropMockMissingOverride,
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropStaticInteropMockMissingImplements,
       problemMessage:
-          """`@staticInterop` class '${name}' has external extension member '${name2}', but Dart class '${name3}' does not have an overriding instance member.""",
-      correctionMessage: """Add a Dart instance member in '${name3}' that overrides '${name}.${name2}'.""",
-      arguments: {'name': name, 'name2': name2, 'name3': name3});
+          """Dart class '${name}' does not have any members that implement any of the following extension member(s) with export name '${name2}': ${string}.""",
+      correctionMessage: """Declare an exportable member that implements one of these extension members.""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
