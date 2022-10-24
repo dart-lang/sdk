@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 
@@ -33,14 +34,22 @@ class DartInlayHintComputer {
     return _hints;
   }
 
-  /// Adds a parameter name hint before [node] showing a label for [name].
+  /// Adds a parameter name hint before [node] showing a the name for
+  /// [parameter].
   ///
   /// A colon and padding will be added between the hint and [node]
   /// automatically.
-  void _addParameterNamePrefix(SyntacticEntity nodeOrToken, String name) {
+  void _addParameterNamePrefix(
+      SyntacticEntity nodeOrToken, ParameterElement parameter) {
+    final name = parameter.name;
     final offset = nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
-    final labelParts = Either2<List<InlayHintLabelPart>, String>.t2('$name:');
+    final labelParts = Either2<List<InlayHintLabelPart>, String>.t1([
+      InlayHintLabelPart(
+        value: '$name:',
+        location: _locationForElement(parameter),
+      ),
+    ]);
     _hints.add(InlayHint(
       label: labelParts,
       position: position,
@@ -57,13 +66,35 @@ class DartInlayHintComputer {
     final position = toPosition(_lineInfo.getLocation(offset));
     final label =
         type.getDisplayString(withNullability: _isNonNullableByDefault);
-    final labelParts = Either2<List<InlayHintLabelPart>, String>.t2(label);
+    final labelParts = Either2<List<InlayHintLabelPart>, String>.t1([
+      InlayHintLabelPart(
+        value: label,
+        location: _locationForElement(type.element),
+      )
+    ]);
     _hints.add(InlayHint(
       label: labelParts,
       position: position,
       kind: InlayHintKind.Type,
       paddingRight: true,
     ));
+  }
+
+  Location? _locationForElement(Element? element) {
+    if (element == null) {
+      return null;
+    }
+    final compilationUnit =
+        element.thisOrAncestorOfType<CompilationUnitElement>();
+    final path = compilationUnit?.source.fullName;
+    final lineInfo = compilationUnit?.lineInfo;
+    if (path == null || lineInfo == null) {
+      return null;
+    }
+    return Location(
+      uri: Uri.file(path),
+      range: toRange(lineInfo, element.nameOffset, element.nameLength),
+    );
   }
 }
 
@@ -81,7 +112,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       if (argument is! NamedExpression) {
         final parameter = argument.staticParameterElement;
         if (parameter != null) {
-          _computer._addParameterNamePrefix(argument, parameter.name);
+          _computer._addParameterNamePrefix(argument, parameter);
         }
       }
     }
