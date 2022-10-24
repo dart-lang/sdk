@@ -3163,7 +3163,7 @@ class AstBuilder extends StackListener {
       reportVarianceModifierNotEnabled(variance);
     }
 
-    var bound = pop() as TypeAnnotation?;
+    var bound = pop() as TypeAnnotationImpl?;
 
     // Peek to leave type parameters on top of stack.
     var typeParameters = peek() as List<TypeParameter>;

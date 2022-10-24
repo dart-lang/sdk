@@ -124,8 +124,8 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   @override
   CommentImpl? get documentationComment => _comment;
 
-  set documentationComment(Comment? comment) {
-    _comment = _becomeParentOf(comment as CommentImpl?);
+  set documentationComment(CommentImpl? comment) {
+    _comment = _becomeParentOf(comment);
   }
 
   @override
@@ -246,8 +246,8 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   @override
   ArgumentListImpl? get arguments => _arguments;
 
-  set arguments(ArgumentList? arguments) {
-    _arguments = _becomeParentOf(arguments as ArgumentListImpl?);
+  set arguments(ArgumentListImpl? arguments) {
+    _arguments = _becomeParentOf(arguments);
   }
 
   @override
@@ -256,8 +256,8 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   @override
   SimpleIdentifierImpl? get constructorName => _constructorName;
 
-  set constructorName(SimpleIdentifier? name) {
-    _constructorName = _becomeParentOf(name as SimpleIdentifierImpl?);
+  set constructorName(SimpleIdentifierImpl? name) {
+    _constructorName = _becomeParentOf(name);
   }
 
   @override
@@ -287,8 +287,8 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   @override
   IdentifierImpl get name => _name;
 
-  set name(Identifier name) {
-    _name = _becomeParentOf(name as IdentifierImpl)!;
+  set name(IdentifierImpl name) {
+    _name = _becomeParentOf(name)!;
   }
 
   @override
@@ -299,8 +299,8 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   /// Sets the type arguments to the constructor being invoked to the given
   /// [typeArguments].
-  set typeArguments(TypeArgumentList? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override
@@ -461,8 +461,8 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -471,8 +471,8 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @override
   TypeAnnotationImpl get type => _type;
 
-  set type(TypeAnnotation type) {
-    _type = _becomeParentOf(type as TypeAnnotationImpl);
+  set type(TypeAnnotationImpl type) {
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -541,8 +541,8 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   @override
   ExpressionImpl get condition => _condition;
 
-  set condition(Expression condition) {
-    _condition = _becomeParentOf(condition as ExpressionImpl);
+  set condition(ExpressionImpl condition) {
+    _condition = _becomeParentOf(condition);
   }
 
   @override
@@ -551,8 +551,8 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   @override
   ExpressionImpl? get message => _message;
 
-  set message(Expression? expression) {
-    _message = _becomeParentOf(expression as ExpressionImpl?);
+  set message(ExpressionImpl? expression) {
+    _message = _becomeParentOf(expression);
   }
 
   @override
@@ -622,8 +622,8 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   @override
   ExpressionImpl get condition => _condition;
 
-  set condition(Expression condition) {
-    _condition = _becomeParentOf(condition as ExpressionImpl);
+  set condition(ExpressionImpl condition) {
+    _condition = _becomeParentOf(condition);
   }
 
   @override
@@ -632,7 +632,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   @override
   ExpressionImpl? get message => _message;
 
-  set message(Expression? expression) {
+  set message(ExpressionImpl? expression) {
     _message = _becomeParentOf(expression as ExpressionImpl);
   }
 
@@ -700,8 +700,8 @@ class AssignmentExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get leftHandSide => _leftHandSide;
 
-  set leftHandSide(Expression expression) {
-    _leftHandSide = _becomeParentOf(expression as ExpressionImpl);
+  set leftHandSide(ExpressionImpl expression) {
+    _leftHandSide = _becomeParentOf(expression);
   }
 
   @override
@@ -710,8 +710,8 @@ class AssignmentExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get rightHandSide => _rightHandSide;
 
-  set rightHandSide(Expression expression) {
-    _rightHandSide = _becomeParentOf(expression as ExpressionImpl);
+  set rightHandSide(ExpressionImpl expression) {
+    _rightHandSide = _becomeParentOf(expression);
   }
 
   @override
@@ -916,8 +916,8 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @override
-  AugmentationImportElement? get element {
-    return super.element as AugmentationImportElement?;
+  AugmentationImportElementImpl? get element {
+    return super.element as AugmentationImportElementImpl?;
   }
 
   @Deprecated('Use element instead')
@@ -974,8 +974,8 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -1044,8 +1044,8 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   @override
   ExpressionImpl get leftOperand => _leftOperand;
 
-  set leftOperand(Expression expression) {
-    _leftOperand = _becomeParentOf(expression as ExpressionImpl);
+  set leftOperand(ExpressionImpl expression) {
+    _leftOperand = _becomeParentOf(expression);
   }
 
   @override
@@ -1054,8 +1054,8 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  set rightOperand(Expression expression) {
-    _rightOperand = _becomeParentOf(expression as ExpressionImpl);
+  set rightOperand(ExpressionImpl expression) {
+    _rightOperand = _becomeParentOf(expression);
   }
 
   @override
@@ -1182,8 +1182,8 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   @override
   BlockImpl get block => _block;
 
-  set block(Block block) {
-    _block = _becomeParentOf(block as BlockImpl);
+  set block(BlockImpl block) {
+    _block = _becomeParentOf(block);
   }
 
   @override
@@ -1357,8 +1357,8 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
   @override
   SimpleIdentifierImpl? get label => _label;
 
-  set label(SimpleIdentifier? identifier) {
-    _label = _becomeParentOf(identifier as SimpleIdentifierImpl?);
+  set label(SimpleIdentifierImpl? identifier) {
+    _label = _becomeParentOf(identifier);
   }
 
   @override
@@ -1429,8 +1429,8 @@ class CascadeExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get target => _target;
 
-  set target(Expression target) {
-    _target = _becomeParentOf(target as ExpressionImpl);
+  set target(ExpressionImpl target) {
+    _target = _becomeParentOf(target);
   }
 
   @override
@@ -1653,8 +1653,8 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   @override
   BlockImpl get body => _body;
 
-  set body(Block block) {
-    _body = _becomeParentOf(block as BlockImpl);
+  set body(BlockImpl block) {
+    _body = _becomeParentOf(block);
   }
 
   @override
@@ -1679,8 +1679,8 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   @override
   TypeAnnotationImpl? get exceptionType => _exceptionType;
 
-  set exceptionType(TypeAnnotation? exceptionType) {
-    _exceptionType = _becomeParentOf(exceptionType as TypeAnnotationImpl?);
+  set exceptionType(TypeAnnotationImpl? exceptionType) {
+    _exceptionType = _becomeParentOf(exceptionType);
   }
 
   @override
@@ -1932,8 +1932,8 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   ExtendsClauseImpl? get extendsClause => _extendsClause;
 
-  set extendsClause(ExtendsClause? extendsClause) {
-    _extendsClause = _becomeParentOf(extendsClause as ExtendsClauseImpl?);
+  set extendsClause(ExtendsClauseImpl? extendsClause) {
+    _extendsClause = _becomeParentOf(extendsClause);
   }
 
   @override
@@ -1944,9 +1944,8 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   ImplementsClauseImpl? get implementsClause => _implementsClause;
 
-  set implementsClause(ImplementsClause? implementsClause) {
-    _implementsClause =
-        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
+  set implementsClause(ImplementsClauseImpl? implementsClause) {
+    _implementsClause = _becomeParentOf(implementsClause);
   }
 
   @override
@@ -1955,22 +1954,22 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   NativeClauseImpl? get nativeClause => _nativeClause;
 
-  set nativeClause(NativeClause? nativeClause) {
-    _nativeClause = _becomeParentOf(nativeClause as NativeClauseImpl?);
+  set nativeClause(NativeClauseImpl? nativeClause) {
+    _nativeClause = _becomeParentOf(nativeClause);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
   WithClauseImpl? get withClause => _withClause;
 
-  set withClause(WithClause? withClause) {
-    _withClause = _becomeParentOf(withClause as WithClauseImpl?);
+  set withClause(WithClauseImpl? withClause) {
+    _withClause = _becomeParentOf(withClause);
   }
 
   @override
@@ -2100,30 +2099,29 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   ImplementsClauseImpl? get implementsClause => _implementsClause;
 
-  set implementsClause(ImplementsClause? implementsClause) {
-    _implementsClause =
-        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
+  set implementsClause(ImplementsClauseImpl? implementsClause) {
+    _implementsClause = _becomeParentOf(implementsClause);
   }
 
   @override
   NamedTypeImpl get superclass => _superclass;
 
-  set superclass(NamedType superclass) {
-    _superclass = _becomeParentOf(superclass as NamedTypeImpl);
+  set superclass(NamedTypeImpl superclass) {
+    _superclass = _becomeParentOf(superclass);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
+  set typeParameters(TypeParameterListImpl? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl);
   }
 
   @override
   WithClauseImpl get withClause => _withClause;
 
-  set withClause(WithClause withClause) {
-    _withClause = _becomeParentOf(withClause as WithClauseImpl);
+  set withClause(WithClauseImpl withClause) {
+    _withClause = _becomeParentOf(withClause);
   }
 
   @override
@@ -2286,10 +2284,10 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   Token get endToken => _expression.endToken;
 
   @override
-  CommentReferableExpression get expression => _expression;
+  CommentReferableExpressionImpl get expression => _expression;
 
-  set expression(CommentReferableExpression expression) {
-    _expression = _becomeParentOf(expression as CommentReferableExpressionImpl);
+  set expression(CommentReferableExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -2442,8 +2440,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   ScriptTagImpl? get scriptTag => _scriptTag;
 
-  set scriptTag(ScriptTag? scriptTag) {
-    _scriptTag = _becomeParentOf(scriptTag as ScriptTagImpl?);
+  set scriptTag(ScriptTagImpl? scriptTag) {
+    _scriptTag = _becomeParentOf(scriptTag);
   }
 
   @override
@@ -2573,15 +2571,15 @@ class ConditionalExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get condition => _condition;
 
-  set condition(Expression expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl);
+  set condition(ExpressionImpl expression) {
+    _condition = _becomeParentOf(expression);
   }
 
   @override
   ExpressionImpl get elseExpression => _elseExpression;
 
-  set elseExpression(Expression expression) {
-    _elseExpression = _becomeParentOf(expression as ExpressionImpl);
+  set elseExpression(ExpressionImpl expression) {
+    _elseExpression = _becomeParentOf(expression);
   }
 
   @override
@@ -2593,8 +2591,8 @@ class ConditionalExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get thenExpression => _thenExpression;
 
-  set thenExpression(Expression expression) {
-    _thenExpression = _becomeParentOf(expression as ExpressionImpl);
+  set thenExpression(ExpressionImpl expression) {
+    _thenExpression = _becomeParentOf(expression);
   }
 
   @override
@@ -2679,21 +2677,21 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   DottedNameImpl get name => _name;
 
-  set name(DottedName name) {
-    _name = _becomeParentOf(name as DottedNameImpl);
+  set name(DottedNameImpl name) {
+    _name = _becomeParentOf(name);
   }
 
   @override
   StringLiteralImpl get uri => _uri;
 
-  set uri(StringLiteral uri) {
-    _uri = _becomeParentOf(uri as StringLiteralImpl);
+  set uri(StringLiteralImpl uri) {
+    _uri = _becomeParentOf(uri);
   }
 
   @override
   StringLiteralImpl? get value => _value;
 
-  set value(StringLiteral? value) {
+  set value(StringLiteralImpl? value) {
     _value = _becomeParentOf(value as StringLiteralImpl);
   }
 
@@ -2917,8 +2915,8 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   FunctionBodyImpl get body => _body;
 
-  set body(FunctionBody functionBody) {
-    _body = _becomeParentOf(functionBody as FunctionBodyImpl);
+  set body(FunctionBodyImpl functionBody) {
+    _body = _becomeParentOf(functionBody);
   }
 
   @Deprecated('Use declaredElement instead')
@@ -2947,14 +2945,14 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   FormalParameterListImpl get parameters => _parameters;
 
-  set parameters(FormalParameterList parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl);
+  set parameters(FormalParameterListImpl parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   ConstructorNameImpl? get redirectedConstructor => _redirectedConstructor;
 
-  set redirectedConstructor(ConstructorName? redirectedConstructor) {
+  set redirectedConstructor(ConstructorNameImpl? redirectedConstructor) {
     _redirectedConstructor =
         _becomeParentOf(redirectedConstructor as ConstructorNameImpl);
   }
@@ -2962,8 +2960,8 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   IdentifierImpl get returnType => _returnType;
 
-  set returnType(Identifier typeName) {
-    _returnType = _becomeParentOf(typeName as IdentifierImpl);
+  set returnType(IdentifierImpl typeName) {
+    _returnType = _becomeParentOf(typeName);
   }
 
   @override
@@ -3049,15 +3047,15 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
   SimpleIdentifierImpl get fieldName => _fieldName;
 
-  set fieldName(SimpleIdentifier identifier) {
-    _fieldName = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  set fieldName(SimpleIdentifierImpl identifier) {
+    _fieldName = _becomeParentOf(identifier);
   }
 
   @override
@@ -3137,15 +3135,15 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @override
   SimpleIdentifierImpl? get name => _name;
 
-  set name(SimpleIdentifier? name) {
-    _name = _becomeParentOf(name as SimpleIdentifierImpl?);
+  set name(SimpleIdentifierImpl? name) {
+    _name = _becomeParentOf(name);
   }
 
   @override
   NamedTypeImpl get type => _type;
 
-  set type(NamedType type) {
-    _type = _becomeParentOf(type as NamedTypeImpl);
+  set type(NamedTypeImpl type) {
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -3294,8 +3292,8 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   @override
   SimpleIdentifierImpl? get label => _label;
 
-  set label(SimpleIdentifier? identifier) {
-    _label = _becomeParentOf(identifier as SimpleIdentifierImpl?);
+  set label(SimpleIdentifierImpl? identifier) {
+    _label = _becomeParentOf(identifier);
   }
 
   @override
@@ -3417,8 +3415,8 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   TypeAnnotationImpl? get type => _type;
 
-  set type(TypeAnnotation? type) {
-    _type = _becomeParentOf(type as TypeAnnotationImpl?);
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -3500,13 +3498,13 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   Token? get covariantKeyword => null;
 
   @override
-  ParameterElement? get declaredElement => _parameter.declaredElement;
+  ParameterElementImpl? get declaredElement => _parameter.declaredElement;
 
   @override
   ExpressionImpl? get defaultValue => _defaultValue;
 
-  set defaultValue(Expression? expression) {
-    _defaultValue = _becomeParentOf(expression as ExpressionImpl?);
+  set defaultValue(ExpressionImpl? expression) {
+    _defaultValue = _becomeParentOf(expression);
   }
 
   @override
@@ -3535,8 +3533,8 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   @override
   NormalFormalParameterImpl get parameter => _parameter;
 
-  set parameter(NormalFormalParameter formalParameter) {
-    _parameter = _becomeParentOf(formalParameter as NormalFormalParameterImpl);
+  set parameter(NormalFormalParameterImpl formalParameter) {
+    _parameter = _becomeParentOf(formalParameter);
   }
 
   @override
@@ -3646,15 +3644,15 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   @override
   StatementImpl get body => _body;
 
-  set body(Statement statement) {
-    _body = _becomeParentOf(statement as StatementImpl);
+  set body(StatementImpl statement) {
+    _body = _becomeParentOf(statement);
   }
 
   @override
   ExpressionImpl get condition => _condition;
 
-  set condition(Expression expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl);
+  set condition(ExpressionImpl expression) {
+    _condition = _becomeParentOf(expression);
   }
 
   @override
@@ -4032,9 +4030,8 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   ImplementsClauseImpl? get implementsClause => _implementsClause;
 
-  set implementsClause(ImplementsClause? implementsClause) {
-    _implementsClause =
-        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
+  set implementsClause(ImplementsClauseImpl? implementsClause) {
+    _implementsClause = _becomeParentOf(implementsClause);
   }
 
   @override
@@ -4043,15 +4040,15 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
   WithClauseImpl? get withClause => _withClause;
 
-  set withClause(WithClause? withClause) {
-    _withClause = _becomeParentOf(withClause as WithClauseImpl?);
+  set withClause(WithClauseImpl? withClause) {
+    _withClause = _becomeParentOf(withClause);
   }
 
   @override
@@ -4199,8 +4196,8 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -4380,8 +4377,8 @@ class ExpressionStatementImpl extends StatementImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -4431,8 +4428,8 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   @override
   NamedTypeImpl get superclass => _superclass;
 
-  set superclass(NamedType name) {
-    _superclass = _becomeParentOf(name as NamedTypeImpl);
+  set superclass(NamedTypeImpl name) {
+    _superclass = _becomeParentOf(name);
   }
 
   @override
@@ -4530,8 +4527,8 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   TypeAnnotationImpl get extendedType => _extendedType;
 
-  set extendedType(TypeAnnotation extendedClass) {
-    _extendedType = _becomeParentOf(extendedClass as TypeAnnotationImpl);
+  set extendedType(TypeAnnotationImpl extendedClass) {
+    _extendedType = _becomeParentOf(extendedClass);
   }
 
   @override
@@ -4540,8 +4537,8 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   HideClauseImpl? get hideClause => _hideClause;
 
-  set hideClause(HideClause? hideClause) {
-    _hideClause = _becomeParentOf(hideClause as HideClauseImpl?);
+  set hideClause(HideClauseImpl? hideClause) {
+    _hideClause = _becomeParentOf(hideClause);
   }
 
   @override
@@ -4554,15 +4551,15 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ShowClauseImpl? get showClause => _showClause;
 
-  set showClause(ShowClause? showClause) {
-    _showClause = _becomeParentOf(showClause as ShowClauseImpl?);
+  set showClause(ShowClauseImpl? showClause) {
+    _showClause = _becomeParentOf(showClause);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -4628,8 +4625,8 @@ class ExtensionOverrideImpl extends ExpressionImpl
   @override
   ArgumentListImpl get argumentList => _argumentList;
 
-  set argumentList(ArgumentList argumentList) {
-    _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -4641,8 +4638,8 @@ class ExtensionOverrideImpl extends ExpressionImpl
   @override
   IdentifierImpl get extensionName => _extensionName;
 
-  set extensionName(Identifier extensionName) {
-    _extensionName = _becomeParentOf(extensionName as IdentifierImpl);
+  set extensionName(IdentifierImpl extensionName) {
+    _extensionName = _becomeParentOf(extensionName);
   }
 
   @override
@@ -4663,8 +4660,8 @@ class ExtensionOverrideImpl extends ExpressionImpl
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  set typeArguments(TypeArgumentList? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override
@@ -4824,8 +4821,8 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
   VariableDeclarationListImpl get fields => _fieldList;
 
-  set fields(VariableDeclarationList fields) {
-    _fieldList = _becomeParentOf(fields as VariableDeclarationListImpl);
+  set fields(VariableDeclarationListImpl fields) {
+    _fieldList = _becomeParentOf(fields);
   }
 
   @override
@@ -4955,22 +4952,22 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   @override
   FormalParameterListImpl? get parameters => _parameters;
 
-  set parameters(FormalParameterList? parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl?);
+  set parameters(FormalParameterListImpl? parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   TypeAnnotationImpl? get type => _type;
 
-  set type(TypeAnnotation? type) {
+  set type(TypeAnnotationImpl? type) {
     _type = _becomeParentOf(type as TypeAnnotationImpl);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -5022,8 +5019,8 @@ abstract class ForEachPartsImpl extends ForLoopPartsImpl
   @override
   ExpressionImpl get iterable => _iterable;
 
-  set iterable(Expression expression) {
-    _iterable = _becomeParentOf(expression as ExpressionImpl);
+  set iterable(ExpressionImpl expression) {
+    _iterable = _becomeParentOf(expression);
   }
 
   @override
@@ -5058,8 +5055,8 @@ class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   @override
   DeclaredIdentifierImpl get loopVariable => _loopVariable;
 
-  set loopVariable(DeclaredIdentifier variable) {
-    _loopVariable = _becomeParentOf(variable as DeclaredIdentifierImpl);
+  set loopVariable(DeclaredIdentifierImpl variable) {
+    _loopVariable = _becomeParentOf(variable);
   }
 
   @override
@@ -5099,8 +5096,8 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @override
   SimpleIdentifierImpl get identifier => _identifier;
 
-  set identifier(SimpleIdentifier identifier) {
-    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  set identifier(SimpleIdentifierImpl identifier) {
+    _identifier = _becomeParentOf(identifier);
   }
 
   @override
@@ -5198,8 +5195,8 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
   @override
   CollectionElementImpl get body => _body;
 
-  set body(CollectionElement statement) {
-    _body = _becomeParentOf(statement as CollectionElementImpl);
+  set body(CollectionElementImpl statement) {
+    _body = _becomeParentOf(statement);
   }
 
   @override
@@ -5208,8 +5205,8 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
   @override
   ForLoopPartsImpl get forLoopParts => _forLoopParts;
 
-  set forLoopParts(ForLoopParts forLoopParts) {
-    _forLoopParts = _becomeParentOf(forLoopParts as ForLoopPartsImpl);
+  set forLoopParts(ForLoopPartsImpl forLoopParts) {
+    _forLoopParts = _becomeParentOf(forLoopParts);
   }
 
   @override
@@ -5248,7 +5245,7 @@ abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
-  ParameterElement? declaredElement;
+  ParameterElementImpl? declaredElement;
 
   /// TODO(scheglov) I was not able to update 'nnbd_migration' any better.
   SimpleIdentifier? get identifierForMigration {
@@ -5433,8 +5430,8 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   ExpressionImpl? get condition => _condition;
 
-  set condition(Expression? expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl?);
+  set condition(ExpressionImpl? expression) {
+    _condition = _becomeParentOf(expression);
   }
 
   @override
@@ -5483,7 +5480,7 @@ class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @override
   VariableDeclarationListImpl get variables => _variableList;
 
-  set variables(VariableDeclarationList? variableList) {
+  set variables(VariableDeclarationListImpl? variableList) {
     _variableList =
         _becomeParentOf(variableList as VariableDeclarationListImpl);
   }
@@ -5530,8 +5527,8 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   @override
   ExpressionImpl? get initialization => _initialization;
 
-  set initialization(Expression? initialization) {
-    _initialization = _becomeParentOf(initialization as ExpressionImpl?);
+  set initialization(ExpressionImpl? initialization) {
+    _initialization = _becomeParentOf(initialization);
   }
 
   @override
@@ -5625,8 +5622,8 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   @override
   StatementImpl get body => _body;
 
-  set body(Statement statement) {
-    _body = _becomeParentOf(statement as StatementImpl);
+  set body(StatementImpl statement) {
+    _body = _becomeParentOf(statement);
   }
 
   @override
@@ -5635,8 +5632,8 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   @override
   ForLoopPartsImpl get forLoopParts => _forLoopParts;
 
-  set forLoopParts(ForLoopParts forLoopParts) {
-    _forLoopParts = _becomeParentOf(forLoopParts as ForLoopPartsImpl);
+  set forLoopParts(ForLoopPartsImpl forLoopParts) {
+    _forLoopParts = _becomeParentOf(forLoopParts);
   }
 
   @override
@@ -5791,9 +5788,8 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   FunctionExpressionImpl get functionExpression => _functionExpression;
 
-  set functionExpression(FunctionExpression functionExpression) {
-    _functionExpression =
-        _becomeParentOf(functionExpression as FunctionExpressionImpl);
+  set functionExpression(FunctionExpressionImpl functionExpression) {
+    _functionExpression = _becomeParentOf(functionExpression);
   }
 
   @override
@@ -5805,7 +5801,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
-  set returnType(TypeAnnotation? type) {
+  set returnType(TypeAnnotationImpl? type) {
     _returnType = _becomeParentOf(type as TypeAnnotationImpl);
   }
 
@@ -5851,9 +5847,8 @@ class FunctionDeclarationStatementImpl extends StatementImpl
   @override
   FunctionDeclarationImpl get functionDeclaration => _functionDeclaration;
 
-  set functionDeclaration(FunctionDeclaration functionDeclaration) {
-    _functionDeclaration =
-        _becomeParentOf(functionDeclaration as FunctionDeclarationImpl);
+  set functionDeclaration(FunctionDeclarationImpl functionDeclaration) {
+    _functionDeclaration = _becomeParentOf(functionDeclaration);
   }
 
   @override
@@ -5921,8 +5916,8 @@ class FunctionExpressionImpl extends ExpressionImpl
   @override
   FunctionBodyImpl get body => _body;
 
-  set body(FunctionBody functionBody) {
-    _body = _becomeParentOf(functionBody as FunctionBodyImpl);
+  set body(FunctionBodyImpl functionBody) {
+    _body = _becomeParentOf(functionBody);
   }
 
   @override
@@ -5933,8 +5928,8 @@ class FunctionExpressionImpl extends ExpressionImpl
   @override
   FormalParameterListImpl? get parameters => _parameters;
 
-  set parameters(FormalParameterList? parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl?);
+  set parameters(FormalParameterListImpl? parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
@@ -5943,8 +5938,8 @@ class FunctionExpressionImpl extends ExpressionImpl
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -6006,8 +6001,8 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @override
   ExpressionImpl get function => _function;
 
-  set function(Expression expression) {
-    _function = _becomeParentOf(expression as ExpressionImpl);
+  set function(ExpressionImpl expression) {
+    _function = _becomeParentOf(expression);
   }
 
   @override
@@ -6158,22 +6153,22 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   @override
   FormalParameterListImpl get parameters => _parameters;
 
-  set parameters(FormalParameterList parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl);
+  set parameters(FormalParameterListImpl parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
-  set returnType(TypeAnnotation? type) {
-    _returnType = _becomeParentOf(type as TypeAnnotationImpl?);
+  set returnType(TypeAnnotationImpl? type) {
+    _returnType = _becomeParentOf(type);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -6273,22 +6268,22 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @override
   FormalParameterListImpl get parameters => _parameters;
 
-  set parameters(FormalParameterList parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl);
+  set parameters(FormalParameterListImpl parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
-  set returnType(TypeAnnotation? type) {
-    _returnType = _becomeParentOf(type as TypeAnnotationImpl?);
+  set returnType(TypeAnnotationImpl? type) {
+    _returnType = _becomeParentOf(type);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -6388,15 +6383,15 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   @override
   FormalParameterListImpl get parameters => _parameters;
 
-  set parameters(FormalParameterList parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl);
+  set parameters(FormalParameterListImpl parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
-  set returnType(TypeAnnotation? type) {
-    _returnType = _becomeParentOf(type as TypeAnnotationImpl?);
+  set returnType(TypeAnnotationImpl? type) {
+    _returnType = _becomeParentOf(type);
   }
 
   /// Return the type parameters for the function type, or `null` if the
@@ -6406,8 +6401,8 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -6492,15 +6487,15 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   TypeAnnotationImpl get type => _type;
 
   /// Set the type being defined by the alias to the given [TypeAnnotation].
-  set type(TypeAnnotation typeAnnotation) {
-    _type = _becomeParentOf(typeAnnotation as TypeAnnotationImpl);
+  set type(TypeAnnotationImpl typeAnnotation) {
+    _type = _becomeParentOf(typeAnnotation);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -6664,17 +6659,17 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   Token get beginToken => ifKeyword;
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
-  set condition(Expression condition) {
-    _condition = _becomeParentOf(condition as ExpressionImpl);
+  set condition(ExpressionImpl condition) {
+    _condition = _becomeParentOf(condition);
   }
 
   @override
-  CollectionElement? get elseElement => _elseElement;
+  CollectionElementImpl? get elseElement => _elseElement;
 
-  set elseElement(CollectionElement? element) {
-    _elseElement = _becomeParentOf(element as CollectionElementImpl?);
+  set elseElement(CollectionElementImpl? element) {
+    _elseElement = _becomeParentOf(element);
   }
 
   @override
@@ -6686,8 +6681,8 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   @override
   CollectionElementImpl get thenElement => _thenElement;
 
-  set thenElement(CollectionElement element) {
-    _thenElement = _becomeParentOf(element as CollectionElementImpl);
+  set thenElement(CollectionElementImpl element) {
+    _thenElement = _becomeParentOf(element);
   }
 
   @override
@@ -6777,15 +6772,15 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   @override
   ExpressionImpl get condition => _condition;
 
-  set condition(Expression condition) {
-    _condition = _becomeParentOf(condition as ExpressionImpl);
+  set condition(ExpressionImpl condition) {
+    _condition = _becomeParentOf(condition);
   }
 
   @override
   StatementImpl? get elseStatement => _elseStatement;
 
-  set elseStatement(Statement? statement) {
-    _elseStatement = _becomeParentOf(statement as StatementImpl?);
+  set elseStatement(StatementImpl? statement) {
+    _elseStatement = _becomeParentOf(statement);
   }
 
   @override
@@ -6802,8 +6797,8 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   @override
   StatementImpl get thenStatement => _thenStatement;
 
-  set thenStatement(Statement statement) {
-    _thenStatement = _becomeParentOf(statement as StatementImpl);
+  set thenStatement(StatementImpl statement) {
+    _thenStatement = _becomeParentOf(statement);
   }
 
   @override
@@ -7002,8 +6997,8 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
 
-  set prefix(SimpleIdentifier? identifier) {
-    _prefix = _becomeParentOf(identifier as SimpleIdentifierImpl?);
+  set prefix(SimpleIdentifierImpl? identifier) {
+    _prefix = _becomeParentOf(identifier);
   }
 
   @override
@@ -7155,8 +7150,8 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get index => _index;
 
-  set index(Expression expression) {
-    _index = _becomeParentOf(expression as ExpressionImpl);
+  set index(ExpressionImpl expression) {
+    _index = _becomeParentOf(expression);
   }
 
   @override
@@ -7190,8 +7185,8 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl? get target => _target;
 
-  set target(Expression? expression) {
-    _target = _becomeParentOf(expression as ExpressionImpl?);
+  set target(ExpressionImpl? expression) {
+    _target = _becomeParentOf(expression);
   }
 
   /// Return the cascade that contains this [IndexExpression].
@@ -7331,8 +7326,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   ArgumentListImpl get argumentList => _argumentList;
 
-  set argumentList(ArgumentList argumentList) {
-    _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -7341,8 +7336,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   ConstructorNameImpl get constructorName => _constructorName;
 
-  set constructorName(ConstructorName name) {
-    _constructorName = _becomeParentOf(name as ConstructorNameImpl);
+  set constructorName(ConstructorNameImpl name) {
+    _constructorName = _becomeParentOf(name);
   }
 
   @override
@@ -7373,8 +7368,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   /// with the class in which the constructor is defined. It is always an error
   /// if there are type arguments because Dart doesn't currently support generic
   /// constructors, but we capture them in the AST in order to recover better.
-  set typeArguments(TypeArgumentList? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override
@@ -7564,8 +7559,8 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -7667,15 +7662,15 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   @override
   ArgumentListImpl get argumentList => _argumentList;
 
-  set argumentList(ArgumentList argumentList) {
-    _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  set typeArguments(TypeArgumentList? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 }
 
@@ -7720,8 +7715,8 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -7730,8 +7725,8 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @override
   TypeAnnotationImpl get type => _type;
 
-  set type(TypeAnnotation type) {
-    _type = _becomeParentOf(type as TypeAnnotationImpl);
+  set type(TypeAnnotationImpl type) {
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -7793,8 +7788,8 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   @override
   StatementImpl get statement => _statement;
 
-  set statement(Statement statement) {
-    _statement = _becomeParentOf(statement as StatementImpl);
+  set statement(StatementImpl statement) {
+    _statement = _becomeParentOf(statement);
   }
 
   @override
@@ -7844,8 +7839,8 @@ class LabelImpl extends AstNodeImpl implements Label {
   @override
   SimpleIdentifierImpl get label => _label;
 
-  set label(SimpleIdentifier label) {
-    _label = _becomeParentOf(label as SimpleIdentifierImpl);
+  set label(SimpleIdentifierImpl label) {
+    _label = _becomeParentOf(label);
   }
 
   @override
@@ -7945,8 +7940,8 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   @Deprecated('Use name2')
   LibraryIdentifierImpl get name => _name!;
 
-  set name(LibraryIdentifier? name) {
-    _name = _becomeParentOf(name as LibraryIdentifierImpl?);
+  set name(LibraryIdentifierImpl? name) {
+    _name = _becomeParentOf(name);
   }
 
   @override
@@ -8239,15 +8234,15 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   @override
   ExpressionImpl get key => _key;
 
-  set key(Expression string) {
-    _key = _becomeParentOf(string as ExpressionImpl);
+  set key(ExpressionImpl string) {
+    _key = _becomeParentOf(string);
   }
 
   @override
   ExpressionImpl get value => _value;
 
-  set value(Expression expression) {
-    _value = _becomeParentOf(expression as ExpressionImpl);
+  set value(ExpressionImpl expression) {
+    _value = _becomeParentOf(expression);
   }
 
   @override
@@ -8479,8 +8474,8 @@ class MethodDeclarationImpl extends ClassMemberImpl
   @override
   FunctionBodyImpl get body => _body;
 
-  set body(FunctionBody functionBody) {
-    _body = _becomeParentOf(functionBody as FunctionBodyImpl);
+  set body(FunctionBodyImpl functionBody) {
+    _body = _becomeParentOf(functionBody);
   }
 
   @Deprecated('Use declaredElement instead')
@@ -8524,22 +8519,22 @@ class MethodDeclarationImpl extends ClassMemberImpl
   @override
   FormalParameterListImpl? get parameters => _parameters;
 
-  set parameters(FormalParameterList? parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl?);
+  set parameters(FormalParameterListImpl? parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
-  set returnType(TypeAnnotation? type) {
-    _returnType = _becomeParentOf(type as TypeAnnotationImpl?);
+  set returnType(TypeAnnotationImpl? type) {
+    _returnType = _becomeParentOf(type);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -8644,8 +8639,8 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   SimpleIdentifierImpl get methodName => _methodName;
 
-  set methodName(SimpleIdentifier identifier) {
-    _methodName = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  set methodName(SimpleIdentifierImpl identifier) {
+    _methodName = _becomeParentOf(identifier);
   }
 
   /// The invoke type of the [methodName].
@@ -8678,8 +8673,8 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   ExpressionImpl? get target => _target;
 
-  set target(Expression? expression) {
-    _target = _becomeParentOf(expression as ExpressionImpl?);
+  set target(ExpressionImpl? expression) {
+    _target = _becomeParentOf(expression);
   }
 
   /// Return the cascade that contains this [IndexExpression].
@@ -8808,26 +8803,25 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   ImplementsClauseImpl? get implementsClause => _implementsClause;
 
-  set implementsClause(ImplementsClause? implementsClause) {
-    _implementsClause =
-        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
+  set implementsClause(ImplementsClauseImpl? implementsClause) {
+    _implementsClause = _becomeParentOf(implementsClause);
   }
 
   @override
   NodeListImpl<ClassMember> get members => _members;
 
   @override
-  OnClause? get onClause => _onClause;
+  OnClauseImpl? get onClause => _onClause;
 
-  set onClause(OnClause? onClause) {
-    _onClause = _becomeParentOf(onClause as OnClauseImpl?);
+  set onClause(OnClauseImpl? onClause) {
+    _onClause = _becomeParentOf(onClause);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -8915,15 +8909,15 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
   LabelImpl get name => _name;
 
-  set name(Label identifier) {
-    _name = _becomeParentOf(identifier as LabelImpl);
+  set name(LabelImpl identifier) {
+    _name = _becomeParentOf(identifier);
   }
 
   @override
@@ -9002,15 +8996,15 @@ class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   IdentifierImpl get name => _name;
 
-  set name(Identifier identifier) {
-    _name = _becomeParentOf(identifier as IdentifierImpl);
+  set name(IdentifierImpl identifier) {
+    _name = _becomeParentOf(identifier);
   }
 
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  set typeArguments(TypeArgumentList? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override
@@ -9152,8 +9146,8 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
   @override
   StringLiteralImpl? get stringLiteral => _stringLiteral;
 
-  set stringLiteral(StringLiteral? stringLiteral) {
-    _stringLiteral = _becomeParentOf(stringLiteral as StringLiteralImpl?);
+  set stringLiteral(StringLiteralImpl? stringLiteral) {
+    _stringLiteral = _becomeParentOf(stringLiteral);
   }
 
   @override
@@ -9333,8 +9327,8 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   @override
   CommentImpl? get documentationComment => _comment;
 
-  set documentationComment(Comment? comment) {
-    _comment = _becomeParentOf(comment as CommentImpl?);
+  set documentationComment(CommentImpl? comment) {
+    _comment = _becomeParentOf(comment);
   }
 
   @override
@@ -9538,8 +9532,8 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -9739,15 +9733,15 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   @override
   LibraryIdentifierImpl? get libraryName => _libraryName;
 
-  set libraryName(LibraryIdentifier? libraryName) {
-    _libraryName = _becomeParentOf(libraryName as LibraryIdentifierImpl?);
+  set libraryName(LibraryIdentifierImpl? libraryName) {
+    _libraryName = _becomeParentOf(libraryName);
   }
 
   @override
   StringLiteralImpl? get uri => _uri;
 
-  set uri(StringLiteral? uri) {
-    _uri = _becomeParentOf(uri as StringLiteralImpl?);
+  set uri(StringLiteralImpl? uri) {
+    _uri = _becomeParentOf(uri);
   }
 
   @override
@@ -10001,8 +9995,8 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get operand => _operand;
 
-  set operand(Expression expression) {
-    _operand = _becomeParentOf(expression as ExpressionImpl);
+  set operand(ExpressionImpl expression) {
+    _operand = _becomeParentOf(expression);
   }
 
   @override
@@ -10140,8 +10134,8 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   SimpleIdentifierImpl get identifier => _identifier;
 
-  set identifier(SimpleIdentifier identifier) {
-    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  set identifier(SimpleIdentifierImpl identifier) {
+    _identifier = _becomeParentOf(identifier);
   }
 
   @override
@@ -10166,8 +10160,8 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   SimpleIdentifierImpl get prefix => _prefix;
 
-  set prefix(SimpleIdentifier identifier) {
-    _prefix = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  set prefix(SimpleIdentifierImpl identifier) {
+    _prefix = _becomeParentOf(identifier);
   }
 
   @override
@@ -10233,8 +10227,8 @@ class PrefixExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get operand => _operand;
 
-  set operand(Expression expression) {
-    _operand = _becomeParentOf(expression as ExpressionImpl);
+  set operand(ExpressionImpl expression) {
+    _operand = _becomeParentOf(expression);
   }
 
   @override
@@ -10347,8 +10341,8 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   SimpleIdentifierImpl get propertyName => _propertyName;
 
-  set propertyName(SimpleIdentifier identifier) {
-    _propertyName = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  set propertyName(SimpleIdentifierImpl identifier) {
+    _propertyName = _becomeParentOf(identifier);
   }
 
   @override
@@ -10362,8 +10356,8 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   ExpressionImpl? get target => _target;
 
-  set target(Expression? expression) {
-    _target = _becomeParentOf(expression as ExpressionImpl?);
+  set target(ExpressionImpl? expression) {
+    _target = _becomeParentOf(expression);
   }
 
   /// Return the cascade that contains this [IndexExpression].
@@ -10821,8 +10815,8 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   ArgumentListImpl get argumentList => _argumentList;
 
-  set argumentList(ArgumentList argumentList) {
-    _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -10831,8 +10825,8 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   SimpleIdentifierImpl? get constructorName => _constructorName;
 
-  set constructorName(SimpleIdentifier? identifier) {
-    _constructorName = _becomeParentOf(identifier as SimpleIdentifierImpl?);
+  set constructorName(SimpleIdentifierImpl? identifier) {
+    _constructorName = _becomeParentOf(identifier);
   }
 
   @override
@@ -10999,8 +10993,8 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   @override
   ExpressionImpl? get expression => _expression;
 
-  set expression(Expression? expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl?);
+  set expression(ExpressionImpl? expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -11343,8 +11337,8 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @override
   TypeAnnotationImpl? get type => _type;
 
-  set type(TypeAnnotation? type) {
-    _type = _becomeParentOf(type as TypeAnnotationImpl?);
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -11688,8 +11682,8 @@ class SpreadElementImpl extends AstNodeImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -12000,8 +11994,8 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   ArgumentListImpl get argumentList => _argumentList;
 
-  set argumentList(ArgumentList argumentList) {
-    _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -12010,8 +12004,8 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   SimpleIdentifierImpl? get constructorName => _constructorName;
 
-  set constructorName(SimpleIdentifier? identifier) {
-    _constructorName = _becomeParentOf(identifier as SimpleIdentifierImpl?);
+  set constructorName(SimpleIdentifierImpl? identifier) {
+    _constructorName = _becomeParentOf(identifier);
   }
 
   @override
@@ -12177,22 +12171,22 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
   @override
   FormalParameterListImpl? get parameters => _parameters;
 
-  set parameters(FormalParameterList? parameters) {
-    _parameters = _becomeParentOf(parameters as FormalParameterListImpl?);
+  set parameters(FormalParameterListImpl? parameters) {
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   TypeAnnotationImpl? get type => _type;
 
-  set type(TypeAnnotation? type) {
+  set type(TypeAnnotationImpl? type) {
     _type = _becomeParentOf(type as TypeAnnotationImpl);
   }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -12241,8 +12235,8 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -12641,8 +12635,8 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -12785,8 +12779,8 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -12858,8 +12852,8 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   VariableDeclarationListImpl get variables => _variableList;
 
-  set variables(VariableDeclarationList variables) {
-    _variableList = _becomeParentOf(variables as VariableDeclarationListImpl);
+  set variables(VariableDeclarationListImpl variables) {
+    _variableList = _becomeParentOf(variables);
   }
 
   @override
@@ -12927,8 +12921,8 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   @override
   BlockImpl get body => _body;
 
-  set body(Block block) {
-    _body = _becomeParentOf(block as BlockImpl);
+  set body(BlockImpl block) {
+    _body = _becomeParentOf(block);
   }
 
   @override
@@ -12947,10 +12941,10 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @override
-  Block? get finallyBlock => _finallyBlock;
+  BlockImpl? get finallyBlock => _finallyBlock;
 
-  set finallyBlock(Block? block) {
-    _finallyBlock = _becomeParentOf(block as BlockImpl?);
+  set finallyBlock(BlockImpl? block) {
+    _finallyBlock = _becomeParentOf(block);
   }
 
   @override
@@ -13099,8 +13093,8 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  set typeArguments(TypeArgumentList? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override
@@ -13213,8 +13207,8 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   TypeAnnotationImpl? get bound => _bound;
 
-  set bound(TypeAnnotation? type) {
-    _bound = _becomeParentOf(type as TypeAnnotationImpl?);
+  set bound(TypeAnnotationImpl? type) {
+    _bound = _becomeParentOf(type);
   }
 
   @Deprecated('Use declaredElement instead')
@@ -13323,8 +13317,8 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   @override
   StringLiteralImpl get uri => _uri;
 
-  set uri(StringLiteral uri) {
-    _uri = _becomeParentOf(uri as StringLiteralImpl);
+  set uri(StringLiteralImpl uri) {
+    _uri = _becomeParentOf(uri);
   }
 
   @override
@@ -13453,8 +13447,8 @@ class VariableDeclarationImpl extends DeclarationImpl
   @override
   ExpressionImpl? get initializer => _initializer;
 
-  set initializer(Expression? expression) {
-    _initializer = _becomeParentOf(expression as ExpressionImpl?);
+  set initializer(ExpressionImpl? expression) {
+    _initializer = _becomeParentOf(expression);
   }
 
   @override
@@ -13563,8 +13557,8 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   TypeAnnotationImpl? get type => _type;
 
-  set type(TypeAnnotation? type) {
-    _type = _becomeParentOf(type as TypeAnnotationImpl?);
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -13620,8 +13614,8 @@ class VariableDeclarationStatementImpl extends StatementImpl
   @override
   VariableDeclarationListImpl get variables => _variableList;
 
-  set variables(VariableDeclarationList variables) {
-    _variableList = _becomeParentOf(variables as VariableDeclarationListImpl);
+  set variables(VariableDeclarationListImpl variables) {
+    _variableList = _becomeParentOf(variables);
   }
 
   @override
@@ -13792,15 +13786,15 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @override
   StatementImpl get body => _body;
 
-  set body(Statement statement) {
-    _body = _becomeParentOf(statement as StatementImpl);
+  set body(StatementImpl statement) {
+    _body = _becomeParentOf(statement);
   }
 
   @override
   ExpressionImpl get condition => _condition;
 
-  set condition(Expression expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl);
+  set condition(ExpressionImpl expression) {
+    _condition = _becomeParentOf(expression);
   }
 
   @override
@@ -13912,8 +13906,8 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   ExpressionImpl get expression => _expression;
 
-  set expression(Expression expression) {
-    _expression = _becomeParentOf(expression as ExpressionImpl);
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override

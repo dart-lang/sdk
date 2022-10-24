@@ -316,7 +316,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// out to be a [ClassElement], so it is probably a `Class.constructor`.
   void _rewriteToConstructorName(
     NamedTypeImpl node,
-    PrefixedIdentifier typeIdentifier,
+    PrefixedIdentifierImpl typeIdentifier,
   ) {
     var constructorName = node.parent;
     if (constructorName is ConstructorNameImpl &&
