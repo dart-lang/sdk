@@ -8526,7 +8526,7 @@ TEST_CASE(DartAPI_NativePortPostUserClass) {
     Dart_Handle dart_args[1];
     dart_args[0] = send_port;
     Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
-    EXPECT_ERROR(result, "Illegal argument in isolate message");
+    EXPECT_ERROR(result, "Invalid argument");
   }
 
   // Test send with port closed.
@@ -8537,7 +8537,7 @@ TEST_CASE(DartAPI_NativePortPostUserClass) {
     Dart_Handle dart_args[1];
     dart_args[0] = send_port;
     Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
-    EXPECT_ERROR(result, "Illegal argument in isolate message");
+    EXPECT_ERROR(result, "Invalid argument");
   }
 
   Dart_ExitScope();

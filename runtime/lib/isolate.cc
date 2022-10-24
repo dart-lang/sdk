@@ -188,13 +188,9 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
   Class& klass = Class::Handle(zone);
   Closure& closure = Closure::Handle(zone);
-
-  bool error_found = false;
-  Function& erroneous_closure_function = Function::Handle(zone);
-  Class& erroneous_nativewrapper_class = Class::Handle(zone);
-  Class& erroneous_finalizable_class = Class::Handle(zone);
   Array& array = Array::Handle(zone);
-  const char* error_message = nullptr;
+  Object& illegal_object = Object::Handle(zone);
+  const char* exception_message = nullptr;
   Thread* thread = Thread::Current();
 
   // working_set contains only elements that have not been visited yet that
@@ -214,7 +210,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   visited->SetValueExclusive(obj.ptr(), 1);
   working_set->Add(obj.ptr());
 
-  while (!working_set->is_empty() && !error_found) {
+  while (!working_set->is_empty() && (exception_message == nullptr)) {
     thread->CheckForSafepoint();
 
     ObjectPtr raw = working_set->RemoveLast();
@@ -265,9 +261,8 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
-    error_message =                                                            \
-        "Illegal argument in isolate message : (object is a " #type ")";       \
-    error_found = true;                                                        \
+    illegal_object = raw;                                                      \
+    exception_message = "is a " #type;                                         \
     break;
 
         MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
@@ -284,45 +279,33 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
         if (cid >= kNumPredefinedCids) {
           klass = class_table->At(cid);
           if (klass.num_native_fields() != 0) {
-            erroneous_nativewrapper_class = klass.ptr();
-            error_found = true;
+            illegal_object = raw;
+            exception_message = "is a NativeWrapper";
             break;
           }
           if (klass.implements_finalizable()) {
-            erroneous_finalizable_class = klass.ptr();
-            error_found = true;
+            illegal_object = raw;
+            exception_message = "is a Finalizable";
             break;
           }
         }
     }
     raw->untag()->VisitPointers(&visitor);
   }
-  if (error_found) {
-    const char* exception_message;
-    if (error_message != nullptr) {
-      exception_message = error_message;
-    } else if (!erroneous_closure_function.IsNull()) {
-      exception_message = OS::SCreate(zone,
-                                      "Illegal argument in isolate message"
-                                      " : (object is a closure - %s)",
-                                      erroneous_closure_function.ToCString());
-    } else if (!erroneous_nativewrapper_class.IsNull()) {
-      exception_message =
-          OS::SCreate(zone,
-                      "Illegal argument in isolate message"
-                      " : (object extends NativeWrapper - %s)",
-                      erroneous_nativewrapper_class.ToCString());
-    } else {
-      ASSERT(!erroneous_finalizable_class.IsNull());
-      exception_message = OS::SCreate(zone,
-                                      "Illegal argument in isolate message"
-                                      " : (object implements Finalizable - %s)",
-                                      erroneous_finalizable_class.ToCString());
-    }
+
+  ASSERT((exception_message == nullptr) == illegal_object.IsNull());
+  if (exception_message != nullptr) {
     working_set->Clear();
-    return Exceptions::CreateUnhandledException(
-        zone, Exceptions::kArgumentValue, exception_message);
+
+    const Array& args = Array::Handle(zone, Array::New(3));
+    args.SetAt(0, illegal_object);
+    args.SetAt(2, String::Handle(zone, String::New(exception_message)));
+    const Object& exception = Object::Handle(
+        zone, Exceptions::Create(Exceptions::kArgumentValue, args));
+    return UnhandledException::New(Instance::Cast(exception),
+                                   StackTrace::Handle(zone));
   }
+
   ASSERT(working_set->length() == 0);
   isolate->set_forward_table_new(nullptr);
   return obj.ptr();

@@ -276,7 +276,6 @@ class MessageSerializer : public BaseSerializer {
     WriteUnsigned(index);
   }
 
-  const char* exception_message() const { return exception_message_; }
   Thread* thread() const {
     return static_cast<Thread*>(StackResource::thread());
   }
@@ -291,7 +290,6 @@ class MessageSerializer : public BaseSerializer {
   WeakTable* forward_table_new_;
   WeakTable* forward_table_old_;
   GrowableArray<Object*> stack_;
-  const char* exception_message_;
 };
 
 class ApiMessageSerializer : public BaseSerializer {
@@ -2161,10 +2159,8 @@ class TransferableTypedDataMessageSerializationCluster
     TransferableTypedDataPeer* tpeer =
         reinterpret_cast<TransferableTypedDataPeer*>(peer);
     if (tpeer->data() == nullptr) {
-      s->IllegalObject(
-          *object,
-          "Illegal argument in isolate message"
-          " : (TransferableTypedData has been transferred already)");
+      s->IllegalObject(*object,
+                       "TransferableTypedData has been transferred already");
     }
   }
 
@@ -3218,8 +3214,7 @@ MessageSerializer::MessageSerializer(Thread* thread)
     : BaseSerializer(thread, thread->zone()),
       forward_table_new_(),
       forward_table_old_(),
-      stack_(thread->zone(), 0),
-      exception_message_(nullptr) {
+      stack_(thread->zone(), 0) {
   isolate()->set_forward_table_new(new WeakTable());
   isolate()->set_forward_table_old(new WeakTable());
 }
@@ -3274,27 +3269,20 @@ void MessageSerializer::Trace(Object* object) {
       if ((clazz.library() != object_store->core_library()) &&
           (clazz.library() != object_store->collection_library()) &&
           (clazz.library() != object_store->typed_data_library())) {
-        IllegalObject(*object,
-                      "Illegal argument in isolate message"
-                      " : (object is a regular Dart Instance)");
+        IllegalObject(*object, "is a regular instance");
       }
       if (clazz.num_native_fields() != 0) {
-        char* chars = OS::SCreate(thread()->zone(),
-                                  "Illegal argument in isolate message"
-                                  " : (object extends NativeWrapper - %s)",
-                                  clazz.ToCString());
-        IllegalObject(*object, chars);
+        IllegalObject(*object, "is a NativeWrapper");
       }
     }
 
     // Keep the list in sync with the one in lib/isolate.cc
 #define ILLEGAL(type)                                                          \
   if (cid == k##type##Cid) {                                                   \
-    IllegalObject(*object,                                                     \
-                  "Illegal argument in isolate message"                        \
-                  " : (object is a " #type ")");                               \
+    IllegalObject(*object, "is a " #type);                                     \
   }
 
+    ILLEGAL(Closure)
     ILLEGAL(FunctionType)
     ILLEGAL(MirrorReference)
     ILLEGAL(ReceivePort)
@@ -3313,15 +3301,6 @@ void MessageSerializer::Trace(Object* object) {
     ILLEGAL(Pointer)
 
 #undef ILLEGAL
-
-    if (cid == kClosureCid) {
-      Closure* closure = static_cast<Closure*>(object);
-      const char* message = OS::SCreate(
-          zone(),
-          "Illegal argument in isolate message : (object is a closure - %s)",
-          Function::Handle(closure->function()).ToCString());
-      IllegalObject(*object, message);
-    }
 
     if (cid >= kNumPredefinedCids || cid == kInstanceCid ||
         cid == kByteBufferCid) {
@@ -3570,8 +3549,10 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
 
 void MessageSerializer::IllegalObject(const Object& object,
                                       const char* message) {
-  exception_message_ = message;
-  thread()->long_jump_base()->Jump(1, Object::snapshot_writer_error());
+  const Array& args = Array::Handle(zone(), Array::New(3));
+  args.SetAt(0, object);
+  args.SetAt(2, String::Handle(zone(), String::New(message)));
+  Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
 }
 
 BaseDeserializer::BaseDeserializer(Zone* zone, Message* message)
@@ -3994,31 +3975,7 @@ std::unique_ptr<Message> WriteMessage(bool same_group,
 
   Thread* thread = Thread::Current();
   MessageSerializer serializer(thread);
-
-  volatile bool has_exception = false;
-  {
-    LongJumpScope jump(thread);
-    if (setjmp(*jump.Set()) == 0) {
-      serializer.Serialize(obj);
-    } else {
-      has_exception = true;
-    }
-  }
-
-  if (has_exception) {
-    {
-      NoSafepointScope no_safepoint;
-      ErrorPtr error = thread->StealStickyError();
-      ASSERT(error == Object::snapshot_writer_error().ptr());
-    }
-
-    const String& msg_obj =
-        String::Handle(String::New(serializer.exception_message()));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, msg_obj);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
-  }
-
+  serializer.Serialize(obj);
   return serializer.Finish(dest_port, priority);
 }
 
