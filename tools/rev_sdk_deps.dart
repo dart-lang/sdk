@@ -1,7 +1,16 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Script to automatically update revisions in the DEPS file.
+//
+// Anyone can run this, and is welcome to.
+
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pool/pool.dart' as pool;
 
 void main(List<String> args) async {
   // Validate we're running from the repo root.
@@ -25,27 +34,60 @@ void main(List<String> args) async {
 
   deps.sort((a, b) => a.name.compareTo(b.name));
 
-  for (var dep in deps) {
+  final gitPool = pool.Pool(10);
+
+  final depsToRev = Map.fromEntries(
+    (await Future.wait(
+      deps.map((dep) {
+        return gitPool.withResource(() async {
+          final git = GitHelper(dep.relativePath);
+          await git.fetch();
+          var commit = await git.findLatestUnsyncedCommit();
+          return MapEntry(dep, commit);
+        });
+      }),
+    ))
+        .where((entry) {
+      final commit = entry.value;
+      return commit.isNotEmpty;
+    }),
+  );
+
+  if (depsToRev.isEmpty) {
+    print('No new revisions.');
+    return;
+  }
+
+  final depsToRevNames = depsToRev.keys.map((e) => e.name).join(', ');
+
+  print('Move moving forward revisions for: $depsToRevNames.');
+  print('');
+  print('Commit message:');
+  print('');
+  print('[deps] rev $depsToRevNames');
+  print('');
+  print('Revisions updated by `dart tools/rev_sdk_deps.dart`.');
+  print('');
+
+  for (var entry in depsToRev.entries) {
+    final dep = entry.key;
+    final commit = entry.value;
+
     final git = GitHelper(dep.relativePath);
 
-    await git.fetch();
+    var gitLog = await git.calculateUnsyncedCommits();
+    var currentHash = await gclient.getHash(dep);
 
-    var commit = await git.findLatestUnsyncedCommit();
-    if (commit.isNotEmpty) {
-      var gitLog = await git.calculateUnsyncedCommits();
-      var currentHash = await gclient.getHash(dep);
+    // Construct the github diff URL.
+    print('${dep.name} (${dep.getGithubDiffUrl(currentHash, commit)}):');
 
-      // Construct the github diff URL.
-      print('${dep.name} (${dep.getGithubDiffUrl(currentHash, commit)}):');
+    // Print out the new commits.
+    print(gitLog.split('\n').map((l) => '  $l').join('\n').trimRight());
 
-      // Print out the new commits.
-      print(gitLog.split('\n').map((l) => '  $l').join('\n').trimRight());
+    // Update the DEPS file.
+    await gclient.setHash(dep, commit);
 
-      // Update the DEPS file.
-      await gclient.setHash(dep, commit);
-
-      print('');
-    }
+    print('');
   }
 }
 
