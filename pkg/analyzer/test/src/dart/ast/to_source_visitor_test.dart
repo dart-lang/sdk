@@ -5,10 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -605,10 +602,15 @@ $code
   }
 
   void test_visitComment() {
-    _assertSource(
-        "",
-        astFactory.blockComment(
-            <Token>[TokenFactory.tokenFromString("/* comment */")]));
+    final code = r'''
+/// foo
+/// bar
+''';
+    final findNode = _parseStringToFindNode('''
+$code
+void f() {}
+''');
+    _assertSource('', findNode.comment(code));
   }
 
   void test_visitCommentReference() {

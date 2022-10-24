@@ -2252,35 +2252,6 @@ class CommentImpl extends AstNodeImpl implements Comment {
   void visitChildren(AstVisitor visitor) {
     _references.accept(visitor);
   }
-
-  /// Create a block comment consisting of the given [tokens].
-  static CommentImpl createBlockComment(List<Token> tokens) {
-    return CommentImpl(
-      tokens: tokens,
-      type: CommentType.BLOCK,
-      references: const <CommentReference>[],
-    );
-  }
-
-  /// Create a documentation comment consisting of the given [tokens] and having
-  /// the given [references] embedded within it.
-  static CommentImpl createDocumentationCommentWithReferences(
-      List<Token> tokens, List<CommentReference> references) {
-    return CommentImpl(
-      tokens: tokens,
-      type: CommentType.DOCUMENTATION,
-      references: references,
-    );
-  }
-
-  /// Create an end-of-line comment consisting of the given [tokens].
-  static CommentImpl createEndOfLineComment(List<Token> tokens) {
-    return CommentImpl(
-      tokens: tokens,
-      type: CommentType.END_OF_LINE,
-      references: const <CommentReference>[],
-    );
-  }
 }
 
 abstract class CommentReferableExpressionImpl extends ExpressionImpl

@@ -2535,7 +2535,7 @@ class _InstanceCreationEvaluator {
           _library,
           _errorNode,
           superclass.typeArguments,
-          superArguments ?? astFactory.nodeList(_errorNode),
+          superArguments ?? const [],
           superConstructor,
           _initializerVisitor,
           _externalErrorReporter,
