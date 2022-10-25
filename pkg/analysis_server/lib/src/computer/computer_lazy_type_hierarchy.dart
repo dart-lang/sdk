@@ -83,22 +83,22 @@ class DartLazyTypeHierarchyComputer {
   TypeHierarchyItem? findTarget(int offset) {
     final node = NodeLocator2(offset).searchWithin(_result.unit);
 
-    Element? element;
+    DartType? type;
 
     // Try named types.
-    final type = node?.thisOrAncestorOfType<NamedType>();
-    element = type?.name.staticElement;
+    type = node?.thisOrAncestorOfType<NamedType>()?.type;
 
-    if (element == null) {
+    if (type == null) {
       // Try enclosing class/mixins.
       final Declaration? declaration = node
           ?.thisOrAncestorMatching((node) => _isValidTargetDeclaration(node));
-      element = declaration?.declaredElement;
+      final element = declaration?.declaredElement;
+      if (element is InterfaceElement) {
+        type = element.thisType;
+      }
     }
 
-    return element is InterfaceElement
-        ? TypeHierarchyItem.forType(element.thisType)
-        : null;
+    return type is InterfaceType ? TypeHierarchyItem.forType(type) : null;
   }
 
   /// Locate the [Element] referenced by [location].

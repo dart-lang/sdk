@@ -728,4 +728,22 @@ int? b;
       ),
     );
   }
+
+  /// Ensure invocations directly on a type with type args retain those args.
+  Future<void> test_typeReference_generic() async {
+    final content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/<T1, T2> {}/*0]*/
+MyCl^ass1<String, String>? a;
+    ''';
+
+    addTestSource(content);
+    await expectTarget(
+      _isItem(
+        'MyClass1<String, String>',
+        testFile,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    );
+  }
 }
