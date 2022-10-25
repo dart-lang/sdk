@@ -460,7 +460,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   Completer closeCompleter = new Completer.sync();
 
   // Handlers and receive port for socket events from the event handler.
-  final List eventHandlers = new List.filled(eventCount + 1, null);
+  void Function()? readEventHandler;
+  void Function()? writeEventHandler;
+  void Function(Object e, StackTrace? st)? errorEventHandler;
+  void Function()? closedEventHandler;
+  void Function()? destroyedEventHandler;
+
   RawReceivePort? eventPort;
   bool flagsSent = false;
 
@@ -1316,14 +1321,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (stopRead()) {
         if (isClosedRead && !closedReadEventSent) {
           if (isClosedWrite) close();
-          var handler = eventHandlers[closedEvent];
+          var handler = closedEventHandler;
           if (handler == null) return;
           closedReadEventSent = true;
           handler();
         }
         return;
       }
-      var handler = eventHandlers[readEvent];
+      var handler = readEventHandler;
       if (handler == null) return;
       readEventIssued = true;
       handler();
@@ -1350,7 +1355,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isClosing) return;
       if (!sendWriteEvents) return;
       sendWriteEvents = false;
-      var handler = eventHandlers[writeEvent];
+      var handler = writeEventHandler;
       if (handler == null) return;
       handler();
     }
@@ -1370,62 +1375,68 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     int events = eventsObj as int;
     for (int i = firstEvent; i <= lastEvent; i++) {
       if (((events & (1 << i)) != 0)) {
-        if ((i == closedEvent || i == readEvent) && isClosedRead) continue;
         if (isClosing && i != destroyedEvent) continue;
-        if (i == closedEvent && !isListening && !isClosing && !isClosed) {
-          isClosedRead = true;
-          issueReadEvent();
-          continue;
-        }
-
-        if (i == writeEvent) {
-          writeAvailable = true;
-          issueWriteEvent(delayed: false);
-          continue;
-        }
-
-        if (i == readEvent) {
-          if (isListening) {
-            connections++;
-          } else {
-            if (isUdp) {
-              _availableDatagram = nativeAvailableDatagram();
+        switch (i) {
+          case readEvent:
+            if (isClosedRead) continue;
+            if (isListening) {
+              connections++;
+              if (!isClosed) {
+                // If the connection is closed right after it's accepted, there's a
+                // chance the close-handler is not set.
+                var handler = readEventHandler;
+                if (handler != null) handler();
+              }
             } else {
-              available = nativeAvailable();
+              if (isUdp) {
+                _availableDatagram = nativeAvailableDatagram();
+              } else {
+                available = nativeAvailable();
+              }
+              issueReadEvent();
+              continue;
             }
-            issueReadEvent();
+            break;
+          case writeEvent:
+            writeAvailable = true;
+            issueWriteEvent(delayed: false);
             continue;
-          }
-        }
-
-        var handler = eventHandlers[i];
-        if (i == destroyedEvent) {
-          assert(isClosing);
-          assert(!isClosed);
-          isClosed = true;
-          closeCompleter.complete();
-          disconnectFromEventHandler();
-          if (handler != null) handler();
-          continue;
-        }
-
-        if (i == errorEvent) {
-          if (!isClosing) {
-            final osError = nativeGetError();
-            if (osError != null) {
-              reportError(osError, null, osError.message);
-            } else {
-              reportError(
-                  Error(),
-                  StackTrace.current,
-                  "Error event raised in event handler : "
-                  "error condition has been reset");
+          case errorEvent:
+            if (!isClosing) {
+              final osError = nativeGetError();
+              if (osError != null) {
+                reportError(osError, null, osError.message);
+              } else {
+                reportError(
+                    Error(),
+                    StackTrace.current,
+                    "Error event raised in event handler : "
+                    "error condition has been reset");
+              }
             }
-          }
-        } else if (!isClosed) {
-          // If the connection is closed right after it's accepted, there's a
-          // chance the close-handler is not set.
-          if (handler != null) handler();
+            break;
+          case closedEvent:
+            if (isClosedRead) continue;
+            if (!isListening && !isClosing && !isClosed) {
+              isClosedRead = true;
+              issueReadEvent();
+              continue;
+            } else if (!isClosed) {
+              // If the connection is closed right after it's accepted, there's a
+              // chance the close-handler is not set.
+              var handler = closedEventHandler;
+              if (handler != null) handler();
+            }
+            break;
+          case destroyedEvent:
+            assert(isClosing);
+            assert(!isClosed);
+            isClosed = true;
+            closeCompleter.complete();
+            disconnectFromEventHandler();
+            var handler = destroyedEventHandler;
+            if (handler != null) handler();
+            continue;
         }
       }
     }
@@ -1447,12 +1458,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
   }
 
-  void setHandlers({read, write, error, closed, destroyed}) {
-    eventHandlers[readEvent] = read;
-    eventHandlers[writeEvent] = write;
-    eventHandlers[errorEvent] = error;
-    eventHandlers[closedEvent] = closed;
-    eventHandlers[destroyedEvent] = destroyed;
+  void setHandlers(
+      {void Function()? read,
+      void Function()? write,
+      void Function(Object e, StackTrace? st)? error,
+      void Function()? closed,
+      void Function()? destroyed}) {
+    readEventHandler = read;
+    writeEventHandler = write;
+    errorEventHandler = error;
+    closedEventHandler = closed;
+    destroyedEventHandler = destroyed;
   }
 
   void setListening({bool read = true, bool write = true}) {
@@ -1573,8 +1589,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     var e =
         createError(error, message, isUdp || isTcp ? address : null, localPort);
     // Invoke the error handler if any.
-    if (eventHandlers[errorEvent] != null) {
-      eventHandlers[errorEvent](e, st);
+    var handler = errorEventHandler;
+    if (handler != null) {
+      handler(e, st);
     }
     // For all errors we close the socket
     close();
