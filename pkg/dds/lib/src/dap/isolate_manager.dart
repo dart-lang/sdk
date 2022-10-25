@@ -4,10 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../rpc_error_codes.dart';
@@ -67,9 +65,6 @@ class IsolateManager {
   /// first time the user resumes.
   bool autoResumeStartingIsolates = true;
 
-  /// The root of the Dart SDK containing the VM running the debug adapter.
-  late final String sdkRoot;
-
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
   final Map<String, List<SourceBreakpoint>> _clientBreakpointsByUri = {};
@@ -115,10 +110,7 @@ class IsolateManager {
   /// Any leading character matched in place of the dollar is in the first capture.
   final _braceNotPrefixedByDollarOrBackslashPattern = RegExp(r'(^|[^\\\$]){');
 
-  IsolateManager(this._adapter) {
-    final vmPath = Platform.resolvedExecutable;
-    sdkRoot = path.dirname(path.dirname(vmPath));
-  }
+  IsolateManager(this._adapter);
 
   /// A list of all current active isolates.
   ///
@@ -866,7 +858,8 @@ class ThreadInfo {
     // URIs directly for SDK sources (we do not need to convert to 'dart:'),
     // however this method is Future-returning in case this changes in future
     // and we need to include a call to lookupPackageUris here.
-    return _convertPathToOrgDartlangSdk(filePath) ?? Uri.file(filePath);
+    return _manager._adapter.convertPathToOrgDartlangSdk(filePath) ??
+        Uri.file(filePath);
   }
 
   /// Batch resolves source URIs from the VM to a file path for the package lib
@@ -982,28 +975,6 @@ class ThreadInfo {
   /// that are round-tripped to the client.
   int storeData(Object data) => _manager.storeData(this, data);
 
-  /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
-  /// to a local file path based on the current SDK.
-  String? _convertOrgDartlangSdkToPath(Uri uri) {
-    // org-dartlang-sdk URIs can be in multiple forms:
-    //
-    //   - org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
-    //   - org-dartlang-sdk:///runtime/lib/convert_patch.dart
-    //
-    // We currently only handle the sdk folder, as we don't know which runtime
-    // is being used (this code is shared) and do not want to map to the wrong
-    // sources.
-    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'sdk') {
-      // TODO(dantup): Do we need to worry about this content not matching
-      //   up with what's local (eg. for Flutter the VM running the app is
-      //   on another device to the VM running this DA).
-      final sdkRoot = _manager.sdkRoot;
-      return path.joinAll([sdkRoot, ...uri.pathSegments.skip(1)]);
-    }
-
-    return null;
-  }
-
   Uri? _convertPathToGoogle3Uri(String input) {
     const search = '/google3/';
     if (input.startsWith('/google') && input.contains(search)) {
@@ -1019,22 +990,6 @@ class ThreadInfo {
     return null;
   }
 
-  /// Converts a file path inside the current SDK root into a URI in the form
-  /// org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
-  Uri? _convertPathToOrgDartlangSdk(String input) {
-    final sdkRoot = _manager.sdkRoot;
-    if (path.isWithin(sdkRoot, input)) {
-      final relative = path.relative(input, from: sdkRoot);
-      return Uri(
-        scheme: 'org-dartlang-sdk',
-        host: '',
-        pathSegments: ['sdk', ...path.split(relative)],
-      );
-    }
-
-    return null;
-  }
-
   /// Converts a URI to a file path.
   ///
   /// Supports file:// URIs and org-dartlang-sdk:// URIs.
@@ -1043,8 +998,8 @@ class ThreadInfo {
       return null;
     } else if (input.isScheme('file')) {
       return input.toFilePath();
-    } else if (input.isScheme('org-dartlang-sdk')) {
-      return _convertOrgDartlangSdkToPath(input);
+    } else if (input.isScheme(_manager._adapter.dartlangSdkRootUri.scheme)) {
+      return _manager._adapter.convertOrgDartlangSdkToPath(input);
     } else {
       return null;
     }

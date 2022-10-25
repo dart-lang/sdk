@@ -30,6 +30,15 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
         stdinController.sink, stdoutController.stream, channel);
   }
 
+  /// An override for [dartlangSdkRootUri].
+  ///
+  /// If not set, the default base value will be used.
+  Uri? dartlangSdkRootUriOverride;
+
+  @override
+  Uri get dartlangSdkRootUri =>
+      dartlangSdkRootUriOverride ?? super.dartlangSdkRootUri;
+
   MockDartCliDebugAdapter._(
       this.stdin, this.stdout, ByteStreamServerChannel channel)
       : super(channel);
