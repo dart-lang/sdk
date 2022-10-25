@@ -2208,9 +2208,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       NamedType namedType,
       InterfaceType type) {
     final element = type.element;
-    if (element is! MixinElement &&
-        element is ClassElement &&
-        element.isAbstract) {
+    if (element is ClassElement && element.isAbstract) {
       var element = expression.constructorName.staticElement;
       if (element != null && !element.isFactory) {
         bool isImplicit =

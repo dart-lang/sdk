@@ -247,6 +247,17 @@ void DeferredObject::Create() {
       }
       object_ = &Array::ZoneHandle(Array::New(num_elements));
     } break;
+    case kRecordCid: {
+      const intptr_t num_fields =
+          Smi::Cast(Object::Handle(GetLength())).Value();
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("materializing record of length %" Pd " (%" Px ", %" Pd
+                     " fields)\n",
+                     num_fields, reinterpret_cast<uword>(args_), field_count_);
+      }
+      object_ =
+          &Record::ZoneHandle(Record::New(num_fields, Object::empty_array()));
+    } break;
     default:
       if (IsTypedDataClassId(cls.id())) {
         const intptr_t num_elements =
@@ -301,7 +312,7 @@ void DeferredObject::Fill() {
           context.set_parent(parent);
           if (FLAG_trace_deoptimization_verbose) {
             OS::PrintErr("    ctx@parent (offset %" Pd ") <- %s\n",
-                         offset.Value(), value.ToCString());
+                         offset.Value(), parent.ToCString());
           }
         } else {
           intptr_t context_index = ToContextIndex(offset.Value());
@@ -328,7 +339,7 @@ void DeferredObject::Fill() {
           array.SetTypeArguments(type_args);
           if (FLAG_trace_deoptimization_verbose) {
             OS::PrintErr("    array@type_args (offset %" Pd ") <- %s\n",
-                         offset.Value(), value.ToCString());
+                         offset.Value(), type_args.ToCString());
           }
         } else {
           const intptr_t index = Array::index_at_offset(offset.Value());
@@ -336,6 +347,34 @@ void DeferredObject::Fill() {
           array.SetAt(index, value);
           if (FLAG_trace_deoptimization_verbose) {
             OS::PrintErr("    array@%" Pd " (offset %" Pd ") <- %s\n", index,
+                         offset.Value(), value.ToCString());
+          }
+        }
+      }
+    } break;
+    case kRecordCid: {
+      const Record& record = Record::Cast(*object_);
+
+      Smi& offset = Smi::Handle();
+      Object& value = Object::Handle();
+
+      for (intptr_t i = 0; i < field_count_; i++) {
+        offset ^= GetFieldOffset(i);
+        if (offset.Value() == Record::field_names_offset()) {
+          // Copy field_names.
+          Array& field_names = Array::Handle();
+          field_names ^= GetValue(i);
+          record.set_field_names(field_names);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    record@field_names (offset %" Pd ") <- %s\n",
+                         offset.Value(), field_names.ToCString());
+          }
+        } else {
+          const intptr_t index = Record::field_index_at_offset(offset.Value());
+          value = GetValue(i);
+          record.SetFieldAt(index, value);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    record@%" Pd " (offset %" Pd ") <- %s\n", index,
                          offset.Value(), value.ToCString());
           }
         }

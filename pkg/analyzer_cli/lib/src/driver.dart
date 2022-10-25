@@ -127,7 +127,7 @@ class Driver implements CommandLineStarter {
       final stopwatch = Stopwatch()..start();
 
       for (var i = 0; i < 3; i++) {
-        await buildSdkSummary2(
+        await buildSdkSummary(
           resourceProvider: PhysicalResourceProvider.INSTANCE,
           sdkPath: options.dartSdkPath!,
         );

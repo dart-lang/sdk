@@ -1366,6 +1366,108 @@ main() {
   EXPECT(string_interpolate->ArgumentAt(0) == create_array);
 }
 
+ISOLATE_UNIT_TEST_CASE(AllocationSinking_Records) {
+  const char* kScript = R"(
+
+@pragma('vm:prefer-inline')
+({int field1, String field2}) getRecord(int x, String y) =>
+    (field1: x, field2: y);
+
+@pragma('vm:never-inline')
+String foo(int x, String y) {
+  // All allocations in this function are eliminated by the compiler,
+  // except array allocation for string interpolation at the end.
+  (int, bool) r1 = (x, true);
+  final r2 = getRecord(x, y);
+  int sum = r1.$0 + r2.field1;
+  return "r1: (${r1.$0}, ${r1.$1}), "
+    "r2: (field1: ${r2.field1}, field2: ${r2.field2}), sum: $sum";
+}
+
+int count = 0;
+main() {
+  // Deoptimize on the 2nd run.
+  return foo(count++ == 0 ? 42 : 9223372036854775807, 'hey');
+}
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& result1 = Object::Handle(Invoke(root_library, "main"));
+  EXPECT(result1.IsString());
+  EXPECT_STREQ(result1.ToCString(),
+               "r1: (42, true), r2: (field1: 42, field2: hey), sum: 84");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  ASSERT(flow_graph != nullptr);
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  /* Flow graph to match:
+
+  2: B1[function entry]:2 {
+      v2 <- Parameter(0) [-9223372036854775808, 9223372036854775807] T{int}
+      v3 <- Parameter(1) T{String}
+}
+  4:     CheckStackOverflow:8(stack=0, loop=0)
+  5:     ParallelMove rax <- S+3
+  6:     CheckSmi:16(v2)
+  8:     ParallelMove rcx <- rax
+  8:     v9 <- BinarySmiOp:16(+, v2 T{_Smi}, v2 T{_Smi}) [-4611686018427387904, 4611686018427387903] T{_Smi}
+  9:     ParallelMove rbx <- C, r10 <- C, S-3 <- rcx
+ 10:     v11 <- CreateArray:18(v0, v10) T{_List}
+ 11:     ParallelMove rax <- rax
+ 12:     StoreIndexed(v11, v12, v13, NoStoreBarrier)
+ 13:     ParallelMove rcx <- S+3
+ 14:     StoreIndexed(v11, v14, v2 T{_Smi}, NoStoreBarrier)
+ 16:     StoreIndexed(v11, v16, v17, NoStoreBarrier)
+ 18:     StoreIndexed(v11, v18, v5, NoStoreBarrier)
+ 20:     StoreIndexed(v11, v20, v21, NoStoreBarrier)
+ 22:     StoreIndexed(v11, v22, v2 T{_Smi}, NoStoreBarrier)
+ 24:     StoreIndexed(v11, v24, v25, NoStoreBarrier)
+ 25:     ParallelMove rcx <- S+2
+ 26:     StoreIndexed(v11, v26, v3, NoStoreBarrier)
+ 28:     StoreIndexed(v11, v28, v29, NoStoreBarrier)
+ 29:     ParallelMove rcx <- S-3
+ 30:     StoreIndexed(v11, v30, v9, NoStoreBarrier)
+ 32:     PushArgument(v11)
+ 34:     v31 <- StaticCall:20( _interpolate@0150898<0> v11, recognized_kind = StringBaseInterpolate) T{String}
+ 35:     ParallelMove rax <- rax
+ 36:     Return:24(v31)
+*/
+
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveCheckSmi,
+      kMatchAndMoveBinarySmiOp,
+      kMatchAndMoveCreateArray,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMovePushArgument,
+      kMatchAndMoveStaticCall,
+      kMatchReturn,
+  }));
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  const auto& result2 = Object::Handle(Invoke(root_library, "main"));
+  EXPECT(result2.IsString());
+  EXPECT_STREQ(result2.ToCString(),
+               "r1: (9223372036854775807, true), r2: (field1: "
+               "9223372036854775807, field2: hey), sum: -2");
+}
+
 #if !defined(TARGET_ARCH_IA32)
 
 ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {

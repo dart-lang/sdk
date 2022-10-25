@@ -10,6 +10,8 @@
 * Deprecated `CompilationUnitElement.mixins2`, use `mixins` instead.
 * Deprecated `LibraryElement.parts2`, use `parts` instead.
 * Deprecated `ImportElement.imports2`, use `imports` instead.
+* Add `AnalysisDriverForPackageBuild.sdkLibraryUris`.
+* Deprecated `buildSdkSummary2()`, use `buildSdkSummary()` instead.
 
 ## 5.1.0
 * Deprecated `AstNode.name2`, use `name` instead.

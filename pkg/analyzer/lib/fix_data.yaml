@@ -142,3 +142,13 @@ transforms:
     changes:
       - kind: 'rename'
         newName: 'isAccessibleIn'
+
+  # buildSdkSummary()
+  - title: "Replace with get buildSdkSummary()"
+    date: 2022-10-24
+    element:
+      function: 'buildSdkSummary2'
+      uris: [ 'package:analyzer/dart/sdk/build_sdk_summary.dart' ]
+    changes:
+      - kind: 'rename'
+        newName: 'buildSdkSummary'

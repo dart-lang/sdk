@@ -940,8 +940,8 @@ Fragment BaseFlowGraphBuilder::CreateArray() {
 }
 
 Fragment BaseFlowGraphBuilder::AllocateRecord(TokenPosition position,
-                                              intptr_t num_fields,
-                                              const Array& field_names) {
+                                              intptr_t num_fields) {
+  Value* field_names = Pop();
   AllocateRecordInstr* allocate = new (Z) AllocateRecordInstr(
       InstructionSource(position), num_fields, field_names, GetNextDeoptId());
   Push(allocate);
