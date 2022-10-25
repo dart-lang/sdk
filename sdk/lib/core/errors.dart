@@ -451,12 +451,14 @@ class IndexError extends ArgumentError implements RangeError {
   }
 }
 
-/// Error thrown when control reaches the end of a switch case.
+/// Error previously thrown when control reaches the end of a switch case.
 ///
-/// The Dart specification requires this error to be thrown when
-/// control reaches the end of a switch case (except the last case
-/// of a switch) without meeting a break or similar end of the control
-/// flow.
+/// The pre-2.0 Dart specification required this error to be thrown when
+/// control reached the end of a switch case (except the last case
+/// of a switch) without meeting a `break` or other control flow operators.
+/// That kind of fall-through was made a compile-time error Dart 2.0,
+/// so this error no longer thrown.
+@Deprecated("No longer relevant in Dart 2.0")
 class FallThroughError extends Error {
   FallThroughError();
   @pragma("vm:entry-point")

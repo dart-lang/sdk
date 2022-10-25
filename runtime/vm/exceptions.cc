@@ -1143,11 +1143,6 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       class_name = &Symbols::TypeError();
       constructor_name = &Symbols::DotCreate();
       break;
-    case kFallThrough:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::FallThroughError();
-      constructor_name = &Symbols::DotCreate();
-      break;
     case kAbstractClassInstantiation:
       library = Library::CoreLibrary();
       class_name = &Symbols::AbstractClassInstantiationError();

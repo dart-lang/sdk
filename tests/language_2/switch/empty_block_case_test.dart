@@ -15,18 +15,12 @@ import "package:expect/expect.dart";
 
 class EmptyBlockCaseTest {
   static testMain() {
-    var exception = null;
-    try {
-      switch (1) {
-        case 1: /*@compile-error=unspecified*/
-          {}
-        case 2:
-          Expect.equals(true, false);
-      }
-    } on FallThroughError catch (e) {
-      exception = e;
+    switch (1) {
+      case 1: /*@compile-error=unspecified*/
+        {}
+      case 2:
+        Expect.equals(true, false);
     }
-    Expect.equals(true, exception != null);
   }
 }
 

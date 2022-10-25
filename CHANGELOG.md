@@ -70,6 +70,11 @@
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
 
+#### `dart:core`
+
+- Deprecated `FallThroughError`. Has not been thrown since Dart 2.0.
+  See [#24233][].
+
 #### `dart:developer`
 
 - **Breaking change** [#34233][]: The previously deprecated APIs
