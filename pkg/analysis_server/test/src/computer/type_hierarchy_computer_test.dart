@@ -97,7 +97,7 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
       TypeHierarchyItem target) async {
     final result = await getResolvedUnit(target.file);
     return DartLazyTypeHierarchyComputer(result)
-        .findSubtypes(target, searchEngine);
+        .findSubtypes(target.location, searchEngine);
   }
 
   @override
@@ -110,16 +110,16 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
 
   Future<void> test_class_generic() async {
     final content = '''
-class My^Class1<T> {}
-/*[0*/class /*[1*/MyClass2/*1]*/ implements MyClass1<String> {}/*0]*/
+class My^Class1<T1, T2> {}
+/*[0*/class /*[1*/MyClass2/*1]*/<T1> implements MyClass1<T1, String> {}/*0]*/
     ''';
 
     addTestSource(content);
     final target = await findTarget();
-    final supertypes = await findSubtypes(target!);
-    expect(supertypes, [
+    final subtypes = await findSubtypes(target!);
+    expect(subtypes, [
       _isRelatedItem(
-        'MyClass2',
+        'MyClass2<T1>',
         testFile,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
@@ -136,8 +136,8 @@ class ^MyClass1 {}
 
     addTestSource(content);
     final target = await findTarget();
-    final supertypes = await findSubtypes(target!);
-    expect(supertypes, [
+    final subtypes = await findSubtypes(target!);
+    expect(subtypes, [
       _isRelatedItem(
         'MyClass2',
         testFile,
@@ -184,8 +184,8 @@ class ^MyClass1 {}
 
     addTestSource(content);
     final target = await findTarget();
-    final supertypes = await findSubtypes(target!);
-    expect(supertypes, [
+    final subtypes = await findSubtypes(target!);
+    expect(subtypes, [
       _isRelatedItem(
         'MyClass2',
         testFile,
@@ -287,7 +287,9 @@ class TypeHierarchyComputerFindSupertypesTest
   Future<List<TypeHierarchyItem>?> findSupertypes(
       TypeHierarchyItem target) async {
     final result = await getResolvedUnit(target.file);
-    return DartLazyTypeHierarchyComputer(result).findSupertypes(target);
+    final anchor = target is TypeHierarchyRelatedItem ? target.anchor : null;
+    return DartLazyTypeHierarchyComputer(result)
+        .findSupertypes(target.location, anchor: anchor);
   }
 
   /// Test that if the file is modified between fetching a target and it's
@@ -318,8 +320,8 @@ class ^MyClass2 extends MyClass1 {}
 
   Future<void> test_class_generic() async {
     final content = '''
-/*[0*/class /*[1*/MyClass1/*1]*/<T> {}/*0]*/
-class ^MyClass2 implements MyClass1<String> {}
+/*[0*/class /*[1*/MyClass1/*1]*/<T1, T2> {}/*0]*/
+class ^MyClass2<T1> implements MyClass1<T1, String> {}
     ''';
 
     addTestSource(content);
@@ -328,12 +330,45 @@ class ^MyClass2 implements MyClass1<String> {}
     expect(supertypes, [
       _isObject,
       _isRelatedItem(
-        'MyClass1',
+        'MyClass1<T1, String>',
         testFile,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,
       ),
+    ]);
+  }
+
+  /// Ensure that type arguments flow across multiple levels of the tree.
+  Future<void> test_class_generic_typeArgsFlow() async {
+    final content = '''
+class A<T1, T2> {}
+class B<T1, T2> extends A<T1, T2> {}
+class C<T1> extends B<T1, String> {}
+class D extends C<int> {}
+class ^E extends D {}
+    ''';
+    addTestSource(content);
+
+    // Walk the tree and collect names at each level.
+    var names = <String>[];
+    var target = await findTarget();
+    while (target != null) {
+      names.add(target.displayName);
+      final supertypes = await findSupertypes(target);
+      target = (supertypes != null && supertypes.isNotEmpty)
+          ? supertypes.single
+          : null;
+    }
+
+    // Check for substituted type args.
+    expect(names, [
+      'E',
+      'D',
+      'C<int>',
+      'B<int, String>',
+      'A<int, String>',
+      'Object',
     ]);
   }
 
@@ -513,6 +548,22 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
     await expectTarget(
       _isItem(
         'MyClass1',
+        testFile,
+        codeRange: code.ranges[0].sourceRange,
+        nameRange: code.ranges[1].sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_class_generic() async {
+    final content = '''
+/*[0*/class /*[1*/MyCl^ass1/*1]*/<T1, T2> {}/*0]*/
+    ''';
+
+    addTestSource(content);
+    await expectTarget(
+      _isItem(
+        'MyClass1<T1, T2>',
         testFile,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,

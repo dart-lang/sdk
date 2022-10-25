@@ -292,6 +292,39 @@ class MyCla^ss2 extends MyClass1 {}
         ]));
   }
 
+  /// Ensure that type arguments flow across multiple levels of the tree.
+  Future<void> test_generics_typeArgsFlow() async {
+    final content = '''
+class A<T1, T2> {}
+class B<T1, T2> extends A<T1, T2> {}
+class C<T1> extends B<T1, String> {}
+class D extends C<int> {}
+class ^E extends D {}
+''';
+    await _prepareTypeHierarchy(content);
+
+    // Walk the tree and collect names at each level.
+    var item = prepareResult;
+    var names = <String>[];
+    while (item != null) {
+      names.add(item.name);
+      final supertypes = await typeHierarchySupertypes(item);
+      item = (supertypes != null && supertypes.isNotEmpty)
+          ? supertypes.single
+          : null;
+    }
+
+    // Check for substituted type args.
+    expect(names, [
+      'E',
+      'D',
+      'C<int>',
+      'B<int, String>',
+      'A<int, String>',
+      'Object',
+    ]);
+  }
+
   Future<void> test_implements() async {
     final content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
