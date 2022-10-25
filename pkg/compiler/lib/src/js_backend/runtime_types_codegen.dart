@@ -29,7 +29,7 @@ class ClassFunctionType {
 class TypeCheck {
   final ClassEntity cls;
   final bool needsIs;
-  final Substitution substitution;
+  final Substitution? substitution;
   @override
   final int hashCode = _nextHash = (_nextHash + 100003).toUnsigned(30);
   static int _nextHash = 0;
@@ -129,8 +129,6 @@ class Substitution {
 /// Interface for computing substitutions need for runtime type checks.
 abstract class RuntimeTypesSubstitutions {
   bool isTrivialSubstitution(ClassEntity cls, ClassEntity check);
-
-  Substitution getSubstitution(ClassEntity cls, ClassEntity other);
 
   Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks);
 
