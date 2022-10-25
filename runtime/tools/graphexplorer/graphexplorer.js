@@ -589,6 +589,8 @@ Graph.prototype.computeDominators = function() {
   const bucket = new Array(N + 1);
   const parent = this.parent_;
   const dom = new Uint32Array(N + 1);
+  const stackNode = new Uint32Array(N + 1);
+  const stackState = new Uint8Array(N + 1);
 
   for (let i = Nconnected; i > 1; i--) {
     let w = vertex[i];
@@ -607,7 +609,7 @@ Graph.prototype.computeDominators = function() {
         continue;
       }
 
-      let u = this.forestEval(v);
+      let u = this.forestEval(v, stackNode, stackState);
       if (semi[u] < semi[w]) {
         semi[w] = semi[u]
       }
@@ -629,7 +631,7 @@ Graph.prototype.computeDominators = function() {
     if (b != null) {
       for (let j = 0; j < b.length; j++) {
         let v = b[j];
-        let u = this.forestEval(v);
+        let u = this.forestEval(v, stackNode, stackState);
         dom[v] = semi[u] < semi[v] ? u : parent[w];
       }
     }
@@ -653,25 +655,47 @@ Graph.prototype.computeDominators = function() {
   this.dom_ = dom;
 };
 
-Graph.prototype.forestCompress = function(v) {
-  const ancestor = this.ancestor_;
-  if (ancestor[ancestor[v]] != 0) {
-    this.forestCompress(ancestor[v]);
-    const semi = this.semi_;
-    const label = this.label_;
-    if (semi[label[ancestor[v]]] < semi[label[v]]) {
-      label[v] = label[ancestor[v]];
-    }
-    ancestor[v] = ancestor[ancestor[v]];
-  }
-};
-
-Graph.prototype.forestEval = function(v) {
+Graph.prototype.forestEval = function(v, stackNode, stackState) {
   if (this.ancestor_[v] == 0) {
     return v;
   } else {
-    this.forestCompress(v);
-    return this.label_[v];
+    const ancestor = this.ancestor_;
+    const semi = this.semi_;
+    const label = this.label_;
+    {
+      // Inlined 'compress' with an explicit stack to prevent JS stack
+      // overflow.
+      let top = 0;
+      stackNode[top] = v;
+      stackState[top] = 0;
+      while (top >= 0) {
+        let v = stackNode[top];
+        let state = stackState[top];
+        if (state == 0) {
+          if (ancestor[ancestor[v]] != 0) {
+            stackState[top] = 1;
+            // Recurse with ancestor[v]
+            top++;
+            stackNode[top] = ancestor[v];
+            stackState[top] = 0;
+          } else {
+            top--;
+          }
+        } else {
+          if (semi[label[ancestor[v]]] < semi[label[v]]) {
+            label[v] = label[ancestor[v]];
+          }
+          ancestor[v] = ancestor[ancestor[v]];
+          top--;
+        }
+      }
+    }
+
+    if (semi[label[ancestor[v]]] >= semi[label[v]]) {
+      return label[v];
+    } else {
+      return label[ancestor[v]];
+    }
   }
 };
 
