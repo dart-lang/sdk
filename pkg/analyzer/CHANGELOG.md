@@ -1,4 +1,4 @@
-## 5.2.0-dev
+## 5.2.0
 * Deprecated `Element.enclosingElement3`, use `enclosingElement` instead.
 * Deprecated `Directive.element2`, use `element` instead.
 * Deprecated `CatchClause.exceptionParameter2`, use `exceptionParameter` instead.
