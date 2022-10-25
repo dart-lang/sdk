@@ -324,6 +324,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// yet been made.
   vm.VmServiceInterface? vmService;
 
+  /// The root of the Dart SDK containing the VM running the debug adapter.
+  late final String sdkRoot;
+
   /// The DDS instance that was started and that [vmService] is connected to.
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
@@ -445,6 +448,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     Function? onError,
   }) : super(channel, onError: onError) {
     channel.closed.then((_) => shutdown());
+
+    final vmPath = Platform.resolvedExecutable;
+    sdkRoot = path.dirname(path.dirname(vmPath));
 
     _isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
@@ -1308,6 +1314,56 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       Duration(milliseconds: 500),
       () => super.shutdown(),
     );
+  }
+
+  /// The default location for [dartlangSdkRootUri].
+  final _defaultDartlangSdkRootUri = Uri.parse('org-dartlang-sdk:///sdk');
+
+  /// The (org-dartlang-sdk) URI for the root of the Dart SDK.
+  ///
+  /// This can be overriden by debug adapters like Flutter where the Dart SDK
+  /// root is at another path (such as
+  /// `org-dartlang-sdk:///third_party/dart/sdk/`).
+  Uri get dartlangSdkRootUri => _defaultDartlangSdkRootUri;
+
+  /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+  /// to a local file path based on the current SDK.
+  String? convertOrgDartlangSdkToPath(Uri uri) {
+    // org-dartlang-sdk URIs can be in multiple forms:
+    //
+    //   - org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+    //   - org-dartlang-sdk:///runtime/lib/convert_patch.dart
+    //
+    // We currently only handle the sdk folder, as we don't know which runtime
+    // is being used (this code is shared) and do not want to map to the wrong
+    // sources.
+    if (uri.pathSegments.isNotEmpty &&
+        uri.path.startsWith(dartlangSdkRootUri.path)) {
+      return path.joinAll([
+        sdkRoot,
+        ...uri.pathSegments.skip(dartlangSdkRootUri.pathSegments.length),
+      ]);
+    }
+
+    return null;
+  }
+
+  /// Converts a file path inside the current SDK root into a URI in the form
+  /// org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
+  Uri? convertPathToOrgDartlangSdk(String input) {
+    if (path.isWithin(sdkRoot, input)) {
+      final relative = path.relative(input, from: sdkRoot);
+      return Uri(
+        scheme: dartlangSdkRootUri.scheme,
+        host: '',
+        pathSegments: [
+          ...dartlangSdkRootUri.pathSegments,
+          ...path.split(relative)
+        ],
+      );
+    }
+
+    return null;
   }
 
   /// [sourceRequest] is called by the client to request source code for a given
