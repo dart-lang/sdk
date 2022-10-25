@@ -344,7 +344,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.unnamed_libraries,
     documentation: 'Unnamed libraries',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.19.0'),
   );
 
   static final value_class = ExperimentalFeature(
@@ -435,7 +435,7 @@ class IsEnabledByDefault {
   static const bool triple_shift = true;
 
   /// Default state of the experiment "unnamed-libraries"
-  static const bool unnamed_libraries = false;
+  static const bool unnamed_libraries = true;
 
   /// Default state of the experiment "value-class"
   static const bool value_class = false;

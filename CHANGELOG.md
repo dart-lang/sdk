@@ -54,6 +54,13 @@
 [#49687]: https://github.com/dart-lang/sdk/issues/49687
 [#2020]: https://github.com/dart-lang/language/issues/2020
 
+- Add support for **unnamed libraries**. Dart language 2.19 allows a library
+  directive to be written without a name (`library;`). A library directive can
+  be used for library-level annotations (such as `@deprecated`) and for
+  library-level documentation comments, and with this new feature, you don't
+  have to provide a unique name for each library directive. Instead, a name can
+  simply be omitted.
+
 ### Libraries
 
 #### `dart:core`
