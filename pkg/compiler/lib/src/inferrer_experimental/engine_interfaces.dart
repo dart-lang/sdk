@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common/elements.dart';
+import '../common/metrics.dart' show Metrics;
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry_interfaces.dart';
@@ -13,10 +14,10 @@ import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world_interfaces.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../inferrer_experimental/types.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
+import 'types.dart';
 
 abstract class InferrerEngine {
   AbstractValueDomain get abstractValueDomain;
@@ -28,6 +29,7 @@ abstract class InferrerEngine {
   NoSuchMethodData get noSuchMethodData;
   Set<Selector> get returnsListElementTypeSet;
   Map<ir.TreeNode, TypeInformation> get concreteTypes;
+  Metrics get metrics;
 
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior);
   bool canFieldBeUsedForGlobalOptimizations(FieldEntity element);
@@ -91,6 +93,10 @@ abstract class InferrerEngine {
   void recordReturnType(FunctionEntity element, TypeInformation type);
   void recordTypeOfField(FieldEntity element, TypeInformation type);
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type);
+  void runOverAllElements();
+  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element);
+  void close();
+  void clear();
 }
 
 abstract class KernelGlobalTypeInferenceElementData

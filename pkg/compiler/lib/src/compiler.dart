@@ -24,6 +24,7 @@ import 'compiler_interfaces.dart'
     show
         CompilerDeferredLoadingFacade,
         CompilerDiagnosticsFacade,
+        CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
@@ -80,6 +81,7 @@ class Compiler
     implements
         CompilerDiagnosticsFacade,
         CompilerDeferredLoadingFacade,
+        CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade {
   @override
@@ -145,6 +147,7 @@ class Compiler
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
 
+  @override
   Progress progress = const Progress();
 
   static const int PHASE_SCANNING = 0;

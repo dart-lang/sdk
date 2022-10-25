@@ -21,6 +21,7 @@ import 'kernel/kernel_strategy_migrated.dart'
     show KernelFrontendStrategyForDeferredLoading;
 import 'options.dart' show CompilerOptions;
 import 'universe/world_impact.dart' show WorldImpact;
+import 'compiler_migrated.dart';
 
 /// Subset of [Compiler] needed by deferred loading.
 ///
@@ -79,4 +80,14 @@ abstract class CompilerKernelStrategyFacade {
   CompilerOutput get outputProvider;
   ConstraintData? get programSplitConstraintsData;
   DeferredLoadTask get deferredLoadTask;
+}
+
+/// Subset of [Compiler] needed by type_graph_inferrer
+///
+/// See definitions on [Compiler] for documentation.
+abstract class CompilerInferrerFacade {
+  CompilerOptions get options;
+  Progress get progress;
+  DiagnosticReporter get reporter;
+  CompilerOutput get outputProvider;
 }

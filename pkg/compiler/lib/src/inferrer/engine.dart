@@ -39,10 +39,10 @@ import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'set_tracer.dart';
 import 'type_graph_dump.dart';
-import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
 import 'types.dart';
+import 'work_queue.dart';
 
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
@@ -81,6 +81,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   final WorkQueue _workQueue = WorkQueue();
 
+  @override
   final _InferrerEngineMetrics metrics = _InferrerEngineMetrics();
 
   final Set<MemberEntity> _analyzedElements = {};
@@ -328,6 +329,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     _workQueue.add(info);
   }
 
+  @override
   void runOverAllElements() {
     metrics.time.measure(_runOverAllElements);
   }
@@ -1071,6 +1073,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     return info;
   }
 
+  @override
   void close() {
     for (MemberTypeInformation typeInformation
         in types.memberTypeInformations.values) {
@@ -1078,6 +1081,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     }
   }
 
+  @override
   void clear() {
     if (retainDataForTesting) return;
 
@@ -1111,6 +1115,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     _memberData.clear();
   }
 
+  @override
   Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
     MemberTypeInformation info = types.getInferredTypeOfMember(element);
     return info.callersForTesting;
