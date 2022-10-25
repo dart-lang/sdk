@@ -38,8 +38,9 @@ import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
 import 'inferrer/abstract_value_strategy.dart';
-import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
+import 'inferrer/computable.dart' show ComputableAbstractValueStrategy;
 import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
+import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
@@ -188,6 +189,10 @@ class Compiler
           WrappedAbstractValueStrategy(abstractValueStrategy);
     } else if (options.experimentalPowersets) {
       abstractValueStrategy = PowersetStrategy(abstractValueStrategy);
+    }
+    if (options.debugGlobalInference) {
+      abstractValueStrategy =
+          ComputableAbstractValueStrategy(abstractValueStrategy);
     }
 
     CompilerTask kernelFrontEndTask;

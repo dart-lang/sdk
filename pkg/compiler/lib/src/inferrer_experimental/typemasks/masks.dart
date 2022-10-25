@@ -35,7 +35,7 @@ part 'type_mask.dart';
 part 'union_type_mask.dart';
 part 'value_type_mask.dart';
 
-class CommonMasks implements AbstractValueDomain {
+class CommonMasks with AbstractValueDomain {
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
   final JClosedWorld _closedWorld;

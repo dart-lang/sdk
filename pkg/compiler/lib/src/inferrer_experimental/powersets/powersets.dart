@@ -53,7 +53,7 @@ PowersetValue? wrapOrNull(AbstractValue? abstractValue, int powersetBits) {
       : PowersetValue(abstractValue, powersetBits);
 }
 
-class PowersetDomain implements AbstractValueDomain {
+class PowersetDomain with AbstractValueDomain {
   final AbstractValueDomain _abstractValueDomain;
   final PowersetBitsDomain _powersetBitsDomain;
 

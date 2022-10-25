@@ -22,7 +22,7 @@ class TrivialAbstractValue implements AbstractValue {
   String toString() => '?';
 }
 
-class TrivialAbstractValueDomain implements AbstractValueDomain {
+class TrivialAbstractValueDomain with AbstractValueDomain {
   const TrivialAbstractValueDomain();
 
   @override

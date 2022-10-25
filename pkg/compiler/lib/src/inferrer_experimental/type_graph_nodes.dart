@@ -177,7 +177,7 @@ abstract class TypeInformation {
 
   bool reset(InferrerEngine inferrer) {
     if (abandonInferencing) return false;
-    type = inferrer.abstractValueDomain.emptyType;
+    type = inferrer.abstractValueDomain.uncomputedType;
     refineCount = 0;
     return true;
   }
@@ -247,7 +247,7 @@ abstract class ApplyableTypeInformation implements TypeInformation {
 class PlaceholderTypeInformation extends TypeInformation {
   PlaceholderTypeInformation(
       AbstractValueDomain abstractValueDomain, MemberTypeInformation context)
-      : super(abstractValueDomain.emptyType, context);
+      : super(abstractValueDomain.uncomputedType, context);
 
   @override
   void accept(TypeInformationVisitor visitor) {
@@ -380,10 +380,11 @@ abstract class ElementTypeInformation extends TypeInformation {
 
   ElementTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, MemberTypeInformation? context)
-      : super(abstractValueDomain.emptyType, context);
+      : super(abstractValueDomain.uncomputedType, context);
+
   ElementTypeInformation._withInputs(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, ParameterInputs inputs)
-      : super.withInputs(abstractValueDomain.emptyType, context, inputs);
+      : super.withInputs(abstractValueDomain.uncomputedType, context, inputs);
 
   String getInferredSignature(TypeSystem types);
 
@@ -967,9 +968,8 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.selector,
       this.arguments,
       this.inLoop)
-      : super.noInputs(abstractValueDomain.emptyType, context) {
-    assert(_call is ir.Node || (_call == null && selector?.name == '=='));
-  }
+      : assert(_call is ir.Node || (_call == null && selector?.name == '==')),
+        super.noInputs(abstractValueDomain.uncomputedType, context);
 
   @override
   String toString() => 'Call site $debugName $type';
@@ -1596,7 +1596,7 @@ class NarrowTypeInformation extends TypeInformation {
 
   NarrowTypeInformation(AbstractValueDomain abstractValueDomain,
       TypeInformation narrowedType, this.typeAnnotation)
-      : super(abstractValueDomain.emptyType, narrowedType.context) {
+      : super(abstractValueDomain.uncomputedType, narrowedType.context) {
     addInput(narrowedType);
   }
 
@@ -1636,7 +1636,7 @@ abstract class InferredTypeInformation extends TypeInformation {
 
   InferredTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, TypeInformation? parentType)
-      : super(abstractValueDomain.emptyType, context) {
+      : super(abstractValueDomain.uncomputedType, context) {
     if (parentType != null) addInput(parentType);
   }
 
@@ -2018,7 +2018,7 @@ class PhiElementTypeInformation extends TypeInformation {
   PhiElementTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, this.branchNode, this.variable,
       {required this.isTry})
-      : super(abstractValueDomain.emptyType, context);
+      : super(abstractValueDomain.uncomputedType, context);
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
@@ -2055,7 +2055,7 @@ class ClosureTypeInformation extends TypeInformation
 
   ClosureTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, this._element)
-      : super(abstractValueDomain.emptyType, context);
+      : super(abstractValueDomain.uncomputedType, context);
 
   FunctionEntity get closure => _element;
 
@@ -2119,7 +2119,7 @@ class AwaitTypeInformation extends TypeInformation {
 
   AwaitTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context, this._node)
-      : super(abstractValueDomain.emptyType, context);
+      : super(abstractValueDomain.uncomputedType, context);
 
   // TODO(22894): Compute a better type here.
   @override
@@ -2141,7 +2141,7 @@ class YieldTypeInformation extends TypeInformation {
 
   YieldTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context, this._node)
-      : super(abstractValueDomain.emptyType, context);
+      : super(abstractValueDomain.uncomputedType, context);
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);

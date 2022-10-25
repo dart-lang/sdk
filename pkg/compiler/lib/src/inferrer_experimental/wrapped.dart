@@ -43,7 +43,7 @@ WrappedAbstractValue? wrapOrNull(AbstractValue? abstractValue) {
   return abstractValue == null ? null : WrappedAbstractValue(abstractValue);
 }
 
-class WrappedAbstractValueDomain implements AbstractValueDomain {
+class WrappedAbstractValueDomain with AbstractValueDomain {
   final AbstractValueDomain _abstractValueDomain;
   const WrappedAbstractValueDomain(this._abstractValueDomain);
 

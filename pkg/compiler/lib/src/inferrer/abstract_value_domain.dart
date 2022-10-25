@@ -92,6 +92,12 @@ class AbstractValueWithPrecision {
 
 /// A system that implements an abstraction over runtime values.
 abstract class AbstractValueDomain {
+  /// The [AbstractValue] that represents a type which has not yet been
+  /// computed. Type graph nodes may carry this type during construction of the
+  /// graph, but it should be replaced by a computed type by the time the graph
+  /// is queried.
+  AbstractValue get uncomputedType => emptyType;
+
   /// The [AbstractValue] that represents an unknown runtime value. This
   /// includes values internal to the implementation, such as late sentinels.
   AbstractValue get internalTopType;
