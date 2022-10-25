@@ -256,6 +256,10 @@ config("dart_config") {
   }
 }
 
+config("dart_testing_config") {
+  defines = [ "TESTING" ]
+}
+
 config("dart_shared_lib") {
   if (dart_lib_export_symbols) {
     defines = [ "DART_SHARED_LIB" ]

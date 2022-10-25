@@ -10392,9 +10392,10 @@ TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
   EXPECT_VALID(lib);
 
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-  EXPECT_ERROR(
-      result,
-      "Invalid argument(s): Library has no handler: 'file:///test-lib'.");
+
+  // With no resolver, we resolve in process. Expect to not find the symbol
+  // in processes. Error message depends on architecture.
+  EXPECT_ERROR(result, "Invalid argument(s):");
 }
 
 static void* NopResolver(const char* name, uintptr_t args_n) {
@@ -10415,9 +10416,7 @@ TEST_CASE(Dart_SetFfiNativeResolver_DoesNotResolve) {
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-  EXPECT_ERROR(
-      result,
-      "Invalid argument(s): Couldn't resolve function: 'DoesNotResolve'");
+  EXPECT_ERROR(result, "Couldn't resolve function: 'DoesNotResolve'");
 }
 
 TEST_CASE(DartAPI_UserTags) {
