@@ -139,15 +139,20 @@
 
 #### Analyzer
 
-- added static enforcement of new `mustBeOverridden` annotation
-- added quick fixes for diagnostics:
+- add static enforcement of new `mustBeOverridden` annotation
+- add quick fixes for diagnostics:
   `abstract_field_initializer`,
   `ambiguous_extension_member_access`,
+  `argument_type_not_assignable`,
   `assert_in_redirecting_constructor`,
+  `combinators_ordering`,
   `default_value_on_required_parameter`,
   `initializing_formal_for_non_existent_field`,
+  `missing_default_value_for_parameter_positional`,
   `super_formal_parameter_without_associated_named`,
-- added new Hint: `cast_from_null_always_fails`
+  `undefined_identifier`
+- add new hints: `cast_from_null_always_fails`, `duplicate_export`
+- remove hint: `invalid_override_different_default_values`
 
 #### Linter
 
