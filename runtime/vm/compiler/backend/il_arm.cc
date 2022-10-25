@@ -1501,32 +1501,18 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    env());
 
     // Update information in the thread object and enter a safepoint.
-    if (CanExecuteGeneratedCodeInSafepoint()) {
-      __ LoadImmediate(temp1, compiler::target::Thread::exit_through_ffi());
-      __ TransitionGeneratedToNative(branch, FPREG, temp1, saved_fp_or_sp,
-                                     /*enter_safepoint=*/true);
+    // Outline state transition. In AOT, for code size. In JIT, because we
+    // cannot trust that code will be executable.
+    __ ldr(temp1,
+           compiler::Address(
+               THR, compiler::target::Thread::
+                        call_native_through_safepoint_entry_point_offset()));
 
-      __ blx(branch);
-
-      // Update information in the thread object and leave the safepoint.
-      __ TransitionNativeToGenerated(saved_fp_or_sp, temp1,
-                                     /*leave_safepoint=*/true);
-    } else {
-      // We cannot trust that this code will be executable within a safepoint.
-      // Therefore we delegate the responsibility of entering/exiting the
-      // safepoint to a stub which in the VM isolate's heap, which will never
-      // lose execute permission.
-      __ ldr(temp1,
-             compiler::Address(
-                 THR, compiler::target::Thread::
-                          call_native_through_safepoint_entry_point_offset()));
-
-      // Calls R8 in a safepoint and clobbers R4 and NOTFP.
-      ASSERT(branch == R8);
-      static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
-                    "NOTFP should be a reserved register");
-      __ blx(temp1);
-    }
+    // Calls R8 in a safepoint and clobbers R4 and NOTFP.
+    ASSERT(branch == R8);
+    static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
+                  "NOTFP should be a reserved register");
+    __ blx(temp1);
 
     if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
       __ Comment("Check Dart_Handle for Error.");
