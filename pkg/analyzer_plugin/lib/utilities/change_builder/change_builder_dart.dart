@@ -342,14 +342,15 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// formatted code. The [range] is relative to the original code.
   void format(SourceRange range);
 
-  /// Arrange to have an import added for the library with the given [uri].
+  /// Arrange to have an import added for the library with the given [uri]. If a
+  /// [prefix] is provided it will be used in the import directive.
   ///
-  /// Returns the text of the URI that will be used in the import directive.
-  /// It can be different than the given [Uri].
+  /// Return the text of the URI that will be used in the import directive.
+  /// It can be different than the given [uri].
   ///
-  /// [uri] may be converted from an absolute URI to a relative URI depending on
-  /// user preferences/lints.
-  String importLibrary(Uri uri);
+  /// The [uri] may be converted from an absolute URI to a relative URI
+  /// depending on user preferences/lints.
+  String importLibrary(Uri uri, {String? prefix});
 
   /// Ensure that the library with the given [uri] is imported.
   ///

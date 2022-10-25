@@ -96,7 +96,7 @@ vars = {
   "async_rev": "18a780efd914c3d848ddc1af5f6c83903a8b2d2d",
   "bazel_worker_rev": "03717ca4c2bbf1d74f26c89673426e076288242a",
   "benchmark_harness_rev": "6a116758f2b96e92659194bcda990f42106a01d3",
-  "boolean_selector_rev": "1d3565e2651d16566bb556955b96ea75018cbd0c",
+  "boolean_selector_rev": "ea0ad2775cc682078571997f6c0512c384ac30f0",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
@@ -122,12 +122,12 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "f79a9828ad07e50d6e8352ac154cc16eb4d78d5c", # manually rev'd
 
-  "dartdoc_rev": "51464a30fad5ff38f52f60602c0f02ff205edd0c",
+  "dartdoc_rev": "8878245e0766bc943955e3e3883832251e48d95d",
   "devtools_rev": "b21cd59f1f6bb60cacd59ba39e376d2a50d82f74",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
   "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",
-  "glob_rev": "ee812790f4d98587a363e65d5af484ed9c6943f8",
+  "glob_rev": "073007c5d00822a0ddc964c027785d1eb5559d68",
   "html_rev": "0bf601959ac98e6cdf1925a1cdab70bd6a5ddc45",
   "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
   "http_parser_rev": "c73967535ce31120e218120f70ef98cc22688c82",
@@ -144,7 +144,7 @@ vars = {
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
   "mime_rev": "bf041aa372a27aae6f94e185aa0af3932b9de98b",
   "mockito_rev": "02ad6c793d9ea970b5cc892f45a55d12d8ebf4e8",
-  "oauth2_rev": "199ebf15cbd5b07958438184f32e41c4447a57bf",
+  "oauth2_rev": "ee5c9b1ef5bfcd282c0637f319155f89634385ed",
   "package_config_rev": "cff98c90acc457a3b0750f0a7da0e351a35e5d0c",
   "path_rev": "9955b27b9bb98d87591208e19eb01c51d29fd467",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",

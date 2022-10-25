@@ -24,6 +24,7 @@ import 'compiler_interfaces.dart'
     show
         CompilerDeferredLoadingFacade,
         CompilerDiagnosticsFacade,
+        CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
@@ -37,8 +38,9 @@ import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
 import 'inferrer/abstract_value_strategy.dart';
-import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
+import 'inferrer/computable.dart' show ComputableAbstractValueStrategy;
 import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
+import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
@@ -72,6 +74,7 @@ import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld;
+import 'compiler_migrated.dart';
 
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
 /// the sources.
@@ -79,6 +82,7 @@ class Compiler
     implements
         CompilerDiagnosticsFacade,
         CompilerDeferredLoadingFacade,
+        CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade {
   @override
@@ -144,6 +148,7 @@ class Compiler
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
 
+  @override
   Progress progress = const Progress();
 
   static const int PHASE_SCANNING = 0;
@@ -184,6 +189,10 @@ class Compiler
           WrappedAbstractValueStrategy(abstractValueStrategy);
     } else if (options.experimentalPowersets) {
       abstractValueStrategy = PowersetStrategy(abstractValueStrategy);
+    }
+    if (options.debugGlobalInference) {
+      abstractValueStrategy =
+          ComputableAbstractValueStrategy(abstractValueStrategy);
     }
 
     CompilerTask kernelFrontEndTask;
@@ -1066,18 +1075,6 @@ class _TimingData {
   final double percent;
 
   _TimingData(this.description, this.milliseconds, this.percent);
-}
-
-/// Interface for showing progress during compilation.
-class Progress {
-  const Progress();
-
-  /// Starts a new phase for which to show progress.
-  void startPhase() {}
-
-  /// Shows progress of the current phase if needed. The shown message is
-  /// computed as '$prefix$count$suffix'.
-  void showProgress(String prefix, int count, String suffix) {}
 }
 
 /// Progress implementations that prints progress to the [DiagnosticReporter]

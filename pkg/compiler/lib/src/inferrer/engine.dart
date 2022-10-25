@@ -12,7 +12,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../compiler.dart';
+import '../compiler_migrated.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
@@ -39,10 +39,10 @@ import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'set_tracer.dart';
 import 'type_graph_dump.dart';
-import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
 import 'types.dart';
+import 'work_queue.dart';
 
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
@@ -68,6 +68,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   @override
   final TypeSystem types;
+  @override
   final Map<ir.TreeNode, TypeInformation> concreteTypes = {};
   final GlobalLocalsMap globalLocalsMap;
   @override
@@ -80,6 +81,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   final WorkQueue _workQueue = WorkQueue();
 
+  @override
   final _InferrerEngineMetrics metrics = _InferrerEngineMetrics();
 
   final Set<MemberEntity> _analyzedElements = {};
@@ -132,6 +134,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
+  @override
   void forEachElementMatching(
       Selector selector, AbstractValue mask, bool f(MemberEntity element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
@@ -141,6 +144,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   }
 
   // TODO(johnniwinther): Make this private again.
+  @override
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= KernelGlobalTypeInferenceElementData();
 
@@ -239,10 +243,12 @@ class InferrerEngine implements interfaces.InferrerEngine {
     }
   }
 
+  @override
   bool checkIfExposesThis(ConstructorEntity element) {
     return _generativeConstructorsExposingThis.contains(element);
   }
 
+  @override
   void recordExposesThis(ConstructorEntity element, bool exposesThis) {
     if (exposesThis) {
       _generativeConstructorsExposingThis.add(element);
@@ -323,6 +329,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     _workQueue.add(info);
   }
 
+  @override
   void runOverAllElements() {
     metrics.time.measure(_runOverAllElements);
   }
@@ -572,6 +579,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     return function;
   }
 
+  @override
   void analyze(MemberEntity element) {
     if (_analyzedElements.contains(element)) return;
     _analyzedElements.add(element);
@@ -828,6 +836,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// mapping in `_defaultTypeOfParameter` already contains a type, it must be
   /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
   /// updated.
+  @override
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type) {
     assert(
         type != null, failedAt(parameter, "No default type for $parameter."));
@@ -860,28 +869,33 @@ class InferrerEngine implements interfaces.InferrerEngine {
   }
 
   /// Returns the type of [element].
+  @override
   TypeInformation typeOfParameter(Local element) {
     return types.getInferredTypeOfParameter(element);
   }
 
   /// Returns the type of [element].
+  @override
   TypeInformation typeOfMember(MemberEntity element) {
     if (element is FunctionEntity) return types.functionType;
     return types.getInferredTypeOfMember(element);
   }
 
   /// Returns the return type of [element].
+  @override
   TypeInformation returnTypeOfMember(MemberEntity element) {
     if (element is! FunctionEntity) return types.dynamicType;
     return types.getInferredTypeOfMember(element);
   }
 
   /// Records that [element] is of type [type].
+  @override
   void recordTypeOfField(FieldEntity element, TypeInformation type) {
     types.getInferredTypeOfMember(element).addInput(type);
   }
 
   /// Records that the return type [element] is of type [type].
+  @override
   void recordReturnType(FunctionEntity element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
@@ -898,6 +912,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// [newType]. [currentType] is the type the inference has currently found.
   ///
   /// Returns the new type for [analyzedElement].
+  @override
   TypeInformation addReturnTypeForMethod(
       FunctionEntity element, TypeInformation unused, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
@@ -918,6 +933,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
+  @override
   TypeInformation registerCalledMember(
       Object node,
       Selector selector,
@@ -962,6 +978,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// side effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
+  @override
   TypeInformation registerCalledSelector(
       CallType callType,
       ir.Node node,
@@ -1006,6 +1023,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   /// Registers a call to await with an expression of type [argumentType] as
   /// argument.
+  @override
   TypeInformation registerAwait(ir.Node node, TypeInformation argument) {
     AwaitTypeInformation info =
         AwaitTypeInformation(abstractValueDomain, types.currentMember, node);
@@ -1016,6 +1034,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   /// Registers a call to yield with an expression of type [argumentType] as
   /// argument.
+  @override
   TypeInformation registerYield(ir.Node node, TypeInformation argument) {
     YieldTypeInformation info =
         YieldTypeInformation(abstractValueDomain, types.currentMember, node);
@@ -1030,6 +1049,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// side effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
+  @override
   TypeInformation registerCalledClosure(
       ir.Node node,
       Selector selector,
@@ -1053,6 +1073,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     return info;
   }
 
+  @override
   void close() {
     for (MemberTypeInformation typeInformation
         in types.memberTypeInformations.values) {
@@ -1060,6 +1081,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     }
   }
 
+  @override
   void clear() {
     if (retainDataForTesting) return;
 
@@ -1093,6 +1115,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     _memberData.clear();
   }
 
+  @override
   Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
     MemberTypeInformation info = types.getInferredTypeOfMember(element);
     return info.callersForTesting;
@@ -1294,7 +1317,9 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
 }
 
 class KernelGlobalTypeInferenceElementData
-    implements GlobalTypeInferenceElementData {
+    implements
+        GlobalTypeInferenceElementData,
+        interfaces.KernelGlobalTypeInferenceElementData {
   /// Tag used for identifying serialized [GlobalTypeInferenceElementData]
   /// objects in a debugging data stream.
   static const String tag = 'global-type-inference-element-data';
@@ -1438,6 +1463,7 @@ class KernelGlobalTypeInferenceElementData
     return _iteratorMap[node];
   }
 
+  @override
   void setReceiverTypeMask(ir.TreeNode node, AbstractValue mask) {
     _receiverMap ??= <ir.TreeNode, AbstractValue>{};
     _receiverMap[node] = mask;

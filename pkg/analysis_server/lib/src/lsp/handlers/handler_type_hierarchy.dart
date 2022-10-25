@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart'
     as type_hierarchy;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /// A handler for the initial "prepare" request for starting navigation with
 /// Type Hierarchy.
@@ -86,22 +86,20 @@ class TypeHierarchySubtypesHandler extends MessageHandler<
       MessageInfo message,
       CancellationToken token) async {
     final item = params.item;
+    final data = item.data;
     final path = pathOfUri(item.uri);
     final unit = await path.mapResult(requireResolvedUnit);
     final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
 
-    // Convert the clients item back to one in the servers format so that we
-    // can use it to get sub/super types.
-    final target = toServerItem(item, unit.result.lineInfo);
-
-    if (target == null) {
+    if (data == null) {
       return error(
-        ErrorCodes.ContentModified,
-        'Content was modified since Type Hierarchy node was produced',
+        ErrorCodes.InvalidParams,
+        'TypeHierarchyItem is missing the data field',
       );
     }
 
-    final calls = await computer.findSubtypes(target, server.searchEngine);
+    final location = ElementLocationImpl.con2(data.ref);
+    final calls = await computer.findSubtypes(location, server.searchEngine);
     final results = calls != null ? _convertItems(unit.result, calls) : null;
     return success(results);
   }
@@ -124,24 +122,37 @@ class TypeHierarchySupertypesHandler extends MessageHandler<
       MessageInfo message,
       CancellationToken token) async {
     final item = params.item;
+    final data = item.data;
     final path = pathOfUri(item.uri);
     final unit = await path.mapResult(requireResolvedUnit);
     final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
 
-    // Convert the clients item back to one in the servers format so that we
-    // can use it to get sub/super types.
-    final target = toServerItem(item, unit.result.lineInfo);
-
-    if (target == null) {
+    if (data == null) {
       return error(
-        ErrorCodes.ContentModified,
-        'Content was modified since Type Hierarchy node was produced',
+        ErrorCodes.InvalidParams,
+        'TypeHierarchyItem is missing the data field',
       );
     }
 
-    final calls = await computer.findSupertypes(target);
+    final location = ElementLocationImpl.con2(data.ref);
+    final anchor = _toServerAnchor(data);
+    final calls = await computer.findSupertypes(location, anchor: anchor);
     final results = calls != null ? _convertItems(unit.result, calls) : null;
     return success(results);
+  }
+
+  /// Reads the anchor from [data] (if available) and converts it to a server
+  /// [type_hierarchy.TypeHierarchyAnchor].
+  type_hierarchy.TypeHierarchyAnchor? _toServerAnchor(
+    TypeHierarchyItemInfo data,
+  ) {
+    final anchor = data.anchor;
+    return anchor != null
+        ? type_hierarchy.TypeHierarchyAnchor(
+            location: ElementLocationImpl.con2(anchor.ref),
+            path: anchor.path,
+          )
+        : null;
   }
 }
 
@@ -157,6 +168,8 @@ mixin _TypeHierarchyUtils {
     type_hierarchy.TypeHierarchyItem item,
     LineInfo lineInfo,
   ) {
+    final anchor =
+        item is type_hierarchy.TypeHierarchyRelatedItem ? item.anchor : null;
     return TypeHierarchyItem(
       name: item.displayName,
       detail: _detailFor(item),
@@ -164,29 +177,15 @@ mixin _TypeHierarchyUtils {
       uri: Uri.file(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
-    );
-  }
-
-  /// Converts an LSP [TypeHierarchyItem] supplied by the client back to a
-  /// server [type_hierarchy.TypeHierarchyItem] to use to look up items.
-  ///
-  /// Returns `null` if the supplied item is no longer valid (for example its
-  /// ranges are no longer valid in the current state of the document).
-  type_hierarchy.TypeHierarchyItem? toServerItem(
-    TypeHierarchyItem item,
-    LineInfo lineInfo,
-  ) {
-    final nameRange = toSourceRange(lineInfo, item.selectionRange);
-    final codeRange = toSourceRange(lineInfo, item.range);
-    if (nameRange.isError || codeRange.isError) {
-      return null;
-    }
-
-    return type_hierarchy.TypeHierarchyItem(
-      displayName: item.name,
-      file: item.uri.toFilePath(),
-      nameRange: nameRange.result,
-      codeRange: codeRange.result,
+      data: TypeHierarchyItemInfo(
+        ref: item.location.encoding,
+        anchor: anchor != null
+            ? TypeHierarchyAnchor(
+                ref: anchor.location.encoding,
+                path: anchor.path,
+              )
+            : null,
+      ),
     );
   }
 

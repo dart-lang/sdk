@@ -6,56 +6,26 @@
 
 library type_graph_inferrer;
 
-import 'dart:collection' show Queue;
-
 import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common/metrics.dart' show Metrics;
-import '../compiler.dart';
+import '../compiler_interfaces.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
 import '../js_model/locals.dart';
 import '../world.dart';
 import '../inferrer/abstract_value_domain.dart';
-import 'engine.dart';
+import 'engine_interfaces.dart';
+import 'engine.dart' as engine;
 import 'type_graph_nodes.dart';
 import 'types.dart';
-
-/// A work queue for the inferrer. It filters out nodes that are tagged as
-/// [TypeInformation.doNotEnqueue], as well as ensures through
-/// [TypeInformation.inQueue] that a node is in the queue only once at
-/// a time.
-class WorkQueue {
-  final Queue<TypeInformation> queue = Queue<TypeInformation>();
-
-  void add(TypeInformation element) {
-    if (element.doNotEnqueue) return;
-    if (element.inQueue) return;
-    queue.addLast(element);
-    element.inQueue = true;
-  }
-
-  void addAll(Iterable<TypeInformation> all) {
-    all.forEach(add);
-  }
-
-  TypeInformation remove() {
-    TypeInformation element = queue.removeFirst();
-    element.inQueue = false;
-    return element;
-  }
-
-  bool get isEmpty => queue.isEmpty;
-
-  int get length => queue.length;
-}
 
 class TypeGraphInferrer implements TypesInferrer {
   InferrerEngine inferrer;
   final JClosedWorld closedWorld;
 
-  final Compiler _compiler;
+  final CompilerInferrerFacade _compiler;
   final GlobalLocalsMap _globalLocalsMap;
   final InferredDataBuilder _inferredDataBuilder;
   Metrics _metrics = Metrics.none();
@@ -80,7 +50,7 @@ class TypeGraphInferrer implements TypesInferrer {
   }
 
   InferrerEngine createInferrerEngineFor(FunctionEntity main) {
-    return InferrerEngine(
+    return engine.InferrerEngine(
         _compiler.options,
         _compiler.progress,
         _compiler.reporter,

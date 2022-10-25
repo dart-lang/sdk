@@ -183,7 +183,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
 class AnnotationImpl extends AstNodeImpl implements Annotation {
   /// The at sign that introduced the annotation.
   @override
-  Token atSign;
+  final Token atSign;
 
   /// The name of the class defining the constructor that is being invoked or
   /// the name of the field that is being referenced.
@@ -200,7 +200,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   /// The period before the constructor name, or `null` if this annotation is
   /// not the invocation of a named constructor.
   @override
-  Token? period;
+  final Token? period;
 
   /// The name of the constructor being invoked, or `null` if this annotation is
   /// not the invocation of a named constructor.
@@ -338,14 +338,14 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
 class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// The left parenthesis.
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The expressions producing the values of the arguments.
   final NodeListImpl<ExpressionImpl> _arguments = NodeListImpl._();
 
   /// The right parenthesis.
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// A list containing the elements representing the parameters corresponding
   /// to each of the arguments in this list, or `null` if the AST has not been
@@ -436,7 +436,7 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   /// The 'as' operator.
   @override
-  Token asOperator;
+  final Token asOperator;
 
   /// The type being cast to.
   TypeAnnotationImpl _type;
@@ -503,23 +503,23 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 class AssertInitializerImpl extends ConstructorInitializerImpl
     implements AssertInitializer {
   @override
-  Token assertKeyword;
+  final Token assertKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The condition that is being asserted to be `true`.
   ExpressionImpl _condition;
 
   @override
-  Token? comma;
+  final Token? comma;
 
   /// The message to report if the assertion fails, or `null` if no message was
   /// supplied.
   ExpressionImpl? _message;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// Initialize a newly created assert initializer.
   AssertInitializerImpl({
@@ -580,26 +580,26 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
 ///        'assert' '(' [Expression] ')' ';'
 class AssertStatementImpl extends StatementImpl implements AssertStatement {
   @override
-  Token assertKeyword;
+  final Token assertKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The condition that is being asserted to be `true`.
   ExpressionImpl _condition;
 
   @override
-  Token? comma;
+  final Token? comma;
 
   /// The message to report if the assertion fails, or `null` if no message was
   /// supplied.
   ExpressionImpl? _message;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created assert statement.
   AssertStatementImpl({
@@ -668,7 +668,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
 
   /// The assignment operator being applied.
   @override
-  Token operator;
+  final Token operator;
 
   /// The expression used to compute the right hand side.
   ExpressionImpl _rightHandSide;
@@ -896,13 +896,13 @@ abstract class AstNodeImpl implements AstNode {
 class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
     implements AugmentationImportDirective {
   @override
-  Token importKeyword;
+  final Token importKeyword;
 
   @override
-  Token augmentKeyword;
+  final Token augmentKeyword;
 
   @override
-  Token semicolon;
+  final Token semicolon;
 
   AugmentationImportDirectiveImpl({
     required super.comment,
@@ -950,7 +950,7 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
 class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   /// The 'await' keyword.
   @override
-  Token awaitKeyword;
+  final Token awaitKeyword;
 
   /// The expression whose value is being waited on.
   ExpressionImpl _expression;
@@ -1010,7 +1010,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
 
   /// The binary operator being applied.
   @override
-  Token operator;
+  final Token operator;
 
   /// The expression used to compute the right operand.
   ExpressionImpl _rightOperand;
@@ -1149,12 +1149,12 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   /// The token representing the 'async' or 'sync' keyword, or `null` if there
   /// is no such keyword.
   @override
-  Token? keyword;
+  final Token? keyword;
 
   /// The star optionally following the 'async' or 'sync' keyword, or `null` if
   /// there is wither no such keyword or no star.
   @override
-  Token? star;
+  final Token? star;
 
   /// The block representing the body of the function.
   BlockImpl _block;
@@ -1224,14 +1224,14 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
 class BlockImpl extends StatementImpl implements Block {
   /// The left curly bracket.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The statements contained in the block.
   final NodeListImpl<StatementImpl> _statements = NodeListImpl._();
 
   /// The right curly bracket.
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// Initialize a newly created block of code.
   BlockImpl({
@@ -1273,11 +1273,11 @@ class BlockImpl extends StatementImpl implements Block {
 class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   /// The token representing the literal.
   @override
-  Token literal;
+  final Token literal;
 
   /// The value of the literal.
   @override
-  bool value = false;
+  final bool value;
 
   /// Initialize a newly created boolean literal.
   BooleanLiteralImpl({
@@ -1319,14 +1319,14 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 class BreakStatementImpl extends StatementImpl implements BreakStatement {
   /// The token representing the 'break' keyword.
   @override
-  Token breakKeyword;
+  final Token breakKeyword;
 
   /// The label associated with the statement, or `null` if there is no label.
   SimpleIdentifierImpl? _label;
 
   /// The semicolon terminating the statement.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// The AstNode which this break statement is breaking from.  This will be
   /// either a [Statement] (in the case of breaking out of a loop), a
@@ -1582,7 +1582,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   /// The token representing the 'on' keyword, or `null` if there is no 'on'
   /// keyword.
   @override
-  Token? onKeyword;
+  final Token? onKeyword;
 
   /// The type of exceptions caught by this catch clause, or `null` if this
   /// catch clause catches every type of exception.
@@ -1591,11 +1591,11 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   /// The token representing the 'catch' keyword, or `null` if there is no
   /// 'catch' keyword.
   @override
-  Token? catchKeyword;
+  final Token? catchKeyword;
 
   /// The left parenthesis, or `null` if there is no 'catch' keyword.
   @override
-  Token? leftParenthesis;
+  final Token? leftParenthesis;
 
   /// The parameter whose value will be the exception that was thrown, or `null`
   /// if there is no 'catch' keyword.
@@ -1604,7 +1604,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   /// The comma separating the exception parameter from the stack trace
   /// parameter, or `null` if there is no stack trace parameter.
   @override
-  Token? comma;
+  final Token? comma;
 
   /// The parameter whose value will be the stack trace associated with the
   /// exception, or `null` if there is no stack trace parameter.
@@ -1612,7 +1612,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   /// The right parenthesis, or `null` if there is no 'catch' keyword.
   @override
-  Token? rightParenthesis;
+  final Token? rightParenthesis;
 
   /// The body of the catch block.
   BlockImpl _body;
@@ -1839,17 +1839,17 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements ClassDeclaration {
   /// The 'abstract' keyword, or `null` if the keyword was absent.
   @override
-  Token? abstractKeyword;
+  final Token? abstractKeyword;
 
   /// The 'macro' keyword, or `null` if the keyword was absent.
-  Token? macroKeyword;
+  final Token? macroKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was absent.
-  Token? augmentKeyword;
+  final Token? augmentKeyword;
 
   /// The token representing the 'class' keyword.
   @override
-  Token classKeyword;
+  final Token classKeyword;
 
   /// The extends clause for the class, or `null` if the class does not extend
   /// any other class.
@@ -1876,14 +1876,14 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   /// The left curly bracket.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The members defined by the class or mixin.
   final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// Initialize a newly created class declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the class does not have the
@@ -2029,20 +2029,20 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   /// The token for the '=' separating the name from the definition.
   @override
-  Token equals;
+  final Token equals;
 
   /// The token for the 'abstract' keyword, or `null` if this is not defining an
   /// abstract class.
   @override
-  Token? abstractKeyword;
+  final Token? abstractKeyword;
 
   /// The token for the 'macro' keyword, or `null` if this is not defining a
   /// macro class.
-  Token? macroKeyword;
+  final Token? macroKeyword;
 
   /// The token for the 'augment' keyword, or `null` if this is not defining an
   /// augmentation class.
-  Token? augmentKeyword;
+  final Token? augmentKeyword;
 
   /// The name of the superclass of the class being declared.
   NamedTypeImpl _superclass;
@@ -2168,7 +2168,7 @@ abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
   /// The 'hide' or 'show' keyword specifying what kind of processing is to be
   /// done on the names.
   @override
-  Token keyword;
+  final Token keyword;
 
   /// Initialize a newly created combinator.
   CombinatorImpl({
@@ -2263,7 +2263,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   /// The token representing the 'new' keyword, or `null` if there was no 'new'
   /// keyword.
   @override
-  Token? newKeyword;
+  final Token? newKeyword;
 
   /// The expression being referenced.
   CommentReferableExpressionImpl _expression;
@@ -2365,7 +2365,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// The last token in the token stream that was parsed to form this
   /// compilation unit. This token should always have a type of [TokenType.EOF].
   @override
-  Token endToken;
+  final Token endToken;
 
   /// The element associated with this compilation unit, or `null` if the AST
   /// structure has not been resolved.
@@ -2538,14 +2538,14 @@ class ConditionalExpressionImpl extends ExpressionImpl
 
   /// The token used to separate the condition from the then expression.
   @override
-  Token question;
+  final Token question;
 
   /// The expression that is executed if the condition evaluates to `true`.
   ExpressionImpl _thenExpression;
 
   /// The token used to separate the then expression from the else expression.
   @override
-  Token colon;
+  final Token colon;
 
   /// The expression that is executed if the condition evaluates to `false`.
   ExpressionImpl _elseExpression;
@@ -2632,20 +2632,20 @@ class ConditionalExpressionImpl extends ExpressionImpl
 ///         identifier ('.' identifier)*
 class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
-  Token ifKeyword;
+  final Token ifKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   DottedNameImpl _name;
 
   @override
-  Token? equalToken;
+  final Token? equalToken;
 
   StringLiteralImpl? _value;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   StringLiteralImpl _uri;
 
@@ -2823,7 +2823,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
   @override
-  Token? externalKeyword;
+  final Token? externalKeyword;
 
   /// The token for the 'const' keyword, or `null` if the constructor is not a
   /// const constructor.
@@ -2833,7 +2833,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// The token for the 'factory' keyword, or `null` if the constructor is not a
   /// factory constructor.
   @override
-  Token? factoryKeyword;
+  final Token? factoryKeyword;
 
   /// The type of object being created. This can be different than the type in
   /// which the constructor is being declared if the constructor is the
@@ -2843,12 +2843,12 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// The token for the period before the constructor name, or `null` if the
   /// constructor being declared is unnamed.
   @override
-  Token? period;
+  final Token? period;
 
   /// The name of the constructor, or `null` if the constructor being declared
   /// is unnamed.
   @override
-  Token? name;
+  final Token? name;
 
   /// The parameters associated with the constructor.
   FormalParameterListImpl _parameters;
@@ -3001,19 +3001,19 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     implements ConstructorFieldInitializer {
   /// The token for the 'this' keyword, or `null` if there is no 'this' keyword.
   @override
-  Token? thisKeyword;
+  final Token? thisKeyword;
 
   /// The token for the period after the 'this' keyword, or `null` if there is
   /// no 'this' keyword.
   @override
-  Token? period;
+  final Token? period;
 
   /// The name of the field being initialized.
   SimpleIdentifierImpl _fieldName;
 
   /// The token for the equal sign between the field name and the expression.
   @override
-  Token equals;
+  final Token equals;
 
   /// The expression computing the value to which the field will be initialized.
   ExpressionImpl _expression;
@@ -3255,14 +3255,14 @@ class ConstructorSelectorImpl extends AstNodeImpl
 class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   /// The token representing the 'continue' keyword.
   @override
-  Token continueKeyword;
+  final Token continueKeyword;
 
   /// The label associated with the statement, or `null` if there is no label.
   SimpleIdentifierImpl? _label;
 
   /// The semicolon terminating the statement.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// The AstNode which this continue statement is continuing to.  This will be
   /// either a Statement (in the case of continuing a loop) or a SwitchMember
@@ -3368,14 +3368,14 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
   @override
-  Token? keyword;
+  final Token? keyword;
 
   /// The name of the declared type of the parameter, or `null` if the parameter
   /// does not have a declared type.
   TypeAnnotationImpl? _type;
 
   @override
-  Token name;
+  final Token name;
 
   @override
   LocalVariableElement? declaredElement;
@@ -3472,7 +3472,7 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   /// The token separating the parameter from the default value, or `null` if
   /// there is no default value.
   @override
-  Token? separator;
+  final Token? separator;
 
   /// The expression computing the default value for the parameter, or `null` if
   /// there is no default value.
@@ -3599,29 +3599,29 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
 class DoStatementImpl extends StatementImpl implements DoStatement {
   /// The token representing the 'do' keyword.
   @override
-  Token doKeyword;
+  final Token doKeyword;
 
   /// The body of the loop.
   StatementImpl _body;
 
   /// The token representing the 'while' keyword.
   @override
-  Token whileKeyword;
+  final Token whileKeyword;
 
   /// The left parenthesis.
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The condition that determines when the loop will terminate.
   ExpressionImpl _condition;
 
   /// The right parenthesis.
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// The semicolon terminating the statement.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created do loop.
   DoStatementImpl({
@@ -3727,7 +3727,7 @@ class DottedNameImpl extends AstNodeImpl implements DottedName {
 class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   /// The token representing the literal.
   @override
-  Token literal;
+  final Token literal;
 
   /// The value of the literal.
   @override
@@ -3773,7 +3773,7 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
   /// The token representing the semicolon that marks the end of the function
   /// body.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created function body.
   EmptyFunctionBodyImpl({
@@ -3810,7 +3810,7 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
 class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   /// The semicolon terminating the statement.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created empty statement.
   EmptyStatementImpl({
@@ -3953,7 +3953,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
   /// The 'enum' keyword.
   @override
-  Token enumKeyword;
+  final Token enumKeyword;
 
   /// The type parameters, or `null` if the enumeration does not have any
   /// type parameters.
@@ -3969,20 +3969,20 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   /// The left curly bracket.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The enumeration constants being declared.
   final NodeListImpl<EnumConstantDeclaration> _constants = NodeListImpl._();
 
   @override
-  Token? semicolon;
+  final Token? semicolon;
 
   /// The members defined by the enum.
   final NodeListImpl<ClassMember> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   @override
   EnumElement? declaredElement;
@@ -4086,7 +4086,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 class ExportDirectiveImpl extends NamespaceDirectiveImpl
     implements ExportDirective {
   @override
-  Token exportKeyword;
+  final Token exportKeyword;
 
   /// Initialize a newly created export directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
@@ -4142,7 +4142,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   /// The token representing the 'async' keyword, or `null` if there is no such
   /// keyword.
   @override
-  Token? keyword;
+  final Token? keyword;
 
   /// The star optionally following the 'async' or 'sync' keyword, or `null` if
   /// there is wither no such keyword or no star.
@@ -4150,19 +4150,19 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   /// It is an error for an expression function body to feature the star, but
   /// the parser will accept it.
   @override
-  Token? star;
+  final Token? star;
 
   /// The token introducing the expression that represents the body of the
   /// function.
   @override
-  Token functionDefinition;
+  final Token functionDefinition;
 
   /// The expression representing the body of the function.
   ExpressionImpl _expression;
 
   /// The semicolon terminating the statement.
   @override
-  Token? semicolon;
+  final Token? semicolon;
 
   /// Initialize a newly created function body consisting of a block of
   /// statements. The [keyword] can be `null` if the function body is not an
@@ -4353,7 +4353,7 @@ class ExpressionStatementImpl extends StatementImpl
   /// The semicolon terminating the statement, or `null` if the expression is a
   /// function expression and therefore isn't followed by a semicolon.
   @override
-  Token? semicolon;
+  final Token? semicolon;
 
   /// Initialize a newly created expression statement.
   ExpressionStatementImpl({
@@ -4406,7 +4406,7 @@ class ExpressionStatementImpl extends StatementImpl
 class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   /// The token representing the 'extends' keyword.
   @override
-  Token extendsKeyword;
+  final Token extendsKeyword;
 
   /// The name of the class that is being extended.
   NamedTypeImpl _superclass;
@@ -4456,17 +4456,17 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     implements ExtensionDeclaration {
   @override
-  Token extensionKeyword;
+  final Token extensionKeyword;
 
   @override
-  Token? typeKeyword;
+  final Token? typeKeyword;
 
   /// The hide clause for the extension or `null` if the declaration does not
   /// hide any elements.
   HideClauseImpl? _hideClause;
 
   @override
-  Token? name;
+  final Token? name;
 
   /// The show clause for the extension or `null` if the declaration does not
   /// show any elements.
@@ -4477,19 +4477,19 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   TypeParameterListImpl? _typeParameters;
 
   @override
-  Token onKeyword;
+  final Token onKeyword;
 
   /// The type that is being extended.
   TypeAnnotationImpl _extendedType;
 
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The members being added to the extended class.
   final NodeListImpl<ClassMember> _members = NodeListImpl._();
 
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   @override
   ExtensionElement? declaredElement;
@@ -4766,29 +4766,29 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
 ///        'static'? [VariableDeclarationList] ';'
 class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
-  Token? abstractKeyword;
+  final Token? abstractKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was not used.
-  Token? augmentKeyword;
+  final Token? augmentKeyword;
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
-  Token? covariantKeyword;
+  final Token? covariantKeyword;
 
   @override
-  Token? externalKeyword;
+  final Token? externalKeyword;
 
   /// The token representing the 'static' keyword, or `null` if the fields are
   /// not static.
   @override
-  Token? staticKeyword;
+  final Token? staticKeyword;
 
   /// The fields being declared.
   VariableDeclarationListImpl _fieldList;
 
   /// The semicolon terminating the declaration.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created field declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
@@ -4862,7 +4862,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
   @override
-  Token? keyword;
+  final Token? keyword;
 
   /// The name of the declared type of the parameter, or `null` if the parameter
   /// does not have a declared type.
@@ -4870,11 +4870,11 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   /// The token representing the 'this' keyword.
   @override
-  Token thisKeyword;
+  final Token thisKeyword;
 
   /// The token representing the period.
   @override
-  Token period;
+  final Token period;
 
   /// The type parameters associated with the method, or `null` if the method is
   /// not a generic method.
@@ -4885,7 +4885,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   FormalParameterListImpl? _parameters;
 
   @override
-  Token? question;
+  final Token? question;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
@@ -4995,7 +4995,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 abstract class ForEachPartsImpl extends ForLoopPartsImpl
     implements ForEachParts {
   @override
-  Token inKeyword;
+  final Token inKeyword;
 
   /// The expression evaluated to produce the iterator.
   ExpressionImpl _iterable;
@@ -5159,18 +5159,18 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
 class ForElementImpl extends CollectionElementImpl implements ForElement {
   @override
-  Token? awaitKeyword;
+  final Token? awaitKeyword;
 
   @override
-  Token forKeyword;
+  final Token forKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   ForLoopPartsImpl _forLoopParts;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// The body of the loop.
   CollectionElementImpl _body;
@@ -5317,7 +5317,7 @@ class FormalParameterListImpl extends AstNodeImpl
     implements FormalParameterList {
   /// The left parenthesis.
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The parameters associated with the method.
   final NodeListImpl<FormalParameter> _parameters = NodeListImpl._();
@@ -5325,16 +5325,16 @@ class FormalParameterListImpl extends AstNodeImpl
   /// The left square bracket ('[') or left curly brace ('{') introducing the
   /// optional parameters, or `null` if there are no optional parameters.
   @override
-  Token? leftDelimiter;
+  final Token? leftDelimiter;
 
   /// The right square bracket (']') or right curly brace ('}') terminating the
   /// optional parameters, or `null` if there are no optional parameters.
   @override
-  Token? rightDelimiter;
+  final Token? rightDelimiter;
 
   /// The right parenthesis.
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// Initialize a newly created parameter list. The list of [parameters] can be
   /// `null` if there are no parameters. The [leftDelimiter] and
@@ -5398,14 +5398,14 @@ class FormalParameterListImpl extends AstNodeImpl
 
 abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
-  Token leftSeparator;
+  final Token leftSeparator;
 
   /// The condition used to determine when to terminate the loop, or `null` if
   /// there is no condition.
   ExpressionImpl? _condition;
 
   @override
-  Token rightSeparator;
+  final Token rightSeparator;
 
   /// The list of expressions run after each execution of the loop body.
   final NodeListImpl<Expression> _updaters = NodeListImpl._();
@@ -5586,18 +5586,18 @@ class ForPartsWithPatternImpl extends ForPartsImpl
 
 class ForStatementImpl extends StatementImpl implements ForStatement {
   @override
-  Token? awaitKeyword;
+  final Token? awaitKeyword;
 
   @override
-  Token forKeyword;
+  final Token forKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   ForLoopPartsImpl _forLoopParts;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// The body of the loop.
   StatementImpl _body;
@@ -5727,12 +5727,12 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
   /// The token representing the 'augment' keyword, or `null` if this is not an
   /// function augmentation.
-  Token? augmentKeyword;
+  final Token? augmentKeyword;
 
   /// The token representing the 'external' keyword, or `null` if this is not an
   /// external function.
   @override
-  Token? externalKeyword;
+  final Token? externalKeyword;
 
   /// The return type of the function, or `null` if no return type was declared.
   TypeAnnotationImpl? _returnType;
@@ -5740,7 +5740,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The token representing the 'get' or 'set' keyword, or `null` if this is a
   /// function declaration rather than a property declaration.
   @override
-  Token? propertyKeyword;
+  final Token? propertyKeyword;
 
   /// The function expression being wrapped.
   FunctionExpressionImpl _functionExpression;
@@ -6211,7 +6211,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   FormalParameterListImpl _parameters;
 
   @override
-  Token? question;
+  final Token? question;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
@@ -6340,7 +6340,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   TypeAnnotationImpl? _returnType;
 
   @override
-  Token functionKeyword;
+  final Token functionKeyword;
 
   /// The type parameters for the function type, or `null` if the function type
   /// does not have any type parameters.
@@ -6350,7 +6350,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   FormalParameterListImpl _parameters;
 
   @override
-  Token? question;
+  final Token? question;
 
   @override
   DartType? type;
@@ -6440,7 +6440,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   TypeParameterListImpl? _typeParameters;
 
   @override
-  Token equals;
+  final Token equals;
 
   @override
   Element? declaredElement;
@@ -6527,7 +6527,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
 class HideClauseImpl extends AstNodeImpl implements HideClause {
   /// The token representing the 'hide' keyword.
   @override
-  Token hideKeyword;
+  final Token hideKeyword;
 
   /// The elements that are being shown.
   final NodeListImpl<ShowHideClauseElement> _elements = NodeListImpl._();
@@ -6613,10 +6613,10 @@ abstract class IdentifierImpl extends CommentReferableExpressionImpl
 
 class IfElementImpl extends CollectionElementImpl implements IfElement {
   @override
-  Token ifKeyword;
+  final Token ifKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   ExpressionImpl _condition;
 
@@ -6624,10 +6624,10 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   final CaseClauseImpl? caseClause;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   @override
-  Token? elseKeyword;
+  final Token? elseKeyword;
 
   /// The element to be executed if the condition is `true`.
   CollectionElementImpl _thenElement;
@@ -6722,10 +6722,10 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
 ///        ('else' [Statement])?
 class IfStatementImpl extends StatementImpl implements IfStatement {
   @override
-  Token ifKeyword;
+  final Token ifKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The condition used to determine which of the branches is executed next.
   ExpressionImpl _condition;
@@ -6734,10 +6734,10 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   final CaseClauseImpl? caseClause;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   @override
-  Token? elseKeyword;
+  final Token? elseKeyword;
 
   /// The statement that is executed if the condition evaluates to `true`.
   StatementImpl _thenStatement;
@@ -6831,7 +6831,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
 class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   /// The token representing the 'implements' keyword.
   @override
-  Token implementsKeyword;
+  final Token implementsKeyword;
 
   /// The interfaces that are being implemented.
   final NodeListImpl<NamedType> _interfaces = NodeListImpl._();
@@ -6947,17 +6947,17 @@ class ImplicitCallReferenceImpl extends ExpressionImpl
 class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
   @override
-  Token importKeyword;
+  final Token importKeyword;
 
   /// The token representing the 'deferred' keyword, or `null` if the imported
   /// is not deferred.
   @override
-  Token? deferredKeyword;
+  final Token? deferredKeyword;
 
   /// The token representing the 'as' keyword, or `null` if the imported names
   /// are not prefixed.
   @override
-  Token? asKeyword;
+  final Token? asKeyword;
 
   /// The prefix to be used with the imported names, or `null` if the imported
   /// names are not prefixed.
@@ -7093,16 +7093,16 @@ class IndexExpressionImpl extends ExpressionImpl
   ExpressionImpl? _target;
 
   @override
-  Token? question;
+  final Token? question;
 
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The expression used to compute the index.
   ExpressionImpl _index;
 
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// The element associated with the operator based on the static type of the
   /// target, or `null` if the AST structure has not been resolved or if the
@@ -7411,7 +7411,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /// The token representing the literal.
   @override
-  Token literal;
+  final Token literal;
 
   /// The value of the literal.
   @override
@@ -7530,7 +7530,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   /// the expression is a simple identifier or '${' if the expression is a full
   /// expression.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The expression to be evaluated for the value to be converted into a
   /// string.
@@ -7539,7 +7539,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   /// The right curly bracket, or `null` if the expression is an identifier
   /// without brackets.
   @override
-  Token? rightBracket;
+  final Token? rightBracket;
 
   /// Initialize a newly created interpolation expression.
   InterpolationExpressionImpl({
@@ -7587,7 +7587,7 @@ class InterpolationStringImpl extends InterpolationElementImpl
     implements InterpolationString {
   /// The characters that will be added to the string.
   @override
-  Token contents;
+  final Token contents;
 
   /// The value of the literal.
   @override
@@ -7684,11 +7684,11 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   /// The is operator.
   @override
-  Token isOperator;
+  final Token isOperator;
 
   /// The not operator, or `null` if the sense of the test is not negated.
   @override
-  Token? notOperator;
+  final Token? notOperator;
 
   /// The name of the type being tested for.
   TypeAnnotationImpl _type;
@@ -7820,7 +7820,7 @@ class LabelImpl extends AstNodeImpl implements Label {
 
   /// The colon that separates the label from the statement.
   @override
-  Token colon;
+  final Token colon;
 
   /// Initialize a newly created label.
   LabelImpl({
@@ -7865,13 +7865,13 @@ class LabelImpl extends AstNodeImpl implements Label {
 class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
     implements LibraryAugmentationDirective {
   @override
-  Token libraryKeyword;
+  final Token libraryKeyword;
 
   @override
-  Token augmentKeyword;
+  final Token augmentKeyword;
 
   @override
-  Token semicolon;
+  final Token semicolon;
 
   LibraryAugmentationDirectiveImpl({
     required super.comment,
@@ -7908,14 +7908,14 @@ class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
 class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   /// The token representing the 'library' keyword.
   @override
-  Token libraryKeyword;
+  final Token libraryKeyword;
 
   /// The name of the library being defined.
   LibraryIdentifierImpl? _name;
 
   /// The semicolon terminating the directive.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created library directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
@@ -8033,14 +8033,14 @@ class LibraryIdentifierImpl extends IdentifierImpl
 class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /// The left square bracket.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The expressions used to compute the elements of the list.
   final NodeListImpl<CollectionElement> _elements = NodeListImpl._();
 
   /// The right square bracket.
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// Initialize a newly created list literal. The [constKeyword] can be `null`
   /// if the literal is not a constant. The [typeArguments] can be `null` if no
@@ -8209,7 +8209,7 @@ class MapLiteralEntryImpl extends CollectionElementImpl
 
   /// The colon that separates the key from the value.
   @override
-  Token separator;
+  final Token separator;
 
   /// The expression computing the value that will be associated with the key.
   ExpressionImpl _value;
@@ -8398,12 +8398,12 @@ class MethodDeclarationImpl extends ClassMemberImpl
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
   @override
-  Token? externalKeyword;
+  final Token? externalKeyword;
 
   /// The token representing the 'abstract' or 'static' keyword, or `null` if
   /// neither modifier was specified.
   @override
-  Token? modifierKeyword;
+  final Token? modifierKeyword;
 
   /// The return type of the method, or `null` if no return type was declared.
   TypeAnnotationImpl? _returnType;
@@ -8411,15 +8411,15 @@ class MethodDeclarationImpl extends ClassMemberImpl
   /// The token representing the 'get' or 'set' keyword, or `null` if this is a
   /// method declaration rather than a property declaration.
   @override
-  Token? propertyKeyword;
+  final Token? propertyKeyword;
 
   /// The token representing the 'operator' keyword, or `null` if this method
   /// does not declare an operator.
   @override
-  Token? operatorKeyword;
+  final Token? operatorKeyword;
 
   @override
-  Token name;
+  final Token name;
 
   /// The type parameters associated with the method, or `null` if the method is
   /// not a generic method.
@@ -8729,10 +8729,10 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
-  Token? augmentKeyword;
+  final Token? augmentKeyword;
 
   @override
-  Token mixinKeyword;
+  final Token mixinKeyword;
 
   /// The type parameters for the class or mixin,
   /// or `null` if the declaration does not have any type parameters.
@@ -8751,14 +8751,14 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   /// The left curly bracket.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The members defined by the class or mixin.
   final NodeListImpl<ClassMember> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// Initialize a newly created mixin declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the mixin does not have the
@@ -8853,7 +8853,7 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
   /// The name of the member being declared.
   @override
-  Token name;
+  final Token name;
 
   /// Initialize a newly created compilation unit member with the given [name].
   /// Either or both of the [comment] and [metadata] can be `null` if the member
@@ -8956,7 +8956,7 @@ class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   TypeArgumentListImpl? _typeArguments;
 
   @override
-  Token? question;
+  final Token? question;
 
   /// The type being named, or `null` if the AST structure has not been
   /// resolved, or if this is part of a [ConstructorReference].
@@ -9039,7 +9039,7 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   /// The semicolon terminating the directive.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created namespace directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
@@ -9117,7 +9117,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
     implements NativeFunctionBody {
   /// The token representing 'native' that marks the start of the function body.
   @override
-  Token nativeKeyword;
+  final Token nativeKeyword;
 
   /// The string literal, after the 'native' token.
   StringLiteralImpl? _stringLiteral;
@@ -9125,7 +9125,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
   /// The token representing the semicolon that marks the end of the function
   /// body.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created function body consisting of the 'native' token,
   /// a string literal, and a semicolon.
@@ -9301,14 +9301,14 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
-  Token? covariantKeyword;
+  final Token? covariantKeyword;
 
   /// The 'required' keyword, or `null` if the keyword was not used.
   @override
-  Token? requiredKeyword;
+  final Token? requiredKeyword;
 
   @override
-  Token? name;
+  final Token? name;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
@@ -9505,14 +9505,14 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
     implements ParenthesizedExpression {
   /// The left parenthesis.
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The expression within the parentheses.
   ExpressionImpl _expression;
 
   /// The right parenthesis.
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// Initialize a newly created parenthesized expression.
   ParenthesizedExpressionImpl({
@@ -9640,11 +9640,11 @@ class ParenthesizedPatternImpl extends DartPatternImpl
 class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   /// The token representing the 'part' keyword.
   @override
-  Token partKeyword;
+  final Token partKeyword;
 
   /// The semicolon terminating the directive.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created part directive. Either or both of the [comment]
   /// and [metadata] can be `null` if the directive does not have the
@@ -9689,11 +9689,11 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
 class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   /// The token representing the 'part' keyword.
   @override
-  Token partKeyword;
+  final Token partKeyword;
 
   /// The token representing the 'of' keyword.
   @override
-  Token ofKeyword;
+  final Token ofKeyword;
 
   /// The URI of the library that the containing compilation unit is part of.
   StringLiteralImpl? _uri;
@@ -9705,7 +9705,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 
   /// The semicolon terminating the directive.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created part-of directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
@@ -9970,7 +9970,7 @@ class PostfixExpressionImpl extends ExpressionImpl
 
   /// The postfix operator being applied to the operand.
   @override
-  Token operator;
+  final Token operator;
 
   /// The element associated with the operator based on the static type of the
   /// operand, or `null` if the AST structure has not been resolved, if the
@@ -10109,7 +10109,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 
   /// The period used to separate the prefix from the identifier.
   @override
-  Token period;
+  final Token period;
 
   /// The identifier being prefixed.
   SimpleIdentifierImpl _identifier;
@@ -10199,7 +10199,7 @@ class PrefixExpressionImpl extends ExpressionImpl
     implements PrefixExpression {
   /// The prefix operator being applied to the operand.
   @override
-  Token operator;
+  final Token operator;
 
   /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
@@ -10291,7 +10291,7 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   /// The property access operator.
   @override
-  Token operator;
+  final Token operator;
 
   /// The name of the property being accessed.
   SimpleIdentifierImpl _propertyName;
@@ -10402,16 +10402,16 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
 
 class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
-  Token? constKeyword;
+  final Token? constKeyword;
 
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The syntactic elements used to compute the fields of the record.
   final NodeListImpl<ExpressionImpl> _fields = NodeListImpl._();
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// Initialize a newly created record literal.
   RecordLiteralImpl({
@@ -10636,7 +10636,7 @@ abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
 class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     implements RecordTypeAnnotation {
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   @override
   final NodeListImpl<RecordTypeAnnotationPositionalField> positionalFields =
@@ -10646,7 +10646,7 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   final RecordTypeAnnotationNamedFieldsImpl? namedFields;
 
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   @override
   final Token? question;
@@ -10777,12 +10777,12 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
     implements RedirectingConstructorInvocation {
   /// The token for the 'this' keyword.
   @override
-  Token thisKeyword;
+  final Token thisKeyword;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
   @override
-  Token? period;
+  final Token? period;
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
@@ -10923,7 +10923,7 @@ class RethrowExpressionImpl extends ExpressionImpl
     implements RethrowExpression {
   /// The token representing the 'rethrow' keyword.
   @override
-  Token rethrowKeyword;
+  final Token rethrowKeyword;
 
   /// Initialize a newly created rethrow expression.
   RethrowExpressionImpl({
@@ -10964,7 +10964,7 @@ class RethrowExpressionImpl extends ExpressionImpl
 class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   /// The token representing the 'return' keyword.
   @override
-  Token returnKeyword;
+  final Token returnKeyword;
 
   /// The expression computing the value to be returned, or `null` if no
   /// explicit value was provided.
@@ -10972,7 +10972,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
 
   /// The semicolon terminating the statement.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created return statement. The [expression] can be
   /// `null` if no explicit value was provided.
@@ -11020,7 +11020,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
 class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   /// The token representing this script tag.
   @override
-  Token scriptTag;
+  final Token scriptTag;
 
   /// Initialize a newly created script tag.
   ScriptTagImpl({
@@ -11048,13 +11048,13 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 
 class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The syntactic elements in the set.
   final NodeListImpl<CollectionElement> _elements = NodeListImpl._();
 
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// A representation of whether this literal represents a map or a set, or
   /// whether the kind has not or cannot be determined.
@@ -11156,7 +11156,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
 class ShowClauseImpl extends AstNodeImpl implements ShowClause {
   /// The token representing the 'show' keyword.
   @override
-  Token showKeyword;
+  final Token showKeyword;
 
   /// The elements that are being shown.
   final NodeListImpl<ShowHideClauseElement> _elements = NodeListImpl._();
@@ -11242,7 +11242,7 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
 /// Clients may not extend, implement or mix-in this class.
 class ShowHideElementImpl extends AstNodeImpl implements ShowHideElement {
   @override
-  Token? modifier;
+  final Token? modifier;
 
   @override
   SimpleIdentifierImpl name;
@@ -11283,7 +11283,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
   @override
-  Token? keyword;
+  final Token? keyword;
 
   /// The name of the declared type of the parameter, or `null` if the parameter
   /// does not have a declared type.
@@ -11369,7 +11369,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// The token representing the identifier.
   @override
-  Token token;
+  final Token token;
 
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure has not been resolved or if
@@ -11588,7 +11588,7 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
     implements SimpleStringLiteral {
   /// The token representing the literal.
   @override
-  Token literal;
+  final Token literal;
 
   /// The value of the literal.
   @override
@@ -11662,7 +11662,7 @@ abstract class SingleStringLiteralImpl extends StringLiteralImpl
 class SpreadElementImpl extends AstNodeImpl
     implements CollectionElementImpl, SpreadElement {
   @override
-  Token spreadOperator;
+  final Token spreadOperator;
 
   ExpressionImpl _expression;
 
@@ -11956,12 +11956,12 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     implements SuperConstructorInvocation {
   /// The token for the 'super' keyword.
   @override
-  Token superKeyword;
+  final Token superKeyword;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
   @override
-  Token? period;
+  final Token? period;
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
@@ -12036,7 +12036,7 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   /// The token representing the 'super' keyword.
   @override
-  Token superKeyword;
+  final Token superKeyword;
 
   /// Initialize a newly created super expression.
   SuperExpressionImpl({
@@ -12081,7 +12081,7 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
   @override
-  Token? keyword;
+  final Token? keyword;
 
   /// The name of the declared type of the parameter, or `null` if the parameter
   /// does not have a declared type.
@@ -12089,11 +12089,11 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   /// The token representing the 'super' keyword.
   @override
-  Token superKeyword;
+  final Token superKeyword;
 
   /// The token representing the period.
   @override
-  Token period;
+  final Token period;
 
   /// The type parameters associated with the method, or `null` if the method is
   /// not a generic method.
@@ -12104,7 +12104,7 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
   FormalParameterListImpl? _parameters;
 
   @override
-  Token? question;
+  final Token? question;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
@@ -12489,11 +12489,11 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 
   /// The token representing the 'case' or 'default' keyword.
   @override
-  Token keyword;
+  final Token keyword;
 
   /// The colon separating the keyword or the expression from the statements.
   @override
-  Token colon;
+  final Token colon;
 
   /// The statements that will be executed if this switch member is selected.
   final NodeListImpl<Statement> _statements = NodeListImpl._();
@@ -12586,11 +12586,11 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
 class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   /// The token representing the 'switch' keyword.
   @override
-  Token switchKeyword;
+  final Token switchKeyword;
 
   /// The left parenthesis.
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The expression used to determine which of the switch members will be
   /// selected.
@@ -12598,18 +12598,18 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 
   /// The right parenthesis.
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// The left curly bracket.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The switch members that can be selected by the expression.
   final NodeListImpl<SwitchMember> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// Initialize a newly created switch statement. The list of [members] can be
   /// `null` if there are no switch members.
@@ -12669,7 +12669,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   /// The token introducing the literal.
   @override
-  Token poundSign;
+  final Token poundSign;
 
   /// The components of the literal.
   @override
@@ -12714,7 +12714,7 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   /// The token representing the 'this' keyword.
   @override
-  Token thisKeyword;
+  final Token thisKeyword;
 
   /// Initialize a newly created this expression.
   ThisExpressionImpl({
@@ -12755,7 +12755,7 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
 class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   /// The token representing the 'throw' keyword.
   @override
-  Token throwKeyword;
+  final Token throwKeyword;
 
   /// The expression computing the exception to be thrown.
   ExpressionImpl _expression;
@@ -12816,11 +12816,11 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   VariableDeclarationListImpl _variableList;
 
   @override
-  Token? externalKeyword;
+  final Token? externalKeyword;
 
   /// The semicolon terminating the declaration.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created top-level variable declaration. Either or both
   /// of the [comment] and [metadata] can be `null` if the variable does not
@@ -12882,7 +12882,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 class TryStatementImpl extends StatementImpl implements TryStatement {
   /// The token representing the 'try' keyword.
   @override
-  Token tryKeyword;
+  final Token tryKeyword;
 
   /// The body of the statement.
   BlockImpl _body;
@@ -12893,7 +12893,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   /// The token representing the 'finally' keyword, or `null` if the statement
   /// does not contain a finally clause.
   @override
-  Token? finallyKeyword;
+  final Token? finallyKeyword;
 
   /// The finally block contained in the try statement, or `null` if the
   /// statement does not contain a finally clause.
@@ -12978,11 +12978,11 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
   /// The token representing the 'typedef' keyword.
   @override
-  Token typedefKeyword;
+  final Token typedefKeyword;
 
   /// The semicolon terminating the declaration.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created type alias. Either or both of the [comment] and
   /// [metadata] can be `null` if the declaration does not have the
@@ -13017,14 +13017,14 @@ abstract class TypeAnnotationImpl extends AstNodeImpl
 class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   /// The left bracket.
   @override
-  Token leftBracket;
+  final Token leftBracket;
 
   /// The type arguments associated with the type.
   final NodeListImpl<TypeAnnotation> _arguments = NodeListImpl._();
 
   /// The right bracket.
   @override
-  Token rightBracket;
+  final Token rightBracket;
 
   /// Initialize a newly created list of type arguments.
   TypeArgumentListImpl({
@@ -13171,7 +13171,7 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
-  Token name;
+  final Token name;
 
   /// The token representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
@@ -13383,7 +13383,7 @@ class UriValidationCode {
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
-  Token name;
+  final Token name;
 
   @override
   VariableElement? declaredElement;
@@ -13391,7 +13391,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   /// The equal sign separating the variable name from the initial value, or
   /// `null` if the initial value was not specified.
   @override
-  Token? equals;
+  final Token? equals;
 
   /// The expression used to compute the initial value for the variable, or
   /// `null` if the initial value was not specified.
@@ -13505,12 +13505,12 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   /// The token representing the 'final', 'const' or 'var' keyword, or `null` if
   /// no keyword was included.
   @override
-  Token? keyword;
+  final Token? keyword;
 
   /// The token representing the 'late' keyword, or `null` if the late modifier
   /// was not included.
   @override
-  Token? lateKeyword;
+  final Token? lateKeyword;
 
   /// The type of the variables being declared, or `null` if no type was
   /// provided.
@@ -13595,7 +13595,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
 
   /// The semicolon terminating the statement.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created variable declaration statement.
   VariableDeclarationStatementImpl({
@@ -13751,18 +13751,18 @@ class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 class WhileStatementImpl extends StatementImpl implements WhileStatement {
   /// The token representing the 'while' keyword.
   @override
-  Token whileKeyword;
+  final Token whileKeyword;
 
   /// The left parenthesis.
   @override
-  Token leftParenthesis;
+  final Token leftParenthesis;
 
   /// The expression used to determine whether to execute the body of the loop.
   ExpressionImpl _condition;
 
   /// The right parenthesis.
   @override
-  Token rightParenthesis;
+  final Token rightParenthesis;
 
   /// The body of the loop.
   StatementImpl _body;
@@ -13825,7 +13825,7 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
 class WithClauseImpl extends AstNodeImpl implements WithClause {
   /// The token representing the 'with' keyword.
   @override
-  Token withKeyword;
+  final Token withKeyword;
 
   /// The names of the mixins that were specified.
   final NodeListImpl<NamedType> _mixinTypes = NodeListImpl._();
@@ -13869,18 +13869,18 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
 class YieldStatementImpl extends StatementImpl implements YieldStatement {
   /// The 'yield' keyword.
   @override
-  Token yieldKeyword;
+  final Token yieldKeyword;
 
   /// The star optionally following the 'yield' keyword.
   @override
-  Token? star;
+  final Token? star;
 
   /// The expression whose value will be yielded.
   ExpressionImpl _expression;
 
   /// The semicolon following the expression.
   @override
-  Token semicolon;
+  final Token semicolon;
 
   /// Initialize a newly created yield expression. The [star] can be `null` if
   /// no star was provided.

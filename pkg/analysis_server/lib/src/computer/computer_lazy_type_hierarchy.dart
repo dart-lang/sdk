@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:collection/collection.dart';
 
 /// A lazy computer for Type Hierarchies.
@@ -32,12 +33,12 @@ class DartLazyTypeHierarchyComputer {
 
   DartLazyTypeHierarchyComputer(this._result);
 
-  /// Finds subtypes for [target].
+  /// Finds subtypes for [Element] at [location].
   Future<List<TypeHierarchyRelatedItem>?> findSubtypes(
-    TypeHierarchyItem target,
+    ElementLocation location,
     SearchEngine searchEngine,
   ) async {
-    final targetElement = _findTargetElement(target);
+    final targetElement = await _findTargetElement(location);
     if (targetElement is! InterfaceElement) {
       return null;
     }
@@ -45,48 +46,65 @@ class DartLazyTypeHierarchyComputer {
     return _getSubtypes(targetElement, searchEngine);
   }
 
-  /// Finds supertypes for [target].
+  /// Finds supertypes for the [Element] at [location].
+  ///
+  /// If [anchor] is provided, it will be used to navigate to the element at
+  /// [location] to preserve type arguments that have been provided along the
+  /// way.
+  ///
+  /// Anchors are included in returned types (where necessary to preserve type
+  /// arguments) that can be used when calling for the next level of types.
   Future<List<TypeHierarchyRelatedItem>?> findSupertypes(
-    TypeHierarchyItem target,
-  ) async {
-    final targetElement = _findTargetElement(target);
+    ElementLocation location, {
+    TypeHierarchyAnchor? anchor,
+  }) async {
+    var targetElement = await _findTargetElement(location);
     if (targetElement == null) {
       return null;
     }
+    var targetType = targetElement.thisType;
 
-    return _getSupertypes(targetElement);
+    // If we were provided an anchor, use it to re-locate the target type so
+    // that any type arguments supplied along the way will be preserved in the
+    // new node.
+    if (anchor != null) {
+      targetType =
+          await _locateTargetFromAnchor(anchor, targetType) ?? targetType;
+    }
+
+    // If we had no existing anchor, create one that starts from this target as
+    // the starting point for the new supertypes.
+    anchor ??= TypeHierarchyAnchor(location: location, path: []);
+
+    return _getSupertypes(targetType, anchor: anchor);
   }
 
   /// Finds a target for starting type hierarchy navigation at [offset].
   TypeHierarchyItem? findTarget(int offset) {
     final node = NodeLocator2(offset).searchWithin(_result.unit);
 
-    Element? element;
+    DartType? type;
 
     // Try named types.
-    final type = node?.thisOrAncestorOfType<NamedType>();
-    element = type?.name.staticElement;
+    type = node?.thisOrAncestorOfType<NamedType>()?.type;
 
-    if (element == null) {
+    if (type == null) {
       // Try enclosing class/mixins.
       final Declaration? declaration = node
           ?.thisOrAncestorMatching((node) => _isValidTargetDeclaration(node));
-      element = declaration?.declaredElement;
+      final element = declaration?.declaredElement;
+      if (element is InterfaceElement) {
+        type = element.thisType;
+      }
     }
 
-    return element != null ? TypeHierarchyItem.forElement(element) : null;
+    return type is InterfaceType ? TypeHierarchyItem.forType(type) : null;
   }
 
-  Element? _findTargetElement(TypeHierarchyItem target) {
-    assert(target.file == _result.path);
-    // Locate the element by name instead of offset since this call my occur
-    // much later than the original find target request and it's possible the
-    // user has made changes since.
-    final targetElement = _result.unit.declarations
-        .where(_isValidTargetDeclaration)
-        .map((declaration) => declaration.declaredElement)
-        .firstWhereOrNull((element) => element?.name == target.displayName);
-    return targetElement;
+  /// Locate the [Element] referenced by [location].
+  Future<InterfaceElement?> _findTargetElement(ElementLocation location) async {
+    final element = await _result.session.locateElement(location);
+    return element is InterfaceElement ? element : null;
   }
 
   /// Gets immediate sub types for the class/mixin [element].
@@ -129,20 +147,36 @@ class DartLazyTypeHierarchyComputer {
   /// Includes all elements that contribute implementation to the type
   /// such as supertypes and mixins, but not interfaces, constraints or
   /// extended types.
-  List<TypeHierarchyRelatedItem> _getSupertypes(Element element) {
-    final supertype = element is InterfaceElement ? element.supertype : null;
-    final interfaces =
-        element is InterfaceOrAugmentationElement ? element.interfaces : null;
-    final mixins =
-        element is InterfaceOrAugmentationElement ? element.mixins : null;
-    final superclassConstraints =
-        element is MixinElement ? element.superclassConstraints : null;
-    return [
+  List<TypeHierarchyRelatedItem> _getSupertypes(
+    InterfaceType type, {
+    TypeHierarchyAnchor? anchor,
+  }) {
+    final supertype = type.superclass;
+    final interfaces = type.interfaces;
+    final mixins = type.mixins;
+    final superclassConstraints = type.superclassConstraints;
+
+    final supertypes = [
       if (supertype != null) TypeHierarchyRelatedItem.extends_(supertype),
-      ...?superclassConstraints?.map(TypeHierarchyRelatedItem.constrainedTo),
-      ...?interfaces?.map(TypeHierarchyRelatedItem.implements),
-      ...?mixins?.map(TypeHierarchyRelatedItem.mixesIn),
+      ...superclassConstraints.map(TypeHierarchyRelatedItem.constrainedTo),
+      ...interfaces.map(TypeHierarchyRelatedItem.implements),
+      ...mixins.map(TypeHierarchyRelatedItem.mixesIn),
     ];
+
+    if (anchor != null) {
+      supertypes.forEachIndexed((index, item) {
+        // We only need to carry the anchor along if the supertype has type
+        // arguments that we may be populating.
+        if (item._type.typeArguments.isNotEmpty) {
+          item._anchor = TypeHierarchyAnchor(
+            location: anchor.location,
+            path: [...anchor.path, index],
+          );
+        }
+      });
+    }
+
+    return supertypes;
   }
 
   /// Returns whether [declaration] is a valid target for type hierarchy
@@ -151,12 +185,54 @@ class DartLazyTypeHierarchyComputer {
       declaration is ClassDeclaration ||
       declaration is MixinDeclaration ||
       declaration is EnumDeclaration;
+
+  /// Navigate to [target] from [anchor], preserving type arguments supplied
+  /// along the way.
+  Future<InterfaceType?> _locateTargetFromAnchor(
+      TypeHierarchyAnchor anchor, InterfaceType target) async {
+    // Start from the anchor.
+    final anchorElement = await _findTargetElement(anchor.location);
+    final anchorPath = anchor.path;
+
+    // Follow the provided path.
+    var type = anchorElement?.thisType;
+    for (int i = 0; i < anchorPath.length && type != null; i++) {
+      final index = anchorPath[i];
+      final supertypes = _getSupertypes(type);
+      type = supertypes.length >= index + 1 ? supertypes[index]._type : null;
+    }
+
+    // Verify the element we arrived at matches the targetElement to guard
+    // against code changes that made the path from the anchor invalid.
+    return type != null && type.element == target.element ? type : null;
+  }
+}
+
+class TypeHierarchyAnchor {
+  /// The location of the anchor element.
+  final ElementLocation location;
+
+  /// The supertype path from [location] to the target element.
+  final List<int> path;
+
+  TypeHierarchyAnchor({required this.location, required this.path});
 }
 
 /// An item that can appear in a Type Hierarchy.
 class TypeHierarchyItem {
   /// The user-visible name for this item in the Type Hierarchy.
   final String displayName;
+
+  /// The location of the element being displayed.
+  ///
+  /// This is used to re-locate the element when calling
+  /// `findSubtypes`/`findSupertypes` so that if code has been modified since
+  /// the `findTarget` call the element can still be located (provided the
+  /// names/identifiers have not changed).
+  final ElementLocation location;
+
+  /// The type being displayed.
+  final InterfaceType _type;
 
   /// The file that contains the declaration of this item.
   final String file;
@@ -168,23 +244,34 @@ class TypeHierarchyItem {
   final SourceRange codeRange;
 
   TypeHierarchyItem({
+    required InterfaceType type,
     required this.displayName,
+    required this.location,
     required this.file,
     required this.nameRange,
     required this.codeRange,
-  });
+  }) : _type = type;
 
-  TypeHierarchyItem.forElement(Element element)
-      : displayName = element.displayName,
-        nameRange = _nameRangeForElement(element),
-        codeRange = _codeRangeForElement(element),
-        file = element.source!.fullName;
+  TypeHierarchyItem.forType(InterfaceType type)
+      : this(
+          type: type,
+          displayName: _displayNameForType(type),
+          location: type.element.location!,
+          nameRange: _nameRangeForElement(type.element),
+          codeRange: _codeRangeForElement(type.element),
+          file: type.element.source.fullName,
+        );
 
   /// Returns the [SourceRange] of the code for [element].
   static SourceRange _codeRangeForElement(Element element) {
     // Non-synthetic elements should always have code locations.
     final elementImpl = element.nonSynthetic as ElementImpl;
     return SourceRange(elementImpl.codeOffset!, elementImpl.codeLength!);
+  }
+
+  /// Returns a name to display in the hierarchy for [type].
+  static String _displayNameForType(InterfaceType type) {
+    return type.getDisplayString(withNullability: false);
   }
 
   /// Returns the [SourceRange] of the name for [element].
@@ -208,32 +295,35 @@ enum TypeHierarchyItemRelationship {
   mixesIn,
 }
 
-/// A supertype of subtype of a [TypeHierarchyItem].
+/// A supertype or subtype of a [TypeHierarchyItem].
 class TypeHierarchyRelatedItem extends TypeHierarchyItem {
   /// The relationship this item has with the target item.
   final TypeHierarchyItemRelationship relationship;
 
-  TypeHierarchyRelatedItem.constrainedTo(InterfaceType type)
-      : this._forElement(type.element,
-            relationship: TypeHierarchyItemRelationship.constrainedTo);
+  TypeHierarchyAnchor? _anchor;
 
+  TypeHierarchyRelatedItem.constrainedTo(InterfaceType type)
+      : this._forType(type,
+            relationship: TypeHierarchyItemRelationship.constrainedTo);
   TypeHierarchyRelatedItem.extends_(InterfaceType type)
-      : this._forElement(type.element,
+      : this._forType(type,
             relationship: TypeHierarchyItemRelationship.extends_);
 
   TypeHierarchyRelatedItem.implements(InterfaceType type)
-      : this._forElement(type.element,
+      : this._forType(type,
             relationship: TypeHierarchyItemRelationship.implements);
 
   TypeHierarchyRelatedItem.mixesIn(InterfaceType type)
-      : this._forElement(type.element,
+      : this._forType(type,
             relationship: TypeHierarchyItemRelationship.mixesIn);
 
   TypeHierarchyRelatedItem.unknown(InterfaceType type)
-      : this._forElement(type.element,
+      : this._forType(type,
             relationship: TypeHierarchyItemRelationship.unknown);
 
-  TypeHierarchyRelatedItem._forElement(super.element,
-      {required this.relationship})
-      : super.forElement();
+  TypeHierarchyRelatedItem._forType(super.type, {required this.relationship})
+      : super.forType();
+
+  /// An optional anchor element used to preserve type args.
+  TypeHierarchyAnchor? get anchor => _anchor;
 }

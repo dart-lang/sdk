@@ -2833,13 +2833,13 @@ main() {
 
   void test_unnamedLibraryDirective() {
     CompilationUnit unit = parseCompilationUnit("library;",
+        featureSet: FeatureSets.language_2_18,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 7)]);
     expect(unit, isNotNull);
   }
 
   void test_unnamedLibraryDirective_enabled() {
-    CompilationUnit unit = parseCompilationUnit("library;",
-        featureSet: FeatureSets.latestWithExperiments);
+    CompilationUnit unit = parseCompilationUnit("library;");
     expect(unit, isNotNull);
   }
 

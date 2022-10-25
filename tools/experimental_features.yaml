@@ -135,9 +135,6 @@ features:
   patterns:
     help: "Patterns"
 
-  unnamed-libraries:
-    help: "Unnamed libraries"
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -296,3 +293,10 @@ features:
       void main() {
         test([1, 2, 3]);
       }
+
+  unnamed-libraries:
+    help: "Unnamed libraries"
+    enabledIn: '2.19.0'
+    validation: |
+      library;
+      void main() => print('feature enabled');

@@ -32,6 +32,11 @@ class FeatureSets {
     flags: [],
   );
 
+  static final FeatureSet language_2_18 = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.18.0'),
+    flags: [],
+  );
+
   static final FeatureSet language_2_19 = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.19.0'),
     flags: [],

@@ -1508,8 +1508,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  String importLibrary(Uri uri) {
-    return _importLibrary(uri).uriText;
+  String importLibrary(Uri uri, {String? prefix}) {
+    return _importLibrary(uri, prefix: prefix).uriText;
   }
 
   @override
