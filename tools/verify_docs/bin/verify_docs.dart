@@ -18,7 +18,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:path/path.dart' as path;
@@ -353,10 +352,6 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         }
         return false;
       });
-
-      // Don't error on annotations above library.
-      errors.removeWhere(
-          (e) => e.errorCode == ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
 
       if (errors.isNotEmpty) {
         print('$filePath:${sample.lineStartOffset}: ${errors.length} errors');

@@ -1371,39 +1371,17 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ StoreToOffset(temp1, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
-    if (CanExecuteGeneratedCodeInSafepoint()) {
-      // Update information in the thread object and enter a safepoint.
-      __ LoadImmediate(temp1, compiler::target::Thread::exit_through_ffi());
-      __ TransitionGeneratedToNative(branch, FPREG, temp1,
-                                     /*enter_safepoint=*/true);
+    // Update information in the thread object and enter a safepoint.
+    // Outline state transition. In AOT, for code size. In JIT, because we
+    // cannot trust that code will be executable.
+    __ ldr(temp1,
+           compiler::Address(
+               THR, compiler::target::Thread::
+                        call_native_through_safepoint_entry_point_offset()));
 
-      // We are entering runtime code, so the C stack pointer must be restored
-      // from the stack limit to the top of the stack.
-      __ mov(temp_csp, CSP);
-      __ mov(CSP, SP);
-
-      __ blr(branch);
-
-      // Restore the Dart stack pointer.
-      __ mov(SP, CSP);
-      __ mov(CSP, temp_csp);
-
-      // Update information in the thread object and leave the safepoint.
-      __ TransitionNativeToGenerated(temp1, /*leave_safepoint=*/true);
-    } else {
-      // We cannot trust that this code will be executable within a safepoint.
-      // Therefore we delegate the responsibility of entering/exiting the
-      // safepoint to a stub which in the VM isolate's heap, which will never
-      // lose execute permission.
-      __ ldr(temp1,
-             compiler::Address(
-                 THR, compiler::target::Thread::
-                          call_native_through_safepoint_entry_point_offset()));
-
-      // Calls R9 and clobbers R19 (along with volatile registers).
-      ASSERT(branch == R9);
-      __ blr(temp1);
-    }
+    // Calls R9 and clobbers R19 (along with volatile registers).
+    ASSERT(branch == R9);
+    __ blr(temp1);
 
     if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
       __ Comment("Check Dart_Handle for Error.");
