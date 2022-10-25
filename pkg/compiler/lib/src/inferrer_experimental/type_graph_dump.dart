@@ -10,7 +10,7 @@ import '../../compiler_api.dart' as api;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../inferrer/abstract_value_domain.dart';
-import 'engine.dart';
+import 'engine_interfaces.dart';
 import 'type_graph_nodes.dart';
 import 'debug.dart';
 

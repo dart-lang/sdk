@@ -72,6 +72,7 @@ import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld;
+import 'compiler_migrated.dart';
 
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
 /// the sources.
@@ -1066,18 +1067,6 @@ class _TimingData {
   final double percent;
 
   _TimingData(this.description, this.milliseconds, this.percent);
-}
-
-/// Interface for showing progress during compilation.
-class Progress {
-  const Progress();
-
-  /// Starts a new phase for which to show progress.
-  void startPhase() {}
-
-  /// Shows progress of the current phase if needed. The shown message is
-  /// computed as '$prefix$count$suffix'.
-  void showProgress(String prefix, int count, String suffix) {}
 }
 
 /// Progress implementations that prints progress to the [DiagnosticReporter]
