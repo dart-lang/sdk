@@ -22,7 +22,6 @@ import 'dart:_runtime' as dart;
 /// Inspired by `co`: https://github.com/tj/co/blob/master/index.js, which is a
 /// stepping stone for ES async/await.
 @JSExportName('async')
-@ReifyFunctionTypes(false)
 _async<T>(Function() initGenerator) {
   var iter;
   late Object? Function(Object?) onValue;
