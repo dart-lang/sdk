@@ -160,8 +160,6 @@ external bool isJavaScriptSimpleObject(value);
 /// like JS objects are supported.
 external Object? dartify(Object? o);
 
-/// DO NOT USE - THIS IS UNIMPLEMENTED.
-///
 /// Given a `@staticInterop` type T and an instance [dartMock] of a Dart class
 /// U that implements the external extension members of T, creates a forwarding
 /// mock.
@@ -199,8 +197,6 @@ external T createStaticInteropMock<T extends Object, U extends Object>(
     U dartMock,
     [Object? proto = null]);
 
-/// DO NOT USE - THIS IS UNIMPLEMENTED.
-///
 /// Given a Dart object that is marked exportable, creates a JS object literal
 /// that forwards to that Dart class. Look at the `@JSExport` annotation to
 /// determine what constitutes "exportable" for a Dart class. The object literal
