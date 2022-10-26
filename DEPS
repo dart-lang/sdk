@@ -153,7 +153,7 @@ vars = {
   "pub_rev": "6506cc01b1bd17aff782037817d86a88a1c312e8", # manually rev'd
   "pub_semver_rev": "28159b8c5b96fc2709d0904389d7932880f68659",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
-  "shelf_rev": "39d820d4e32fc99c65f562786097487d597dcee1",
+  "shelf_rev": "592656f9f5af6392509e9ff20a035fd30e5e5099",
   "source_map_stack_trace_rev": "8d8078fcc81c8f7936805cd277198493e0b7fc62",
   "source_maps_rev": "b031e2cdbef5675ab9a92025202d323a5e7cc526",
   "source_span_rev": "d1d47e550b6f77ed9b4907339a8a5e430b9ca314",
