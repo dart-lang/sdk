@@ -2317,7 +2317,7 @@ class BodyBuilder extends StackListenerImpl
           libraryFeatures.patterns, case_.charOffset, case_.charCount);
       Matcher matcher = toMatcher(pop());
       Expression expression = popForValue();
-      push(new Condition(expression, matcher));
+      push(new Condition(expression, matcher, guard));
     } else {
       assert(checkState(token, [
         unionOfKinds([
@@ -3495,11 +3495,12 @@ class BodyBuilder extends StackListenerImpl
     Statement thenPart = popStatement();
     Condition condition = pop() as Condition;
     Matcher? matcher = condition.matcher;
+    Expression? guard = condition.guard;
     Expression expression = condition.expression;
     Statement node;
     if (matcher != null) {
       node = new IfCaseStatement(
-          expression, matcher, thenPart, elsePart, ifToken.charOffset);
+          expression, matcher, guard, thenPart, elsePart, ifToken.charOffset);
     } else {
       node = forest.createIfStatement(
           offsetForToken(ifToken), expression, thenPart, elsePart);
@@ -8809,10 +8810,14 @@ class _FindChildVisitor extends Visitor<void> with VisitorVoidMixin {
 class Condition {
   final Expression expression;
   final Matcher? matcher;
+  final Expression? guard;
 
-  Condition(this.expression, [this.matcher]);
+  Condition(this.expression, [this.matcher, this.guard])
+      : assert(guard == null || matcher != null,
+            "Unexpected guard without matcher.");
 
   @override
-  String toString() =>
-      'Condition($expression${matcher != null ? ',$matcher' : ''})';
+  String toString() => 'Condition($expression'
+      '${matcher != null ? ',$matcher' : ''}'
+      '${guard != null ? ',$guard' : ''})';
 }

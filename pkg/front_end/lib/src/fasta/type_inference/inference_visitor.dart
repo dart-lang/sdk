@@ -1802,7 +1802,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
-    // TODO(cstefantsova): Handle if-case statements.
+    // TODO(cstefantsova): Handle if-case-when statements.
     return new StatementInferenceResult.single(
         new EmptyStatement()..fileOffset = node.fileOffset);
   }
