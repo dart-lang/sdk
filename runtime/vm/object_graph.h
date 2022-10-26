@@ -217,6 +217,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
   void ClearObjectIds();
   void CountReferences(intptr_t count);
   void CountExternalProperty();
+  void AddSmi(SmiPtr smi);
 
   void Write();
 
@@ -253,6 +254,8 @@ class HeapSnapshotWriter : public ThreadStackResource {
   // {instructions, data} x {vm isolate, current isolate}
   static const intptr_t kMaxImagePages = 4;
   ImagePageRange image_page_ranges_[kMaxImagePages];
+
+  MallocGrowableArray<SmiPtr> smis_;
 
   DISALLOW_COPY_AND_ASSIGN(HeapSnapshotWriter);
 };
