@@ -434,7 +434,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _visitPropertyFirst<FieldDeclaration>(node.members);
       });
       element.accessors = holder.propertyAccessors;
-      element.fields = holder.properties.whereType<FieldElement>().toList();
+      element.fields = holder.properties.whereType<FieldElementImpl>().toList();
       element.methods = holder.methods;
     }
 
@@ -1140,7 +1140,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElement>().toList();
+    element.fields = holder.properties.whereType<FieldElementImpl>().toList();
     element.methods = holder.methods;
 
     _resolveConstructorFieldFormals(element);
@@ -1179,7 +1179,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElement>().toList();
+    element.fields = holder.properties.whereType<FieldElementImpl>().toList();
     element.methods = holder.methods;
 
     _resolveConstructorFieldFormals(element);

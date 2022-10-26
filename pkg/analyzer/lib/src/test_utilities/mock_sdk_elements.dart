@@ -138,7 +138,7 @@ class _MockSdkElementsBuilder {
     _deprecatedElement = deprecatedElement = _class(name: 'Deprecated');
     deprecatedElement.supertype = objectType;
 
-    deprecatedElement.fields = <FieldElement>[
+    deprecatedElement.fields = [
       _field('message', stringType, isFinal: true),
     ];
 
@@ -167,11 +167,11 @@ class _MockSdkElementsBuilder {
     );
     doubleElement.supertype = numType;
 
-    FieldElement staticConstDoubleField(String name) {
+    FieldElementImpl staticConstDoubleField(String name) {
       return _field(name, doubleType, isStatic: true, isConst: true);
     }
 
-    doubleElement.fields = <FieldElement>[
+    doubleElement.fields = <FieldElementImpl>[
       staticConstDoubleField('nan'),
       staticConstDoubleField('infinity'),
       staticConstDoubleField('negativeInfinity'),
@@ -969,7 +969,7 @@ class _MockSdkElementsBuilder {
       overrideVariable.getter!,
       proxyVariable.getter!,
     ];
-    coreUnit.topLevelVariables = <TopLevelVariableElement>[
+    coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
       deprecatedVariable,
       overrideVariable,
       proxyVariable,
@@ -1014,7 +1014,7 @@ class _MockSdkElementsBuilder {
     return element;
   }
 
-  FieldElement _field(
+  FieldElementImpl _field(
     String name,
     DartType type, {
     bool isConst = false,
@@ -1133,11 +1133,14 @@ class _MockSdkElementsBuilder {
     classElement.accessors = accessors;
     classElement.fields = accessors
         .map((accessor) => accessor.variable)
-        .cast<FieldElement>()
+        .cast<FieldElementImpl>()
         .toList();
   }
 
-  TopLevelVariableElement _topLevelVariableConst(String name, DartType type) {
+  TopLevelVariableElementImpl _topLevelVariableConst(
+    String name,
+    DartType type,
+  ) {
     final variable = ConstTopLevelVariableElementImpl(name, -1)
       ..isConst = true
       ..type = type;

@@ -242,8 +242,7 @@ class BundleWriter {
 
       _writeList(
         element.fields.where((e) {
-          return !e.isSynthetic ||
-              e is FieldElementImpl && e.isSyntheticEnumField;
+          return !e.isSynthetic || e.isSyntheticEnumField;
         }).toList(),
         _writeFieldElement,
       );

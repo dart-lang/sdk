@@ -779,7 +779,7 @@ class InheritanceManager3 {
       return result;
     }
 
-    if (executable is PropertyAccessorElement) {
+    if (executable is PropertyAccessorElementImpl) {
       assert(executable.isSetter);
       var result = PropertyAccessorElementImpl(executable.name, -1);
       result.enclosingElement = class_;
