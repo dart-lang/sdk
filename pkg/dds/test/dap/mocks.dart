@@ -26,20 +26,11 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
     final channel = ByteStreamServerChannel(
         stdinController.stream, stdoutController.sink, null);
 
-    return MockDartCliDebugAdapter._(
+    return MockDartCliDebugAdapter.withStreams(
         stdinController.sink, stdoutController.stream, channel);
   }
 
-  /// An override for [dartlangSdkRootUri].
-  ///
-  /// If not set, the default base value will be used.
-  Uri? dartlangSdkRootUriOverride;
-
-  @override
-  Uri get dartlangSdkRootUri =>
-      dartlangSdkRootUriOverride ?? super.dartlangSdkRootUri;
-
-  MockDartCliDebugAdapter._(
+  MockDartCliDebugAdapter.withStreams(
       this.stdin, this.stdout, ByteStreamServerChannel channel)
       : super(channel);
 

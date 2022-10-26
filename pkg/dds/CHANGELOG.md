@@ -1,7 +1,8 @@
-# 2.5.0-dev
+# 2.5.0
 - [DAP] `variables` requests now treat lists from `dart:typed_data` (such as `Uint8List`) like standard `List` instances and return their elements instead of class fields.
 - [DAP] `variables` requests now return information about the number of items in lists to allow the client to page through them.
 - [DAP] `terminated` events are now always sent when detaching whether or not the debuggee terminates after unpause.
+- [DAP] Debug adapters can now add/overwrite `orgDartlangSdkMappings` to control mappings of `org-dartlang-sdk:///` paths.
 
 # 2.4.0
 - [DAP] Added support for sending progress notifications via `DartDebugAdapter.startProgressNotification`.
