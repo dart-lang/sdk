@@ -18,7 +18,7 @@ import "dart:typed_data" show Uint32List;
 void _rehashObjects(List objects) {
   final int length = objects.length;
   for (int i = 0; i < length; ++i) {
-    objects[i]._regenerateIndex();
+    internal.unsafeCast<_HashBase>(objects[i])._regenerateIndex();
   }
 }
 
@@ -230,6 +230,9 @@ mixin _HashBase on _HashAbstractBase {
     _deletedKeys = other._deletedKeys;
     return true;
   }
+
+  // This method is called by [_rehashObjects] (see above).
+  void _regenerateIndex();
 }
 
 abstract class _EqualsAndHashCode {
@@ -437,7 +440,6 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
     _index =
         _data.length == 0 ? _uninitializedIndex : new Uint32List(_data.length);
@@ -932,7 +934,6 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
   Iterator<E> get iterator =>
       _CompactIterator<E>(this, _data, _usedData, -1, 1);
 
-  // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
     final size =
         _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));

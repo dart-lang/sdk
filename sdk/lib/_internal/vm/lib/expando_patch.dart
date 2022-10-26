@@ -10,7 +10,7 @@ part of "core_patch.dart";
 void _rehashObjects(List objects) {
   final int length = objects.length;
   for (int i = 0; i < length; ++i) {
-    objects[i]._rehash();
+    unsafeCast<Expando>(objects[i])._rehash();
   }
 }
 
