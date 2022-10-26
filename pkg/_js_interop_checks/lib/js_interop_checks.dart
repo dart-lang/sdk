@@ -28,7 +28,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
         templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
-import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
+import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 
 import 'src/js_interop.dart';
 

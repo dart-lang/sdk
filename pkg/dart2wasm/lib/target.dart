@@ -6,9 +6,9 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
+import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -109,13 +109,11 @@ class WasmTarget extends Target {
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
     }
-    final staticInteropMockCreator = StaticInteropMockCreator(
-        TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter,
-        jsInteropChecks.exportChecker);
+    final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter, jsInteropChecks.exportChecker);
     final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
     for (Library library in interopDependentLibraries) {
-      staticInteropMockCreator.visitLibrary(library);
+      exportCreator.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
     }
     // Do the erasure after any possible mock creation to avoid erasing types

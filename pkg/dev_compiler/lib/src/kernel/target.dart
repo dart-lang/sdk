@@ -7,9 +7,9 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -174,14 +174,12 @@ class DevCompilerTarget extends Target {
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
     }
-    var staticInteropMockCreator = StaticInteropMockCreator(
-        TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter,
-        jsInteropChecks.exportChecker);
+    var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter, jsInteropChecks.exportChecker);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      staticInteropMockCreator.visitLibrary(library);
+      exportCreator.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
     }
     // Do the erasure after any possible mock creation to avoid erasing types
