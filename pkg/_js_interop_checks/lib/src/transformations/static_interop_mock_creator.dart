@@ -38,11 +38,14 @@ class _GetSet {
 
 class ExportChecker {
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticReporter;
-  final Map<Class, Map<String, Set<Member>>> exportClassToMemberMap = {};
-  final Map<Class, _ExportStatus> exportStatus = {};
+  final Map<Reference, Map<String, Set<Member>>> exportClassToMemberMap = {};
+  final Map<Reference, _ExportStatus> exportStatus = {};
   final Class _objectClass;
-  final Map<Class, Map<String, Member>> _overrideMap = {};
-  final Map<Reference, Set<Extension>> staticInteropClassesWithExtensions = {};
+  final Map<Reference, Map<String, Member>> _overrideMap = {};
+  // Store map of libraries to @staticInterop extensions, so that we can compute
+  // the class to extension map later. Prefer to do it this way so that modular
+  // compilation can invalidate recompiled extensions.
+  static final Map<Reference, Set<Extension>> libraryExtensionMap = {};
 
   ExportChecker(this._diagnosticReporter, this._objectClass);
 
@@ -84,12 +87,12 @@ class ExportChecker {
   /// Note that we use a map from the unique name (with setter renaming) to
   /// avoid duplicate checks on classes, and to store the overrides.
   void _collectOverrides(Class cls) {
-    if (_overrideMap.containsKey(cls)) return;
+    if (_overrideMap.containsKey(cls.reference)) return;
     Map<String, Member> memberMap;
     var superclass = cls.superclass;
     if (superclass != null && superclass != _objectClass) {
       _collectOverrides(superclass);
-      memberMap = Map.from(_overrideMap[superclass]!);
+      memberMap = Map.from(_overrideMap[superclass.reference]!);
     } else {
       memberMap = {};
     }
@@ -109,7 +112,7 @@ class ExportChecker {
         memberMap[memberName] = member;
       }
     }
-    _overrideMap[cls] = memberMap;
+    _overrideMap[cls.reference] = memberMap;
   }
 
   /// Determine if [cls] is exportable, and if so, compute the export members.
@@ -127,8 +130,9 @@ class ExportChecker {
     // If the class doesn't have the annotation or if the class wasn't marked
     // when we visited the members and checked their annotations, there's
     // nothing to do for this class.
-    if (!classHasJSExport && exportStatus[cls] != _ExportStatus.EXPORTABLE) {
-      exportStatus[cls] = _ExportStatus.NON_EXPORTABLE;
+    if (!classHasJSExport &&
+        exportStatus[cls.reference] != _ExportStatus.EXPORTABLE) {
+      exportStatus[cls.reference] = _ExportStatus.NON_EXPORTABLE;
       return;
     }
 
@@ -139,17 +143,18 @@ class ExportChecker {
           cls.fileOffset,
           cls.name.length,
           cls.location?.file);
-      exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+      exportStatus[cls.reference] = _ExportStatus.EXPORT_ERROR;
     }
 
     _collectOverrides(cls);
 
-    var allExportableMembers = _overrideMap[cls]!.values.where((member) =>
-        // Only members that qualify are those that are exportable, and either
-        // their class has the annotation or they have it themselves.
-        member.exportable &&
-        (js_interop.hasJSExportAnnotation(member) ||
-            js_interop.hasJSExportAnnotation(member.enclosingClass!)));
+    var allExportableMembers = _overrideMap[cls.reference]!.values.where(
+        (member) =>
+            // Only members that qualify are those that are exportable, and
+            // either their class has the annotation or they have it themselves.
+            member.exportable &&
+            (js_interop.hasJSExportAnnotation(member) ||
+                js_interop.hasJSExportAnnotation(member.enclosingClass!)));
     var exports = <String, Set<Member>>{};
 
     // Store the exportable members.
@@ -199,7 +204,7 @@ class ExportChecker {
           cls.fileOffset,
           cls.name.length,
           cls.location?.file);
-      exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+      exportStatus[cls.reference] = _ExportStatus.EXPORT_ERROR;
     }
 
     if (exports.isEmpty) {
@@ -208,11 +213,11 @@ class ExportChecker {
           cls.fileOffset,
           cls.name.length,
           cls.location?.file);
-      exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+      exportStatus[cls.reference] = _ExportStatus.EXPORT_ERROR;
     }
 
-    exportClassToMemberMap[cls] = exports;
-    exportStatus[cls] ??= _ExportStatus.EXPORTABLE;
+    exportClassToMemberMap[cls.reference] = exports;
+    exportStatus[cls.reference] ??= _ExportStatus.EXPORTABLE;
   }
 
   /// Check that the [member] can be exportable if it has an annotation, and if
@@ -228,23 +233,26 @@ class ExportChecker {
             member.fileOffset,
             member.name.text.length,
             member.location?.file);
-        if (cls != null) exportStatus[cls] = _ExportStatus.EXPORT_ERROR;
+        if (cls != null) {
+          exportStatus[cls.reference] = _ExportStatus.EXPORT_ERROR;
+        }
       } else {
         // Mark as exportable so we know that the class has an exportable member
         // when we process the class later.
-        if (cls != null) exportStatus[cls] = _ExportStatus.EXPORTABLE;
+        if (cls != null) exportStatus[cls.reference] = _ExportStatus.EXPORTABLE;
       }
     }
   }
 
-  /// Store the [extension] if the on-type is a `@staticInterop` class.
-  void visitExtension(Extension extension) {
-    var onType = extension.onType;
-    if (onType is InterfaceType &&
-        js_interop.hasStaticInteropAnnotation(onType.classNode)) {
-      staticInteropClassesWithExtensions
-          .putIfAbsent(onType.className, () => {})
-          .add(extension);
+  void visitLibrary(Library library) {
+    for (var extension in library.extensions) {
+      var onType = extension.onType;
+      if (onType is InterfaceType &&
+          js_interop.hasStaticInteropAnnotation(onType.classNode)) {
+        libraryExtensionMap
+            .putIfAbsent(library.reference, () => {})
+            .add(extension);
+      }
     }
   }
 }
@@ -258,6 +266,8 @@ class StaticInteropMockValidator {
   final Map<Class, Map<String, Set<ExtensionMemberDescriptor>>>
       _staticInteropExportNameToDescriptorMap = {};
   final TypeEnvironment _typeEnvironment;
+  late final Map<Reference, Set<Extension>>
+      _staticInteropClassesWithExtensions = _computeStaticInteropExtensionMap();
   StaticInteropMockValidator(
       this._diagnosticReporter, this._exportChecker, this._typeEnvironment);
 
@@ -283,9 +293,9 @@ class StaticInteropMockValidator {
   bool validateCreateStaticInteropMock(
       StaticInvocation node, Class staticInteropClass, Class dartClass) {
     var conformanceError = false;
-    var exportNameToDescriptors = _computeImplementableExtensionMembers(
-        staticInteropClass, _exportChecker.staticInteropClassesWithExtensions);
-    var exportMap = _exportChecker.exportClassToMemberMap[dartClass]!;
+    var exportNameToDescriptors =
+        _computeImplementableExtensionMembers(staticInteropClass);
+    var exportMap = _exportChecker.exportClassToMemberMap[dartClass.reference]!;
 
     for (var exportName in exportNameToDescriptors.keys) {
       var descriptors = exportNameToDescriptors[exportName]!;
@@ -445,19 +455,45 @@ class StaticInteropMockValidator {
     return true;
   }
 
+  /// Compute a mapping between all the @staticInterop classes and their
+  /// extensions.
+  ///
+  /// We do this here instead of in the export checker for two reasons:
+  /// 1. Modular compilation may invalidate extensions, so we need some way to
+  /// get rid of old extensions.
+  /// 2. The work to do this is only done when you use the
+  /// `createStaticInteropMock` API, leaving unrelated libraries alone.
+  ///
+  /// TODO(srujzs): This does not take into account any scoping. This might mean
+  /// that if another library defines an extension on the @staticInterop class
+  /// that is outside of the scope of the current library, this API will report
+  /// an error. Considering this API should primarily be used in tests, such a
+  /// compilation will be unlikely, but we should revisit this.
+  Map<Reference, Set<Extension>> _computeStaticInteropExtensionMap() {
+    // Process the stored libaries, and create a mapping between @staticInterop
+    // classes and their extensions.
+    var staticInteropClassesWithExtensions = <Reference, Set<Extension>>{};
+    for (var library in ExportChecker.libraryExtensionMap.keys) {
+      for (var extension in ExportChecker.libraryExtensionMap[library]!) {
+        var onType = extension.onType as InterfaceType;
+        staticInteropClassesWithExtensions
+            .putIfAbsent(onType.className, () => {})
+            .add(extension);
+      }
+    }
+    return staticInteropClassesWithExtensions;
+  }
+
   /// Returns a map between all the implementable external extension member
   /// names and the descriptors that have that name for [staticInteropClass].
-  ///
-  /// [staticInteropClassesWithExtensions] is a map between all the
-  /// `@staticInterop` classes and their extensions.
   ///
   /// Also computes a mapping between descriptors and their name for error
   /// reporting.
   Map<String, Set<ExtensionMemberDescriptor>>
-      _computeImplementableExtensionMembers(Class staticInteropClass,
-          Map<Reference, Set<Extension>> staticInteropClassesWithExtensions) {
+      _computeImplementableExtensionMembers(Class staticInteropClass) {
     assert(js_interop.hasStaticInteropAnnotation(staticInteropClass));
 
+    // Get the cached result if we've already processed this class.
     var exportNameToDescriptors =
         _staticInteropExportNameToDescriptorMap[staticInteropClass];
     if (exportNameToDescriptors != null) {
@@ -471,7 +507,7 @@ class StaticInteropMockValidator {
     // the supertypes.
     void getAllDescriptors(Class cls) {
       if (classes.add(cls)) {
-        var extensions = staticInteropClassesWithExtensions[cls.reference];
+        var extensions = _staticInteropClassesWithExtensions[cls.reference];
         if (extensions != null) {
           for (var extension in extensions) {
             for (var descriptor in extension.members) {
@@ -611,7 +647,16 @@ class StaticInteropMockCreator extends Transformer {
           node.location?.file);
       return false;
     }
-    var exportStatus = _exportChecker.exportStatus[dartClass]!;
+    if (!_exportChecker.exportStatus.containsKey(dartClass.reference)) {
+      // This occurs when we deserialize previously compiled modules. Those
+      // modules may contain export classes, so we need to revisit the classes
+      // in those previously compiled modules if they are used.
+      dartClass.procedures
+          .forEach((member) => _exportChecker.visitMember(member));
+      dartClass.fields.forEach((member) => _exportChecker.visitMember(member));
+      _exportChecker.visitClass(dartClass);
+    }
+    var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == _ExportStatus.NON_EXPORTABLE) {
       _diagnosticReporter.report(
           templateJsInteropExportClassNotMarkedExportable
@@ -641,7 +686,8 @@ class StaticInteropMockCreator extends Transformer {
   /// and returns it.
   TreeNode _createExport(StaticInvocation node, InterfaceType dartType,
       [DartType? returnType, Expression? proto]) {
-    var exportMap = _exportChecker.exportClassToMemberMap[dartType.classNode]!;
+    var exportMap =
+        _exportChecker.exportClassToMemberMap[dartType.classNode.reference]!;
 
     var block = <Statement>[];
     returnType ??= _typeEnvironment.coreTypes.objectNonNullableRawType;

@@ -67,13 +67,21 @@ List<String> getNativeNames(Annotatable a) {
 /// If [a] has a `@JSExport('...')` annotation, returns the value inside the
 /// parentheses.
 ///
-/// If the class does not have a `@JSExport()` annotation, returns an empty
-/// String. Note that a value is guaranteed to exist.
+/// If there is no value or the class does not have a `@JSExport()` annotation,
+/// returns an empty String.
 String getJSExportName(Annotatable a) {
   String jsExportValue = '';
   for (var annotation in a.annotations) {
     if (_isJSExportAnnotation(annotation)) {
-      return _stringAnnotationValues(annotation)[0];
+      var jsExportValues = _stringAnnotationValues(annotation);
+      // TODO(srujzs): Theoretically, this should never be empty as there is a
+      // default empty value. However, in the modular tests, dart2js modular
+      // analysis does not see the default value, and reports this as empty in
+      // some cases. We should investigate why and fix it, but for now, we just
+      // manually provide the default value.
+      if (jsExportValues.isNotEmpty) {
+        jsExportValue = jsExportValues[0];
+      }
     }
   }
   return jsExportValue;

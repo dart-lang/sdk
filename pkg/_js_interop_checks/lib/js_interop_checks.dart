@@ -233,6 +233,7 @@ class JsInteropChecks extends RecursiveVisitor {
       _libraryIsGlobalNamespace = true;
     }
     super.visitLibrary(lib);
+    exportChecker.visitLibrary(lib);
     _libraryIsGlobalNamespace = false;
     _libraryHasJSAnnotation = false;
     _libraryExtensionsIndex = null;
@@ -373,12 +374,6 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkNoNamedParameters(constructor.function);
     }
-  }
-
-  @override
-  void visitExtension(Extension extension) {
-    exportChecker.visitExtension(extension);
-    super.visitExtension(extension);
   }
 
   /// Reports an error if [functionNode] has named parameters.
