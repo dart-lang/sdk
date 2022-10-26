@@ -27,17 +27,7 @@
   Additionally, a type test of the form `v is Never` (where `v` is a local
   variable) no longer promotes `v` to type `Never`.
 
-- **Breaking change** [#49878][]: Calling `ResourceHandle.toFile()`,
-  `ResourceHandle.toSocket()`, `ResourceHandle.toRawSocket()` or
-  `ResourceHandle.toRawDatagramSocket()`, more than once now throws a
-  `StateError`.
-
-  The previous behavior would allow multiple Dart objects to refer to the same
-  file descriptor, which would produce errors when one object was closed or
-  garbage collected.
-
 [#49635]: https://github.com/dart-lang/sdk/issues/49635
-[#49878]: https://github.com/dart-lang/sdk/issues/49878
 
 - **Breaking Change** [#49687][]: Don't delegate inaccessible private names to
   `noSuchMethod`. If a concrete class implements an interface containing a
@@ -111,6 +101,16 @@
 - **Breaking change** [#49647](https://github.com/dart-lang/sdk/issues/49647):
   `File.create` now takes new optional `exclusive` `bool` parameter, and
   when it is `true` the operation will fail if target file already exists.
+- **Breaking change** [#49878][]: Calling `ResourceHandle.toFile()`,
+  `ResourceHandle.toSocket()`, `ResourceHandle.toRawSocket()` or
+  `ResourceHandle.toRawDatagramSocket()`, more than once now throws a
+  `StateError`.
+
+  The previous behavior would allow multiple Dart objects to refer to the same
+  file descriptor, which would produce errors when one object was closed or
+  garbage collected.
+
+[#49878]: https://github.com/dart-lang/sdk/issues/49878
 
 #### `dart:isolate`
 
