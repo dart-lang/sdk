@@ -998,10 +998,8 @@ class ThreadInfo {
       return null;
     } else if (input.isScheme('file')) {
       return input.toFilePath();
-    } else if (input.isScheme(_manager._adapter.dartlangSdkRootUri.scheme)) {
-      return _manager._adapter.convertOrgDartlangSdkToPath(input);
     } else {
-      return null;
+      return _manager._adapter.convertOrgDartlangSdkToPath(input);
     }
   }
 

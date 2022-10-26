@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
+import 'package:dds/src/dap/protocol_stream.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -14,54 +16,104 @@ main() {
     final vmPath = Platform.resolvedExecutable;
     final sdkRoot = path.dirname(path.dirname(vmPath));
 
-    final sdkCorePath = path.join(sdkRoot, 'lib', 'core.dart');
-    final defaultCoreUri = Uri.parse('org-dartlang-sdk:///sdk/lib/core.dart');
-
-    group('default org-dartlang-sdk', () {
+    group('default Dart SDK', () {
+      final testPath = path.join(sdkRoot, 'lib', 'core.dart');
+      final testUri = Uri.parse('org-dartlang-sdk:///sdk/lib/core.dart');
       final adapter = MockDartCliDebugAdapter();
 
-      test('can SDK paths to org-dartlang-sdk:///', () async {
+      test('converts SDK paths to org-dartlang-sdk:///', () async {
         expect(
-          adapter.convertPathToOrgDartlangSdk(sdkCorePath),
-          defaultCoreUri,
+          adapter.convertPathToOrgDartlangSdk(testPath),
+          testUri,
         );
       });
 
       test('converts org-dartlang-sdk:/// to SDK paths', () async {
         expect(
-          adapter.convertOrgDartlangSdkToPath(defaultCoreUri),
-          sdkCorePath,
+          adapter.convertOrgDartlangSdkToPath(testUri),
+          testPath,
         );
       });
     });
 
-    group('custom org-dartlang-sdk', () {
-      final adapter = MockDartCliDebugAdapter()
-        ..dartlangSdkRootUriOverride =
-            Uri.parse('org-dartlang-sdk:///custom/sdk');
-      final customCoreUri =
-          Uri.parse('org-dartlang-sdk:///custom/sdk/lib/core.dart');
+    group('custom Dart SDK', () {
+      final testPath = path.join(sdkRoot, 'lib', 'core.dart');
+      final testUri =
+          Uri.parse('org-dartlang-sdk:///custom-dart/sdk/lib/core.dart');
+      final defaultSdkTestUri =
+          Uri.parse('org-dartlang-sdk:///sdk/lib/core.dart');
+      final adapter = MockCustomDartCliDebugAdapter(
+          {sdkRoot: Uri.parse('org-dartlang-sdk:///custom-dart/sdk')});
 
       test('converts SDK paths to custom org-dartlang-sdk:///', () async {
         expect(
-          adapter.convertPathToOrgDartlangSdk(sdkCorePath),
-          customCoreUri,
+          adapter.convertPathToOrgDartlangSdk(testPath),
+          testUri,
         );
       });
 
       test('converts custom org-dartlang-sdk:/// to SDK paths', () async {
         expect(
-          adapter.convertOrgDartlangSdkToPath(customCoreUri),
-          sdkCorePath,
+          adapter.convertOrgDartlangSdkToPath(testUri),
+          testPath,
         );
       });
 
-      test('does not convert default org-dartlang-sdk:///', () async {
+      test('does not convert default org-dartlang-sdk:/// to SDK paths',
+          () async {
         expect(
-          adapter.convertOrgDartlangSdkToPath(defaultCoreUri),
+          adapter.convertOrgDartlangSdkToPath(defaultSdkTestUri),
           isNull,
         );
       });
     });
+
+    group('additional SDKs', () {
+      final customSdkRootPath = path.join('my', 'flutter', 'sdk');
+      final customSdkRootUri = Uri.parse('org-dartlang-sdk:///flutter/sdk');
+      final testPath = path.join(customSdkRootPath, 'lib', 'ui.dart');
+      final testUri = Uri.parse('org-dartlang-sdk:///flutter/sdk/lib/ui.dart');
+      final adapter = MockCustomDartCliDebugAdapter({
+        customSdkRootPath: customSdkRootUri,
+      });
+
+      test('converts additional SDK paths to custom org-dartlang-sdk:///',
+          () async {
+        expect(
+          adapter.convertPathToOrgDartlangSdk(testPath),
+          testUri,
+        );
+      });
+
+      test('converts additional SDK org-dartlang-sdk:/// to paths', () async {
+        expect(
+          adapter.convertOrgDartlangSdkToPath(testUri),
+          testPath,
+        );
+      });
+    });
   });
+}
+
+class MockCustomDartCliDebugAdapter extends MockDartCliDebugAdapter {
+  factory MockCustomDartCliDebugAdapter(Map<String, Uri> customMappings) {
+    final stdinController = StreamController<List<int>>();
+    final stdoutController = StreamController<List<int>>();
+    final channel = ByteStreamServerChannel(
+        stdinController.stream, stdoutController.sink, null);
+
+    return MockCustomDartCliDebugAdapter._(
+        customMappings, stdinController.sink, stdoutController.stream, channel);
+  }
+
+  MockCustomDartCliDebugAdapter._(
+      Map<String, Uri> customMappings,
+      StreamSink<List<int>> stdin,
+      Stream<List<int>> stdout,
+      ByteStreamServerChannel channel)
+      : super.withStreams(stdin, stdout, channel) {
+    orgDartlangSdkMappings
+      ..clear()
+      ..addAll(customMappings);
+  }
 }
