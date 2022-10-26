@@ -307,7 +307,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         possibleMethods
             .lookup(NonNullableFunction(library, className, methodName));
 
-    var element = type.element2;
+    var element = type.element;
     if (element.isSynthetic) {
       return null;
     }
@@ -318,7 +318,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var supertype in element.allSupertypes) {
-      var superElement = supertype.element2;
+      var superElement = supertype.element;
       method = getMethod(superElement.library.name, superElement.name);
       if (method != null) {
         return method;

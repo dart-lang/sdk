@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var interface in implementsClause.interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType &&
-          _overridesEquals(interfaceType.element2)) {
+          _overridesEquals(interfaceType.element)) {
         rule.reportLint(interface);
       }
     }
@@ -126,7 +126,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   static bool _overridesEquals(InterfaceElement element) {
     var method = element.lookUpConcreteMethod('==', element.library);
-    var enclosing = method?.enclosingElement3;
+    var enclosing = method?.enclosingElement;
     return enclosing is ClassElement && !enclosing.isDartCoreObject;
   }
 }

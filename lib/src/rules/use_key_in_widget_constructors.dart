@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement == null) {
       return;
     }
-    var classElement = constructorElement.enclosingElement3;
+    var classElement = constructorElement.enclosingElement;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
         classElement.isPublic &&

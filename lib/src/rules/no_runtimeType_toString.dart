@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (declaredElement != null) {
             var extendedType = declaredElement.extendedType;
             if (extendedType is InterfaceType) {
-              var extendedElement = extendedType.element2;
+              var extendedElement = extendedType.element;
               return !(extendedElement is ClassElement &&
                   !extendedElement.isAbstract);
             }

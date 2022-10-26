@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor {
     if (expressionType is InterfaceType) {
       for (var member in statement.members) {
         if (member is SwitchDefault) {
-          var interfaceElement = expressionType.element2;
+          var interfaceElement = expressionType.element;
           if (interfaceElement is EnumElement ||
               interfaceElement is ClassElement &&
                   interfaceElement.isEnumLikeClass) {

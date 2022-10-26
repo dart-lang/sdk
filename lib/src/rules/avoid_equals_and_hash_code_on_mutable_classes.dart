@@ -111,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _hasImmutableAnnotation(ClassElement clazz) {
     var inheritedAndSelfElements = <InterfaceElement>[
-      ...clazz.allSupertypes.map((t) => t.element2),
+      ...clazz.allSupertypes.map((t) => t.element),
       clazz,
     ];
     var inheritedAndSelfAnnotations = inheritedAndSelfElements

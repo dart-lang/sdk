@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var inheritedAndSelfTypes = _getSelfAndInheritedTypes(type);
     var inheritedAndSelfAnnotations = inheritedAndSelfTypes
-        .map((type) => type.element2)
+        .map((type) => type.element)
         .expand((c) => c.metadata)
         .map((m) => m.element);
     return inheritedAndSelfAnnotations.any(_isImmutable);

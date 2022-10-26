@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    checkIdentifier(node.exceptionParameter2?.name, underscoresOk: true);
+    checkIdentifier(node.exceptionParameter?.name, underscoresOk: true);
   }
 
   @override

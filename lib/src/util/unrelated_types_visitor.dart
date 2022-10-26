@@ -203,7 +203,7 @@ class MethodDefinitionForName extends MethodDefinition {
   @override
   InterfaceType? collectionTypeFor(InterfaceType targetType) {
     for (var supertype in [targetType, ...targetType.allSupertypes]) {
-      var element = supertype.element2;
+      var element = supertype.element;
       if (element.name == interfaceName &&
           element.library.name == libraryName) {
         return targetType.asInstanceOf(element);

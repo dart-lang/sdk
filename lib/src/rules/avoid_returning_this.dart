@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var returnType = node.declaredElement?.returnType;
       if (returnType is InterfaceType &&
           // ignore: cast_nullable_to_non_nullable
-          returnType.element2 == (parent as Declaration).declaredElement) {
+          returnType.element == (parent as Declaration).declaredElement) {
       } else {
         return;
       }

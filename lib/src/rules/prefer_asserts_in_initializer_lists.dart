@@ -79,12 +79,12 @@ class _AssertVisitor extends RecursiveAstVisitor {
 
   bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement3);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
   bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement3);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
   bool _paramMatchesField(
@@ -118,9 +118,9 @@ class _ClassAndSuperClasses {
       void addRecursively(InterfaceElement? element) {
         if (element != null && _classes.add(element)) {
           for (var t in element.mixins) {
-            addRecursively(t.element2);
+            addRecursively(t.element);
           }
-          addRecursively(element.supertype?.element2);
+          addRecursively(element.supertype?.element);
         }
       }
 

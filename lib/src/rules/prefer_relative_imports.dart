@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   bool isPackageSelfReference(ImportDirective node) {
-    var uri = node.element2?.uri;
+    var uri = node.element?.uri;
     if (uri is! DirectiveUriWithSource) {
       return false;
     }
@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var importUri = uri.relativeUri;
     if (!importUri.isScheme('package')) return false;
 
-    var sourceUri = node.element2?.source.uri;
+    var sourceUri = node.element?.source.uri;
     if (!samePackage(importUri, sourceUri)) return false;
 
     // todo (pq): context.package.contains(source) should work (but does not)

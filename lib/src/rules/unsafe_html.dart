@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftPart is SimpleIdentifier) {
       var leftPartElement = node.writeElement;
       if (leftPartElement == null) return;
-      var enclosingElement = leftPartElement.enclosingElement3;
+      var enclosingElement = leftPartElement.enclosingElement;
       if (enclosingElement is ClassElement) {
         _checkAssignment(enclosingElement.thisType, leftPart, node);
       }
@@ -162,7 +162,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Implicit `this` target.
       var methodElement = node.methodName.staticElement;
       if (methodElement == null) return;
-      var enclosingElement = methodElement.enclosingElement3;
+      var enclosingElement = methodElement.enclosingElement;
       if (enclosingElement is ClassElement) {
         type = enclosingElement.thisType;
       } else {

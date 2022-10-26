@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Handled by analyzer hint.
       if (element.hasLiteral) return;
 
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement &&
           enclosingElement.isDartCoreObject) {
         // Skip lint for `new Object()`, because it can be used for Id creation.

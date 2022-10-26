@@ -89,8 +89,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         element.isFactory && element.redirectedConstructor != null;
     if (node.body is EmptyFunctionBody &&
         !element.isConst &&
-        !_hasMixin(element.enclosingElement3) &&
-        _hasImmutableAnnotation(element.enclosingElement3) &&
+        !_hasMixin(element.enclosingElement) &&
+        _hasImmutableAnnotation(element.enclosingElement) &&
         (isRedirected && (element.redirectedConstructor?.isConst ?? false) ||
             (!isRedirected &&
                 _hasConstConstructorInvocation(node) &&
@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) {
       return false;
     }
-    var clazz = declaredElement.enclosingElement3;
+    var clazz = declaredElement.enclosingElement;
     // construct with super
     var superInvocation = node.initializers
             .firstWhereOrNull((e) => e is SuperConstructorInvocation)
@@ -139,7 +139,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     InterfaceElement? current = self;
     var seenElements = <InterfaceElement>{};
     while (current != null && seenElements.add(current)) {
-      current = current.supertype?.element2;
+      current = current.supertype?.element;
     }
     return seenElements.toList();
   }

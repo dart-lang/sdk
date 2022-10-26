@@ -169,8 +169,8 @@ bool typesAreUnrelated(
   if (promotedLeftType is InterfaceType && promotedRightType is InterfaceType) {
     // In this case, [leftElement] and [rightElement] each represent
     // the same class, like `int`, or `Iterable<String>`.
-    var leftElement = promotedLeftType.element2;
-    var rightElement = promotedRightType.element2;
+    var leftElement = promotedLeftType.element;
+    var rightElement = promotedRightType.element;
     if (leftElement == rightElement) {
       // In this case, [leftElement] and [rightElement] represent the same
       // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
@@ -198,8 +198,8 @@ bool typesAreUnrelated(
     }
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
-    return typesAreUnrelated(typeSystem, promotedLeftType.element2.bound,
-        promotedRightType.element2.bound);
+    return typesAreUnrelated(typeSystem, promotedLeftType.element.bound,
+        promotedRightType.element.bound);
   } else if (promotedLeftType is FunctionType) {
     if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
       return true;
@@ -217,7 +217,7 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
     return false;
   }
   if (type2 is InterfaceType) {
-    var element2 = type2.element2;
+    var element2 = type2.element;
     if (element2 is ClassElement &&
         element2.lookUpConcreteMethod('call', element2.library) != null) {
       return false;
@@ -245,8 +245,8 @@ class DartTypeUtilities {
   @Deprecated('Slated for removal')
   static bool isClass(DartType? type, String? className, String? library) =>
       type is InterfaceType &&
-      type.element2.name == className &&
-      type.element2.library.name == library;
+      type.element.name == className &&
+      type.element.library.name == library;
 
   @Deprecated('Replace with `expression.isNullLiteral`')
   static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;

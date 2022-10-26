@@ -210,8 +210,8 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
   /// [declarations], if it is found in [declarationMap].
   void _addDeclaration(Element element) {
     var enclosingElement = element.thisOrAncestorMatching((a) =>
-        a.enclosingElement3 == null ||
-        a.enclosingElement3 is CompilationUnitElement);
+        a.enclosingElement == null ||
+        a.enclosingElement is CompilationUnitElement);
     var enclosingDeclaration = declarationMap[enclosingElement];
     if (enclosingDeclaration != null) {
       declarations.add(enclosingDeclaration);
@@ -235,6 +235,6 @@ extension on Annotation {
       // Dunno what this is.
       return false;
     }
-    return type is InterfaceType && type.element2.isPragma;
+    return type is InterfaceType && type.element.isPragma;
   }
 }
