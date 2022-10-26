@@ -6148,46 +6148,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitPropertyGet(
       PropertyGet node, DartType typeContext) {
-    ExpressionInferenceResult result =
+    ExpressionInferenceResult receiverResult =
         inferNullAwareExpression(node.receiver, const UnknownType(), true);
 
-    Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
-    Expression receiver = result.nullAwareAction;
-    DartType receiverType = result.nullAwareActionType;
+    Link<NullAwareGuard> nullAwareGuards = receiverResult.nullAwareGuards;
+    Expression receiver = receiverResult.nullAwareAction;
+    DartType receiverType = receiverResult.nullAwareActionType;
 
     node.receiver = receiver..parent = node;
 
-    DartType recordType = resolveTypeParameter(receiverType);
-    if (recordType is RecordType) {
-      // TODO(johnniwinther): Handle nullable record types and null shorting.
-      String name = node.name.text;
-      if (name.startsWith('\$')) {
-        int? index = int.tryParse(name.substring(1));
-        if (index != null) {
-          if (index < recordType.positional.length) {
-            DartType fieldType = recordType.positional[index];
-            return new ExpressionInferenceResult(
-                fieldType,
-                new RecordIndexGet(receiver, recordType, index)
-                  ..fileOffset = node.fileOffset);
-          }
-        }
-      }
-      for (NamedType field in recordType.named) {
-        if (field.name == name) {
-          return new ExpressionInferenceResult(
-              field.type,
-              new RecordNameGet(receiver, recordType, name)
-                ..fileOffset = node.fileOffset);
-        }
-      }
-    }
+    ExpressionInferenceResult? recordFieldAccessResult =
+        resolveRecordFieldAccess(
+            receiver, receiverType, node.name, node.fileOffset);
 
-    PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
-        node.fileOffset, receiver, receiverType, node.name, typeContext,
-        isThisReceiver: node.receiver is ThisExpression, propertyGetNode: node);
-    ExpressionInferenceResult readResult =
-        propertyGetInferenceResult.expressionInferenceResult;
+    ExpressionInferenceResult readResult;
+    if (recordFieldAccessResult != null) {
+      readResult = recordFieldAccessResult;
+      // TODO(johnniwinther,paulberry): Should we call
+      //  `flowAnalysis.propertyGet` for record field access?
+    } else {
+      PropertyGetInferenceResult propertyGetInferenceResult =
+          _computePropertyGet(
+              node.fileOffset, receiver, receiverType, node.name, typeContext,
+              isThisReceiver: node.receiver is ThisExpression,
+              propertyGetNode: node);
+      readResult = propertyGetInferenceResult.expressionInferenceResult;
+      // TODO(johnniwinther,paulberry): Should the we pass the resulting node
+      // as the "whole-expression" instead of [node] ? (We do this for field
+      // invocation).
+      flowAnalysis.propertyGet(node, node.receiver, node.name.text,
+          propertyGetInferenceResult.member, readResult.inferredType);
+    }
     ExpressionInferenceResult expressionInferenceResult =
         createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
