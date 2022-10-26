@@ -53,24 +53,22 @@
 
 ### Libraries
 
-#### `dart:core`
-
-- Added `copyWith` extension method on `DateTime` (see [#24644][]).
-
-[#24644]: https://github.com/dart-lang/sdk/issues/24644
-
 #### `dart:convert`
 
 - **Breaking change** [#34233][]: The previously deprecated API
-  [`DEFAULT_BUFFER_SIZE`][] in [`JsonUtf8Encoder`] has been removed.
+  [`DEFAULT_BUFFER_SIZE`][] in `JsonUtf8Encoder` has been removed.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
 
 #### `dart:core`
 
-- Deprecated `FallThroughError`. Has not been thrown since Dart 2.0.
-  See [#24233][].
+- Deprecated `FallThroughError`. Has not been thrown since Dart 2.0
+  (see [#49529]).
+- Added `copyWith` extension method on `DateTime` (see [#24644]).
+
+[#49529]: https://github.com/dart-lang/sdk/issues/49529
+[#24644]: https://github.com/dart-lang/sdk/issues/24644
 
 #### `dart:developer`
 
