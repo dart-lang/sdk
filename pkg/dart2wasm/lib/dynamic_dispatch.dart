@@ -164,8 +164,10 @@ class DynamicDispatcher {
     w.Instructions b = function.body;
     w.Local addLocal(w.ValueType type) => function.addLocal(type);
 
-    Iterable<SelectorInfo>? selectors =
-        translator.dispatchTable.selectorsForDynamicNode(node);
+    // We make a copy of the list of selectors to avoid concurrent
+    // modification.
+    List<SelectorInfo> selectors =
+        translator.dispatchTable.selectorsForDynamicNode(node)?.toList() ?? [];
 
     // Test the receiver's class ID against every class that implements a given
     // selector. If there is a match then invoke the selector, otherwise calls
@@ -179,47 +181,43 @@ class DynamicDispatcher {
     b.local_get(receiverVar);
     b.struct_get(translator.topInfo.struct, FieldIndex.classId);
     b.local_set(cidLocal);
-    if (selectors != null) {
-      // We make a copy of the list of selectors to avoid concurrent
-      // modification.
-      for (SelectorInfo selector in selectors.toList()) {
-        if (!preSelector(selector)) {
-          continue;
-        }
-        translator.functions.activateSelector(selector);
-        for (int classID in selector.classIds) {
-          b.local_get(cidLocal);
-          b.i32_const(classID);
-          b.i32_eq();
-          b.if_();
-
-          // TODO(joshualitt): We should be able to make this a direct
-          // invocation. However, there appear to be corner cases today where we
-          // still need to do the actual invocation as an indirect call, for
-          // example if the procedure we are invoking is abstract.
-          b.comment("Dynamic invocation of '${selector.name}'");
-          b.local_get(receiverVar);
-          translator.convertType(function, translator.topInfo.nullableType,
-              selector.signature.inputs[0]);
-
-          pushArguments(selector);
-          b.local_get(cidLocal);
-          int offset = selector.offset!;
-          if (offset != 0) {
-            b.i32_const(offset);
-            b.i32_add();
-          }
-          b.call_indirect(selector.signature);
-
-          w.ValueType result =
-              translator.outputOrVoid(selector.signature.outputs);
-          translator.convertType(
-              function, result, translator.topInfo.nullableType);
-          onCallSuccess();
-          b.end(); // end if
-        }
-        postSelector();
+    for (SelectorInfo selector in selectors) {
+      if (!preSelector(selector)) {
+        continue;
       }
+      translator.functions.activateSelector(selector);
+      for (int classID in selector.classIds) {
+        b.local_get(cidLocal);
+        b.i32_const(classID);
+        b.i32_eq();
+        b.if_();
+
+        // TODO(joshualitt): We should be able to make this a direct
+        // invocation. However, there appear to be corner cases today where we
+        // still need to do the actual invocation as an indirect call, for
+        // example if the procedure we are invoking is abstract.
+        b.comment("Dynamic invocation of '${selector.name}'");
+        b.local_get(receiverVar);
+        translator.convertType(function, translator.topInfo.nullableType,
+            selector.signature.inputs[0]);
+
+        pushArguments(selector);
+        b.local_get(cidLocal);
+        int offset = selector.offset!;
+        if (offset != 0) {
+          b.i32_const(offset);
+          b.i32_add();
+        }
+        b.call_indirect(selector.signature);
+
+        w.ValueType result =
+            translator.outputOrVoid(selector.signature.outputs);
+        translator.convertType(
+            function, result, translator.topInfo.nullableType);
+        onCallSuccess();
+        b.end(); // end if
+      }
+      postSelector();
     }
 
     // Handle the case where no test succeeded.
