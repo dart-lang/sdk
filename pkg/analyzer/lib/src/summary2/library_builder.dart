@@ -273,6 +273,7 @@ class LibraryBuilder {
     // Transplant built elements as if the augmentation was applied.
     final augmentedUnitElement = element.definingCompilationUnit;
     for (final augmentation in unitElement.classes) {
+      augmentation as ClassElementImpl;
       // TODO(scheglov) if augmentation
       final augmented = element.getClass(augmentation.name);
       if (augmented is ClassElementImpl) {

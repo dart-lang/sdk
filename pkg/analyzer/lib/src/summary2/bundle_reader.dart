@@ -630,7 +630,7 @@ class LibraryReader {
     Reference reference,
   ) {
     var accessors = <PropertyAccessorElementImpl>[];
-    var fields = <FieldElement>[];
+    var fields = <FieldElementImpl>[];
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
@@ -783,7 +783,7 @@ class LibraryReader {
     element.typeParameters = _readTypeParameters();
 
     var accessors = <PropertyAccessorElement>[];
-    var fields = <FieldElement>[];
+    var fields = <FieldElementImpl>[];
 
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
@@ -869,7 +869,7 @@ class LibraryReader {
     element.typeParameters = _readTypeParameters();
 
     var accessors = <PropertyAccessorElement>[];
-    var fields = <FieldElement>[];
+    var fields = <FieldElementImpl>[];
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
     _readFields(unitElement, element, reference, accessors, fields);
@@ -1127,7 +1127,7 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var fields = <FieldElement>[];
+    var fields = <FieldElementImpl>[];
     var accessors = <PropertyAccessorElement>[];
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(

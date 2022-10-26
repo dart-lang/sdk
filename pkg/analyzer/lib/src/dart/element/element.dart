@@ -74,7 +74,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
 
   /// A list containing all of the fields contained in this class.
-  List<FieldElement> _fields = _Sentinel.fieldElement;
+  List<FieldElementImpl> _fields = _Sentinel.fieldElement;
 
   /// A list containing all of the methods contained in this class.
   List<MethodElement> _methods = _Sentinel.methodElement;
@@ -122,10 +122,13 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElementImpl get enclosingElement3 => enclosingElement;
 
+  @override
+  List<FieldElementImpl> get fields;
+
   /// Set the fields contained in this class to the given [fields].
-  set fields(List<FieldElement> fields) {
-    for (FieldElement field in fields) {
-      (field as FieldElementImpl).enclosingElement = this;
+  set fields(List<FieldElementImpl> fields) {
+    for (var field in fields) {
+      field.enclosingElement = this;
     }
     _fields = fields;
   }
@@ -609,7 +612,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
-  set fields(List<FieldElement> fields) {
+  set fields(List<FieldElementImpl> fields) {
     assert(!isMixinApplication);
     super.fields = fields;
   }
@@ -968,7 +971,7 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<FieldElement> get fields {
+  List<FieldElementImpl> get fields {
     if (!identical(_fields, _Sentinel.fieldElement)) {
       return _fields;
     }
@@ -1099,7 +1102,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TypeAliasElement> _typeAliases = const [];
 
   /// A list containing all of the variables contained in this compilation unit.
-  List<TopLevelVariableElement> _variables = const [];
+  List<TopLevelVariableElementImpl> _variables = const [];
 
   ElementLinkedData? linkedData;
 
@@ -1255,15 +1258,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   AnalysisSession get session => enclosingElement.session;
 
   @override
-  List<TopLevelVariableElement> get topLevelVariables {
+  List<TopLevelVariableElementImpl> get topLevelVariables {
     return _variables;
   }
 
   /// Set the top-level variables contained in this compilation unit to the
   ///  given[variables].
-  set topLevelVariables(List<TopLevelVariableElement> variables) {
-    for (TopLevelVariableElement field in variables) {
-      (field as TopLevelVariableElementImpl).enclosingElement = this;
+  set topLevelVariables(List<TopLevelVariableElementImpl> variables) {
+    for (var variable in variables) {
+      variable.enclosingElement = this;
     }
     _variables = variables;
   }
@@ -2947,7 +2950,7 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   }
 
   @override
-  List<FieldElement> get fields {
+  List<FieldElementImpl> get fields {
     return _fields;
   }
 
@@ -3242,7 +3245,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
   List<PropertyAccessorElement> _accessors = const [];
 
   /// A list containing all of the fields contained in this extension.
-  List<FieldElement> _fields = const [];
+  List<FieldElementImpl> _fields = const [];
 
   /// A list containing all of the methods contained in this extension.
   List<MethodElement> _methods = const [];
@@ -3303,13 +3306,13 @@ class ExtensionElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<FieldElement> get fields {
+  List<FieldElementImpl> get fields {
     return _fields;
   }
 
-  set fields(List<FieldElement> fields) {
-    for (FieldElement field in fields) {
-      (field as FieldElementImpl).enclosingElement = this;
+  set fields(List<FieldElementImpl> fields) {
+    for (var field in fields) {
+      field.enclosingElement = this;
     }
     _fields = fields;
   }
@@ -5506,7 +5509,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement {
   /// The variable associated with this accessor.
   @override
-  late PropertyInducingElement variable;
+  late PropertyInducingElementImpl variable;
 
   /// If this method is a synthetic element which is based on another method
   /// with some modifications (such as making some parameters covariant),
@@ -5632,7 +5635,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  Element get enclosingElement => variable.enclosingElement!;
+  Element get enclosingElement => variable.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -5697,7 +5700,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  Element get enclosingElement => variable.enclosingElement!;
+  Element get enclosingElement => variable.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -5760,13 +5763,13 @@ abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl implements PropertyInducingElement {
   /// The getter associated with this element.
   @override
-  PropertyAccessorElement? getter;
+  PropertyAccessorElementImpl? getter;
 
   /// The setter associated with this element, or `null` if the element is
   /// effectively `final` and therefore does not have a setter associated with
   /// it.
   @override
-  PropertyAccessorElement? setter;
+  PropertyAccessorElementImpl? setter;
 
   /// This field is set during linking, and performs type inference for
   /// this property. After linking this field is always `null`.
@@ -6554,7 +6557,7 @@ class _Sentinel {
       List.unmodifiable([]);
   static final List<ConstructorElement> constructorElement =
       List.unmodifiable([]);
-  static final List<FieldElement> fieldElement = List.unmodifiable([]);
+  static final List<FieldElementImpl> fieldElement = List.unmodifiable([]);
   static final List<LibraryExportElement> libraryExportElement =
       List.unmodifiable([]);
   static final List<LibraryImportElement> libraryImportElement =

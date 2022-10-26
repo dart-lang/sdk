@@ -327,7 +327,7 @@ class InstanceMemberInferrer {
         currentInterfaceElement = classElement;
         for (var field in classElement.fields) {
           _inferAccessorOrField(
-            field: field as FieldElementImpl,
+            field: field,
           );
         }
         for (var accessor in classElement.accessors) {

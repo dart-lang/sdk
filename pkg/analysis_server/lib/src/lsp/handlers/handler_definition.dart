@@ -177,10 +177,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
     if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
-      final variable = codeElement.variable;
-      if (variable is ElementImpl) {
-        codeElement = variable as ElementImpl;
-      }
+      codeElement = codeElement.variable;
     }
 
     // Read the main codeOffset from the element. This may include doc comments

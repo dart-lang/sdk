@@ -11236,16 +11236,14 @@ library
       synthetic static get y @-1
         returnType: Object
 ''');
-    var x = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var x = library.definingCompilationUnit.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
     var xType = xExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(
       xType,
       'C<int>',
     );
-    var y = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var y = library.definingCompilationUnit.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
     var yType = yExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(yType, 'C<int>');

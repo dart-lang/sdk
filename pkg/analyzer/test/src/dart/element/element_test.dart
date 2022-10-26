@@ -40,7 +40,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     String fieldName = "f";
     FieldElementImpl field =
         ElementFactory.fieldElement(fieldName, false, false, false, intNone);
-    classA.fields = <FieldElement>[field];
+    classA.fields = [field];
     expect(classA.getField(fieldName), same(field));
     expect(field.isEnumConstant, false);
     // no such field
@@ -65,7 +65,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
 
   void test_hasNonFinalField_false_const() {
     var classA = class_(name: 'A');
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, false, true, interfaceTypeStar(classA))
     ];
@@ -74,7 +74,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
 
   void test_hasNonFinalField_false_final() {
     var classA = class_(name: 'A');
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, true, false, interfaceTypeStar(classA))
     ];
@@ -93,7 +93,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
 
   void test_hasNonFinalField_true_immediate() {
     var classA = class_(name: 'A');
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, false, false, interfaceTypeStar(classA))
     ];
@@ -105,7 +105,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var classA = class_(name: 'A');
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, false, false, interfaceTypeStar(classA))
     ];
@@ -421,7 +421,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElementImpl classElement = ElementFactory.classElement2("C");
     (library.definingCompilationUnit).classes = <ClassElement>[classElement];
-    FieldElement field = ElementFactory.fieldElement(
+    var field = ElementFactory.fieldElement(
       "next",
       false,
       false,
@@ -431,7 +431,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
         nullabilitySuffix: NullabilitySuffix.star,
       ),
     );
-    classElement.fields = <FieldElement>[field];
+    classElement.fields = [field];
     expect(field == field, isTrue);
     // ignore: unrelated_type_equality_checks
     expect(field == field.getter, isFalse);
