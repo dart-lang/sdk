@@ -1,10 +1,14 @@
+## 0.6.6-dev
+
+* Add `@JSExport` annotation for exporting Dart classes and `@staticInterop`
+  mocking.
+* Require Dart 2.19
+
 ## 0.6.5
 
 * Populate the pubspec repository field.
 * Add a dependency on `package:meta`.
 * Add an experimental `@trustTypes` annotation.
-* Add `@JSExport` annotation for exporting Dart classes and `@staticInterop`
-  mocking.
 
 ## 0.6.4
 
