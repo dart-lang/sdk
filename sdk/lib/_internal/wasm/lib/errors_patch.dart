@@ -10,7 +10,7 @@ external Never _throwObjectWithStackTrace(Object error, StackTrace stacktrace);
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return 'Instance of ${object._runtimeType}';
+    return "Instance of '${object._runtimeType}'";
   }
 
   @patch
