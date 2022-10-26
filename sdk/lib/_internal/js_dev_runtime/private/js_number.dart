@@ -4,10 +4,17 @@
 
 part of dart._interceptors;
 
-/**
- * The implementation of Dart's int & double methods.
- * These are made available as extension methods on `Number` in JS.
- */
+/// Only used as an interceptor by dart:_rti library for number values that look
+/// like an integer.
+class JSInt extends JSNumber implements int {}
+
+/// Only used as an interceptor by dart:_rti library for number values that look
+/// like a double.
+class JSNumNotInt extends JSNumber implements double {}
+
+/// The implementation of Dart's int & double methods.
+///
+/// These are made available as extension methods on `Number` in JS.
 @JsPeerInterface(name: 'Number')
 class JSNumber extends Interceptor implements int, double {
   const JSNumber();
@@ -60,7 +67,11 @@ class JSNumber extends Interceptor implements int, double {
   JSNumber abs() => JS<JSNumber>('!', r'Math.abs(#)', this);
 
   @notNull
-  JSNumber get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSNumber;
+  JSNumber get sign => this > 0
+      ? JS<JSNumber>('!', '1')
+      : this < 0
+          ? JS<JSNumber>('!', '-1')
+          : this;
 
   @notNull
   static const int _MIN_INT32 = -0x80000000;
@@ -138,7 +149,7 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  double toDouble() => this;
+  double toDouble() => JS<double>('!', '#', this);
 
   @notNull
   String toStringAsFixed(@nullCheck int fractionDigits) {
@@ -282,7 +293,9 @@ class JSNumber extends Interceptor implements int, double {
   JSNumber operator %(@nullCheck num other) {
     // Euclidean Modulo.
     JSNumber result = JS<JSNumber>('!', r'# % #', this, other);
-    if (result == 0) return (0 as JSNumber); // Make sure we don't return -0.0.
+    if (result == 0) {
+      return JS<JSNumber>('!', '0'); // Make sure we don't return -0.0.
+    }
     if (result > 0) return result;
     if (JS<JSNumber>('!', '#', other) < 0) {
       return JS<JSNumber>('!', '# - #', result, other);
@@ -441,6 +454,7 @@ class JSNumber extends Interceptor implements int, double {
   // Returns pow(this, e) % m.
   @notNull
   int modPow(@nullCheck int e, @nullCheck int m) {
+    if (this is! int) throwArgumentErrorValue(this);
     if (e < 0) throw RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
@@ -557,6 +571,7 @@ class JSNumber extends Interceptor implements int, double {
   // Returns 1/this % m, with m > 0.
   @notNull
   int modInverse(@nullCheck int m) {
+    if (this is! int) throwArgumentErrorValue(this);
     if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     int t = this;
