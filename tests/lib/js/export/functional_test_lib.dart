@@ -15,21 +15,22 @@ import 'package:js/js_util.dart';
 class Methods {}
 
 extension on Methods {
-  external int add(int a, int b);
+  external String concat(String foo, String bar);
   // Sanity-check that non-externals are unaffected.
-  int nonExternal() => 0;
+  String nonExternal() => 'nonExternal';
   @JS('_rename')
-  external int rename();
-  external int optionalAdd(int a, int b, [int c = 0, int? d]);
+  external String rename();
+  external String optionalConcat(String foo, String bar,
+      [String boo = '', String? baz]);
 }
 
 @JSExport()
 class MethodsDart {
-  int add(int a, int b) => a + b;
-  int nonExternal() => 1;
-  int _rename() => 1;
-  int optionalAdd(int a, int b, [int? c, int? d]) =>
-      a + b + (c ?? 0) + (d ?? 0);
+  String concat(String foo, String bar) => foo + bar;
+  String nonExternal() => 'initialized';
+  String _rename() => 'initialized';
+  String optionalConcat(String foo, String bar, [String? boo, String? baz]) =>
+      foo + bar + (boo ?? '') + (baz ?? '');
 }
 
 @JS()
@@ -37,20 +38,20 @@ class MethodsDart {
 class Fields {}
 
 extension on Fields {
-  external int field;
-  external final int finalField;
+  external String field;
+  external final String finalField;
   @JS('_renamedField')
-  external int renamedField;
+  external String renamedField;
   @JS('_renamedFinalField')
-  external final int renamedFinalField;
+  external final String renamedFinalField;
 }
 
 @JSExport()
 class FieldsDart {
-  int field = 1;
-  int finalField = 1;
-  int _renamedField = 1;
-  final int _renamedFinalField = 1;
+  String field = 'initialized';
+  String finalField = 'initialized';
+  String _renamedField = 'initialized';
+  final String _renamedFinalField = 'initialized';
 }
 
 @JS()
@@ -58,83 +59,83 @@ class FieldsDart {
 class GetSet {}
 
 extension on GetSet {
-  external int get getSet;
-  external set getSet(int val);
+  external String get getSet;
+  external set getSet(String val);
   @JS('_renamedGetSet')
-  external int get renamedGetSet;
+  external String get renamedGetSet;
   @JS('_renamedGetSet')
-  external set renamedGetSet(int val);
+  external set renamedGetSet(String val);
   @JS('_sameNameDifferentRenameGet')
-  external int get sameNameDifferentRename;
+  external String get sameNameDifferentRename;
   @JS('_sameNameDifferentRenameSet')
-  external set sameNameDifferentRename(int val);
+  external set sameNameDifferentRename(String val);
   @JS('_differentNameSameRename')
-  external int get differentNameSameRenameGet;
+  external String get differentNameSameRenameGet;
   @JS('_differentNameSameRename')
-  external set differentNameSameRenameSet(int val);
+  external set differentNameSameRenameSet(String val);
 }
 
 @JSExport()
 class GetSetDart {
-  int getSet = 1;
-  int _renamedGetSet = 1;
-  int _sameNameDifferentRenameGet = 1;
-  int _sameNameDifferentRenameSet = 1;
-  int _differentNameSameRename = 1;
+  String getSet = 'initialized';
+  String _renamedGetSet = 'initialized';
+  String _sameNameDifferentRenameGet = 'initialized';
+  String _sameNameDifferentRenameSet = 'initialized';
+  String _differentNameSameRename = 'initialized';
 }
 
 void test([Object? proto]) {
   var jsMethods =
       createStaticInteropMock<Methods, MethodsDart>(MethodsDart(), proto);
-  expect(jsMethods.add(1, 1), 2);
-  expect(jsMethods.nonExternal(), 0);
-  expect(jsMethods.rename(), 1);
-  expect(jsMethods.optionalAdd(1, 1), 2);
-  expect(jsMethods.optionalAdd(1, 1, 1), 3);
-  expect(jsMethods.optionalAdd(1, 1, 1, 1), 4);
+  expect(jsMethods.concat('a', 'b'), 'ab');
+  expect(jsMethods.nonExternal(), 'nonExternal');
+  expect(jsMethods.rename(), 'initialized');
+  expect(jsMethods.optionalConcat('a', 'b'), 'ab');
+  expect(jsMethods.optionalConcat('a', 'b', 'c'), 'abc');
+  expect(jsMethods.optionalConcat('a', 'b', 'c', 'd'), 'abcd');
   var dartFields = FieldsDart();
   var jsFields = createStaticInteropMock<Fields, FieldsDart>(dartFields, proto);
-  expect(jsFields.field, 1);
-  expect(jsFields.finalField, 1);
-  expect(jsFields.renamedField, 1);
-  expect(jsFields.renamedFinalField, 1);
+  expect(jsFields.field, 'initialized');
+  expect(jsFields.finalField, 'initialized');
+  expect(jsFields.renamedField, 'initialized');
+  expect(jsFields.renamedFinalField, 'initialized');
   // Modify the JS mock and check for updates in the Dart mock.
-  jsFields.field = 2;
-  jsFields.renamedField = 2;
-  expect(dartFields.field, 2);
-  expect(dartFields._renamedField, 2);
+  jsFields.field = 'jsModified';
+  jsFields.renamedField = 'jsModified';
+  expect(dartFields.field, 'jsModified');
+  expect(dartFields._renamedField, 'jsModified');
   // Modify the Dart mock and check for updates in the JS mock.
-  dartFields.field = 3;
-  dartFields.finalField = 3;
-  dartFields._renamedField = 3;
-  expect(jsFields.field, 3);
-  expect(jsFields.finalField, 3);
-  expect(jsFields.renamedField, 3);
+  dartFields.field = 'dartModified';
+  dartFields.finalField = 'dartModified';
+  dartFields._renamedField = 'dartModified';
+  expect(jsFields.field, 'dartModified');
+  expect(jsFields.finalField, 'dartModified');
+  expect(jsFields.renamedField, 'dartModified');
   var dartGetSet = GetSetDart();
   var jsGetSet = createStaticInteropMock<GetSet, GetSetDart>(dartGetSet, proto);
-  expect(jsGetSet.getSet, 1);
-  expect(jsGetSet.renamedGetSet, 1);
-  expect(jsGetSet.sameNameDifferentRename, 1);
-  expect(jsGetSet.differentNameSameRenameGet, 1);
+  expect(jsGetSet.getSet, 'initialized');
+  expect(jsGetSet.renamedGetSet, 'initialized');
+  expect(jsGetSet.sameNameDifferentRename, 'initialized');
+  expect(jsGetSet.differentNameSameRenameGet, 'initialized');
   // Modify the JS mock and check for updates in the Dart mock.
-  jsGetSet.getSet = 2;
-  jsGetSet.renamedGetSet = 2;
-  jsGetSet.sameNameDifferentRename = 2;
-  jsGetSet.differentNameSameRenameSet = 2;
-  expect(dartGetSet.getSet, 2);
-  expect(dartGetSet._renamedGetSet, 2);
-  expect(dartGetSet._sameNameDifferentRenameGet, 1);
-  expect(dartGetSet._sameNameDifferentRenameSet, 2);
-  expect(dartGetSet._differentNameSameRename, 2);
+  jsGetSet.getSet = 'jsModified';
+  jsGetSet.renamedGetSet = 'jsModified';
+  jsGetSet.sameNameDifferentRename = 'jsModified';
+  jsGetSet.differentNameSameRenameSet = 'jsModified';
+  expect(dartGetSet.getSet, 'jsModified');
+  expect(dartGetSet._renamedGetSet, 'jsModified');
+  expect(dartGetSet._sameNameDifferentRenameGet, 'initialized');
+  expect(dartGetSet._sameNameDifferentRenameSet, 'jsModified');
+  expect(dartGetSet._differentNameSameRename, 'jsModified');
   // Modify the Dart mock and check for updates in the JS mock.
-  dartGetSet.getSet = 3;
-  dartGetSet._renamedGetSet = 3;
+  dartGetSet.getSet = 'dartModified';
+  dartGetSet._renamedGetSet = 'dartModified';
   // Use different values to disambiguate.
-  dartGetSet._sameNameDifferentRenameGet = 3;
-  dartGetSet._sameNameDifferentRenameSet = 4;
-  dartGetSet._differentNameSameRename = 3;
-  expect(jsGetSet.getSet, 3);
-  expect(jsGetSet.renamedGetSet, 3);
-  expect(jsGetSet.sameNameDifferentRename, 3);
-  expect(jsGetSet.differentNameSameRenameGet, 3);
+  dartGetSet._sameNameDifferentRenameGet = 'dartModifiedGet';
+  dartGetSet._sameNameDifferentRenameSet = 'dartModifiedSet';
+  dartGetSet._differentNameSameRename = 'dartModified';
+  expect(jsGetSet.getSet, 'dartModified');
+  expect(jsGetSet.renamedGetSet, 'dartModified');
+  expect(jsGetSet.sameNameDifferentRename, 'dartModifiedGet');
+  expect(jsGetSet.differentNameSameRenameGet, 'dartModified');
 }

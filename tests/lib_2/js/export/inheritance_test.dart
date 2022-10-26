@@ -14,11 +14,11 @@ import 'package:js/js_util.dart';
 class Extends {}
 
 extension on Extends {
-  external int extendsMethod(int val);
-  external int extendsField;
-  external final int extendsFinalField;
-  external int get extendsGetSet;
-  external set extendsGetSet(int val);
+  external String extendsMethod(String val);
+  external String extendsField;
+  external final String extendsFinalField;
+  external String get extendsGetSet;
+  external set extendsGetSet(String val);
 }
 
 @JS()
@@ -26,13 +26,13 @@ extension on Extends {
 class Implements {}
 
 extension on Implements {
-  external int implementsMethod(int val);
-  external int implementsField;
-  external final int implementsFinalField;
+  external String implementsMethod(String val);
+  external String implementsField;
+  external final String implementsFinalField;
   @JS('implementsGetSet')
-  external int get implementsGetter;
+  external String get implementsGetter;
   @JS('implementsGetSet')
-  external set implementsSetter(int val);
+  external set implementsSetter(String val);
 }
 
 @JS()
@@ -40,87 +40,87 @@ extension on Implements {
 class Inheritance extends Extends implements Implements {}
 
 extension on Inheritance {
-  external int method(int val);
-  external int field;
-  external final int finalField;
-  external int get getSet;
-  external set getSet(int val);
+  external String method(String val);
+  external String field;
+  external final String finalField;
+  external String get getSet;
+  external set getSet(String val);
 }
 
 extension on Inheritance {
-  external int method2(int val);
-  external int field2;
-  external final int finalField2;
-  external int get getSet2;
-  external set getSet2(int val);
+  external String method2(String val);
+  external String field2;
+  external final String finalField2;
+  external String get getSet2;
+  external set getSet2(String val);
 }
 
 @JSExport()
 class ExtendsDart {
-  int extendsMethod(int val) => val;
-  int extendsField = 0;
-  final int extendsFinalField = 0;
-  int extendsGetSet = 0;
+  String extendsMethod(String val) => val;
+  String extendsField = 'extends';
+  final String extendsFinalField = 'extends';
+  String extendsGetSet = 'extends';
 }
 
 @JSExport()
 class ImplementsMixin {
-  int implementsMethod(int val) => val;
-  int implementsField = 1;
-  final int implementsFinalField = 1;
-  int implementsGetSet = 1;
+  String implementsMethod(String val) => val;
+  String implementsField = 'implements';
+  final String implementsFinalField = 'implements';
+  String implementsGetSet = 'implements';
 }
 
 @JSExport()
 class InheritanceDart extends ExtendsDart with ImplementsMixin {
-  int method(int val) => val;
-  int field = 2;
-  final int finalField = 2;
-  int getSet = 2;
-  int method2(int val) => val;
-  int field2 = 2;
-  final int finalField2 = 2;
-  int getSet2 = 2;
+  String method(String val) => val;
+  String field = 'derived';
+  final String finalField = 'derived';
+  String getSet = 'derived';
+  String method2(String val) => val;
+  String field2 = 'derived';
+  final String finalField2 = 'derived';
+  String getSet2 = 'derived';
 }
 
 void main() {
   var dartMock = InheritanceDart();
   var jsMock = createStaticInteropMock<Inheritance, InheritanceDart>(dartMock);
 
-  expect(jsMock.extendsMethod(0), 0);
-  expect(jsMock.extendsField, 0);
-  jsMock.extendsField = 1;
-  expect(jsMock.extendsField, 1);
-  expect(jsMock.extendsFinalField, 0);
-  expect(jsMock.extendsGetSet, 0);
+  expect(jsMock.extendsMethod('extends'), 'extends');
+  expect(jsMock.extendsField, 'extends');
+  jsMock.extendsField = 'modified';
+  expect(jsMock.extendsField, 'modified');
+  expect(jsMock.extendsFinalField, 'extends');
+  expect(jsMock.extendsGetSet, 'extends');
   // Dart mock uses a field for this getter and setter, so it should change.
-  jsMock.extendsGetSet = 1;
-  expect(jsMock.extendsGetSet, 1);
+  jsMock.extendsGetSet = 'modified';
+  expect(jsMock.extendsGetSet, 'modified');
 
-  expect(jsMock.implementsMethod(1), 1);
-  expect(jsMock.implementsField, 1);
-  jsMock.implementsField = 2;
-  expect(jsMock.implementsField, 2);
-  expect(jsMock.implementsFinalField, 1);
-  expect(jsMock.implementsGetter, 1);
-  jsMock.implementsSetter = 2;
-  expect(jsMock.implementsGetter, 2);
+  expect(jsMock.implementsMethod('implements'), 'implements');
+  expect(jsMock.implementsField, 'implements');
+  jsMock.implementsField = 'modified';
+  expect(jsMock.implementsField, 'modified');
+  expect(jsMock.implementsFinalField, 'implements');
+  expect(jsMock.implementsGetter, 'implements');
+  jsMock.implementsSetter = 'modified';
+  expect(jsMock.implementsGetter, 'modified');
 
-  expect(jsMock.method(2), 2);
-  expect(jsMock.field, 2);
-  jsMock.field = 3;
-  expect(jsMock.field, 3);
-  expect(jsMock.finalField, 2);
-  expect(jsMock.getSet, 2);
-  jsMock.getSet = 3;
-  expect(jsMock.getSet, 3);
+  expect(jsMock.method('derived'), 'derived');
+  expect(jsMock.field, 'derived');
+  jsMock.field = 'modified';
+  expect(jsMock.field, 'modified');
+  expect(jsMock.finalField, 'derived');
+  expect(jsMock.getSet, 'derived');
+  jsMock.getSet = 'modified';
+  expect(jsMock.getSet, 'modified');
 
-  expect(jsMock.method2(2), 2);
-  expect(jsMock.field2, 2);
-  jsMock.field2 = 3;
-  expect(jsMock.field2, 3);
-  expect(jsMock.finalField2, 2);
-  expect(jsMock.getSet2, 2);
-  jsMock.getSet2 = 3;
-  expect(jsMock.getSet2, 3);
+  expect(jsMock.method2('derived'), 'derived');
+  expect(jsMock.field2, 'derived');
+  jsMock.field2 = 'modified';
+  expect(jsMock.field2, 'modified');
+  expect(jsMock.finalField2, 'derived');
+  expect(jsMock.getSet2, 'derived');
+  jsMock.getSet2 = 'modified';
+  expect(jsMock.getSet2, 'modified');
 }

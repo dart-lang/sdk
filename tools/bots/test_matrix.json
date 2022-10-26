@@ -3141,7 +3141,7 @@
             "language",
             "corelib",
             "web/wasm",
-            "lib/lib/(async|collection|convert|js/static_interop_test|math|typed_data)/",
+            "lib/lib/(async|collection|convert|js/export|js/static_interop_test|math|typed_data)/",
             "co19/co19/(src/)?(Language|LanguageFeatures|LibTest/(async|collection|convert|core|math|typed_data))/"
           ],
           "shards": 10,
