@@ -319,8 +319,8 @@ class SubtypePair {
 // Returns the smallest index 'i' such that 'list.skip(i)' is a prefix of
 // 'sublist'.
 int findOverlap(List list, List sublist) {
+  outer:
   for (int i = 0; i < list.length; ++i) {
-    outer:
     {
       for (int j = 0; j < sublist.length && i + j < list.length; ++j) {
         if (list[i + j] != sublist[j]) continue outer;

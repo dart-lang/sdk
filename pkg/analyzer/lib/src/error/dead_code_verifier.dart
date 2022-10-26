@@ -533,6 +533,15 @@ class NullSafetyDeadCodeVerifier {
           _errorReporter.reportErrorForOffset(
               HintCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
           offset = parent.semicolon.next!.offset;
+        } else if (parent is ForParts) {
+          node = parent.updaters.last;
+        } else if (parent is ForStatement) {
+          _reportForUpdaters(parent);
+        } else if (parent is Block) {
+          var grandParent = parent.parent;
+          if (grandParent is ForStatement) {
+            _reportForUpdaters(grandParent);
+          }
         }
 
         var length = node.end - offset;
@@ -610,6 +619,19 @@ class NullSafetyDeadCodeVerifier {
       if (node == parent) return true;
     }
     return false;
+  }
+
+  void _reportForUpdaters(ForStatement node) {
+    var forParts = node.forLoopParts;
+    if (forParts is ForParts) {
+      var updaters = forParts.updaters;
+      var beginToken = updaters.beginToken;
+      var endToken = updaters.endToken;
+      if (beginToken != null && endToken != null) {
+        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE,
+            beginToken.offset, endToken.end - beginToken.offset);
+      }
+    }
   }
 }
 

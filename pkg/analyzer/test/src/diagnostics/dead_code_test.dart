@@ -73,6 +73,176 @@ void f(bool c) {
     ]);
   }
 
+  test_flowEnd_block_forStatement_updaters() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (;; 1) {
+    return;
+    2;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 21, 1),
+      error(HintCode.DEAD_CODE, 42, 2),
+    ]);
+  }
+
+  test_flowEnd_block_forStatement_updaters_multiple() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (;; 1, 2) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 21, 4),
+    ]);
+  }
+
+  test_flowEnd_forParts_condition_exists() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (; throw 0; 1) {}
+}
+''', [
+      error(HintCode.DEAD_CODE, 29, 1),
+      error(HintCode.DEAD_CODE, 32, 2),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_assignmentExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i = i + 1) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 9),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_binaryExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i + 1) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 5),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_cascadeExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i..sign) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 7),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_conditionalExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i > 1 ? i : i) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 13),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_indexExpression() async {
+    await assertErrorsInCode(r'''
+void f(List<int> values) {
+  for (;; values[0]) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 37, 9),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_instanceCreationExpression() async {
+    await assertErrorsInCode(r'''
+class C {}
+void f() {
+  for (;; C()) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 32, 3),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_postfixExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i++) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 3),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_prefixedIdentifier() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as m;
+
+void f() {
+  for (;; m.Point) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 47, 7),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_prefixExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; ++i) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 3),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_propertyAccess() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; (i).sign) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 8),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_throw() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (;; 0, throw 1, 2) {}
+}
+''', [
+      error(HintCode.DEAD_CODE, 33, 1),
+    ]);
+  }
+
   test_flowEnd_tryStatement_body() async {
     await assertErrorsInCode(r'''
 Never foo() => throw 0;
@@ -255,6 +425,17 @@ f() {
   throw 'foo';
 }
 ''');
+  }
+
+  test_assert() async {
+    await assertErrorsInCode(r'''
+void f() {
+  return;
+  assert (true);
+}
+''', [
+      error(HintCode.DEAD_CODE, 23, 14),
+    ]);
   }
 
   test_deadBlock_conditionalElse() async {
@@ -665,6 +846,17 @@ main() {
   4;
 }
 ''', expectedErrors);
+  }
+
+  test_forStatement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  return;
+  for (;;) {}
+}
+''', [
+      error(HintCode.DEAD_CODE, 23, 11),
+    ]);
   }
 
   test_ifStatement_noCase_conditionFalse() async {
@@ -1082,6 +1274,16 @@ void f(int a) {
   }
 }
 ''', expectedErrors);
+  }
+
+  test_yield() async {
+    await assertErrorsInCode(r'''
+Iterable<int> f() sync* {
+  return;
+  yield 1;
+}''', [
+      error(HintCode.DEAD_CODE, 38, 8),
+    ]);
   }
 }
 

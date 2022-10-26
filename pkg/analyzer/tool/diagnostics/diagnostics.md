@@ -10002,7 +10002,9 @@ defined anywhere:
 void f() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
-      break [!loop!];
+      if (j != 0) {
+        break [!loop!];
+      }
     }
   }
 }
@@ -10017,7 +10019,9 @@ If the label should be on the innermost enclosing `do`, `for`, `switch`, or
 void f() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
-      break;
+      if (j != 0) {
+        break;
+      }
     }
   }
 }
@@ -10029,7 +10033,9 @@ If the label should be on some other statement, then add the label:
 void f() {
   loop: for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
-      break loop;
+      if (j != 0) {
+        break loop;
+      }
     }
   }
 }
@@ -19555,7 +19561,9 @@ If the label is needed, then use it:
 void f(int limit) {
   loop: for (int i = 0; i < limit; i++) {
     print(i);
-    break loop;
+    if (i != 0) {
+      break loop;
+    }
   }
 }
 {% endprettify %}

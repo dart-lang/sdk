@@ -1392,6 +1392,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAssertStatement(AssertStatement node) {
+    checkUnreachableNode(node);
     flowAnalysis.flow?.assert_begin();
     analyzeExpression(node.condition, typeProvider.boolType);
     popRewrite();
@@ -1408,6 +1409,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitAssignmentExpression(AssignmentExpression node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl,
         contextType: contextType);
     _insertImplicitCallReference(
@@ -1441,6 +1443,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitBinaryExpression(BinaryExpression node, {DartType? contextType}) {
+    checkUnreachableNode(node);
     var migrationResolutionHooks = this.migrationResolutionHooks;
     if (migrationResolutionHooks != null) {
       migrationResolutionHooks.reportBinaryExpressionContext(node, contextType);
@@ -1495,6 +1498,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitCascadeExpression(covariant CascadeExpressionImpl node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     analyzeExpression(node.target, contextType);
     popRewrite();
 
@@ -1579,6 +1583,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitConditionalExpression(ConditionalExpression node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     Expression condition = node.condition;
     var flow = flowAnalysis.flow;
     flow?.conditional_conditionBegin();
@@ -2006,6 +2011,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitForStatement(ForStatement node) {
+    checkUnreachableNode(node);
     _forResolver.resolveStatement(node as ForStatementImpl);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
   }
@@ -2208,6 +2214,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitIndexExpression(covariant IndexExpressionImpl node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     node.target?.accept(this);
     startNullAwareIndexExpression(node);
 
@@ -2250,6 +2257,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     _instanceCreationExpressionResolver.resolve(node, contextType: contextType);
     _insertImplicitCallReference(node, contextType: contextType);
   }
@@ -2505,6 +2513,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPostfixExpression(PostfixExpression node, {DartType? contextType}) {
+    checkUnreachableNode(node);
     _postfixExpressionResolver.resolve(node as PostfixExpressionImpl,
         contextType: contextType);
     _insertImplicitCallReference(
@@ -2515,6 +2524,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     final rewrittenPropertyAccess =
         _prefixedIdentifierResolver.resolve(node, contextType: contextType);
     if (rewrittenPropertyAccess != null) {
@@ -2528,6 +2538,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPrefixExpression(PrefixExpression node, {DartType? contextType}) {
+    checkUnreachableNode(node);
     _prefixExpressionResolver.resolve(node as PrefixExpressionImpl,
         contextType: contextType);
     _insertImplicitCallReference(
@@ -2538,6 +2549,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitPropertyAccess(covariant PropertyAccessImpl node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     node.target?.accept(this);
     startNullAwarePropertyAccess(node);
 
@@ -2955,6 +2967,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitYieldStatement(YieldStatement node) {
+    checkUnreachableNode(node);
     _yieldStatementResolver.resolve(node);
   }
 
