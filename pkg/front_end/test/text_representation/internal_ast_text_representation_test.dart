@@ -1144,6 +1144,7 @@ void _testIfCaseStatement() {
       new IfCaseStatement(
           new IntLiteral(0),
           new ExpressionMatcher(new IntLiteral(1)),
+          null,
           new ReturnStatement(),
           null,
           TreeNode.noOffset),
@@ -1154,9 +1155,32 @@ if (0 case 1) return;''');
       new IfCaseStatement(
           new IntLiteral(0),
           new ExpressionMatcher(new IntLiteral(1)),
+          null,
           new ReturnStatement(new IntLiteral(2)),
           new ReturnStatement(new IntLiteral(3)),
           TreeNode.noOffset),
       '''
 if (0 case 1) return 2; else return 3;''');
+
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new ExpressionMatcher(new IntLiteral(1)),
+          new IntLiteral(2),
+          new ReturnStatement(),
+          null,
+          TreeNode.noOffset),
+      '''
+if (0 case 1 when 2) return;''');
+
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new ExpressionMatcher(new IntLiteral(1)),
+          new IntLiteral(2),
+          new ReturnStatement(new IntLiteral(3)),
+          new ReturnStatement(new IntLiteral(4)),
+          TreeNode.noOffset),
+      '''
+if (0 case 1 when 2) return 3; else return 4;''');
 }

@@ -5461,17 +5461,26 @@ class PatternVariableDeclaration extends Statement {
 
 final Matcher dummyMatcher = new ExpressionMatcher(dummyExpression);
 
+/// Internal statement for a if-case statements:
+///
+///     if (expression case matcher) then
+///     if (expression case matcher) then else otherwise
+///     if (expression case matcher when guard) then
+///     if (expression case matcher when guard) then else otherwise
+///
 class IfCaseStatement extends InternalStatement {
   Expression expression;
   Matcher matcher;
+  Expression? guard;
   Statement then;
   Statement? otherwise;
 
-  IfCaseStatement(this.expression, this.matcher, this.then, this.otherwise,
-      int fileOffset) {
+  IfCaseStatement(this.expression, this.matcher, this.guard, this.then,
+      this.otherwise, int fileOffset) {
     this.fileOffset = fileOffset;
     expression.parent = this;
     matcher.parent = this;
+    guard?.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -5487,6 +5496,10 @@ class IfCaseStatement extends InternalStatement {
     printer.writeExpression(expression);
     printer.write(' case ');
     matcher.toTextInternal(printer);
+    if (guard != null) {
+      printer.write(' when ');
+      printer.writeExpression(guard!);
+    }
     printer.write(') ');
     printer.writeStatement(then);
     if (otherwise != null) {
