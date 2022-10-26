@@ -1154,19 +1154,25 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       wrap(node.expression, voidMarker);
       return;
     }
+
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
             e is L ||
             e is NullLiteral ||
-            e is ConstantExpression &&
-                (e.constant is C || e.constant is NullConstant));
+            (e is ConstantExpression &&
+                (e.constant is C || e.constant is NullConstant)));
 
     // Identify kind of switch. One of `nullableType` or `nonNullableType` will
     // be the type for Wasm local that holds the switch value.
-    w.ValueType nullableType;
-    w.ValueType nonNullableType;
-    void Function() compare;
-    if (check<BoolLiteral, BoolConstant>()) {
+    late final w.ValueType nullableType;
+    late final w.ValueType nonNullableType;
+    late final void Function() compare;
+    if (node.cases.every((c) => c.expressions.isEmpty && c.isDefault)) {
+      // default-only switch
+      nonNullableType = w.RefType.eq(nullable: false);
+      nullableType = w.RefType.eq(nullable: true);
+      compare = () => throw "Comparison in default-only switch";
+    } else if (check<BoolLiteral, BoolConstant>()) {
       // bool switch
       nonNullableType = w.NumType.i32;
       nullableType =
