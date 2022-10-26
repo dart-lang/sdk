@@ -35,6 +35,12 @@ aot_snapshot("dart2wasm_asserts_snapshot") {
   gen_snapshot_args = [ "--enable-asserts" ]
 }
 
+aot_snapshot("dart2wasm_product_snapshot") {
+  main_dart = "../../pkg/dart2wasm/bin/dart2wasm.dart"
+  name = "dart2wasm_product"
+  force_product_mode = true
+}
+
 compile_platform("compile_dart2wasm_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/")
