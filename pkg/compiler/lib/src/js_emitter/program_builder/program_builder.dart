@@ -26,8 +26,8 @@ import '../../js_backend/namer.dart' show Namer, StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
-import '../../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoding;
+import '../../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_new_migrated.dart' show RecipeEncoding;
 import '../../js_backend/runtime_types_new.dart' as newRti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;

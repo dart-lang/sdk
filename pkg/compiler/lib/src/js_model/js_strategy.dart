@@ -42,8 +42,8 @@ import '../js_backend/namer.dart';
 import '../js_backend/namer_migrated.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoderImpl;
+import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../js_backend/runtime_types_new.dart' show RecipeEncoderImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js/js.dart' as js;
