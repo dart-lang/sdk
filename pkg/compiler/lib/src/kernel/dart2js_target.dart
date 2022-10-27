@@ -80,7 +80,7 @@ class Dart2jsTarget extends Target {
 
   Dart2jsTarget(this.name, this.flags,
       {this.options,
-      this.canPerformGlobalTransforms = true,
+      this.canPerformGlobalTransforms = false,
       this.supportsUnevaluatedConstants = true});
 
   @override
