@@ -965,7 +965,7 @@ class Pass1Visitor : public ObjectVisitor,
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
                                CompressedObjectPtr* to) {
-    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+    for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = ptr->Decompress(heap_base);
       if (!obj->IsHeapObject()) {
         writer_->AddSmi(static_cast<SmiPtr>(obj));

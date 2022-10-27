@@ -188,7 +188,7 @@ void f(bool c) {
   Future<void> test_emptyStatement() async {
     await resolveTestCode('''
 void f() {
-  for (var i = 0; false; i++);
+  for (; false;);
 }
 ''');
     await assertNoFix();

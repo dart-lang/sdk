@@ -20,7 +20,7 @@ testFunction() {
   try {
     var b;
     try {
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 10;) {
         var x = () => i + a + b;
         return x; // LINE_A
       }

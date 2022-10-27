@@ -7812,7 +7812,9 @@ CompileTimeErrorCode:
       void f() {
         for (int i = 0; i < 10; i++) {
           for (int j = 0; j < 10; j++) {
-            break [!loop!];
+            if (j != 0) {
+              break [!loop!];
+            }
           }
         }
       }
@@ -7827,7 +7829,9 @@ CompileTimeErrorCode:
       void f() {
         for (int i = 0; i < 10; i++) {
           for (int j = 0; j < 10; j++) {
-            break;
+            if (j != 0) {
+              break;
+            }
           }
         }
       }
@@ -7839,7 +7843,9 @@ CompileTimeErrorCode:
       void f() {
         loop: for (int i = 0; i < 10; i++) {
           for (int j = 0; j < 10; j++) {
-            break loop;
+            if (j != 0) {
+              break loop;
+            }
           }
         }
       }
@@ -21609,7 +21615,9 @@ HintCode:
       void f(int limit) {
         loop: for (int i = 0; i < limit; i++) {
           print(i);
-          break loop;
+          if (i != 0) {
+            break loop;
+          }
         }
       }
       ```
