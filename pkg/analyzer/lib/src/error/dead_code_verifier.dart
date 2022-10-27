@@ -533,6 +533,9 @@ class NullSafetyDeadCodeVerifier {
           _errorReporter.reportErrorForOffset(
               HintCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
           offset = parent.semicolon.next!.offset;
+          if (parent.hasBreakStatement) {
+            offset = node.end;
+          }
         } else if (parent is ForParts) {
           node = parent.updaters.last;
         } else if (parent is ForStatement) {
@@ -635,6 +638,21 @@ class NullSafetyDeadCodeVerifier {
   }
 }
 
+/// A visitor that finds a [BreakStatement] for a specified [DoStatement].
+class _BreakDoStatementVisitor extends RecursiveAstVisitor<void> {
+  bool hasBreakStatement = false;
+  final DoStatement doStatement;
+
+  _BreakDoStatementVisitor(this.doStatement);
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    if (node.target == doStatement) {
+      hasBreakStatement = true;
+    }
+  }
+}
+
 class _CatchClausesVerifier {
   final TypeSystemImpl _typeSystem;
   final _CatchClausesVerifierReporter _errorReporter;
@@ -729,5 +747,13 @@ class _LabelTracker {
         yield labels[i];
       }
     }
+  }
+}
+
+extension DoStatementExtension on DoStatement {
+  bool get hasBreakStatement {
+    var visitor = _BreakDoStatementVisitor(this);
+    body.visitChildren(visitor);
+    return visitor.hasBreakStatement;
   }
 }

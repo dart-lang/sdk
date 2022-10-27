@@ -138,6 +138,25 @@ void f(bool c) {
 ''', errorFilter: (err) => err.problemMessage.length == 4);
   }
 
+  Future<void> test_doWhile_atDo_followed() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    print(c);
+    return;
+  print('');
+}
+''', errorFilter: (err) => err.problemMessage.length == 4);
+  }
+
   Future<void> test_doWhile_atDo_noBrackets() async {
     await resolveTestCode('''
 void f(bool c) {
@@ -149,6 +168,23 @@ void f(bool c) {
     await assertHasFix('''
 void f(bool c) {
   return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 2);
+  }
+
+  Future<void> test_doWhile_atDo_noBrackets_followed() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do
+    return;
+  while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  return;
+  print('');
 }
 ''', errorFilter: (err) => err.problemMessage.length == 2);
   }
@@ -183,6 +219,118 @@ void f(bool c) {
   return;
 }
 ''', errorFilter: (err) => err.problemMessage.length == 10);
+  }
+
+  Future<void> test_doWhile_break() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    if (c) {
+     break;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertNoFix(errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_doLabel() async {
+    await resolveTestCode('''
+void f(bool c) {
+  label:
+  do {
+    if (c) {
+      break label;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertNoFix(errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_inner() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    while (c) {
+      break;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    while (c) {
+      break;
+    }
+    return;
+  print('');
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_outerDoLabel() async {
+    await resolveTestCode('''
+void f(bool c) {
+  label:
+  do {
+    do {
+      if (c) {
+        break label;
+      }
+      return;
+    } while (c);
+    print('');
+  } while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  label:
+  do {
+      if (c) {
+        break label;
+      }
+      return;
+    print('');
+  } while (c);
+  print('');
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_outerLabel() async {
+    await resolveTestCode('''
+void f(bool c) {
+  label: {
+    do {
+      if (c) {
+       break label;
+      }
+      return;
+    } while (c);
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  label: {
+      if (c) {
+       break label;
+      }
+      return;
+    print('');
+  }
+}
+''', errorFilter: (error) => error.length == 4);
   }
 
   Future<void> test_emptyStatement() async {

@@ -44,16 +44,98 @@ void f(bool c) {
     ]);
   }
 
-  test_doWhile_noBrackets() async {
+  test_doWhile_break() async {
     await assertErrorsInCode(r'''
 void f(bool c) {
-  do
+  do {
+    if (c) {
+     break;
+    }
     return;
-  while (c);
+  } while (c);
+  print('');
 }
 ''', [
-      error(HintCode.DEAD_CODE, 19, 2),
-      error(HintCode.DEAD_CODE, 36, 10),
+      error(HintCode.DEAD_CODE, 19, 4),
+      error(HintCode.DEAD_CODE, 69, 12),
+    ]);
+  }
+
+  test_doWhile_break_doLabel() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  label:
+  do {
+    if (c) {
+      break label;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''', [
+      error(HintCode.DEAD_CODE, 28, 4),
+      error(HintCode.DEAD_CODE, 85, 12),
+    ]);
+  }
+
+  test_doWhile_break_inner() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    while (c) {
+      break;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''', [
+      error(HintCode.DEAD_CODE, 19, 4),
+      error(HintCode.DEAD_CODE, 73, 12),
+      error(HintCode.DEAD_CODE, 88, 10),
+    ]);
+  }
+
+  Future<void> test_doWhile_break_outerDoLabel() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  label:
+  do {
+    do {
+      if (c) {
+        break label;
+      }
+      return;
+    } while (c);
+    print('');
+  } while (c);
+  print('');
+}
+''', [
+      error(HintCode.DEAD_CODE, 37, 4),
+      error(HintCode.DEAD_CODE, 104, 12),
+      error(HintCode.DEAD_CODE, 121, 38),
+    ]);
+  }
+
+  Future<void> test_doWhile_break_outerLabel() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  label: {
+    do {
+      if (c) {
+       break label;
+      }
+      return;
+    } while (c);
+    print('');
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 32, 4),
+      error(HintCode.DEAD_CODE, 98, 12),
+      error(HintCode.DEAD_CODE, 115, 14),
     ]);
   }
 
