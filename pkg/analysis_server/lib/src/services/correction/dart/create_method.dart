@@ -30,7 +30,7 @@ class CreateMethod extends CorrectionProducer {
   /// pair.
   CreateMethod.equalsOrHashCode()
       : _kind = _MethodKind.equalsOrHashCode,
-        canBeAppliedInBulk = true,
+        canBeAppliedInBulk = false,
         canBeAppliedToFile = true;
 
   /// Initialize a newly created instance that will create a method based on an
