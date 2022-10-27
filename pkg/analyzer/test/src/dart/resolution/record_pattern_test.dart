@@ -266,7 +266,166 @@ RecordPattern
 ''');
   }
 
-  test_recordType_empty() async {
+  test_recordType_differentShape_named_tooFew_hasName() async {
+    await assertNoErrorsInCode(r'''
+void f(() x) {
+  switch (x) {
+    case (a: var b):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: a
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: b
+        declaredElement: hasImplicitType b@47
+          type: Object?
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_recordType_differentShape_named_tooFew_noName() async {
+    await assertNoErrorsInCode(r'''
+void f(() x) {
+  switch (x) {
+    case (: var a):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@46
+          type: Object?
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_recordType_differentShape_named_tooFew_noName2() async {
+    await assertNoErrorsInCode(r'''
+void f(({int b}) x) {
+  switch (x) {
+    case (: var a):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@53
+          type: Object?
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_recordType_differentShape_named_tooMany_noName() async {
+    await assertNoErrorsInCode(r'''
+void f(({int a, int b}) x) {
+  switch (x) {
+    case (: var a):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: VariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@60
+          type: Object?
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_recordType_differentShape_positional_tooFew() async {
+    await assertNoErrorsInCode(r'''
+void f(() x) {
+  switch (x) {
+    case (var a,):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: VariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@44
+          type: Object?
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_recordType_differentShape_positional_tooMany() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) x) {
+  switch (x) {
+    case (var a,):
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: VariablePattern
+        keyword: var
+        name: a
+        declaredElement: hasImplicitType a@55
+          type: Object?
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_recordType_sameShape_empty() async {
     await assertNoErrorsInCode(r'''
 void f(() x) {
   switch (x) {
@@ -283,7 +442,7 @@ RecordPattern
 ''');
   }
 
-  test_recordType_mixed() async {
+  test_recordType_sameShape_mixed() async {
     await assertNoErrorsInCode(r'''
 void f((int, double, {String foo}) x) {
   switch (x) {
@@ -325,7 +484,7 @@ RecordPattern
 ''');
   }
 
-  test_recordType_named_hasName_unresolved() async {
+  test_recordType_sameShape_named_hasName_unresolved() async {
     await assertNoErrorsInCode(r'''
 void f(({int foo}) x) {
   switch (x) {
@@ -353,7 +512,7 @@ RecordPattern
 ''');
   }
 
-  test_recordType_named_hasName_variable() async {
+  test_recordType_sameShape_named_hasName_variable() async {
     await assertNoErrorsInCode(r'''
 void f(({int foo}) x) {
   switch (x) {
@@ -381,7 +540,7 @@ RecordPattern
 ''');
   }
 
-  test_recordType_named_noName_constant() async {
+  test_recordType_sameShape_named_noName_constant() async {
     await assertErrorsInCode(r'''
 void f(({int foo}) x) {
   switch (x) {
@@ -409,7 +568,7 @@ RecordPattern
 ''');
   }
 
-  test_recordType_named_noName_variable() async {
+  test_recordType_sameShape_named_noName_variable() async {
     await assertNoErrorsInCode(r'''
 void f(({int foo}) x) {
   switch (x) {
@@ -436,7 +595,7 @@ RecordPattern
 ''');
   }
 
-  test_recordType_named_noName_variable_nullCheck() async {
+  test_recordType_sameShape_named_noName_variable_nullCheck() async {
     await assertNoErrorsInCode(r'''
 void f(({int? foo}) x) {
   switch (x) {
@@ -465,39 +624,7 @@ RecordPattern
 ''');
   }
 
-  test_recordType_positional_tooMany() async {
-    await assertNoErrorsInCode(r'''
-void f((int,) x) {
-  switch (x) {
-    case (var a, var b):
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertResolvedNodeText(node, r'''
-RecordPattern
-  leftParenthesis: (
-  fields
-    RecordPatternField
-      pattern: VariablePattern
-        keyword: var
-        name: a
-        declaredElement: hasImplicitType a@48
-          type: int
-      fieldElement: <null>
-    RecordPatternField
-      pattern: VariablePattern
-        keyword: var
-        name: b
-        declaredElement: hasImplicitType b@55
-          type: Object?
-      fieldElement: <null>
-  rightParenthesis: )
-''');
-  }
-
-  test_recordType_positional_variable() async {
+  test_recordType_sameShape_positional_variable() async {
     await assertNoErrorsInCode(r'''
 void f((int,) x) {
   switch (x) {
