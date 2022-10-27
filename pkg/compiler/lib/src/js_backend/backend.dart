@@ -11,12 +11,8 @@ import '../common/codegen.dart';
 import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../js_model/elements.dart';
-import '../tracer.dart';
 import 'annotations.dart';
-import 'checked_mode_helpers.dart';
-import 'namer.dart';
-import 'runtime_types_codegen.dart';
-import 'runtime_types_new.dart';
+import 'codegen_inputs.dart';
 
 abstract class FunctionCompiler {
   void initialize(
@@ -238,16 +234,4 @@ class FunctionInlineCache {
     assert(checkFunction(element), failedAt(element));
     return _annotationsData.hasTryInline(element);
   }
-}
-
-/// Holds resources only used during code generation.
-class CodegenInputs {
-  final CheckedModeHelpers checkedModeHelpers = CheckedModeHelpers();
-  final RuntimeTypesSubstitutions rtiSubstitutions;
-  final RecipeEncoder rtiRecipeEncoder;
-  final Tracer tracer;
-  final FixedNames fixedNames;
-
-  CodegenInputs(this.rtiSubstitutions, this.rtiRecipeEncoder, this.tracer,
-      this.fixedNames);
 }

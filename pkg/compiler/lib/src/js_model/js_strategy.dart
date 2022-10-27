@@ -31,6 +31,7 @@ import '../inferrer_experimental/type_graph_inferrer.dart'
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_impact.dart';
+import '../js_backend/codegen_inputs.dart';
 import '../js_backend/codegen_listener.dart';
 import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/enqueuer.dart';
@@ -38,6 +39,7 @@ import '../js_backend/impact_transformer.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/namer.dart';
+import '../js_backend/namer_migrated.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'

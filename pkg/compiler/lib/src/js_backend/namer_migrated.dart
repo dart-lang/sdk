@@ -37,3 +37,20 @@ String suffixForGetInterceptor(CommonElements commonElements,
   names.sort();
   return names.join();
 }
+
+/// Fixed names usage by the namer.
+class FixedNames {
+  const FixedNames();
+
+  String get getterPrefix => r'get$';
+  String get setterPrefix => r'set$';
+  String get callPrefix => 'call';
+  String get callCatchAllName => r'call*';
+  String get callNameField => r'$callName';
+  String get defaultValuesField => r'$defaultValues';
+  String get deferredAction => r'$deferredAction';
+  String get operatorIsPrefix => r'$is';
+  String get operatorSignature => r'$signature';
+  String get requiredParameterField => r'$requiredArgCount';
+  String get rtiName => r'$ti';
+}

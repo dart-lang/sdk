@@ -14,7 +14,7 @@ import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
-import '../js_backend/backend.dart' show CodegenInputs;
+import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
@@ -161,25 +161,31 @@ class CodeEmitterTask extends CompilerTask
 /// the closed world computed by the codegen enqueuer.
 abstract class ModularEmitter implements interfaces.ModularEmitter {
   /// Returns the JS prototype of the given class [e].
+  @override
   jsAst.Expression prototypeAccess(ClassEntity e);
 
   /// Returns the JS function representing the given function.
   ///
   /// The function must be invoked and can not be used as closure.
+  @override
   jsAst.Expression staticFunctionAccess(FunctionEntity element);
 
+  @override
   jsAst.Expression staticFieldAccess(FieldEntity element);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
+  @override
   jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
 
   /// Returns the closure expression of a static function.
+  @override
   jsAst.Expression staticClosureAccess(covariant FunctionEntity element);
 
   /// Returns the JS constructor of the given element.
   ///
   /// The returned expression must only be used in a JS `new` expression.
+  @override
   jsAst.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS name representing the type [e].
@@ -192,6 +198,7 @@ abstract class ModularEmitter implements interfaces.ModularEmitter {
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
 
   /// Returns the JS code for accessing the given [constant].
+  @override
   jsAst.Expression constantReference(ConstantValue constant);
 
   /// Returns the JS code for accessing the global property [global].

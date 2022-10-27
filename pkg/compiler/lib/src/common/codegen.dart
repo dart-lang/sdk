@@ -18,7 +18,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/backend.dart';
+import '../js_backend/codegen_inputs.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/deferred_holder_expression.dart'
     show DeferredHolderExpression;
@@ -37,6 +37,8 @@ import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
+
+import 'codegen_interfaces.dart' as interfaces;
 
 class CodegenImpact extends WorldImpact {
   const CodegenImpact();
@@ -322,7 +324,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
-class CodegenRegistry {
+class CodegenRegistry implements interfaces.CodegenRegistry {
   final ElementEnvironment _elementEnvironment;
   final MemberEntity _currentElement;
   final _CodegenImpact _worldImpact;
@@ -336,81 +338,100 @@ class CodegenRegistry {
   String toString() => 'CodegenRegistry for $_currentElement';
 
   @deprecated
+  @override
   void registerInstantiatedClass(ClassEntity element) {
     registerInstantiation(_elementEnvironment.getRawType(element));
   }
 
+  @override
   void registerStaticUse(StaticUse staticUse) {
     _worldImpact.registerStaticUse(staticUse);
   }
 
+  @override
   void registerDynamicUse(DynamicUse dynamicUse) {
     _worldImpact.registerDynamicUse(dynamicUse);
   }
 
+  @override
   void registerTypeUse(TypeUse typeUse) {
     _worldImpact.registerTypeUse(typeUse);
   }
 
+  @override
   void registerConstantUse(ConstantUse constantUse) {
     _worldImpact.registerConstantUse(constantUse);
   }
 
+  @override
   void registerTypeVariableBoundsSubtypeCheck(
       DartType subtype, DartType supertype) {
     _worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
+  @override
   void registerInstantiatedClosure(FunctionEntity element) {
     _worldImpact.registerStaticUse(StaticUse.callMethod(element));
   }
 
+  @override
   void registerConstSymbol(String name) {
     _worldImpact.registerConstSymbol(name);
   }
 
+  @override
   void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
     _worldImpact.registerSpecializedGetInterceptor(classes);
   }
 
+  @override
   void registerOneShotInterceptor(Selector selector) {
     _worldImpact.registerOneShotInterceptor(selector);
   }
 
+  @override
   void registerUseInterceptor() {
     _worldImpact.registerUseInterceptor();
   }
 
+  @override
   void registerInstantiation(InterfaceType type) {
     registerTypeUse(TypeUse.instantiation(type));
   }
 
+  @override
   void registerAsyncMarker(AsyncMarker asyncMarker) {
     _worldImpact.registerAsyncMarker(asyncMarker);
   }
 
+  @override
   void registerGenericInstantiation(GenericInstantiation instantiation) {
     _worldImpact.registerGenericInstantiation(instantiation);
   }
 
+  @override
   void registerNativeBehavior(NativeBehavior nativeBehavior) {
     _worldImpact.registerNativeBehavior(nativeBehavior);
   }
 
+  @override
   void registerNativeMethod(FunctionEntity function) {
     _worldImpact.registerNativeMethod(function);
   }
 
-  void registerModularName(ModularName name) {
+  @override
+  void registerModularName(covariant ModularName name) {
     _names ??= [];
     _names.add(name);
   }
 
-  void registerModularExpression(ModularExpression expression) {
+  @override
+  void registerModularExpression(covariant ModularExpression expression) {
     _expressions ??= [];
     _expressions.add(expression);
   }
 
+  @override
   CodegenResult close(js.Fun code) {
     return CodegenResult(
         code, _worldImpact, _names ?? const [], _expressions ?? const []);
@@ -469,7 +490,7 @@ class DeserializedCodegenResults extends CodegenResults {
 }
 
 /// The code generation result for a single [MemberEntity].
-class CodegenResult {
+class CodegenResult implements interfaces.CodegenResult {
   static const String tag = 'codegen-result';
 
   final js.Fun code;
@@ -614,7 +635,8 @@ enum ModularNameKind {
   asName,
 }
 
-class ModularName extends js.Name implements js.AstContainer {
+class ModularName extends js.Name
+    implements js.AstContainer, interfaces.ModularName {
   static const String tag = 'modular-name';
 
   final ModularNameKind kind;
@@ -864,7 +886,7 @@ enum ModularExpressionKind {
 }
 
 class ModularExpression extends js.DeferredExpression
-    implements js.AstContainer {
+    implements js.AstContainer, interfaces.ModularExpression {
   static const String tag = 'modular-expression';
 
   final ModularExpressionKind kind;

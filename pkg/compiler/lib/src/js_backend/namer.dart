@@ -2071,23 +2071,6 @@ class NamingScope {
   }
 }
 
-/// Fixed names usage by the namer.
-class FixedNames {
-  const FixedNames();
-
-  String get getterPrefix => r'get$';
-  String get setterPrefix => r'set$';
-  String get callPrefix => 'call';
-  String get callCatchAllName => r'call*';
-  String get callNameField => r'$callName';
-  String get defaultValuesField => r'$defaultValues';
-  String get deferredAction => r'$deferredAction';
-  String get operatorIsPrefix => r'$is';
-  String get operatorSignature => r'$signature';
-  String get requiredParameterField => r'$requiredArgCount';
-  String get rtiName => r'$ti';
-}
-
 /// Minified version of the fixed names usage by the namer.
 // TODO(johnniwinther): This should implement [FixedNames] and minify all fixed
 // names.
@@ -2130,6 +2113,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   /// Returns a variable use for accessing interceptors.
   ///
   /// This is one of the [reservedGlobalObjectNames]
+  @override
   jsAst.Expression readGlobalObjectForInterceptors() {
     return DeferredHolderExpression.forInterceptors();
   }
@@ -2172,6 +2156,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
 
   /// Returns the name for the instance field that holds runtime type arguments
   /// on generic classes.
+  @override
   jsAst.Name get rtiFieldJsName;
 
   /// Property name on which [member] can be accessed directly,
@@ -2194,12 +2179,15 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///         this.super$A$foo(); // super.foo()
   ///     }
   ///
+  @override
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member);
 
   /// Returns the JavaScript property name used to store an instance field.
+  @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element);
 
   /// Annotated name for [method] encoding arity and named parameters.
+  @override
   jsAst.Name instanceMethodName(FunctionEntity method);
 
   /// Translates a [String] into the corresponding [Name] data structure as
@@ -2207,9 +2195,11 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///
   /// If [name] is a setter or getter name, the corresponding [GetterName] or
   /// [SetterName] data structure is used.
+  @override
   jsAst.Name asName(String name);
 
   /// Annotated name for the member being invoked by [selector].
+  @override
   jsAst.Name invocationName(Selector selector);
 
   /// Property name used for a specialization of `getInterceptor`.
@@ -2217,6 +2207,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   /// js_runtime contains a top-level `getInterceptor` method. The
   /// specializations have the same name, but with a suffix to avoid name
   /// collisions.
+  @override
   jsAst.Name nameForGetInterceptor(Set<ClassEntity> classes);
 
   /// Property name used for the one-shot interceptor method for the given
@@ -2275,12 +2266,14 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   }
 
   /// Returns the label name for [label] used as a break target.
+  @override
   String breakLabelName(LabelDefinition label) {
     return '\$${label.labelName}\$${label.target.nestingLevel}';
   }
 
   /// Returns the label name for the implicit break label needed for the jump
   /// [target].
+  @override
   String implicitBreakLabelName(JumpTarget target) {
     return '\$${target.nestingLevel}';
   }
@@ -2289,12 +2282,14 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///
   /// We sometimes handle continue targets differently from break targets,
   /// so we have special continue-only labels.
+  @override
   String continueLabelName(LabelDefinition label) {
     return 'c\$${label.labelName}\$${label.target.nestingLevel}';
   }
 
   /// Returns the label name for the implicit continue label needed for the jump
   /// [target].
+  @override
   String implicitContinueLabelName(JumpTarget target) {
     return 'c\$${target.nestingLevel}';
   }
