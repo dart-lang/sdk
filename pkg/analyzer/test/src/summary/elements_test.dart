@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import 'element_text.dart';
 import 'elements_base.dart';
 
@@ -25125,6 +25126,47 @@ library
 ''');
   }
 
+  test_inferred_type_could_not_infer() async {
+    var library = await buildLibrary(r'''
+class C<P extends num> {
+  factory C(Iterable<P> p) => C._();
+  C._();
+}
+
+var c = C([]);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant P @8
+            bound: num
+            defaultType: num
+        constructors
+          factory @35
+            parameters
+              requiredPositional p @49
+                type: Iterable<P>
+          _ @66
+            periodOffset: 65
+            nameEnd: 67
+    topLevelVariables
+      static c @78
+        typeInferenceError: couldNotInfer
+        type: C<dynamic>
+    accessors
+      synthetic static get c @-1
+        returnType: C<dynamic>
+      synthetic static set c @-1
+        parameters
+          requiredPositional _c @-1
+            type: C<dynamic>
+        returnType: void
+''');
+  }
+
   test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
     var library = await buildLibrary('''
 class A {
@@ -25154,6 +25196,114 @@ library
         methods
           static baz @100
             returnType: int Function(double)
+''');
+  }
+
+  test_inferred_type_inference_failure_on_function_invocation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+int m<T>() => 1;
+var x = m();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @21
+        type: int
+    accessors
+      synthetic static get x @-1
+        returnType: int
+      synthetic static set x @-1
+        parameters
+          requiredPositional _x @-1
+            type: int
+        returnType: void
+    functions
+      m @4
+        typeParameters
+          covariant T @6
+        returnType: int
+''');
+  }
+
+  test_inferred_type_inference_failure_on_generic_invocation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+int Function<T>()? m = <T>() => 1;
+int Function<T>() n = <T>() => 2;
+var x = (m ?? n)();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static m @19
+        type: int Function<T>()?
+      static n @53
+        type: int Function<T>()
+      static x @73
+        type: int
+    accessors
+      synthetic static get m @-1
+        returnType: int Function<T>()?
+      synthetic static set m @-1
+        parameters
+          requiredPositional _m @-1
+            type: int Function<T>()?
+        returnType: void
+      synthetic static get n @-1
+        returnType: int Function<T>()
+      synthetic static set n @-1
+        parameters
+          requiredPositional _n @-1
+            type: int Function<T>()
+        returnType: void
+      synthetic static get x @-1
+        returnType: int
+      synthetic static set x @-1
+        parameters
+          requiredPositional _x @-1
+            type: int
+        returnType: void
+''');
+  }
+
+  test_inferred_type_inference_failure_on_instance_creation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+import 'dart:collection';
+var m = HashMap();
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:collection
+  definingUnit
+    topLevelVariables
+      static m @30
+        typeInferenceError: inferenceFailureOnInstanceCreation
+        type: HashMap<dynamic, dynamic>
+    accessors
+      synthetic static get m @-1
+        returnType: HashMap<dynamic, dynamic>
+      synthetic static set m @-1
+        parameters
+          requiredPositional _m @-1
+            type: HashMap<dynamic, dynamic>
+        returnType: void
 ''');
   }
 
@@ -26338,6 +26488,7 @@ library
       class B @56
         fields
           c3 @66
+            typeInferenceError: couldNotInfer
             type: C<C<Object?>>
         constructors
           synthetic @-1
@@ -26353,6 +26504,7 @@ library
       static c @29
         type: C<C<dynamic>>
       static c2 @36
+        typeInferenceError: couldNotInfer
         type: C<C<Object?>>
     accessors
       synthetic static get c @-1
@@ -26396,6 +26548,7 @@ library
       class B @71
         fields
           c3 @81
+            typeInferenceError: couldNotInfer
             type: C<C<dynamic>*>*
         constructors
           synthetic @-1
@@ -26411,6 +26564,7 @@ library
       static c @44
         type: C<C<dynamic>*>*
       static c2 @51
+        typeInferenceError: couldNotInfer
         type: C<C<dynamic>*>*
     accessors
       synthetic static get c @-1

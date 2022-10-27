@@ -31,6 +31,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 
 /// Fresh type parameters created to unify two lists of type parameters.
 class RelatedTypeParameters {
@@ -493,7 +494,13 @@ class TypeSystemImpl implements TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferrer = GenericInferrer(this, fnType.typeFormals,
-        errorReporter: errorReporter,
+        inferenceErrorListener: errorReporter == null
+            ? null
+            : InferenceErrorReporter(
+                errorReporter,
+                isNonNullableByDefault: isNonNullableByDefault,
+                isGenericMetadataEnabled: genericMetadataIsEnabled,
+              ),
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
@@ -1533,6 +1540,7 @@ class TypeSystemImpl implements TypeSystem {
       required DartType declaredReturnType,
       required DartType? contextReturnType,
       ErrorReporter? errorReporter,
+      InferenceErrorListener? inferenceErrorListener,
       AstNode? errorNode,
       required bool genericMetadataIsEnabled,
       bool isConst = false}) {
@@ -1540,8 +1548,15 @@ class TypeSystemImpl implements TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
+    if (errorReporter != null) {
+      inferenceErrorListener ??= InferenceErrorReporter(
+        errorReporter,
+        isNonNullableByDefault: isNonNullableByDefault,
+        isGenericMetadataEnabled: genericMetadataIsEnabled,
+      );
+    }
     var inferrer = GenericInferrer(this, typeParameters,
-        errorReporter: errorReporter,
+        inferenceErrorListener: inferenceErrorListener,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
 

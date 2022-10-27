@@ -97,6 +97,11 @@ class ConstantInitializersResolver {
       var astResolver = AstResolver(linker, _unitElement, _scope);
       astResolver.resolveExpression(() => variable.initializer!,
           contextType: contextType);
+      var errors = astResolver.errors;
+      if (errors.isNotEmpty) {
+        assert(errors.length == 1, 'Unexpected errors: $errors');
+        element.typeInferenceError = errors.first;
+      }
     }
 
     if (element is ConstVariableElement) {
@@ -533,5 +538,10 @@ class _VariableInferenceNode extends _InferenceNode {
         enclosingClassElement: enclosingClassElement);
     astResolver.resolveExpression(() => _node.initializer!,
         buildElements: forDependencies);
+    var errors = astResolver.errors;
+    if (errors.isNotEmpty) {
+      assert(errors.length == 1, 'Unexpected errors: $errors');
+      _element.typeInferenceError = errors.first;
+    }
   }
 }

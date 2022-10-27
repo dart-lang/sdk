@@ -39,6 +39,15 @@ void f(void Function<T>() m) {
     ]);
   }
 
+  test_functionType_noInference_topLevel() async {
+    await assertErrorsInCode('''
+int m<T>() => 1;
+var x = m();
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 25, 1),
+    ]);
+  }
+
   test_functionType_notGeneric() async {
     await assertNoErrorsInCode('''
 void f(void Function() m) {
