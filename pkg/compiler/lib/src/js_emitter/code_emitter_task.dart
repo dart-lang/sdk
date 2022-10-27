@@ -52,9 +52,11 @@ class CodeEmitterTask extends CompilerTask
   /// The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
   /// Currently used for testing and dump-info.
+  @override
   Set<ClassEntity> neededClasses;
 
   /// See [neededClasses] but for class types.
+  @override
   Set<ClassEntity> neededClassTypes;
 
   @override
@@ -72,6 +74,7 @@ class CodeEmitterTask extends CompilerTask
     return _nativeEmitter;
   }
 
+  @override
   Emitter /*!*/ get emitter {
     assert(_emitter != null,
         failedAt(NO_LOCATION_SPANNABLE, "Emitter has not been created yet."));
@@ -209,7 +212,7 @@ abstract class ModularEmitter implements interfaces.ModularEmitter {
 /// closed world computed by the codegen enqueuer.
 ///
 /// These methods are _not_ available during modular code generation.
-abstract class Emitter implements ModularEmitter {
+abstract class Emitter implements ModularEmitter, interfaces.Emitter {
   Program get programForTesting;
 
   List<PreFragment> get preDeferredFragmentsForTesting;
@@ -218,9 +221,11 @@ abstract class Emitter implements ModularEmitter {
   Set<OutputUnit> get omittedOutputUnits;
 
   /// A map of loadId to list of [FinalizedFragments].
+  @override
   Map<String, List<FinalizedFragment>> get finalizedFragmentsToLoad;
 
   /// The [FragmentMerger] itself.
+  @override
   FragmentMerger get fragmentMerger;
 
   /// Uses the [programBuilder] to generate a model of the program, emits
@@ -240,6 +245,7 @@ abstract class Emitter implements ModularEmitter {
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 
   /// Returns the size of the code generated for a given output [unit].
+  @override
   int generatedSize(OutputUnit unit);
 }
 

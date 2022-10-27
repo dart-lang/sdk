@@ -125,6 +125,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   FunctionCompiler get functionCompiler => _functionCompiler;
 
+  @override
   CodeEmitterTask get emitterTask => _emitterTask;
 
   Namer get namerForTesting => _namer;

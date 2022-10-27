@@ -24,6 +24,7 @@ import 'compiler_interfaces.dart'
     show
         CompilerDeferredLoadingFacade,
         CompilerDiagnosticsFacade,
+        CompilerDumpInfoFacade,
         CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade;
@@ -82,6 +83,7 @@ class Compiler
     implements
         CompilerDiagnosticsFacade,
         CompilerDeferredLoadingFacade,
+        CompilerDumpInfoFacade,
         CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade {

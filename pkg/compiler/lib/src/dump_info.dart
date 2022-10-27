@@ -22,7 +22,7 @@ import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common/ram_usage.dart';
-import 'compiler.dart' show Compiler;
+import 'compiler_interfaces.dart' show CompilerDumpInfoFacade;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'dump_info_javascript_monitor.dart';
@@ -33,14 +33,14 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
-import 'js_model/js_strategy.dart';
+import 'js_model/js_strategy_interfaces.dart';
 import 'js_backend/field_analysis.dart';
 import 'universe/world_impact.dart' show WorldImpact;
 import 'util/sink_adapter.dart';
 import 'world.dart' show JClosedWorld;
 
 class ElementInfoCollector {
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -449,7 +449,7 @@ class ElementInfoCollector {
 
 class KernelInfoCollector {
   final ir.Component component;
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
@@ -750,7 +750,7 @@ class EntityDisambiguator {
 /// analysis.
 class DumpInfoAnnotator {
   final KernelInfoCollector kernelInfo;
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -1153,7 +1153,7 @@ abstract class InfoReporter {
 
 class DumpInfoTask extends CompilerTask
     implements DumpInfoJavaScriptMonitor, InfoReporter {
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final bool useBinaryFormat;
 
   DumpInfoTask(this.compiler)
