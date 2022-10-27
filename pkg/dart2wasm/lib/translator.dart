@@ -110,6 +110,7 @@ class Translator {
   late final Class typeUniverseClass;
   late final Class symbolClass;
   late final Class invocationClass;
+  late final Class noSuchMethodErrorClass;
   late final Procedure wasmFunctionCall;
   late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
@@ -137,6 +138,7 @@ class Translator {
   late final Procedure nullToString;
   late final Procedure nullNoSuchMethod;
   late final Procedure createNormalizedFutureOrType;
+  late final Procedure noSuchMethodErrorThrowWithInvocation;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -346,6 +348,9 @@ class Translator {
       w.NumType.i64: boxedIntClass,
       w.NumType.f64: boxedDoubleClass,
     };
+    noSuchMethodErrorClass = lookupCore("NoSuchMethodError");
+    noSuchMethodErrorThrowWithInvocation = noSuchMethodErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwWithInvocation");
   }
 
   // Finds the `main` method for a given library which is assumed to contain

@@ -94,7 +94,7 @@ class DynamicDispatcher {
     }
   }
 
-  w.ValueType callDynamic(CodeGenerator codeGen, DynamicInvocation node) {
+  w.ValueType _callDynamic(CodeGenerator codeGen, DynamicInvocation node) {
     // Handle general dynamic invocation.
     w.Instructions b = codeGen.b;
     w.DefinedFunction function = codeGen.function;
@@ -178,7 +178,38 @@ class DynamicDispatcher {
     // IC like approach using globals, rewiring logic, and a state machine.
     // TODO(joshualitt): Handle the case of a null receiver.
     w.Local cidLocal = addLocal(w.NumType.i32);
+
+    // Outer block searches through the methods and invokes the method if it
+    // finds one
+    b.block([], [translator.topInfo.nullableType]);
+
+    // Inner block checks whether the receiver is null. If it is, then throws
+    // an exception.
+    //
+    // `null` has the same members as `Object`[*], and when the member in a
+    // get, set, or invocation expression is known to be a member of `Object`
+    // the Kernal AST for the expression is [InstanceGet], [InstanceSet], or
+    // [InstanceInvocation]. So here we know that the member is not a member of
+    // `Object` (and `null`) and we just throw an exception.
+    //
+    // [*]: Except `operator ==`, but this difference cannot be observed as
+    // it's not possible to tear-off an operator.
+    final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
     b.local_get(receiverVar);
+    b.br_on_non_null(nullBlock);
+
+    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
+    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
+    // have a `Null` class in dart2wasm so we throw directly.
+    b.local_get(receiverVar);
+    _createInvocationObject(function, node, maxParameterCount,
+        passedParameterCountLocal, pushArgumentForNoSuchMethod);
+    w.BaseFunction f = translator.functions
+        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
+    b.call(f);
+    b.unreachable();
+    b.end(); // nullBlock
+
     b.struct_get(translator.topInfo.struct, FieldIndex.classId);
     b.local_set(cidLocal);
     for (SelectorInfo selector in selectors) {
@@ -223,6 +254,9 @@ class DynamicDispatcher {
     // Handle the case where no test succeeded.
     _callNoSuchMethod(function, node, receiverVar, cidLocal, maxParameterCount,
         passedParameterCountLocal, pushArgumentForNoSuchMethod);
+
+    b.end();
+
     return translator.topInfo.nullableType;
   }
 
@@ -291,60 +325,26 @@ class DynamicDispatcher {
   }
 
   /// Creates an [Invocation] object and calls [noSuchMethod] virtually on the
-  /// given receiver.
+  /// given non-null receiver.
   w.ValueType _callNoSuchMethod(
       w.DefinedFunction function,
       Expression node,
-      w.Local receiverLocal,
+      w.Local receiverVar,
       w.Local cidLocal,
       int maxParameterCount,
       w.Local currentParameterCountLocal,
       void pushArgumentForNoSuchMethod(int index)) {
     w.Instructions b = function.body;
-    void createInvocationObject() {
-      w.ValueType symbolValueType =
-          translator.classInfo[translator.symbolClass]!.nonNullableType;
-      if (node is DynamicGet) {
-        translator.constants.instantiateConstant(
-            function, b, SymbolConstant(node.name.text, null), symbolValueType);
-        w.BaseFunction targetFunction = translator.functions
-            .getFunction(translator.invocationGetterFactory.reference);
-        b.call(targetFunction);
-      } else if (node is DynamicSet) {
-        translator.constants.instantiateConstant(function, b,
-            SymbolConstant('${node.name.text}=', null), symbolValueType);
-        pushArgumentForNoSuchMethod(0);
-        w.BaseFunction targetFunction = translator.functions
-            .getFunction(translator.invocationSetterFactory.reference);
-        b.call(targetFunction);
-      } else if (node is DynamicInvocation) {
-        translator.constants.instantiateConstant(
-            function, b, SymbolConstant(node.name.text, null), symbolValueType);
-
-        /// TODO(joshualitt): Consider supporting generic functions.
-        makeList(function, maxParameterCount, currentParameterCountLocal,
-            pushArgumentForNoSuchMethod);
-
-        /// TODO(joshualitt): Consider supporting named arguments.
-        translator.constants.instantiateConstant(
-            function, b, NullConstant(), translator.objectInfo.nullableType);
-        w.BaseFunction targetFunction = translator.functions
-            .getFunction(translator.invocationMethodFactory.reference);
-        b.call(targetFunction);
-      } else {
-        throw 'Unexpected node for noSuchMethod: $node';
-      }
-    }
-
     Procedure noSuchMethod = translator.objectNoSuchMethod;
     Reference noSuchMethodReference = noSuchMethod.reference;
     SelectorInfo selector =
         translator.dispatchTable.selectorForTarget(noSuchMethodReference);
     w.FunctionType signature = selector.signature;
     b.comment("Dynamic invocation of '${selector.name}'");
-    b.local_get(receiverLocal);
+    b.local_get(receiverVar);
     b.ref_as_non_null();
-    createInvocationObject();
+    _createInvocationObject(function, node, maxParameterCount,
+        currentParameterCountLocal, pushArgumentForNoSuchMethod);
     // TODO(joshualitt): Under some cases we need to provide parameter defaults
     // to the invocation object. However, first we must fix the issue of how to
     // handle different default values.
@@ -358,6 +358,47 @@ class DynamicDispatcher {
     b.call_indirect(signature);
     translator.functions.activateSelector(selector);
     return translator.topInfo.nullableType;
+  }
+
+  void _createInvocationObject(
+      w.DefinedFunction function,
+      Expression node,
+      int maxParameterCount,
+      w.Local currentParameterCountLocal,
+      void pushArgumentForNoSuchMethod(int index)) {
+    final w.Instructions b = function.body;
+    final w.ValueType symbolValueType =
+        translator.classInfo[translator.symbolClass]!.nonNullableType;
+    if (node is DynamicGet) {
+      translator.constants.instantiateConstant(
+          function, b, SymbolConstant(node.name.text, null), symbolValueType);
+      w.BaseFunction targetFunction = translator.functions
+          .getFunction(translator.invocationGetterFactory.reference);
+      b.call(targetFunction);
+    } else if (node is DynamicSet) {
+      translator.constants.instantiateConstant(function, b,
+          SymbolConstant('${node.name.text}=', null), symbolValueType);
+      pushArgumentForNoSuchMethod(0);
+      w.BaseFunction targetFunction = translator.functions
+          .getFunction(translator.invocationSetterFactory.reference);
+      b.call(targetFunction);
+    } else if (node is DynamicInvocation) {
+      translator.constants.instantiateConstant(
+          function, b, SymbolConstant(node.name.text, null), symbolValueType);
+
+      // TODO(joshualitt): Consider supporting generic functions.
+      makeList(function, maxParameterCount, currentParameterCountLocal,
+          pushArgumentForNoSuchMethod);
+
+      // TODO(joshualitt): Consider supporting named arguments.
+      translator.constants.instantiateConstant(
+          function, b, NullConstant(), translator.objectInfo.nullableType);
+      w.BaseFunction targetFunction = translator.functions
+          .getFunction(translator.invocationMethodFactory.reference);
+      b.call(targetFunction);
+    } else {
+      throw 'Unexpected node for noSuchMethod: $node';
+    }
   }
 
   // Whether or not we should emit a dynamic trampoline for a given dynamic
@@ -489,7 +530,7 @@ class DynamicDispatcher {
 
       // Trampolines aren't supported for all [DynamicInvocation]s.
       if (!shouldEmitTrampoline(node, maxParameterCount)) {
-        return callDynamic(codeGen, node);
+        return _callDynamic(codeGen, node);
       }
       type = DynamicSelectorType.method;
       name = node.name.text;
