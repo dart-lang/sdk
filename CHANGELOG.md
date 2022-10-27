@@ -1,3 +1,7 @@
+# 1.29.0-dev
+
+- new lint: `implicit_call_tearoffs`
+
 # 1.28.0
 
 - update `avoid_redundant_argument_values` to work with enum declarations
