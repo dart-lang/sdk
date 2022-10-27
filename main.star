@@ -480,8 +480,38 @@ dart.try_builder(
         "$dart/build": {
             "timeout": 100 * 60,  # 100 minutes,
         },
+        "archs": ["ia32", "x64"],
+        "dartdoc_arch": "x64",
+        "disable_bcid": True,
+        "upload_version": True,
     },
+    recipe = "release/sdk",
 )
+
+dart.try_builder(
+    "dart-sdk-linux-arm64",
+    properties = {
+        "$dart/build": {
+            "timeout": 100 * 60,  # 100 minutes,
+        },
+        "archs": ["arm", "arm64"],
+        "disable_bcid": True,
+    },
+    recipe = "release/sdk",
+)
+
+dart.try_builder(
+    "dart-sdk-linux-riscv64",
+    properties = {
+        "$dart/build": {
+            "timeout": 100 * 60,  # 100 minutes,
+        },
+        "archs": ["riscv64"],
+        "disable_bcid": True,
+    },
+    recipe = "release/sdk",
+)
+
 dart.try_builder(
     "dart-sdk-mac",
     dimensions = mac,
@@ -503,9 +533,16 @@ dart.try_builder(
 dart.try_builder(
     "dart-sdk-win",
     dimensions = windows,
-    properties = {"archs": ["ia32", "x64", "arm64"], "disable_bcid": True},
+    properties = {"archs": ["ia32", "x64"], "disable_bcid": True},
     recipe = "release/sdk",
     on_cq = True,
+)
+
+dart.try_builder(
+    "dart-sdk-win-arm64",
+    dimensions = windows,
+    properties = {"archs": ["arm64"], "disable_bcid": True},
+    recipe = "release/sdk",
 )
 
 # ddc
