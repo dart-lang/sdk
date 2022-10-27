@@ -331,7 +331,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
     return true;
   }
 
-  /// Return [true] if the parameter has no default value
+  /// Return `true` if the parameter has no default value
   /// and the parameter in the super constructor has a default one
   bool _nullInitializer(
       FormalParameter parameter, ParameterElement superParameter) {

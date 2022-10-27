@@ -17539,8 +17539,8 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
       ASSERT(object->IsOld());
       // N.B. The pointer is embedded in the Instructions object, but visited
       // through the Code object.
-      code.ptr()->untag()->StorePointerUnaligned(
-          reinterpret_cast<ObjectPtr*>(addr), object->ptr(), thread);
+      code.StorePointerUnaligned(reinterpret_cast<ObjectPtr*>(addr),
+                                 object->ptr(), thread);
     }
 
     // Write protect instructions and, if supported by OS, use dual mapping

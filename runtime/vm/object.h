@@ -713,6 +713,12 @@ class Object {
     ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
                                                                          value);
   }
+  template <typename type>
+  void StorePointerUnaligned(type const* addr,
+                             type value,
+                             Thread* thread) const {
+    ptr()->untag()->StorePointerUnaligned<type>(addr, value, thread);
+  }
 
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
@@ -6979,6 +6985,8 @@ class Code : public Object {
   friend class UntaggedFunction;
   friend class CallSiteResetter;
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
+  friend class InstanceCall;       // for StorePointerUnaligned
+  friend class StaticCall;         // for StorePointerUnaligned
 };
 
 class Context : public Object {

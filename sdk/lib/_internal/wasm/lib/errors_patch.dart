@@ -107,6 +107,11 @@ class NoSuchMethodError {
         _namedArguments = namedArguments,
         _existingArgumentNames = existingArgumentNames;
 
+  @pragma("wasm:entry-point")
+  static Never _throwWithInvocation(Object? receiver, Invocation invocation) {
+    throw NoSuchMethodError.withInvocation(receiver, invocation);
+  }
+
   @patch
   String toString() {
     StringBuffer sb = StringBuffer('');

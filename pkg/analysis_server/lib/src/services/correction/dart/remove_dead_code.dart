@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -96,8 +97,15 @@ class RemoveDeadCode extends CorrectionProducer {
     }
   }
 
+  /// Return `true` if the fix is processed.
   Future<bool> _computeDoStatement(
       ChangeBuilder builder, DoStatement statement) async {
+    if (statement.hasBreakStatement) {
+      // TODO(asashour) consider modifying the do statement to a label
+      // https://github.com/dart-lang/sdk/issues/49091#issuecomment-1135489675
+      return true;
+    }
+
     var problemMessage = diagnostic?.problemMessage;
     if (problemMessage != null) {
       var problemOffset = problemMessage.offset;
