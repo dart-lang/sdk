@@ -245,9 +245,15 @@ This is a patch release that:
 
 #### `dart:core`
 
-- The `Uri` class will parse a backslash in the path or the authority separator
-  of a URI as a forward slash. This affects the `Uri` constructor's `path`
-  parameter, and the `Uri.parse` method.
+- **Security advisory** [CVE-2022-3095](https://github.com/dart-lang/sdk/security/advisories/GHSA-m9pm-2598-57rj):
+  There is a auth bypass vulnerability in Dart SDK, specifically `dart:uri` core
+  library, used to parse and validate URLs. This library is vulnerable to the
+  backslash-trick wherein backslash is not recognized as equivalent to forward
+  slash in URLs.
+
+  The `Uri` class has been changed to parse a backslash in the path or the
+  authority separator of a URI as a forward slash. This affects the `Uri`
+  constructor's `path` parameter, and the `Uri.parse` method.
   This change was made to not diverge as much from the browser `URL` behavior.
   The Dart `Uri` class is still not an implementation of the same standard
   as the browser's `URL` implementation.
