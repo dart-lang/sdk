@@ -22,13 +22,13 @@ namespace dart {
 //  <- return address
 class UnoptimizedCall : public ValueObject {
  public:
-  explicit UnoptimizedCall(uword return_address)
-      : start_(return_address - kPatternSize) {
+  UnoptimizedCall(uword return_address, const Code& code)
+      : code_(code), start_(return_address - kPatternSize) {
     ASSERT(IsValid());
   }
 
   ObjectPtr ic_data() const {
-    return *reinterpret_cast<ObjectPtr*>(start_ + 1);
+    return LoadUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1));
   }
 
   static const int kMovInstructionSize = 5;
@@ -48,6 +48,7 @@ class UnoptimizedCall : public ValueObject {
   uword call_address() const { return start_ + 2 * kMovInstructionSize; }
 
  protected:
+  const Code& code_;
   uword start_;
 
  private:
@@ -56,16 +57,17 @@ class UnoptimizedCall : public ValueObject {
 
 class NativeCall : public UnoptimizedCall {
  public:
-  explicit NativeCall(uword return_address) : UnoptimizedCall(return_address) {}
+  NativeCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {}
 
   NativeFunction native_function() const {
-    return *reinterpret_cast<NativeFunction*>(start_ + 1);
+    return LoadUnaligned(reinterpret_cast<NativeFunction*>(start_ + 1));
   }
 
   void set_native_function(NativeFunction func) const {
     Thread::Current()->isolate_group()->RunWithStoppedMutators([&]() {
       WritableInstructionsScope writable(start_ + 1, sizeof(func));
-      *reinterpret_cast<NativeFunction*>(start_ + 1) = func;
+      StoreUnaligned(reinterpret_cast<NativeFunction*>(start_ + 1), func);
     });
   }
 
@@ -78,8 +80,8 @@ class NativeCall : public UnoptimizedCall {
 // ff5707      call [edi+<monomorphic-entry-offset>]
 class InstanceCall : public UnoptimizedCall {
  public:
-  explicit InstanceCall(uword return_address)
-      : UnoptimizedCall(return_address) {
+  InstanceCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {
 #if defined(DEBUG)
     Object& test_data = Object::Handle(data());
     ASSERT(test_data.IsArray() || test_data.IsICData() ||
@@ -94,14 +96,20 @@ class InstanceCall : public UnoptimizedCall {
     return LoadUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1));
   }
   void set_data(const Object& data) const {
-    StoreUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1), data.ptr());
+    // N.B. The pointer is embedded in the Instructions object, but visited
+    // through the Code object.
+    code_.StorePointerUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1),
+                                data.ptr(), Thread::Current());
   }
 
   CodePtr target() const {
     return LoadUnaligned(reinterpret_cast<CodePtr*>(start_ + 6));
   }
   void set_target(const Code& target) const {
-    StoreUnaligned(reinterpret_cast<CodePtr*>(start_ + 6), target.ptr());
+    // N.B. The pointer is embedded in the Instructions object, but visited
+    // through the Code object.
+    code_.StorePointerUnaligned(reinterpret_cast<CodePtr*>(start_ + 6),
+                                target.ptr(), Thread::Current());
   }
 
  private:
@@ -110,8 +118,8 @@ class InstanceCall : public UnoptimizedCall {
 
 class UnoptimizedStaticCall : public UnoptimizedCall {
  public:
-  explicit UnoptimizedStaticCall(uword return_address)
-      : UnoptimizedCall(return_address) {
+  UnoptimizedStaticCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {
 #if defined(DEBUG)
     ICData& test_ic_data = ICData::Handle();
     test_ic_data ^= ic_data();
@@ -130,8 +138,9 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 //  <- return address
 class StaticCall : public ValueObject {
  public:
-  explicit StaticCall(uword return_address)
-      : start_(return_address - (kMovInstructionSize + kCallInstructionSize)) {
+  StaticCall(uword return_address, const Code& code)
+      : code_(code),
+        start_(return_address - (kMovInstructionSize + kCallInstructionSize)) {
     ASSERT(IsValid());
   }
 
@@ -141,15 +150,14 @@ class StaticCall : public ValueObject {
   }
 
   CodePtr target() const {
-    const uword imm = *reinterpret_cast<uword*>(start_ + 1);
-    return static_cast<CodePtr>(imm);
+    return LoadUnaligned(reinterpret_cast<CodePtr*>(start_ + 1));
   }
 
   void set_target(const Code& target) const {
-    uword* target_addr = reinterpret_cast<uword*>(start_ + 1);
-    uword imm = static_cast<uword>(target.ptr());
-    *target_addr = imm;
-    CPU::FlushICache(start_ + 1, sizeof(imm));
+    // N.B. The pointer is embedded in the Instructions object, but visited
+    // through the Code object.
+    code_.StorePointerUnaligned(reinterpret_cast<CodePtr*>(start_ + 1),
+                                target.ptr(), Thread::Current());
   }
 
   static const int kMovInstructionSize = 5;
@@ -162,6 +170,7 @@ class StaticCall : public ValueObject {
 
   uword call_address() const { return start_ + kMovInstructionSize; }
 
+  const Code& code_;
   uword start_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
@@ -170,7 +179,7 @@ class StaticCall : public ValueObject {
 CodePtr CodePatcher::GetStaticCallTargetAt(uword return_address,
                                            const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  StaticCall call(return_address);
+  StaticCall call(return_address, code);
   return call.target();
 }
 
@@ -183,7 +192,7 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
   thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     ASSERT(code.ContainsInstructionAt(return_address));
-    StaticCall call(return_address);
+    StaticCall call(return_address, code);
     call.set_target(new_target);
   });
 }
@@ -196,7 +205,7 @@ CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
                                        const Code& caller_code,
                                        Object* data) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  InstanceCall call(return_address);
+  InstanceCall call(return_address, caller_code);
   if (data != NULL) {
     *data = call.data();
   }
@@ -225,7 +234,7 @@ void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
   const Instructions& instrs =
       Instructions::Handle(zone, caller_code.instructions());
   WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
-  InstanceCall call(return_address);
+  InstanceCall call(return_address, caller_code);
   call.set_data(data);
   call.set_target(target);
 }
@@ -234,7 +243,7 @@ FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                     const Code& caller_code,
                                                     ICData* ic_data_result) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  UnoptimizedStaticCall static_call(return_address);
+  UnoptimizedStaticCall static_call(return_address, caller_code);
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
   if (ic_data_result != NULL) {
