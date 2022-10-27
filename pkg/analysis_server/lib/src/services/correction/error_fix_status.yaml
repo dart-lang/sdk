@@ -1265,6 +1265,8 @@ HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
+HintCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+  status: needsFix
 HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
   status: hasFix
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:

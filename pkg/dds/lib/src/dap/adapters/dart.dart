@@ -1968,6 +1968,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       allowTruncatedValue: false,
       includeQuotesAroundString: false,
     )
+        // TODO: Fix this static error.
+        // ignore: body_might_complete_normally_catch_error
         .catchError((e) {
       // Fetching strings from the server may throw if they have been
       // collected since (for example if a Hot Restart occurs while

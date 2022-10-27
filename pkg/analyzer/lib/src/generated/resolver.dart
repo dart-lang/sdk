@@ -523,7 +523,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required FunctionBody body,
     required SyntacticEntity errorNode,
   }) {
-    if (!_isNonNullableByDefault) return;
+    if (!_isNonNullableByDefault) {
+      return;
+    }
     if (!flowAnalysis.flow!.isReachable) {
       return;
     }
@@ -535,6 +537,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     var returnType = bodyContext.contextType;
     if (returnType == null) {
+      if (errorNode is BlockFunctionBody) {
+        _checkForFutureCatchErrorOnError(errorNode);
+      }
       return;
     }
 
@@ -2979,6 +2984,43 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitYieldStatement(YieldStatement node) {
     checkUnreachableNode(node);
     _yieldStatementResolver.resolve(node);
+  }
+
+  /// Check whether [errorNode] is an `onError` callback in a
+  /// [Future.catchError] call, which might return an implicit `null`.
+  void _checkForFutureCatchErrorOnError(BlockFunctionBody errorNode) {
+    // Check for "body  might complete normally" in a `Future.catchError`'s
+    //`onError` callback.
+    final parent = errorNode.parent?.parent;
+    if (parent is! ArgumentList) {
+      return;
+    }
+    final invocation = parent.parent;
+    if (invocation is! MethodInvocation) {
+      return;
+    }
+    final targetType = invocation.realTarget?.staticType;
+    if (invocation.methodName.name == 'catchError' &&
+        targetType is InterfaceType) {
+      final instanceOfFuture =
+          targetType.asInstanceOf(typeProvider.futureElement);
+      if (instanceOfFuture != null) {
+        final targetFutureType = instanceOfFuture.typeArguments.first;
+        final expectedReturnType = typeProvider.futureOrType(targetFutureType);
+        final returnTypeBase = typeSystem.futureOrBase(expectedReturnType);
+        if (returnTypeBase.isVoid ||
+            returnTypeBase.isDynamic ||
+            returnTypeBase.isDartCoreNull) {
+          return;
+        }
+
+        errorReporter.reportErrorForToken(
+          HintCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
+          errorNode.block.leftBracket,
+          [returnTypeBase],
+        );
+      }
+    }
   }
 
   void _checkTopLevelCycle(VariableDeclaration node) {
