@@ -28,7 +28,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
         templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
-import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
+import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 
 import 'src/js_interop.dart';
 
@@ -233,6 +233,7 @@ class JsInteropChecks extends RecursiveVisitor {
       _libraryIsGlobalNamespace = true;
     }
     super.visitLibrary(lib);
+    exportChecker.visitLibrary(lib);
     _libraryIsGlobalNamespace = false;
     _libraryHasJSAnnotation = false;
     _libraryExtensionsIndex = null;
@@ -373,12 +374,6 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkNoNamedParameters(constructor.function);
     }
-  }
-
-  @override
-  void visitExtension(Extension extension) {
-    exportChecker.visitExtension(extension);
-    super.visitExtension(extension);
   }
 
   /// Reports an error if [functionNode] has named parameters.

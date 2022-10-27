@@ -3187,6 +3187,26 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
 
+    ExpressionInferenceResult? recordFieldAccessResult =
+        resolveRecordFieldAccess(receiver, receiverType, name, fileOffset);
+    if (recordFieldAccessResult != null) {
+      // TODO(johnniwinther,paulberry): Should we call
+      //  `flowAnalysis.propertyGet` for record field access?
+      // This is a record field access followed by a function invocation.
+      return inferMethodInvocation(
+          visitor,
+          arguments.fileOffset,
+          nullAwareGuards,
+          recordFieldAccessResult.expression,
+          recordFieldAccessResult.inferredType,
+          callName,
+          arguments,
+          typeContext,
+          isExpressionInvocation: false,
+          isImplicitCall: true,
+          hoistedExpressions: hoistedExpressions);
+    }
+
     target ??= findInterfaceMember(receiverType, name, fileOffset,
         instrumented: true,
         includeExtensionMethods: true,
@@ -4093,6 +4113,55 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             text, nearest),
         charOffset,
         length);
+  }
+
+  /// Resolve access of [name] on [receiver] with the given receiver type, if
+  /// it is either an indexed or named record access, and returns the
+  /// corresponding [ExpressionInferenceResult]. Otherwise returns `null`.
+  ExpressionInferenceResult? resolveRecordFieldAccess(
+      Expression receiver, DartType receiverType, Name name, int fileOffset) {
+    ExpressionInferenceResult? result;
+    DartType recordType = resolveTypeParameter(receiverType);
+    if (recordType is RecordType) {
+      // TODO(johnniwinther): Handle nullable record types and null shorting.
+      String text = name.text;
+      if (text.startsWith('\$')) {
+        int? index = int.tryParse(text.substring(1));
+        if (index != null) {
+          if (index < recordType.positional.length) {
+            DartType fieldType = recordType.positional[index];
+            result = new ExpressionInferenceResult(
+                fieldType,
+                new RecordIndexGet(receiver, recordType, index)
+                  ..fileOffset = fileOffset);
+          }
+        }
+      }
+      if (result == null) {
+        for (NamedType field in recordType.named) {
+          if (field.name == text) {
+            result = new ExpressionInferenceResult(
+                field.type,
+                new RecordNameGet(receiver, recordType, text)
+                  ..fileOffset = fileOffset);
+            break;
+          }
+        }
+      }
+    }
+    if (result != null && !isTopLevel && receiverType.isPotentiallyNullable) {
+      result = wrapExpressionInferenceResultInProblem(
+          result,
+          templateNullablePropertyAccessError.withArguments(
+              name.text, receiverType, isNonNullableByDefault),
+          fileOffset,
+          name.text.length,
+          context: getWhyNotPromotedContext(
+              flowAnalysis.whyNotPromoted(receiver)(),
+              result.expression,
+              (type) => !type.isPotentiallyNullable));
+    }
+    return result;
   }
 
   /// The client of type inference should call this method after asking

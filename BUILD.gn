@@ -109,8 +109,12 @@ group("dart2wasm_platform") {
     "utils/dart2wasm:compile_dart2wasm_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
   ]
-  if (defined(is_product) && !is_product) {
-    deps += [ "utils/dart2wasm:dart2wasm_asserts_snapshot" ]
+  if (defined(is_product)) {
+    if (is_product) {
+      deps += [ "utils/dart2wasm:dart2wasm_product_snapshot" ]
+    } else {
+      deps += [ "utils/dart2wasm:dart2wasm_asserts_snapshot" ]
+    }
   }
 }
 

@@ -189,7 +189,7 @@ size       unique-size  count     class     data
     ''');
 
       await run(
-          'stats foobar = (follow (follow global) ^:type_arguments ^Root)');
+          'stats foobar = (follow (follow global) ^:type_arguments ^Root ^Smi)');
       expectLogPattern('''
 size       count     class
 --------   --------  --------

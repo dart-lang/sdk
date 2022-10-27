@@ -43,7 +43,7 @@ declare_args() {
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
-# ........dart2wasm.dart.snapshot (if not on ia32)
+# ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot
 # ........dartdev.dill
 # ........dartdevc.dart.snapshot
@@ -510,9 +510,9 @@ copy("copy_dart2wasm_snapshot") {
   visibility = [ ":create_full_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dart2wasm:dart2wasm_snapshot",
+    "../utils/dart2wasm:dart2wasm_product_snapshot",
   ]
-  sources = [ "$root_out_dir/dart2wasm.snapshot" ]
+  sources = [ "$root_out_dir/dart2wasm_product.snapshot" ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
 }

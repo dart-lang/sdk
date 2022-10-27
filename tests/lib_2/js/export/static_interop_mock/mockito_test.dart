@@ -17,20 +17,20 @@ extension on StaticInterop {
   // We use nullable types here as mockito requires some additional complexity
   // or code generation to safely mock non-nullables.
   // https://github.com/dart-lang/mockito/blob/master/NULL_SAFETY_README.md
-  external int? method(int? val);
-  external int? field;
-  external final int? finalField;
-  external int? get getSet;
-  external set getSet(int? val);
+  external String? method(String? val);
+  external String? field;
+  external final String? finalField;
+  external String? get getSet;
+  external set getSet(String? val);
 }
 
 @JSExport()
 class Dart {
-  int? method(int? val) => throw '';
-  int? field = throw '';
-  final int? finalField = throw '';
-  int? get getSet => throw '';
-  set getSet(int? val) => throw '';
+  String? method(String? val) => throw '';
+  String? field = throw '';
+  final String? finalField = throw '';
+  String? get getSet => throw '';
+  set getSet(String? val) => throw '';
 }
 
 // Have the mock class implement the class interface you defined to mock the
@@ -42,14 +42,14 @@ void main() {
   // Write expectations on the Dart Mock object, not the JS mock object.
   var dartMock = DartMock();
   var jsMock = createStaticInteropMock<StaticInterop, DartMock>(dartMock);
-  when(dartMock.method(0)).thenReturn(1);
-  when(dartMock.field).thenReturn(1);
-  when(dartMock.finalField).thenReturn(1);
-  when(dartMock.getSet).thenReturn(1);
-  expect(jsMock.method(0), 1);
-  expect(jsMock.field, 1);
-  expect(jsMock.finalField, 1);
-  expect(jsMock.getSet, 1);
-  jsMock.getSet = 1;
-  verify(dartMock.getSet = 1);
+  when(dartMock.method('value')).thenReturn('mockValue');
+  when(dartMock.field).thenReturn('mockValue');
+  when(dartMock.finalField).thenReturn('mockValue');
+  when(dartMock.getSet).thenReturn('mockValue');
+  expect(jsMock.method('value'), 'mockValue');
+  expect(jsMock.field, 'mockValue');
+  expect(jsMock.finalField, 'mockValue');
+  expect(jsMock.getSet, 'mockValue');
+  jsMock.getSet = 'mockValue';
+  verify(dartMock.getSet = 'mockValue');
 }

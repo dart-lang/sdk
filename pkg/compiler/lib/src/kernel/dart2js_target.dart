@@ -11,9 +11,9 @@ library compiler.src.kernel.dart2js_target;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -160,13 +160,11 @@ class Dart2jsTarget extends Target {
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
     }
-    var staticInteropMockCreator = StaticInteropMockCreator(
-        TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter,
-        jsInteropChecks.exportChecker);
+    var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter, jsInteropChecks.exportChecker);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
-      staticInteropMockCreator.visitLibrary(library);
+      exportCreator.visitLibrary(library);
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
       jsUtilOptimizer.visitLibrary(library);
