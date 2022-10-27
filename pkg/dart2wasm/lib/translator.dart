@@ -379,7 +379,6 @@ class Translator {
     m = w.Module(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
-    dynamics.collect();
     closureLayouter.collect();
     classInfoCollector.collect();
 

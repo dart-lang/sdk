@@ -5,7 +5,6 @@
 import 'dart:math';
 
 import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/dynamic_dispatch.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/translator.dart';
@@ -32,7 +31,7 @@ class SelectorInfo {
 
   late final List<int> classIds;
   late final int targetCount;
-  final bool calledDynamically;
+  bool calledDynamically = false;
   Reference? singularTarget;
   int? offset;
 
@@ -40,13 +39,14 @@ class SelectorInfo {
 
   String get name => paramInfo.member!.name.text;
 
-  bool get alive =>
-      calledDynamically ? targetCount > 0 : callCount > 0 && targetCount > 1;
+  bool get isAlive =>
+      (calledDynamically && targetCount > 0) ||
+      (callCount > 0 && targetCount > 1);
 
   int get sortWeight => classIds.length * 10 + callCount;
 
   SelectorInfo(this.translator, this.id, this.callCount, this.tornOff,
-      this.paramInfo, this.returnCount, this.calledDynamically);
+      this.paramInfo, this.returnCount);
 
   /// Compute the signature for the functions implementing members targeted by
   /// this selector.
@@ -235,13 +235,8 @@ class DispatchTable {
         ? 1
         : 0;
 
-    DynamicSelectorType selectorType = isGetter
-        ? DynamicSelectorType.getter
-        : isSetter
-            ? DynamicSelectorType.setter
-            : DynamicSelectorType.method;
-    bool calledDynamically = translator.dynamics
-        .maybeCalledDynamically(member, metadata, selectorType);
+    bool calledDynamically =
+        translator.dynamics.maybeCalledDynamically(member, metadata);
     var selector = selectorInfo.putIfAbsent(
         selectorId,
         () => SelectorInfo(
@@ -250,10 +245,10 @@ class DispatchTable {
             selectorMetadata[selectorId].callCount,
             selectorMetadata[selectorId].tornOff,
             paramInfo,
-            returnCount,
-            calledDynamically));
+            returnCount));
     selector.paramInfo.merge(paramInfo);
     selector.returnCount = max(selector.returnCount, returnCount);
+    selector.calledDynamically |= calledDynamically;
     if (calledDynamically) {
       if (isGetter) {
         (dynamicGets[member.name.text] ??= []).add(selector);
@@ -337,7 +332,7 @@ class DispatchTable {
 
     // Assign selector offsets
     List<SelectorInfo> selectors = selectorInfo.values
-        .where((s) => s.alive)
+        .where((s) => s.isAlive)
         .toList()
       ..sort((a, b) => b.sortWeight - a.sortWeight);
     int firstAvailable = 0;

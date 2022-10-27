@@ -19,44 +19,8 @@ enum DynamicSelectorType {
   method,
 }
 
-// Collects all of the selectors which may be used dynamically.
-class DynamicCollector extends Visitor<void> with VisitorVoidMixin {
-  Map<DynamicSelectorType, Set<String>> _dynamicSelectors = {
-    DynamicSelectorType.setter: {},
-    DynamicSelectorType.getter: {},
-    DynamicSelectorType.method: {},
-  };
-
-  bool isDynamicSelector(String name, DynamicSelectorType type) =>
-      _dynamicSelectors[type]!.contains(name);
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitDynamicGet(DynamicGet node) {
-    _dynamicSelectors[DynamicSelectorType.getter]!.add(node.name.text);
-    super.visitDynamicGet(node);
-  }
-
-  @override
-  void visitDynamicSet(DynamicSet node) {
-    _dynamicSelectors[DynamicSelectorType.setter]!.add(node.name.text);
-    super.visitDynamicSet(node);
-  }
-
-  @override
-  void visitDynamicInvocation(DynamicInvocation node) {
-    _dynamicSelectors[DynamicSelectorType.method]!.add(node.name.text);
-    super.visitDynamicInvocation(node);
-  }
-}
-
 class DynamicDispatcher {
   final Translator translator;
-  final DynamicCollector dynamicCollector = DynamicCollector();
   final Map<DynamicSelectorType, Map<String, w.DefinedFunction>>
       dynamicTrampolines = {
     DynamicSelectorType.setter: {},
@@ -68,31 +32,14 @@ class DynamicDispatcher {
 
   TranslatorOptions get options => translator.options;
 
-  void collect() {
-    translator.component.accept(dynamicCollector);
-  }
-
   /// Returns true if there is a chance that [member] may be invoked
   /// dynamically. We err on the side of caution because it is not always
   /// possible to tell statically when a given class may flow to dynamic.
-  bool maybeCalledDynamically(Member member,
-      ProcedureAttributesMetadata metadata, DynamicSelectorType type) {
-    String name = member.name.text;
-    // Currently only getters may be called dynamically by users, but
-    // `noSuchMethod` can be implicitly called dynamically in any dynamic
-    // invocation.
-    bool isDynamicSelector = dynamicCollector.isDynamicSelector(name, type);
-    switch (type) {
-      case DynamicSelectorType.getter:
-        return metadata.getterCalledDynamically || isDynamicSelector;
-      case DynamicSelectorType.setter:
-        return metadata.methodOrSetterCalledDynamically || isDynamicSelector;
-      case DynamicSelectorType.method:
-        return metadata.methodOrSetterCalledDynamically ||
-            isDynamicSelector ||
-            member == translator.objectNoSuchMethod;
-    }
-  }
+  bool maybeCalledDynamically(
+          Member member, ProcedureAttributesMetadata metadata) =>
+      metadata.getterCalledDynamically ||
+      metadata.methodOrSetterCalledDynamically ||
+      member == translator.objectNoSuchMethod;
 
   w.ValueType _callDynamic(CodeGenerator codeGen, DynamicInvocation node) {
     // Handle general dynamic invocation.
