@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -90,7 +91,12 @@ class ExtractorPatternResolver {
     var inferrer = GenericInferrer(
       resolverVisitor.typeSystem,
       typeParameters,
-      errorReporter: resolverVisitor.errorReporter,
+      inferenceErrorListener: InferenceErrorReporter(
+        resolverVisitor.errorReporter,
+        isNonNullableByDefault:
+            resolverVisitor.typeSystem.isNonNullableByDefault,
+        isGenericMetadataEnabled: resolverVisitor.genericMetadataIsEnabled,
+      ),
       errorNode: errorNode,
       genericMetadataIsEnabled: resolverVisitor.genericMetadataIsEnabled,
     );

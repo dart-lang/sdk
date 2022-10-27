@@ -195,6 +195,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         contextReturnType: contextType,
         isConst: _isConst,
         errorReporter: resolver.errorReporter,
+        inferenceErrorListener: resolver.inferenceErrorListener,
         errorNode: _errorNode,
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
       );

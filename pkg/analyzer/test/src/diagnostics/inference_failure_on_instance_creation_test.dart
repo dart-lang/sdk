@@ -175,6 +175,15 @@ void f() {
 ''');
   }
 
+  test_missingTypeArgument_noInference_topLevel() async {
+    await assertErrorsInCode(r'''
+import 'dart:collection';
+var m = HashMap();
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 30, 1),
+    ]);
+  }
+
   test_missingTypeArgument_upwardInference() async {
     await assertNoErrorsInCode(r'''
 import 'dart:collection';

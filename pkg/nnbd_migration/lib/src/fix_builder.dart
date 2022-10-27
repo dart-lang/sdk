@@ -198,6 +198,7 @@ class FixBuilder {
         source!,
         typeProvider,
         errorListener,
+        null /* inferenceErrorListener */,
         _typeSystem,
         FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: Feature.non_nullable.releaseVersion!,
