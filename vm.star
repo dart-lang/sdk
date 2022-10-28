@@ -499,8 +499,13 @@ _nightly_builder(
     "vm-kernel-gcc-linux",
     category = "vm|misc|g",
     channels = ["try"],
-    execution_timeout = 4 * time.hour,
+    execution_timeout = 5 * time.hour,
     goma = False,
+    properties = {
+        "$dart/build": {
+            "timeout": 75 * 60,  # 100 minutes,
+        },
+    },
 )
 
 _nightly_builder(
@@ -520,6 +525,7 @@ _nightly_builder(
     "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
     category = "vm|misc|rv64",
     channels = ["try"],
+    properties = [slow_shards],
 )
 
 # vm|ffi
