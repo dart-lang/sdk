@@ -28,7 +28,7 @@ extension AstNodeExtension on AstNode {
   /// It excludes the nodes for which the [excludeCriteria] returns true. If
   /// [excludeCriteria] is not provided, all nodes are included.
   @Deprecated(
-      'This approach is slow and slated for removal. Traversal via a standard visitor is prefered.')
+      'This approach is slow and slated for removal. Traversal via a standard visitor is preferred.')
   Iterable<AstNode> traverseNodesInDFS({AstNodePredicate? excludeCriteria}) {
     var nodes = <AstNode>{};
     var nodesToVisit = List.of(childNodes);
