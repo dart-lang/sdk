@@ -20,13 +20,24 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
-import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
+import 'dart:_js_names'
+    show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
-const CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME = r'$ccache';
+const constructorRtiCachePropertyName = r'$ccache';
+
+/// The name of a property on the constructor function of Dart interface types
+/// in DDC compiled code that stores the base recipe for the interface class.
+///
+/// This property is not created or used in dart2js.
+///
+/// This named differs from the `constructor.name` property because in DDC the
+/// constructor names are not unique across the entire application. The
+/// `constructor.$interfaceRecipe` property will be unique.
+const interfaceTypeRecipePropertyName = r'$interfaceRecipe';
 
 // The top type `Object?` is used throughout this library even when values are
 // not nullable or have narrower types in order to avoid incurring type checks
@@ -744,29 +755,37 @@ String instanceTypeName(Object? object) {
 
 Rti _instanceTypeFromConstructor(Object? instance) {
   var constructor = JS('', '#.constructor', instance);
-  var probe = JS('', r'#[#]', constructor, CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME);
+  var probe = JS('', r'#[#]', constructor, constructorRtiCachePropertyName);
   if (probe != null) return _Utils.asRti(probe);
   return _instanceTypeFromConstructorMiss(instance, constructor);
 }
 
 @pragma('dart2js:noInline')
 Rti _instanceTypeFromConstructorMiss(Object? instance, Object? constructor) {
-  // Subclasses of Closure are synthetic classes. The synthetic classes all
-  // extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
-  // them appear to be the superclass. Instantiations have a `$ti` field so
-  // don't reach here.
-  //
-  // TODO(39214): This will need fixing if we ever use instances of
-  // StaticClosure for static tear-offs.
-  //
-  // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
-  // prototype of Closure/BoundClosure/StaticClosure classes?
-  var effectiveConstructor = _isClosure(instance)
-      ? JS('', '#.__proto__.__proto__.constructor', instance)
-      : constructor;
-  Rti rti = _Universe.findErasedType(
-      _theUniverse(), JS('String', '#.name', effectiveConstructor));
-  JS('', r'#[#] = #', constructor, CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME, rti);
+  Rti rti;
+  if (JS_GET_FLAG('DEV_COMPILER')) {
+    // DDC attaches a recipe string to the constructor because the constructor
+    // name is not guaranteed to be unique.
+    rti = findType(
+        JS('String', '#.#', constructor, interfaceTypeRecipePropertyName));
+  } else {
+    // Subclasses of Closure are synthetic classes. The synthetic classes all
+    // extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
+    // them appear to be the superclass. Instantiations have a `$ti` field so
+    // don't reach here.
+    //
+    // TODO(39214): This will need fixing if we ever use instances of
+    // StaticClosure for static tear-offs.
+    //
+    // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
+    // prototype of Closure/BoundClosure/StaticClosure classes?
+    var effectiveConstructor = _isClosure(instance)
+        ? JS('', '#.__proto__.__proto__.constructor', instance)
+        : constructor;
+    rti = _Universe.findErasedType(
+        _theUniverse(), JS('String', '#.name', effectiveConstructor));
+  }
+  JS('', r'#[#] = #', constructor, constructorRtiCachePropertyName, rti);
   return rti;
 }
 
@@ -876,8 +895,11 @@ bool _installSpecializedIsTest(Object? object) {
     // TODO(sra): Can we easily recognize other interface types instantiated to
     // bounds?
     if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
-      String propertyName =
-          '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+      Object propertyName = JS_GET_FLAG('DEV_COMPILER')
+          // DDC uses a JavaScript symbol when tagging the type to hide them
+          // on native types.
+          ? getSpecializedTestTag(name)
+          : '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
       Rti._setSpecializedTestResource(testRti, propertyName);
       if (name == JS_GET_NAME(JsGetName.LIST_CLASS_TYPE_NAME)) {
         return _finishIsFn(
@@ -1454,6 +1476,13 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
     name = _unminifyOrTag(name);
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      // Convert the program unique name into one that matches the name from the
+      // original Dart source.
+      //
+      // "some_package_and_library_name|className" -> "className"
+      name = name.substring(name.indexOf(Recipe.librarySeparatorString) + 1);
+    }
     var arguments = Rti._getInterfaceTypeArguments(rti);
     if (arguments.length > 0) {
       name += '<' + _rtiArrayToString(arguments, genericContext) + '>';

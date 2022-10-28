@@ -470,24 +470,6 @@ String libraryUriToJsIdentifier(Uri importUri) {
   return pathToJSIdentifier(p.withoutExtension(importUri.pathSegments.last));
 }
 
-/// Converts an entire arbitrary path string into a string compatible with
-/// JS identifier naming rules while conserving path information.
-///
-/// NOT guaranteed to result in a unique string. E.g.,
-///   1) '__' appears in a file name.
-///   2) An escaped '/' or '\' appears in a filename (a/b and a$47b).
-String pathToJSIdentifier(String path) {
-  path = p.normalize(path);
-  if (path.startsWith('/') || path.startsWith('\\')) {
-    path = path.substring(1, path.length);
-  }
-  return toJSIdentifier(path
-      .replaceAll('\\', '__')
-      .replaceAll('/', '__')
-      .replaceAll('..', '__')
-      .replaceAll('-', '_'));
-}
-
 /// Creates function name given [moduleName].
 String loadFunctionName(String moduleName) =>
     'load__${pathToJSIdentifier(moduleName.replaceAll('.', '_'))}';

@@ -9,7 +9,6 @@ import 'dart:_interceptors';
 import 'dart:_js_helper'
     show
         checkInt,
-        getRuntimeType,
         LinkedMap,
         JSSyntaxRegExp,
         notNull,
@@ -20,8 +19,9 @@ import 'dart:_js_helper'
         undefined,
         wrapZoneUnaryCallback;
 import 'dart:_runtime' as dart;
-import 'dart:_foreign_helper' show JS, JSExportName;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG, JSExportName;
 import 'dart:_native_typed_data' show NativeUint8List;
+import 'dart:_rti' as rti show createRuntimeType, Rti;
 import 'dart:collection' show UnmodifiableMapView;
 import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data' show Endian, Uint8List, Uint16List;
@@ -62,7 +62,9 @@ class Object {
   }
 
   @patch
-  Type get runtimeType => dart.wrapType(dart.getReifiedType(this));
+  Type get runtimeType => JS_GET_FLAG('NEW_RUNTIME_TYPES')
+      ? rti.createRuntimeType(JS<rti.Rti>('!', '#', dart.getReifiedType(this)))
+      : dart.wrapType(dart.getReifiedType(this));
 
   // Everything is an Object.
   @JSExportName('is')

@@ -12,6 +12,9 @@ abstract class Recipe {
 
   // Operators.
 
+  static const int librarySeparator = _vertical;
+  static const String librarySeparatorString = _verticalString;
+
   static const int separator = _comma;
   static const String separatorString = _commaString;
 
@@ -76,7 +79,8 @@ abstract class Recipe {
   static bool isIdentifierStart(int ch) =>
       (((ch | 32) - _lowercaseA) & 0xffff) < 26 ||
       (ch == _underscore) ||
-      (ch == _dollar);
+      (ch == _dollar) ||
+      (ch == _vertical);
 
   static const int period = _period;
 

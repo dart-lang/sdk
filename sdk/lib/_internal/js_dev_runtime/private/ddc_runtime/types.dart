@@ -9,6 +9,7 @@ part of dart._runtime;
 ///
 /// The constant value itself is inlined by the compiler in place of the call
 /// to this method.
+// TODO(nshahan) Remove in favor of `JS_GET_FLAG()`.
 @notNull
 external bool compileTimeFlag(String flag);
 
@@ -146,8 +147,10 @@ class DartType implements Type {
   as_T(object) => cast(object, this);
 
   DartType() {
-    // Every instance of a DartType requires a set of type caches.
-    JS('', '#(this)', addTypeCaches);
+    if (!JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+      // Every instance of a DartType requires a set of type caches.
+      JS('', '#(this)', addTypeCaches);
+    }
   }
 }
 

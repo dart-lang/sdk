@@ -9,7 +9,8 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'dart:_debugger' show stackTraceMapper, trackCall;
-import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
+import 'dart:_foreign_helper'
+    show JS, JS_CLASS_REF, JS_GET_FLAG, JS_GET_NAME, JSExportName, rest, spread;
 import 'dart:_interceptors'
     show
         JSArray,
@@ -33,6 +34,12 @@ import 'dart:_js_helper'
         NoReifyGeneric,
         notNull,
         undefined;
+import 'dart:_js_shared_embedded_names';
+import 'dart:_rti' as rti
+    show
+        constructorRtiCachePropertyName,
+        instanceType,
+        interfaceTypeRecipePropertyName;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
