@@ -1,6 +1,7 @@
 # 1.29.0-dev
 
 - new lint: `implicit_call_tearoffs`
+- new lint: `unnecessary_library_directive`
 
 # 1.28.0
 
