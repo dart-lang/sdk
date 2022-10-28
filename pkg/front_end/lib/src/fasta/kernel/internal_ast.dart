@@ -157,6 +157,41 @@ bool hasExplicitTypeArguments(Arguments arguments) {
   return getExplicitTypeArguments(arguments) != null;
 }
 
+mixin InternalTreeNode implements TreeNode {
+  @override
+  R accept<R>(TreeVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultTreeNode(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+}
+
 /// Common base class for internal statements.
 abstract class InternalStatement extends Statement {
   @override
@@ -5010,42 +5045,9 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-abstract class Matcher extends TreeNode {
+abstract class Matcher extends TreeNode with InternalTreeNode {
   Matcher(int fileOffset) {
     this.fileOffset = fileOffset;
-  }
-
-  @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
   }
 }
 
@@ -5053,7 +5055,9 @@ class DummyMatcher extends Matcher {
   DummyMatcher(int fileOffset) : super(fileOffset);
 
   @override
-  void toTextInternal(AstPrinter printer) {}
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<dummy-matcher>');
+  }
 
   @override
   String toString() {
@@ -5278,44 +5282,13 @@ class BinderMatcher extends Matcher {
   }
 }
 
-abstract class Binder extends TreeNode {
-  @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
-}
+abstract class Binder extends TreeNode with InternalTreeNode {}
 
 class DummyBinder extends Binder {
   @override
-  void toTextInternal(AstPrinter printer) {}
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<dummy-binder>');
+  }
 
   @override
   String toString() {
@@ -5357,45 +5330,12 @@ class WildcardBinder extends Binder {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
   void toTextInternal(AstPrinter printer) {
     if (type != null) {
       type!.toTextInternal(printer);
       printer.write(" ");
     }
     printer.write("_");
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
   }
 
   @override
@@ -5528,5 +5468,63 @@ class IfCaseStatement extends InternalStatement {
   @override
   String toString() {
     return "IfCaseStatement(${toStringInternal()})";
+  }
+}
+
+final MapMatcherEntry dummyMapMatcherEntry =
+    new MapMatcherEntry(dummyMatcher, dummyMatcher, TreeNode.noOffset);
+
+class MapMatcherEntry extends TreeNode with InternalTreeNode {
+  final Matcher key;
+  final Matcher value;
+
+  @override
+  final int fileOffset;
+
+  MapMatcherEntry(this.key, this.value, this.fileOffset) {
+    key.parent = this;
+    value.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    key.toTextInternal(printer);
+    printer.write(': ');
+    value.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return 'MapMatcherEntry(${toStringInternal()})';
+  }
+}
+
+class MapMatcher extends Matcher {
+  final DartType? keyType;
+  final DartType? valueType;
+  final List<MapMatcherEntry> entries;
+
+  MapMatcher(this.keyType, this.valueType, this.entries, int fileOffset)
+      : assert((keyType == null) == (valueType == null)),
+        super(fileOffset);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (keyType != null && valueType != null) {
+      printer.writeTypeArguments([keyType!, valueType!]);
+    }
+    printer.write('{');
+    String comma = '';
+    for (MapMatcherEntry entry in entries) {
+      printer.write(comma);
+      entry.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write('}');
+  }
+
+  @override
+  String toString() {
+    return 'MapMatcher(${toStringInternal()})';
   }
 }

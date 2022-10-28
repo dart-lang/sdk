@@ -4441,41 +4441,47 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Binder,
       ])
     ]));
-    // ignore: unused_local_variable
     Matcher key = toMatcher(pop());
-    // ignore: unused_local_variable
     Matcher value = toMatcher(pop());
-    // TODO(johnniwinther): Create map entry.
-    push(new DummyMatcher(colon.charOffset));
+    push(new MapMatcherEntry(key, value, colon.charOffset));
   }
 
   @override
   void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
     debugEvent('MapPattern');
     assert(checkState(leftBrace, [
-      ...repeatedKinds(
-          unionOfKinds([
-            ValueKinds.Expression,
-            ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
-            ValueKinds.Matcher,
-            ValueKinds.MapLiteralEntry,
-            // TODO(johnniwinther): Support map-pattern entry
-            ValueKinds.Binder,
-          ]),
-          count),
+      ...repeatedKinds(ValueKinds.MapMatcherEntry, count),
       ValueKinds.TypeArgumentsOrNull,
     ]));
 
     reportIfNotEnabled(
         libraryFeatures.patterns, leftBrace.charOffset, leftBrace.charCount);
-    for (int i = 0; i < count; i++) {
-      // TODO(johnniwinther): Create map literal entry matcher.
-      pop();
+    List<MapMatcherEntry> entries =
+        new List<MapMatcherEntry>.filled(count, dummyMapMatcherEntry);
+    for (int i = count - 1; i >= 0; i--) {
+      entries[i] = pop() as MapMatcherEntry;
     }
-    // ignore: unused_local_variable
+
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
-    push(new DummyMatcher(leftBrace.charOffset));
+    DartType? keyType;
+    DartType? valueType;
+    if (typeArguments != null) {
+      if (typeArguments.length != 2) {
+        keyType = const InvalidType();
+        valueType = const InvalidType();
+      } else {
+        keyType = buildDartType(typeArguments[0], TypeUse.literalTypeArgument,
+            allowPotentiallyConstantType: false);
+        valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
+            allowPotentiallyConstantType: false);
+        keyType = instantiateToBounds(
+            keyType, coreTypes.objectClass, libraryBuilder.library);
+        valueType = instantiateToBounds(
+            valueType, coreTypes.objectClass, libraryBuilder.library);
+      }
+    }
+
+    push(new MapMatcher(keyType, valueType, entries, leftBrace.charOffset));
   }
 
   @override
@@ -4518,7 +4524,6 @@ class BodyBuilder extends StackListenerImpl
             valueType, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
-      DartType implicitTypeArgument = this.implicitTypeArgument;
       keyType = implicitTypeArgument;
       valueType = implicitTypeArgument;
     }

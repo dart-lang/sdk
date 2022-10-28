@@ -2,5 +2,5 @@ library /*isNonNullableByDefault*/;
 import self as self;
 
 static method test(dynamic x) → dynamic {
-  ;
+  "if (x case <dummy-binder> | <dummy-binder>) {}";
 }

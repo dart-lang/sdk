@@ -125,6 +125,7 @@ void main() {
     _testNullCheckMatcher();
     _testListMatcher();
     _testRelationalMatcher();
+    _testMapMatcher();
     _testIfCaseStatement();
   });
 }
@@ -1137,6 +1138,40 @@ void _testRelationalMatcher() {
           RelationalMatcherKind.lessThan, new IntLiteral(2), TreeNode.noOffset),
       '''
 < 2''');
+}
+
+void _testMapMatcher() {
+  testMatcher(new MapMatcher(null, null, [], TreeNode.noOffset), '''
+{}''');
+  testMatcher(
+      new MapMatcher(
+          const DynamicType(), const DynamicType(), [], TreeNode.noOffset),
+      '''
+<dynamic, dynamic>{}''');
+  testMatcher(
+      new MapMatcher(
+          null,
+          null,
+          [
+            new MapMatcherEntry(new ExpressionMatcher(new IntLiteral(0)),
+                new ExpressionMatcher(new IntLiteral(1)), TreeNode.noOffset),
+          ],
+          TreeNode.noOffset),
+      '''
+{0: 1}''');
+  testMatcher(
+      new MapMatcher(
+          null,
+          null,
+          [
+            new MapMatcherEntry(new ExpressionMatcher(new IntLiteral(0)),
+                new ExpressionMatcher(new IntLiteral(1)), TreeNode.noOffset),
+            new MapMatcherEntry(new ExpressionMatcher(new IntLiteral(2)),
+                new ExpressionMatcher(new IntLiteral(3)), TreeNode.noOffset),
+          ],
+          TreeNode.noOffset),
+      '''
+{0: 1, 2: 3}''');
 }
 
 void _testIfCaseStatement() {

@@ -85,6 +85,8 @@ class ValueKinds {
   static const ValueKind Integer = const SingleValueKind<int>();
   static const ValueKind MapLiteralEntry =
       const SingleValueKind<type.MapLiteralEntry>();
+  static const ValueKind MapMatcherEntry =
+      const SingleValueKind<type.MapMatcherEntry>();
   static const ValueKind Matcher = const SingleValueKind<type.Matcher>();
   static const ValueKind MatcherOrNull =
       const SingleValueKind<type.Matcher>(NullValue.Matcher);

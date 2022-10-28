@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/src/printer.dart' show astTextStrategyForTesting;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -1803,8 +1804,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
     // TODO(cstefantsova): Handle if-case-when statements.
-    return new StatementInferenceResult.single(
-        new EmptyStatement()..fileOffset = node.fileOffset);
+    return new StatementInferenceResult.single(new ExpressionStatement(
+        new StringLiteral(node.toText(astTextStrategyForTesting)))
+      ..fileOffset = node.fileOffset);
   }
 
   ExpressionInferenceResult visitIntJudgment(
