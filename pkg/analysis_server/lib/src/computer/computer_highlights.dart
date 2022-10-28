@@ -809,15 +809,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
 
-    for (final variable in node.fields.variables) {
-      computer._addRegion_token(
-        variable.name,
-        node.isStatic
-            ? HighlightRegionType.STATIC_FIELD_DECLARATION
-            : HighlightRegionType.INSTANCE_FIELD_DECLARATION,
-      );
-    }
-
     super.visitFieldDeclaration(node);
   }
 
@@ -1299,13 +1290,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
 
-    for (final variable in node.variables.variables) {
-      computer._addRegion_token(
-        variable.name,
-        HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
-      );
-    }
-
     super.visitTopLevelVariableDeclaration(node);
   }
 
@@ -1325,25 +1309,37 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    computer._addRegion_token(node.lateKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
-    super.visitVariableDeclarationList(node);
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    for (final variable in node.variables.variables) {
-      final element = variable.declaredElement as LocalVariableElement;
+  void visitVariableDeclaration(VariableDeclaration node) {
+    var element = node.declaredElement;
+    if (element is FieldElement) {
       computer._addRegion_token(
-        variable.name,
+        node.name,
+        element.isStatic
+            ? HighlightRegionType.STATIC_FIELD_DECLARATION
+            : HighlightRegionType.INSTANCE_FIELD_DECLARATION,
+      );
+    } else if (element is LocalVariableElement) {
+      computer._addRegion_token(
+        node.name,
         element.type is DynamicType
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
       );
+    } else if (element is TopLevelVariableElement) {
+      computer._addRegion_token(
+        node.name,
+        HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
+      );
     }
 
-    super.visitVariableDeclarationStatement(node);
+    super.visitVariableDeclaration(node);
+  }
+
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    computer._addRegion_token(node.lateKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    super.visitVariableDeclarationList(node);
   }
 
   @override
