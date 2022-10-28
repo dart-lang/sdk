@@ -4231,6 +4231,10 @@ class BodyBuilder extends StackListenerImpl
                 element.name.length,
                 uri);
           }
+          if (element.name.startsWith("_")) {
+            libraryBuilder.addProblem(fasta.messageRecordFieldsCantBePrivate,
+                element.fileOffset, element.name.length, uri);
+          }
           namedElements ??= {};
           NamedExpression? existingExpression = namedElements[element.name];
           if (existingExpression != null) {

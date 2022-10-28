@@ -5947,3 +5947,10 @@ NameNotFoundInRecordNameGet:
 
 ObjectMemberNameUsedForRecordField:
   problemMessage: "Record field names can't be the same as a member from 'Object'."
+
+RecordFieldsCantBePrivate:
+  problemMessage: "Record field names can't be private."
+  analyzerCode: INVALID_FIELD_NAME
+  experiments: records
+  script: |
+    foo() => (_bar: 1);

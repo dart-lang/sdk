@@ -10,6 +10,7 @@ import 'package:kernel/src/unaliasing.dart';
 import '../fasta_codes.dart'
     show
         messageObjectMemberNameUsedForRecordField,
+        messageRecordFieldsCantBePrivate,
         messageSupertypeIsFunction,
         noLength,
         templateDuplicatedRecordTypeFieldName,
@@ -145,6 +146,12 @@ abstract class RecordTypeBuilder extends TypeBuilder {
         positionalEntries.add(type);
         String? fieldName = field.name;
         if (fieldName != null) {
+          if (fieldName.startsWith("_")) {
+            library.addProblem(messageRecordFieldsCantBePrivate,
+                field.charOffset, fieldName.length, fileUri);
+            hasErrors = true;
+            continue;
+          }
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
@@ -159,6 +166,7 @@ abstract class RecordTypeBuilder extends TypeBuilder {
                           fileUri, existingField.charOffset, fieldName.length)
                 ]);
             hasErrors = true;
+            continue;
           } else {
             fieldsMap[fieldName] = field;
           }
@@ -183,6 +191,12 @@ abstract class RecordTypeBuilder extends TypeBuilder {
         if (forbiddenObjectMemberNames.contains(name)) {
           library.addProblem(messageObjectMemberNameUsedForRecordField,
               field.charOffset, name.length, fileUri);
+          hasErrors = true;
+          continue;
+        }
+        if (name.startsWith("_")) {
+          library.addProblem(messageRecordFieldsCantBePrivate, field.charOffset,
+              name.length, fileUri);
           hasErrors = true;
           continue;
         }

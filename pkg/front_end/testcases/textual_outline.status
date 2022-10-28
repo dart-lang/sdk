@@ -151,6 +151,7 @@ records/duplicated_name_errors: FormatterCrash
 records/issue50132: FormatterCrash
 records/issue50133: FormatterCrash
 records/null_shorting: FormatterCrash
+records/private_field_names: FormatterCrash
 records/record_literal_errors: FormatterCrash
 records/record_type: FormatterCrash
 records/record_type_errors: FormatterCrash

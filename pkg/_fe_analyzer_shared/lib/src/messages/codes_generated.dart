@@ -10163,6 +10163,16 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     problemMessage: r"""An optional named parameter can't start with '_'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordFieldsCantBePrivate =
+    messageRecordFieldsCantBePrivate;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordFieldsCantBePrivate = const MessageCode(
+    "RecordFieldsCantBePrivate",
+    analyzerCodes: <String>["INVALID_FIELD_NAME"],
+    problemMessage: r"""Record field names can't be private.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordLiteralOnePositionalFieldNoTrailingComma =
     messageRecordLiteralOnePositionalFieldNoTrailingComma;
 
