@@ -2365,9 +2365,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         isGrowable: true);
   }
 
-  /// Takes a List class, a type argument, a function which will be called for
-  /// each item in the list with the expected type of the element, and a list
-  /// length, and creates a Dart List on the stack.
+  /// Allocate a Dart `List` with element type [typeArg], length [length] and
+  /// push the list to the stack.
+  ///
+  /// [generateItem] will be called [length] times to initialize list elements.
+  ///
+  /// Concrete type of the list will be `_GrowableList` if [isGrowable] is
+  /// true, `_List` otherwise.
   w.ValueType makeList(DartType typeArg, int length,
       void Function(w.ValueType, int) generateItem,
       {bool isGrowable = false}) {
@@ -2506,6 +2510,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return operand.type;
   }
 
+  /// Pushes the `_Type` object for a function or class type parameter to the
+  /// stack and returns the value type of the object.
   w.ValueType instantiateTypeParameter(TypeParameter parameter) {
     w.ValueType resultType;
     if (parameter.parent is FunctionNode) {

@@ -66,6 +66,8 @@ class FieldIndex {
   }
 }
 
+/// Initial value for the hash code field of objects. This value is recognized
+/// by `Object._objectHashCode` wich updates the field first time it's read.
 const int initialIdentityHash = 0;
 
 /// Information about the Wasm representation for a class.

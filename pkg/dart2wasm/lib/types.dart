@@ -31,9 +31,16 @@ class InterfaceTypeEnvironment {
 /// Helper class for building runtime types.
 class Types {
   final Translator translator;
-  late final typeClassInfo = translator.classInfo[translator.typeClass]!;
+
+  /// Class info for `_Type`
+  late final ClassInfo typeClassInfo =
+      translator.classInfo[translator.typeClass]!;
+
+  /// Wasm value type of `List<_Type>`
   late final w.ValueType typeListExpectedType = classAndFieldToType(
       translator.interfaceTypeClass, FieldIndex.interfaceTypeTypeArguments);
+
+  /// Wasm value type of `List<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
       translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
 
@@ -74,6 +81,7 @@ class Types {
   Iterable<Class> _getConcreteSubtypes(Class cls) =>
       translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
 
+  /// Wasm value type for non-nullable `_Type` values
   w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
 
   InterfaceType get namedParameterType =>
@@ -298,6 +306,7 @@ class Types {
     throw "Unexpected DartType: $type";
   }
 
+  /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
   void _makeTypeList(CodeGenerator codeGen, List<DartType> types) {
     w.ValueType listType = codeGen.makeListFromExpressions(
         types.map((t) => TypeLiteral(t)).toList(), typeType);
@@ -313,7 +322,7 @@ class Types {
     _makeTypeList(codeGen, type.typeArguments);
   }
 
-  DartType normalizeFutureOrType(FutureOrType type) {
+  DartType _normalizeFutureOrType(FutureOrType type) {
     final s = normalize(type.typeArgument);
 
     // `coreTypes.isTope` and `coreTypes.isObject` take into account the
@@ -358,7 +367,7 @@ class Types {
               .toList(),
           requiredParameterCount: type.requiredParameterCount);
     } else if (type is FutureOrType) {
-      return normalizeFutureOrType(type);
+      return _normalizeFutureOrType(type);
     } else {
       return type;
     }
