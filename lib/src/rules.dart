@@ -65,6 +65,7 @@ import 'rules/conditional_uri_does_not_exist.dart';
 import 'rules/constant_identifier_names.dart';
 import 'rules/control_flow_in_finally.dart';
 import 'rules/curly_braces_in_flow_control_structures.dart';
+import 'rules/dangling_library_doc_comments.dart';
 import 'rules/depend_on_referenced_packages.dart';
 import 'rules/deprecated_consistency.dart';
 import 'rules/diagnostic_describe_all_properties.dart';
@@ -285,6 +286,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(ConstantIdentifierNames())
     ..register(ControlFlowInFinally())
     ..register(CurlyBracesInFlowControlStructures())
+    ..register(DanglingLibraryDocComments())
     ..register(DependOnReferencedPackages())
     ..register(DeprecatedConsistency())
     ..register(DiagnosticsDescribeAllProperties())

@@ -30,6 +30,8 @@ import 'collection_methods_unrelated_type_test.dart'
 import 'conditional_uri_does_not_exist_test.dart'
     as conditional_uri_does_not_exist;
 import 'constant_identifier_names_test.dart' as constant_identifier_names;
+import 'dangling_library_doc_comments_test.dart'
+    as dangling_library_doc_comments;
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'file_names_test.dart' as file_names;
@@ -108,6 +110,7 @@ void main() {
   collection_methods_unrelated_type.main();
   conditional_uri_does_not_exist.main();
   constant_identifier_names.main();
+  dangling_library_doc_comments.main();
   deprecated_consistency.main();
   discarded_futures.main();
   file_names.main();
