@@ -2954,16 +2954,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     js_ast.Expression? typeRep;
 
     // Type parameters don't matter as JS interop types cannot be reified.
-    // package:js types fall under either named or anonymous types. Named types
-    // are used to correspond to JS types that exist, but we do not use the
-    // underlying type for type checks, so they operate virtually the same as
-    // anonymous types. We represent package:js types with a corresponding type
-    // object.
+    // package:js types fall under `@JS`, `@anonymous`, or `@staticInterop`
+    // types. `@JS` types are used to correspond to JS types that exist, but we
+    // do not use the underlying type for type checks, so they operate virtually
+    // the same as `@anonymous` types. `@staticInterop` types, however, can be
+    // casted to other `package:js` types as well as any type that inherits
+    // `JavaScriptObject`. This is to match the behavior across the other
+    // backends that use erasure. We represent `@JS` and `@anonymous` types with
+    // a NonStaticInteropType and `@staticInterop` with a StaticInteropType to
+    // make this distinction at runtime.
     var jsName = isJSAnonymousType(c)
         ? getLocalClassName(c)
         : _emitJsNameWithoutGlobal(c);
     if (jsName != null) {
-      typeRep = runtimeCall('packageJSType(#)', [js.escapedString(jsName)]);
+      typeRep = runtimeCall('packageJSType(#, #)',
+          [js.escapedString(jsName), js.boolean(isStaticInteropType(c))]);
     }
 
     if (typeRep != null) {
