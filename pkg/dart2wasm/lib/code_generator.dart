@@ -2136,10 +2136,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Call entry point in vtable
     int vtableIndex =
         representation.fieldIndexForSignature(posArgCount, argNames);
+    w.FunctionType functionType =
+        (representation.vtableStruct.fields[vtableIndex].type as w.RefType)
+            .heapType as w.FunctionType;
     b.local_get(temp);
     b.struct_get(struct, FieldIndex.closureVtable);
     b.struct_get(representation.vtableStruct, vtableIndex);
-    b.call_ref();
+    b.call_ref(functionType);
     return translator.topInfo.nullableType;
   }
 
@@ -2187,7 +2190,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           representation.vtableStruct, FieldIndex.vtableInstantiationFunction);
 
       // Call instantiation function
-      b.call_ref();
+      b.call_ref(representation.instantiationFunctionType);
       return representation.instantiationFunctionType.outputs.single;
     } else {
       // Only other alternative is `NeverType`.

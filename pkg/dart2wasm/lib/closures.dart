@@ -435,7 +435,7 @@ class ClosureLayouter extends RecursiveVisitor {
     b.struct_get(contextStruct, FieldIndex.instantiationContextInner);
     b.struct_get(genericClosureStruct, FieldIndex.closureVtable);
     b.struct_get(genericVtableStruct, genericVtableFieldIndex);
-    b.call_ref();
+    b.call_ref(genericFunctionType);
     b.end();
 
     return trampoline;

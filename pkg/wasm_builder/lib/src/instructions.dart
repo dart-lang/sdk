@@ -533,25 +533,14 @@ class Instructions with SerializerMixin {
     writeUnsigned(table?.index ?? 0);
   }
 
-  bool _verifyCallRef() {
-    if (!reachable) {
-      return _debugTrace(const ['call_ref'], reachableAfter: false);
-    }
-    ValueType fun = _topOfStack;
-    if (fun is RefType) {
-      var heapType = fun.heapType;
-      if (heapType is FunctionType) {
-        return _verifyTypes([...heapType.inputs, fun], heapType.outputs,
-            trace: const ['call_ref']);
-      }
-    }
-    _reportError("Expected function type, got $fun");
-  }
-
   /// Emit a `call_ref` instruction.
-  void call_ref() {
-    assert(_verifyCallRef());
-    writeByte(0x14);
+  void call_ref(FunctionType type) {
+    assert(_verifyTypes(
+        [...type.inputs, RefType.def(type, nullable: true)], type.outputs,
+        trace: ['call_ref', type]));
+    // TODO(askesc): Change to 0x14 when supported by both V8 and Binaryen.
+    writeByte(0x17);
+    writeUnsigned(type.index);
   }
 
   // Parametric instructions
