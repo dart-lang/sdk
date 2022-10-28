@@ -2,5 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 
 static method test(dynamic x) → dynamic {
-  "if (x case {1: \"a\", 2: \"b\"}) {}";
+  final dynamic #t1 = x;
+  if(invalid-expression "Unimplemented MapMatcher.makeCondition") {
+  }
 }

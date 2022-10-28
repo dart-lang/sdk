@@ -2317,6 +2317,11 @@ class BodyBuilder extends StackListenerImpl
           libraryFeatures.patterns, case_.charOffset, case_.charCount);
       Matcher matcher = toMatcher(pop());
       Expression expression = popForValue();
+      for (VariableDeclaration variable in matcher.declaredVariables) {
+        // Skip synthetic variables.
+        if (variable.name == null) continue;
+        declareVariable(variable, scope);
+      }
       push(new Condition(expression, matcher, guard));
     } else {
       assert(checkState(token, [
@@ -8331,8 +8336,20 @@ class BodyBuilder extends StackListenerImpl
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
     // ignore: unused_local_variable
     TypeBuilder? type = pop(NullValue.TypeBuilder) as TypeBuilder?;
-    // TODO(johnniwinther): Create a variable binder
-    push(new DummyBinder());
+    DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
+    Binder binder;
+    if (variable.lexeme == "_") {
+      binder = new WildcardBinder(patternType, offset: variable.charOffset);
+    } else {
+      binder = new VariableBinder(
+          patternType,
+          variable.lexeme,
+          forest.createVariableDeclaration(variable.charOffset, variable.lexeme,
+              type: patternType,
+              isFinal: Modifier.validateVarFinalOrConst(keyword?.lexeme) ==
+                  finalMask));
+    }
+    push(binder);
   }
 
   @override

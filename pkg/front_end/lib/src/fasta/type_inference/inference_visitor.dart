@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
-import 'package:kernel/src/printer.dart' show astTextStrategyForTesting;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -85,7 +84,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
         InitializerVisitor<InitializerInferenceResult>,
-        InferenceVisitor {
+        InferenceVisitor,
+        MatcherVisitor<MatcherInferenceResult>,
+        BinderVisitor<BinderInferenceResult> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
   static const bool _debugRewriteStack = false;
@@ -1803,10 +1804,65 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
-    // TODO(cstefantsova): Handle if-case-when statements.
-    return new StatementInferenceResult.single(new ExpressionStatement(
-        new StringLiteral(node.toText(astTextStrategyForTesting)))
-      ..fileOffset = node.fileOffset);
+    flowAnalysis.ifStatement_conditionBegin();
+    DartType expectedType = const UnknownType();
+    ExpressionInferenceResult conditionResult = inferExpression(
+        node.expression, expectedType, !isTopLevel,
+        isVoidAllowed: true);
+    Expression condition =
+        ensureAssignableResult(expectedType, conditionResult).expression;
+
+    Map<VariableDeclaration, VariableTypeInfo<Node, DartType>> typeInfos = {};
+    dispatchPattern(conditionResult.inferredType, typeInfos,
+        MatchContext.simpleNonFinal, node.matcher);
+
+    VariableDeclaration matchedExpressionVariable = engine.forest
+        .createVariableDeclarationForValue(condition,
+            type: conditionResult.inferredType);
+    Expression? matchCondition =
+        node.matcher.makeCondition(matchedExpressionVariable, this);
+    node.matcher
+        .createDeclaredVariableInitializers(matchedExpressionVariable, this);
+
+    flowAnalysis.ifStatement_thenBegin(condition, node);
+    StatementInferenceResult thenResult = inferStatement(node.then);
+    Statement then;
+    if (thenResult.hasChanged) {
+      then = thenResult.statement;
+    } else {
+      then = node.then;
+    }
+
+    Statement? otherwise;
+    if (node.otherwise != null) {
+      flowAnalysis.ifStatement_elseBegin();
+      StatementInferenceResult otherwiseResult =
+          inferStatement(node.otherwise!);
+      if (otherwiseResult.hasChanged) {
+        otherwise = otherwiseResult.statement;
+      } else {
+        otherwise = node.otherwise!;
+      }
+    }
+    flowAnalysis.ifStatement_end(node.otherwise != null);
+
+    List<Statement> replacementStatements = [matchedExpressionVariable];
+    if (matchCondition == null) {
+      replacementStatements.addAll(node.matcher.declaredVariables);
+      replacementStatements.add(then);
+    } else {
+      if (node.matcher.declaredVariables.isNotEmpty) {
+        List<Statement> thenBodyStatements = [];
+        thenBodyStatements.addAll(node.matcher.declaredVariables);
+        thenBodyStatements.add(then);
+        then = engine.forest
+            .createBlock(then.fileOffset, then.fileOffset, thenBodyStatements);
+      }
+      replacementStatements
+          .add(new IfStatement(matchCondition, then, otherwise));
+    }
+    return new StatementInferenceResult.multiple(
+        node.fileOffset, replacementStatements);
   }
 
   ExpressionInferenceResult visitIntJudgment(
@@ -7582,11 +7638,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Map<VariableDeclaration, VariableTypeInfo<Node, DartType>> typeInfos,
       MatchContext<Node, Expression> context,
       Node node) {
-    // The front end's representation of a switch cases currently doesn't have
-    // any support for patterns; each case is represented as an expression.  So
-    // analyze it as a constant pattern.
-    return analyzeConstantPattern(
-        matchedType, typeInfos, context, node, node as Expression);
+    if (node is Matcher) {
+      node.acceptInference(this,
+          matchedType: matchedType, typeInfos: typeInfos, context: context);
+    } else if (node is Binder) {
+      node.acceptInference(this,
+          matchedType: matchedType, typeInfos: typeInfos, context: context);
+    } else {
+      // The front end's representation of a switch cases currently doesn't have
+      // any support for patterns; each case is represented as an expression.
+      // So analyze it as a constant pattern.
+      analyzeConstantPattern(
+          matchedType, typeInfos, context, node, node as Expression);
+    }
   }
 
   @override
@@ -7751,6 +7815,194 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void checkCleanState() {
     assert(_rewriteStack.isEmpty);
   }
+
+  @override
+  MatcherInferenceResult visitBinderMatcher(BinderMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    matcher.binder.acceptInference(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  BinderInferenceResult visitDummyBinder(DummyBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return const BinderInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitDummyMatcher(DummyMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  BinderInferenceResult visitListBinder(ListBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    // TODO(cstefantsova): Implement visitListBinder.
+    return const BinderInferenceResult();
+  }
+
+  @override
+  BinderInferenceResult visitVariableBinder(VariableBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    DartType inferredType =
+        inferDeclarationType(matchedType, forSyntheticVariable: true);
+    instrumentation?.record(uriForInstrumentation, binder.variable.fileOffset,
+        'type', new InstrumentationValueForType(inferredType));
+    if (binder.type == null) {
+      binder.variable.type = inferredType;
+    }
+    return const BinderInferenceResult();
+  }
+
+  @override
+  BinderInferenceResult visitWildcardBinder(WildcardBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return const BinderInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitExpressionMatcher(ExpressionMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    ExpressionInferenceResult expressionResult =
+        inferExpression(matcher.expression, matchedType, false);
+    matcher.expression = expressionResult.expression;
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitBinaryMatcher(BinaryMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    matcher.left.acceptInference(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+    matcher.right.acceptInference(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitCastMatcher(CastMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    matcher.matcher.acceptInference(this,
+        matchedType: const DynamicType(),
+        typeInfos: typeInfos,
+        context: context);
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitNullAssertMatcher(NullAssertMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
+        matchedType,
+        isNonNullableByDefault: isNonNullableByDefault);
+    return matcher.matcher.acceptInference(this,
+        matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  MatcherInferenceResult visitNullCheckMatcher(NullCheckMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
+        matchedType,
+        isNonNullableByDefault: isNonNullableByDefault);
+    return matcher.matcher.acceptInference(this,
+        matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  MatcherInferenceResult visitListMatcher(ListMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    // TODO(cstefantsova): Implement visitListMatcher.
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitRelationalMatcher(RelationalMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    // TODO(cstefantsova): Should the expression be inferred?
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitMapMatcher(MapMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    // TODO(cstefantsova): Implement visitMapMatcher.
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitNamedMatcher(NamedMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    // TODO(cstefantsova): Implement visitNamedMatcher.
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  BinderInferenceResult visitNamedBinder(NamedBinder matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    // TODO(cstefantsova): Implement visitNamedBinder.
+    return const BinderInferenceResult();
+  }
+
+  @override
+  MatcherInferenceResult visitRecordMatcher(RecordMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    // TODO(cstefantsova): Implement visitRecordMatcher.
+    return const MatcherInferenceResult();
+  }
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].
@@ -7766,4 +8018,12 @@ class _MapLiteralEntryOffsets {
 
   // Stores the type of the iterable spread found by inferMapEntry.
   DartType? iterableSpreadType;
+}
+
+class MatcherInferenceResult {
+  const MatcherInferenceResult();
+}
+
+class BinderInferenceResult {
+  const BinderInferenceResult();
 }

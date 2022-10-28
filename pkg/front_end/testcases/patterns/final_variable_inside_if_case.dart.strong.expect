@@ -2,5 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 
 static method test(dynamic x) → dynamic {
-  "if (x case <dummy-binder>) {}";
+  final dynamic #t1 = x;
+  final dynamic y = #t1;
+  {}
 }

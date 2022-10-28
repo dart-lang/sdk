@@ -1,6 +1,13 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
-  "if (x case y) {}";
+  final dynamic #t1 = x;
+  if(#t1.{core::Object::==}(#C1){(core::Object) → core::bool}) {
+  }
+}
+
+constants  {
+  #C1 = 1
 }

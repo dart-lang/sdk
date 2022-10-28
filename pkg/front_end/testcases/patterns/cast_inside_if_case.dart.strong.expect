@@ -2,5 +2,9 @@ library /*isNonNullableByDefault*/;
 import self as self;
 
 static method test(dynamic x) → dynamic {
-  "if (x case <dummy-binder> as dart.core::int) {}";
+  final dynamic #t1 = x;
+  if(invalid-expression "Unimplemented CastMatcher.makeCondition") {
+    dynamic y = #t1;
+    {}
+  }
 }
