@@ -4272,7 +4272,6 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleRecordPattern(Token token, int count) {
     debugEvent("RecordPattern");
-    debugEvent("RecordLiteral");
     assert(checkState(
         token,
         repeatedKinds(
@@ -4282,8 +4281,6 @@ class BodyBuilder extends StackListenerImpl
               ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
               ValueKinds.Matcher,
-              // TODO(johnniwinther): Support named matchers.
-              // ValueKinds.NamedMatcher,
               ValueKinds.Binder,
             ]),
             count)));
@@ -4291,12 +4288,11 @@ class BodyBuilder extends StackListenerImpl
     reportIfNotEnabled(
         libraryFeatures.patterns, token.charOffset, token.charCount);
 
-    // Pop all elements.
-    // ignore: unused_local_variable
-    List<Object?>? elements =
-        const FixedNullableList<Object>().pop(stack, count);
-    // TODO(johnniwinther): Create a record matcher.
-    push(new DummyMatcher(token.charOffset));
+    List<Matcher> matchers = new List<Matcher>.filled(count, dummyMatcher);
+    for (int i = count - 1; i >= 0; i--) {
+      matchers[i] = toMatcher(pop());
+    }
+    push(new RecordMatcher(matchers, token.charOffset));
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,
@@ -8204,10 +8200,10 @@ class BodyBuilder extends StackListenerImpl
         beginToken,
         repeatedKinds(
             unionOfKinds([
-              ValueKinds.Expression, ValueKinds.Generator,
+              ValueKinds.Expression,
+              ValueKinds.Generator,
               ValueKinds.ProblemBuilder,
               ValueKinds.Matcher,
-              // TODO(johnniwinther): Support named matcher.
               ValueKinds.Binder,
             ]),
             count)));
@@ -8353,27 +8349,35 @@ class BodyBuilder extends StackListenerImpl
       if (colon != null) ValueKinds.IdentifierOrNull,
     ]));
 
-    // ignore: unused_local_variable
     Object? value = pop();
     if (value is Binder) {
-      // TODO(johnniwinther): Create (named) binder.
       if (colon != null) {
-        // ignore: unused_local_variable
-        Identifier? name = pop() as Identifier?;
-        // TODO(johnniwinther): Push named binder.
-        push(new DummyMatcher(colon.charOffset));
+        Identifier? identifier = pop() as Identifier?;
+        String name;
+        if (identifier != null) {
+          name = identifier.name;
+        } else {
+          // TODO(johnniwinther): Derive the name from a variable binder in
+          // [value].
+          name = '';
+        }
+        push(new NamedBinder(name, value, colon.charOffset));
       } else {
         push(value);
       }
     } else {
-      // TODO(johnniwinther): Create (named) matcher.
-      // ignore: unused_local_variable
       Matcher matcher = toMatcher(value);
       if (colon != null) {
-        // ignore: unused_local_variable
-        Identifier? name = pop() as Identifier?;
-        // TODO(johnniwinther): Push named binder.
-        push(new DummyMatcher(colon.charOffset));
+        Identifier? identifier = pop() as Identifier?;
+        String name;
+        if (identifier != null) {
+          name = identifier.name;
+        } else {
+          // TODO(johnniwinther): Derive the name from a variable reference in
+          // [matcher].
+          name = '';
+        }
+        push(new NamedMatcher(name, matcher, colon.charOffset));
       } else {
         push(matcher);
       }

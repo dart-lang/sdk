@@ -5528,3 +5528,73 @@ class MapMatcher extends Matcher {
     return 'MapMatcher(${toStringInternal()})';
   }
 }
+
+class NamedMatcher extends Matcher {
+  final String name;
+  final Matcher matcher;
+
+  NamedMatcher(this.name, this.matcher, int fileOffset) : super(fileOffset) {
+    matcher.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(name);
+    printer.write(': ');
+    matcher.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return 'NamedMatcher(${toStringInternal()})';
+  }
+}
+
+class NamedBinder extends Binder {
+  final String name;
+  final Binder binder;
+
+  @override
+  final int fileOffset;
+
+  NamedBinder(this.name, this.binder, this.fileOffset) {
+    binder.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(name);
+    printer.write(': ');
+    binder.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return 'NamedBinder(${toStringInternal()})';
+  }
+}
+
+class RecordMatcher extends Matcher {
+  final List<Matcher> matchers;
+
+  RecordMatcher(this.matchers, int fileOffset) : super(fileOffset) {
+    setParents(matchers, this);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    String comma = '';
+    for (Matcher matcher in matchers) {
+      printer.write(comma);
+      matcher.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write(')');
+  }
+
+  @override
+  String toString() {
+    return 'RecordMatcher(${toStringInternal()})';
+  }
+}
