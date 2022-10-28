@@ -3245,7 +3245,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   const Class& closure_class =
       Class::Handle(Z, IG->object_store()->closure_class());
   const bool is_closure_call = (owner.ptr() == closure_class.ptr()) &&
-                               field_name.Equals(Symbols::Call());
+                               field_name.Equals(Symbols::call());
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -3326,7 +3326,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     const intptr_t kNumArgsChecked = 1;
     body +=
         InstanceCall(TokenPosition::kMinSource,
-                     is_dynamic_call ? Symbols::DynamicCall() : Symbols::Call(),
+                     is_dynamic_call ? Symbols::DynamicCall() : Symbols::call(),
                      Token::kILLEGAL, descriptor.TypeArgsLen(),
                      descriptor.Count(), *argument_names, kNumArgsChecked);
   }

@@ -733,7 +733,7 @@ void Precompiler::PrecompileConstructors() {
 void Precompiler::AddRoots() {
   HANDLESCOPE(T);
   AddSelector(Symbols::NoSuchMethod());
-  AddSelector(Symbols::Call());  // For speed, not correctness.
+  AddSelector(Symbols::call());  // For speed, not correctness.
 
   // Add main as an entry point.
   const Library& lib = Library::Handle(IG->object_store()->root_library());
@@ -990,7 +990,7 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
 }
 
 static bool IsPotentialClosureCall(const String& selector) {
-  return selector.ptr() == Symbols::Call().ptr() ||
+  return selector.ptr() == Symbols::call().ptr() ||
          selector.ptr() == Symbols::DynamicCall().ptr();
 }
 
@@ -1379,7 +1379,7 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
 
   // Use the same check for _Closure.call as in stack_trace.{h|cc}.
   const auto& selector = String::Handle(Z, function.name());
-  if (selector.ptr() == Symbols::Call().ptr()) {
+  if (selector.ptr() == Symbols::call().ptr()) {
     const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
     if (name.Equals(Symbols::_ClosureCall())) {
       return "_Closure.call";
@@ -2462,10 +2462,7 @@ static bool IsUserDefinedClass(Zone* zone,
     return false;
   }
 
-  const UntaggedClass* untagged_cls = cls.untag();
-  return ((untagged_cls->library() != object_store->core_library()) &&
-          (untagged_cls->library() != object_store->collection_library()) &&
-          (untagged_cls->library() != object_store->typed_data_library()));
+  return true;
 }
 
 /// Updates |visited| weak table with information about whether object

@@ -8067,6 +8067,7 @@ class TypeArguments : public Instance {
       bool* with_runtime_check = nullptr) const;
   bool CanShareFunctionTypeArguments(const Function& function,
                                      bool* with_runtime_check = nullptr) const;
+  TypeArgumentsPtr TruncatedTo(intptr_t length) const;
 
   // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
@@ -8434,6 +8435,11 @@ class AbstractType : public Instance {
   // Exception objects are guaranteed to be non-nullable, so
   // non-nullable Object is also a catch-all type.
   bool IsCatchAllType() const { return IsDynamicType() || IsObjectType(); }
+
+  // Returns true if this type has a type class permitted by SendPort.send for
+  // messages between isolates in different groups. Does not recursively visit
+  // type arguments.
+  bool IsTypeClassAllowedBySpawnUri() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,

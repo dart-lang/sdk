@@ -7,6 +7,7 @@ part of "core_patch.dart";
 // VM implementation of double.
 
 @patch
+@pragma("vm:entry-point")
 class double {
   @pragma("vm:external-name", "Double_parse")
   external static double? _nativeParse(String str, int start, int end);

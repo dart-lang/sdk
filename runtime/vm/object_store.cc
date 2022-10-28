@@ -446,8 +446,14 @@ void ObjectStore::LazyInitCoreMembers() {
 
     cls = core_lib.LookupClass(Symbols::Map());
     ASSERT(!cls.IsNull());
+    map_class_.store(cls.ptr());
+
     type ^= cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
+
+    cls = core_lib.LookupClass(Symbols::Set());
+    ASSERT(!cls.IsNull());
+    set_class_.store(cls.ptr());
 
     auto& field = Field::Handle(zone);
 
@@ -562,6 +568,18 @@ void ObjectStore::LazyInitIsolateMembers() {
     const auto& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
     auto& cls = Class::Handle(zone);
     auto& function = Function::Handle(zone);
+
+    cls = isolate_lib.LookupClass(Symbols::Capability());
+    ASSERT(!cls.IsNull());
+    capability_class_.store(cls.ptr());
+
+    cls = isolate_lib.LookupClass(Symbols::SendPort());
+    ASSERT(!cls.IsNull());
+    send_port_class_.store(cls.ptr());
+
+    cls = isolate_lib.LookupClass(Symbols::TransferableTypedData());
+    ASSERT(!cls.IsNull());
+    transferable_class_.store(cls.ptr());
 
     cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl());
     ASSERT(!cls.IsNull());

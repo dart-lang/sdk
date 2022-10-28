@@ -2636,7 +2636,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
     // number of arguments, or try (o.foo).call(...)
 
-    if ((target_name.ptr() == Symbols::Call().ptr()) && receiver.IsClosure()) {
+    if ((target_name.ptr() == Symbols::call().ptr()) && receiver.IsClosure()) {
       // Special case: closures are implemented with a call getter instead of a
       // call method and with lazy dispatchers the field-invocation-dispatcher
       // would perform the closure call.

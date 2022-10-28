@@ -45,32 +45,4 @@ main() {
       receive2.close();
     }, onError: (e) => print('$e'));
   });
-
-  // Now spawn an isolate using spawnURI and have it
-  // send back a "literal" like LinkedHashMap object.
-  var receive3 = new ReceivePort();
-  Isolate.spawnUri(
-          Uri.parse('issue_24243_child3_isolate.dart'), [], receive3.sendPort)
-      .then((isolate) {
-    receive3.listen((msg) {
-      var map0 = new LinkedHashMap<int, String>();
-      map0[1] = 'one';
-      map0[2] = 'two';
-      map0[3] = 'three';
-      var map1 = new LinkedHashMap<int, String>();
-      map1[4] = 'four';
-      map1[5] = 'five';
-      map1[6] = 'size';
-      var map2 = new LinkedHashMap<int, String>();
-      map2[7] = 'seven';
-      map2[8] = 'eight';
-      map2[9] = 'nine';
-      Expect.isTrue(msg is Map<int, LinkedHashMap<int, String>>);
-      Expect.mapEquals(msg[0], map0);
-      Expect.mapEquals(msg[1], map1);
-      Expect.mapEquals(msg[2], map2);
-      Expect.throws(() => msg[0] = "throw an exception");
-      receive3.close();
-    }, onError: (e) => print('$e'));
-  });
 }

@@ -31,6 +31,7 @@ class ReceivePort {
 }
 
 @patch
+@pragma("vm:entry-point")
 class Capability {
   @patch
   factory Capability() => new _CapabilityImpl();
@@ -684,6 +685,7 @@ class Isolate {
 }
 
 @patch
+@pragma("vm:entry-point")
 abstract class TransferableTypedData {
   @patch
   factory TransferableTypedData.fromList(List<TypedData> chunks) {

@@ -3141,7 +3141,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
   SkipDartType();  // read function_type.
 
   if (is_unchecked_closure_call) {
-    instructions += CheckNull(position, receiver_temp, Symbols::Call(),
+    instructions += CheckNull(position, receiver_temp, Symbols::call(),
                               /*clear_temp=*/false);
     // Lookup the function in the closure.
     instructions += LoadLocal(receiver_temp);
