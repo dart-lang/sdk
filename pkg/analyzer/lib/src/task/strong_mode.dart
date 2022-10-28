@@ -332,11 +332,11 @@ class InstanceMemberInferrer {
         }
         for (var accessor in classElement.accessors) {
           _inferAccessorOrField(
-            accessor: accessor as PropertyAccessorElementImpl,
+            accessor: accessor,
           );
         }
         for (var method in classElement.methods) {
-          _inferExecutable(method as MethodElementImpl);
+          _inferExecutable(method);
         }
         //
         // Infer initializing formal parameter types. This must happen after

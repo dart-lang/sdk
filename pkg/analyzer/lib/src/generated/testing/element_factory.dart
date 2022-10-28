@@ -43,7 +43,7 @@ class ElementFactory {
       String typeName, InterfaceType? superclassType,
       [List<String>? parameterNames]) {
     ClassElementImpl element = ClassElementImpl(typeName, 0);
-    element.constructors = const <ConstructorElement>[];
+    element.constructors = const <ConstructorElementImpl>[];
     element.supertype = superclassType;
     if (parameterNames != null) {
       element.typeParameters = typeParameters(parameterNames);
@@ -71,7 +71,7 @@ class ElementFactory {
     element.supertype = supertype;
     element.mixins = mixins;
     element.interfaces = interfaces;
-    element.constructors = const <ConstructorElement>[];
+    element.constructors = const <ConstructorElementImpl>[];
     return element;
   }
 
@@ -246,7 +246,7 @@ class ElementFactory {
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints;
     element.interfaces = interfaces;
-    element.constructors = const <ConstructorElement>[];
+    element.constructors = const <ConstructorElementImpl>[];
     return element;
   }
 
