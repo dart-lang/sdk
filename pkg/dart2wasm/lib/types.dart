@@ -136,8 +136,8 @@ class Types {
 
   List<List<int>> _buildTypeRulesSupers() {
     List<List<int>> typeRulesSupers = [];
-    for (int i = 0; i < translator.classInfoCollector.nextClassId; i++) {
-      List<int>? superclassIds = typeRules[i]?.keys.toList();
+    for (int classId = 0; classId < translator.classes.length; classId++) {
+      List<int>? superclassIds = typeRules[classId]?.keys.toList();
       if (superclassIds == null) {
         typeRulesSupers.add(const []);
       } else {
@@ -150,12 +150,12 @@ class Types {
 
   List<List<List<DartType>>> _buildTypeRulesSubstitutions() {
     List<List<List<DartType>>> typeRulesSubstitutions = [];
-    for (int i = 0; i < translator.classInfoCollector.nextClassId; i++) {
-      List<int> supers = typeRulesSupers[i];
+    for (int classId = 0; classId < translator.classes.length; classId++) {
+      List<int> supers = typeRulesSupers[classId];
       typeRulesSubstitutions.add(supers.isEmpty ? const [] : []);
       for (int j = 0; j < supers.length; j++) {
         int superId = supers[j];
-        typeRulesSubstitutions.last.add(typeRules[i]![superId]!);
+        typeRulesSubstitutions.last.add(typeRules[classId]![superId]!);
       }
     }
     return typeRulesSubstitutions;
