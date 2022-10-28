@@ -55,9 +55,11 @@ Future<void> main(List<String> args) async {
       "--enable-asserts",
       Platform.script.resolve("incremental_suite.dart").toString(),
       "-DaddDebugBreaks=true",
-      // import_package_by_file_uri by design imports the same file in two
+      // "import_package_by_file_uri" by design imports the same file in two
       // different ways, thus getting two copies of the same library.
-      "-DskipTests=import_package_by_file_uri"
+      // "issue_49968" gets "by design" the same library twice because of
+      // mixups with import urls and file urls.
+      "-DskipTests=import_package_by_file_uri,issue_49968"
     ]);
   } else {
     await heapHelper.start([
