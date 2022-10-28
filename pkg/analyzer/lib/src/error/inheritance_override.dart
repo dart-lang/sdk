@@ -20,6 +20,7 @@ import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
+final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<ExecutableElement>>();
 
 class InheritanceOverrideVerifier {
@@ -103,6 +104,13 @@ class InheritanceOverrideVerifier {
 
       verifier._verifyMustBeOverridden();
     }
+  }
+
+  /// Returns [Element] members that are in the interface of the
+  /// given class with `@mustBeOverridden`, but don't have implementations.
+  static List<ExecutableElement> missingMustBeOverridden(
+      ClassDeclaration node) {
+    return _missingMustBeOverridden[node.name] ?? const [];
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
@@ -764,8 +772,8 @@ class _ClassVerifier {
     _missingOverrides[classNameToken] = elements;
 
     var descriptions = <String>[];
-    for (ExecutableElement element in elements) {
-      String prefix = '';
+    for (var element in elements) {
+      var prefix = '';
       if (element is PropertyAccessorElement) {
         if (element.isGetter) {
           prefix = 'getter ';
@@ -852,7 +860,7 @@ class _ClassVerifier {
         !noSuchMethodDeclaration.isAbstract) {
       return;
     }
-    final notOverriddenNames = <String>{};
+    final notOverridden = <ExecutableElement>[];
     for (var supertype in classElement.allSupertypes) {
       // TODO(srawlins): This looping may be expensive. Since the vast majority
       // of classes will have zero elements annotated with `@mustBeOverridden`,
@@ -869,7 +877,7 @@ class _ClassVerifier {
         if (method.hasMustBeOverridden) {
           var methodDeclaration = classElement.getMethod(method.name);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
-            notOverriddenNames.add(method.name);
+            notOverridden.add(method.declaration);
           }
         }
       }
@@ -891,16 +899,17 @@ class _ClassVerifier {
             continue;
           }
           if (accessorDeclaration == null || accessorDeclaration.isAbstract) {
-            notOverriddenNames.add(accessor.name);
+            notOverridden.add(accessor);
           }
         }
       }
     }
-    if (notOverriddenNames.isEmpty) {
+    if (notOverridden.isEmpty) {
       return;
     }
 
-    final namesForError = notOverriddenNames.toList();
+    _missingMustBeOverridden[classNameToken] = notOverridden.toList();
+    final namesForError = notOverridden.map((e) => e.name).toSet().toList();
 
     if (namesForError.length == 1) {
       reporter.reportErrorForToken(

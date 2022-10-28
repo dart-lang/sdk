@@ -1294,6 +1294,15 @@ class FixProcessor extends BaseProcessor {
     HintCode.INVALID_SEALED_ANNOTATION: [
       RemoveAnnotation.new,
     ],
+    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [
+      CreateMissingOverrides.new,
+    ],
+    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO: [
+      CreateMissingOverrides.new,
+    ],
+    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS: [
+      CreateMissingOverrides.new,
+    ],
     HintCode.MISSING_REQUIRED_PARAM: [
       AddMissingRequiredArgument.new,
     ],

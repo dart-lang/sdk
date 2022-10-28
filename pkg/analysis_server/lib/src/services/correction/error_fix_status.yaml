@@ -1422,11 +1422,11 @@ HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: needsFix
   since: ~2.15
 HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
-  status: needsEvaluation
+  status: hasFix
 HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
-  status: needsEvaluation
+  status: hasFix
 HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
-  status: needsEvaluation
+  status: hasFix
 HintCode.MISSING_REQUIRED_PARAM:
   status: hasFix
 HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
