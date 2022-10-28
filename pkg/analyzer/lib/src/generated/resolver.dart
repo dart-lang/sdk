@@ -1603,7 +1603,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var flow = flowAnalysis.flow;
     flow?.conditional_conditionBegin();
 
-    // TODO(scheglov) Do we need these checks for null?
     analyzeExpression(node.condition, typeProvider.boolType);
     condition = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);

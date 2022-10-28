@@ -292,7 +292,7 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// Return a list containing all of the enums contained in this compilation
   /// unit.
-  @Deprecated('Use enum instead')
+  @Deprecated('Use enums instead')
   List<EnumElement> get enums2;
 
   /// Return a list containing all of the extensions contained in this
