@@ -45,6 +45,8 @@ import 'integration/public_member_api_docs.dart' as public_member_api_docs;
 import 'integration/secure_pubspec_urls.dart' as secure_pubspec_urls;
 import 'integration/sort_pub_dependencies.dart' as sort_pub_dependencies;
 import 'integration/unnecessary_lambdas.dart' as unnecessary_lambdas;
+import 'integration/unnecessary_library_directive.dart'
+    as unnecessary_library_directive;
 import 'integration/unnecessary_string_escapes.dart'
     as unnecessary_string_escapes;
 import 'integration/use_build_context_synchronously.dart'
@@ -201,6 +203,7 @@ void ruleTests() {
     prefer_mixin.main();
     use_build_context_synchronously.main();
     prefer_const_constructors.main();
+    unnecessary_library_directive.main();
   });
 }
 
