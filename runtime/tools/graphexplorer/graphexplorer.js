@@ -340,10 +340,10 @@ Graph.prototype.computePredecessors = function() {
 
   const predecessorCount = new Uint32Array(N + 1);
   for (let i = 1; i <= N; i++) {
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
-    for (let successorIndex = firstSuccessorIndex;
-       successorIndex < lastSuccessorIndex;
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
+    for (let successorIndex = startSuccessorIndex;
+       successorIndex < limitSuccessorIndex;
        successorIndex++) {
       let successor = successors[successorIndex];
       if (successor == 0) continue;  // Omitted object.
@@ -359,10 +359,10 @@ Graph.prototype.computePredecessors = function() {
   firstPredecessor[N + 1] = nextPredecessorIndex;
 
   for (let i = 1; i <= N; i++) {
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
-    for (let successorIndex = firstSuccessorIndex;
-       successorIndex < lastSuccessorIndex;
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
+    for (let successorIndex = startSuccessorIndex;
+       successorIndex < limitSuccessorIndex;
        successorIndex++) {
       let successor = successors[successorIndex];
       if (successor == 0) continue;  // Omitted object.
@@ -424,10 +424,10 @@ Graph.prototype.rewriteEdgesForOwners = function() {
       continue;
     }
 
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
-    for (let successorIndex = firstSuccessorIndex;
-         successorIndex < lastSuccessorIndex;
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
+    for (let successorIndex = startSuccessorIndex;
+         successorIndex < limitSuccessorIndex;
          successorIndex++) {
       let edge = this.strings_[this.successorName_[successorIndex]];
       if (edge == ownerEdgeName) {
@@ -445,11 +445,11 @@ Graph.prototype.rewriteEdgesForOwners = function() {
   const newSuccessorName = new Uint32Array(E);
   let newSuccessorIndex = 0;
   for (let i = 1; i <= N; i++) {
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
     firstSuccessor[i] = newSuccessorIndex;
-    for (let successorIndex = firstSuccessorIndex;
-         successorIndex < lastSuccessorIndex;
+    for (let successorIndex = startSuccessorIndex;
+         successorIndex < limitSuccessorIndex;
          successorIndex++) {
       let successor = successors[successorIndex];
       let name = successorName[successorIndex];
@@ -475,14 +475,14 @@ Graph.prototype.rewriteEdgesForOwners = function() {
       continue;
     }
 
-    let firstPredecessorIndex = firstPredecessor[i];
-    let lastPredecessorIndex = firstPredecessor[i + 1];
-    for (let predecessorIndex = firstPredecessorIndex;
-         predecessorIndex < lastPredecessorIndex;
+    let startPredecessorIndex = firstPredecessor[i];
+    let limitPredecessorIndex = firstPredecessor[i + 1];
+    for (let predecessorIndex = startPredecessorIndex;
+         predecessorIndex < limitPredecessorIndex;
          predecessorIndex++) {
       predecessors[predecessorIndex] = 0;
     }
-    predecessors[firstPredecessorIndex] = owner;
+    predecessors[startPredecessorIndex] = owner;
 
     let nextSuccessorIndex = firstSuccessor[owner + 1] - owneeCount[owner];
     newSuccessors[nextSuccessorIndex] = i;
@@ -592,10 +592,10 @@ Graph.prototype.computeDominators = function() {
     let w = vertex[i];
 
     // Lengauer and Tarjan Step 2.
-    let firstPredecessorIndex = firstPredecessor[w];
-    let lastPredecessorIndex = firstPredecessor[w + 1];
-    for (let predecessorIndex = firstPredecessorIndex;
-         predecessorIndex < lastPredecessorIndex;
+    let startPredecessorIndex = firstPredecessor[w];
+    let limitPredecessorIndex = firstPredecessor[w + 1];
+    for (let predecessorIndex = startPredecessorIndex;
+         predecessorIndex < limitPredecessorIndex;
          predecessorIndex++) {
       let v = predecessors[predecessorIndex];
 
@@ -978,10 +978,10 @@ function removeDuplicates(array) {
 
 Graph.prototype.successorsOfDo = function(v, action) {
   let cls = this.class_[v];
-  let firstSuccessorIndex = this.firstSuccessor_[v];
-  let lastSuccessorIndex = this.firstSuccessor_[v + 1];
-  for (let successorIndex = firstSuccessorIndex;
-     successorIndex < lastSuccessorIndex;
+  let startSuccessorIndex = this.firstSuccessor_[v];
+  let limitSuccessorIndex = this.firstSuccessor_[v + 1];
+  for (let successorIndex = startSuccessorIndex;
+     successorIndex < limitSuccessorIndex;
      successorIndex++) {
     let successor = this.successors_[successorIndex];
     let edgeName = this.strings_[this.successorName_[successorIndex]];
@@ -991,10 +991,10 @@ Graph.prototype.successorsOfDo = function(v, action) {
 }
 
 Graph.prototype.predecessorsOfDo = function(v, action) {
-  let firstPredecessorIndex = this.firstPredecessor_[v];
-  let lastPredecessorIndex = this.firstPredecessor_[v + 1];
-  for (let predecessorIndex = firstPredecessorIndex;
-     predecessorIndex < lastPredecessorIndex;
+  let startPredecessorIndex = this.firstPredecessor_[v];
+  let limitPredecessorIndex = this.firstPredecessor_[v + 1];
+  for (let predecessorIndex = startPredecessorIndex;
+     predecessorIndex < limitPredecessorIndex;
      predecessorIndex++) {
     let predecessor = this.predecessors_[predecessorIndex];
     let cls = this.class_[predecessor];
