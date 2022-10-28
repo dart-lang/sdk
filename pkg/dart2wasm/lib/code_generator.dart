@@ -1915,6 +1915,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         w.Label nullLabel = b.block();
         wrap(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
+        translator.convertType(
+            function, translator.topInfo.nullableType, signature.inputs[0]);
       }, (_) {}, getter: true, setter: false);
       b.br(doneLabel);
       b.end(); // nullLabel
