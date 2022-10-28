@@ -18,14 +18,6 @@ main() {
 @reflectiveTest
 class ReturnOfInvalidTypeForCatchErrorTest extends PubPackageResolutionTest
     with ReturnOfInvalidTypeForCatchErrorTestCases {
-  test_nullableType_emptyBody() async {
-    await assertNoErrorsInCode('''
-void f(Future<int?> future) {
-  future.catchError((e, st) {});
-}
-''');
-  }
-
   test_nullableType_emptyReturn() async {
     await assertErrorsInCode('''
 void f(Future<int?> future) {

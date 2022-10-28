@@ -19,7 +19,7 @@ import '../environment.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../inferrer/types.dart';
 import '../ir/modular.dart';
-import '../js_backend/backend.dart';
+import '../js_backend/codegen_inputs.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
 import '../js_model/element_map_impl.dart';

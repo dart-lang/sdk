@@ -17612,6 +17612,13 @@ HintCode:
 
       Replace references to the field or variable with invocations of the
       function producing the value.
+  BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+    problemMessage: "This 'onError' handler must return a value assignable to '{0}', but ends without returning a value."
+    correctionMessage: Try adding a return statement.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the return type as derived by the type of the [Future].
   BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
     problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
     correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."

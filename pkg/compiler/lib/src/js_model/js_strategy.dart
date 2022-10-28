@@ -31,6 +31,7 @@ import '../inferrer_experimental/type_graph_inferrer.dart'
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_impact.dart';
+import '../js_backend/codegen_inputs.dart';
 import '../js_backend/codegen_listener.dart';
 import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/enqueuer.dart';
@@ -38,10 +39,11 @@ import '../js_backend/impact_transformer.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/namer.dart';
+import '../js_backend/namer_migrated.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoderImpl;
+import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../js_backend/runtime_types_new.dart' show RecipeEncoderImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js/js.dart' as js;
@@ -123,6 +125,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   FunctionCompiler get functionCompiler => _functionCompiler;
 
+  @override
   CodeEmitterTask get emitterTask => _emitterTask;
 
   Namer get namerForTesting => _namer;

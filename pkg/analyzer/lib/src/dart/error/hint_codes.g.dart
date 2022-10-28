@@ -39,6 +39,15 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the return type as derived by the type of the [Future].
+  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR = HintCode(
+    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+    "This 'onError' handler must return a value assignable to '{0}', but ends "
+        "without returning a value.",
+    correctionMessage: "Try adding a return statement.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the declared return type
   static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = HintCode(
     'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',

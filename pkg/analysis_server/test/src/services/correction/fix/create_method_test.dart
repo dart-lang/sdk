@@ -12,53 +12,10 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddMissingHashOrEqualsBulkTest);
     defineReflectiveTests(AddMissingHashOrEqualsTest);
     defineReflectiveTests(CreateMethodMixinTest);
     defineReflectiveTests(CreateMethodTest);
   });
-}
-
-@reflectiveTest
-class AddMissingHashOrEqualsBulkTest extends BulkFixProcessorTest {
-  @override
-  String get lintCode => LintNames.hash_and_equals;
-
-  Future<void> test_singleFile() async {
-    await resolveTestCode('''
-class C {
-  @override
-  int get hashCode => 13;
-}
-
-class D {
-  @override
-  bool operator ==(Object other) => false;
-}
-''');
-    await assertHasFix('''
-class C {
-  @override
-  int get hashCode => 13;
-
-  @override
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
-}
-
-class D {
-  @override
-  bool operator ==(Object other) => false;
-
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
-
-}
-''');
-  }
 }
 
 @reflectiveTest

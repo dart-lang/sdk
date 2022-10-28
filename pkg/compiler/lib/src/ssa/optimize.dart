@@ -19,7 +19,7 @@ import '../inferrer/types.dart';
 import '../ir/util.dart';
 import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
-import '../js_backend/backend.dart' show CodegenInputs;
+import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_model/type_recipe.dart'
     show

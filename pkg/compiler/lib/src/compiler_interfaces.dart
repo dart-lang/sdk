@@ -91,3 +91,14 @@ abstract class CompilerInferrerFacade {
   DiagnosticReporter get reporter;
   CompilerOutput get outputProvider;
 }
+
+/// Subset of [Compiler] needed by dump-info
+///
+/// See definitions on [Compiler] for documentation.
+abstract class CompilerDumpInfoFacade {
+  CompilerOptions get options;
+  Measurer get measurer;
+  DiagnosticReporter get reporter;
+  CompilerOutput get outputProvider;
+  JsBackendStrategy get backendStrategy;
+}

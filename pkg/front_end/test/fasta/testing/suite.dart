@@ -2187,7 +2187,8 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     case "dart2js":
       target = new TestDart2jsTarget('dart2js', targetFlags,
           options: dart2jsOptions.CompilerOptions.parse(
-              folderOptions.defines?.values.toList() ?? []));
+              folderOptions.defines?.values.toList() ?? []),
+          canPerformGlobalTransforms: true);
       break;
     case "dartdevc":
       target = new TestDevCompilerTarget(targetFlags);
@@ -2629,8 +2630,11 @@ class TestDart2jsTarget extends Dart2jsTarget with TestTarget, TestTargetMixin {
   final TestTargetFlags flags;
 
   TestDart2jsTarget(String name, this.flags,
-      {dart2jsOptions.CompilerOptions? options})
-      : super(name, flags, options: options);
+      {dart2jsOptions.CompilerOptions? options,
+      bool canPerformGlobalTransforms = false})
+      : super(name, flags,
+            options: options,
+            canPerformGlobalTransforms: canPerformGlobalTransforms);
 }
 
 class TestDevCompilerTarget extends DevCompilerTarget
