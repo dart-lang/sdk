@@ -2704,8 +2704,9 @@ class _ResourceHandleImpl implements ResourceHandle {
 
 @patch
 class SocketControlMessage {
-  factory SocketControlMessage.fromHandles(List<ResourceHandle> handles)
-      native "SocketControlMessage_fromHandles";
+  @pragma("vm:external-name", "SocketControlMessage_fromHandles")
+  external factory SocketControlMessage.fromHandles(
+      List<ResourceHandle> handles);
 }
 
 @pragma("vm:entry-point")
