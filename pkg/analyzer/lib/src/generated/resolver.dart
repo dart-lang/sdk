@@ -1356,8 +1356,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType variableTypeFromInitializerType(DartType type) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50078
-    return type;
+    if (type.isDartCoreNull) {
+      return DynamicTypeImpl.instance;
+    }
+    return typeSystem.demoteType(type);
   }
 
   @override
