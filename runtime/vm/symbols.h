@@ -31,7 +31,7 @@ class ObjectPointerVisitor;
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
   V(ByteData, "ByteData")                                                      \
-  V(Call, "call")                                                              \
+  V(Capability, "Capability")                                                  \
   V(CastError, "_CastError")                                                   \
   V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
@@ -73,8 +73,8 @@ class ObjectPointerVisitor;
   V(Default, "Default")                                                        \
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
-  V(DotFieldNI, ".fieldNI")                                                    \
   V(DotFieldADI, ".fieldADI")                                                  \
+  V(DotFieldNI, ".fieldNI")                                                    \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
@@ -82,8 +82,8 @@ class ObjectPointerVisitor;
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
-  V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
   V(DynamicCallCurrentFunctionVar, ":dyn_call_current_function")               \
+  V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
   V(DynamicCallCurrentTypeParamVar, ":dyn_call_current_type_param")            \
   V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
@@ -110,6 +110,7 @@ class ObjectPointerVisitor;
   V(FfiFieldPacking, "packing")                                                \
   V(FfiFieldTypes, "fieldTypes")                                               \
   V(FfiFloat, "Float")                                                         \
+  V(FfiHandle, "Handle")                                                       \
   V(FfiInt16, "Int16")                                                         \
   V(FfiInt32, "Int32")                                                         \
   V(FfiInt64, "Int64")                                                         \
@@ -127,7 +128,6 @@ class ObjectPointerVisitor;
   V(FfiUint64, "Uint64")                                                       \
   V(FfiUint8, "Uint8")                                                         \
   V(FfiVoid, "Void")                                                           \
-  V(FfiHandle, "Handle")                                                       \
   V(Field, "Field")                                                            \
   V(Finalizable, "Finalizable")                                                \
   V(FinalizerBase, "FinalizerBase")                                            \
@@ -150,7 +150,6 @@ class ObjectPointerVisitor;
   V(FutureImpl, "_Future")                                                     \
   V(FutureOr, "FutureOr")                                                      \
   V(FutureValue, "Future.value")                                               \
-  V(Get, "get")                                                                \
   V(GetCall, "get:call")                                                       \
   V(GetLength, "get:length")                                                   \
   V(GetRuntimeType, "get:runtimeType")                                         \
@@ -193,6 +192,7 @@ class ObjectPointerVisitor;
   V(ListFactory, "List.")                                                      \
   V(ListFilledFactory, "List.filled")                                          \
   V(LoadLibrary, "_loadLibrary")                                               \
+  V(LoadingUnit, "LoadingUnit")                                                \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
@@ -226,8 +226,9 @@ class ObjectPointerVisitor;
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(Script, "Script")                                                          \
   V(SecondArg, "y")                                                            \
+  V(SendPort, "SendPort")                                                      \
   V(Sentinel, "Sentinel")                                                      \
-  V(Set, "set")                                                                \
+  V(Set, "Set")                                                                \
   V(SetterPrefix, "set:")                                                      \
   V(SingleTargetCache, "SingleTargetCache")                                    \
   V(SpaceIsFromSpace, " is from ")                                             \
@@ -239,13 +240,13 @@ class ObjectPointerVisitor;
   V(Struct, "Struct")                                                          \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
   V(SuspendStateVar, ":suspend_state_var")                                     \
-  V(LoadingUnit, "LoadingUnit")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
   V(ThrowNewNullAssertion, "_throwNewNullAssertion")                           \
   V(TopLevel, "::")                                                            \
+  V(TransferableTypedData, "TransferableTypedData")                            \
   V(TruncDivOperator, "~/")                                                    \
   V(TryFinallyReturnValue, ":try_finally_return_value")                        \
   V(TwoByteString, "_TwoByteString")                                           \
@@ -262,11 +263,11 @@ class ObjectPointerVisitor;
   V(Uint8ClampedList, "Uint8ClampedList")                                      \
   V(Uint8List, "Uint8List")                                                    \
   V(UnaryMinus, "unary-")                                                      \
-  V(Union, "Union")                                                            \
-  V(UnsignedRightShiftOperator, ">>>")                                         \
   V(UnhandledException, "UnhandledException")                                  \
+  V(Union, "Union")                                                            \
   V(UnlinkedCall, "UnlinkedCall")                                              \
   V(UnsafeCast, "unsafeCast")                                                  \
+  V(UnsignedRightShiftOperator, ">>>")                                         \
   V(UnsupportedError, "UnsupportedError")                                      \
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
@@ -277,7 +278,6 @@ class ObjectPointerVisitor;
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(_UnmodifiableByteDataView, "_UnmodifiableByteDataView")                    \
   V(_CapabilityImpl, "_CapabilityImpl")                                        \
   V(_ClassMirror, "_ClassMirror")                                              \
   V(_Closure, "_Closure")                                                      \
@@ -304,21 +304,6 @@ class ObjectPointerVisitor;
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
   V(_FinalizerImpl, "_FinalizerImpl")                                          \
-  V(_NativeFinalizer, "_NativeFinalizer")                                      \
-  V(_UnmodifiableInt8ArrayView, "_UnmodifiableInt8ArrayView")                  \
-  V(_UnmodifiableInt16ArrayView, "_UnmodifiableInt16ArrayView")                \
-  V(_UnmodifiableInt32ArrayView, "_UnmodifiableInt32ArrayView")                \
-  V(_UnmodifiableInt64ArrayView, "_UnmodifiableInt64ArrayView")                \
-  V(_UnmodifiableUint8ClampedArrayView, "_UnmodifiableUint8ClampedArrayView")  \
-  V(_UnmodifiableUint8ArrayView, "_UnmodifiableUint8ArrayView")                \
-  V(_UnmodifiableUint16ArrayView, "_UnmodifiableUint16ArrayView")              \
-  V(_UnmodifiableUint32ArrayView, "_UnmodifiableUint32ArrayView")              \
-  V(_UnmodifiableUint64ArrayView, "_UnmodifiableUint64ArrayView")              \
-  V(_UnmodifiableFloat32ArrayView, "_UnmodifiableFloat32ArrayView")            \
-  V(_UnmodifiableFloat64ArrayView, "_UnmodifiableFloat64ArrayView")            \
-  V(_UnmodifiableInt32x4ArrayView, "_UnmodifiableInt32x4ArrayView")            \
-  V(_UnmodifiableFloat32x4ArrayView, "_UnmodifiableFloat32x4ArrayView")        \
-  V(_UnmodifiableFloat64x2ArrayView, "_UnmodifiableFloat64x2ArrayView")        \
   V(_Float32ArrayFactory, "Float32List.")                                      \
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float32List, "_Float32List")                                              \
@@ -333,6 +318,7 @@ class ObjectPointerVisitor;
   V(_Float64x2ArrayFactory, "Float64x2List.")                                  \
   V(_Float64x2ArrayView, "_Float64x2ArrayView")                                \
   V(_Float64x2List, "_Float64x2List")                                          \
+  V(_FunctionType, "_FunctionType")                                            \
   V(_FunctionTypeMirror, "_FunctionTypeMirror")                                \
   V(_FutureListener, "_FutureListener")                                        \
   V(_GrowableList, "_GrowableList")                                            \
@@ -374,6 +360,7 @@ class ObjectPointerVisitor;
   V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
+  V(_NativeFinalizer, "_NativeFinalizer")                                      \
   V(_ParameterMirror, "_ParameterMirror")                                      \
   V(_Random, "_Random")                                                        \
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
@@ -393,7 +380,6 @@ class ObjectPointerVisitor;
   V(_SyncStreamController, "_SyncStreamController")                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Type, "_Type")                                                            \
-  V(_FunctionType, "_FunctionType")                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
@@ -412,20 +398,34 @@ class ObjectPointerVisitor;
   V(_Uint8ClampedArrayView, "_Uint8ClampedArrayView")                          \
   V(_Uint8ClampedList, "_Uint8ClampedList")                                    \
   V(_Uint8List, "_Uint8List")                                                  \
+  V(_UnmodifiableByteDataView, "_UnmodifiableByteDataView")                    \
+  V(_UnmodifiableFloat32ArrayView, "_UnmodifiableFloat32ArrayView")            \
+  V(_UnmodifiableFloat32x4ArrayView, "_UnmodifiableFloat32x4ArrayView")        \
+  V(_UnmodifiableFloat64ArrayView, "_UnmodifiableFloat64ArrayView")            \
+  V(_UnmodifiableFloat64x2ArrayView, "_UnmodifiableFloat64x2ArrayView")        \
+  V(_UnmodifiableInt16ArrayView, "_UnmodifiableInt16ArrayView")                \
+  V(_UnmodifiableInt32ArrayView, "_UnmodifiableInt32ArrayView")                \
+  V(_UnmodifiableInt32x4ArrayView, "_UnmodifiableInt32x4ArrayView")            \
+  V(_UnmodifiableInt64ArrayView, "_UnmodifiableInt64ArrayView")                \
+  V(_UnmodifiableInt8ArrayView, "_UnmodifiableInt8ArrayView")                  \
+  V(_UnmodifiableUint16ArrayView, "_UnmodifiableUint16ArrayView")              \
+  V(_UnmodifiableUint32ArrayView, "_UnmodifiableUint32ArrayView")              \
+  V(_UnmodifiableUint64ArrayView, "_UnmodifiableUint64ArrayView")              \
+  V(_UnmodifiableUint8ArrayView, "_UnmodifiableUint8ArrayView")                \
+  V(_UnmodifiableUint8ClampedArrayView, "_UnmodifiableUint8ClampedArrayView")  \
   V(_UserTag, "_UserTag")                                                      \
   V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_WeakReferenceImpl, "_WeakReferenceImpl")                                  \
-  V(_typedDataBase, "_typedDataBase")                                          \
   V(_await, "_await")                                                          \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_future, "_future")                                                        \
   V(_handleException, "_handleException")                                      \
-  V(_handleMessage, "_handleMessage")                                          \
   V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
+  V(_handleMessage, "_handleMessage")                                          \
   V(_handleNativeFinalizerMessage, "_handleNativeFinalizerMessage")            \
   V(_hasValue, "_hasValue")                                                    \
   V(_initAsync, "_initAsync")                                                  \
@@ -462,6 +462,7 @@ class ObjectPointerVisitor;
   V(_stateData, "_stateData")                                                  \
   V(_suspendSyncStarAtStart, "_suspendSyncStarAtStart")                        \
   V(_toString, "_toString")                                                    \
+  V(_typedDataBase, "_typedDataBase")                                          \
   V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(_yieldAsyncStar, "_yieldAsyncStar")                                        \
@@ -470,6 +471,8 @@ class ObjectPointerVisitor;
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
   V(asyncStarBody, "asyncStarBody")                                            \
+  V(c_result, ":result")                                                       \
+  V(call, "call")                                                              \
   V(callback, "callback")                                                      \
   V(capture_length, ":capture_length")                                         \
   V(capture_start_index, ":capture_start_index")                               \
@@ -480,6 +483,7 @@ class ObjectPointerVisitor;
   V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
+  V(get, "get")                                                                \
   V(index_temp, ":index_temp")                                                 \
   V(isPaused, "isPaused")                                                      \
   V(match_end_index, ":match_end_index")                                       \
@@ -489,8 +493,8 @@ class ObjectPointerVisitor;
   V(options, "options")                                                        \
   V(position_registers, ":position_registers")                                 \
   V(print, "print")                                                            \
-  V(c_result, ":result")                                                       \
   V(result, "result")                                                          \
+  V(set, "set")                                                                \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
   V(start_index_param, ":start_index_param")                                   \

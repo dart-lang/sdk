@@ -1224,6 +1224,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
                 .concreteRecordClass(environment.coreTypes) ??
             Class(
                 name: "&&Record",
+                supertype: Supertype(environment.coreTypes.objectClass, []),
                 implementedTypes: [
                   Supertype(environment.coreTypes.recordClass, [])
                 ],

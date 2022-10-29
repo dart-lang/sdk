@@ -401,7 +401,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     write(prefix);
 
     if (isGetter) {
-      writeln('// TODO: implement ${element.displayName}');
+      writeln('// TODO: implement $memberName');
       write(prefix);
     }
 

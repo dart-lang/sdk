@@ -771,7 +771,7 @@ class DietListener extends StackListenerImpl {
     TypeInferrer typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
         uri, thisType, libraryBuilder, inferenceDataForTesting);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
-        ? ConstantContext.inferred
+        ? ConstantContext.required
         : ConstantContext.none;
     return createListenerInternal(
         builder,

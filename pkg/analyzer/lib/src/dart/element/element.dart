@@ -71,13 +71,14 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   /// A list containing all of the accessors (getters and setters) contained in
   /// this class.
-  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
+  List<PropertyAccessorElementImpl> _accessors =
+      _Sentinel.propertyAccessorElement;
 
   /// A list containing all of the fields contained in this class.
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
 
   /// A list containing all of the methods contained in this class.
-  List<MethodElement> _methods = _Sentinel.methodElement;
+  List<MethodElementImpl> _methods = _Sentinel.methodElement;
 
   /// This callback is set during mixins inference to handle reentrant calls.
   List<InterfaceType>? Function(AbstractClassElementImpl)?
@@ -87,10 +88,13 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// given [offset] in the file that contains the declaration of this element.
   AbstractClassElementImpl(String super.name, super.offset);
 
+  @override
+  List<PropertyAccessorElementImpl> get accessors;
+
   /// Set the accessors contained in this class to the given [accessors].
-  set accessors(List<PropertyAccessorElement> accessors) {
-    for (PropertyAccessorElement accessor in accessors) {
-      (accessor as PropertyAccessorElementImpl).enclosingElement = this;
+  set accessors(List<PropertyAccessorElementImpl> accessors) {
+    for (var accessor in accessors) {
+      accessor.enclosingElement = this;
     }
     _accessors = accessors;
   }
@@ -560,7 +564,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   ClassElementImpl(super.name, super.offset);
 
   @override
-  set accessors(List<PropertyAccessorElement> accessors) {
+  set accessors(List<PropertyAccessorElementImpl> accessors) {
     assert(!isMixinApplication);
     super.accessors = accessors;
   }
@@ -578,14 +582,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
-  List<ConstructorElement> get constructors {
+  List<ConstructorElementImpl> get constructors {
     if (!identical(_constructors, _Sentinel.constructorElement)) {
       return _constructors;
     }
 
     if (isMixinApplication) {
       // Assign to break a possible infinite recursion during computing.
-      _constructors = const <ConstructorElement>[];
+      _constructors = const <ConstructorElementImpl>[];
       return _constructors = _computeMixinAppConstructors();
     }
 
@@ -599,14 +603,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       var constructor = ConstructorElementImpl('', -1);
       constructor.isSynthetic = true;
       constructor.enclosingElement = this;
-      _constructors = <ConstructorElement>[constructor];
+      _constructors = <ConstructorElementImpl>[constructor];
     }
 
     return _constructors;
   }
 
   @override
-  set constructors(List<ConstructorElement> constructors) {
+  set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
     super.constructors = constructors;
   }
@@ -752,7 +756,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
-  set methods(List<MethodElement> methods) {
+  set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
   }
@@ -780,14 +784,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   /// application.  If specified, [visitedClasses] is a list of the other mixin
   /// application classes which have been visited on the way to reaching this
   /// one (this is used to detect cycles).
-  List<ConstructorElement> _computeMixinAppConstructors(
+  List<ConstructorElementImpl> _computeMixinAppConstructors(
       [List<ClassElementImpl>? visitedClasses]) {
     if (supertype == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
       // safety's sake just assume an empty list.
       assert(false);
-      return <ConstructorElement>[];
+      return <ConstructorElementImpl>[];
     }
 
     var superElement = supertype!.element as ClassElementImpl;
@@ -807,7 +811,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
         if (visitedClasses.contains(this)) {
           // Loop in the class hierarchy.  Don't try to forward any
           // constructors.
-          return <ConstructorElement>[];
+          return <ConstructorElementImpl>[];
         }
         visitedClasses.add(this);
       }
@@ -933,7 +937,7 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   /// For classes which are mixin applications, the list of constructors is
   /// computed on the fly by the [constructors] getter, and this field is
   /// `null`.
-  List<ConstructorElement> _constructors = _Sentinel.constructorElement;
+  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   ElementLinkedData? linkedData;
 
@@ -946,7 +950,7 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   ClassOrMixinElementImpl(super.name, super.offset);
 
   @override
-  List<PropertyAccessorElement> get accessors {
+  List<PropertyAccessorElementImpl> get accessors {
     if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
       return _accessors;
     }
@@ -960,12 +964,15 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
     return _accessors;
   }
 
+  @override
+  List<ConstructorElementImpl> get constructors;
+
   /// Set the constructors contained in this class to the given [constructors].
   ///
   /// Should only be used for class elements that are not mixin applications.
-  set constructors(List<ConstructorElement> constructors) {
-    for (ConstructorElement constructor in constructors) {
-      (constructor as ConstructorElementImpl).enclosingElement = this;
+  set constructors(List<ConstructorElementImpl> constructors) {
+    for (var constructor in constructors) {
+      constructor.enclosingElement = this;
     }
     _constructors = constructors;
   }
@@ -1011,7 +1018,7 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<MethodElement> get methods {
+  List<MethodElementImpl> get methods {
     if (!identical(_methods, _Sentinel.methodElement)) {
       return _methods;
     }
@@ -1026,9 +1033,9 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   }
 
   /// Set the methods contained in this class to the given [methods].
-  set methods(List<MethodElement> methods) {
-    for (MethodElement method in methods) {
-      (method as MethodElementImpl).enclosingElement = this;
+  set methods(List<MethodElementImpl> methods) {
+    for (var method in methods) {
+      method.enclosingElement = this;
     }
     _methods = methods;
   }
@@ -1078,28 +1085,28 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
-  List<PropertyAccessorElement> _accessors = const [];
+  List<PropertyAccessorElementImpl> _accessors = const [];
 
   /// A list containing all of the classes contained in this compilation unit.
-  List<ClassElement> _classes = const [];
+  List<ClassElementImpl> _classes = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
-  List<EnumElement> _enums = const [];
+  List<EnumElementImpl> _enums = const [];
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
-  List<ExtensionElement> _extensions = const [];
+  List<ExtensionElementImpl> _extensions = const [];
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
-  List<FunctionElement> _functions = const [];
+  List<FunctionElementImpl> _functions = const [];
 
   /// A list containing all of the mixins contained in this compilation unit.
-  List<MixinElement> _mixins = const [];
+  List<MixinElementImpl> _mixins = const [];
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
-  List<TypeAliasElement> _typeAliases = const [];
+  List<TypeAliasElementImpl> _typeAliases = const [];
 
   /// A list containing all of the variables contained in this compilation unit.
   List<TopLevelVariableElementImpl> _variables = const [];
@@ -1115,15 +1122,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }) : super(null, -1);
 
   @override
-  List<PropertyAccessorElement> get accessors {
+  List<PropertyAccessorElementImpl> get accessors {
     return _accessors;
   }
 
   /// Set the top-level accessors (getters and setters) contained in this
   /// compilation unit to the given [accessors].
-  set accessors(List<PropertyAccessorElement> accessors) {
-    for (PropertyAccessorElement accessor in accessors) {
-      (accessor as PropertyAccessorElementImpl).enclosingElement = this;
+  set accessors(List<PropertyAccessorElementImpl> accessors) {
+    for (var accessor in accessors) {
+      accessor.enclosingElement = this;
     }
     _accessors = accessors;
   }
@@ -1142,20 +1149,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       ];
 
   @override
-  List<ClassElement> get classes {
+  List<ClassElementImpl> get classes {
     return _classes;
   }
 
   /// Set the classes contained in this compilation unit to [classes].
-  set classes(List<ClassElement> classes) {
-    for (ClassElement class_ in classes) {
-      // Another implementation of ClassElement is _DeferredClassElement,
-      // which is used to resynthesize classes lazily. We cannot cast it
-      // to ClassElementImpl, and it already can provide correct values of the
-      // 'enclosingElement' property.
-      if (class_ is ClassElementImpl) {
-        class_.enclosingElement = this;
-      }
+  set classes(List<ClassElementImpl> classes) {
+    for (var class_ in classes) {
+      class_.enclosingElement = this;
     }
     _classes = classes;
   }
@@ -1174,48 +1175,48 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<EnumElement> get enums {
+  List<EnumElementImpl> get enums {
     return _enums;
   }
 
   /// Set the enums contained in this compilation unit to the given [enums].
-  set enums(List<EnumElement> enums) {
+  set enums(List<EnumElementImpl> enums) {
     for (final element in enums) {
-      (element as EnumElementImpl).enclosingElement = this;
+      element.enclosingElement = this;
     }
     _enums = enums;
   }
 
   @Deprecated('Use enums instead')
   @override
-  List<EnumElement> get enums2 {
+  List<EnumElementImpl> get enums2 {
     return enums;
   }
 
   @override
-  List<ExtensionElement> get extensions {
+  List<ExtensionElementImpl> get extensions {
     return _extensions;
   }
 
   /// Set the extensions contained in this compilation unit to the given
   /// [extensions].
-  set extensions(List<ExtensionElement> extensions) {
-    for (ExtensionElement extension in extensions) {
-      (extension as ExtensionElementImpl).enclosingElement = this;
+  set extensions(List<ExtensionElementImpl> extensions) {
+    for (var extension in extensions) {
+      extension.enclosingElement = this;
     }
     _extensions = extensions;
   }
 
   @override
-  List<FunctionElement> get functions {
+  List<FunctionElementImpl> get functions {
     return _functions;
   }
 
   /// Set the top-level functions contained in this compilation unit to the
   ///  given[functions].
-  set functions(List<FunctionElement> functions) {
-    for (FunctionElement function in functions) {
-      (function as FunctionElementImpl).enclosingElement = this;
+  set functions(List<FunctionElementImpl> functions) {
+    for (var function in functions) {
+      function.enclosingElement = this;
     }
     _functions = functions;
   }
@@ -1236,21 +1237,21 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<MixinElement> get mixins {
+  List<MixinElementImpl> get mixins {
     return _mixins;
   }
 
   /// Set the mixins contained in this compilation unit to the given [mixins].
-  set mixins(List<MixinElement> mixins) {
-    for (var type in mixins) {
-      (type as MixinElementImpl).enclosingElement = this;
+  set mixins(List<MixinElementImpl> mixins) {
+    for (var mixin_ in mixins) {
+      mixin_.enclosingElement = this;
     }
     _mixins = mixins;
   }
 
   @Deprecated('Use mixins instead')
   @override
-  List<MixinElement> get mixins2 {
+  List<MixinElementImpl> get mixins2 {
     return mixins;
   }
 
@@ -1272,14 +1273,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<TypeAliasElement> get typeAliases {
+  List<TypeAliasElementImpl> get typeAliases {
     return _typeAliases;
   }
 
   /// Set the type aliases contained in this compilation unit to [typeAliases].
-  set typeAliases(List<TypeAliasElement> typeAliases) {
+  set typeAliases(List<TypeAliasElementImpl> typeAliases) {
     for (var typeAlias in typeAliases) {
-      (typeAlias as ElementImpl).enclosingElement = this;
+      typeAlias.enclosingElement = this;
     }
     _typeAliases = typeAliases;
   }
@@ -2910,14 +2911,14 @@ class ElementLocationImpl implements ElementLocation {
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   ElementLinkedData? linkedData;
-  List<ConstructorElement> _constructors = _Sentinel.constructorElement;
+  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
 
   @override
-  List<PropertyAccessorElement> get accessors {
+  List<PropertyAccessorElementImpl> get accessors {
     return _accessors;
   }
 
@@ -2933,18 +2934,18 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
     throw UnimplementedError();
   }
 
-  List<FieldElement> get constants {
+  List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
 
   @override
-  List<ConstructorElement> get constructors {
+  List<ConstructorElementImpl> get constructors {
     return _constructors;
   }
 
-  set constructors(List<ConstructorElement> constructors) {
+  set constructors(List<ConstructorElementImpl> constructors) {
     for (var constructor in constructors) {
-      (constructor as ConstructorElementImpl).enclosingElement = this;
+      constructor.enclosingElement = this;
     }
     _constructors = constructors;
   }
@@ -2973,14 +2974,14 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   }
 
   @override
-  List<MethodElement> get methods {
+  List<MethodElementImpl> get methods {
     return _methods;
   }
 
   /// Set the methods contained in this class to the given [methods].
-  set methods(List<MethodElement> methods) {
-    for (MethodElement method in methods) {
-      (method as MethodElementImpl).enclosingElement = this;
+  set methods(List<MethodElementImpl> methods) {
+    for (var method in methods) {
+      method.enclosingElement = this;
     }
     _methods = methods;
   }
@@ -3242,13 +3243,13 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   /// A list containing all of the accessors (getters and setters) contained in
   /// this extension.
-  List<PropertyAccessorElement> _accessors = const [];
+  List<PropertyAccessorElementImpl> _accessors = const [];
 
   /// A list containing all of the fields contained in this extension.
   List<FieldElementImpl> _fields = const [];
 
   /// A list containing all of the methods contained in this extension.
-  List<MethodElement> _methods = const [];
+  List<MethodElementImpl> _methods = const [];
 
   ElementLinkedData? linkedData;
 
@@ -3258,13 +3259,13 @@ class ExtensionElementImpl extends _ExistingElementImpl
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  List<PropertyAccessorElement> get accessors {
+  List<PropertyAccessorElementImpl> get accessors {
     return _accessors;
   }
 
-  set accessors(List<PropertyAccessorElement> accessors) {
-    for (PropertyAccessorElement accessor in accessors) {
-      (accessor as PropertyAccessorElementImpl).enclosingElement = this;
+  set accessors(List<PropertyAccessorElementImpl> accessors) {
+    for (var accessor in accessors) {
+      accessor.enclosingElement = this;
     }
     _accessors = accessors;
   }
@@ -3338,14 +3339,14 @@ class ExtensionElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<MethodElement> get methods {
+  List<MethodElementImpl> get methods {
     return _methods;
   }
 
   /// Set the methods contained in this extension to the given [methods].
-  set methods(List<MethodElement> methods) {
-    for (MethodElement method in methods) {
-      (method as MethodElementImpl).enclosingElement = this;
+  set methods(List<MethodElementImpl> methods) {
+    for (var method in methods) {
+      method.enclosingElement = this;
     }
     _methods = methods;
   }
@@ -4716,7 +4717,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   }
 
   @override
-  List<ConstructorElement> get constructors {
+  List<ConstructorElementImpl> get constructors {
     return _constructors;
   }
 
@@ -6555,14 +6556,14 @@ mixin _HasLibraryMixin on ElementImpl {
 class _Sentinel {
   static final List<AugmentationImportElement> augmentationImportElement =
       List.unmodifiable([]);
-  static final List<ConstructorElement> constructorElement =
+  static final List<ConstructorElementImpl> constructorElement =
       List.unmodifiable([]);
   static final List<FieldElementImpl> fieldElement = List.unmodifiable([]);
   static final List<LibraryExportElement> libraryExportElement =
       List.unmodifiable([]);
   static final List<LibraryImportElement> libraryImportElement =
       List.unmodifiable([]);
-  static final List<MethodElement> methodElement = List.unmodifiable([]);
-  static final List<PropertyAccessorElement> propertyAccessorElement =
+  static final List<MethodElementImpl> methodElement = List.unmodifiable([]);
+  static final List<PropertyAccessorElementImpl> propertyAccessorElement =
       List.unmodifiable([]);
 }

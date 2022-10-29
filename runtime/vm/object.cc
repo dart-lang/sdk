@@ -6962,6 +6962,19 @@ bool TypeArguments::CanShareFunctionTypeArguments(
   return true;
 }
 
+TypeArgumentsPtr TypeArguments::TruncatedTo(intptr_t length) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const TypeArguments& result =
+      TypeArguments::Handle(zone, TypeArguments::New(length));
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < length; i++) {
+    type = TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  return result.Canonicalize(thread);
+}
+
 bool TypeArguments::IsFinalized() const {
   ASSERT(!IsNull());
   AbstractType& type = AbstractType::Handle();
@@ -10400,7 +10413,7 @@ bool Function::HasDynamicCallers(Zone* zone) const {
   // Issue(dartbug.com/42719):
   // Right now the metadata of _Closure.call says there are no dynamic callers -
   // even though there can be. To be conservative we return true.
-  if ((name() == Symbols::GetCall().ptr() || name() == Symbols::Call().ptr()) &&
+  if ((name() == Symbols::GetCall().ptr() || name() == Symbols::call().ptr()) &&
       Class::IsClosureClass(Owner())) {
     return true;
   }
@@ -20053,7 +20066,7 @@ bool Instance::IsCallable(Function* function) const {
   // Try to resolve a "call" method.
   Zone* zone = Thread::Current()->zone();
   Function& call_function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, cls, Symbols::Call(),
+      zone, Resolver::ResolveDynamicAnyArgs(zone, cls, Symbols::call(),
                                             /*allow_add=*/false));
   if (call_function.IsNull()) {
     return false;
@@ -20722,6 +20735,48 @@ bool AbstractType::IsDartRecordType() const {
 
 bool AbstractType::IsFfiPointerType() const {
   return HasTypeClass() && type_class_id() == kPointerCid;
+}
+
+bool AbstractType::IsTypeClassAllowedBySpawnUri() const {
+  if (!HasTypeClass()) return false;
+
+  intptr_t cid = type_class_id();
+
+  if (cid == kBoolCid) return true;
+  if (cid == kDynamicCid) return true;
+  if (cid == kInstanceCid) return true;  // Object.
+  if (cid == kNeverCid) return true;
+  if (cid == kNullCid) return true;
+  if (cid == kVoidCid) return true;
+
+  // These are not constant CID checks because kDoubleCid refers to _Double
+  // not double, etc.
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
+  Type& candidate_type = Type::Handle();
+  candidate_type = object_store->int_type();
+  if (cid == candidate_type.type_class_id()) return true;
+  candidate_type = object_store->double_type();
+  if (cid == candidate_type.type_class_id()) return true;
+  candidate_type = object_store->number_type();
+  if (cid == candidate_type.type_class_id()) return true;
+  candidate_type = object_store->string_type();
+  if (cid == candidate_type.type_class_id()) return true;
+
+  Class& candidate_cls = Class::Handle();
+  candidate_cls = object_store->list_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->map_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->set_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->capability_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->send_port_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->transferable_class();
+  if (cid == candidate_cls.id()) return true;
+
+  return false;
 }
 
 AbstractTypePtr AbstractType::UnwrapFutureOr() const {
@@ -27035,13 +27090,13 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
       return EntryPointPragma::kAlways;
       break;
     }
-    if (pragma->ptr() == Symbols::Get().ptr()) {
+    if (pragma->ptr() == Symbols::get().ptr()) {
       return EntryPointPragma::kGetterOnly;
     }
-    if (pragma->ptr() == Symbols::Set().ptr()) {
+    if (pragma->ptr() == Symbols::set().ptr()) {
       return EntryPointPragma::kSetterOnly;
     }
-    if (pragma->ptr() == Symbols::Call().ptr()) {
+    if (pragma->ptr() == Symbols::call().ptr()) {
       return EntryPointPragma::kCallOnly;
     }
   }

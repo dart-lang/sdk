@@ -12,12 +12,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CreateMissingOverridesTest);
+    defineReflectiveTests(CreateMissingOverridesInheritsAbstractClassTest);
+    defineReflectiveTests(CreateMissingOverridesMustBeOverriddenClassTest);
   });
 }
 
+/// Tests for NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_*.
 @reflectiveTest
-class CreateMissingOverridesTest extends FixProcessorTest {
+class CreateMissingOverridesInheritsAbstractClassTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
 
@@ -770,6 +772,155 @@ class B extends A {
   @override
   set s3(String x) {
     // TODO: implement s3
+  }
+}
+''');
+  }
+}
+
+/// Tests for MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_*.
+@reflectiveTest
+class CreateMissingOverridesMustBeOverriddenClassTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(meta: true);
+  }
+
+  Future<void> test_field() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int f = 0;
+}
+
+class B extends A {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int f = 0;
+}
+
+class B extends A {
+  @override
+  int f;
+}
+''');
+  }
+
+  Future<void> test_field_overriddenWithOnlyGetter() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int f = 0;
+}
+
+class B extends A {
+  int get f => 0;
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int f = 0;
+}
+
+class B extends A {
+  int get f => 0;
+
+  @override
+  set f(int _f) {
+    // TODO: implement f
+  }
+}
+''');
+  }
+
+  Future<void> test_method_directMixin() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+mixin M {
+  @mustBeOverridden
+  void m() {}
+}
+
+class A with M {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+mixin M {
+  @mustBeOverridden
+  void m() {}
+}
+
+class A with M {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''');
+  }
+
+  Future<void> test_method_directSuperclass_three() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+
+  @mustBeOverridden
+  void n() {}
+
+  @mustBeOverridden
+  void o() {}
+}
+
+class B extends A {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+
+  @mustBeOverridden
+  void n() {}
+
+  @mustBeOverridden
+  void o() {}
+}
+
+class B extends A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+
+  @override
+  void n() {
+    // TODO: implement n
+  }
+
+  @override
+  void o() {
+    // TODO: implement o
   }
 }
 ''');

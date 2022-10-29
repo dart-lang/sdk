@@ -153,8 +153,16 @@ class Translator {
   late final DynamicDispatcher dynamics;
 
   // Information about the program used and updated by the various phases.
+
+  /// [ClassInfo]s of classes in the compilation unit and the [ClassInfo] for
+  /// the `#Top` struct. Indexed by class ID. Entries added by
+  /// [ClassInfoCollector].
   final List<ClassInfo> classes = [];
+
+  /// [ClassInfo]s of classes in the compilation unit. Entries added by
+  /// [ClassInfoCollector].
   final Map<Class, ClassInfo> classInfo = {};
+
   final Map<w.HeapType, ClassInfo> classForHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};

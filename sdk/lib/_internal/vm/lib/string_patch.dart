@@ -10,6 +10,7 @@ const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
 @patch
+@pragma("vm:entry-point")
 class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,

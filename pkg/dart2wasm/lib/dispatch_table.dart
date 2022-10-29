@@ -309,7 +309,8 @@ class DispatchTable {
             if (member.hasSetter) addMember(member.setterReference!);
           } else if (member is Procedure) {
             SelectorInfo method = addMember(member.reference);
-            if (method.tornOff) {
+            if (method.tornOff &&
+                procedureAttributeMetadata[member]!.hasTearOffUses) {
               addMember(member.tearOffReference);
             }
           }

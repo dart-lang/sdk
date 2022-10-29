@@ -105,7 +105,9 @@ class CodeUnits extends UnmodifiableListBase<int> {
 ///
 /// On a library, it provides a Uri that can be used to locate the native
 /// library's implementation.
+@pragma('vm:entry-point')
 class ExternalName {
+  @pragma('vm:entry-point')
   final String name;
   const ExternalName(this.name);
 }

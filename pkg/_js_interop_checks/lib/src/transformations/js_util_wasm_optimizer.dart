@@ -232,6 +232,10 @@ class JsUtilWasmOptimizer extends Transformer {
   DartType get _nonNullableObjectType =>
       _coreTypes.objectRawType(Nullability.nonNullable);
 
+  Expression? _getInitializerFromTearOff(InstanceTearOff tearOff, int i) =>
+      tearOff.interfaceTargetReference.asProcedure.function
+          .positionalParameters[i].initializer;
+
   /// Creates a callback trampoline for the given [function]. This callback
   /// trampoline expects a Dart callback as its first argument, followed by all
   /// of the arguments to the Dart callback as Dart objects. The trampoline will
@@ -275,8 +279,11 @@ class JsUtilWasmOptimizer extends Transformer {
         } else if (argument is FunctionExpression) {
           initializer = argument.function.positionalParameters[i].initializer;
         } else if (argument is InstanceTearOff) {
-          initializer = argument.interfaceTargetReference.asProcedure.function
-              .positionalParameters[i].initializer;
+          initializer = _getInitializerFromTearOff(argument, i);
+        } else if (argument is AsExpression &&
+            argument.operand is InstanceTearOff) {
+          initializer = _getInitializerFromTearOff(
+              argument.operand as InstanceTearOff, i);
         } else {
           throw 'Cannot pass default arguments.';
         }

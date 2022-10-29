@@ -648,6 +648,13 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
       }
     }
 
+    // Ensure that `ExternalName` and `pragma` classes are looked up before we
+    // install the constants table: Once the constants table is installed
+    // finalization of classes will eagerly want to evaluate constants and doing
+    // so will require those two classes to be available.
+    EnsureExternalClassIsLookedUp();
+    EnsurePragmaClassIsLookedUp();
+
     // Sets the constants array to an empty array with the length equal to
     // the number of constants. The array gets filled lazily while reading
     // constants.

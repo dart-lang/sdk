@@ -399,6 +399,7 @@ class VmTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('runtime/tests/vm/dart') ||
+      importer.path.contains('tests/standalone/io') ||
       importer.path.contains('test-lib') ||
       importer.path.contains('tests/ffi');
 

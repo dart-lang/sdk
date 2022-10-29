@@ -664,7 +664,8 @@ class Forest {
         isInitializingFormal: isInitializingFormal,
         isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
-        hasDeclaredInitializer: initializer != null);
+        hasDeclaredInitializer: initializer != null)
+      ..fileOffset = fileOffset;
   }
 
   VariableDeclarationImpl createVariableDeclarationForValue(
@@ -803,6 +804,20 @@ class Forest {
     assert(forEffect != null);
     return new IndexSet(receiver, index, value, forEffect: forEffect)
       ..fileOffset = fileOffset;
+  }
+
+  VariableGet createVariableGet(int fileOffset, VariableDeclaration variable) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new VariableGetImpl(variable, forNullGuardedAccess: false)
+      ..fileOffset = fileOffset;
+  }
+
+  VariableSet createVariableSet(
+      int fileOffset, VariableDeclaration variable, Expression value) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new VariableSet(variable, value)..fileOffset = fileOffset;
   }
 
   EqualsExpression createEquals(

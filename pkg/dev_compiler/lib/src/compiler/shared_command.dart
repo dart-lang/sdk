@@ -97,6 +97,10 @@ class SharedCompilerOptions {
   /// A canary feature that enables a new runtime type representation.
   final bool newRuntimeTypes;
 
+  /// When `true` stars "*" will appear to represent legacy types when printing
+  /// runtime types in the compiled application.
+  final bool printLegacyStars = false;
+
   SharedCompilerOptions(
       {this.sourceMap = true,
       this.inlineSourceMap = false,

@@ -2,33 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart._http;
-
-import "dart:async";
-import "dart:collection";
-import "dart:convert";
-import "dart:developer";
+import "dart:convert" show utf8;
 import "dart:io";
-import "dart:isolate";
-import "dart:math";
-import "dart:typed_data";
+// ignore: IMPORT_INTERNAL_LIBRARY
+import "dart:_http"
+    show TestingClass$_HttpHeaders, TestingClass$_Cookie, Testing$_HttpHeaders;
 
 import "package:expect/expect.dart";
 
-import "../../../sdk/lib/internal/internal.dart"
-    show
-        checkNotNullable,
-        Since,
-        valueOfNonNullableParamWithDefault,
-        HttpStatus;
-
-part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
-part "../../../sdk/lib/_http/http_impl.dart";
-part "../../../sdk/lib/_http/http_date.dart";
-part "../../../sdk/lib/_http/http_parser.dart";
-part "../../../sdk/lib/_http/http_headers.dart";
-part "../../../sdk/lib/_http/http_session.dart";
+typedef _HttpHeaders = TestingClass$_HttpHeaders;
+typedef _Cookie = TestingClass$_Cookie;
 
 void testMultiValue() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
@@ -385,18 +368,15 @@ void testContentLength() {
   Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
 
   headers = new _HttpHeaders("1.1");
-  e = Expect.throws(
-      () => headers.set("content-length", ["-3"]), (e) => e is HttpException);
+  e = Expect.throws<HttpException>(() => headers.set("content-length", ["-3"]));
   Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
 
   headers = new _HttpHeaders("1.1");
-  e = Expect.throws(
-      () => headers.set("content-length", [-3]), (e) => e is HttpException);
+  e = Expect.throws<HttpException>(() => headers.set("content-length", [-3]));
   Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
 
   headers = new _HttpHeaders("1.1");
-  e = Expect.throws(
-      () => headers.set("content-length", [[]]), (e) => e is HttpException);
+  e = Expect.throws<HttpException>(() => headers.set("content-length", [[]]));
   Expect.isTrue(
       e.message.contains("Unexpected type for header named content-length"));
 
@@ -635,9 +615,9 @@ void testInvalidCookie() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
   headers.set(
       'Cookie', 'DARTSESSID=d3d6fdd78d51aaaf2924c32e991f4349; undefined');
-  Expect.equals('DARTSESSID', headers._parseCookies().single.name);
-  Expect.equals(
-      'd3d6fdd78d51aaaf2924c32e991f4349', headers._parseCookies().single.value);
+  Expect.equals('DARTSESSID', headers.test$_parseCookies().single.name);
+  Expect.equals('d3d6fdd78d51aaaf2924c32e991f4349',
+      headers.test$_parseCookies().single.value);
 }
 
 void testHeaderLists() {
@@ -750,7 +730,7 @@ void testForEach() {
   headers.add('HEADER3', 'value 4', preserveHeaderCase: true);
 
   BytesBuilder builder = BytesBuilder();
-  headers._build(builder);
+  headers.test$_build(builder);
 
   Expect.isTrue(utf8.decode(builder.toBytes()).contains('HEADER1'));
 

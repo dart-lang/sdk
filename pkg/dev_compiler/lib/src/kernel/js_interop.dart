@@ -74,6 +74,9 @@ bool isPublicJSAnnotation(Expression value) =>
 bool _isJSAnonymousAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('_Anonymous', value);
 
+bool _isStaticInteropAnnotation(Expression value) =>
+    _annotationIsFromJSLibrary('_StaticInterop', value);
+
 /// Whether [value] is a `@JSExportName` (internal annotation used in SDK
 /// instead of `@JS` from `package:js`).
 bool isJSExportNameAnnotation(Expression value) =>
@@ -98,6 +101,13 @@ bool isJSAnonymousType(Class namedClass) {
   var isAnonymous =
       findAnnotation(namedClass, _isJSAnonymousAnnotation) != null;
   return hasJSInterop && isAnonymous;
+}
+
+bool isStaticInteropType(Class namedClass) {
+  var hasJSInterop = hasJSInteropAnnotation(namedClass);
+  var isStaticInterop =
+      findAnnotation(namedClass, _isStaticInteropAnnotation) != null;
+  return hasJSInterop && isStaticInterop;
 }
 
 bool isUndefinedAnnotation(Expression value) =>

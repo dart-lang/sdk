@@ -165,7 +165,7 @@ mixin ElementsTypesMixin {
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
-    List<MethodElement> methods = const [],
+    List<MethodElementImpl> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
     element.enclosingElement = testLibrary.definingCompilationUnit;
@@ -438,7 +438,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  MethodElement method(
+  MethodElementImpl method(
     String name,
     DartType returnType, {
     bool isStatic = false,
@@ -463,7 +463,7 @@ mixin ElementsTypesMixin {
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;
-    element.constructors = const <ConstructorElement>[];
+    element.constructors = const <ConstructorElementImpl>[];
     return element;
   }
 

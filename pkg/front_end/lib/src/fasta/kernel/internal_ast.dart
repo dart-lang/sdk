@@ -22,11 +22,16 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+
 import '../builder/type_alias_builder.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
+import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/inference_results.dart';
+import '../type_inference/object_access_target.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
@@ -155,6 +160,41 @@ List<DartType>? getExplicitTypeArguments(Arguments arguments) {
 
 bool hasExplicitTypeArguments(Arguments arguments) {
   return getExplicitTypeArguments(arguments) != null;
+}
+
+mixin InternalTreeNode implements TreeNode {
+  @override
+  R accept<R>(TreeVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultTreeNode(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
 }
 
 /// Common base class for internal statements.
@@ -5010,50 +5050,67 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-abstract class Matcher extends TreeNode {
+abstract class Matcher extends TreeNode with InternalTreeNode {
   Matcher(int fileOffset) {
     this.fileOffset = fileOffset;
   }
 
-  @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
+  /// Variable declarations induced by nested variable patterns.
+  ///
+  /// These variables are initialized to the values captured by the variable
+  /// patterns nested in the matcher.
+  List<VariableDeclaration> get declaredVariables;
 
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
 
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
+  /// Creates the desugared matching condition.
+  ///
+  /// [matchedExpressionVariable] is the variable initialized to the value of
+  /// the expression being matched.
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor);
 
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
+  /// Creates initializing expressions for the variables captured by the pattern
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor);
 }
 
 class DummyMatcher extends Matcher {
   DummyMatcher(int fileOffset) : super(fileOffset);
 
   @override
-  void toTextInternal(AstPrinter printer) {}
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<dummy-matcher>');
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitDummyMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return null;
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   String toString() {
@@ -5069,6 +5126,42 @@ class ExpressionMatcher extends Matcher {
   ExpressionMatcher(this.expression) : super(expression.fileOffset) {
     expression.parent = this;
   }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitExpressionMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
+        matchedExpressionVariable.type, equalsName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    return new InstanceInvocation(
+        InstanceAccessKind.Instance,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, matchedExpressionVariable),
+        equalsName,
+        inferenceVisitor.engine.forest
+            .createArguments(fileOffset, [expression]),
+        functionType: target.getFunctionType(inferenceVisitor),
+        interfaceTarget: target.member as Procedure)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5092,10 +5185,56 @@ class BinaryMatcher extends Matcher {
   BinaryMatcherKind kind;
   Matcher right;
 
+  @override
+  final List<VariableDeclaration> declaredVariables = [];
+
   BinaryMatcher(this.left, this.kind, this.right, int fileOffset)
       : super(fileOffset) {
     left.parent = this;
     right.parent = this;
+
+    if (kind == BinaryMatcherKind.or) {
+      // All branches should declare same variables.
+      declaredVariables.addAll(left.declaredVariables);
+    } else {
+      // Branches together declare the variables.
+      declaredVariables
+        ..addAll(left.declaredVariables)
+        ..addAll(right.declaredVariables);
+    }
+  }
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitBinaryMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression("Unimplemented BinaryMatcher.makeCondition");
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    if (kind == BinaryMatcherKind.and) {
+      // All branches together define the set of declared variables.
+      left.createDeclaredVariableInitializers(
+          matchedExpressionVariable, inferenceVisitor);
+      right.createDeclaredVariableInitializers(
+          matchedExpressionVariable, inferenceVisitor);
+    } else {
+      // All branches define the same set of variables.
+      left.createDeclaredVariableInitializers(
+          matchedExpressionVariable, inferenceVisitor);
+    }
   }
 
   @override
@@ -5128,6 +5267,33 @@ class CastMatcher extends Matcher {
   }
 
   @override
+  List<VariableDeclaration> get declaredVariables => matcher.declaredVariables;
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitCastMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression("Unimplemented CastMatcher.makeCondition");
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    matcher.createDeclaredVariableInitializers(
+        matchedExpressionVariable, inferenceVisitor);
+  }
+
+  @override
   void toTextInternal(AstPrinter printer) {
     matcher.toTextInternal(printer);
     printer.write(' as ');
@@ -5146,6 +5312,34 @@ class NullAssertMatcher extends Matcher {
 
   NullAssertMatcher(this.matcher, int fileOffset) : super(fileOffset) {
     matcher.parent = this;
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => matcher.declaredVariables;
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitNullAssertMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression(
+        "Unimplemented NullAssertMatcher.makeCondition");
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    matcher.createDeclaredVariableInitializers(
+        matchedExpressionVariable, inferenceVisitor);
   }
 
   @override
@@ -5169,6 +5363,34 @@ class NullCheckMatcher extends Matcher {
   }
 
   @override
+  List<VariableDeclaration> get declaredVariables => matcher.declaredVariables;
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitNullCheckMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression(
+        "Unimplemented NullCheckMatcher.makeCondition");
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    matcher.createDeclaredVariableInitializers(
+        matchedExpressionVariable, inferenceVisitor);
+  }
+
+  @override
   void toTextInternal(AstPrinter printer) {
     matcher.toTextInternal(printer);
     printer.write('?');
@@ -5185,9 +5407,39 @@ class ListMatcher extends Matcher {
   DartType typeArgument;
   List<Matcher> matchers;
 
+  @override
+  final List<VariableDeclaration> declaredVariables = [];
+
   ListMatcher(this.typeArgument, this.matchers, int fileOffset)
       : super(fileOffset) {
     setParents(matchers, this);
+    for (Matcher matcher in matchers) {
+      declaredVariables.addAll(matcher.declaredVariables);
+    }
+  }
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitListMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    throw new UnimplementedError("ListMatcher.makeCondition");
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    throw new UnimplementedError(
+        "ListMatcher.createDeclaredVariableInitializers");
   }
 
   @override
@@ -5232,6 +5484,31 @@ class RelationalMatcher extends Matcher {
   }
 
   @override
+  List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitRelationalMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression(
+        "Unimplemented RelationalMatcher.makeCondition");
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {}
+
+  @override
   void toTextInternal(AstPrinter printer) {
     switch (kind) {
       case RelationalMatcherKind.equals:
@@ -5268,6 +5545,34 @@ class BinderMatcher extends Matcher {
   BinderMatcher(this.binder) : super(binder.fileOffset);
 
   @override
+  List<VariableDeclaration> get declaredVariables => binder.declaredVariables;
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    binder.acceptInference(visitor,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+    return const MatcherInferenceResult();
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return binder.makeCondition(matchedExpressionVariable, inferenceVisitor);
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    binder.createDeclaredVariableInitializers(
+        matchedExpressionVariable, inferenceVisitor);
+  }
+
+  @override
   void toTextInternal(AstPrinter printer) {
     binder.toTextInternal(printer);
   }
@@ -5278,44 +5583,61 @@ class BinderMatcher extends Matcher {
   }
 }
 
-abstract class Binder extends TreeNode {
-  @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
+abstract class Binder extends TreeNode with InternalTreeNode {
+  /// Variable declarations induced by nested variable patterns.
+  ///
+  /// These variables are initialized to the values captured by the variable
+  /// patterns nested in the binder.
+  List<VariableDeclaration> get declaredVariables;
 
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
+  BinderInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
 
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
+  /// Creates the desugared matching condition.
+  ///
+  /// [matchedExpressionVariable] is the variable initialized to the value of
+  /// the expression being matched.
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor);
 
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
+  /// Creates initializing expressions for the variables captured by the pattern
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor);
 }
 
 class DummyBinder extends Binder {
   @override
-  void toTextInternal(AstPrinter printer) {}
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<dummy-binder>');
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  BinderInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitDummyBinder(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return null;
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   String toString() {
@@ -5327,8 +5649,38 @@ class ListBinder extends Binder {
   final DartType typeBinderArgument;
   final List<Binder> binders;
 
+  @override
+  List<VariableDeclaration> declaredVariables = [];
+
   ListBinder(this.typeBinderArgument, this.binders, {required int offset}) {
     fileOffset = offset;
+    declaredVariables = [
+      for (Binder binder in binders) ...binder.declaredVariables
+    ];
+  }
+
+  @override
+  BinderInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitListBinder(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    throw new UnimplementedError("ListBinder.makeCondition");
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    throw new UnimplementedError(
+        "ListBinder.createDeclaredVariableInitializers");
   }
 
   @override
@@ -5357,20 +5709,37 @@ class WildcardBinder extends Binder {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  BinderInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitWildcardBinder(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    if (type != null) {
+      return inferenceVisitor.engine.forest.createIsExpression(
+          fileOffset,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, matchedExpressionVariable),
+          type!,
+          forNonNullableByDefault: false);
+    } else {
+      return null;
+    }
   }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5382,35 +5751,23 @@ class WildcardBinder extends Binder {
   }
 
   @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
   String toString() {
     return "WildcardBinder(${toStringInternal()})";
   }
 }
 
-class PatternVariableDeclaration extends Statement {
+class PatternVariableDeclaration extends InternalStatement {
   final Binder binder;
   final Expression initializer;
 
   PatternVariableDeclaration(this.binder, this.initializer,
       {required int offset}) {
     fileOffset = offset;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    throw new UnimplementedError("PatternVariableDeclaration.acceptInference");
   }
 
   @override
@@ -5529,4 +5886,483 @@ class IfCaseStatement extends InternalStatement {
   String toString() {
     return "IfCaseStatement(${toStringInternal()})";
   }
+}
+
+final MapMatcherEntry dummyMapMatcherEntry =
+    new MapMatcherEntry(dummyMatcher, dummyMatcher, TreeNode.noOffset);
+
+class MapMatcherEntry extends TreeNode with InternalTreeNode {
+  final Matcher key;
+  final Matcher value;
+
+  @override
+  final int fileOffset;
+
+  MapMatcherEntry(this.key, this.value, this.fileOffset) {
+    key.parent = this;
+    value.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    key.toTextInternal(printer);
+    printer.write(': ');
+    value.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return 'MapMatcherEntry(${toStringInternal()})';
+  }
+}
+
+class MapMatcher extends Matcher {
+  final DartType? keyType;
+  final DartType? valueType;
+  final List<MapMatcherEntry> entries;
+
+  @override
+  final List<VariableDeclaration> declaredVariables = [];
+
+  MapMatcher(this.keyType, this.valueType, this.entries, int fileOffset)
+      : assert((keyType == null) == (valueType == null)),
+        super(fileOffset) {
+    for (MapMatcherEntry entry in entries) {
+      declaredVariables.addAll(entry.key.declaredVariables);
+      declaredVariables.addAll(entry.value.declaredVariables);
+    }
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (keyType != null && valueType != null) {
+      printer.writeTypeArguments([keyType!, valueType!]);
+    }
+    printer.write('{');
+    String comma = '';
+    for (MapMatcherEntry entry in entries) {
+      printer.write(comma);
+      entry.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write('}');
+  }
+
+  @override
+  String toString() {
+    return 'MapMatcher(${toStringInternal()})';
+  }
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitMapMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    for (MapMatcherEntry entry in entries) {
+      entry.key.createDeclaredVariableInitializers(
+          matchedExpressionVariable, inferenceVisitor);
+      entry.value.createDeclaredVariableInitializers(
+          matchedExpressionVariable, inferenceVisitor);
+    }
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression("Unimplemented MapMatcher.makeCondition");
+  }
+}
+
+class NamedMatcher extends Matcher {
+  final String name;
+  final Matcher matcher;
+
+  NamedMatcher(this.name, this.matcher, int fileOffset) : super(fileOffset) {
+    matcher.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(name);
+    printer.write(': ');
+    matcher.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return 'NamedMatcher(${toStringInternal()})';
+  }
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitNamedMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    matcher.createDeclaredVariableInitializers(
+        matchedExpressionVariable, inferenceVisitor);
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => matcher.declaredVariables;
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression("Unimplemented NamedMatcher.makeCondition");
+  }
+}
+
+class NamedBinder extends Binder {
+  final String name;
+  final Binder binder;
+
+  @override
+  final int fileOffset;
+
+  NamedBinder(this.name, this.binder, this.fileOffset) {
+    binder.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(name);
+    printer.write(': ');
+    binder.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return 'NamedBinder(${toStringInternal()})';
+  }
+
+  @override
+  BinderInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitNamedBinder(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    throw new UnimplementedError(
+        "NamedBinder.createDeclaredVariableInitializers");
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => binder.declaredVariables;
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression("Unimplemented NamedBinder.makeCondition");
+  }
+}
+
+class RecordMatcher extends Matcher {
+  final List<Matcher> matchers;
+
+  @override
+  final List<VariableDeclaration> declaredVariables = [];
+
+  RecordMatcher(this.matchers, int fileOffset) : super(fileOffset) {
+    setParents(matchers, this);
+    for (Matcher matcher in matchers) {
+      declaredVariables.addAll(matcher.declaredVariables);
+    }
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    String comma = '';
+    for (Matcher matcher in matchers) {
+      printer.write(comma);
+      matcher.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write(')');
+  }
+
+  @override
+  String toString() {
+    return 'RecordMatcher(${toStringInternal()})';
+  }
+
+  @override
+  MatcherInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitRecordMatcher(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    for (Matcher matcher in matchers) {
+      matcher.createDeclaredVariableInitializers(
+          matchedExpressionVariable, inferenceVisitor);
+    }
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    return new InvalidExpression("Unimplemented RecordMatcher.makeCondition");
+  }
+}
+
+class VariableBinder extends Binder {
+  final DartType? type;
+  String name;
+  VariableDeclaration variable;
+
+  @override
+  final List<VariableDeclaration> declaredVariables;
+
+  VariableBinder(this.type, this.name, this.variable)
+      : declaredVariables = [variable];
+
+  @override
+  BinderInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context}) {
+    return visitor.visitVariableBinder(this,
+        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  }
+
+  @override
+  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    if (type != null) {
+      return inferenceVisitor.engine.forest.createIsExpression(
+          variable.fileOffset,
+          inferenceVisitor.engine.forest.createVariableGet(
+              variable.fileOffset, matchedExpressionVariable),
+          type!,
+          forNonNullableByDefault: false);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  void createDeclaredVariableInitializers(
+      VariableDeclaration matchedExpressionVariable,
+      InferenceVisitorBase inferenceVisitor) {
+    variable.initializer = inferenceVisitor.engine.forest
+        .createVariableGet(variable.fileOffset, matchedExpressionVariable);
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultTreeNode(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (type != null) {
+      type!.toTextInternal(printer);
+      printer.write(" ");
+    } else {
+      printer.write("var ");
+    }
+    printer.write(name);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "VariableBinder(${toStringInternal()})";
+  }
+}
+
+abstract class MatcherVisitor<R> {
+  const MatcherVisitor();
+
+  R visitBinderMatcher(BinderMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitDummyMatcher(DummyMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitExpressionMatcher(ExpressionMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitBinaryMatcher(BinaryMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitCastMatcher(CastMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitNullAssertMatcher(NullAssertMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitNullCheckMatcher(NullCheckMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitListMatcher(ListMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitRelationalMatcher(RelationalMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitMapMatcher(MapMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitNamedMatcher(NamedMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitRecordMatcher(RecordMatcher matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+}
+
+abstract class MatcherVisitor1<R, A> {
+  const MatcherVisitor1();
+
+  R visitBinderMatcher(BinderMatcher matcher, A arg,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitDummyMatcher(DummyMatcher matcher, A arg,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+}
+
+abstract class BinderVisitor<R> {
+  const BinderVisitor();
+
+  R visitDummyBinder(DummyBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitListBinder(ListBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitVariableBinder(VariableBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitWildcardBinder(WildcardBinder binder,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitNamedBinder(NamedBinder matcher,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+}
+
+abstract class BinderVisitor1<R, A> {
+  const BinderVisitor1();
+
+  R visitDummyBinder(DummyBinder binder, A arg,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitListBinder(ListBinder binder, A arg,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitVariableBinder(VariableBinder binder, A arg,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
+  R visitWildcardBinder(WildcardBinder binder, A arg,
+      {required DartType matchedType,
+      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
+          typeInfos,
+      required MatchContext<Node, Expression> context});
 }

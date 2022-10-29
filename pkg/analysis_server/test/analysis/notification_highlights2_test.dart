@@ -898,6 +898,33 @@ void f() {
     assertHasRegion(HighlightRegionType.EXTENSION, 'E(0)');
   }
 
+  Future<void> test_forPartsWithDeclarations() async {
+    addTestFile('''
+void f() {
+  for (var i = 0; i < 10; i++) {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, 'i = 0');
+    assertHasRegion(HighlightRegionType.LOCAL_VARIABLE_REFERENCE, 'i < 10');
+    assertHasRegion(HighlightRegionType.LOCAL_VARIABLE_REFERENCE, 'i++');
+  }
+
+  Future<void> test_forPartsWithDeclarations_dynamic() async {
+    addTestFile('''
+void f() {
+  for (dynamic i = 0; i < 10; i++) {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(
+        HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION, 'i = 0');
+    assertHasRegion(
+        HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, 'i < 10');
+    assertHasRegion(
+        HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, 'i++');
+  }
+
   Future<void> test_FUNCTION_TYPE_ALIAS() async {
     addTestFile('''
 typedef A();

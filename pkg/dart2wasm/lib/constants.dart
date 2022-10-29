@@ -56,14 +56,14 @@ class Constants {
   bool currentlyCreating = false;
 
   Constants(this.translator) {
-    initEmptyString();
-    initEmptyTypeList();
+    _initEmptyString();
+    _initEmptyTypeList();
   }
 
   w.Module get m => translator.m;
   bool get stringDataSegments => translator.options.stringDataSegments;
 
-  void initEmptyString() {
+  void _initEmptyString() {
     ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
     translator.functions.allocateClass(info.classId);
     w.ArrayType arrayType =
@@ -76,14 +76,14 @@ class Constants {
     ib.i32_const(initialIdentityHash);
     ib.array_new_fixed(arrayType, 0);
     ib.struct_new(info.struct);
-    ib.end();
+    ib.end(); // end of global initializer expression
 
     Constant emptyStringConstant = StringConstant("");
     constantInfo[emptyStringConstant] =
         ConstantInfo(emptyStringConstant, emptyString, null);
   }
 
-  void initEmptyTypeList() {
+  void _initEmptyTypeList() {
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
     translator.functions.allocateClass(info.classId);
     w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
@@ -99,7 +99,7 @@ class Constants {
     ib.i64_const(0);
     ib.array_new_fixed(arrayType, 0);
     ib.struct_new(info.struct);
-    ib.end();
+    ib.end(); // end of global initializer expression
 
     Constant emptyTypeListConstant = ListConstant(
         InterfaceType(translator.typeClass, Nullability.nonNullable), const []);

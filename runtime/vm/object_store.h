@@ -46,6 +46,8 @@ class ObjectPointerVisitor;
                                 LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL,       \
                                 LAZY_FFI)                                      \
   LAZY_CORE(Class, list_class)                                                 \
+  LAZY_CORE(Class, map_class)                                                  \
+  LAZY_CORE(Class, set_class)                                                  \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
   LAZY_CORE(Field, enum_index_field)                                           \
@@ -60,6 +62,9 @@ class ObjectPointerVisitor;
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
   LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
   LAZY_ASYNC(Type, nullable_future_null_type)                                  \
+  LAZY_ISOLATE(Class, send_port_class)                                         \
+  LAZY_ISOLATE(Class, capability_class)                                        \
+  LAZY_ISOLATE(Class, transferable_class)                                      \
   LAZY_ISOLATE(Function, lookup_port_handler)                                  \
   LAZY_ISOLATE(Function, lookup_open_ports)                                    \
   LAZY_ISOLATE(Function, handle_message_function)                              \

@@ -1140,7 +1140,7 @@ class Intrinsifier {
         codeGen.wrap(node.arguments.positional[i], functionType.inputs[i]);
       }
       b.local_get(temp);
-      b.call_ref();
+      b.call_ref(functionType);
       return translator.outputOrVoid(functionType.outputs);
     }
 
@@ -1435,7 +1435,7 @@ class Intrinsifier {
       b.local_get(args);
       b.ref_cast(translator.functions.asyncStubBaseStruct);
       b.struct_get(translator.functions.asyncStubBaseStruct, stubFieldIndex);
-      b.call_ref();
+      b.call_ref(translator.functions.asyncStubFunctionType);
       return true;
     }
 

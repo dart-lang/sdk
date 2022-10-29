@@ -886,7 +886,7 @@ class _MockSdkElementsBuilder {
       lineInfo: LineInfo([0]),
     );
 
-    asyncUnit.classes = <ClassElement>[
+    asyncUnit.classes = <ClassElementImpl>[
       completerElement,
       futureElement,
       futureOrElement,
@@ -915,7 +915,7 @@ class _MockSdkElementsBuilder {
       lineInfo: LineInfo([0]),
     );
 
-    coreUnit.classes = <ClassElement>[
+    coreUnit.classes = <ClassElementImpl>[
       boolElement,
       comparableElement,
       deprecatedElement,
@@ -939,7 +939,7 @@ class _MockSdkElementsBuilder {
       typeElement,
     ];
 
-    coreUnit.functions = <FunctionElement>[
+    coreUnit.functions = <FunctionElementImpl>[
       _function('identical', boolType, parameters: [
         _requiredParameter('a', objectType),
         _requiredParameter('b', objectType),
@@ -964,7 +964,7 @@ class _MockSdkElementsBuilder {
       _interfaceType(proxyElement),
     );
 
-    coreUnit.accessors = <PropertyAccessorElement>[
+    coreUnit.accessors = <PropertyAccessorElementImpl>[
       deprecatedVariable.getter!,
       overrideVariable.getter!,
       proxyVariable.getter!,
@@ -995,13 +995,13 @@ class _MockSdkElementsBuilder {
   }) {
     var element = ClassElementImpl(name, 0);
     element.typeParameters = typeParameters;
-    element.constructors = <ConstructorElement>[
+    element.constructors = <ConstructorElementImpl>[
       _constructor(),
     ];
     return element;
   }
 
-  ConstructorElement _constructor({
+  ConstructorElementImpl _constructor({
     String name = '',
     bool isConst = false,
     bool isFactory = false,
@@ -1024,7 +1024,7 @@ class _MockSdkElementsBuilder {
     return ElementFactory.fieldElement(name, isStatic, isFinal, isConst, type);
   }
 
-  FunctionElement _function(
+  FunctionElementImpl _function(
     String name,
     DartType returnType, {
     List<TypeParameterElement> typeFormals = const [],
@@ -1049,7 +1049,7 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  PropertyAccessorElement _getter(
+  PropertyAccessorElementImpl _getter(
     String name,
     DartType type, {
     bool isStatic = false,
@@ -1081,7 +1081,7 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  MethodElement _method(
+  MethodElementImpl _method(
     String name,
     DartType returnType, {
     List<TypeParameterElement> typeFormals = const [],
@@ -1128,7 +1128,7 @@ class _MockSdkElementsBuilder {
   /// Set the [accessors] and the corresponding fields for the [classElement].
   void _setAccessors(
     ClassElementImpl classElement,
-    List<PropertyAccessorElement> accessors,
+    List<PropertyAccessorElementImpl> accessors,
   ) {
     classElement.accessors = accessors;
     classElement.fields = accessors

@@ -2,5 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 
 static method f(dynamic x) → void {
-  ;
+  final dynamic #t1 = x;
+  if(invalid-expression "Unimplemented CastMatcher.makeCondition") {
+  }
 }

@@ -104,6 +104,47 @@ VariablePattern
 ''');
   }
 
+  test_var_demoteType() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T x) {
+  if (x is int) {
+    if (x case var y) {}
+  }
+}
+''');
+
+    final node = findNode.caseClause('case').pattern;
+    assertResolvedNodeText(node, r'''
+VariablePattern
+  keyword: var
+  name: y
+  declaredElement: hasImplicitType y@54
+    type: T
+''');
+  }
+
+  test_var_fromLegacy() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 2.10
+final x = <int>[];
+''');
+    await assertNoErrorsInCode(r'''
+// ignore:import_of_legacy_library_into_null_safe
+import 'a.dart';
+void f() {
+  if (x case var y) {}
+}
+''');
+    final node = findNode.caseClause('case').pattern;
+    assertResolvedNodeText(node, r'''
+VariablePattern
+  keyword: var
+  name: y
+  declaredElement: hasImplicitType y@95
+    type: List<int>
+''');
+  }
+
   test_var_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {
@@ -117,6 +158,60 @@ VariablePattern
   name: y
   declaredElement: hasImplicitType y@33
     type: int
+''');
+  }
+
+  test_var_nullOrEquivalent_neverQuestion() async {
+    await assertNoErrorsInCode(r'''
+void f(Never? x) {
+  if (x case var y) {}
+}
+''');
+    final node = findNode.caseClause('case').pattern;
+    assertResolvedNodeText(node, r'''
+VariablePattern
+  keyword: var
+  name: y
+  declaredElement: hasImplicitType y@36
+    type: dynamic
+''');
+  }
+
+  test_var_nullOrEquivalent_nullNone() async {
+    await assertNoErrorsInCode(r'''
+void f(Null x) {
+  if (x case var y) {}
+}
+''');
+    final node = findNode.caseClause('case').pattern;
+    assertResolvedNodeText(node, r'''
+VariablePattern
+  keyword: var
+  name: y
+  declaredElement: hasImplicitType y@34
+    type: dynamic
+''');
+  }
+
+  test_var_nullOrEquivalent_nullStar() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 2.10
+Null x = null;
+''');
+    await assertNoErrorsInCode(r'''
+// ignore:import_of_legacy_library_into_null_safe
+import 'a.dart';
+void f() {
+  if (x case var y) {}
+}
+''');
+    final node = findNode.caseClause('case').pattern;
+    assertResolvedNodeText(node, r'''
+VariablePattern
+  keyword: var
+  name: y
+  declaredElement: hasImplicitType y@95
+    type: dynamic
 ''');
   }
 

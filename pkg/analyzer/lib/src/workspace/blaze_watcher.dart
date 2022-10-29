@@ -591,7 +591,7 @@ class _PerWorkspaceData {
 
   /// Keeps count of the number of requests to watch a file, so that we can stop
   /// watching when we reach 0 clients.
-  final watched = _Multiset();
+  final watched = _Multiset<String>();
 
   /// The [PollTrigger] that detects when we should poll files.
   final PollTrigger trigger;

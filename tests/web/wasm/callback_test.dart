@@ -159,7 +159,7 @@ typedef NoArgsFun = String Function();
 typedef OneArgFun = String Function(String arg);
 typedef OnePositionalAndOneOptionalArgsFun = String Function(String arg,
     [String arg2]);
-typedef TwoPositionalArgsFun = String Function([String arg, String arg2]);
+typedef TwoOptionalArgsFun = String Function([String arg, String arg2]);
 
 class TornOffClass {
   String noArgs() {
@@ -174,8 +174,31 @@ class TornOffClass {
     return arg + arg2;
   }
 
-  String twoPositionalArgs([String arg = 'foo', String? arg2]) {
+  String twoOptionalArgs([String arg = 'foo', String? arg2]) {
     return arg + (arg2 ?? '');
+  }
+}
+
+typedef OneArgFunB = String Function(double arg);
+typedef OnePositionalAndOneOptionalArgsFunB = String Function(double arg,
+    [String arg2]);
+typedef TwoOptionalArgsFunB = String Function([double arg, String arg2]);
+
+class GenericTornOffClass<T, V> {
+  String noArgs() {
+    return 'foo';
+  }
+
+  String oneArg(T arg) {
+    return '$arg';
+  }
+
+  String onePositionalAndOneOptionalArgs(T arg, [V? arg2]) {
+    return '$arg $arg2';
+  }
+
+  String twoOptionalArgs([T? arg, V? arg2]) {
+    return '$arg $arg2';
   }
 }
 
@@ -231,11 +254,31 @@ void allowInteropCallbackTest() {
     globalThis.tearOffOnePositionalAndOneOptionalArgsB = function (f) {
       return f('foo', 'baz');
     }
-    globalThis.tearOffTwoPositionalArgsA = function (f) {
+    globalThis.tearOffTwoOptionalArgsA = function (f) {
       return f('foo');
     }
-    globalThis.tearOffTwoPositionalArgsB = function (f) {
+    globalThis.tearOffTwoOptionalArgsB = function (f) {
       return f('foo', 'baz');
+    }
+
+    // tear off generic class cases
+    globalThis.tearOffGenericNoArgs = function (f) {
+      return f();
+    }
+    globalThis.tearOffGenericOneArg = function (f) {
+      return f(1.0);
+    }
+    globalThis.tearOffGenericOnePositionalAndOneOptionalArgsA = function (f) {
+      return f(1.0);
+    }
+    globalThis.tearOffGenericOnePositionalAndOneOptionalArgsB = function (f) {
+      return f(1.0, 'baz');
+    }
+    globalThis.tearOffGenericTwoOptionalArgsA = function (f) {
+      return f(1.0);
+    }
+    globalThis.tearOffGenericTwoOptionalArgsB = function (f) {
+      return f(1.0, 'baz');
     }
   ''');
 
@@ -350,22 +393,81 @@ void allowInteropCallbackTest() {
             [interopCallback]));
   }
 
-  // Two positional case A.
+  // Two optional case A.
   {
     final t = TornOffClass();
-    final interopCallback =
-        allowInterop<TwoPositionalArgsFun>(t.twoPositionalArgs);
+    final interopCallback = allowInterop<TwoOptionalArgsFun>(t.twoOptionalArgs);
     Expect.equals('foo',
-        callMethod(globalThis, 'tearOffTwoPositionalArgsA', [interopCallback]));
+        callMethod(globalThis, 'tearOffTwoOptionalArgsA', [interopCallback]));
   }
 
-  // Two positional case B.
+  // Two optional case B.
   {
     final t = TornOffClass();
-    final interopCallback =
-        allowInterop<TwoPositionalArgsFun>(t.twoPositionalArgs);
+    final interopCallback = allowInterop<TwoOptionalArgsFun>(t.twoOptionalArgs);
     Expect.equals('foobaz',
-        callMethod(globalThis, 'tearOffTwoPositionalArgsB', [interopCallback]));
+        callMethod(globalThis, 'tearOffTwoOptionalArgsB', [interopCallback]));
+  }
+
+  // Tearoffs of generic classes.
+  // No args.
+  {
+    final t = GenericTornOffClass<double, String>();
+    final interopCallback = allowInterop<NoArgsFun>(t.noArgs);
+    Expect.equals('foo',
+        callMethod(globalThis, 'tearOffGenericNoArgs', [interopCallback]));
+  }
+
+  // One arg.
+  {
+    final t = GenericTornOffClass<double, String>();
+    final interopCallback = allowInterop<OneArgFunB>(t.oneArg);
+    Expect.equals('1.0',
+        callMethod(globalThis, 'tearOffGenericOneArg', [interopCallback]));
+  }
+
+  // One positional and one optional case A.
+  {
+    final t = GenericTornOffClass<double, String>();
+    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFunB>(
+        t.onePositionalAndOneOptionalArgs);
+    Expect.equals(
+        '1.0 null',
+        callMethod(globalThis, 'tearOffGenericOnePositionalAndOneOptionalArgsA',
+            [interopCallback]));
+  }
+
+  // One positional and one optional case B.
+  {
+    final t = GenericTornOffClass<double, String>();
+    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFunB>(
+        t.onePositionalAndOneOptionalArgs);
+    Expect.equals(
+        '1.0 baz',
+        callMethod(globalThis, 'tearOffGenericOnePositionalAndOneOptionalArgsB',
+            [interopCallback]));
+  }
+
+  // Two optional case A.
+  {
+    final t = GenericTornOffClass<double, String>();
+    final interopCallback =
+        allowInterop<TwoOptionalArgsFunB>(t.twoOptionalArgs);
+    Expect.equals(
+        '1.0 null',
+        callMethod(
+            globalThis, 'tearOffGenericTwoOptionalArgsA', [interopCallback]));
+  }
+
+  // Two optional case B.
+  {
+    final t = GenericTornOffClass<double, String>();
+    final interopCallback =
+        allowInterop<TwoOptionalArgsFunB>(t.twoOptionalArgs);
+    Expect.equals(
+        '1.0 baz',
+        callMethod(
+            globalThis, 'tearOffGenericTwoOptionalArgsB', [interopCallback]));
   }
 }
 

@@ -7,16 +7,14 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-library dart._http;
-
 import "dart:convert";
 import "dart:io";
-import "dart:math";
-import "dart:typed_data";
+// ignore: IMPORT_INTERNAL_LIBRARY
+import "dart:_http" show TestingClass$_SHA1;
 
 import "package:expect/expect.dart";
 
-part "../../../sdk/lib/_http/crypto.dart";
+typedef _SHA1 = TestingClass$_SHA1;
 
 const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 

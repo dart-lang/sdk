@@ -9,6 +9,7 @@ part of dart._runtime;
 ///
 /// The constant value itself is inlined by the compiler in place of the call
 /// to this method.
+// TODO(nshahan) Remove in favor of `JS_GET_FLAG()`.
 @notNull
 external bool compileTimeFlag(String flag);
 
@@ -146,8 +147,10 @@ class DartType implements Type {
   as_T(object) => cast(object, this);
 
   DartType() {
-    // Every instance of a DartType requires a set of type caches.
-    JS('', '#(this)', addTypeCaches);
+    if (!JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+      // Every instance of a DartType requires a set of type caches.
+      JS('', '#(this)', addTypeCaches);
+    }
   }
 }
 
@@ -206,10 +209,8 @@ F tearoffInterop<F extends Function?>(F f) {
   return JS('', '#', ret);
 }
 
-/// Dart type that represents a package:js class type (either anonymous or not).
-///
-/// For the purposes of subtype checks, these match any JS type.
-class PackageJSType extends DartType {
+/// Base type for all `package:js` classes.
+abstract class PackageJSType extends DartType {
   final String _dartName;
   PackageJSType(this._dartName);
 
@@ -224,6 +225,24 @@ class PackageJSType extends DartType {
 
   @JSExportName('as')
   as_T(obj) => is_T(obj) ? obj : castError(obj, this);
+}
+
+/// Dart type that represents a non-`@staticInterop` package:js class type.
+///
+/// This may include types annotated with `@JS` and `@anonymous`, but not
+/// `@staticInterop`. For the purposes of subtype checks, these match any
+/// JS object that doesn't have a `@Native` class.
+class NonStaticInteropType extends PackageJSType {
+  NonStaticInteropType(super._dartName);
+}
+
+/// Dart type that represents a `@staticInterop` package:js class type.
+///
+/// This is type-equivalent to `JavaScriptObject`. Therefore, this type is a
+/// supertype of all JS objects that don't have a `@Native` class and classes
+/// that implement `JavaScriptObject` e.g. `dart:html` types.
+class StaticInteropType extends PackageJSType {
+  StaticInteropType(super._dartName);
 }
 
 void _warn(arg) {
@@ -258,25 +277,38 @@ void _nullWarnOnType(type) {
   }
 }
 
-var _packageJSTypes = JS<Object>('', 'new Map()');
+// `@staticInterop` and non-`@staticInterop` package:js classes can use the same
+// name. Since these two types of classes have different types, we need to keep
+// them in different maps.
+final _nonStaticInteropTypes = JS<Object>('', 'new Map()');
+final _staticInteropTypes = JS<Object>('', 'new Map()');
 
-packageJSType(String name) {
-  var ret = JS('', '#.get(#)', _packageJSTypes, name);
+@notNull
+Object packageJSType(@notNull String name, @notNull bool staticInterop) {
+  var map = staticInterop ? _staticInteropTypes : _nonStaticInteropTypes;
+  var ret = JS('', '#.get(#)', map, name);
   if (ret == null) {
-    ret = PackageJSType(name);
-    JS('', '#.set(#, #)', _packageJSTypes, name, ret);
+    ret = staticInterop ? StaticInteropType(name) : NonStaticInteropType(name);
+    JS('', '#.set(#, #)', map, name, ret);
   }
   return ret;
 }
 
-/// Since package:js types are all subtypes of each other, we use this var to
-/// denote *some* package:js type in our subtyping logic.
+/// Represents all non-`@staticInterop` package:js types, as they're all
+/// subtypes of one another and subtypes of `LegacyJavaScriptObject`.
 ///
-/// Used only when a concrete PackageJSType is not available i.e. when neither
-/// the object nor the target type is a PackageJSType. Avoids initializing a
-/// new PackageJSType every time. Note that we don't add it to the set of JS
-/// types, since it's not an actual JS class.
-final _pkgJSTypeForSubtyping = PackageJSType('');
+/// Used only when a concrete NonStaticInteropType is not available i.e. when
+/// neither the object nor the target type is a NonStaticInteropType. Avoids
+/// initializing a new type every time. Note that we don't add it to the set of
+/// JS types, since it's not an actual JS class.
+final _nonStaticInteropTypeForSubtyping = NonStaticInteropType('');
+
+/// Represents all `@staticInterop` package:js types, as they're all subtypes of
+/// one another and type-equivalent to `JavaScriptObject`.
+///
+/// Similar to [_nonStaticInteropTypeForSubtyping], except with
+/// StaticInteropType instead.
+final _staticInteropTypeForSubtyping = StaticInteropType('');
 
 /// Returns a nullable (question, ?) version of [type].
 ///
@@ -1510,30 +1542,51 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
       return _equalType(t2, Function);
     }
 
-    // Even though lazy and anonymous JS types are natural subtypes of
-    // LegacyJavaScriptObject, JS types should be treated as mutual subtypes of
-    // each other. This allows users to be able to interface with both extension
-    // types on LegacyJavaScriptObject and package:js using the same object.
+    // Even though `@JS` and `@anonymous` JS types are natural subtypes of
+    // `LegacyJavaScriptObject`, these types should be treated as mutual
+    // subtypes of each other.
     //
     // Therefore, the following relationships hold true:
     //
-    // LegacyJavaScriptObject <: package:js types
-    // package:js types <: LegacyJavaScriptObject
+    // LegacyJavaScriptObject <: non-`@staticInterop` package:js types
+    // non-`@staticInterop` package:js types <: LegacyJavaScriptObject
 
     if (_isInterfaceSubtype(
             t1, typeRep<LegacyJavaScriptObject>(), strictMode) &&
-        // TODO: Since package:js types are instances of PackageJSType and
-        // we don't have a mechanism to determine if *some* package:js type
-        // implements t2. This will possibly require keeping a map of these
-        // relationships for this subtyping check. For now, this will only
-        // work if t2 is also a PackageJSType.
-        _isInterfaceSubtype(_pkgJSTypeForSubtyping, t2, strictMode)) {
+        // TODO(srujzs): We don't have a mechanism to determine if *some*
+        // NonStaticInteropType implements t2. This will possibly require
+        // keeping a map of these relationships for this subtyping check. For
+        // now, this will only work if t2 is a package:js type.
+        _isInterfaceSubtype(
+            _nonStaticInteropTypeForSubtyping, t2, strictMode)) {
       return true;
     }
 
     if (_isInterfaceSubtype(
-            typeRep<LegacyJavaScriptObject>(), t2, strictMode) &&
-        _isInterfaceSubtype(t1, _pkgJSTypeForSubtyping, strictMode)) {
+            t1, _nonStaticInteropTypeForSubtyping, strictMode) &&
+        _isInterfaceSubtype(
+            typeRep<LegacyJavaScriptObject>(), t2, strictMode)) {
+      return true;
+    }
+
+    // `@staticInterop` types are mutual subtypes of `JavaScriptObject`:
+    //
+    // JavaScriptObject <: `@staticInterop` package:js types
+    // `@staticInterop` package:js types <: JavaScriptObject
+    //
+    // This allows non-`@staticInterop` package:js types to interface any type
+    // that implements `JavaScriptObject` e.g. all `package:js` types,
+    // `dart:html` types.
+
+    if (_isInterfaceSubtype(t1, typeRep<JavaScriptObject>(), strictMode) &&
+        _isInterfaceSubtype(_staticInteropTypeForSubtyping, t2, strictMode)) {
+      // TODO(srujzs): The limitations here around implements are the same as
+      // those for non-`@staticInterop` package:js types above.
+      return true;
+    }
+
+    if (_isInterfaceSubtype(t1, _staticInteropTypeForSubtyping, strictMode) &&
+        _isInterfaceSubtype(typeRep<JavaScriptObject>(), t2, strictMode)) {
       return true;
     }
 
@@ -1629,11 +1682,6 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
 @notNull
 bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
-  // Instances of PackageJSType are all subtypes of each other.
-  if (_jsInstanceOf(t1, PackageJSType) && _jsInstanceOf(t2, PackageJSType)) {
-    return true;
-  }
-
   if (JS<bool>('!', '# === #', t1, t2)) {
     return true;
   }
@@ -1663,6 +1711,23 @@ bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
     // If t1 <: bound <: t2 then t1 <: t2.
     return _isSubtype(
         JS<TypeVariableForSubtype>('!', '#', t1).bound, t2, strictMode);
+  }
+
+  // Note that the following subtype rules for interop types do not have the
+  // following rule: any StaticInteropType <: any NonStaticInteropType. This
+  // follows from LegacyJavaScriptObject <: JavaScriptObject and not vice-versa.
+
+  // any NonStaticInteropType <: any StaticInteropType
+  // any StaticInteropType <: any StaticInteropType
+  if ((_jsInstanceOf(t1, NonStaticInteropType) ||
+          _jsInstanceOf(t1, StaticInteropType)) &&
+      _jsInstanceOf(t2, StaticInteropType)) {
+    return true;
+  }
+  // any NonStaticInteropType <: any NonStaticInteropType
+  if (_jsInstanceOf(t1, NonStaticInteropType) &&
+      _jsInstanceOf(t2, NonStaticInteropType)) {
+    return true;
   }
 
   // Check if t1 and t2 have the same raw type.  If so, check covariance on

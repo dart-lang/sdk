@@ -2317,6 +2317,11 @@ class BodyBuilder extends StackListenerImpl
           libraryFeatures.patterns, case_.charOffset, case_.charCount);
       Matcher matcher = toMatcher(pop());
       Expression expression = popForValue();
+      for (VariableDeclaration variable in matcher.declaredVariables) {
+        // Skip synthetic variables.
+        if (variable.name == null) continue;
+        declareVariable(variable, scope);
+      }
       push(new Condition(expression, matcher, guard));
     } else {
       assert(checkState(token, [
@@ -4231,6 +4236,10 @@ class BodyBuilder extends StackListenerImpl
                 element.name.length,
                 uri);
           }
+          if (element.name.startsWith("_")) {
+            libraryBuilder.addProblem(fasta.messageRecordFieldsCantBePrivate,
+                element.fileOffset, element.name.length, uri);
+          }
           namedElements ??= {};
           NamedExpression? existingExpression = namedElements[element.name];
           if (existingExpression != null) {
@@ -4268,7 +4277,6 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleRecordPattern(Token token, int count) {
     debugEvent("RecordPattern");
-    debugEvent("RecordLiteral");
     assert(checkState(
         token,
         repeatedKinds(
@@ -4278,8 +4286,6 @@ class BodyBuilder extends StackListenerImpl
               ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
               ValueKinds.Matcher,
-              // TODO(johnniwinther): Support named matchers.
-              // ValueKinds.NamedMatcher,
               ValueKinds.Binder,
             ]),
             count)));
@@ -4287,12 +4293,11 @@ class BodyBuilder extends StackListenerImpl
     reportIfNotEnabled(
         libraryFeatures.patterns, token.charOffset, token.charCount);
 
-    // Pop all elements.
-    // ignore: unused_local_variable
-    List<Object?>? elements =
-        const FixedNullableList<Object>().pop(stack, count);
-    // TODO(johnniwinther): Create a record matcher.
-    push(new DummyMatcher(token.charOffset));
+    List<Matcher> matchers = new List<Matcher>.filled(count, dummyMatcher);
+    for (int i = count - 1; i >= 0; i--) {
+      matchers[i] = toMatcher(pop());
+    }
+    push(new RecordMatcher(matchers, token.charOffset));
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,
@@ -4437,41 +4442,47 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Binder,
       ])
     ]));
-    // ignore: unused_local_variable
     Matcher key = toMatcher(pop());
-    // ignore: unused_local_variable
     Matcher value = toMatcher(pop());
-    // TODO(johnniwinther): Create map entry.
-    push(new DummyMatcher(colon.charOffset));
+    push(new MapMatcherEntry(key, value, colon.charOffset));
   }
 
   @override
   void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
     debugEvent('MapPattern');
     assert(checkState(leftBrace, [
-      ...repeatedKinds(
-          unionOfKinds([
-            ValueKinds.Expression,
-            ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
-            ValueKinds.Matcher,
-            ValueKinds.MapLiteralEntry,
-            // TODO(johnniwinther): Support map-pattern entry
-            ValueKinds.Binder,
-          ]),
-          count),
+      ...repeatedKinds(ValueKinds.MapMatcherEntry, count),
       ValueKinds.TypeArgumentsOrNull,
     ]));
 
     reportIfNotEnabled(
         libraryFeatures.patterns, leftBrace.charOffset, leftBrace.charCount);
-    for (int i = 0; i < count; i++) {
-      // TODO(johnniwinther): Create map literal entry matcher.
-      pop();
+    List<MapMatcherEntry> entries =
+        new List<MapMatcherEntry>.filled(count, dummyMapMatcherEntry);
+    for (int i = count - 1; i >= 0; i--) {
+      entries[i] = pop() as MapMatcherEntry;
     }
-    // ignore: unused_local_variable
+
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
-    push(new DummyMatcher(leftBrace.charOffset));
+    DartType? keyType;
+    DartType? valueType;
+    if (typeArguments != null) {
+      if (typeArguments.length != 2) {
+        keyType = const InvalidType();
+        valueType = const InvalidType();
+      } else {
+        keyType = buildDartType(typeArguments[0], TypeUse.literalTypeArgument,
+            allowPotentiallyConstantType: false);
+        valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
+            allowPotentiallyConstantType: false);
+        keyType = instantiateToBounds(
+            keyType, coreTypes.objectClass, libraryBuilder.library);
+        valueType = instantiateToBounds(
+            valueType, coreTypes.objectClass, libraryBuilder.library);
+      }
+    }
+
+    push(new MapMatcher(keyType, valueType, entries, leftBrace.charOffset));
   }
 
   @override
@@ -4514,7 +4525,6 @@ class BodyBuilder extends StackListenerImpl
             valueType, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
-      DartType implicitTypeArgument = this.implicitTypeArgument;
       keyType = implicitTypeArgument;
       valueType = implicitTypeArgument;
     }
@@ -8195,10 +8205,10 @@ class BodyBuilder extends StackListenerImpl
         beginToken,
         repeatedKinds(
             unionOfKinds([
-              ValueKinds.Expression, ValueKinds.Generator,
+              ValueKinds.Expression,
+              ValueKinds.Generator,
               ValueKinds.ProblemBuilder,
               ValueKinds.Matcher,
-              // TODO(johnniwinther): Support named matcher.
               ValueKinds.Binder,
             ]),
             count)));
@@ -8326,8 +8336,20 @@ class BodyBuilder extends StackListenerImpl
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
     // ignore: unused_local_variable
     TypeBuilder? type = pop(NullValue.TypeBuilder) as TypeBuilder?;
-    // TODO(johnniwinther): Create a variable binder
-    push(new DummyBinder());
+    DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
+    Binder binder;
+    if (variable.lexeme == "_") {
+      binder = new WildcardBinder(patternType, offset: variable.charOffset);
+    } else {
+      binder = new VariableBinder(
+          patternType,
+          variable.lexeme,
+          forest.createVariableDeclaration(variable.charOffset, variable.lexeme,
+              type: patternType,
+              isFinal: Modifier.validateVarFinalOrConst(keyword?.lexeme) ==
+                  finalMask));
+    }
+    push(binder);
   }
 
   @override
@@ -8344,27 +8366,35 @@ class BodyBuilder extends StackListenerImpl
       if (colon != null) ValueKinds.IdentifierOrNull,
     ]));
 
-    // ignore: unused_local_variable
     Object? value = pop();
     if (value is Binder) {
-      // TODO(johnniwinther): Create (named) binder.
       if (colon != null) {
-        // ignore: unused_local_variable
-        Identifier? name = pop() as Identifier?;
-        // TODO(johnniwinther): Push named binder.
-        push(new DummyMatcher(colon.charOffset));
+        Identifier? identifier = pop() as Identifier?;
+        String name;
+        if (identifier != null) {
+          name = identifier.name;
+        } else {
+          // TODO(johnniwinther): Derive the name from a variable binder in
+          // [value].
+          name = '';
+        }
+        push(new NamedBinder(name, value, colon.charOffset));
       } else {
         push(value);
       }
     } else {
-      // TODO(johnniwinther): Create (named) matcher.
-      // ignore: unused_local_variable
       Matcher matcher = toMatcher(value);
       if (colon != null) {
-        // ignore: unused_local_variable
-        Identifier? name = pop() as Identifier?;
-        // TODO(johnniwinther): Push named binder.
-        push(new DummyMatcher(colon.charOffset));
+        Identifier? identifier = pop() as Identifier?;
+        String name;
+        if (identifier != null) {
+          name = identifier.name;
+        } else {
+          // TODO(johnniwinther): Derive the name from a variable reference in
+          // [matcher].
+          name = '';
+        }
+        push(new NamedMatcher(name, matcher, colon.charOffset));
       } else {
         push(matcher);
       }

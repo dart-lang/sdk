@@ -1356,8 +1356,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType variableTypeFromInitializerType(DartType type) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50078
-    return type;
+    if (type.isDartCoreNull) {
+      return DynamicTypeImpl.instance;
+    }
+    return typeSystem.demoteType(type);
   }
 
   @override
@@ -1603,7 +1605,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var flow = flowAnalysis.flow;
     flow?.conditional_conditionBegin();
 
-    // TODO(scheglov) Do we need these checks for null?
     analyzeExpression(node.condition, typeProvider.boolType);
     condition = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);

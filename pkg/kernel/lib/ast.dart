@@ -4236,11 +4236,13 @@ class RecordIndexGet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    receiver = v.transform(receiver);
+    receiver = v.transform(receiver)..parent = this;
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
 
   @override
   String toString() {
@@ -4295,11 +4297,13 @@ class RecordNameGet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    receiver = v.transform(receiver);
+    receiver = v.transform(receiver)..parent = this;
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
 
   @override
   String toString() {

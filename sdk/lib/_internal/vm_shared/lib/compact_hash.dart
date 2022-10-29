@@ -130,19 +130,21 @@ abstract class _HashVMImmutableBase extends _HashVMBase
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_ImmutableList")
   @pragma("vm:prefer-inline")
-  List<Object?> get _data native "ImmutableLinkedHashBase_getData";
+  @pragma("vm:external-name", "ImmutableLinkedHashBase_getData")
+  external List<Object?> get _data;
 
   // The index is nullable rather than not nullable.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  Uint32List? get _indexNullable native "ImmutableLinkedHashBase_getIndex";
+  @pragma("vm:external-name", "ImmutableLinkedHashBase_getIndex")
+  external Uint32List? get _indexNullable;
   Uint32List get _index => _indexNullable!;
 
   // Uses store-release atomic.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _index(Uint32List value)
-      native "ImmutableLinkedHashBase_setIndexStoreRelease";
+  @pragma("vm:external-name", "ImmutableLinkedHashBase_setIndexStoreRelease")
+  external void set _index(Uint32List value);
 }
 
 // This mixin can be applied to _HashFieldBase or _HashVMBase (for

@@ -29,8 +29,10 @@ class CreateMissingOverrides extends CorrectionProducer {
       return;
     }
     utils.targetClassElement = targetClass.declaredElement;
-    var signatures =
-        InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
+    var signatures = [
+      ...InheritanceOverrideVerifier.missingOverrides(targetClass),
+      ...InheritanceOverrideVerifier.missingMustBeOverridden(targetClass)
+    ];
     // sort by name, getters before setters
     signatures.sort((ExecutableElement a, ExecutableElement b) {
       var names = compareStrings(a.displayName, b.displayName);
