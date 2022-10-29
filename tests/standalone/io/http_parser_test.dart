@@ -2,33 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart._http;
-
 import "dart:async";
-import "dart:collection";
-import "dart:convert";
-import "dart:developer";
-import "dart:io";
 import "dart:isolate";
 import "dart:math";
 import "dart:typed_data";
+// ignore: IMPORT_INTERNAL_LIBRARY
+import "dart:_http" show TestingClass$_HttpHeaders, TestingClass$_HttpParser;
 
 import "package:expect/expect.dart";
 
-import "../../../sdk/lib/internal/internal.dart"
-    show
-        checkNotNullable,
-        Since,
-        valueOfNonNullableParamWithDefault,
-        HttpStatus;
-
-part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
-part "../../../sdk/lib/_http/http_impl.dart";
-part "../../../sdk/lib/_http/http_date.dart";
-part "../../../sdk/lib/_http/http_parser.dart";
-part "../../../sdk/lib/_http/http_headers.dart";
-part "../../../sdk/lib/_http/http_session.dart";
+typedef _HttpHeaders = TestingClass$_HttpHeaders;
+typedef _HttpParser = TestingClass$_HttpParser;
 
 class HttpParserTest {
   final String Function(String) transform;

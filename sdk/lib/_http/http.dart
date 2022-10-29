@@ -33,6 +33,7 @@ part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
+part 'http_testing.dart';
 part 'overrides.dart';
 part 'websocket.dart';
 part 'websocket_impl.dart';
