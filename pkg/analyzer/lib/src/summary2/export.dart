@@ -88,7 +88,7 @@ class ExportLocation {
     final container = containerIndex == 0
         ? library
         : library.augmentations[containerIndex - 1];
-    return container.libraryExports[exportIndex] as LibraryExportElementImpl;
+    return container.libraryExports[exportIndex];
   }
 
   @override

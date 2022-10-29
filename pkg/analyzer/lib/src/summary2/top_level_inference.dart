@@ -353,7 +353,7 @@ class _InitializerInference {
   void createNodes() {
     for (var builder in _linker.builders.values) {
       for (var unit in builder.element.units) {
-        _unitElement = unit as CompilationUnitElementImpl;
+        _unitElement = unit;
         unit.classes.forEach(_addClassConstructorFieldFormals);
         unit.classes.forEach(_addClassElementFields);
         unit.enums.forEach(_addClassConstructorFieldFormals);

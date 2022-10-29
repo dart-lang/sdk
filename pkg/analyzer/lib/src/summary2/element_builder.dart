@@ -81,7 +81,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
     final index = _augmentationDirectiveIndex++;
     final element = _container.augmentationImports[index];
-    element as AugmentationImportElementImpl;
     element.metadata = _buildAnnotations(node.metadata);
   }
 
@@ -385,7 +384,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     final index = _exportDirectiveIndex++;
     final exportElement = _container.libraryExports[index];
-    exportElement as LibraryExportElementImpl;
     exportElement.metadata = _buildAnnotations(node.metadata);
     node.element = exportElement;
   }
@@ -753,7 +751,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     final index = _importDirectiveIndex++;
     final importElement = _container.libraryImports[index];
-    importElement as LibraryImportElementImpl;
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
   }

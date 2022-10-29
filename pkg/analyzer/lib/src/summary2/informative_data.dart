@@ -71,7 +71,7 @@ class InformativeDataApplier {
 
     var unitElements = libraryElement.units;
     for (var i = 0; i < unitElements.length; i++) {
-      var unitElement = unitElements[i] as CompilationUnitElementImpl;
+      var unitElement = unitElements[i];
       var unitUri = unitElement.source.uri;
       var unitInfoBytes = _unitsInformativeBytes2[unitUri];
       if (unitInfoBytes != null) {
