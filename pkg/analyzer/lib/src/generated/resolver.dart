@@ -2394,6 +2394,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node,
       {DartType? contextType}) {
+    checkUnreachableNode(node);
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     var target = node.target;
     target?.accept(this);
