@@ -30,6 +30,17 @@ void f(Object waldo) {
     ]);
   }
 
+  test_assigned_methodInvocation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int? i = 1;
+  i?.truncate();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 28, 2),
+    ]);
+  }
+
   test_doWhile() async {
     await assertErrorsInCode(r'''
 void f(bool c) {
@@ -394,6 +405,26 @@ void g(Never f) {
     ]);
   }
 
+  test_notUnassigned_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+void f(int? i) {
+  (i)?.sign;
+}
+''');
+  }
+
+  test_potentiallyAssigned_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  int? i;
+  if (b) {
+    i = 1;
+  }
+  (i)?.sign;
+}
+''');
+  }
+
   test_returnTypeNever_function() async {
     await assertErrorsInCode(r'''
 Never foo() => throw 0;
@@ -463,6 +494,72 @@ Never foo() => throw 'exception';
 ''', [
       error(HintCode.DEAD_CODE, 32, 14),
       error(HintCode.DEAD_CODE, 87, 14),
+    ]);
+  }
+
+  test_unassigned_cascadeExpression_indexExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  List<int>? l;
+  l?..[0]..length;
+}
+''', [
+      error(HintCode.DEAD_CODE, 29, 15),
+    ]);
+  }
+
+  test_unassigned_cascadeExpression_methodInvocation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int? i;
+  i?..toInt()..isEven;
+}
+''', [
+      error(HintCode.DEAD_CODE, 23, 19),
+    ]);
+  }
+
+  test_unassigned_cascadeExpression_propertyAccess() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int? i;
+  i?..sign..isEven;
+}
+''', [
+      error(HintCode.DEAD_CODE, 23, 16),
+    ]);
+  }
+
+  test_unassigned_indexExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  List<int>? l;
+  l?[0];
+}
+''', [
+      error(HintCode.DEAD_CODE, 29, 5),
+    ]);
+  }
+
+  test_unassigned_methodInvocation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int? i;
+  i?.truncate();
+}
+''', [
+      error(HintCode.DEAD_CODE, 23, 13),
+    ]);
+  }
+
+  test_unassigned_propertyAccess() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int? i;
+  (i)?.sign;
+}
+''', [
+      error(HintCode.DEAD_CODE, 23, 9),
     ]);
   }
 }
