@@ -54,9 +54,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
     _unitElement.mixins = _enclosingContext.mixins;
-    _unitElement.topLevelVariables = _enclosingContext.properties
-        .whereType<TopLevelVariableElementImpl>()
-        .toList();
+    _unitElement.topLevelVariables = _enclosingContext.topLevelVariables;
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
 
@@ -83,7 +81,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
     final index = _augmentationDirectiveIndex++;
     final element = _container.augmentationImports[index];
-    element as AugmentationImportElementImpl;
     element.metadata = _buildAnnotations(node.metadata);
   }
 
@@ -376,7 +373,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElementImpl>().toList();
+    element.fields = holder.fields;
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
@@ -387,7 +384,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     final index = _exportDirectiveIndex++;
     final exportElement = _container.libraryExports[index];
-    exportElement as LibraryExportElementImpl;
     exportElement.metadata = _buildAnnotations(node.metadata);
     node.element = exportElement;
   }
@@ -434,7 +430,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _visitPropertyFirst<FieldDeclaration>(node.members);
       });
       element.accessors = holder.propertyAccessors;
-      element.fields = holder.properties.whereType<FieldElementImpl>().toList();
+      element.fields = holder.fields;
       element.methods = holder.methods;
     }
 
@@ -755,7 +751,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     final index = _importDirectiveIndex++;
     final importElement = _container.libraryImports[index];
-    importElement as LibraryImportElementImpl;
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
   }
@@ -1140,7 +1135,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElementImpl>().toList();
+    element.fields = holder.fields;
     element.methods = holder.methods;
 
     _resolveConstructorFieldFormals(element);
@@ -1179,7 +1174,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElementImpl>().toList();
+    element.fields = holder.fields;
     element.methods = holder.methods;
 
     _resolveConstructorFieldFormals(element);
@@ -1333,12 +1328,13 @@ class _EnclosingContext {
   final List<ConstructorElementImpl> constructors = [];
   final List<EnumElementImpl> enums = [];
   final List<ExtensionElementImpl> extensions = [];
+  final List<FieldElementImpl> fields = [];
   final List<FunctionElementImpl> functions = [];
   final List<MethodElementImpl> methods = [];
   final List<MixinElementImpl> mixins = [];
   final List<ParameterElementImpl> parameters = [];
-  final List<PropertyInducingElementImpl> properties = [];
   final List<PropertyAccessorElementImpl> propertyAccessors = [];
+  final List<TopLevelVariableElementImpl> topLevelVariables = [];
   final List<TypeAliasElementImpl> typeAliases = [];
   final List<TypeParameterElementImpl> typeParameters = [];
   final bool hasConstConstructor;
@@ -1377,7 +1373,7 @@ class _EnclosingContext {
   }
 
   Reference addField(String name, FieldElementImpl element) {
-    properties.add(element);
+    fields.add(element);
     return _bindReference('@field', name, element);
   }
 
@@ -1434,7 +1430,7 @@ class _EnclosingContext {
 
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
-    properties.add(element);
+    topLevelVariables.add(element);
     return _bindReference('@variable', name, element);
   }
 

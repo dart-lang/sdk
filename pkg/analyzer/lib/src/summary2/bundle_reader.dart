@@ -423,7 +423,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     );
 
     for (var import in element.libraryImports) {
-      import as LibraryImportElementImpl;
       import.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -434,7 +433,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     }
 
     for (var export in element.libraryExports) {
-      export as LibraryExportElementImpl;
       export.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -445,7 +443,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     }
 
     for (var import in element.augmentationImports) {
-      import as AugmentationImportElementImpl;
       import.metadata = reader._readAnnotationList(
         // TODO(scheglov) Here and for parts, unit is not valid. Test and fix.
         unitElement: unitElement,

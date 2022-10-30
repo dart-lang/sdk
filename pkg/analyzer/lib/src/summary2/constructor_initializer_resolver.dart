@@ -26,9 +26,9 @@ class ConstructorInitializerResolver {
       for (var interfaceElement in interfaceElements) {
         for (var constructorElement in interfaceElement.constructors) {
           _constructor(
-            unitElement as CompilationUnitElementImpl,
-            interfaceElement as AbstractClassElementImpl,
-            constructorElement as ConstructorElementImpl,
+            unitElement,
+            interfaceElement,
+            constructorElement,
           );
         }
       }
