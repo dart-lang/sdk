@@ -265,6 +265,18 @@ void f() {
     ]);
   }
 
+  test_flowEnd_forParts_updaters_methodInvocation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i.toString()) {
+    return;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 12),
+    ]);
+  }
+
   test_flowEnd_forParts_updaters_postfixExpression() async {
     await assertErrorsInCode(r'''
 void f() {
