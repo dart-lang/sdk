@@ -378,6 +378,9 @@ class FieldMember extends VariableMember implements FieldElement {
   bool get isExternal => declaration.isExternal;
 
   @override
+  bool get isPromotable => declaration.isPromotable;
+
+  @override
   LibraryElement get library => _declaration.library!;
 
   @override

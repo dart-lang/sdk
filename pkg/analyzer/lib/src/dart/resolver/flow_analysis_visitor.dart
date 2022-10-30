@@ -419,7 +419,12 @@ class TypeSystemOperations
   }
 
   @override
-  bool isPropertyPromotable(Object property) => false;
+  bool isPropertyPromotable(Object property) {
+    if (property is! PropertyAccessorElement) return false;
+    var field = property.variable;
+    if (field is! FieldElement) return false;
+    return field.isPromotable;
+  }
 
   @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {

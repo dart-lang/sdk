@@ -43,6 +43,17 @@ class ElementsKeepLinkingTest extends ElementsTest {
 }
 
 abstract class ElementsTest extends ElementsBaseTest {
+  final ElementTextConfiguration configuration = ElementTextConfiguration();
+
+  void checkElementTextWithConfiguration(
+      LibraryElement library, String expected) {
+    checkElementText(
+      library,
+      expected,
+      configuration: configuration,
+    );
+  }
+
   test_annotationArgument_recordLiteral() async {
     var library = await buildLibrary('''
 @A((2, a: 3))
@@ -1742,7 +1753,7 @@ library
     classes
       class A @6
         fields
-          final _f @22
+          final promotable _f @22
             type: int
         constructors
           const @34
@@ -5011,6 +5022,611 @@ library
         accessors
           synthetic get foo @-1
             returnType: double
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_abstract() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+abstract class B {
+  int? get _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+part 'a.dart';
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @21
+        fields
+          final _foo @38
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_static() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  static int? get _foo => 0;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasNotFinalField() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasNotFinalField_static() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  static int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasSetter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  set _field(int? _) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_language217() async {
+    var library = await buildLibrary(r'''
+// @dart = 2.18
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        fields
+          final _foo @39
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_implementedInMixin() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M {
+  final int? _foo = 0;
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// `_foo` is implemented in [M].
+class C with M implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+      mixinNames: {'M'},
+    );
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+      class B @90
+        fields
+          final promotable _foo @107
+            type: int?
+    mixins
+      mixin M @54
+        superclassConstraints
+          Object
+        fields
+          final promotable _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_implementedInSuperclass() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+class C {
+  final int? _foo = 0;
+}
+
+/// `_foo` is implemented in [B].
+class D extends B implements C {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+    );
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+      class B @54
+        fields
+          final promotable _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_inClassTypeAlias() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+mixin M {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class E = Object with M implements B;
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_inEnum() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+enum E implements B {
+  v;
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+    );
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+      class B @54
+        fields
+          final _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_getter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+abstract class B {
+  int? get _foo;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_inDifferentLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+/// Has a noSuchMethod thrower for B._field, but since private names in
+/// different libraries are distinct, this has no effect on promotion of
+/// C._field.
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+    );
+    checkElementTextWithConfiguration(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @24
+        fields
+          final promotable _foo @41
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_inheritedInterface() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B extends A {
+  A(super.value);
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_mixedInterface() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M {
+  final int? _foo = 0;
+}
+
+class B with M {}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+      mixinNames: {'M'},
+    );
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+    mixins
+      mixin M @54
+        superclassConstraints
+          Object
+        fields
+          final _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_unusedMixin() async {
+    // Mixins are implicitly abstract so the presence of a mixin that inherits
+    // a field into its interface, and doesn't implement it, doesn't mean that
+    // a noSuchMethod forwarder created for it. So,  this does not block that
+    // field from promoting.
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M implements A {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+    );
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_notFinal() async {
+    var library = await buildLibrary(r'''
+class A {
+  int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          _foo @17
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_notPrivate() async {
+    var library = await buildLibrary(r'''
+class A {
+  int? field;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          field @17
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_typeInference() async {
+    // We decide that `_foo` is promotable before inferring the type of `bar`.
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  final bar = _foo != null ? _foo : 0;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+          final bar @37
+            type: int
 ''');
   }
 
@@ -19843,6 +20459,30 @@ library
             returnType: List<E>
           synthetic get foo @-1
             returnType: int
+''');
+  }
+
+  test_enum_field_isPromotable() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v(null);
+  final int? _foo;
+  E(this._foo);
+}
+''');
+    configuration.forPromotableFields(
+      enumNames: {'E'},
+      fieldNames: {'_foo'},
+    );
+    checkElementTextWithConfiguration(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          final promotable _foo @33
+            type: int?
 ''');
   }
 
@@ -41539,5 +42179,33 @@ library
 
     var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
+  }
+}
+
+extension on ElementTextConfiguration {
+  void forPromotableFields({
+    Set<String> classNames = const {},
+    Set<String> enumNames = const {},
+    Set<String> mixinNames = const {},
+    Set<String> fieldNames = const {},
+  }) {
+    filter = (e) {
+      if (e is ClassElement) {
+        return classNames.contains(e.name);
+      } else if (e is ConstructorElement) {
+        return false;
+      } else if (e is EnumElement) {
+        return enumNames.contains(e.name);
+      } else if (e is FieldElement) {
+        return fieldNames.isEmpty || fieldNames.contains(e.name);
+      } else if (e is MixinElement) {
+        return mixinNames.contains(e.name);
+      } else if (e is PartElement) {
+        return false;
+      } else if (e is PropertyAccessorElement) {
+        return false;
+      }
+      return true;
+    };
   }
 }

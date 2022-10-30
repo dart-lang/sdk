@@ -48,6 +48,7 @@ void applyCheckElementTextReplacements() {
 void checkElementText(
   LibraryElement library,
   String expected, {
+  ElementTextConfiguration? configuration,
   bool withCodeRanges = false,
   bool withDisplayName = false,
   bool withExportScope = false,
@@ -57,6 +58,7 @@ void checkElementText(
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
+    configuration: configuration ?? ElementTextConfiguration(),
     withCodeRanges: withCodeRanges,
     withDisplayName: withDisplayName,
     withExportScope: withExportScope,
@@ -121,9 +123,20 @@ void checkElementText(
   expect(actualText, expected);
 }
 
+class ElementTextConfiguration {
+  bool Function(Object) filter;
+
+  ElementTextConfiguration({
+    this.filter = _filterTrue,
+  });
+
+  static bool _filterTrue(Object element) => true;
+}
+
 /// Writes the canonical text presentation of elements.
 class _ElementWriter {
   final String? selfUriStr;
+  final ElementTextConfiguration configuration;
   final bool withCodeRanges;
   final bool withDisplayName;
   final bool withExportScope;
@@ -137,6 +150,7 @@ class _ElementWriter {
 
   _ElementWriter({
     this.selfUriStr,
+    required this.configuration,
     required this.withCodeRanges,
     required this.withDisplayName,
     required this.withExportScope,
@@ -486,11 +500,16 @@ class _ElementWriter {
     printer.writeElement(name, element);
   }
 
-  void _writeElements<T>(String name, List<T> elements, void Function(T) f) {
-    if (elements.isNotEmpty) {
+  void _writeElements<T extends Object>(
+    String name,
+    List<T> elements,
+    void Function(T) f,
+  ) {
+    var filtered = elements.where(configuration.filter).toList();
+    if (filtered.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
-        for (var element in elements) {
+        for (var element in filtered) {
           f(element);
         }
       });
@@ -891,7 +910,10 @@ class _ElementWriter {
       _writeIf(e.isLate, 'late ');
       _writeIf(e.isFinal, 'final ');
       _writeIf(e.isConst, 'const ');
-      _writeIf(e is FieldElementImpl && e.isEnumConstant, 'enumConstant ');
+      if (e is FieldElementImpl) {
+        _writeIf(e.isEnumConstant, 'enumConstant ');
+        _writeIf(e.isPromotable, 'promotable ');
+      }
 
       _writeName(e);
     });

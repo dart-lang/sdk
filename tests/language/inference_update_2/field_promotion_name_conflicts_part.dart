@@ -6,6 +6,6 @@
 
 part of 'field_promotion_name_conflicts_test.dart';
 
-abstract class E {
+abstract class B {
   int? get _f11 => 0;
 }

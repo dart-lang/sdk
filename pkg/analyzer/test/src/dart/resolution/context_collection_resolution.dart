@@ -331,6 +331,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
   List<String> get experiments => [
+        EnableString.inference_update_2,
         EnableString.macros,
         EnableString.records,
       ];
