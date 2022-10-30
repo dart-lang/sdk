@@ -24,6 +24,7 @@ class C {
   final int? _f11;
   final int? _f12;
   final int? _f13;
+  final int? _f14;
 
   C(int? i)
       : _f1 = i,
@@ -38,7 +39,8 @@ class C {
         _f10 = i,
         _f11 = i,
         _f12 = i,
-        _f13 = i;
+        _f13 = i,
+        _f14 = i;
 }
 
 abstract class D {
@@ -63,6 +65,13 @@ extension on String {
 mixin M {
   int? _f12;
   int? get _f13 => 0;
+}
+
+enum E {
+  e1,
+  e2;
+
+  int? get _f14 => 0;
 }
 
 void acceptsInt(int x) {}
@@ -171,6 +180,14 @@ void testGetterInMixin(C c) {
   }
 }
 
+void testGetterInEnum(C c) {
+  if (c._f14 != null) {
+    var x = c._f14;
+    // `x` has type `int?` so this is ok
+    x = null;
+  }
+}
+
 main() {
   for (var c in [C(null), C(0)]) {
     testFinalField(c);
@@ -186,5 +203,6 @@ main() {
     testGetterInPart(c);
     testFieldInMixin(c);
     testGetterInMixin(c);
+    testGetterInEnum(c);
   }
 }

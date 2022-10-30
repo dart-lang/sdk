@@ -2585,7 +2585,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (element is MethodElement) {
       type = element.type;
     } else if (element is PropertyAccessorElement && element.isGetter) {
-      type = element.returnType;
+      type = result.getType!;
     } else if (result.functionTypeCallType != null) {
       type = result.functionTypeCallType!;
     } else if (result.recordField != null) {

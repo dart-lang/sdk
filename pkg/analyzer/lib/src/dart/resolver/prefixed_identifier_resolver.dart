@@ -102,7 +102,7 @@ class PrefixedIdentifierResolver {
     } else if (element is MethodElement) {
       type = element.type;
     } else if (element is PropertyAccessorElement) {
-      type = _getTypeOfProperty(element);
+      type = result.getType!;
     } else if (element is ExecutableElement) {
       type = element.type;
     } else if (element is VariableElement) {
@@ -124,29 +124,6 @@ class PrefixedIdentifierResolver {
     _inferenceHelper.recordStaticType(identifier, type, contextType: null);
     _inferenceHelper.recordStaticType(node, type, contextType: contextType);
     return null;
-  }
-
-  /// Return the type that should be recorded for a node that resolved to the given accessor.
-  ///
-  /// @param accessor the accessor that the node resolved to
-  /// @return the type that should be recorded for a node that resolved to the given accessor
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
-    FunctionType functionType = accessor.type;
-    if (accessor.isSetter) {
-      List<DartType> parameterTypes = functionType.normalParameterTypes;
-      if (parameterTypes.isNotEmpty) {
-        return parameterTypes[0];
-      }
-      var getter = accessor.variable.getter;
-      if (getter != null) {
-        functionType = getter.type;
-        return functionType.returnType;
-      }
-      return DynamicTypeImpl.instance;
-    }
-    return functionType.returnType;
   }
 
   /// Return `true` if the given [node] is not a type literal.

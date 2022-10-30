@@ -19,6 +19,34 @@ abstract class C {
   C(int? i)
       : _privateFinalField = i,
         publicFinalField = i;
+
+  testPrivateFinalFieldThisAccess() {
+    if (_privateFinalField != null) {
+      var x = _privateFinalField;
+      // `x` has type `int` so this is ok
+      acceptsInt(x);
+    }
+  }
+}
+
+abstract class D extends C {
+  D(super.i);
+
+  testPrivateFinalFieldSuperAccess() {
+    if (super._privateFinalField != null) {
+      var x = _privateFinalField;
+      // `x` has type `int` so this is ok
+      acceptsInt(x);
+    }
+  }
+}
+
+enum E {
+  e1(null),
+  e2(0);
+
+  final int? _privateFinalFieldInEnum;
+  const E(this._privateFinalFieldInEnum);
 }
 
 void acceptsInt(int x) {}
@@ -84,6 +112,24 @@ void testPublicConcreteGetter(C c) {
     var x = c.publicConcreteGetter;
     // `x` has type `int?` so this is ok
     x = null;
+  }
+}
+
+void testPrivateFinalFieldInEnum(E e) {
+  if (e._privateFinalFieldInEnum != null) {
+    var x = e._privateFinalFieldInEnum;
+    // `x` has type `int` so this is ok
+    acceptsInt(x);
+  }
+}
+
+void testPrivateFinalFieldGeneralPropertyAccess(C c) {
+  // The analyzer uses a special data structure for `IDENTIFIER.IDENTIFIER`, so
+  // we need to test the general case of property accesses as well.
+  if ((c)._privateFinalField != null) {
+    var x = (c)._privateFinalField;
+    // `x` has type `int` so this is ok
+    acceptsInt(x);
   }
 }
 

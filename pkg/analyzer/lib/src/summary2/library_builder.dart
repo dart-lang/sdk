@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/field_promotability.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -217,6 +218,15 @@ class LibraryBuilder {
         }
       }
     }
+  }
+
+  /// Computes which fields in this library are promotable.
+  void computeFieldPromotability() {
+    if (!element.featureSet.isEnabled(Feature.inference_update_2)) {
+      return;
+    }
+
+    FieldPromotability(this).perform();
   }
 
   void declare(String name, Reference reference) {

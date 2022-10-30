@@ -37,6 +37,9 @@ abstract class Feature {
   /// Feature information for inference-update-1.
   static final inference_update_1 = ExperimentalFeatures.inference_update_1;
 
+  /// Feature information for inference-update-2.
+  static final inference_update_2 = ExperimentalFeatures.inference_update_2;
+
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 

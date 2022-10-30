@@ -24,6 +24,7 @@ import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
 import 'extractor_pattern_test.dart' as extractor_pattern;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
+import 'field_promotion_test.dart' as field_promotion;
 import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
@@ -110,6 +111,7 @@ main() {
     extension_override.main();
     extractor_pattern.main();
     field_formal_parameter.main();
+    field_promotion.main();
     field.main();
     for_element.main();
     for_in.main();

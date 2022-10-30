@@ -94,6 +94,8 @@ extension ElementExtension on Element {
   /// cannot be invoked directly and are always accessed using corresponding
   /// [PropertyAccessorElement]s.
   bool get isInstanceMember {
+    assert(this is! PropertyInducingElement,
+        'Check the PropertyAccessorElement instead');
     var this_ = this;
     var enclosing = this_.enclosingElement;
     if (enclosing is InterfaceElement) {

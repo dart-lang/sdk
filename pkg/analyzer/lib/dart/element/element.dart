@@ -1261,6 +1261,9 @@ abstract class FieldElement
   /// Return `true` if this field was explicitly marked as being external.
   bool get isExternal;
 
+  /// Returns `true` if this field can be type promoted.
+  bool get isPromotable;
+
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
   /// an entire library or class.

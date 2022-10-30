@@ -874,13 +874,17 @@ class MethodInvocationResolver with ScopeHelpers {
       MethodInvocationImpl node, DartType getterReturnType,
       {required DartType? contextType}) {
     var targetType = _typeSystem.resolveToBound(getterReturnType);
-    _inferenceHelper.recordStaticType(node.methodName, targetType,
-        contextType: contextType);
 
     ExpressionImpl functionExpression;
     var target = node.target;
     if (target == null) {
       functionExpression = node.methodName;
+      targetType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
+              functionExpression,
+              node.methodName.name,
+              node.methodName.staticElement,
+              getterReturnType) ??
+          targetType;
     } else {
       if (target is SimpleIdentifierImpl &&
           target.staticElement is PrefixElement) {
@@ -896,14 +900,17 @@ class MethodInvocationResolver with ScopeHelpers {
           propertyName: node.methodName,
         );
       }
-      _resolver.flowAnalysis.flow?.propertyGet(
-          functionExpression,
-          target,
-          node.methodName.name,
-          node.methodName.staticElement,
-          getterReturnType);
+      targetType = _resolver.flowAnalysis.flow?.propertyGet(
+              functionExpression,
+              target,
+              node.methodName.name,
+              node.methodName.staticElement,
+              getterReturnType) ??
+          targetType;
       functionExpression.staticType = targetType;
     }
+    _inferenceHelper.recordStaticType(node.methodName, targetType,
+        contextType: contextType);
 
     var invocation = FunctionExpressionInvocationImpl(
       function: functionExpression,
