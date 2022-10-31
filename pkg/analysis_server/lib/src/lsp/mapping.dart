@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -874,7 +875,7 @@ lsp.CompletionItem toCompletionItem(
   bool hasDefaultTextMode = false,
   required Range replacementRange,
   required Range insertionRange,
-  bool includeDocs = true,
+  required DocumentationPreference includeDocumentation,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
@@ -944,7 +945,12 @@ lsp.CompletionItem toCompletionItem(
   final insertTextFormat = insertTextInfo.last;
   final isMultilineCompletion = insertText.contains('\n');
 
-  var cleanedDoc = cleanDartdoc(suggestion.docComplete);
+  final rawDoc = includeDocumentation == DocumentationPreference.full
+      ? suggestion.docComplete
+      : includeDocumentation == DocumentationPreference.summary
+          ? suggestion.docSummary
+          : null;
+  var cleanedDoc = cleanDartdoc(rawDoc);
   var detail = getCompletionDetail(suggestion, completionKind,
       supportsCompletionDeprecatedFlag || supportsDeprecatedTag);
 
@@ -971,7 +977,7 @@ lsp.CompletionItem toCompletionItem(
     ]),
     data: resolutionData,
     detail: detail,
-    documentation: cleanedDoc != null && includeDocs
+    documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
         : null,
     deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated

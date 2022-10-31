@@ -55,6 +55,114 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     };
   }
 
+  /// Checks whether the correct types of documentation are returned for
+  /// completions based on [preference].
+  Future<void> assertDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) async {
+    final content = '''
+/// Summary.
+///
+/// Full.
+class A {}
+
+A^
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withConfigurationSupport(
+              withApplyEditSupport(emptyWorkspaceClientCapabilities))),
+      {
+        if (preference != null) 'documentation': preference,
+      },
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final completion = res.singleWhere((c) => c.label == 'A');
+    final docs = completion.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+
+    if (includesSummary) {
+      expect(docs, contains('Summary.'));
+    } else {
+      expect(docs, isNot(contains('Summary.')));
+    }
+
+    if (includesFull) {
+      expect(docs, contains('Full.'));
+    } else {
+      expect(docs, isNot(contains('Full.')));
+    }
+  }
+
+  /// Checks whether the correct types of documentation are returned during
+  /// `completionItem/resolve` based on [preference].
+  Future<void> assertResolvedDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) async {
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      '''
+      /// Summary.
+      ///
+      /// Full.
+      class InOtherFile {}
+      ''',
+    );
+
+    final content = '''
+void f() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withConfigurationSupport(
+              withApplyEditSupport(emptyWorkspaceClientCapabilities))),
+      {
+        if (preference != null) 'documentation': preference,
+      },
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final completion = res.singleWhere((c) => c.label == 'InOtherFile');
+
+    // Expect no docs in original response and correct type of docs added
+    // during resolve.
+    expect(completion.documentation, isNull);
+    final resolved = await resolveCompletion(completion);
+    final docs = resolved.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+
+    if (includesSummary) {
+      expect(docs, contains('Summary.'));
+    } else {
+      expect(docs, isNot(contains('Summary.')));
+    }
+
+    if (includesFull) {
+      expect(docs, contains('Full.'));
+    } else {
+      expect(docs, isNot(contains('Full.')));
+    }
+  }
+
   Future<void> checkCompleteFunctionCallInsertText(
       String content, String completion,
       {required String? editText, InsertTextFormat? insertTextFormat}) async {
@@ -812,6 +920,20 @@ final a = Stri^
     final results = await responseFutures[2];
     expect(results, isNotEmpty);
   }
+
+  Future<void> test_dartDocPreference_full() =>
+      assertDocumentation('full', includesSummary: true, includesFull: true);
+
+  Future<void> test_dartDocPreference_none() =>
+      assertDocumentation('none', includesSummary: false, includesFull: false);
+
+  Future<void> test_dartDocPreference_summary() =>
+      assertDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_dartDocPreference_unset() =>
+      assertDocumentation(null, includesSummary: true, includesFull: true);
 
   Future<void> test_filterTextNotIncludeAdditionalText() async {
     // Some completions (eg. overrides) have additional text that is not part
@@ -1905,6 +2027,23 @@ void f() {
 }
     '''));
   }
+
+  Future<void> test_unimportedSymbols_dartDocPreference_full() =>
+      assertResolvedDocumentation('full',
+          includesSummary: true, includesFull: true);
+
+  Future<void> test_unimportedSymbols_dartDocPreference_none() =>
+      assertResolvedDocumentation('none',
+          includesSummary: false, includesFull: false);
+
+  Future<void> test_unimportedSymbols_dartDocPreference_summary() =>
+      assertResolvedDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_unimportedSymbols_dartDocPreference_unset() =>
+      assertResolvedDocumentation(null,
+          includesSummary: true, includesFull: true);
 
   Future<void>
       test_unimportedSymbols_doesNotDuplicate_importedViaMultipleLibraries() async {

@@ -21,8 +21,14 @@ class DartUnitHoverComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
   final int _offset;
+  final DocumentationPreference documentationPreference;
 
-  DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
+  DartUnitHoverComputer(
+    this._dartdocInfo,
+    this._unit,
+    this._offset, {
+    this.documentationPreference = DocumentationPreference.full,
+  });
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -141,7 +147,8 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = computeDocumentation(_dartdocInfo, element)?.full;
+        hover.dartdoc = computePreferredDocumentation(
+            _dartdocInfo, element, documentationPreference);
       }
       // parameter
       if (node is Expression) {
@@ -253,6 +260,26 @@ class DartUnitHoverComputer {
     return result;
   }
 
+  /// Compute documentation for [element] and return either the summary or full
+  /// docs (or `null`) depending on `preference`.
+  static String? computePreferredDocumentation(
+    DartdocDirectiveInfo dartdocInfo,
+    Element element,
+    DocumentationPreference preference,
+  ) {
+    if (preference == DocumentationPreference.none) {
+      return null;
+    }
+
+    final doc = computeDocumentation(
+      dartdocInfo,
+      element,
+      includeSummary: preference == DocumentationPreference.summary,
+    );
+
+    return doc is DocumentationWithSummary ? doc.summary : doc?.full;
+  }
+
   static DartType? _getTypeOfDeclarationOrReference(Expression node) {
     if (node is SimpleIdentifier) {
       var element = node.staticElement;
@@ -268,4 +295,12 @@ class DartUnitHoverComputer {
     }
     return node.staticType;
   }
+}
+
+/// The type of documentation the user prefers to see in hovers and other
+/// related displays in their editor.
+enum DocumentationPreference {
+  none,
+  summary,
+  full,
 }
