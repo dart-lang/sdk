@@ -10903,7 +10903,7 @@ class RelationalPatternImpl extends DartPatternImpl
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    resolverVisitor.resolveRelationalPattern(
+    resolverVisitor.relationalPatternResolver.resolve(
       node: this,
       matchedType: matchedType,
     );

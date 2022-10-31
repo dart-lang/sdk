@@ -25,7 +25,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -59,6 +58,7 @@ import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_pattern_resolver.dart';
+import 'package:analyzer/src/dart/resolver/relational_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
@@ -294,6 +294,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final RecordPatternResolver recordPatternResolver =
       RecordPatternResolver(this);
+
+  late final RelationalPatternResolver relationalPatternResolver =
+      RelationalPatternResolver(this);
 
   final bool genericMetadataIsEnabled;
 
@@ -1153,62 +1156,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else {
       node.accept(this);
       return PropertyElementResolverResult();
-    }
-  }
-
-  void resolveRelationalPattern({
-    required RelationalPatternImpl node,
-    required DartType matchedType,
-  }) {
-    final operatorLexeme = node.operator.lexeme;
-    final isEqEq = const {'==', '!='}.contains(operatorLexeme);
-    final methodName = isEqEq ? '==' : operatorLexeme;
-
-    analyzeExpression(node.operand, matchedType);
-    node.operand = popRewrite()!;
-
-    final result = typePropertyResolver.resolve(
-      receiver: null,
-      receiverType: matchedType,
-      name: methodName,
-      propertyErrorEntity: node.operator,
-      nameErrorEntity: node,
-    );
-
-    if (result.needsGetterError) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.UNDEFINED_OPERATOR,
-        node.operator,
-        [methodName, matchedType],
-      );
-    }
-
-    final element = result.getter as MethodElement?;
-    node.element = element;
-
-    if (element != null) {
-      final parameterType = element.firstParameterType;
-      if (parameterType != null) {
-        final operandType = node.operand.typeOrThrow;
-        final argumentType =
-            isEqEq ? typeSystem.promoteToNonNull(operandType) : operandType;
-        if (!typeSystem.isAssignableTo(argumentType, parameterType)) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-            node.operand,
-            [argumentType, parameterType],
-          );
-        }
-      }
-
-      final returnType = element.returnType;
-      if (!typeSystem.isAssignableTo(returnType, typeProvider.boolType)) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode
-              .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
-          node.operator,
-        );
-      }
     }
   }
 
