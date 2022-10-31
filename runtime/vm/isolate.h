@@ -324,6 +324,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return background_compiler_.get();
 #endif
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t optimization_counter_threshold() const {
+    if (IsSystemIsolateGroup(this)) {
+      return kDefaultOptimizationCounterThreshold;
+    }
+    return FLAG_optimization_counter_threshold;
+  }
+#endif
 
 #if !defined(PRODUCT)
   GroupDebugger* debugger() const { return debugger_; }
