@@ -14,13 +14,12 @@ utils = bot_utils.GetUtils()
 HOST_OS = utils.GuessOS()
 
 
-def ArchiveArtifacts(tarfile, builddir, channel):
+def ArchiveArtifacts(tarfile, builddir, channel, subdir):
     namer = bot_utils.GCSNamer(channel=channel)
     gsutil = bot_utils.GSUtil()
-    revision = utils.GetArchiveVersion()
     # Archive the src tar to the src dir
     remote_tarfile = '/'.join(
-        [namer.src_directory(revision),
+        [namer.src_directory(subdir),
          os.path.basename(tarfile)])
     gsutil.upload(tarfile, remote_tarfile)
     # Archive all files except the tar file to the linux packages dir
@@ -29,7 +28,7 @@ def ArchiveArtifacts(tarfile, builddir, channel):
         # We expect a flat structure, not subdirectories
         assert (os.path.isfile(full_path))
         if full_path != tarfile:
-            package_dir = namer.linux_packages_directory(revision)
+            package_dir = namer.linux_packages_directory(subdir)
             remote_file = '/'.join([package_dir, os.path.basename(entry)])
             gsutil.upload(full_path, remote_file)
 
@@ -49,4 +48,11 @@ if __name__ == '__main__':
         version = utils.GetVersion()
         tarfilename = 'dart-%s.tar.gz' % version
         tarfile = os.path.join(builddir, tarfilename)
-        ArchiveArtifacts(tarfile, builddir, channel)
+        commit = utils.GetGitRevision()
+        is_new_version = bot_utils.run(
+            ['git', 'diff', '--name-only', 'HEAD~1', 'tools/VERSION'])[0] != ''
+        subdirs = [f'hash/{commit}']
+        if is_new_version:
+            subdirs.extend([version, 'latest'])
+        for subdir in subdirs:
+            ArchiveArtifacts(tarfile, builddir, channel, subdir)
