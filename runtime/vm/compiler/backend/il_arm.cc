@@ -3300,8 +3300,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(function, compiler->parsed_function().function());
-    intptr_t threshold =
-        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    const intptr_t configured_optimization_counter_threshold =
+        compiler->thread()->isolate_group()->optimization_counter_threshold();
+    const int32_t threshold =
+        configured_optimization_counter_threshold * (loop_depth() + 1);
     __ ldr(count,
            compiler::FieldAddress(
                function, compiler::target::Function::usage_counter_offset()));

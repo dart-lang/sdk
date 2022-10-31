@@ -509,7 +509,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Instruction* current_instruction() const { return current_instruction_; }
 
-  static bool CanOptimize();
+  bool CanOptimize() const;
   bool CanOptimizeFunction() const;
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }

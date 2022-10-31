@@ -249,8 +249,8 @@ void FlowGraphCompiler::InitCompiler() {
   }
 }
 
-bool FlowGraphCompiler::CanOptimize() {
-  return FLAG_optimization_counter_threshold >= 0;
+bool FlowGraphCompiler::CanOptimize() const {
+  return thread()->isolate_group()->optimization_counter_threshold() >= 0;
 }
 
 bool FlowGraphCompiler::CanOptimizeFunction() const {
@@ -2207,16 +2207,16 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
     threshold = FLAG_reoptimization_counter_threshold;
   } else if (parsed_function_.function().IsIrregexpFunction()) {
     threshold = FLAG_regexp_optimization_counter_threshold;
-  } else if (FLAG_randomize_optimization_counter) {
-    threshold = Thread::Current()->random()->NextUInt64() %
-                FLAG_optimization_counter_threshold;
   } else {
+    const auto configured_optimization_counter_threshold =
+        IsolateGroup::Current()->optimization_counter_threshold();
+
     const intptr_t basic_blocks = flow_graph().preorder().length();
     ASSERT(basic_blocks > 0);
     threshold = FLAG_optimization_counter_scale * basic_blocks +
                 FLAG_min_optimization_counter_threshold;
-    if (threshold > FLAG_optimization_counter_threshold) {
-      threshold = FLAG_optimization_counter_threshold;
+    if (threshold > configured_optimization_counter_threshold) {
+      threshold = configured_optimization_counter_threshold;
     }
   }
 

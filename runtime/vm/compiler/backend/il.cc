@@ -705,18 +705,18 @@ Cids* Cids::CreateForArgument(Zone* zone,
   return cids;
 }
 
-static intptr_t Usage(const Function& function) {
+static intptr_t Usage(Thread* thread, const Function& function) {
   intptr_t count = function.usage_counter();
   if (count < 0) {
     if (function.HasCode()) {
       // 'function' is queued for optimized compilation
-      count = FLAG_optimization_counter_threshold;
+      count = thread->isolate_group()->optimization_counter_threshold();
     } else {
       count = 0;
     }
   } else if (Code::IsOptimized(function.CurrentCode())) {
     // 'function' was optimized and stopped counting
-    count = FLAG_optimization_counter_threshold;
+    count = thread->isolate_group()->optimization_counter_threshold();
   }
   return count;
 }
@@ -770,7 +770,7 @@ void CallTargets::CreateHelper(Zone* zone, const ICData& ic_data) {
         const intptr_t filled_entry_count = cache.filled_entry_count();
         ASSERT(filled_entry_count > 0);
         cid_ranges_.Add(new (zone) TargetInfo(
-            id, id, &function, Usage(function) / filled_entry_count,
+            id, id, &function, Usage(thread, function) / filled_entry_count,
             StaticTypeExactnessState::NotTracking()));
       }
     }
