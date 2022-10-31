@@ -132,6 +132,7 @@ class BinaryBuilder {
   List<Uri> _sourceUriTable = const [];
   List<Constant> _constantTable = const <Constant>[];
   late List<CanonicalName> _linkTable;
+  late Map<int, DartType?> _cachedSimpleInterfaceTypes;
   int _transformerFlags = 0;
   Library? _currentLibrary;
   int _componentStartOffset = 0;
@@ -599,6 +600,9 @@ class BinaryBuilder {
         // Use [linkRoot] as a dummy default value.
         linkRoot,
         growable: false);
+    // Reset simple interface type cache here to make any index into it always
+    // be about the corresponding link table entry.
+    _cachedSimpleInterfaceTypes = {};
     for (int i = 0; i < length; ++i) {
       int biasedParentIndex = readUInt30();
       String name = readStringReference();
@@ -3173,18 +3177,38 @@ class BinaryBuilder {
   }
 
   DartType _readSimpleInterfaceType(bool forSupertype) {
-    int nullabilityIndex = readByte();
-    Reference classReference = readNonNullClassReference();
-    CanonicalName? canonicalName = classReference.canonicalName;
-    if (canonicalName != null &&
-        !forSupertype &&
+    final int nullabilityIndex = readByte();
+    final int classReferenceIndex = readUInt30();
+    final CanonicalName? canonicalName =
+        getNullableCanonicalNameReferenceFromInt(classReferenceIndex);
+    if (canonicalName == null) {
+      throw 'Expected a class reference to be valid but was `null`.';
+    }
+
+    // We check this before the cache to not return a wrong cached value for
+    // this special case.
+    if (!forSupertype &&
         canonicalName.name == "Null" &&
         canonicalName.parent!.name == "dart:core" &&
         canonicalName.parent!.parent!.isRoot) {
       return const NullType();
     }
-    return new InterfaceType.byReference(classReference,
+
+    // Check cache.
+    final int cacheIndex =
+        (classReferenceIndex - 1) * Nullability.values.length +
+            nullabilityIndex;
+    final DartType? cached = _cachedSimpleInterfaceTypes[cacheIndex];
+    if (cached != null) {
+      return cached;
+    }
+
+    // Not in cache.
+    final Reference classReference = canonicalName.reference;
+    final DartType result = new InterfaceType.byReference(classReference,
         Nullability.values[nullabilityIndex], const <DartType>[]);
+    _cachedSimpleInterfaceTypes[cacheIndex] = result;
+    return result;
   }
 
   DartType _readFunctionType() {
