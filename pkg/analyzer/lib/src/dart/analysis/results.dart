@@ -263,6 +263,16 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
     return ElementDeclarationResultImpl(element, declaration, null, unitResult);
   }
+
+  @override
+  ResolvedUnitResult? unitWithPath(String path) {
+    for (var unit in units) {
+      if (unit.path == path) {
+        return unit;
+      }
+    }
+    return null;
+  }
 }
 
 class ResolvedUnitResultImpl extends FileResultImpl

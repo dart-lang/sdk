@@ -54,7 +54,11 @@ class CodeActionHandler
     }
 
     final path = pathOfDoc(params.textDocument);
-    if (!path.isError && !server.isAnalyzed(path.result)) {
+    if (path.isError) {
+      return failure(path);
+    }
+    var unitPath = path.result;
+    if (!server.isAnalyzed(unitPath)) {
       return success(const []);
     }
 
@@ -69,7 +73,7 @@ class CodeActionHandler
     final supportedKinds = clientCapabilities.codeActionKinds;
     final supportedDiagnosticTags = clientCapabilities.diagnosticTags;
 
-    final unit = await path.mapResult(requireResolvedUnit);
+    final library = await requireResolvedLibrary(unitPath);
 
     /// Whether a fix of kind [kind] should be included in the results.
     ///
@@ -125,7 +129,12 @@ class CodeActionHandler
       return true;
     }
 
-    return unit.mapResult((unit) {
+    return library.mapResult((library) {
+      var unit = library.unitWithPath(unitPath);
+      if (unit == null) {
+        return error(ErrorCodes.InternalError,
+            'The library containing a path did not contain the path.');
+      }
       final startOffset = toOffset(unit.lineInfo, params.range.start);
       final endOffset = toOffset(unit.lineInfo, params.range.end);
       return startOffset.mapResult((startOffset) {
@@ -145,6 +154,7 @@ class CodeActionHandler
               params.range,
               offset,
               length,
+              library,
               unit,
               params.context.triggerKind,
             ),
@@ -344,6 +354,7 @@ class CodeActionHandler
     Range range,
     int offset,
     int length,
+    ResolvedLibraryResult library,
     ResolvedUnitResult unit,
     CodeActionTriggerKind? triggerKind,
   ) async {
@@ -367,7 +378,7 @@ class CodeActionHandler
         performance.runAsync(
           '_getRefactorActions',
           (_) => _getRefactorActions(shouldIncludeKind, supportsLiterals, path,
-              docIdentifier, offset, length, unit),
+              docIdentifier, offset, length, library, unit),
         ),
       if (shouldIncludeAnyOfKind(CodeActionKind.QuickFix))
         performance.runAsync(
@@ -527,6 +538,7 @@ class CodeActionHandler
     OptionalVersionedTextDocumentIdentifier docIdentifier,
     int offset,
     int length,
+    ResolvedLibraryResult library,
     ResolvedUnitResult unit,
   ) async {
     // The refactor actions supported are only valid for Dart files.
@@ -570,7 +582,8 @@ class CodeActionHandler
       if (server.clientConfiguration.global.experimentalNewRefactors) {
         final context = RefactoringContext(
           server: server,
-          resolvedResult: unit,
+          resolvedLibraryResult: library,
+          resolvedUnitResult: unit,
           selectionOffset: offset,
           selectionLength: length,
         );

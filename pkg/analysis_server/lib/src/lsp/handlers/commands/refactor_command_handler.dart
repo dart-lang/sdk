@@ -49,11 +49,17 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
       return serverNotInitializedError;
     }
 
-    final result = await requireResolvedUnit(filePath);
-    return result.mapResult((result) async {
+    final library = await requireResolvedLibrary(filePath);
+    return library.mapResult((library) async {
+      var unit = library.unitWithPath(filePath);
+      if (unit == null) {
+        return error(ErrorCodes.InternalError,
+            'The library containing a path did not contain the path.');
+      }
       var context = RefactoringContext(
           server: server,
-          resolvedResult: result,
+          resolvedLibraryResult: library,
+          resolvedUnitResult: unit,
           selectionOffset: offset,
           selectionLength: length);
       var producer = generator(context);

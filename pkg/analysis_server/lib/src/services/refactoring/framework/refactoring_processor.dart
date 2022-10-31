@@ -52,7 +52,7 @@ class RefactoringProcessor {
                 title: producer.title,
                 arguments: [
                   {
-                    'filePath': context.resolvedResult.path,
+                    'filePath': context.resolvedUnitResult.path,
                     'selectionOffset': context.selectionOffset,
                     'selectionLength': context.selectionLength,
                     'arguments':
