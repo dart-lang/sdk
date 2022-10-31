@@ -84,9 +84,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
         InitializerVisitor<InitializerInferenceResult>,
-        InferenceVisitor,
-        MatcherVisitor<MatcherInferenceResult>,
-        BinderVisitor<BinderInferenceResult> {
+        InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
   static const bool _debugRewriteStack = false;
@@ -7763,7 +7761,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(_rewriteStack.isEmpty);
   }
 
-  @override
   MatcherInferenceResult visitBinderMatcher(BinderMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7774,7 +7771,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   BinderInferenceResult visitDummyBinder(DummyBinder binder,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7783,7 +7779,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const BinderInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitDummyMatcher(DummyMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7792,7 +7787,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   BinderInferenceResult visitListBinder(ListBinder binder,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7802,7 +7796,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const BinderInferenceResult();
   }
 
-  @override
   BinderInferenceResult visitVariableBinder(VariableBinder binder,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7818,7 +7811,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const BinderInferenceResult();
   }
 
-  @override
   BinderInferenceResult visitWildcardBinder(WildcardBinder binder,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7827,7 +7819,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const BinderInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitExpressionMatcher(ExpressionMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7839,7 +7830,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitBinaryMatcher(BinaryMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7852,7 +7842,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitCastMatcher(CastMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7865,7 +7854,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitNullAssertMatcher(NullAssertMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7878,7 +7866,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
   }
 
-  @override
   MatcherInferenceResult visitNullCheckMatcher(NullCheckMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7891,7 +7878,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
   }
 
-  @override
   MatcherInferenceResult visitListMatcher(ListMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7901,7 +7887,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitRelationalMatcher(RelationalMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7911,7 +7896,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitMapMatcher(MapMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7921,7 +7905,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitNamedMatcher(NamedMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7931,7 +7914,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const MatcherInferenceResult();
   }
 
-  @override
   BinderInferenceResult visitNamedBinder(NamedBinder matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -7941,7 +7923,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const BinderInferenceResult();
   }
 
-  @override
   MatcherInferenceResult visitRecordMatcher(RecordMatcher matcher,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
