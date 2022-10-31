@@ -236,6 +236,44 @@ void f(String a) {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
+  Future<void> test_ignoreDiagnostic_afterOtherFixes() async {
+    const content = '''
+void main() {
+  Uint8List inputBytes = Uin^t8List.fromList(List.filled(100000000, 0));
+}
+''';
+
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final position = positionFromMarker(content);
+    final range = Range(start: position, end: position);
+    final codeActions = await getCodeActions(mainFileUri, range: range);
+    final codeActionKinds = codeActions.map(
+      (item) => item.map(
+        (command) => null,
+        (action) => action.kind?.toString(),
+      ),
+    );
+
+    expect(
+      codeActionKinds,
+      containsAllInOrder([
+        // Non-ignore fixes are alphabetical by title.
+        'quickfix.create.class',
+        'quickfix.create.localVariable',
+        'quickfix.create.mixin',
+        'quickfix.remove.unusedLocalVariable',
+        // Fixes are last and line is always sorted above file.
+        'quickfix.ignore.line',
+        'quickfix.ignore.file',
+      ]),
+    );
+  }
+
   Future<void> test_ignoreDiagnosticForFile() async {
     const content = '''
 // Header comment
