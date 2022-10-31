@@ -1508,6 +1508,23 @@ void f(int a) {
     ]);
   }
 
+  test_topLevelVariable_switchCase_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+@deprecated
+const int x = 1;
+
+void f(int a) {
+  switch (a) {
+    case x:
+      break;
+  }
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 86, 1),
+    ]);
+  }
+
   test_topLevelVariable_switchStatement() async {
     await assertErrorsInCode(r'''
 @deprecated
@@ -1518,6 +1535,20 @@ void f() {
 }
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 45, 1),
+    ]);
+  }
+
+  test_topLevelVariable_switchStatement_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+@deprecated
+int x = 1;
+
+void f() {
+  switch (x) {}
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 61, 1),
     ]);
   }
 

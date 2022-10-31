@@ -481,6 +481,49 @@ main() {
     _assertReturnType('(p.E e) {', 'int');
   }
 
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_language218() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 2.18
+enum E { a, b }
+''');
+
+    await assertNoErrorsInCode('''
+// @dart = 2.18
+import 'a.dart' as p;
+
+main() {
+  (p.E e) {
+    switch (e) {
+      case p.E.a:
+        return 0;
+      case p.E.b:
+        return 1;
+    }
+  };
+}
+''');
+    _assertReturnType('(p.E e) {', 'int');
+  }
+
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_language218() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.18
+enum E { a, b }
+
+main() {
+  (E e) {
+    switch (e) {
+      case E.a:
+        return 0;
+      case E.b:
+        return 1;
+    }
+  };
+}
+''');
+    _assertReturnType('(E e) {', 'int');
+  }
+
   test_noContext_returnType_sync_blockBody_null_hasReturn() async {
     await resolveTestCode('''
 var v = (bool b) {
@@ -511,6 +554,24 @@ var v = (bool b) {
 
   test_noContext_returnType_sync_blockBody_nullable_switch() async {
     await assertNoErrorsInCode('''
+main() {
+  (int a) {
+    switch (a) {
+      case 0:
+        return 0;
+    }
+  };
+}
+''');
+    _assertReturnType(
+      '(int a) {',
+      typeStringByNullability(nullable: 'int?', legacy: 'int'),
+    );
+  }
+
+  test_noContext_returnType_sync_blockBody_nullable_switch_language218() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.18
 main() {
   (int a) {
     switch (a) {

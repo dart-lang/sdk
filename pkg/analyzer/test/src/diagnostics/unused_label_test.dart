@@ -10,11 +10,19 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedLabelTest);
+    defineReflectiveTests(UnusedLabelTest_Language218);
   });
 }
 
 @reflectiveTest
-class UnusedLabelTest extends PubPackageResolutionTest {
+class UnusedLabelTest extends PubPackageResolutionTest
+    with UnusedLabelTestCases {}
+
+@reflectiveTest
+class UnusedLabelTest_Language218 extends PubPackageResolutionTest
+    with WithLanguage218Mixin, UnusedLabelTestCases {}
+
+mixin UnusedLabelTestCases on PubPackageResolutionTest {
   test_unused_inSwitch() async {
     await assertErrorsInCode(r'''
 f(x) {
