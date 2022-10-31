@@ -403,7 +403,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   void _read(element, reader) {
     _readLibraryOrAugmentation(element, reader);
     for (final part in element.parts) {
-      part as PartElementImpl;
       part.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -1230,7 +1229,7 @@ class LibraryReader {
     });
   }
 
-  PartElement _readPartElement({
+  PartElementImpl _readPartElement({
     required LibraryElementImpl libraryElement,
   }) {
     final uri = _readDirectiveUri(

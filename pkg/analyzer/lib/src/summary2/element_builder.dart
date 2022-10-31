@@ -892,7 +892,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (libraryElement is LibraryElementImpl) {
       final index = _partDirectiveIndex++;
       final partElement = libraryElement.parts[index];
-      partElement as PartElementImpl;
       partElement.metadata = _buildAnnotations(node.metadata);
     }
   }
