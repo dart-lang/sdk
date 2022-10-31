@@ -42,7 +42,7 @@ void testExpression(Expression node, String normal,
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
-void testMatcher(Matcher node, String normal,
+void testMatcher(Pattern node, String normal,
     {String? verbose, String? limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
@@ -1058,28 +1058,28 @@ void _testForMapEntry() {}
 void _testForInMapEntry() {}
 
 void _testExpressionMatcher() {
-  testMatcher(new ExpressionMatcher(new IntLiteral(0)), '''
+  testMatcher(new ExpressionPattern(new IntLiteral(0)), '''
 0''');
 
-  testMatcher(new ExpressionMatcher(new BoolLiteral(true)), '''
+  testMatcher(new ExpressionPattern(new BoolLiteral(true)), '''
 true''');
 }
 
 void _testBinaryMatcher() {
   testMatcher(
-      new BinaryMatcher(
-          new ExpressionMatcher(new IntLiteral(0)),
-          BinaryMatcherKind.and,
-          new ExpressionMatcher(new IntLiteral(1)),
+      new BinaryPattern(
+          new ExpressionPattern(new IntLiteral(0)),
+          BinaryPatternKind.and,
+          new ExpressionPattern(new IntLiteral(1)),
           TreeNode.noOffset),
       '''
 0 & 1''');
 
   testMatcher(
-      new BinaryMatcher(
-          new ExpressionMatcher(new IntLiteral(0)),
-          BinaryMatcherKind.or,
-          new ExpressionMatcher(new IntLiteral(1)),
+      new BinaryPattern(
+          new ExpressionPattern(new IntLiteral(0)),
+          BinaryPatternKind.or,
+          new ExpressionPattern(new IntLiteral(1)),
           TreeNode.noOffset),
       '''
 0 | 1''');
@@ -1087,7 +1087,7 @@ void _testBinaryMatcher() {
 
 void _testCastMatcher() {
   testMatcher(
-      new CastMatcher(new ExpressionMatcher(new IntLiteral(0)),
+      new CastPattern(new ExpressionPattern(new IntLiteral(0)),
           const DynamicType(), TreeNode.noOffset),
       '''
 0 as dynamic''');
@@ -1095,27 +1095,27 @@ void _testCastMatcher() {
 
 void _testNullAssertMatcher() {
   testMatcher(
-      new NullAssertMatcher(
-          new ExpressionMatcher(new IntLiteral(0)), TreeNode.noOffset),
+      new NullAssertPattern(
+          new ExpressionPattern(new IntLiteral(0)), TreeNode.noOffset),
       '''
 0!''');
 }
 
 void _testNullCheckMatcher() {
   testMatcher(
-      new NullCheckMatcher(
-          new ExpressionMatcher(new IntLiteral(0)), TreeNode.noOffset),
+      new NullCheckPattern(
+          new ExpressionPattern(new IntLiteral(0)), TreeNode.noOffset),
       '''
 0?''');
 }
 
 void _testListMatcher() {
   testMatcher(
-      new ListMatcher(
+      new ListPattern(
           const DynamicType(),
           [
-            new ExpressionMatcher(new IntLiteral(0)),
-            new ExpressionMatcher(new IntLiteral(1)),
+            new ExpressionPattern(new IntLiteral(0)),
+            new ExpressionPattern(new IntLiteral(1)),
           ],
           TreeNode.noOffset),
       '''
@@ -1124,50 +1124,50 @@ void _testListMatcher() {
 
 void _testRelationalMatcher() {
   testMatcher(
-      new RelationalMatcher(
-          RelationalMatcherKind.equals, new IntLiteral(0), TreeNode.noOffset),
+      new RelationalPattern(
+          RelationalPatternKind.equals, new IntLiteral(0), TreeNode.noOffset),
       '''
 == 0''');
   testMatcher(
-      new RelationalMatcher(RelationalMatcherKind.notEquals, new IntLiteral(1),
+      new RelationalPattern(RelationalPatternKind.notEquals, new IntLiteral(1),
           TreeNode.noOffset),
       '''
 != 1''');
   testMatcher(
-      new RelationalMatcher(
-          RelationalMatcherKind.lessThan, new IntLiteral(2), TreeNode.noOffset),
+      new RelationalPattern(
+          RelationalPatternKind.lessThan, new IntLiteral(2), TreeNode.noOffset),
       '''
 < 2''');
 }
 
 void _testMapMatcher() {
-  testMatcher(new MapMatcher(null, null, [], TreeNode.noOffset), '''
+  testMatcher(new MapPattern(null, null, [], TreeNode.noOffset), '''
 {}''');
   testMatcher(
-      new MapMatcher(
+      new MapPattern(
           const DynamicType(), const DynamicType(), [], TreeNode.noOffset),
       '''
 <dynamic, dynamic>{}''');
   testMatcher(
-      new MapMatcher(
+      new MapPattern(
           null,
           null,
           [
-            new MapMatcherEntry(new ExpressionMatcher(new IntLiteral(0)),
-                new ExpressionMatcher(new IntLiteral(1)), TreeNode.noOffset),
+            new MapPatternEntry(new ExpressionPattern(new IntLiteral(0)),
+                new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset),
           ],
           TreeNode.noOffset),
       '''
 {0: 1}''');
   testMatcher(
-      new MapMatcher(
+      new MapPattern(
           null,
           null,
           [
-            new MapMatcherEntry(new ExpressionMatcher(new IntLiteral(0)),
-                new ExpressionMatcher(new IntLiteral(1)), TreeNode.noOffset),
-            new MapMatcherEntry(new ExpressionMatcher(new IntLiteral(2)),
-                new ExpressionMatcher(new IntLiteral(3)), TreeNode.noOffset),
+            new MapPatternEntry(new ExpressionPattern(new IntLiteral(0)),
+                new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset),
+            new MapPatternEntry(new ExpressionPattern(new IntLiteral(2)),
+                new ExpressionPattern(new IntLiteral(3)), TreeNode.noOffset),
           ],
           TreeNode.noOffset),
       '''
@@ -1178,7 +1178,7 @@ void _testIfCaseStatement() {
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionMatcher(new IntLiteral(1)),
+          new ExpressionPattern(new IntLiteral(1)),
           null,
           new ReturnStatement(),
           null,
@@ -1189,7 +1189,7 @@ if (0 case 1) return;''');
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionMatcher(new IntLiteral(1)),
+          new ExpressionPattern(new IntLiteral(1)),
           null,
           new ReturnStatement(new IntLiteral(2)),
           new ReturnStatement(new IntLiteral(3)),
@@ -1200,7 +1200,7 @@ if (0 case 1) return 2; else return 3;''');
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionMatcher(new IntLiteral(1)),
+          new ExpressionPattern(new IntLiteral(1)),
           new IntLiteral(2),
           new ReturnStatement(),
           null,
@@ -1211,7 +1211,7 @@ if (0 case 1 when 2) return;''');
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionMatcher(new IntLiteral(1)),
+          new ExpressionPattern(new IntLiteral(1)),
           new IntLiteral(2),
           new ReturnStatement(new IntLiteral(3)),
           new ReturnStatement(new IntLiteral(4)),

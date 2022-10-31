@@ -668,22 +668,20 @@ class BodyBuilder extends StackListenerImpl
     return toValue(node);
   }
 
-  Matcher toMatcher(Object? node) {
-    if (node is Matcher) {
+  Pattern toPattern(Object? node) {
+    if (node is Pattern) {
       return node;
-    } else if (node is Binder) {
-      return new BinderMatcher(node);
     } else if (node is Generator) {
-      return new ExpressionMatcher(node.buildSimpleRead());
+      return new ExpressionPattern(node.buildSimpleRead());
     } else if (node is Expression) {
-      return new ExpressionMatcher(node);
+      return new ExpressionPattern(node);
     } else if (node is ProblemBuilder) {
       // ignore: unused_local_variable
       Expression expression =
           buildProblem(node.message, node.charOffset, noLength);
-      return new ExpressionMatcher(expression);
+      return new ExpressionPattern(expression);
     } else {
-      return unhandled("${node.runtimeType}", "toMatcher", -1, uri);
+      return unhandled("${node.runtimeType}", "toPattern", -1, uri);
     }
   }
 
@@ -2290,8 +2288,7 @@ class BodyBuilder extends StackListenerImpl
           ]),
           unionOfKinds([
             ValueKinds.Expression,
-            ValueKinds.Matcher,
-            ValueKinds.Binder,
+            ValueKinds.Pattern,
           ]),
           unionOfKinds([
             ValueKinds.Expression,
@@ -2304,8 +2301,7 @@ class BodyBuilder extends StackListenerImpl
       assert(checkState(token, [
         unionOfKinds([
           ValueKinds.Expression,
-          ValueKinds.Matcher,
-          ValueKinds.Binder,
+          ValueKinds.Pattern,
         ]),
         unionOfKinds([
           ValueKinds.Expression,
@@ -2315,14 +2311,14 @@ class BodyBuilder extends StackListenerImpl
       ]));
       reportIfNotEnabled(
           libraryFeatures.patterns, case_.charOffset, case_.charCount);
-      Matcher matcher = toMatcher(pop());
+      Pattern pattern = toPattern(pop());
       Expression expression = popForValue();
-      for (VariableDeclaration variable in matcher.declaredVariables) {
+      for (VariableDeclaration variable in pattern.declaredVariables) {
         // Skip synthetic variables.
         if (variable.name == null) continue;
         declareVariable(variable, scope);
       }
-      push(new Condition(expression, matcher, guard));
+      push(new Condition(expression, pattern, guard));
     } else {
       assert(checkState(token, [
         unionOfKinds([
@@ -2378,16 +2374,15 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ])
     ]));
-    // TODO(johnniwinther): Do we need a ParenthesizedMatcher ?
+    // TODO(johnniwinther): Do we need a ParenthesizedPattern ?
     reportIfNotEnabled(
         libraryFeatures.patterns, token.charOffset, token.charCount);
 
     Object? value = pop();
-    if (value is Matcher || value is Binder) {
+    if (value is Pattern) {
       push(value);
     } else {
       push(toValue(value));
@@ -2548,8 +2543,7 @@ class BodyBuilder extends StackListenerImpl
           ValueKinds.Expression,
           ValueKinds.Generator,
           ValueKinds.ProblemBuilder,
-          ValueKinds.Matcher,
-          ValueKinds.Binder,
+          ValueKinds.Pattern,
         ]),
         ValueKinds.ConstantContext,
       ]));
@@ -2560,17 +2554,16 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
       ValueKinds.ConstantContext,
     ]));
     debugEvent("endCaseExpression");
     Object? value = pop();
-    if (value is Matcher || value is Binder) {
+    if (value is Pattern) {
       constantContext = pop() as ConstantContext;
       // TODO(paulberry): handle guard
-      super.push(toMatcher(value));
+      super.push(toPattern(value));
     } else {
       Expression expression = toValue(value);
       constantContext = pop() as ConstantContext;
@@ -2580,7 +2573,7 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(colon, [
       unionOfKinds([
         ValueKinds.Expression,
-        ValueKinds.Matcher,
+        ValueKinds.Pattern,
       ])
     ]));
   }
@@ -2654,33 +2647,31 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ])
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, token.charOffset, token.charCount);
     // ignore: unused_local_variable
-    Matcher left = toMatcher(pop());
+    Pattern left = toPattern(pop());
     // ignore: unused_local_variable
-    Matcher right = toMatcher(pop());
-    // TODO(johnniwinther): Create a binary matcher.
+    Pattern right = toPattern(pop());
+    // TODO(johnniwinther): Create a binary pattern.
 
     String operator = token.lexeme;
-    BinaryMatcherKind kind;
+    BinaryPatternKind kind;
     switch (operator) {
       case '&':
-        kind = BinaryMatcherKind.and;
+        kind = BinaryPatternKind.and;
         break;
       case '|':
-        kind = BinaryMatcherKind.or;
+        kind = BinaryPatternKind.or;
         break;
       default:
         internalProblem(
@@ -2689,7 +2680,7 @@ class BodyBuilder extends StackListenerImpl
             token.charOffset,
             uri);
     }
-    push(new BinaryMatcher(left, kind, right, token.charOffset));
+    push(new BinaryPattern(left, kind, right, token.charOffset));
   }
 
   void doBinaryExpression(Token token) {
@@ -3499,13 +3490,13 @@ class BodyBuilder extends StackListenerImpl
         pop() as AssignedVariablesNodeInfo;
     Statement thenPart = popStatement();
     Condition condition = pop() as Condition;
-    Matcher? matcher = condition.matcher;
+    Pattern? pattern = condition.pattern;
     Expression? guard = condition.guard;
     Expression expression = condition.expression;
     Statement node;
-    if (matcher != null) {
+    if (pattern != null) {
       node = new IfCaseStatement(
-          expression, matcher, guard, thenPart, elsePart, ifToken.charOffset);
+          expression, pattern, guard, thenPart, elsePart, ifToken.charOffset);
     } else {
       node = forest.createIfStatement(
           offsetForToken(ifToken), expression, thenPart, elsePart);
@@ -4157,8 +4148,7 @@ class BodyBuilder extends StackListenerImpl
             ValueKinds.Generator,
             ValueKinds.Expression,
             ValueKinds.ProblemBuilder,
-            ValueKinds.Matcher,
-            ValueKinds.Binder,
+            ValueKinds.Pattern,
           ]),
           count),
       ValueKinds.TypeArgumentsOrNull,
@@ -4167,10 +4157,10 @@ class BodyBuilder extends StackListenerImpl
     reportIfNotEnabled(libraryFeatures.patterns, leftBracket.charOffset,
         leftBracket.charCount);
 
-    List<Matcher> matchers =
-        new List<Matcher>.filled(count, dummyMatcher, growable: true);
+    List<Pattern> patterns =
+        new List<Pattern>.filled(count, dummyPattern, growable: true);
     for (int i = count - 1; i >= 0; i--) {
-      matchers[i] = toMatcher(pop());
+      patterns[i] = toPattern(pop());
     }
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
     DartType typeArgument;
@@ -4192,7 +4182,7 @@ class BodyBuilder extends StackListenerImpl
       typeArgument = implicitTypeArgument;
     }
 
-    push(new ListMatcher(typeArgument, matchers, leftBracket.charOffset));
+    push(new ListPattern(typeArgument, patterns, leftBracket.charOffset));
   }
 
   @override
@@ -4285,19 +4275,18 @@ class BodyBuilder extends StackListenerImpl
               ValueKinds.Expression,
               ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
-              ValueKinds.Matcher,
-              ValueKinds.Binder,
+              ValueKinds.Pattern,
             ]),
             count)));
 
     reportIfNotEnabled(
         libraryFeatures.patterns, token.charOffset, token.charCount);
 
-    List<Matcher> matchers = new List<Matcher>.filled(count, dummyMatcher);
+    List<Pattern> patterns = new List<Pattern>.filled(count, dummyPattern);
     for (int i = count - 1; i >= 0; i--) {
-      matchers[i] = toMatcher(pop());
+      patterns[i] = toPattern(pop());
     }
-    push(new RecordMatcher(matchers, token.charOffset));
+    push(new RecordPattern(patterns, token.charOffset));
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,
@@ -4431,36 +4420,34 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ])
     ]));
-    Matcher key = toMatcher(pop());
-    Matcher value = toMatcher(pop());
-    push(new MapMatcherEntry(key, value, colon.charOffset));
+    Pattern key = toPattern(pop());
+    Pattern value = toPattern(pop());
+    push(new MapPatternEntry(key, value, colon.charOffset));
   }
 
   @override
   void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
     debugEvent('MapPattern');
     assert(checkState(leftBrace, [
-      ...repeatedKinds(ValueKinds.MapMatcherEntry, count),
+      ...repeatedKinds(ValueKinds.MapPatternEntry, count),
       ValueKinds.TypeArgumentsOrNull,
     ]));
 
     reportIfNotEnabled(
         libraryFeatures.patterns, leftBrace.charOffset, leftBrace.charCount);
-    List<MapMatcherEntry> entries =
-        new List<MapMatcherEntry>.filled(count, dummyMapMatcherEntry);
+    List<MapPatternEntry> entries =
+        new List<MapPatternEntry>.filled(count, dummyMapPatternEntry);
     for (int i = count - 1; i >= 0; i--) {
-      entries[i] = pop() as MapMatcherEntry;
+      entries[i] = pop() as MapPatternEntry;
     }
 
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
@@ -4482,7 +4469,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
-    push(new MapMatcher(keyType, valueType, entries, leftBrace.charOffset));
+    push(new MapPattern(keyType, valueType, entries, leftBrace.charOffset));
   }
 
   @override
@@ -4872,16 +4859,15 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, operator.charOffset, operator.charCount);
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
         allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
-    Matcher operand = toMatcher(pop());
-    push(new CastMatcher(operand, type, operator.charOffset));
+    Pattern operand = toPattern(pop());
+    push(new CastPattern(operand, type, operator.charOffset));
   }
 
   @override
@@ -6294,8 +6280,8 @@ class BodyBuilder extends StackListenerImpl
 
     Object? entry = pop();
     Condition condition = pop() as Condition;
-    assert(condition.matcher == null,
-        "Unexpected matcher in control flow if: ${condition.matcher}.");
+    assert(condition.pattern == null,
+        "Unexpected pattern in control flow if: ${condition.pattern}.");
     Token ifToken = pop() as Token;
 
     transformCollections = true;
@@ -6339,8 +6325,8 @@ class BodyBuilder extends StackListenerImpl
     AssignedVariablesNodeInfo assignedVariablesInfo =
         pop() as AssignedVariablesNodeInfo;
     Condition condition = pop() as Condition; // parenthesized expression
-    assert(condition.matcher == null,
-        "Unexpected matcher in control flow if: ${condition.matcher}.");
+    assert(condition.pattern == null,
+        "Unexpected pattern in control flow if: ${condition.pattern}.");
     Token ifToken = pop() as Token;
 
     transformCollections = true;
@@ -6747,8 +6733,8 @@ class BodyBuilder extends StackListenerImpl
       /* break target = */ ValueKinds.BreakTarget,
     ]));
     Condition condition = pop() as Condition;
-    assert(condition.matcher == null,
-        "Unexpected matcher in do statement: ${condition.matcher}.");
+    assert(condition.pattern == null,
+        "Unexpected pattern in do statement: ${condition.pattern}.");
     Expression expression = condition.expression;
     Statement body = popStatement();
     JumpTarget continueTarget = exitContinueTarget()!;
@@ -7087,8 +7073,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Statement body = popStatement();
     Condition condition = pop() as Condition;
-    assert(condition.matcher == null,
-        "Unexpected matcher in while statement: ${condition.matcher}.");
+    assert(condition.pattern == null,
+        "Unexpected pattern in while statement: ${condition.pattern}.");
     Expression expression = condition.expression;
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
@@ -7219,7 +7205,7 @@ class BodyBuilder extends StackListenerImpl
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
     int count = labelCount + expressionCount;
-    List<Object>? labelsExpressionsAndMatchers =
+    List<Object>? labelsExpressionsAndPatterns =
         const FixedNullableList<Object>()
             .popNonNullable(stack, count, dummyLabel);
     List<Label>? labels =
@@ -7229,15 +7215,15 @@ class BodyBuilder extends StackListenerImpl
         growable: true);
     int labelIndex = 0;
     int expressionIndex = 0;
-    if (labelsExpressionsAndMatchers != null) {
-      for (Object labelExpressionOrMatcher in labelsExpressionsAndMatchers) {
-        if (labelExpressionOrMatcher is Label) {
-          labels![labelIndex++] = labelExpressionOrMatcher;
-        } else if (labelExpressionOrMatcher is Matcher) {
-          // TODO(johnniwinther): Handle matchers.
+    if (labelsExpressionsAndPatterns != null) {
+      for (Object labelExpressionOrPattern in labelsExpressionsAndPatterns) {
+        if (labelExpressionOrPattern is Label) {
+          labels![labelIndex++] = labelExpressionOrPattern;
+        } else if (labelExpressionOrPattern is Pattern) {
+          // TODO(johnniwinther): Handle patterns.
         } else {
           expressions[expressionIndex++] =
-              labelExpressionOrMatcher as Expression;
+              labelExpressionOrPattern as Expression;
         }
       }
     }
@@ -7308,8 +7294,8 @@ class BodyBuilder extends StackListenerImpl
     exitSwitchScope();
     exitLocalScope();
     Condition condition = pop() as Condition;
-    assert(condition.matcher == null,
-        "Unexpected matcher in switch statement: ${condition.matcher}.");
+    assert(condition.pattern == null,
+        "Unexpected pattern in switch statement: ${condition.pattern}.");
     Expression expression = condition.expression;
     Statement switchStatement = new SwitchStatement(expression, cases)
       ..fileOffset = switchKeyword.charOffset;
@@ -8208,8 +8194,7 @@ class BodyBuilder extends StackListenerImpl
               ValueKinds.Expression,
               ValueKinds.Generator,
               ValueKinds.ProblemBuilder,
-              ValueKinds.Matcher,
-              ValueKinds.Binder,
+              ValueKinds.Pattern,
             ]),
             count)));
     reportIfNotEnabled(
@@ -8217,8 +8202,8 @@ class BodyBuilder extends StackListenerImpl
     for (int i = 0; i < count; i++) {
       pop();
     }
-    // TODO(johnniwinther): Push (named) matchers.
-    push(count != 0 ? <Matcher>[] : NullValue.MatcherList);
+    // TODO(johnniwinther): Push (named) patterns.
+    push(count != 0 ? <Pattern>[] : NullValue.PatternList);
   }
 
   @override
@@ -8226,7 +8211,7 @@ class BodyBuilder extends StackListenerImpl
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
     debugEvent("ExtractorPattern");
     assert(checkState(firstIdentifier, [
-      ValueKinds.MatcherListOrNull,
+      ValueKinds.PatternListOrNull,
       ValueKinds.TypeArgumentsOrNull,
     ]));
 
@@ -8234,12 +8219,12 @@ class BodyBuilder extends StackListenerImpl
         firstIdentifier.charCount);
 
     // ignore: unused_local_variable
-    List<Matcher>? fields = pop() as List<Matcher>?;
+    List<Pattern>? fields = pop() as List<Pattern>?;
     // ignore: unused_local_variable
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
     // TODO(johnniwinther): Create extractor pattern.
-    push(new DummyMatcher(firstIdentifier.charOffset));
+    push(new DummyPattern(firstIdentifier.charOffset));
   }
 
   @override
@@ -8250,33 +8235,32 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, token.charOffset, token.charCount);
     Expression operand = toValue(pop());
-    RelationalMatcherKind kind;
+    RelationalPatternKind kind;
     String operator = token.lexeme;
     switch (operator) {
       case '==':
-        kind = RelationalMatcherKind.equals;
+        kind = RelationalPatternKind.equals;
         break;
       case '!=':
-        kind = RelationalMatcherKind.notEquals;
+        kind = RelationalPatternKind.notEquals;
         break;
       case '<':
-        kind = RelationalMatcherKind.lessThan;
+        kind = RelationalPatternKind.lessThan;
         break;
       case '<=':
-        kind = RelationalMatcherKind.lessThanEqual;
+        kind = RelationalPatternKind.lessThanEqual;
         break;
       case '>':
-        kind = RelationalMatcherKind.greaterThan;
+        kind = RelationalPatternKind.greaterThan;
         break;
       case '>=':
-        kind = RelationalMatcherKind.greaterThanEqual;
+        kind = RelationalPatternKind.greaterThanEqual;
         break;
       default:
         internalProblem(
@@ -8285,7 +8269,7 @@ class BodyBuilder extends StackListenerImpl
             token.charOffset,
             uri);
     }
-    push(new RelationalMatcher(kind, operand, token.charOffset));
+    push(new RelationalPattern(kind, operand, token.charOffset));
   }
 
   @override
@@ -8296,14 +8280,13 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, bang.charOffset, bang.charCount);
-    Matcher operand = toMatcher(pop());
-    push(new NullAssertMatcher(operand, bang.charOffset));
+    Pattern operand = toPattern(pop());
+    push(new NullAssertPattern(operand, bang.charOffset));
   }
 
   @override
@@ -8314,15 +8297,14 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, question.charOffset, question.charCount);
     // ignore: unused_local_variable
-    Matcher operand = toMatcher(pop());
-    push(new NullCheckMatcher(operand, question.charOffset));
+    Pattern operand = toPattern(pop());
+    push(new NullCheckPattern(operand, question.charOffset));
   }
 
   @override
@@ -8337,19 +8319,20 @@ class BodyBuilder extends StackListenerImpl
     // ignore: unused_local_variable
     TypeBuilder? type = pop(NullValue.TypeBuilder) as TypeBuilder?;
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
-    Binder binder;
+    Pattern pattern;
     if (variable.lexeme == "_") {
-      binder = new WildcardBinder(patternType, offset: variable.charOffset);
+      pattern = new WildcardPattern(patternType, variable.charOffset);
     } else {
-      binder = new VariableBinder(
+      pattern = new VariablePattern(
           patternType,
           variable.lexeme,
           forest.createVariableDeclaration(variable.charOffset, variable.lexeme,
               type: patternType,
               isFinal: Modifier.validateVarFinalOrConst(keyword?.lexeme) ==
-                  finalMask));
+                  finalMask),
+          variable.charOffset);
     }
-    push(binder);
+    push(pattern);
   }
 
   @override
@@ -8360,44 +8343,26 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.Matcher,
-        ValueKinds.Binder,
+        ValueKinds.Pattern,
       ]),
       if (colon != null) ValueKinds.IdentifierOrNull,
     ]));
 
     Object? value = pop();
-    if (value is Binder) {
-      if (colon != null) {
-        Identifier? identifier = pop() as Identifier?;
-        String name;
-        if (identifier != null) {
-          name = identifier.name;
-        } else {
-          // TODO(johnniwinther): Derive the name from a variable binder in
-          // [value].
-          name = '';
-        }
-        push(new NamedBinder(name, value, colon.charOffset));
+    Pattern pattern = toPattern(value);
+    if (colon != null) {
+      Identifier? identifier = pop() as Identifier?;
+      String name;
+      if (identifier != null) {
+        name = identifier.name;
       } else {
-        push(value);
+        // TODO(johnniwinther): Derive the name from a variable reference in
+        // [pattern].
+        name = '';
       }
+      push(new NamedPattern(name, pattern, colon.charOffset));
     } else {
-      Matcher matcher = toMatcher(value);
-      if (colon != null) {
-        Identifier? identifier = pop() as Identifier?;
-        String name;
-        if (identifier != null) {
-          name = identifier.name;
-        } else {
-          // TODO(johnniwinther): Derive the name from a variable reference in
-          // [matcher].
-          name = '';
-        }
-        push(new NamedMatcher(name, matcher, colon.charOffset));
-      } else {
-        push(matcher);
-      }
+      push(pattern);
     }
   }
 }
@@ -8839,15 +8804,15 @@ class _FindChildVisitor extends Visitor<void> with VisitorVoidMixin {
 
 class Condition {
   final Expression expression;
-  final Matcher? matcher;
+  final Pattern? pattern;
   final Expression? guard;
 
-  Condition(this.expression, [this.matcher, this.guard])
-      : assert(guard == null || matcher != null,
-            "Unexpected guard without matcher.");
+  Condition(this.expression, [this.pattern, this.guard])
+      : assert(guard == null || pattern != null,
+            "Unexpected guard without pattern.");
 
   @override
   String toString() => 'Condition($expression'
-      '${matcher != null ? ',$matcher' : ''}'
+      '${pattern != null ? ',$pattern' : ''}'
       '${guard != null ? ',$guard' : ''})';
 }
