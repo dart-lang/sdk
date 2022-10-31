@@ -43,8 +43,6 @@ class TranslatorOptions {
   List<int>? watchPoints = null;
 }
 
-typedef CodeGenCallback = void Function(w.Instructions);
-
 /// The main entry point for the translation from kernel to Wasm and the hub for
 /// all global state in the compiler.
 ///

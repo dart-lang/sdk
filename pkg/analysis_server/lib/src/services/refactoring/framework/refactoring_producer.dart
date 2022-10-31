@@ -32,7 +32,7 @@ abstract class RefactoringProducer {
 
   /// Return the result of resolving the file in which the refactoring was
   /// invoked.
-  ResolvedUnitResult get result => _context.resolvedResult;
+  ResolvedUnitResult get result => _context.resolvedUnitResult;
 
   /// Return the node that was selected, or `null` if the selection is not
   /// valid.

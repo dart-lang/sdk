@@ -408,6 +408,33 @@ abstract class AnalysisServer {
     return result is ParsedUnitResult ? result : null;
   }
 
+  /// Return the resolved library for the library containing the file with the
+  /// given [path]. The library is analyzed in one of the analysis drivers to
+  /// which the file was added, otherwise in the first driver, otherwise `null`
+  /// is returned.
+  Future<ResolvedLibraryResult?> getResolvedLibrary(String path) async {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
+      return null;
+    }
+    var driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return null;
+    }
+    try {
+      var currentSession = driver.currentSession;
+      var unitElement = await currentSession.getUnitElement(path);
+      if (unitElement is! UnitElementResult) {
+        return null;
+      }
+      var libraryPath = unitElement.element.library.source.fullName;
+      var result = await currentSession.getResolvedLibrary(libraryPath);
+      return result is ResolvedLibraryResult ? result : null;
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+    }
+    return null;
+  }
+
   /// Return the resolved unit for the file with the given [path]. The file is
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.

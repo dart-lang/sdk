@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -22,6 +23,17 @@ class WrapInUnawaited extends CorrectionProducer {
     Expression? expression;
     if (node is Expression) {
       expression = node;
+      // more than or equal the Precedence of AwaitExpression
+      if (expression.precedence >= Precedence.prefix) {
+        while (true) {
+          var parent = expression!.parent;
+          if (parent is Expression && parent.precedence >= Precedence.prefix) {
+            expression = parent;
+          } else {
+            break;
+          }
+        }
+      }
     } else if (node is ExpressionStatement) {
       expression = node.expression;
     }

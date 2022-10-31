@@ -18,6 +18,48 @@ void main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
+  /// Checks whether the correct types of documentation are returned in a Hover
+  /// based on [preference].
+  Future<void> assertDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) async {
+    final content = '''
+    /// Summary.
+    ///
+    /// Full.
+    class ^A {}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {
+        if (preference != null) 'documentation': preference,
+      },
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    final hoverContents = _getStringContents(hover!);
+
+    if (includesSummary) {
+      expect(hoverContents, contains('Summary.'));
+    } else {
+      expect(hoverContents, isNot(contains('Summary.')));
+    }
+
+    if (includesFull) {
+      expect(hoverContents, contains('Full.'));
+    } else {
+      expect(hoverContents, isNot(contains('Full.')));
+    }
+  }
+
   Future<void> test_dartDoc_macros() async {
     final content = '''
     /// {@template template_name}
@@ -38,6 +80,20 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(_getStringContents(hover), endsWith('This is shared content.'));
   }
+
+  Future<void> test_dartDocPreference_full() =>
+      assertDocumentation('full', includesSummary: true, includesFull: true);
+
+  Future<void> test_dartDocPreference_none() =>
+      assertDocumentation('none', includesSummary: false, includesFull: false);
+
+  Future<void> test_dartDocPreference_summary() =>
+      assertDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_dartDocPreference_unset() =>
+      assertDocumentation(null, includesSummary: true, includesFull: true);
 
   Future<void> test_function_startOfParameterList() async {
     final content = '''

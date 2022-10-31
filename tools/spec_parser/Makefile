@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-GRAMMAR=../../docs/language/Dart.g
+GRAMMAR=Dart.g
 JAVA_PATH=/usr/lib/jvm/java-7-openjdk-amd64/bin
 JAVA=$(JAVA_PATH)/java
 JAVAC=javac

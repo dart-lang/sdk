@@ -55,7 +55,6 @@ class ValueKinds {
       const SingleValueKind<type.AsyncMarker>();
   static const ValueKind AsyncModifier =
       const SingleValueKind<type.AsyncMarker>();
-  static const ValueKind Binder = const SingleValueKind<type.Binder>();
   static const ValueKind BreakTarget =
       const SingleValueKind<type.JumpTarget>(NullValue.BreakTarget);
   static const ValueKind Bool = const SingleValueKind<bool>();
@@ -85,13 +84,13 @@ class ValueKinds {
   static const ValueKind Integer = const SingleValueKind<int>();
   static const ValueKind MapLiteralEntry =
       const SingleValueKind<type.MapLiteralEntry>();
-  static const ValueKind MapMatcherEntry =
-      const SingleValueKind<type.MapMatcherEntry>();
-  static const ValueKind Matcher = const SingleValueKind<type.Matcher>();
-  static const ValueKind MatcherOrNull =
-      const SingleValueKind<type.Matcher>(NullValue.Matcher);
-  static const ValueKind MatcherListOrNull =
-      const SingleValueKind<List<type.Matcher>>(NullValue.MatcherList);
+  static const ValueKind MapPatternEntry =
+      const SingleValueKind<type.MapPatternEntry>();
+  static const ValueKind Pattern = const SingleValueKind<type.Pattern>();
+  static const ValueKind PatternOrNull =
+      const SingleValueKind<type.Pattern>(NullValue.Pattern);
+  static const ValueKind PatternListOrNull =
+      const SingleValueKind<List<type.Pattern>>(NullValue.PatternList);
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
   static const ValueKind MixinApplicationBuilder =
       const SingleValueKind<type.MixinApplicationBuilder>();

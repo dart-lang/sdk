@@ -112,9 +112,10 @@ class CompletionResolveHandler
         if (element != null) {
           final formats = clientCapabilities.completionDocumentationFormats;
           final dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
-          final dartDocData =
-              DartUnitHoverComputer.computeDocumentation(dartDocInfo, element);
-          final dartDoc = dartDocData?.full;
+          final dartDoc = DartUnitHoverComputer.computePreferredDocumentation(
+              dartDocInfo,
+              element,
+              server.clientConfiguration.global.preferredDocumentation);
           // `dartDoc` can be both null or empty.
           documentation = dartDoc != null && dartDoc.isNotEmpty
               ? asMarkupContentOrString(formats, dartDoc)

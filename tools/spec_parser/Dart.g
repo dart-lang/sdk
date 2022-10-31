@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.21 Add support for patterns.
+//
 // v0.20 Adjust record syntax such that () is allowed (denoting the empty
 // record type and the empty record value).
 //
@@ -528,7 +530,8 @@ metadatum
     ;
 
 expression
-    :    functionExpression
+    :    patternAssignment
+    |    functionExpression
     |    throwExpression
     |    assignableExpression assignmentOperator expression
     |    conditionalExpression
@@ -557,6 +560,7 @@ primary
     |    literal
     |    identifier
     |    constructorTearoff
+    |    switchExpression
     ;
 
 constructorInvocation
@@ -655,6 +659,19 @@ forElement
 
 constructorTearoff
     :    typeName typeArguments? '.' NEW
+    ;
+
+switchExpression
+    :    SWITCH '(' expression ')'
+         LBRACE switchExpressionCase* switchExpressionDefault? RBRACE
+    ;
+
+switchExpressionCase
+    :    caseHead '=>' expression ';'
+    ;
+
+switchExpressionDefault
+    : DEFAULT '=>' expression ';'
     ;
 
 throwExpression
@@ -991,6 +1008,132 @@ asOperator
     :    AS
     ;
 
+pattern
+    :    logicalOrPattern
+    ;
+
+patterns
+    :    pattern (',' pattern)* ','?
+    ;
+
+logicalOrPattern
+    :    logicalAndPattern ('|' logicalAndPattern)*
+    ;
+
+logicalAndPattern
+    :    relationalPattern ('&' relationalPattern)*
+    ;
+
+relationalPattern
+    :    (equalityOperator | relationalOperator) relationalExpression
+    |    unaryPattern
+    ;
+
+unaryPattern
+    :    castPattern
+    |    nullCheckPattern
+    |    nullAssertPattern
+    |    primaryPattern
+    ;
+
+primaryPattern
+    :    constantPattern
+    |    variablePattern
+    |    parenthesizedPattern
+    |    listPattern
+    |    mapPattern
+    |    recordPattern
+    |    extractorPattern
+    ;
+
+castPattern
+    :    primaryPattern AS type
+    ;
+
+nullCheckPattern
+    :    primaryPattern '?'
+    ;
+
+nullAssertPattern
+    :    primaryPattern '!'
+    ;
+
+constantPattern
+    :    booleanLiteral
+    |    nullLiteral
+    |    numericLiteral
+    |    stringLiteral
+    |    identifier
+    |    qualifiedName
+    |    constObjectExpression
+    |    CONST typeArguments? '[' elements? ']'
+    |    CONST typeArguments? LBRACE elements? RBRACE
+    |    CONST '(' expression ')'
+    ;
+
+variablePattern
+    :    (VAR | FINAL | FINAL? type)? identifier
+    ;
+
+parenthesizedPattern
+    :    '(' pattern ')'
+    ;
+
+listPattern
+    :    typeArguments? '[' patterns? ']'
+    ;
+
+mapPattern
+    :    typeArguments? LBRACE mapPatternEntries? RBRACE
+    ;
+
+mapPatternEntries
+    :    mapPatternEntry (',' mapPatternEntry)* ','?
+    ;
+
+mapPatternEntry
+    :    expression ':' pattern
+    ;
+
+recordPattern
+    :    '(' patternFields? ')'
+    ;
+
+patternFields
+    :    patternField ( ',' patternField )* ','?
+    ;
+
+patternField
+    :    (identifier? ':')? pattern
+    ;
+
+extractorPattern
+    :    extractorName typeArguments? '(' patternFields? ')'
+    ;
+
+// TODO: Could this be a single case containing `typeName`?
+// I don't think we need `C.new` or `N1.N2.N3` or `N1.N2.new`.
+extractorName
+    :    typeIdentifier
+    |    qualifiedName
+    ;
+
+patternVariableDeclaration
+    :    (FINAL | VAR) outerPattern '=' expression
+    ;
+
+outerPattern
+    :    parenthesizedPattern
+    |    listPattern
+    |    mapPattern
+    |    recordPattern
+    |    extractorPattern
+    ;
+
+patternAssignment
+    : outerPattern '=' expression
+    ;
+
 statements
     :    statement*
     ;
@@ -1029,8 +1172,10 @@ expressionStatement
     :    expression? ';'
     ;
 
+// TODO: make it `metadata patternVariableDeclaration ';'`?
 localVariableDeclaration
     :    metadata initializedVariableDeclaration ';'
+    |    patternVariableDeclaration ';'
     ;
 
 initializedVariableDeclaration
@@ -1042,17 +1187,19 @@ localFunctionDeclaration
     ;
 
 ifStatement
-    :    IF '(' expression ')' statement (ELSE statement)?
+    :    IF '(' expression caseHead? ')' statement (ELSE statement)?
     ;
 
 forStatement
     :    AWAIT? FOR '(' forLoopParts ')' statement
     ;
 
+// TODO: Include `metadata` in the pattern form?
 forLoopParts
     :    metadata declaredIdentifier IN expression
     |    metadata identifier IN expression
     |    forInitializerStatement expression? ';' expressionList?
+    |    ('final' | 'var') outerPattern 'in' expression
     ;
 
 // The localVariableDeclaration cannot be CONST, but that can
@@ -1071,14 +1218,19 @@ doStatement
     ;
 
 switchStatement
-    :    SWITCH '(' expression ')' LBRACE switchCase* defaultCase? RBRACE
+    :    SWITCH '(' expression ')'
+         LBRACE switchStatementCase* switchStatementDefault? RBRACE
     ;
 
-switchCase
-    :    label* CASE expression ':' statements
+switchStatementCase
+    :    label* caseHead ':' statements
     ;
 
-defaultCase
+caseHead
+    :    CASE pattern (WHEN expression)?
+    ;
+
+switchStatementDefault
     :    label* DEFAULT ':' statements
     ;
 
@@ -1723,6 +1875,10 @@ SHOW
 
 SYNC
     :    'sync'
+    ;
+
+WHEN
+    :    'when'
     ;
 
 // Lexical tokens that are not words.

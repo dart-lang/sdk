@@ -30,13 +30,6 @@ import 'package:collection/collection.dart'
 
 class CodeActionHandler
     extends MessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
-  // Because server+plugin results are different types and we lose
-  // priorities when converting them to CodeActions, store the priorities
-  // against each action in an expando. This avoids wrapping CodeActions in
-  // another wrapper class (since we can't modify the LSP-spec-generated
-  // CodeAction class).
-  final codeActionPriorities = Expando<int>();
-
   CodeActionHandler(super.server);
 
   @override
@@ -54,7 +47,11 @@ class CodeActionHandler
     }
 
     final path = pathOfDoc(params.textDocument);
-    if (!path.isError && !server.isAnalyzed(path.result)) {
+    if (path.isError) {
+      return failure(path);
+    }
+    var unitPath = path.result;
+    if (!server.isAnalyzed(unitPath)) {
       return success(const []);
     }
 
@@ -69,7 +66,7 @@ class CodeActionHandler
     final supportedKinds = clientCapabilities.codeActionKinds;
     final supportedDiagnosticTags = clientCapabilities.diagnosticTags;
 
-    final unit = await path.mapResult(requireResolvedUnit);
+    final library = await requireResolvedLibrary(unitPath);
 
     /// Whether a fix of kind [kind] should be included in the results.
     ///
@@ -125,7 +122,12 @@ class CodeActionHandler
       return true;
     }
 
-    return unit.mapResult((unit) {
+    return library.mapResult((library) {
+      var unit = library.unitWithPath(unitPath);
+      if (unit == null) {
+        return error(ErrorCodes.InternalError,
+            'The library containing a path did not contain the path.');
+      }
       final startOffset = toOffset(unit.lineInfo, params.range.start);
       final endOffset = toOffset(unit.lineInfo, params.range.end);
       return startOffset.mapResult((startOffset) {
@@ -145,6 +147,7 @@ class CodeActionHandler
               params.range,
               offset,
               length,
+              library,
               unit,
               params.context.triggerKind,
             ),
@@ -186,19 +189,16 @@ class CodeActionHandler
         : Either2<CodeAction, Command>.t2(command);
   }
 
-  /// A function that can be used to sort [CodeActions]s using priorities
-  /// in [codeActionPriorities].
+  /// A function that can be used to sort [_CodeActionWithPriority]s.
   ///
   /// The highest number priority will be sorted before lower number priorities.
   /// Items with the same priority are sorted alphabetically by their title.
-  int _compareCodeActions(CodeAction a, CodeAction b) {
-    // We should never be sorting actions without priorities.
-    final aPriority = codeActionPriorities[a] ?? 0;
-    final bPriority = codeActionPriorities[b] ?? 0;
-    if (aPriority != bPriority) {
-      return bPriority - aPriority;
+  int _compareCodeActions(
+      _CodeActionWithPriority a, _CodeActionWithPriority b) {
+    if (a.priority != b.priority) {
+      return b.priority - a.priority;
     }
-    return a.title.compareTo(b.title);
+    return a.action.title.compareTo(b.action.title);
   }
 
   /// Creates a CodeAction to apply this assist. Note: This code will fetch the
@@ -230,17 +230,22 @@ class CodeActionHandler
     );
   }
 
-  /// Dedupes/merges actions that have the same title, selecting the one nearest [pos].
+  /// Dedupes/merges actions that have the same title, selecting the one nearest
+  /// [position].
   ///
   /// If actions perform the same edit/command, their diagnostics will be merged
   /// together. Otherwise, the additional accounts are just dropped.
   ///
-  /// The first diagnostic for an action is used to determine the position (using
-  /// its `start`). If there is no diagnostic, it will be treated as being at [pos].
+  /// The first diagnostic for an action is used to determine the position
+  /// (using its `start`). If there is no diagnostic, it will be treated as
+  /// being at [position].
   ///
-  /// If multiple actions have the same position, one will arbitrarily be chosen.
-  List<CodeAction> _dedupeActions(Iterable<CodeAction> actions, Position pos) {
-    final groups = groupBy(actions, (CodeAction action) => action.title);
+  /// If multiple actions have the same position, one will arbitrarily be
+  /// chosen.
+  List<_CodeActionWithPriority> _dedupeActions(
+      Iterable<_CodeActionWithPriority> actions, Position position) {
+    final groups = groupBy(
+        actions, (_CodeActionWithPriority action) => action.action.title);
     return groups.entries.map((entry) {
       final actions = entry.value;
 
@@ -250,32 +255,37 @@ class CodeActionHandler
       }
 
       // Otherwise, find the action nearest to the caret.
-      actions.sort(_codeActionColumnDistanceComparer(pos));
-      final first = actions.first;
+      final comparer = _codeActionColumnDistanceComparer(position);
+      actions.sort((a, b) => comparer(a.action, b.action));
+      final first = actions.first.action;
+      final priority = actions.first.priority;
 
       // Get any actions with the same fix (edit/command) for merging diagnostics.
       final others = actions.skip(1).where(
             (other) =>
                 // Compare either edits or commands based on which the selected action has.
                 first.edit != null
-                    ? first.edit == other.edit
+                    ? first.edit == other.action.edit
                     : first.command != null
-                        ? first.command == other.command
+                        ? first.command == other.action.command
                         : false,
           );
 
       // Build a new CodeAction that merges the diagnostics from each same
       // code action onto a single one.
-      return CodeAction(
-        title: first.title,
-        kind: first.kind,
-        // Merge diagnostics from all of the matching CodeActions.
-        diagnostics: [
-          ...?first.diagnostics,
-          for (final other in others) ...?other.diagnostics,
-        ],
-        edit: first.edit,
-        command: first.command,
+      return _CodeActionWithPriority(
+        CodeAction(
+          title: first.title,
+          kind: first.kind,
+          // Merge diagnostics from all of the matching CodeActions.
+          diagnostics: [
+            ...?first.diagnostics,
+            for (final other in others) ...?other.action.diagnostics,
+          ],
+          edit: first.edit,
+          command: first.command,
+        ),
+        priority,
       );
     }).toList();
   }
@@ -306,24 +316,22 @@ class CodeActionHandler
       final assists = await serverFuture;
       final pluginChanges = await pluginFuture;
 
-      final codeActions = <CodeAction>[];
+      final codeActions = <_CodeActionWithPriority>[];
       codeActions.addAll(assists.map((assist) {
         final action = _createAssistAction(assist.change, unit);
-        codeActionPriorities[action] = assist.kind.priority;
-        return action;
+        return _CodeActionWithPriority(action, assist.kind.priority);
       }));
       codeActions.addAll(pluginChanges.map((change) {
         final action = _createAssistAction(change.change, unit);
-        codeActionPriorities[action] = change.priority;
-        return action;
+        return _CodeActionWithPriority(action, change.priority);
       }));
 
       final dedupedCodeActions = _dedupeActions(codeActions, range.start);
       dedupedCodeActions.sort(_compareCodeActions);
 
       return dedupedCodeActions
-          .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<CodeAction, Command>.t1(action))
+          .where((action) => shouldIncludeKind(action.action.kind))
+          .map((action) => Either2<CodeAction, Command>.t1(action.action))
           .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
@@ -344,6 +352,7 @@ class CodeActionHandler
     Range range,
     int offset,
     int length,
+    ResolvedLibraryResult library,
     ResolvedUnitResult unit,
     CodeActionTriggerKind? triggerKind,
   ) async {
@@ -356,6 +365,12 @@ class CodeActionHandler
           (_) => _getSourceActions(shouldIncludeKind, supportsLiterals,
               supportsWorkspaceApplyEdit, path, triggerKind),
         ),
+      if (shouldIncludeAnyOfKind(CodeActionKind.QuickFix))
+        performance.runAsync(
+          '_getFixActions',
+          (_) => _getFixActions(shouldIncludeKind, supportsLiterals, path,
+              offset, supportedDiagnosticTags, range, unit),
+        ),
       // Assists go under the Refactor CodeActionKind so check that here.
       if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
         performance.runAsync(
@@ -367,13 +382,7 @@ class CodeActionHandler
         performance.runAsync(
           '_getRefactorActions',
           (_) => _getRefactorActions(shouldIncludeKind, supportsLiterals, path,
-              docIdentifier, offset, length, unit),
-        ),
-      if (shouldIncludeAnyOfKind(CodeActionKind.QuickFix))
-        performance.runAsync(
-          '_getFixActions',
-          (_) => _getFixActions(shouldIncludeKind, supportsLiterals, path,
-              offset, supportedDiagnosticTags, range, unit),
+              docIdentifier, offset, length, library, unit),
         ),
     ]);
     final flatResults = results.whereNotNull().expand((x) => x).toList();
@@ -395,7 +404,7 @@ class CodeActionHandler
     // TODO(dantup): We may be missing fixes for pubspec and analysis_options
     // (see _computeServerErrorFixes in EditDomainHandler).
     final lineInfo = unit.lineInfo;
-    final codeActions = <CodeAction>[];
+    final codeActions = <_CodeActionWithPriority>[];
     final fixContributor = DartFixContributor();
 
     final pluginFuture = _getPluginFixActions(unit, offset);
@@ -423,8 +432,7 @@ class CodeActionHandler
           codeActions.addAll(
             fixes.map((fix) {
               final action = _createFixAction(fix.change, diagnostic, unit);
-              codeActionPriorities[action] = fix.kind.priority;
-              return action;
+              return _CodeActionWithPriority(action, fix.kind.priority);
             }),
           );
         }
@@ -444,8 +452,7 @@ class CodeActionHandler
         (fix) => fix.fixes.map((fixChange) {
           final action = _createFixAction(
               fixChange.change, pluginErrorToDiagnostic(fix.error), unit);
-          codeActionPriorities[action] = fixChange.priority;
-          return action;
+          return _CodeActionWithPriority(action, fixChange.priority);
         }),
       );
       codeActions.addAll(pluginFixActions);
@@ -454,8 +461,8 @@ class CodeActionHandler
       dedupedActions.sort(_compareCodeActions);
 
       return dedupedActions
-          .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<CodeAction, Command>.t1(action))
+          .where((action) => shouldIncludeKind(action.action.kind))
+          .map((action) => Either2<CodeAction, Command>.t1(action.action))
           .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
@@ -527,6 +534,7 @@ class CodeActionHandler
     OptionalVersionedTextDocumentIdentifier docIdentifier,
     int offset,
     int length,
+    ResolvedLibraryResult library,
     ResolvedUnitResult unit,
   ) async {
     // The refactor actions supported are only valid for Dart files.
@@ -570,7 +578,8 @@ class CodeActionHandler
       if (server.clientConfiguration.global.experimentalNewRefactors) {
         final context = RefactoringContext(
           server: server,
-          resolvedResult: unit,
+          resolvedLibraryResult: library,
+          resolvedUnitResult: unit,
           selectionOffset: offset,
           selectionLength: length,
         );
@@ -727,4 +736,13 @@ class CodeActionHandler
         ),
     ];
   }
+}
+
+/// A wrapper that contains an LSP [CodeAction] and a server-supplied priority
+/// used for sorting before sending to the client.
+class _CodeActionWithPriority {
+  final CodeAction action;
+  final int priority;
+
+  _CodeActionWithPriority(this.action, this.priority);
 }

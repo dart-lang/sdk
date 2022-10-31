@@ -3890,7 +3890,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   FunctionElement? _entryPoint;
 
   /// The list of `part` directives of this library.
-  List<PartElement> _parts = const <PartElement>[];
+  List<PartElementImpl> _parts = const <PartElementImpl>[];
 
   /// The element representing the synthetic function `loadLibrary` that is
   /// defined for this library, or `null` if the element has not yet been
@@ -4097,11 +4097,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   String get name => super.name!;
 
   @override
-  List<PartElement> get parts => _parts;
+  List<PartElementImpl> get parts => _parts;
 
-  set parts(List<PartElement> parts) {
+  set parts(List<PartElementImpl> parts) {
     for (final part in parts) {
-      part as PartElementImpl;
       part.enclosingElement = this;
       final uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {

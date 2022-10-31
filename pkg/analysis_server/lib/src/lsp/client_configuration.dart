@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
@@ -140,6 +141,23 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   /// A hidden experimental flag for enabling new refactors during development.
   bool get experimentalNewRefactors =>
       _settings['experimentalNewRefactors'] as bool? ?? false;
+
+  /// The users preferred kind of documentation for Hovers, Code Completion and
+  /// other related panels in the UI.
+  ///
+  /// If the user has not expressed a preference, defaults to
+  /// [DocumentationPreference.full].
+  DocumentationPreference get preferredDocumentation {
+    final value = _settings['documentation'];
+    switch (value) {
+      case 'none':
+        return DocumentationPreference.none;
+      case 'summary':
+        return DocumentationPreference.summary;
+      default:
+        return DocumentationPreference.full;
+    }
+  }
 
   /// A preview flag for enabling commit characters for completions.
   ///

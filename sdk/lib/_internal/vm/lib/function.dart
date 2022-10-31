@@ -18,6 +18,7 @@ class _Closure implements Function {
     return _hash;
   }
 
+  @pragma("vm:entry-point")
   _Closure get call => this;
 
   @pragma("vm:external-name", "Closure_computeHash")

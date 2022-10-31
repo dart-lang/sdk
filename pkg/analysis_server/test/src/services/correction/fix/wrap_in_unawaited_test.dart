@@ -42,6 +42,29 @@ void f() {
 Future<void> g() async { }
 ''');
   }
+
+  Future<void> test_functionExpressionInvocation() async {
+    await resolveTestCode('''
+void f() {
+  () async {
+    await g();
+  }();
+}
+
+Future<void> g() async { }
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+void f() {
+  unawaited(() async {
+    await g();
+  }());
+}
+
+Future<void> g() async { }
+''');
+  }
 }
 
 @reflectiveTest

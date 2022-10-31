@@ -233,6 +233,10 @@ abstract class ResolvedLibraryResult
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
   ElementDeclarationResult? getElementDeclaration(Element element);
+
+  /// Return the resolved unit corresponding to the [path], or `null` if there
+  /// is no such unit.
+  ResolvedUnitResult? unitWithPath(String path);
 }
 
 /// The result of building a resolved AST for a single file. The errors returned

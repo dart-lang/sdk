@@ -122,8 +122,7 @@ class BundleWriter {
     );
   }
 
-  void _writeAugmentationElement(LibraryAugmentationElement augmentation) {
-    augmentation as LibraryAugmentationElementImpl;
+  void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
     _writeUnitElement(augmentation.definingCompilationUnit);
     // The offset where resolution for the augmentation starts.
     // We need it to skip resolution information from the unit.
@@ -131,14 +130,12 @@ class BundleWriter {
     _writeLibraryOrAugmentationElement(augmentation);
   }
 
-  void _writeAugmentationImportElement(AugmentationImportElement element) {
-    element as AugmentationImportElementImpl;
+  void _writeAugmentationImportElement(AugmentationImportElementImpl element) {
     _resolutionSink._writeAnnotationList(element.metadata);
     _writeDirectiveUri(element.uri);
   }
 
-  void _writeClassElement(ClassElement element) {
-    element as ClassElementImpl;
+  void _writeClassElement(ClassElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
@@ -173,8 +170,7 @@ class BundleWriter {
     });
   }
 
-  void _writeConstructorElement(ConstructorElement element) {
-    element as ConstructorElementImpl;
+  void _writeConstructorElement(ConstructorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     ConstructorElementFlags.write(_sink, element);
@@ -210,7 +206,7 @@ class BundleWriter {
     } else if (element is DirectiveUriWithLibrary) {
       _sink.writeByte(DirectiveUriKind.withLibrary.index);
       writeWithSource(element);
-    } else if (element is DirectiveUriWithUnit) {
+    } else if (element is DirectiveUriWithUnitImpl) {
       _sink.writeByte(DirectiveUriKind.withUnit.index);
       writeWithSource(element);
       _writeUnitElement(element.unit);
@@ -228,8 +224,7 @@ class BundleWriter {
     }
   }
 
-  void _writeEnumElement(EnumElement element) {
-    element as EnumElementImpl;
+  void _writeEnumElement(EnumElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     EnumElementFlags.write(_sink, element);
@@ -271,8 +266,7 @@ class BundleWriter {
     });
   }
 
-  void _writeExportElement(LibraryExportElement element) {
-    element as LibraryExportElementImpl;
+  void _writeExportElement(LibraryExportElementImpl element) {
     _resolutionSink._writeAnnotationList(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeDirectiveUri(element.uri);
@@ -283,8 +277,7 @@ class BundleWriter {
     _sink.writeUInt30(location.exportIndex);
   }
 
-  void _writeExtensionElement(ExtensionElement element) {
-    element as ExtensionElementImpl;
+  void _writeExtensionElement(ExtensionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeOptionalStringReference(element.name);
@@ -313,8 +306,7 @@ class BundleWriter {
     _sink.writeUint8List(encoded);
   }
 
-  void _writeFieldElement(FieldElement element) {
-    element as FieldElementImpl;
+  void _writeFieldElement(FieldElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstFieldElementImpl);
@@ -325,8 +317,7 @@ class BundleWriter {
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
 
-  void _writeFunctionElement(FunctionElement element) {
-    element as FunctionElementImpl;
+  void _writeFunctionElement(FunctionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     FunctionElementFlags.write(_sink, element);
@@ -339,8 +330,7 @@ class BundleWriter {
     });
   }
 
-  void _writeImportElement(LibraryImportElement element) {
-    element as LibraryImportElementImpl;
+  void _writeImportElement(LibraryImportElementImpl element) {
     _resolutionSink._writeAnnotationList(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeImportElementPrefix(element.prefix);
@@ -393,8 +383,7 @@ class BundleWriter {
     }
   }
 
-  void _writeMethodElement(MethodElement element) {
-    element as MethodElementImpl;
+  void _writeMethodElement(MethodElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     MethodElementFlags.write(_sink, element);
@@ -408,8 +397,7 @@ class BundleWriter {
     });
   }
 
-  void _writeMixinElement(MixinElement element) {
-    element as MixinElementImpl;
+  void _writeMixinElement(MixinElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
@@ -478,8 +466,7 @@ class BundleWriter {
     _writeDirectiveUri(element.uri);
   }
 
-  void _writePropertyAccessorElement(PropertyAccessorElement element) {
-    element as PropertyAccessorElementImpl;
+  void _writePropertyAccessorElement(PropertyAccessorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.displayName);
     PropertyAccessorElementFlags.write(_sink, element);
@@ -489,8 +476,7 @@ class BundleWriter {
     _writeList(element.parameters, _writeParameterElement);
   }
 
-  void _writeTopLevelVariableElement(TopLevelVariableElement element) {
-    element as TopLevelVariableElementImpl;
+  void _writeTopLevelVariableElement(TopLevelVariableElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     _sink.writeBool(element.isConst);
@@ -501,8 +487,7 @@ class BundleWriter {
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
 
-  void _writeTypeAliasElement(TypeAliasElement element) {
-    element as TypeAliasElementImpl;
+  void _writeTypeAliasElement(TypeAliasElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
@@ -538,8 +523,7 @@ class BundleWriter {
     });
   }
 
-  void _writeUnitElement(CompilationUnitElement unitElement) {
-    unitElement as CompilationUnitElementImpl;
+  void _writeUnitElement(CompilationUnitElementImpl unitElement) {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeOptionalStringReference(unitElement.uri);

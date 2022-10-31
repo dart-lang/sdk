@@ -332,7 +332,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ///
   /// Keys are the base file paths and the values are the base URIs. Neither
   /// value should contain trailing slashes.
-  final Map<String, Uri> orgDartlangSdkMappings = {};
+  final orgDartlangSdkMappings = <String, Uri>{};
 
   /// The DDS instance that was started and that [vmService] is connected to.
   ///
