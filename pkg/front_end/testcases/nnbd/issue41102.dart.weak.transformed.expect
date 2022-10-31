@@ -7,10 +7,6 @@ library /*isNonNullableByDefault*/;
 // final s2 = s1?.length;
 //            ^
 //
-// pkg/front_end/testcases/nnbd/issue41102.dart:17:36: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
-// final s3 = new List<int>.filled(2, null);
-//                                    ^
-//
 // pkg/front_end/testcases/nnbd/issue41102.dart:22:5: Error: Switch case may fall through to the next case.
 //     case 0:
 //     ^
@@ -56,6 +52,10 @@ library /*isNonNullableByDefault*/;
 // Try calling using ?.call instead.
 // final s14 = (s13)();
 //                  ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:17:36: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+// final s3 = new List<int>.filled(2, null);
+//                                    ^
 //
 // pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
 // final s15 = throw null;
