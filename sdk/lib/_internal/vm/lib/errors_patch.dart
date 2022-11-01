@@ -59,10 +59,10 @@ class _AssertionError extends Error implements AssertionError {
       return condition;
     }
     if (condition is _Closure) {
-      return (condition as dynamic)();
+      return (condition as dynamic Function())();
     }
     if (condition is Function) {
-      condition = condition();
+      condition = (condition as dynamic Function())();
     }
     return condition;
   }
