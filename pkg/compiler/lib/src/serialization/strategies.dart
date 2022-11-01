@@ -21,7 +21,7 @@ import '../options.dart';
 import '../source_file_provider.dart';
 import '../util/sink_adapter.dart';
 import 'serialization.dart';
-import 'task.dart';
+import 'task_migrated.dart';
 
 abstract class SerializationStrategy<T> {
   const SerializationStrategy();
