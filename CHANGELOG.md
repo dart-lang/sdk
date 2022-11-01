@@ -227,6 +227,13 @@ Updated the Linter to `1.28.0`, which includes changes that
 - **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
   dart2js no longer supports HTTP URIs as inputs.
 
+## 2.18.4 - 2022-11-02
+
+This is a patch release that fixes crashes during hot reload
+(issue [flutter/flutter#113540][]).
+
+[flutter/flutter#113540]: https://github.com/flutter/flutter/issues/113540
+
 ## 2.18.3 - 2022-10-19
 
 This is a patch release that fixes a regression in code coverage computation
