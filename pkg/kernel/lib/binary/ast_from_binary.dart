@@ -12,6 +12,8 @@ import '../ast.dart';
 import '../transformations/flags.dart';
 import 'tag.dart';
 
+const int $_ = 95;
+
 class ParseError {
   final String? filename;
   final int byteIndex;
@@ -129,6 +131,7 @@ class BinaryBuilder {
   final List<int> _bytes;
   int _byteOffset = 0;
   List<String> _stringTable = const [];
+  late Map<int, Name?> _nameCache;
   List<Uri> _sourceUriTable = const [];
   List<Constant> _constantTable = const <Constant>[];
   late List<CanonicalName> _linkTable;
@@ -341,6 +344,10 @@ class BinaryBuilder {
         new List<int>.generate(length, (_) => readUInt30(), growable: false);
     // Read the WTF-8 encoded strings.
     int startOffset = 0;
+
+    // Reset name cache here to make any index into it always
+    // be about the corresponding string table entry.
+    _nameCache = {};
     _stringTable = new List<String>.generate(length, (int index) {
       String result = readStringEntry(endOffsets[index] - startOffset);
       startOffset = endOffsets[index];
@@ -1122,12 +1129,46 @@ class BinaryBuilder {
   }
 
   Name readName() {
-    String text = readStringReference();
-    if (text.isNotEmpty && text[0] == '_') {
-      return new Name.byReference(text, readNonNullLibraryReference());
+    final int stringReference = readUInt30();
+    assert(stringReference < (1 << 30));
+    final String text = _stringTable[stringReference];
+    final bool isPrivate = text.isNotEmpty && text.codeUnitAt(0) == $_;
+    final int libraryReferenceIndex;
+    final int nameCacheIndex;
+
+    if (isPrivate) {
+      // "Raw" reference index of 0 means null which we don't allow.
+      libraryReferenceIndex = readUInt30();
+      if (libraryReferenceIndex == 0) {
+        throw 'Expected a library reference to be valid but was `null`.';
+      }
+
+      // Check cache using the upper bits for the library reference.
+      nameCacheIndex = stringReference | ((libraryReferenceIndex) << 30);
     } else {
-      return new Name(text);
+      // the 0 will be unused but we need to assign it.
+      libraryReferenceIndex = 0;
+      nameCacheIndex = stringReference;
     }
+
+    final Name? cached = _nameCache[nameCacheIndex];
+    if (cached != null) {
+      return cached;
+    }
+
+    // Not in cache. Create it and cache it.
+    final Name name;
+    if (isPrivate) {
+      // libraryReferenceIndex was checked to be > 0 so we get a canonical name.
+      final CanonicalName canonicalName =
+          getNullableCanonicalNameReferenceFromInt(libraryReferenceIndex)!;
+      final Reference libraryReference = canonicalName.reference;
+      name = new Name.byReference(text, libraryReference);
+    } else {
+      name = new Name(text);
+    }
+    _nameCache[nameCacheIndex] = name;
+    return name;
   }
 
   Library readLibrary(Component component, int endOffset) {
