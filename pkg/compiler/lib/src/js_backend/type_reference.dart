@@ -79,7 +79,7 @@ import '../js_model/type_recipe.dart'
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
-import 'namer.dart';
+import 'namer_migrated.dart' as namer;
 import 'runtime_types_new_interfaces.dart' show RecipeEncoder;
 
 /// Run the minifier for 'type$' property names even in non-minified mode,
@@ -616,7 +616,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
       throw StateError('Unexpected recipe: $recipe');
     }
     String result = _fragments.join('_');
-    if (Namer.startsWithIdentifierCharacter(result)) return result;
+    if (namer.startsWithIdentifierCharacter(result)) return result;
     return 'z' + result;
   }
 
@@ -625,7 +625,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   }
 
   void _identifier(String text) {
-    _add(Namer.replaceNonIdentifierCharacters(text));
+    _add(namer.replaceNonIdentifierCharacters(text));
   }
 
   bool _comma(bool needsComma) {

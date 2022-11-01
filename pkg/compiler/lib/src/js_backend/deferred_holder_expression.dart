@@ -15,6 +15,7 @@ import '../util/util.dart';
 import '../js_emitter/model.dart';
 import '../constants/values.dart' show ConstantValue;
 import 'namer.dart';
+import 'namer_migrated.dart';
 
 // TODO(joshualitt): Figure out how to subsume more of the modular naming
 // framework into this approach. For example, we are still creating ModularNames
@@ -680,7 +681,7 @@ class DeferredHolderExpressionFinalizerImpl
 
       // Assign names based on frequency. This will be ignored unless
       // minification is enabled.
-      var reservedNames = Namer.reservedCapitalizedGlobalSymbols
+      var reservedNames = reservedCapitalizedGlobalSymbols
           .union({globalObjectNameForInterceptors()});
       var namer = TokenScope(initialChar: $A, illegalNames: reservedNames);
       for (var holder in sortedHolders) {
