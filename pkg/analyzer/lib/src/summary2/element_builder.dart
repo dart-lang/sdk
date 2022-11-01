@@ -217,9 +217,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     // Build fields for all enum constants.
     var constants = node.constants;
-    var valuesElements = <Expression>[];
+    var valuesElements = <ExpressionImpl>[];
     for (var i = 0; i < constants.length; ++i) {
-      var constant = constants[i] as EnumConstantDeclarationImpl;
+      var constant = constants[i];
       var name = constant.name.lexeme;
       var field = ConstFieldElementImpl(name, constant.name.offset)
         ..hasImplicitType = true
@@ -443,7 +443,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
-      variable as VariableDeclarationImpl;
       var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
@@ -1031,7 +1030,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
-      variable as VariableDeclarationImpl;
       var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;

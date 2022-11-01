@@ -90,14 +90,14 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   CommentImpl? _comment;
 
   /// The annotations associated with this node.
-  final NodeListImpl<Annotation> _metadata = NodeListImpl._();
+  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
 
   /// Initialize a newly created annotated node. Either or both of the [comment]
   /// and [metadata] can be `null` if the node does not have the corresponding
   /// attribute.
   AnnotatedNodeImpl({
     required CommentImpl? comment,
-    required List<Annotation>? metadata,
+    required List<AnnotationImpl>? metadata,
   }) : _comment = comment {
     _becomeParentOf(_comment);
     _metadata._initialize(this, metadata);
@@ -129,7 +129,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   }
 
   @override
-  NodeListImpl<Annotation> get metadata => _metadata;
+  NodeListImpl<AnnotationImpl> get metadata => _metadata;
 
   @override
   List<AstNode> get sortedCommentAndAnnotations {
@@ -2206,7 +2206,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
   /// The references embedded within the documentation comment. This list will
   /// be empty unless this is a documentation comment that has references embedded
   /// within it.
-  final NodeListImpl<CommentReference> _references = NodeListImpl._();
+  final NodeListImpl<CommentReferenceImpl> _references = NodeListImpl._();
 
   /// Initialize a newly created comment. The list of [tokens] must contain at
   /// least one token. The [_type] is the type of the comment. The list of
@@ -2215,7 +2215,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
   CommentImpl({
     required this.tokens,
     required CommentType type,
-    required List<CommentReference> references,
+    required List<CommentReferenceImpl> references,
   }) : _type = type {
     _references._initialize(this, references);
   }
@@ -2236,7 +2236,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
   bool get isEndOfLine => _type == CommentType.END_OF_LINE;
 
   @override
-  NodeListImpl<CommentReference> get references => _references;
+  NodeListImpl<CommentReferenceImpl> get references => _references;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -2357,10 +2357,11 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   ScriptTagImpl? _scriptTag;
 
   /// The directives contained in this compilation unit.
-  final NodeListImpl<Directive> _directives = NodeListImpl._();
+  final NodeListImpl<DirectiveImpl> _directives = NodeListImpl._();
 
   /// The declarations contained in this compilation unit.
-  final NodeListImpl<CompilationUnitMember> _declarations = NodeListImpl._();
+  final NodeListImpl<CompilationUnitMemberImpl> _declarations =
+      NodeListImpl._();
 
   /// The last token in the token stream that was parsed to form this
   /// compilation unit. This token should always have a type of [TokenType.EOF].
@@ -2390,8 +2391,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   CompilationUnitImpl({
     required this.beginToken,
     required ScriptTagImpl? scriptTag,
-    required List<Directive>? directives,
-    required List<CompilationUnitMember>? declarations,
+    required List<DirectiveImpl>? directives,
+    required List<CompilationUnitMemberImpl>? declarations,
     required this.endToken,
     required this.featureSet,
     required this.lineInfo,
@@ -2402,10 +2403,10 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   }
 
   @override
-  NodeListImpl<CompilationUnitMember> get declarations => _declarations;
+  NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
 
   @override
-  NodeListImpl<Directive> get directives => _directives;
+  NodeListImpl<DirectiveImpl> get directives => _directives;
 
   set element(CompilationUnitElement? element) {
     declaredElement = element;
@@ -2859,7 +2860,8 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   Token? separator;
 
   /// The initializers associated with the constructor.
-  final NodeListImpl<ConstructorInitializer> _initializers = NodeListImpl._();
+  final NodeListImpl<ConstructorInitializerImpl> _initializers =
+      NodeListImpl._();
 
   /// The name of the constructor to which this constructor will be redirected,
   /// or `null` if this is not a redirecting factory constructor.
@@ -2898,7 +2900,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.name,
     required FormalParameterListImpl parameters,
     required this.separator,
-    required List<ConstructorInitializer>? initializers,
+    required List<ConstructorInitializerImpl>? initializers,
     required ConstructorNameImpl? redirectedConstructor,
     required FunctionBodyImpl body,
   })  : _returnType = returnType,
@@ -2936,7 +2938,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  NodeListImpl<ConstructorInitializer> get initializers => _initializers;
+  NodeListImpl<ConstructorInitializerImpl> get initializers => _initializers;
 
   @Deprecated('Use name instead')
   @override
@@ -3525,7 +3527,7 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   bool get isFinal => _parameter.isFinal;
 
   @override
-  NodeListImpl<Annotation> get metadata => _parameter.metadata;
+  NodeListImpl<AnnotationImpl> get metadata => _parameter.metadata;
 
   @override
   Token? get name => _parameter.name;
@@ -3684,11 +3686,11 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 class DottedNameImpl extends AstNodeImpl implements DottedName {
   /// The components of the identifier.
-  final NodeListImpl<SimpleIdentifier> _components = NodeListImpl._();
+  final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
 
   /// Initialize a newly created dotted name.
   DottedNameImpl({
-    required List<SimpleIdentifier> components,
+    required List<SimpleIdentifierImpl> components,
   }) {
     _components._initialize(this, components);
   }
@@ -3697,7 +3699,7 @@ class DottedNameImpl extends AstNodeImpl implements DottedName {
   Token get beginToken => _components.beginToken!;
 
   @override
-  NodeListImpl<SimpleIdentifier> get components => _components;
+  NodeListImpl<SimpleIdentifierImpl> get components => _components;
 
   @override
   Token get endToken => _components.endToken!;
@@ -3972,13 +3974,13 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token leftBracket;
 
   /// The enumeration constants being declared.
-  final NodeListImpl<EnumConstantDeclaration> _constants = NodeListImpl._();
+  final NodeListImpl<EnumConstantDeclarationImpl> _constants = NodeListImpl._();
 
   @override
   final Token? semicolon;
 
   /// The members defined by the enum.
-  final NodeListImpl<ClassMember> _members = NodeListImpl._();
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -4000,9 +4002,9 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
     required this.leftBracket,
-    required List<EnumConstantDeclaration> constants,
+    required List<EnumConstantDeclarationImpl> constants,
     required this.semicolon,
-    required List<ClassMember> members,
+    required List<ClassMemberImpl> members,
     required this.rightBracket,
   })  : _typeParameters = typeParameters,
         _withClause = withClause,
@@ -4015,7 +4017,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  NodeListImpl<EnumConstantDeclaration> get constants => _constants;
+  NodeListImpl<EnumConstantDeclarationImpl> get constants => _constants;
 
   @Deprecated('Use declaredElement instead')
   @override
@@ -4035,7 +4037,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  NodeListImpl<ClassMember> get members => _members;
+  NodeListImpl<ClassMemberImpl> get members => _members;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -4478,7 +4480,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   final Token leftBracket;
 
   /// The members being added to the extended class.
-  final NodeListImpl<ClassMember> _members = NodeListImpl._();
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
 
   @override
   final Token rightBracket;
@@ -4496,7 +4498,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required this.onKeyword,
     required TypeAnnotationImpl extendedType,
     required this.leftBracket,
-    required List<ClassMember> members,
+    required List<ClassMemberImpl> members,
     required this.rightBracket,
   })  : _typeParameters = typeParameters,
         _extendedType = extendedType {
@@ -4523,7 +4525,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
 
   @override
-  NodeListImpl<ClassMember> get members => _members;
+  NodeListImpl<ClassMemberImpl> get members => _members;
 
   @Deprecated('Use name instead')
   @override
@@ -5294,7 +5296,7 @@ class FormalParameterListImpl extends AstNodeImpl
   final Token leftParenthesis;
 
   /// The parameters associated with the method.
-  final NodeListImpl<FormalParameter> _parameters = NodeListImpl._();
+  final NodeListImpl<FormalParameterImpl> _parameters = NodeListImpl._();
 
   /// The left square bracket ('[') or left curly brace ('{') introducing the
   /// optional parameters, or `null` if there are no optional parameters.
@@ -5315,7 +5317,7 @@ class FormalParameterListImpl extends AstNodeImpl
   /// [rightDelimiter] can be `null` if there are no optional parameters.
   FormalParameterListImpl({
     required this.leftParenthesis,
-    required List<FormalParameter> parameters,
+    required List<FormalParameterImpl> parameters,
     required this.leftDelimiter,
     required this.rightDelimiter,
     required this.rightParenthesis,
@@ -5340,7 +5342,7 @@ class FormalParameterListImpl extends AstNodeImpl
   }
 
   @override
-  NodeListImpl<FormalParameter> get parameters => _parameters;
+  NodeListImpl<FormalParameterImpl> get parameters => _parameters;
 
   @override
   ChildEntities get _childEntities {
@@ -5382,7 +5384,7 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   final Token rightSeparator;
 
   /// The list of expressions run after each execution of the loop body.
-  final NodeListImpl<Expression> _updaters = NodeListImpl._();
+  final NodeListImpl<ExpressionImpl> _updaters = NodeListImpl._();
 
   /// Initialize a newly created for statement. Either the [variableList] or the
   /// [initialization] must be `null`. Either the [condition] and the list of
@@ -5392,7 +5394,7 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     required this.leftSeparator,
     required ExpressionImpl? condition,
     required this.rightSeparator,
-    required List<Expression>? updaters,
+    required List<ExpressionImpl>? updaters,
   }) : _condition = condition {
     _becomeParentOf(_condition);
     _updaters._initialize(this, updaters);
@@ -5412,7 +5414,7 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   Token get endToken => _updaters.endToken ?? rightSeparator;
 
   @override
-  NodeListImpl<Expression> get updaters => _updaters;
+  NodeListImpl<ExpressionImpl> get updaters => _updaters;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -6501,12 +6503,12 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
 ///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
 class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   /// The list of names from the library that are hidden by this combinator.
-  final NodeListImpl<SimpleIdentifier> _hiddenNames = NodeListImpl._();
+  final NodeListImpl<SimpleIdentifierImpl> _hiddenNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
   HideCombinatorImpl({
     required super.keyword,
-    required List<SimpleIdentifier> hiddenNames,
+    required List<SimpleIdentifierImpl> hiddenNames,
   }) {
     _hiddenNames._initialize(this, hiddenNames);
   }
@@ -6515,7 +6517,7 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   Token get endToken => _hiddenNames.endToken!;
 
   @override
-  NodeListImpl<SimpleIdentifier> get hiddenNames => _hiddenNames;
+  NodeListImpl<SimpleIdentifierImpl> get hiddenNames => _hiddenNames;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -6765,12 +6767,12 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   final Token implementsKeyword;
 
   /// The interfaces that are being implemented.
-  final NodeListImpl<NamedType> _interfaces = NodeListImpl._();
+  final NodeListImpl<NamedTypeImpl> _interfaces = NodeListImpl._();
 
   /// Initialize a newly created implements clause.
   ImplementsClauseImpl({
     required this.implementsKeyword,
-    required List<NamedType> interfaces,
+    required List<NamedTypeImpl> interfaces,
   }) {
     _interfaces._initialize(this, interfaces);
   }
@@ -6782,7 +6784,7 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   Token get endToken => _interfaces.endToken ?? implementsKeyword;
 
   @override
-  NodeListImpl<NamedType> get interfaces => _interfaces;
+  NodeListImpl<NamedTypeImpl> get interfaces => _interfaces;
 
   @override
   // TODO(paulberry): add commas.
@@ -7688,14 +7690,14 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 ///       [Label]+ [Statement]
 class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   /// The labels being associated with the statement.
-  final NodeListImpl<Label> _labels = NodeListImpl._();
+  final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
   /// The statement with which the labels are being associated.
   StatementImpl _statement;
 
   /// Initialize a newly created labeled statement.
   LabeledStatementImpl({
-    required List<Label> labels,
+    required List<LabelImpl> labels,
     required StatementImpl statement,
   }) : _statement = statement {
     _labels._initialize(this, labels);
@@ -7714,7 +7716,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   Token get endToken => _statement.endToken;
 
   @override
-  NodeListImpl<Label> get labels => _labels;
+  NodeListImpl<LabelImpl> get labels => _labels;
 
   @override
   StatementImpl get statement => _statement;
@@ -7901,11 +7903,11 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
 class LibraryIdentifierImpl extends IdentifierImpl
     implements LibraryIdentifier {
   /// The components of the identifier.
-  final NodeListImpl<SimpleIdentifier> _components = NodeListImpl._();
+  final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
 
   /// Initialize a newly created prefixed identifier.
   LibraryIdentifierImpl({
-    required List<SimpleIdentifier> components,
+    required List<SimpleIdentifierImpl> components,
   }) {
     _components._initialize(this, components);
   }
@@ -7914,7 +7916,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
   Token get beginToken => _components.beginToken!;
 
   @override
-  NodeListImpl<SimpleIdentifier> get components => _components;
+  NodeListImpl<SimpleIdentifierImpl> get components => _components;
 
   @override
   Token get endToken => _components.endToken!;
@@ -7967,7 +7969,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   final Token leftBracket;
 
   /// The expressions used to compute the elements of the list.
-  final NodeListImpl<CollectionElement> _elements = NodeListImpl._();
+  final NodeListImpl<CollectionElementImpl> _elements = NodeListImpl._();
 
   /// The right square bracket.
   @override
@@ -7981,7 +7983,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
-    required List<CollectionElement> elements,
+    required List<CollectionElementImpl> elements,
     required this.rightBracket,
   }) {
     _elements._initialize(this, elements);
@@ -8000,7 +8002,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @override
-  NodeListImpl<CollectionElement> get elements => _elements;
+  NodeListImpl<CollectionElementImpl> get elements => _elements;
 
   @override
   Token get endToken => rightBracket;
@@ -8033,7 +8035,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 ///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
 @experimental
 class ListPatternImpl extends DartPatternImpl implements ListPattern {
-  final NodeListImpl<DartPattern> _elements = NodeListImpl._();
+  final NodeListImpl<DartPatternImpl> _elements = NodeListImpl._();
 
   @override
   final Token leftBracket;
@@ -8050,7 +8052,7 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   ListPatternImpl({
     required this.typeArguments,
     required this.leftBracket,
-    required List<DartPattern> elements,
+    required List<DartPatternImpl> elements,
     required this.rightBracket,
   }) {
     _becomeParentOf(typeArguments);
@@ -8252,7 +8254,7 @@ class MapPatternEntryImpl extends AstNodeImpl implements MapPatternEntry {
 ///        ','? '}'
 @experimental
 class MapPatternImpl extends DartPatternImpl implements MapPattern {
-  final NodeListImpl<MapPatternEntry> _entries = NodeListImpl._();
+  final NodeListImpl<MapPatternEntryImpl> _entries = NodeListImpl._();
 
   @override
   final Token leftBracket;
@@ -8266,7 +8268,7 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   MapPatternImpl({
     required this.typeArguments,
     required this.leftBracket,
-    required List<MapPatternEntry> entries,
+    required List<MapPatternEntryImpl> entries,
     required this.rightBracket,
   }) {
     _becomeParentOf(typeArguments);
@@ -8685,7 +8687,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token leftBracket;
 
   /// The members defined by the class or mixin.
-  final NodeListImpl<ClassMember> _members = NodeListImpl._();
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -8708,7 +8710,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required OnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
     required this.leftBracket,
-    required List<ClassMember> members,
+    required List<ClassMemberImpl> members,
     required this.rightBracket,
   })  : _typeParameters = typeParameters,
         _onClause = onClause,
@@ -8739,7 +8741,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  NodeListImpl<ClassMember> get members => _members;
+  NodeListImpl<ClassMemberImpl> get members => _members;
 
   @override
   OnClauseImpl? get onClause => _onClause;
@@ -8963,10 +8965,10 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
     implements NamespaceDirective {
   /// The configurations used to control which library will actually be loaded
   /// at run-time.
-  final NodeListImpl<Configuration> _configurations = NodeListImpl._();
+  final NodeListImpl<ConfigurationImpl> _configurations = NodeListImpl._();
 
   /// The combinators used to control which names are imported or exported.
-  final NodeListImpl<Combinator> _combinators = NodeListImpl._();
+  final NodeListImpl<CombinatorImpl> _combinators = NodeListImpl._();
 
   /// The semicolon terminating the directive.
   @override
@@ -8980,8 +8982,8 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
     required super.comment,
     required super.metadata,
     required super.uri,
-    required List<Configuration>? configurations,
-    required List<Combinator>? combinators,
+    required List<ConfigurationImpl>? configurations,
+    required List<CombinatorImpl>? combinators,
     required this.semicolon,
   }) {
     _configurations._initialize(this, configurations);
@@ -8989,10 +8991,10 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @override
-  NodeListImpl<Combinator> get combinators => _combinators;
+  NodeListImpl<CombinatorImpl> get combinators => _combinators;
 
   @override
-  NodeListImpl<Configuration> get configurations => _configurations;
+  NodeListImpl<ConfigurationImpl> get configurations => _configurations;
 
   @override
   Token get endToken => semicolon;
@@ -9228,7 +9230,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   CommentImpl? _comment;
 
   /// The annotations associated with this parameter.
-  final NodeListImpl<Annotation> _metadata = NodeListImpl._();
+  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
@@ -9246,7 +9248,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   /// corresponding attribute.
   NormalFormalParameterImpl({
     required CommentImpl? comment,
-    required List<Annotation>? metadata,
+    required List<AnnotationImpl>? metadata,
     required this.covariantKeyword,
     required this.requiredKeyword,
     required this.name,
@@ -9272,7 +9274,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  NodeListImpl<Annotation> get metadata => _metadata;
+  NodeListImpl<AnnotationImpl> get metadata => _metadata;
 
   @override
   List<AstNode> get sortedCommentAndAnnotations {
@@ -9394,12 +9396,12 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   final Token onKeyword;
 
   /// The classes are super-class constraints for the mixin.
-  final NodeListImpl<NamedType> _superclassConstraints = NodeListImpl._();
+  final NodeListImpl<NamedTypeImpl> _superclassConstraints = NodeListImpl._();
 
   /// Initialize a newly created on clause.
   OnClauseImpl({
     required this.onKeyword,
-    required List<NamedType> superclassConstraints,
+    required List<NamedTypeImpl> superclassConstraints,
   }) {
     _superclassConstraints._initialize(this, superclassConstraints);
   }
@@ -9411,7 +9413,8 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   Token get endToken => _superclassConstraints.endToken ?? onKeyword;
 
   @override
-  NodeListImpl<NamedType> get superclassConstraints => _superclassConstraints;
+  NodeListImpl<NamedTypeImpl> get superclassConstraints =>
+      _superclassConstraints;
 
   @override
   // TODO(paulberry): add commas.
@@ -10532,13 +10535,13 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     implements RecordTypeAnnotationField {
   @override
-  final NodeListImpl<Annotation> metadata = NodeListImpl._();
+  final NodeListImpl<AnnotationImpl> metadata = NodeListImpl._();
 
   @override
   final TypeAnnotationImpl type;
 
   RecordTypeAnnotationFieldImpl({
-    required List<Annotation>? metadata,
+    required List<AnnotationImpl>? metadata,
     required this.type,
   }) {
     this.metadata._initialize(this, metadata);
@@ -10570,7 +10573,7 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   final Token leftParenthesis;
 
   @override
-  final NodeListImpl<RecordTypeAnnotationPositionalField> positionalFields =
+  final NodeListImpl<RecordTypeAnnotationPositionalFieldImpl> positionalFields =
       NodeListImpl._();
 
   @override
@@ -10587,7 +10590,7 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
 
   RecordTypeAnnotationImpl({
     required this.leftParenthesis,
-    required List<RecordTypeAnnotationPositionalField> positionalFields,
+    required List<RecordTypeAnnotationPositionalFieldImpl> positionalFields,
     required this.namedFields,
     required this.rightParenthesis,
     required this.question,
@@ -10645,14 +10648,15 @@ class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   final Token leftBracket;
 
   @override
-  final NodeListImpl<RecordTypeAnnotationNamedField> fields = NodeListImpl._();
+  final NodeListImpl<RecordTypeAnnotationNamedFieldImpl> fields =
+      NodeListImpl._();
 
   @override
   final Token rightBracket;
 
   RecordTypeAnnotationNamedFieldsImpl({
     required this.leftBracket,
-    required List<RecordTypeAnnotationNamedField> fields,
+    required List<RecordTypeAnnotationNamedFieldImpl> fields,
     required this.rightBracket,
   }) {
     this.fields._initialize(this, fields);
@@ -10982,7 +10986,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   final Token leftBracket;
 
   /// The syntactic elements in the set.
-  final NodeListImpl<CollectionElement> _elements = NodeListImpl._();
+  final NodeListImpl<CollectionElementImpl> _elements = NodeListImpl._();
 
   @override
   final Token rightBracket;
@@ -11012,7 +11016,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
-    required List<CollectionElement> elements,
+    required List<CollectionElementImpl> elements,
     required this.rightBracket,
   }) {
     _elements._initialize(this, elements);
@@ -11031,7 +11035,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   }
 
   @override
-  NodeListImpl<CollectionElement> get elements => _elements;
+  NodeListImpl<CollectionElementImpl> get elements => _elements;
 
   @override
   Token get endToken => rightBracket;
@@ -11088,12 +11092,12 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
 class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   /// The list of names from the library that are made visible by this
   /// combinator.
-  final NodeListImpl<SimpleIdentifier> _shownNames = NodeListImpl._();
+  final NodeListImpl<SimpleIdentifierImpl> _shownNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
   ShowCombinatorImpl({
     required super.keyword,
-    required List<SimpleIdentifier> shownNames,
+    required List<SimpleIdentifierImpl> shownNames,
   }) {
     _shownNames._initialize(this, shownNames);
   }
@@ -11102,7 +11106,7 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   Token get endToken => _shownNames.endToken!;
 
   @override
-  NodeListImpl<SimpleIdentifier> get shownNames => _shownNames;
+  NodeListImpl<SimpleIdentifierImpl> get shownNames => _shownNames;
 
   @override
   // TODO(paulberry): add commas.
@@ -11588,11 +11592,11 @@ abstract class StatementImpl extends AstNodeImpl implements Statement {
 class StringInterpolationImpl extends SingleStringLiteralImpl
     implements StringInterpolation {
   /// The elements that will be composed to produce the resulting string.
-  final NodeListImpl<InterpolationElement> _elements = NodeListImpl._();
+  final NodeListImpl<InterpolationElementImpl> _elements = NodeListImpl._();
 
   /// Initialize a newly created string interpolation expression.
   StringInterpolationImpl({
-    required List<InterpolationElement> elements,
+    required List<InterpolationElementImpl> elements,
   }) {
     // TODO(scheglov) Replace asserts with appropriately typed parameters.
     assert(elements.length > 2, 'Expected at last three elements.');
@@ -11628,7 +11632,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   /// Return the elements that will be composed to produce the resulting string.
   @override
-  NodeListImpl<InterpolationElement> get elements => _elements;
+  NodeListImpl<InterpolationElementImpl> get elements => _elements;
 
   @override
   Token get endToken => _elements.endToken!;
@@ -12235,7 +12239,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   @override
   final Token leftParenthesis;
 
-  final NodeListImpl<SwitchExpressionMember> _members = NodeListImpl._();
+  final NodeListImpl<SwitchExpressionMemberImpl> _members = NodeListImpl._();
 
   @override
   final Token rightBracket;
@@ -12252,7 +12256,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
     required this.expression,
     required this.rightParenthesis,
     required this.leftBracket,
-    required List<SwitchExpressionMember> members,
+    required List<SwitchExpressionMemberImpl> members,
     required this.rightBracket,
   }) {
     _becomeParentOf(expression);
@@ -12330,7 +12334,7 @@ abstract class SwitchExpressionMemberImpl extends AstNodeImpl
 ///      | switchDefault
 abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   /// The labels associated with the switch member.
-  final NodeListImpl<Label> _labels = NodeListImpl._();
+  final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
   /// The token representing the 'case' or 'default' keyword.
   @override
@@ -12341,15 +12345,15 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   final Token colon;
 
   /// The statements that will be executed if this switch member is selected.
-  final NodeListImpl<Statement> _statements = NodeListImpl._();
+  final NodeListImpl<StatementImpl> _statements = NodeListImpl._();
 
   /// Initialize a newly created switch member. The list of [labels] can be
   /// `null` if there are no labels.
   SwitchMemberImpl({
-    required List<Label> labels,
+    required List<LabelImpl> labels,
     required this.keyword,
     required this.colon,
-    required List<Statement> statements,
+    required List<StatementImpl> statements,
   }) {
     _labels._initialize(this, labels);
     _statements._initialize(this, statements);
@@ -12372,10 +12376,10 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   }
 
   @override
-  NodeListImpl<Label> get labels => _labels;
+  NodeListImpl<LabelImpl> get labels => _labels;
 
   @override
-  NodeListImpl<Statement> get statements => _statements;
+  NodeListImpl<StatementImpl> get statements => _statements;
 }
 
 /// A pattern-based case in a switch statement.
@@ -12450,7 +12454,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   final Token leftBracket;
 
   /// The switch members that can be selected by the expression.
-  final NodeListImpl<SwitchMember> _members = NodeListImpl._();
+  final NodeListImpl<SwitchMemberImpl> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -12464,7 +12468,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
     required ExpressionImpl expression,
     required this.rightParenthesis,
     required this.leftBracket,
-    required List<SwitchMember> members,
+    required List<SwitchMemberImpl> members,
     required this.rightBracket,
   }) : _expression = expression {
     _becomeParentOf(_expression);
@@ -12485,7 +12489,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   }
 
   @override
-  NodeListImpl<SwitchMember> get members => _members;
+  NodeListImpl<SwitchMemberImpl> get members => _members;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -12733,7 +12737,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   BlockImpl _body;
 
   /// The catch clauses contained in the try statement.
-  final NodeListImpl<CatchClause> _catchClauses = NodeListImpl._();
+  final NodeListImpl<CatchClauseImpl> _catchClauses = NodeListImpl._();
 
   /// The token representing the 'finally' keyword, or `null` if the statement
   /// does not contain a finally clause.
@@ -12750,7 +12754,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   TryStatementImpl({
     required this.tryKeyword,
     required BlockImpl body,
-    required List<CatchClause> catchClauses,
+    required List<CatchClauseImpl> catchClauses,
     required this.finallyKeyword,
     required BlockImpl? finallyBlock,
   })  : _body = body,
@@ -12771,7 +12775,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @override
-  NodeListImpl<CatchClause> get catchClauses => _catchClauses;
+  NodeListImpl<CatchClauseImpl> get catchClauses => _catchClauses;
 
   @override
   Token get endToken {
@@ -12865,7 +12869,7 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   final Token leftBracket;
 
   /// The type arguments associated with the type.
-  final NodeListImpl<TypeAnnotation> _arguments = NodeListImpl._();
+  final NodeListImpl<TypeAnnotationImpl> _arguments = NodeListImpl._();
 
   /// The right bracket.
   @override
@@ -12874,14 +12878,14 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   /// Initialize a newly created list of type arguments.
   TypeArgumentListImpl({
     required this.leftBracket,
-    required List<TypeAnnotation> arguments,
+    required List<TypeAnnotationImpl> arguments,
     required this.rightBracket,
   }) {
     _arguments._initialize(this, arguments);
   }
 
   @override
-  NodeListImpl<TypeAnnotation> get arguments => _arguments;
+  NodeListImpl<TypeAnnotationImpl> get arguments => _arguments;
 
   @override
   Token get beginToken => leftBracket;
@@ -13098,7 +13102,7 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   final Token leftBracket;
 
   /// The type parameters in the list.
-  final NodeListImpl<TypeParameter> _typeParameters = NodeListImpl._();
+  final NodeListImpl<TypeParameterImpl> _typeParameters = NodeListImpl._();
 
   /// The right angle bracket.
   @override
@@ -13107,7 +13111,7 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   /// Initialize a newly created list of type parameters.
   TypeParameterListImpl({
     required this.leftBracket,
-    required List<TypeParameter> typeParameters,
+    required List<TypeParameterImpl> typeParameters,
     required this.rightBracket,
   }) {
     _typeParameters._initialize(this, typeParameters);
@@ -13120,7 +13124,7 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   Token get endToken => rightBracket;
 
   @override
-  NodeListImpl<TypeParameter> get typeParameters => _typeParameters;
+  NodeListImpl<TypeParameterImpl> get typeParameters => _typeParameters;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -13362,7 +13366,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   TypeAnnotationImpl? _type;
 
   /// A list containing the individual variables being declared.
-  final NodeListImpl<VariableDeclaration> _variables = NodeListImpl._();
+  final NodeListImpl<VariableDeclarationImpl> _variables = NodeListImpl._();
 
   /// Initialize a newly created variable declaration list. Either or both of
   /// the [comment] and [metadata] can be `null` if the variable list does not
@@ -13374,7 +13378,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
     required this.lateKeyword,
     required this.keyword,
     required TypeAnnotationImpl? type,
-    required List<VariableDeclaration> variables,
+    required List<VariableDeclarationImpl> variables,
   }) : _type = type {
     _becomeParentOf(_type);
     _variables._initialize(this, variables);
@@ -13407,7 +13411,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 
   @override
-  NodeListImpl<VariableDeclaration> get variables => _variables;
+  NodeListImpl<VariableDeclarationImpl> get variables => _variables;
 
   @override
   // TODO(paulberry): include commas.
@@ -13673,12 +13677,12 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   final Token withKeyword;
 
   /// The names of the mixins that were specified.
-  final NodeListImpl<NamedType> _mixinTypes = NodeListImpl._();
+  final NodeListImpl<NamedTypeImpl> _mixinTypes = NodeListImpl._();
 
   /// Initialize a newly created with clause.
   WithClauseImpl({
     required this.withKeyword,
-    required List<NamedType> mixinTypes,
+    required List<NamedTypeImpl> mixinTypes,
   }) {
     _mixinTypes._initialize(this, mixinTypes);
   }
@@ -13690,7 +13694,7 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   Token get endToken => _mixinTypes.endToken ?? withKeyword;
 
   @override
-  NodeListImpl<NamedType> get mixinTypes => _mixinTypes;
+  NodeListImpl<NamedTypeImpl> get mixinTypes => _mixinTypes;
 
   @override
   // TODO(paulberry): add commas.

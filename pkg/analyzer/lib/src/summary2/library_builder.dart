@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
@@ -205,11 +204,11 @@ class LibraryBuilder {
   void collectMixinSuperInvokedNames() {
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations) {
-        if (declaration is ast.MixinDeclaration) {
+        if (declaration is ast.MixinDeclarationImpl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.members) {
-            if (executable is ast.MethodDeclaration) {
+            if (executable is ast.MethodDeclarationImpl) {
               executable.body.accept(collector);
             }
           }
@@ -769,7 +768,7 @@ class LibraryBuilder {
     var nameOffset = -1;
     var nameLength = 0;
     for (final directive in libraryUnitNode.directives) {
-      if (directive is ast.LibraryDirective) {
+      if (directive is ast.LibraryDirectiveImpl) {
         final nameIdentifier = directive.name2;
         if (nameIdentifier != null) {
           name = nameIdentifier.components.map((e) => e.name).join('.');
