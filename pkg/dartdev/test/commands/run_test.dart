@@ -22,6 +22,8 @@ const residentFrontendServerPrefix =
     'The Resident Frontend Compiler is listening at 127.0.0.1:';
 
 void main() async {
+  ensureRunFromSdkBinDart();
+
   group('run', run, timeout: longTimeout);
   group('run --resident', residentRun, timeout: longTimeout);
 }
