@@ -1,19 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
-//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
-// Try changing 'call' to a method or explicitly invoke 'call'.
-// var string5 = callableGetter(1);
-//                             ^
-//
-// pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
-//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
-// Try changing 'call' to a method or explicitly invoke 'call'.
-// var nothing9 = callableGetter();
-//                              ^
-//
 import self as self;
 import "dart:core" as core;
 

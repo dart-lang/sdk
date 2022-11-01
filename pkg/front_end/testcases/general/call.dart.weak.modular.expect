@@ -2,18 +2,6 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
-//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
-// Try changing 'call' to a method or explicitly invoke 'call'.
-// var string5 = callableGetter(1);
-//                             ^
-//
-// pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
-//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
-// Try changing 'call' to a method or explicitly invoke 'call'.
-// var nothing9 = callableGetter();
-//                              ^
-//
 // pkg/front_end/testcases/general/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
 //  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
@@ -58,6 +46,12 @@ library /*isNonNullableByDefault*/;
 //   var nothing9 = callableGetter();
 //                                ^
 //
+// pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var string5 = callableGetter(1);
+//                             ^
+//
 // pkg/front_end/testcases/general/call.dart:68:23: Error: Too few positional arguments: 1 required, 0 given.
 // var nothing1 = closure();
 //                       ^
@@ -89,6 +83,12 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/general/call.dart:76:39: Error: Too few positional arguments: 1 required, 0 given.
 // var nothing8 = callable.call.call.call();
 //                                       ^
+//
+// pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var nothing9 = callableGetter();
+//                              ^
 //
 import self as self;
 import "dart:core" as core;
