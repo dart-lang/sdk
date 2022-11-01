@@ -115,7 +115,7 @@ class MinifyNamer extends Namer
       // field names.  Therefore there are some field names we don't want to
       // use.  It is implicit in the next line that the banned prefix is
       // only one character.
-      if (_hasBannedPrefix(name)) {
+      if (hasBannedMinifiedPrefix(name)) {
         instanceScope.registerUse(name.substring(1));
       }
     }
@@ -215,7 +215,7 @@ class MinifyNamer extends Namer
         assert(c != $Z);
         c = (c == $z) ? $A : c + 1;
         letter = String.fromCharCodes([c]);
-      } while (_hasBannedPrefix(letter) || scope.isUsed(letter));
+      } while (hasBannedMinifiedPrefix(letter) || scope.isUsed(letter));
       assert(!scope.hasSuggestion(name));
       scope.addSuggestion(name, letter);
     }
@@ -247,7 +247,7 @@ class MinifyNamer extends Namer
         final candidate = String.fromCharCodes(codes);
         if (scope.isUnused(candidate) &&
             !jsReserved.contains(candidate) &&
-            !_hasBannedPrefix(candidate) &&
+            !hasBannedMinifiedPrefix(candidate) &&
             (n != 1 || scope.isSuggestion(candidate))) {
           return candidate;
         }
@@ -257,13 +257,6 @@ class MinifyNamer extends Namer
       }
     }
     return _badName(hash, scope);
-  }
-
-  /// Instance members starting with g and s are reserved for getters and
-  /// setters.
-  static bool _hasBannedPrefix(String name) {
-    int code = name.codeUnitAt(0);
-    return code == $g || code == $s;
   }
 
   int _calculateHash(String name) {

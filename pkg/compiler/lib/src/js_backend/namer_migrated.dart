@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show $0, $9, $A, $Z, $_, $a, $g, $s, $z;
+
 import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../js_backend/native_data.dart';
@@ -481,3 +484,66 @@ final RegExp NON_IDENTIFIER_CHAR = RegExp(r'[^A-Za-z_0-9$]');
 const MAX_FRAGMENTS = 5;
 const MAX_EXTRA_LENGTH = 30;
 const DEFAULT_TAG_LENGTH = 3;
+
+/// Instance members starting with g and s are reserved for getters and
+/// setters.
+bool hasBannedMinifiedPrefix(String name) {
+  int code = name.codeUnitAt(0);
+  return code == $g || code == $s;
+}
+
+class TokenScope {
+  final int initialChar;
+  final List<int> _nextName;
+  final Set<String> illegalNames;
+
+  TokenScope({this.illegalNames = const {}, this.initialChar = $a})
+      : _nextName = [initialChar];
+
+  /// Increments the letter at [pos] in the current name. Also takes care of
+  /// overflows to the left. Returns the carry bit, i.e., it returns `true`
+  /// if all positions to the left have wrapped around.
+  ///
+  /// If [_nextName] is initially 'a', this will generate the sequence
+  ///
+  /// [a-zA-Z]
+  /// [a-zA-Z][_0-9a-zA-Z]
+  /// [a-zA-Z][_0-9a-zA-Z][_0-9a-zA-Z]
+  /// ...
+  bool _incrementPosition(int pos) {
+    bool overflow = false;
+    if (pos < 0) return true;
+    int value = _nextName[pos];
+    if (value == $_) {
+      value = $0;
+    } else if (value == $9) {
+      value = $a;
+    } else if (value == $z) {
+      value = $A;
+    } else if (value == $Z) {
+      overflow = _incrementPosition(pos - 1);
+      value = (pos > 0) ? $_ : initialChar;
+    } else {
+      value++;
+    }
+    _nextName[pos] = value;
+    return overflow;
+  }
+
+  _incrementName() {
+    if (_incrementPosition(_nextName.length - 1)) {
+      _nextName.add($_);
+    }
+  }
+
+  String getNextName() {
+    String proposal;
+    do {
+      proposal = String.fromCharCodes(_nextName);
+      _incrementName();
+    } while (
+        hasBannedMinifiedPrefix(proposal) || illegalNames.contains(proposal));
+
+    return proposal;
+  }
+}

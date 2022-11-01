@@ -11,4 +11,5 @@ export 'checked_mode_helpers.dart';
 export 'constant_emitter.dart';
 export 'custom_elements_analysis.dart';
 export 'namer.dart';
+export 'namer_migrated.dart';
 export 'no_such_method_registry.dart';
