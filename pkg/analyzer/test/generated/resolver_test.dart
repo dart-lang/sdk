@@ -42,6 +42,23 @@ class A {
     ]);
   }
 
+  test_breakLabelOnSwitchMember_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+class A {
+  void m(int i) {
+    switch (i) {
+      l: case 0:
+        break;
+      case 1:
+        break l;
+    }
+  }
+}''', [
+      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 121, 1),
+    ]);
+  }
+
   test_continueLabelOnSwitch() async {
     await assertErrorsInCode(r'''
 class A {
@@ -53,6 +70,21 @@ class A {
   }
 }''', [
       error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+    ]);
+  }
+
+  test_continueLabelOnSwitch_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+class A {
+  void m(int i) {
+    l: switch (i) {
+      case 0:
+        continue l;
+    }
+  }
+}''', [
+      error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 95, 1),
     ]);
   }
 

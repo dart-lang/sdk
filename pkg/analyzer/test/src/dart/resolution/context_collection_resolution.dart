@@ -538,6 +538,11 @@ class PubspecYamlFileDependency {
   });
 }
 
+mixin WithLanguage218Mixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.18';
+}
+
 mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
   /// Asserts that no errors are reported in [code] when implicit casts are
   /// allowed, and that [expectedErrors] are reported for the same [code] when

@@ -80,6 +80,7 @@ class SourceReport {
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
   intptr_t GetTokenPosOrLine(const Script& script,
                              const TokenPosition& token_pos);
+  bool ShouldFiltersIncludeLibrary(const Library& script);
   bool ShouldFiltersIncludeScript(const Script& script);
   bool ShouldFiltersIncludeUrl(const String& url);
 

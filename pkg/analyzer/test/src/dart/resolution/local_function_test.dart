@@ -62,4 +62,23 @@ f(int a) {
 
     assertElement(findNode.methodInvocation('g();'), element);
   }
+
+  test_element_switchCase_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+f(int a) {
+  switch (a) {
+    case 1:
+      g() {}
+      g();
+      break;
+  }
+}
+''');
+    var element = findElement.localFunction('g');
+    expect(element.name, 'g');
+    expect(element.nameOffset, 60);
+
+    assertElement(findNode.methodInvocation('g();'), element);
+  }
 }

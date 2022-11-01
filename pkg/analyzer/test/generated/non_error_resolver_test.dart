@@ -729,6 +729,20 @@ class A {
 ''');
   }
 
+  test_breakWithoutLabelInSwitch_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+class A {
+  void m(int i) {
+    switch (i) {
+      case 0:
+        break;
+    }
+  }
+}
+''');
+  }
+
   test_bug_24539_getter() async {
     await assertNoErrorsInCode('''
 class C<T> {
@@ -2279,8 +2293,37 @@ f(E e) {
 ''');
   }
 
+  test_missingEnumConstantInSwitch_all_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+enum E { A, B, C }
+
+f(E e) {
+  switch (e) {
+    case E.A: break;
+    case E.B: break;
+    case E.C: break;
+  }
+}
+''');
+  }
+
   test_missingEnumConstantInSwitch_default() async {
     await assertNoErrorsInCode(r'''
+enum E { A, B, C }
+
+f(E e) {
+  switch (e) {
+    case E.B: break;
+    default: break;
+  }
+}
+''');
+  }
+
+  test_missingEnumConstantInSwitch_default_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
 enum E { A, B, C }
 
 f(E e) {
