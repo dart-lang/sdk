@@ -11,7 +11,7 @@ import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer_interfaces.dart' show Namer;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
@@ -20,7 +20,7 @@ import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
-import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
+import 'interfaces.dart' show CodeEmitterTask, Emitter;
 
 // Generator of stubs required for Instantiation classes.
 class InstantiationStubGenerator {

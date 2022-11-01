@@ -141,7 +141,7 @@ part 'namer_names.dart';
 ///
 /// For local variables, the [Namer] only provides *proposed names*. These names
 /// must be disambiguated elsewhere.
-class Namer extends ModularNamer {
+class Namer extends ModularNamer implements interfaces.Namer {
   static const List<String> javaScriptKeywords = [
     // ES5 7.6.1.1 Keywords.
     'break',
@@ -600,8 +600,10 @@ class Namer extends ModularNamer {
 
   NativeData get _nativeData => _closedWorld.nativeData;
 
+  @override
   jsAst.Name get noSuchMethodName => invocationName(Selectors.noSuchMethod_);
 
+  @override
   String get closureInvocationSelectorName => Identifiers.call;
 
   NamingScope _getPrivateScopeFor(PrivatelyNamedJSEntity entity) {
@@ -812,6 +814,7 @@ class Namer extends ModularNamer {
   }
 
   /// Returns the internal name used for an invocation mirror of this selector.
+  @override
   jsAst.Name invocationMirrorInternalName(Selector selector) =>
       invocationName(selector);
 
@@ -936,6 +939,7 @@ class Namer extends ModularNamer {
   }
 
   /// Annotated name for the setter of any member with [disambiguatedName].
+  @override
   jsAst.Name deriveSetterName(jsAst.Name disambiguatedName) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
@@ -944,6 +948,7 @@ class Namer extends ModularNamer {
   }
 
   /// Annotated name for the setter of any member with [disambiguatedName].
+  @override
   jsAst.Name deriveGetterName(jsAst.Name disambiguatedName) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
@@ -952,6 +957,7 @@ class Namer extends ModularNamer {
   }
 
   /// Annotated name for the getter of [element].
+  @override
   jsAst.Name getterForElement(MemberEntity element) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
@@ -1401,6 +1407,7 @@ class Namer extends ModularNamer {
 
   // The name of the variable used to offset function signatures in deferred
   // parts with the fast-startup emitter.
+  @override
   String get typesOffsetName => r'typesOffset';
 
   @override
@@ -2288,6 +2295,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///
   /// Furthermore, this function is injective, that is, it never returns the
   /// same name for two different inputs.
+  @override
   String safeVariableName(String name) {
     name = name.replaceAll('#', '_');
     if (_jsVariableReserved.contains(name) || name.startsWith(r'$')) {

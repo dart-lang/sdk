@@ -22,6 +22,7 @@ import 'kernel/kernel_strategy_migrated.dart'
 import 'options.dart' show CompilerOptions;
 import 'universe/world_impact.dart' show WorldImpact;
 import 'compiler_migrated.dart';
+import 'dump_info_javascript_monitor.dart';
 
 /// Subset of [Compiler] needed by deferred loading.
 ///
@@ -101,4 +102,13 @@ abstract class CompilerDumpInfoFacade {
   DiagnosticReporter get reporter;
   CompilerOutput get outputProvider;
   JsBackendStrategy get backendStrategy;
+}
+
+abstract class CompilerEmitterFacade {
+  JsBackendStrategy get backendStrategy;
+  CompilerOptions get options;
+  Measurer get measurer;
+  DiagnosticReporter get reporter;
+  CompilerOutput get outputProvider;
+  DumpInfoJavaScriptMonitor get dumpInfoTask;
 }

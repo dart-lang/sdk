@@ -2,10 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../inferrer_experimental/types.dart' as experimentalInferrer;
+import '../io/source_information.dart';
+import '../js/js.dart' as js;
+import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/inferred_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_emitter/interfaces.dart' show CodeEmitterTask;
+import '../native/enqueue.dart';
 import '../world_interfaces.dart';
 import 'locals.dart';
 
@@ -17,4 +23,9 @@ abstract class JsBackendStrategy {
       JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
       InferredDataBuilder inferredDataBuilder);
+  RuntimeTypesChecksBuilder get rtiChecksBuilder;
+  NativeEnqueuer get nativeCodegenEnqueuer;
+  SourceInformationStrategy get sourceInformationStrategy;
+  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis;
+  Map<MemberEntity, js.Expression> get generatedCode;
 }

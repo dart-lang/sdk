@@ -9,6 +9,8 @@ import '../js/js.dart' as jsAst;
 import '../universe/selector.dart' show Selector;
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 
+import 'namer_migrated.dart';
+
 abstract class ModularNamer {
   jsAst.Name get rtiFieldJsName;
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member);
@@ -25,4 +27,17 @@ abstract class ModularNamer {
       Selector selector, Set<ClassEntity> classes);
   jsAst.Name getNameForJsGetName(Spannable spannable, JsGetName name);
   jsAst.Expression readGlobalObjectForInterceptors();
+  String safeVariableName(String name);
+}
+
+abstract class Namer extends ModularNamer {
+  FixedNames get fixedNames;
+  jsAst.Name get noSuchMethodName;
+  String get closureInvocationSelectorName;
+  jsAst.Name getterForElement(MemberEntity element);
+  jsAst.Name invocationMirrorInternalName(Selector selector);
+  jsAst.Name deriveSetterName(jsAst.Name disambiguatedName);
+  jsAst.Name deriveGetterName(jsAst.Name disambiguatedName);
+  String get typesOffsetName;
+  jsAst.Name operatorIs(ClassEntity element);
 }

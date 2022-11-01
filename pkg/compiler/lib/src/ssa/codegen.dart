@@ -34,7 +34,7 @@ import '../js_backend/runtime_types_new_migrated.dart'
     show RecipeEncoding, indexTypeVariable;
 import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_backend/type_reference.dart' show TypeReference;
-import '../js_emitter/code_emitter_task_interfaces.dart' show ModularEmitter;
+import '../js_emitter/interfaces.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/type_recipe.dart';
 import '../native/behavior.dart';

@@ -14,7 +14,7 @@ import '../js/js.dart' as jsAst;
 import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 
-import 'code_emitter_task_interfaces.dart' show ModularEmitter;
+import 'interfaces.dart' show ModularEmitter;
 
 /// Represents an entry's position in one of the global metadata arrays.
 ///

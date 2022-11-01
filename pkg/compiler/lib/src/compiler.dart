@@ -25,6 +25,7 @@ import 'compiler_interfaces.dart'
         CompilerDeferredLoadingFacade,
         CompilerDiagnosticsFacade,
         CompilerDumpInfoFacade,
+        CompilerEmitterFacade,
         CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade;
@@ -84,6 +85,7 @@ class Compiler
         CompilerDiagnosticsFacade,
         CompilerDeferredLoadingFacade,
         CompilerDumpInfoFacade,
+        CompilerEmitterFacade,
         CompilerInferrerFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade {
@@ -147,6 +149,7 @@ class Compiler
   GenericTask enqueueTask;
   @override
   DeferredLoadTask deferredLoadTask;
+  @override
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
 
