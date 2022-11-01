@@ -16,7 +16,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer_interfaces.dart' show Namer;
 import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
@@ -24,7 +24,7 @@ import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
 import '../world.dart' show JClosedWorld;
 
-import 'code_emitter_task.dart';
+import 'interfaces.dart';
 import 'model.dart';
 
 class ClassStubGenerator {

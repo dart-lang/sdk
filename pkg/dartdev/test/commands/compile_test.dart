@@ -15,6 +15,8 @@ import '../utils.dart';
 const int compileErrorExitCode = 64;
 
 void main() {
+  ensureRunFromSdkBinDart();
+
   group('compile -', defineCompileTests, timeout: longTimeout);
 }
 

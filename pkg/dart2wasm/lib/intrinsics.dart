@@ -78,9 +78,6 @@ class Intrinsifier {
       'unary-': (b) {
         b.f64_neg();
       },
-      'toInt': (b) {
-        b.i64_trunc_sat_f64_s();
-      },
       'roundToDouble': (b) {
         b.f64_nearest();
       },
@@ -97,7 +94,6 @@ class Intrinsifier {
   };
   static final Map<String, w.ValueType> unaryResultMap = {
     'toDouble': w.NumType.f64,
-    'toInt': w.NumType.i64,
     'roundToDouble': w.NumType.f64,
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
@@ -744,6 +740,13 @@ class Intrinsifier {
           codeGen.wrap(first, w.NumType.i64);
           codeGen.wrap(second, w.NumType.i64);
           b.i64_div_s();
+          return w.NumType.i64;
+        case "_toInt":
+          assert(cls == translator.boxedDoubleClass);
+          assert(node.arguments.positional.length == 1);
+          Expression arg = node.arguments.positional[0];
+          codeGen.wrap(arg, w.NumType.f64);
+          b.i64_trunc_sat_f64_s();
           return w.NumType.i64;
       }
     }

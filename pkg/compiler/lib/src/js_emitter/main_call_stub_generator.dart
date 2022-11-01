@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 
-import 'code_emitter_task.dart' show Emitter;
+import 'interfaces.dart' show Emitter;
 
 class MainCallStubGenerator {
   static jsAst.Statement generateInvokeMain(

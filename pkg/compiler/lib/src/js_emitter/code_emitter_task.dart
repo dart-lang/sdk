@@ -9,16 +9,16 @@ library dart2js.js_emitter.code_emitter_task;
 import '../common.dart';
 import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
+import '../compiler_interfaces.dart' show CompilerEmitterFacade;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer_interfaces.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
-import '../js_model/js_strategy.dart';
+import '../js_model/js_strategy_interfaces.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
@@ -26,7 +26,6 @@ import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 import 'startup_emitter/fragment_merger.dart';
 
-import 'code_emitter_task_interfaces.dart' as interfaces;
 import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
@@ -40,9 +39,10 @@ class CodeEmitterTask extends CompilerTask
     implements interfaces.CodeEmitterTask {
   RuntimeTypesChecks _rtiChecks;
   NativeEmitter _nativeEmitter;
+  @override
   MetadataCollector metadataCollector;
   Emitter _emitter;
-  final Compiler _compiler;
+  final CompilerEmitterFacade _compiler;
   final bool _generateSourceMap;
 
   JsBackendStrategy get _backendStrategy => _compiler.backendStrategy;
@@ -233,14 +233,17 @@ abstract class Emitter implements ModularEmitter, interfaces.Emitter {
   int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
 
   /// Returns the JS prototype of the given interceptor class [e].
+  @override
   jsAst.Expression interceptorPrototypeAccess(ClassEntity e);
 
   /// Returns the JS constructor of the given interceptor class [e].
+  @override
   jsAst.Expression interceptorClassAccess(ClassEntity e);
 
   /// Returns the JS expression representing a function that returns 'null'
   jsAst.Expression generateFunctionThatReturnsNull();
 
+  @override
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 

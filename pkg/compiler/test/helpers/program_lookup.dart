@@ -9,7 +9,7 @@ import 'package:compiler/src/deferred_load/output_unit.dart' show OutputUnit;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/js_backend/namer.dart';
+import 'package:compiler/src/js_backend/namer_interfaces.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';

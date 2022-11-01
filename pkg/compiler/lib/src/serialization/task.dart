@@ -11,7 +11,9 @@ import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import 'package:front_end/src/fasta/util/bytes_sink.dart';
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart' show Flags;
-import '../common/codegen.dart';
+import '../common/codegen_migrated.dart';
+import '../common/codegen.dart'
+    show CodegenWriterImpl, CodegenReaderImpl, CodegenResult, ModularExpression;
 import '../common/tasks.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
@@ -20,69 +22,15 @@ import '../inferrer/abstract_value_strategy.dart';
 import '../inferrer/types.dart';
 import '../ir/modular.dart';
 import '../js_backend/codegen_inputs.dart';
-import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
-import '../js_model/element_map_impl.dart';
-import '../js_model/js_strategy.dart';
-import '../js_model/locals.dart';
+import '../js_model/js_strategy_interfaces.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
 import '../world.dart';
 import 'serialization.dart';
+import 'task_migrated.dart';
 
-/// A data class holding some data [T] and the associated [DataSourceIndices].
-class DataAndIndices<T> {
-  final T data;
-  final DataSourceIndices indices;
-
-  DataAndIndices(this.data, this.indices);
-}
-
-void serializeGlobalTypeInferenceResultsToSink(
-    GlobalTypeInferenceResults results, DataSinkWriter sink) {
-  JsClosedWorld closedWorld = results.closedWorld;
-  GlobalLocalsMap globalLocalsMap = results.globalLocalsMap;
-  InferredData inferredData = results.inferredData;
-  globalLocalsMap.writeToDataSink(sink);
-  inferredData.writeToDataSink(sink);
-  results.writeToDataSink(sink, closedWorld.elementMap);
-  sink.close();
-}
-
-GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Environment environment,
-    AbstractValueStrategy abstractValueStrategy,
-    ir.Component component,
-    JsClosedWorld closedWorld,
-    DataSourceReader source) {
-  source.registerComponentLookup(ComponentLookup(component));
-  source.registerEntityLookup(ClosedEntityLookup(closedWorld.elementMap));
-  GlobalLocalsMap globalLocalsMap = GlobalLocalsMap.readFromDataSource(
-      closedWorld.closureDataLookup.getEnclosingMember, source);
-  InferredData inferredData =
-      InferredData.readFromDataSource(source, closedWorld);
-  return GlobalTypeInferenceResults.readFromDataSource(source,
-      closedWorld.elementMap, closedWorld, globalLocalsMap, inferredData);
-}
-
-void serializeClosedWorldToSink(
-    JsClosedWorld closedWorld, DataSinkWriter sink) {
-  closedWorld.writeToDataSink(sink);
-  sink.close();
-}
-
-JsClosedWorld deserializeClosedWorldFromSource(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Environment environment,
-    AbstractValueStrategy abstractValueStrategy,
-    ir.Component component,
-    DataSourceReader source) {
-  return JsClosedWorld.readFromDataSource(
-      options, reporter, environment, abstractValueStrategy, component, source);
-}
+export 'task_migrated.dart';
 
 class _StringInterner implements ir.StringInterner, StringInterner {
   final Map<String, String> _map = {};

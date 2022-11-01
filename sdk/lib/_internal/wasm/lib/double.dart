@@ -172,7 +172,15 @@ class _BoxedDouble implements double {
     return this;
   }
 
-  external int toInt();
+  int toInt() {
+    if (!isFinite) {
+      throw UnsupportedError("Infinity or NaN toInt");
+    }
+    return _toInt(this);
+  }
+
+  /// Wasm i64.trunc_sat_f64_s instruction
+  external static int _toInt(double a);
 
   double toDouble() {
     return this;
@@ -339,7 +347,7 @@ class _BoxedDouble implements double {
             return GREATER;
           }
         }
-        return toInt().compareTo(other);
+        return _toInt(this).compareTo(other);
       } else {
         return EQUAL;
       }

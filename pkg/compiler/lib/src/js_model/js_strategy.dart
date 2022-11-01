@@ -38,7 +38,8 @@ import '../js_backend/enqueuer.dart';
 import '../js_backend/impact_transformer.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer.dart' show FrequencyBasedNamer, MinifyNamer, Namer;
+import '../js_backend/namer_interfaces.dart' hide Namer;
 import '../js_backend/namer_migrated.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
@@ -93,11 +94,13 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   FunctionCompiler _functionCompiler;
 
+  @override
   SourceInformationStrategy sourceInformationStrategy;
 
   final SsaMetrics _ssaMetrics = SsaMetrics();
 
   /// The generated code as a js AST for compiled methods.
+  @override
   final Map<MemberEntity, js.Expression> generatedCode = {};
 
   JsBackendStrategy(this._compiler) {
@@ -130,6 +133,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   Namer get namerForTesting => _namer;
 
+  @override
   NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
@@ -144,6 +148,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
+  @override
   CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
     assert(
         _customElementsCodegenAnalysis != null,
@@ -152,6 +157,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
     return _customElementsCodegenAnalysis;
   }
 
+  @override
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
     assert(
         _rtiChecksBuilder != null,
@@ -416,6 +422,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Prepare [source] to deserialize modular code generation data.
+  @override
   void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
@@ -429,6 +436,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   ///
   /// The needed members include members computed on demand during non-modular
   /// code generation, such as constructor bodies and and generator bodies.
+  @override
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
     ClosedEntityWriter entityWriter = ClosedEntityWriter(earlyMemberIndexLimit);

@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/js_backend/namer.dart';
+import 'package:compiler/src/js_backend/namer_migrated.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:expect/expect.dart';
 
@@ -19,7 +19,7 @@ main() {
           positionalParameters + namedParameters.length,
           namedParameters,
           typeParameters);
-      List<String> actualSuffixes = Namer.callSuffixForStructure(callStructure);
+      List<String> actualSuffixes = callSuffixForStructure(callStructure);
       Expect.listEquals(
           expectedSuffixes,
           actualSuffixes,

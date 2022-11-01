@@ -9,7 +9,7 @@ library ssa.tracer;
 import '../../compiler_api.dart' as api show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/namer.dart' show suffixForGetInterceptor;
+import '../js_backend/namer_migrated.dart' show suffixForGetInterceptor;
 import '../tracer.dart';
 import '../world_interfaces.dart' show JClosedWorld;
 import 'nodes.dart';

@@ -13,7 +13,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer_interfaces.dart' show Namer;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
@@ -26,8 +26,7 @@ import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
-import 'code_emitter_task.dart' show Emitter;
-import 'native_emitter.dart';
+import 'interfaces.dart' show Emitter, NativeEmitter;
 
 class ParameterStubGenerator {
   static final Set<Selector> emptySelectorSet = {};

@@ -1,4 +1,4 @@
-import '../js_emitter/code_emitter_task_interfaces.dart';
+import '../js_emitter/interfaces.dart' show ModularEmitter;
 import '../js_model/type_recipe.dart';
 import '../js/js.dart' as jsAst;
 import 'runtime_types_new_migrated.dart';

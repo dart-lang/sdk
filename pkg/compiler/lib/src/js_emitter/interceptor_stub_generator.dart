@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer_interfaces.dart' show Namer;
 import '../js_backend/custom_elements_analysis.dart'
     show CustomElementsCodegenAnalysis;
 import '../js_backend/native_data.dart';
@@ -24,7 +24,7 @@ import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 
-import 'code_emitter_task.dart' show Emitter;
+import 'interfaces.dart' show Emitter;
 
 class InterceptorStubGenerator {
   final CommonElements _commonElements;
