@@ -5,7 +5,7 @@
 // @dart = 2.10
 
 import '../common.dart';
-import '../js_backend/namer.dart' show ModularNamer;
+import '../js_backend/namer_interfaces.dart' show ModularNamer;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 

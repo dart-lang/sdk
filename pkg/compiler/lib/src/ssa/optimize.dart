@@ -5,7 +5,7 @@
 // @dart = 2.10
 
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry;
+import '../common/codegen_interfaces.dart' show CodegenRegistry;
 import '../common/elements.dart' show JCommonElements;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show Measurer, CompilerTask;
