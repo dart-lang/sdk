@@ -4461,16 +4461,8 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token? typeKeyword;
 
-  /// The hide clause for the extension or `null` if the declaration does not
-  /// hide any elements.
-  HideClauseImpl? _hideClause;
-
   @override
   final Token? name;
-
-  /// The show clause for the extension or `null` if the declaration does not
-  /// show any elements.
-  ShowClauseImpl? _showClause;
 
   /// The type parameters for the extension, or `null` if the extension does not
   /// have any type parameters.
@@ -4503,15 +4495,11 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required TypeParameterListImpl? typeParameters,
     required this.onKeyword,
     required TypeAnnotationImpl extendedType,
-    required ShowClauseImpl? showClause,
-    required HideClauseImpl? hideClause,
     required this.leftBracket,
     required List<ClassMember> members,
     required this.rightBracket,
   })  : _typeParameters = typeParameters,
-        _extendedType = extendedType,
-        _showClause = showClause,
-        _hideClause = hideClause {
+        _extendedType = extendedType {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_extendedType);
     _members._initialize(this, members);
@@ -4535,25 +4523,11 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
 
   @override
-  HideClauseImpl? get hideClause => _hideClause;
-
-  set hideClause(HideClauseImpl? hideClause) {
-    _hideClause = _becomeParentOf(hideClause);
-  }
-
-  @override
   NodeListImpl<ClassMember> get members => _members;
 
   @Deprecated('Use name instead')
   @override
   Token? get name2 => name;
-
-  @override
-  ShowClauseImpl? get showClause => _showClause;
-
-  set showClause(ShowClauseImpl? showClause) {
-    _showClause = _becomeParentOf(showClause);
-  }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -6517,49 +6491,6 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     super.visitChildren(visitor);
     _typeParameters?.accept(visitor);
     _type.accept(visitor);
-  }
-}
-
-/// The "hide" clause in an extension declaration.
-///
-///    hideClause ::=
-///        'hide' [TypeName] (',' [TypeName])*
-class HideClauseImpl extends AstNodeImpl implements HideClause {
-  /// The token representing the 'hide' keyword.
-  @override
-  final Token hideKeyword;
-
-  /// The elements that are being shown.
-  final NodeListImpl<ShowHideClauseElement> _elements = NodeListImpl._();
-
-  /// Initialize a newly created show clause.
-  HideClauseImpl({
-    required this.hideKeyword,
-    required List<ShowHideClauseElement> elements,
-  }) {
-    _elements._initialize(this, elements);
-  }
-
-  @override
-  Token get beginToken => hideKeyword;
-
-  @override
-  NodeListImpl<ShowHideClauseElement> get elements => _elements;
-
-  @override
-  Token get endToken => _elements.endToken!;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('hideKeyword', hideKeyword)
-    ..addNodeList('elements', elements);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitHideClause(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _elements.accept(visitor);
   }
 }
 
@@ -11149,49 +11080,6 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   }
 }
 
-/// The "show" clause in an extension declaration.
-///
-///    showClause ::=
-///        'show' [TypeName] (',' [TypeName])*
-class ShowClauseImpl extends AstNodeImpl implements ShowClause {
-  /// The token representing the 'show' keyword.
-  @override
-  final Token showKeyword;
-
-  /// The elements that are being shown.
-  final NodeListImpl<ShowHideClauseElement> _elements = NodeListImpl._();
-
-  /// Initialize a newly created show clause.
-  ShowClauseImpl({
-    required this.showKeyword,
-    required List<ShowHideClauseElement> elements,
-  }) {
-    _elements._initialize(this, elements);
-  }
-
-  @override
-  Token get beginToken => showKeyword;
-
-  @override
-  NodeListImpl<ShowHideClauseElement> get elements => _elements;
-
-  @override
-  Token get endToken => _elements.endToken!;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('showKeyword', showKeyword)
-    ..addNodeList('elements', elements);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitShowClause(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _elements.accept(visitor);
-  }
-}
-
 /// A combinator that restricts the names being imported to those in a given
 /// list.
 ///
@@ -11228,49 +11116,6 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   @override
   void visitChildren(AstVisitor visitor) {
     _shownNames.accept(visitor);
-  }
-}
-
-/// A potentially non-type element of a show or a hide clause.
-///
-///    showHideElement ::=
-///        'get' [SimpleIdentifier] |
-///        'set' [SimpleIdentifier] |
-///        'operator' [SimpleIdentifier] |
-///        [SimpleIdentifier]
-///
-/// Clients may not extend, implement or mix-in this class.
-class ShowHideElementImpl extends AstNodeImpl implements ShowHideElement {
-  @override
-  final Token? modifier;
-
-  @override
-  SimpleIdentifierImpl name;
-
-  ShowHideElementImpl({
-    required this.modifier,
-    required this.name,
-  }) {
-    _becomeParentOf<SimpleIdentifierImpl>(name);
-  }
-
-  @override
-  Token get beginToken => modifier ?? name.beginToken;
-
-  @override
-  Token get endToken => name.endToken;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('modifier', modifier)
-    ..addNode('name', name);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitShowHideElement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    name.accept(visitor);
   }
 }
 

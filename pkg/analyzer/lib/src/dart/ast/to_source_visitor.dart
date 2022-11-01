@@ -432,8 +432,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.onKeyword);
     sink.write(' ');
     _visitNode(node.extendedType, suffix: ' ');
-    _visitNode(node.showClause, suffix: ' ');
-    _visitNode(node.hideClause, suffix: ' ');
     _visitToken(node.leftBracket);
     _visitNodeList(node.members, separator: ' ');
     _visitToken(node.rightBracket);
@@ -654,12 +652,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(' = ');
     _visitNode(node.type);
     sink.write(';');
-  }
-
-  @override
-  void visitHideClause(HideClause node) {
-    sink.write('hide ');
-    _visitNodeList(node.elements, separator: ', ');
   }
 
   @override
@@ -1135,21 +1127,9 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitShowClause(ShowClause node) {
-    sink.write('show ');
-    _visitNodeList(node.elements, separator: ', ');
-  }
-
-  @override
   void visitShowCombinator(ShowCombinator node) {
     sink.write('show ');
     _visitNodeList(node.shownNames, separator: ', ');
-  }
-
-  @override
-  void visitShowHideElement(ShowHideElement node) {
-    _visitToken(node.modifier, suffix: ' ');
-    _visitNode(node.name);
   }
 
   @override

@@ -1496,9 +1496,6 @@ class AstBuilder extends StackListener {
       );
     }
 
-    final showClause = pop(NullValue.ShowClause) as ShowClauseImpl?;
-    final hideClause = pop(NullValue.HideClause) as HideClauseImpl?;
-
     final type = pop() as TypeAnnotationImpl;
 
     declarations.add(
@@ -1506,8 +1503,6 @@ class AstBuilder extends StackListener {
         extendedType: type,
         onKeyword: onKeyword,
         typeKeyword: typeKeyword,
-        showClause: showClause,
-        hideClause: hideClause,
       ),
     );
 
@@ -3838,35 +3833,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    assert(optionalOrNull('hide', hideKeyword));
-    assert(optionalOrNull('show', showKeyword));
-    debugEvent("ExtensionShowHide");
-
-    HideClause? hideClause;
-    if (hideKeyword != null) {
-      var elements = popTypedList2<ShowHideClauseElement>(hideElementCount);
-      hideClause = HideClauseImpl(
-        hideKeyword: hideKeyword,
-        elements: elements,
-      );
-    }
-
-    ShowClause? showClause;
-    if (showKeyword != null) {
-      var elements = popTypedList2<ShowHideClauseElement>(showElementCount);
-      showClause = ShowClauseImpl(
-        showKeyword: showKeyword,
-        elements: elements,
-      );
-    }
-
-    push(hideClause ?? NullValue.HideClause);
-    push(showClause ?? NullValue.ShowClause);
-  }
-
-  @override
   void handleExtractorPattern(
       Token firstIdentifierToken, Token? dot, Token? secondIdentifierToken) {
     debugEvent("ExtractorPattern");
@@ -4887,24 +4853,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    debugEvent("handleShowHideIdentifier");
-
-    assert(modifier == null ||
-        modifier.stringValue! == "get" ||
-        modifier.stringValue! == "set" ||
-        modifier.stringValue! == "operator");
-
-    var name = ast.simpleIdentifier(identifier);
-    ShowHideElement element = ShowHideElementImpl(
-      modifier: modifier,
-      name: name,
-    );
-
-    push(element);
-  }
-
-  @override
   void handleSpreadExpression(Token spreadToken) {
     var expression = pop() as ExpressionImpl;
     push(
@@ -5461,8 +5409,6 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
   ExtensionDeclarationImpl build({
     required Token? typeKeyword,
-    required HideClauseImpl? hideClause,
-    required ShowClauseImpl? showClause,
     required Token onKeyword,
     required TypeAnnotationImpl extendedType,
   }) {
@@ -5475,8 +5421,6 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       typeParameters: typeParameters,
       onKeyword: onKeyword,
       extendedType: extendedType,
-      showClause: showClause,
-      hideClause: hideClause,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,

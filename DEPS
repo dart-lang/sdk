@@ -123,7 +123,7 @@ vars = {
   "dart_style_rev": "f79a9828ad07e50d6e8352ac154cc16eb4d78d5c", # manually rev'd
 
   "dartdoc_rev": "3273437229b89289534edd3b15934ac75921fa6b",
-  "devtools_rev": "b21cd59f1f6bb60cacd59ba39e376d2a50d82f74",
+  "devtools_rev": "23444af89d716818f099974df3e4fffac87fd886",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
   "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",
@@ -139,7 +139,7 @@ vars = {
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
   "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
-  "markdown_rev": "49eefd211e7840bac7e11257cd966435ae3cb07f",
+  "markdown_rev": "f3873403f5b1a0319f78632a8fbc2b22315a7b83", # b/256680494
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
   "mime_rev": "bf041aa372a27aae6f94e185aa0af3932b9de98b",
