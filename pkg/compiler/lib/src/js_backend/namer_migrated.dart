@@ -5,6 +5,7 @@
 import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../js_backend/native_data.dart';
+import '../universe/call_structure.dart' show CallStructure;
 
 /// Returns a unique suffix for an intercepted accesses to [classes]. This is
 /// used as the suffix for emitted interceptor methods and as the unique key
@@ -38,6 +39,27 @@ String suffixForGetInterceptor(CommonElements commonElements,
   return names.join();
 }
 
+/// The suffix list for the pattern:
+///
+///     $<T>$<N>$namedParam1...$namedParam<M>
+///
+/// Where <T> is the number of type arguments, <N> is the number of positional
+/// arguments and <M> is the number of named arguments.
+///
+/// If there are no type arguments the `$<T>` is omitted.
+///
+/// This is used for the annotated names of `call`, and for the proposed name
+/// for other instance methods.
+List<String> callSuffixForStructure(CallStructure callStructure) {
+  List<String> suffixes = [];
+  if (callStructure.typeArgumentCount > 0) {
+    suffixes.add('${callStructure.typeArgumentCount}');
+  }
+  suffixes.add('${callStructure.argumentCount}');
+  suffixes.addAll(callStructure.getOrderedNamedArguments());
+  return suffixes;
+}
+
 /// Fixed names usage by the namer.
 class FixedNames {
   const FixedNames();
@@ -53,6 +75,30 @@ class FixedNames {
   String get operatorSignature => r'$signature';
   String get requiredParameterField => r'$requiredArgCount';
   String get rtiName => r'$ti';
+}
+
+/// Minified version of the fixed names usage by the namer.
+// TODO(johnniwinther): This should implement [FixedNames] and minify all fixed
+// names.
+class MinifiedFixedNames extends FixedNames {
+  const MinifiedFixedNames();
+
+  @override
+  String get getterPrefix => 'g';
+  @override
+  String get setterPrefix => 's';
+  @override
+  String get callPrefix => ''; // this will create function names $<n>
+  @override
+  String get operatorIsPrefix => r'$i';
+  @override
+  String get callCatchAllName => r'$C';
+  @override
+  String get requiredParameterField => r'$R';
+  @override
+  String get defaultValuesField => r'$D';
+  @override
+  String get operatorSignature => r'$S';
 }
 
 String? operatorNameToIdentifier(String? name) {

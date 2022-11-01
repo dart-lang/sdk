@@ -25,6 +25,7 @@ abstract class CodeEmitterTask {
 abstract class NativeEmitter {
   Map<ClassEntity, List<ClassEntity>> get subtypes;
   Map<ClassEntity, List<ClassEntity>> get directSubtypes;
+  Set<FunctionEntity> get nativeMethods;
 }
 
 abstract class ModularEmitter {

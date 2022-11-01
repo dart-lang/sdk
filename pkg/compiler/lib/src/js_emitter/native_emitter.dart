@@ -38,6 +38,7 @@ class NativeEmitter implements interfaces.NativeEmitter {
   Map<ClassEntity, List<ClassEntity>> directSubtypes = {};
 
   // Caches the methods that have a native body.
+  @override
   Set<FunctionEntity> nativeMethods = {};
 
   // Type metadata redirections, where the key is the class type data being

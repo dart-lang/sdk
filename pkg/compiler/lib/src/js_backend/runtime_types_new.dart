@@ -16,7 +16,7 @@ import '../js/js.dart' show js;
 import '../js_model/type_recipe.dart';
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../world.dart';
-import 'namer.dart';
+import 'namer.dart' show StringBackedName;
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
 import 'runtime_types_new_interfaces.dart' as interfaces;

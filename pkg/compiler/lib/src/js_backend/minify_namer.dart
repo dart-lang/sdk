@@ -418,7 +418,7 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
             ? r"$set"
             : "";
     String callSuffix = selector.isCall
-        ? Namer.callSuffixForStructure(selector.callStructure).join()
+        ? callSuffixForStructure(selector.callStructure).join()
         : "";
     String suffix =
         suffixForGetInterceptor(_commonElements, _nativeData, classes);

@@ -30,7 +30,6 @@ import '../js/js.dart' as jsAst;
 import '../js_backend/field_analysis.dart';
 import '../js_model/closure.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
@@ -39,7 +38,8 @@ import 'native_data.dart';
 import 'namer_interfaces.dart' as interfaces;
 import 'namer_migrated.dart';
 
-export 'namer_migrated.dart' show suffixForGetInterceptor;
+export 'namer_migrated.dart'
+    show suffixForGetInterceptor, callSuffixForStructure;
 
 part 'field_naming_mixin.dart';
 part 'frequency_namer.dart';
@@ -614,6 +614,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
   /// Disambiguated name for [constant].
   ///
   /// Unique within the global-member namespace.
+  @override
   jsAst.Name constantName(ConstantValue constant) {
     // In the current implementation it doesn't make sense to give names to
     // function constants since the function-implementation itself serves as
@@ -734,27 +735,6 @@ class Namer extends ModularNamer implements interfaces.Namer {
 
   /// The suffix list for the pattern:
   ///
-  ///     $<T>$<N>$namedParam1...$namedParam<M>
-  ///
-  /// Where <T> is the number of type arguments, <N> is the number of positional
-  /// arguments and <M> is the number of named arguments.
-  ///
-  /// If there are no type arguments the `$<T>` is omitted.
-  ///
-  /// This is used for the annotated names of `call`, and for the proposed name
-  /// for other instance methods.
-  static List<String> callSuffixForStructure(CallStructure callStructure) {
-    List<String> suffixes = [];
-    if (callStructure.typeArgumentCount > 0) {
-      suffixes.add('${callStructure.typeArgumentCount}');
-    }
-    suffixes.add('${callStructure.argumentCount}');
-    suffixes.addAll(callStructure.getOrderedNamedArguments());
-    return suffixes;
-  }
-
-  /// The suffix list for the pattern:
-  ///
   ///     $<N>$namedParam1...$namedParam<M>
   ///
   /// This is used for the annotated names of `call`, and for the proposed name
@@ -820,6 +800,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
 
   /// Returns the disambiguated name for the given field, used for constructing
   /// the getter and setter names.
+  @override
   jsAst.Name fieldAccessorName(FieldEntity element) {
     assert(element.isInstanceMember, '$element');
     return _disambiguateMember(element.memberName);
@@ -931,6 +912,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
   }
 
   /// Annotated name for the setter of [element].
+  @override
   jsAst.Name setterForMember(MemberEntity element) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
@@ -966,6 +948,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
   }
 
   /// Property name for the getter of an instance member with [originalName].
+  @override
   jsAst.Name getterForMember(Name originalName) {
     jsAst.Name disambiguatedName = _disambiguateMember(originalName);
     return deriveGetterName(disambiguatedName);
@@ -2030,30 +2013,6 @@ class NamingScope {
   }
 }
 
-/// Minified version of the fixed names usage by the namer.
-// TODO(johnniwinther): This should implement [FixedNames] and minify all fixed
-// names.
-class MinifiedFixedNames extends FixedNames {
-  const MinifiedFixedNames();
-
-  @override
-  String get getterPrefix => 'g';
-  @override
-  String get setterPrefix => 's';
-  @override
-  String get callPrefix => ''; // this will create function names $<n>
-  @override
-  String get operatorIsPrefix => r'$i';
-  @override
-  String get callCatchAllName => r'$C';
-  @override
-  String get requiredParameterField => r'$R';
-  @override
-  String get defaultValuesField => r'$D';
-  @override
-  String get operatorSignature => r'$S';
-}
-
 /// Namer interface that can be used in modular code generation.
 abstract class ModularNamer implements interfaces.ModularNamer {
   FixedNames get fixedNames;
@@ -2080,12 +2039,14 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   /// Returns a variable use for accessing the class [element].
   ///
   /// This is one of the [reservedGlobalObjectNames]
+  @override
   jsAst.Expression readGlobalObjectForClass(ClassEntity element) {
     return DeferredHolderExpression(
         DeferredHolderExpressionKind.globalObjectForClass, element);
   }
 
   /// Returns a variable use for accessing the member [element].
+  @override
   jsAst.Expression readGlobalObjectForMember(MemberEntity element) {
     return DeferredHolderExpression(
         DeferredHolderExpressionKind.globalObjectForMember, element);
@@ -2096,6 +2057,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///
   /// Should be used together with [globalObjectForClass], which denotes the
   /// object on which the returned property name should be used.
+  @override
   jsAst.Name globalPropertyNameForClass(ClassEntity element);
 
   /// Returns a JavaScript property name used to store the member [element] on
@@ -2103,6 +2065,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///
   /// Should be used together with [globalObjectForMember], which denotes the
   /// object on which the returned property name should be used.
+  @override
   jsAst.Name globalPropertyNameForMember(MemberEntity element);
 
   /// Returns a name, the string of which is a globally unique key distinct from
@@ -2110,6 +2073,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///
   /// The name is not necessarily a valid JavaScript identifier, so it needs to
   /// be quoted.
+  @override
   jsAst.Name globalNameForInterfaceTypeVariable(
       TypeVariableEntity typeVariable);
 
@@ -2181,22 +2145,27 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   ///
   /// The name is not necessarily unique to [method], since a static method
   /// may share its name with an instance method.
+  @override
   jsAst.Name methodPropertyName(FunctionEntity method);
 
   /// Returns the name of the `isX` property for classes that implement
   /// [element].
+  @override
   jsAst.Name operatorIs(ClassEntity element);
 
   /// Returns the name of the lazy initializer for the static field [element].
+  @override
   jsAst.Name lazyInitializerName(FieldEntity element);
 
   /// Returns the name of the closure of the static method [element].
+  @override
   jsAst.Name staticClosureName(FunctionEntity element);
 
   /// Returns the disambiguated name of [class_].
   ///
   /// This is both the *runtime type* of the class and a global property name in
   /// which to store its JS constructor.
+  @override
   jsAst.Name className(ClassEntity class_);
 
   /// The prefix used for encoding async properties.
@@ -2214,12 +2183,14 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   /// names returned from there.
   /// Additionally, when used as a prefix to a variable name, the result
   /// will be safe to use, as well.
+  @override
   String safeVariablePrefixForAsyncRewrite(String name) {
     return "$asyncPrefix$name";
   }
 
   /// Returns the name for the async body of the method with the [original]
   /// name.
+  @override
   jsAst.Name deriveAsyncBodyName(jsAst.Name original) {
     return AsyncName(_literalAsyncPrefix, original);
   }

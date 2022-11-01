@@ -35,7 +35,7 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/namer.dart' show ModularNamer;
+import '../js_backend/namer_interfaces.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
