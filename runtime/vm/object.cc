@@ -10073,6 +10073,9 @@ static void FunctionPrintNameHelper(const Function& fun,
       printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
     } else {
       printer->AddString(fun.NameCString(params.name_visibility));
+      if (params.disambiguate_names) {
+        printer->Printf("@<%" Pd ">", fun.token_pos().Pos());
+      }
     }
     return;
   }
