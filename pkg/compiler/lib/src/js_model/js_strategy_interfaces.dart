@@ -12,6 +12,7 @@ import '../js_backend/inferred_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/interfaces.dart' show CodeEmitterTask;
 import '../native/enqueue.dart';
+import '../serialization/serialization.dart';
 import '../world_interfaces.dart';
 import 'locals.dart';
 
@@ -28,4 +29,6 @@ abstract class JsBackendStrategy {
   SourceInformationStrategy get sourceInformationStrategy;
   CustomElementsCodegenAnalysis get customElementsCodegenAnalysis;
   Map<MemberEntity, js.Expression> get generatedCode;
+  void prepareCodegenReader(DataSourceReader source);
+  EntityWriter forEachCodegenMember(void Function(MemberEntity member) f);
 }

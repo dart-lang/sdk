@@ -421,6 +421,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Prepare [source] to deserialize modular code generation data.
+  @override
   void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
@@ -434,6 +435,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   ///
   /// The needed members include members computed on demand during non-modular
   /// code generation, such as constructor bodies and and generator bodies.
+  @override
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
     ClosedEntityWriter entityWriter = ClosedEntityWriter(earlyMemberIndexLimit);

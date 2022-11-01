@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../js/js.dart' as js;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
+import '../js/js.dart' as js;
 import '../native/behavior.dart';
+import '../serialization/serialization.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -56,4 +57,6 @@ abstract class CodegenRegistry {
 
 abstract class ModularExpression {}
 
-abstract class CodegenResult {}
+abstract class CodegenResult {
+  void writeToDataSink(DataSinkWriter sink);
+}

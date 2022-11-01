@@ -8,7 +8,6 @@ library dart2js.common.codegen;
 
 import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 
-import '../common.dart';
 import '../common/elements.dart';
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
@@ -439,13 +438,6 @@ class CodegenRegistry implements interfaces.CodegenRegistry {
   }
 }
 
-/// Interface for reading the code generation results for all [MemberEntity]s.
-abstract class CodegenResults {
-  GlobalTypeInferenceResults get globalTypeInferenceResults;
-  CodegenInputs get codegenInputs;
-  CodegenResult getCodegenResults(MemberEntity member);
-}
-
 /// Code generation results computed on-demand.
 ///
 /// This is used in the non-modular codegen enqueuer driving code generation.
@@ -462,31 +454,6 @@ class OnDemandCodegenResults extends CodegenResults {
   @override
   CodegenResult getCodegenResults(MemberEntity member) {
     return _functionCompiler.compile(member);
-  }
-}
-
-/// Deserialized code generation results.
-///
-/// This is used for modular code generation.
-class DeserializedCodegenResults extends CodegenResults {
-  @override
-  final GlobalTypeInferenceResults globalTypeInferenceResults;
-  @override
-  final CodegenInputs codegenInputs;
-
-  final Map<MemberEntity, CodegenResult> _map;
-
-  DeserializedCodegenResults(
-      this.globalTypeInferenceResults, this.codegenInputs, this._map);
-
-  @override
-  CodegenResult getCodegenResults(MemberEntity member) {
-    CodegenResult result = _map[member];
-    if (result == null) {
-      failedAt(member,
-          "No codegen results from $member (${identityHashCode(member)}).");
-    }
-    return result;
   }
 }
 
@@ -528,6 +495,7 @@ class CodegenResult implements interfaces.CodegenResult {
   /// The [modularNames] and [modularExpressions] fields are not directly
   /// serializes because these are embedded in the [code] node and collected
   /// through this during deserialization.
+  @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeJsNodeOrNull(code);

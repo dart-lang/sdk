@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../elements/entities.dart';
+import '../inferrer/types.dart';
 import '../js/js.dart' as js;
+import '../js_backend/codegen_inputs.dart';
+import '../js_backend/namer_migrated.dart' show operatorNameToIdentifier;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../util/util.dart';
-import '../js_backend/namer_migrated.dart' show operatorNameToIdentifier;
+
+import 'codegen_interfaces.dart' as interfaces;
 
 enum ModularNameKind {
   rtiField,
@@ -270,5 +274,32 @@ class ModularName extends js.Name implements js.AstContainer {
       ...selector.callStructure.getOrderedNamedArguments()
     ];
     return parts.join(r'$');
+  }
+}
+
+/// Interface for reading the code generation results for all [MemberEntity]s.
+abstract class CodegenResults {
+  GlobalTypeInferenceResults get globalTypeInferenceResults;
+  CodegenInputs get codegenInputs;
+  interfaces.CodegenResult getCodegenResults(MemberEntity member);
+}
+
+/// Deserialized code generation results.
+///
+/// This is used for modular code generation.
+class DeserializedCodegenResults extends CodegenResults {
+  @override
+  final GlobalTypeInferenceResults globalTypeInferenceResults;
+  @override
+  final CodegenInputs codegenInputs;
+
+  final Map<MemberEntity, interfaces.CodegenResult> _map;
+
+  DeserializedCodegenResults(
+      this.globalTypeInferenceResults, this.codegenInputs, this._map);
+
+  @override
+  interfaces.CodegenResult getCodegenResults(MemberEntity member) {
+    return _map[member]!;
   }
 }
