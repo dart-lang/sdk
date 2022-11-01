@@ -766,13 +766,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitHideClause(HideClause node) {
-    HideClause other = _other as HideClause;
-    return isEqualTokens(node.hideKeyword, other.hideKeyword) &&
-        _isEqualNodeLists(node.elements, other.elements);
-  }
-
-  @override
   bool visitHideCombinator(HideCombinator node) {
     HideCombinator other = _other as HideCombinator;
     return isEqualTokens(node.keyword, other.keyword) &&
@@ -1275,24 +1268,10 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitShowClause(ShowClause node) {
-    ShowClause other = _other as ShowClause;
-    return isEqualTokens(node.showKeyword, other.showKeyword) &&
-        _isEqualNodeLists(node.elements, other.elements);
-  }
-
-  @override
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator other = _other as ShowCombinator;
     return isEqualTokens(node.keyword, other.keyword) &&
         _isEqualNodeLists(node.shownNames, other.shownNames);
-  }
-
-  @override
-  bool visitShowHideElement(ShowHideElement node) {
-    ShowHideElement other = _other as ShowHideElement;
-    return isEqualTokens(node.modifier, other.modifier) &&
-        isEqualNodes(node.name, other.name);
   }
 
   @override
@@ -2717,14 +2696,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitHideClause(covariant HideClauseImpl node) {
-    if (_replaceInList(node.elements)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitHideCombinator(covariant HideCombinatorImpl node) {
     if (_replaceInList(node.hiddenNames)) {
       return true;
@@ -3194,25 +3165,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitShowClause(covariant ShowClauseImpl node) {
-    if (_replaceInList(node.elements)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitShowCombinator(covariant ShowCombinatorImpl node) {
     if (_replaceInList(node.shownNames)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitShowHideElement(covariant ShowHideElementImpl node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);

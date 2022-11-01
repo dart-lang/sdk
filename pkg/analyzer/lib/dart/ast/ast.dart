@@ -493,8 +493,6 @@ abstract class AstVisitor<R> {
 
   R? visitGenericTypeAlias(GenericTypeAlias node);
 
-  R? visitHideClause(HideClause node);
-
   R? visitHideCombinator(HideCombinator node);
 
   R? visitIfElement(IfElement node);
@@ -614,11 +612,7 @@ abstract class AstVisitor<R> {
 
   R? visitSetOrMapLiteral(SetOrMapLiteral node);
 
-  R? visitShowClause(ShowClause node);
-
   R? visitShowCombinator(ShowCombinator node);
-
-  R? visitShowHideElement(ShowHideElement node);
 
   R? visitSimpleFormalParameter(SimpleFormalParameter node);
 
@@ -2101,10 +2095,6 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
   /// Return the token representing the 'extension' keyword.
   Token get extensionKeyword;
 
-  /// Return the hide clause, or `null` if the extension does not have a hide
-  /// clause.
-  HideClause? get hideClause;
-
   /// Return the left curly bracket.
   Token get leftBracket;
 
@@ -2125,10 +2115,6 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 
   /// Return the right curly bracket.
   Token get rightBracket;
-
-  /// Return the show clause, or `null` if the extension does not have a show
-  /// clause.
-  ShowClause? get showClause;
 
   /// Return the token representing the 'type' keyword.
   Token? get typeKeyword;
@@ -2914,20 +2900,6 @@ abstract class GenericTypeAlias implements TypeAlias {
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
   TypeParameterList? get typeParameters;
-}
-
-/// The "hide" clause in an extension declaration.
-///
-///    hideClause ::=
-///        'hide' [TypeName] (',' [TypeName])*
-///
-///  Clients may not extend, implement or mix-in this class.
-abstract class HideClause implements AstNode {
-  /// Return the list of the elements that are being shown.
-  NodeList<ShowHideClauseElement> get elements;
-
-  /// Return the token representing the 'hide' keyword.
-  Token get hideKeyword;
 }
 
 /// A combinator that restricts the names being imported to those that are not
@@ -3832,7 +3804,7 @@ abstract class NamedExpression implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamedType implements TypeAnnotation, ShowHideClauseElement {
+abstract class NamedType implements TypeAnnotation {
   /// Return `true` if this type is a deferred type.
   ///
   /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
@@ -4589,20 +4561,6 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   Token get rightBracket;
 }
 
-/// The "show" clause in an extension declaration.
-///
-///    showClause ::=
-///        'show' [TypeName] (',' [TypeName])*
-///
-///  Clients may not extend, implement or mix-in this class.
-abstract class ShowClause implements AstNode {
-  /// Return the list of the elements that are being shown.
-  NodeList<ShowHideClauseElement> get elements;
-
-  /// Return the token representing the 'show' keyword.
-  Token get showKeyword;
-}
-
 /// A combinator that restricts the names being imported to those in a given list.
 ///
 ///    showCombinator ::=
@@ -4613,29 +4571,6 @@ abstract class ShowCombinator implements Combinator {
   /// Return the list of names from the library that are made visible by this
   /// combinator.
   NodeList<SimpleIdentifier> get shownNames;
-}
-
-/// A node that can appear in the show or hide clauses.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ShowHideClauseElement implements AstNode {}
-
-/// A potentially non-type element of a show or a hide clause.
-///
-///    showHideElement ::=
-///        'get' [SimpleIdentifier] |
-///        'set' [SimpleIdentifier] |
-///        'operator' [SimpleIdentifier] |
-///        [SimpleIdentifier]
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ShowHideElement implements AstNode, ShowHideClauseElement {
-  /// Return the 'get', 'set', or 'operator' modifier that appears before the
-  /// name, or `null` if there is no modifier.
-  Token? get modifier;
-
-  /// Return the name of the member the element refers to.
-  SimpleIdentifier get name;
 }
 
 /// A simple formal parameter.
