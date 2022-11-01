@@ -15,8 +15,7 @@ import '../constants/values.dart'
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/util.dart';
-import '../kernel/element_map_interfaces.dart'
-    show KernelToElementMapForDeferredLoading;
+import '../kernel/element_map.dart';
 import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
 import '../universe/use.dart';
@@ -24,7 +23,6 @@ import '../universe/world_impact.dart' show WorldImpact;
 
 // TODO(48820): delete typedef after the migration is complete.
 typedef Compiler = CompilerDeferredLoadingFacade;
-typedef KernelToElementMap = KernelToElementMapForDeferredLoading;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].

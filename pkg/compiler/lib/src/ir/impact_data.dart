@@ -11,8 +11,7 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/scope.dart';
-import '../kernel/element_map_interfaces.dart'
-    show KernelToElementMapForImpactData;
+import '../kernel/element_map.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
@@ -26,7 +25,7 @@ import 'util.dart';
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   final ImpactData _data = ImpactData();
-  final KernelToElementMapForImpactData _elementMap;
+  final KernelToElementMap _elementMap;
 
   // Note: this may be null for builders associated with abstract methods.
   final VariableScopeModel? _variableScopeModel;
