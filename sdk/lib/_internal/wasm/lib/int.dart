@@ -143,7 +143,7 @@ class _BoxedInt implements int {
       } else {
         // If abs(other) > MAX_EXACT_INT_TO_DOUBLE, then other has an integer
         // value (no bits below the decimal point).
-        other = other.toInt();
+        other = _BoxedDouble._toInt(other);
       }
     }
     if (this < other) {
