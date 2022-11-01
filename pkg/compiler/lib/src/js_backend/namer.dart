@@ -1688,6 +1688,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
   }
 
   /// Returns a variable use for accessing static state.
+  @override
   jsAst.Expression globalObjectForStaticState() {
     return DeferredHolderExpression.forStaticState();
   }

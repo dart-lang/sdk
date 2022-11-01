@@ -16,10 +16,10 @@ import '../js_backend/field_analysis.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_backend/string_reference.dart'
     show StringReference, StringReferencePolicy;
-import '../js_emitter/code_emitter_task.dart';
+import '../js_emitter/interfaces.dart' show Emitter;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
-import 'namer.dart';
+import 'namer_interfaces.dart';
 import 'runtime_types_new_interfaces.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
 

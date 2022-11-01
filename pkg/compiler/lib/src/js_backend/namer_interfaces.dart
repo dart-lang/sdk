@@ -42,6 +42,7 @@ abstract class ModularNamer {
   jsAst.Name globalPropertyNameForMember(MemberEntity element);
   jsAst.Name globalNameForInterfaceTypeVariable(
       TypeVariableEntity typeVariable);
+  jsAst.Expression globalObjectForStaticState();
   String safeVariablePrefixForAsyncRewrite(String name);
   jsAst.Name deriveAsyncBodyName(jsAst.Name original);
 }
