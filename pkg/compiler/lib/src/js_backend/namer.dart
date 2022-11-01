@@ -13,7 +13,8 @@ import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/codegen.dart';
+import '../common/codegen_interfaces.dart';
+import '../common/codegen_migrated.dart';
 import '../common/elements.dart' show JElementEnvironment;
 import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/constant_system.dart' as constant_system;
@@ -1434,55 +1435,6 @@ class Namer extends ModularNamer {
     return StringBackedName(name);
   }
 
-  static String operatorNameToIdentifier(String name) {
-    if (name == null) return null;
-    if (name == '==') {
-      return r'$eq';
-    } else if (name == '~') {
-      return r'$not';
-    } else if (name == '[]') {
-      return r'$index';
-    } else if (name == '[]=') {
-      return r'$indexSet';
-    } else if (name == '*') {
-      return r'$mul';
-    } else if (name == '/') {
-      return r'$div';
-    } else if (name == '%') {
-      return r'$mod';
-    } else if (name == '~/') {
-      return r'$tdiv';
-    } else if (name == '+') {
-      return r'$add';
-    } else if (name == '<<') {
-      return r'$shl';
-    } else if (name == '>>') {
-      return r'$shr';
-    } else if (name == '>>>') {
-      return r'$shru';
-    } else if (name == '>=') {
-      return r'$ge';
-    } else if (name == '>') {
-      return r'$gt';
-    } else if (name == '<=') {
-      return r'$le';
-    } else if (name == '<') {
-      return r'$lt';
-    } else if (name == '&') {
-      return r'$and';
-    } else if (name == '^') {
-      return r'$xor';
-    } else if (name == '|') {
-      return r'$or';
-    } else if (name == '-') {
-      return r'$sub';
-    } else if (name == 'unary-') {
-      return r'$negate';
-    } else {
-      return name;
-    }
-  }
-
   String getTypeRepresentationForTypeConstant(DartType type) =>
       _typeConstantRepresenter.visit(type, null);
 }
@@ -2417,79 +2369,77 @@ class ModularNamerImpl extends ModularNamer {
 
   @override
   jsAst.Name get rtiFieldJsName {
-    jsAst.Name name = ModularName(ModularNameKind.rtiField);
+    final name = ModularName(ModularNameKind.rtiField);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name className(ClassEntity element) {
-    jsAst.Name name = ModularName(ModularNameKind.className, data: element);
+    final name = ModularName(ModularNameKind.className, data: element);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
-    jsAst.Name name =
-        ModularName(ModularNameKind.aliasedSuperMember, data: member);
+    final name = ModularName(ModularNameKind.aliasedSuperMember, data: member);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name staticClosureName(FunctionEntity element) {
-    jsAst.Name name = ModularName(ModularNameKind.staticClosure, data: element);
+    final name = ModularName(ModularNameKind.staticClosure, data: element);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name methodPropertyName(FunctionEntity method) {
-    jsAst.Name name = ModularName(ModularNameKind.methodProperty, data: method);
+    final name = ModularName(ModularNameKind.methodProperty, data: method);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
-    jsAst.Name name = ModularName(ModularNameKind.instanceField, data: element);
+    final name = ModularName(ModularNameKind.instanceField, data: element);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name instanceMethodName(FunctionEntity method) {
-    jsAst.Name name = ModularName(ModularNameKind.instanceMethod, data: method);
+    final name = ModularName(ModularNameKind.instanceMethod, data: method);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name invocationName(Selector selector) {
-    jsAst.Name name = ModularName(ModularNameKind.invocation, data: selector);
+    final name = ModularName(ModularNameKind.invocation, data: selector);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name lazyInitializerName(FieldEntity element) {
-    jsAst.Name name =
-        ModularName(ModularNameKind.lazyInitializer, data: element);
+    final name = ModularName(ModularNameKind.lazyInitializer, data: element);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name operatorIs(ClassEntity element) {
-    jsAst.Name name = ModularName(ModularNameKind.operatorIs, data: element);
+    final name = ModularName(ModularNameKind.operatorIs, data: element);
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   jsAst.Name globalPropertyNameForClass(ClassEntity element) {
-    jsAst.Name name =
+    final name =
         ModularName(ModularNameKind.globalPropertyNameForClass, data: element);
     _registry.registerModularName(name);
     return name;
@@ -2497,7 +2447,7 @@ class ModularNamerImpl extends ModularNamer {
 
   @override
   jsAst.Name globalPropertyNameForMember(MemberEntity element) {
-    jsAst.Name name =
+    final name =
         ModularName(ModularNameKind.globalPropertyNameForMember, data: element);
     _registry.registerModularName(name);
     return name;
@@ -2505,8 +2455,7 @@ class ModularNamerImpl extends ModularNamer {
 
   @override
   jsAst.Name globalNameForInterfaceTypeVariable(TypeVariableEntity element) {
-    jsAst.Name name = ModularName(
-        ModularNameKind.globalNameForInterfaceTypeVariable,
+    final name = ModularName(ModularNameKind.globalNameForInterfaceTypeVariable,
         data: element);
     _registry.registerModularName(name);
     return name;
@@ -2514,7 +2463,7 @@ class ModularNamerImpl extends ModularNamer {
 
   @override
   jsAst.Name nameForGetInterceptor(Set<ClassEntity> classes) {
-    jsAst.Name name =
+    final name =
         ModularName(ModularNameKind.nameForGetInterceptor, set: classes);
     _registry.registerModularName(name);
     return name;
@@ -2523,7 +2472,7 @@ class ModularNamerImpl extends ModularNamer {
   @override
   jsAst.Name nameForOneShotInterceptor(
       Selector selector, Set<ClassEntity> classes) {
-    jsAst.Name name = ModularName(ModularNameKind.nameForOneShotInterceptor,
+    final name = ModularName(ModularNameKind.nameForOneShotInterceptor,
         data: selector, set: classes);
     _registry.registerModularName(name);
     return name;
@@ -2531,7 +2480,7 @@ class ModularNamerImpl extends ModularNamer {
 
   @override
   jsAst.Name asName(String text) {
-    jsAst.Name name = ModularName(ModularNameKind.asName, data: text);
+    final name = ModularName(ModularNameKind.asName, data: text);
     _registry.registerModularName(name);
     return name;
   }

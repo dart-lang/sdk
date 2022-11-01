@@ -10,6 +10,8 @@ import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 
+import 'codegen_migrated.dart';
+
 abstract class CodegenRegistry {
   @deprecated
   void registerInstantiatedClass(ClassEntity element);
@@ -53,7 +55,5 @@ abstract class CodegenRegistry {
 }
 
 abstract class ModularExpression {}
-
-abstract class ModularName {}
 
 abstract class CodegenResult {}

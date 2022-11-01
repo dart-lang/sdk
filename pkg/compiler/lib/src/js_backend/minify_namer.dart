@@ -410,7 +410,7 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
   jsAst.Name nameForOneShotInterceptor(
       Selector selector, Iterable<ClassEntity> classes) {
     String root = selector.isOperator
-        ? Namer.operatorNameToIdentifier(selector.name)
+        ? operatorNameToIdentifier(selector.name)
         : privateName(selector.memberName);
     String prefix = selector.isGetter
         ? r"$get"

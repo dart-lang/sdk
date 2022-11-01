@@ -54,3 +54,52 @@ class FixedNames {
   String get requiredParameterField => r'$requiredArgCount';
   String get rtiName => r'$ti';
 }
+
+String? operatorNameToIdentifier(String? name) {
+  if (name == null) return null;
+  if (name == '==') {
+    return r'$eq';
+  } else if (name == '~') {
+    return r'$not';
+  } else if (name == '[]') {
+    return r'$index';
+  } else if (name == '[]=') {
+    return r'$indexSet';
+  } else if (name == '*') {
+    return r'$mul';
+  } else if (name == '/') {
+    return r'$div';
+  } else if (name == '%') {
+    return r'$mod';
+  } else if (name == '~/') {
+    return r'$tdiv';
+  } else if (name == '+') {
+    return r'$add';
+  } else if (name == '<<') {
+    return r'$shl';
+  } else if (name == '>>') {
+    return r'$shr';
+  } else if (name == '>>>') {
+    return r'$shru';
+  } else if (name == '>=') {
+    return r'$ge';
+  } else if (name == '>') {
+    return r'$gt';
+  } else if (name == '<=') {
+    return r'$le';
+  } else if (name == '<') {
+    return r'$lt';
+  } else if (name == '&') {
+    return r'$and';
+  } else if (name == '^') {
+    return r'$xor';
+  } else if (name == '|') {
+    return r'$or';
+  } else if (name == '-') {
+    return r'$sub';
+  } else if (name == 'unary-') {
+    return r'$negate';
+  } else {
+    return name;
+  }
+}
