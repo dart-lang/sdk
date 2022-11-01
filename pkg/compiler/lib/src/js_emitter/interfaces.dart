@@ -26,6 +26,13 @@ abstract class NativeEmitter {
   Map<ClassEntity, List<ClassEntity>> get subtypes;
   Map<ClassEntity, List<ClassEntity>> get directSubtypes;
   Set<FunctionEntity> get nativeMethods;
+  List<jsAst.Statement> generateParameterStubStatements(
+      FunctionEntity member,
+      bool isInterceptedMethod,
+      jsAst.Name invocationName,
+      List<jsAst.Parameter> stubParameters,
+      List<jsAst.Expression> argumentsBuffer,
+      int indexOfLastOptionalArgumentInParameters);
 }
 
 abstract class ModularEmitter {

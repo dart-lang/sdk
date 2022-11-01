@@ -26,8 +26,7 @@ import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
-import 'interfaces.dart' show Emitter;
-import 'native_emitter.dart';
+import 'interfaces.dart' show Emitter, NativeEmitter;
 
 class ParameterStubGenerator {
   static final Set<Selector> emptySelectorSet = {};

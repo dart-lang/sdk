@@ -314,6 +314,7 @@ class NativeEmitter implements interfaces.NativeEmitter {
     });
   }
 
+  @override
   List<jsAst.Statement> generateParameterStubStatements(
       FunctionEntity member,
       bool isInterceptedMethod,

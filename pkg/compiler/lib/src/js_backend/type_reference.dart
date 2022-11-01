@@ -69,7 +69,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 import '../common/elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_emitter/code_emitter_task.dart' show Emitter;
+import '../js_emitter/interfaces.dart' show Emitter;
 import '../js_model/type_recipe.dart'
     show
         TypeRecipe,
