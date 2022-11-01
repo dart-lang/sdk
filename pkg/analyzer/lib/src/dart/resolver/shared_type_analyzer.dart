@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:collection/collection.dart';
 
@@ -19,6 +20,19 @@ class SharedTypeAnalyzerErrors
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
+
+  @override
+  void argumentTypeNotAssignable({
+    required Expression argument,
+    required DartType argumentType,
+    required DartType parameterType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      argument,
+      [argumentType, parameterType],
+    );
+  }
 
   @override
   void assertInErrorRecovery() {
@@ -93,6 +107,18 @@ class SharedTypeAnalyzerErrors
   @override
   void refutablePatternInIrrefutableContext(AstNode pattern, AstNode context) {
     throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void relationalPatternOperatorReturnTypeNotAssignableToBool({
+    required covariant RelationalPatternImpl node,
+    required DartType returnType,
+  }) {
+    _errorReporter.reportErrorForToken(
+      CompileTimeErrorCode
+          .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
+      node.operator,
+    );
   }
 
   @override

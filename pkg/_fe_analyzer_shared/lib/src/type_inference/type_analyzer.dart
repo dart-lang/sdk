@@ -22,6 +22,20 @@ class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node> {
   CaseHeadOrDefaultInfo({required this.pattern, this.guard});
 }
 
+/// Information about a relational operator.
+class RelationalOperatorResolution<Type extends Object> {
+  /// Is `true` when the operator is `==` or `!=`.
+  final bool isEquality;
+  final Type parameterType;
+  final Type returnType;
+
+  RelationalOperatorResolution({
+    required this.isEquality,
+    required this.parameterType,
+    required this.returnType,
+  });
+}
+
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
 /// about an individual `case` or `default` clause.
 ///
@@ -517,6 +531,63 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       errors?.assertInErrorRecovery();
       return unknownType;
     }
+  }
+
+  /// Analyzes a relational pattern.  [node] is the pattern itself, [operator]
+  /// is the resolution of the used relational operator, and [operand] is a
+  /// constant expression.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (Expression).
+  void analyzeRelationalPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node,
+      RelationalOperatorResolution<Type>? operator,
+      Expression operand) {
+    // Stack: ()
+    TypeAnalyzerErrors<Node, Node, Expression, Variable, Type>? errors =
+        this.errors;
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null) {
+      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+    }
+    Type operandContext = operator?.parameterType ?? unknownType;
+    Type operandType = analyzeExpression(operand, operandContext);
+    // Stack: (Expression)
+    if (errors != null && operator != null) {
+      Type argumentType = operator.isEquality
+          ? typeOperations.promoteToNonNull(operandType)
+          : operandType;
+      if (!typeOperations.isAssignableTo(
+          argumentType, operator.parameterType)) {
+        errors.argumentTypeNotAssignable(
+          argument: operand,
+          argumentType: argumentType,
+          parameterType: operator.parameterType,
+        );
+      }
+      if (!typeOperations.isAssignableTo(operator.returnType, boolType)) {
+        errors.relationalPatternOperatorReturnTypeNotAssignableToBool(
+          node: node,
+          returnType: operator.returnType,
+        );
+      }
+    }
+  }
+
+  /// Computes the type schema for a relational pattern.
+  ///
+  /// Stack effect: none.
+  Type analyzeRelationalPatternSchema() {
+    // Relational patterns are only allowed in refutable contexts, and refutable
+    // contexts don't propagate a type schema into the scrutinee.  So this
+    // code path is only reachable if the user's code contains errors.
+    errors?.assertInErrorRecovery();
+    return unknownType;
   }
 
   /// Analyzes an expression of the form `switch (expression) { cases }`.
@@ -1021,6 +1092,14 @@ abstract class TypeAnalyzerErrors<
     Expression extends Node,
     Variable extends Object,
     Type extends Object> implements TypeAnalyzerErrorsBase {
+  /// Called if [argument] has type [argumentType], which is not assignable
+  /// to [parameterType].
+  void argumentTypeNotAssignable({
+    required Expression argument,
+    required Type argumentType,
+    required Type parameterType,
+  });
+
   /// Called if pattern support is disabled and a case constant's static type
   /// doesn't properly match the scrutinee's static type.
   void caseExpressionTypeMismatch(
@@ -1088,6 +1167,13 @@ abstract class TypeAnalyzerErrors<
   ///
   /// TODO(paulberry): move this error reporting to the parser.
   void refutablePatternInIrrefutableContext(Node pattern, Node context);
+
+  /// Called if the [returnType] of the invoked relational operator is not
+  /// assignable to `bool`.
+  void relationalPatternOperatorReturnTypeNotAssignableToBool({
+    required Node node,
+    required Type returnType,
+  });
 
   /// Called if one of the case bodies of a switch statement completes normally
   /// (other than the last case body), and the "patterns" feature is not
