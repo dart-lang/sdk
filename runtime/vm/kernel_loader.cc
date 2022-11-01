@@ -209,8 +209,6 @@ KernelLoader::KernelLoader(Program* program,
                        &active_class_,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
-      external_name_class_(Class::Handle(Z)),
-      external_name_field_(Field::Handle(Z)),
       annotation_list_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       static_field_value_(Object::Handle(Z)),
@@ -481,8 +479,6 @@ KernelLoader::KernelLoader(const Script& script,
                        &active_class_,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
-      external_name_class_(Class::Handle(Z)),
-      external_name_field_(Field::Handle(Z)),
       annotation_list_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       static_field_value_(Object::Handle(Z)),
@@ -526,12 +522,10 @@ void KernelLoader::AnnotateProcedures() {
   // Prepare lazy constant reading.
   ConstantReader constant_reader(&helper_, &active_class_);
 
-  // Obtain `dart:_internal::ExternalName.name`.
-  EnsureExternalClassIsLookedUp();
+  // Ensure `pragma` class is available before evaluating the annotations.
   EnsurePragmaClassIsLookedUp();
 
   Instance& constant = Instance::Handle(Z);
-  String& native_name = String::Handle(Z);
   String& pragma_name = String::Handle(Z);
   Object& pragma_options = Object::Handle(Z);
 
@@ -560,21 +554,9 @@ void KernelLoader::AnnotateProcedures() {
         helper_.ReadPosition();  // Skip fileOffset.
         helper_.SkipDartType();  // Skip type.
 
-        // We have a candidate. Let's look if it's an instance of the
-        // ExternalName class.
         const intptr_t constant_table_index = helper_.ReadUInt();
         if (constant_reader.IsInstanceConstant(constant_table_index,
-                                               external_name_class_)) {
-          constant = constant_reader.ReadConstant(constant_table_index);
-          ASSERT(constant.clazz() == external_name_class_.ptr());
-          // We found the annotation, let's flag the function as native and
-          // set the native name!
-          native_name ^= constant.GetField(external_name_field_);
-          function.set_is_native(true);
-          function.set_native_name(native_name);
-          function.set_is_external(false);
-        } else if (constant_reader.IsInstanceConstant(constant_table_index,
-                                                      pragma_class_)) {
+                                               pragma_class_)) {
           constant = constant_reader.ReadConstant(constant_table_index);
           ASSERT(constant.clazz() == pragma_class_.ptr());
 
@@ -648,11 +630,10 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
       }
     }
 
-    // Ensure that `ExternalName` and `pragma` classes are looked up before we
-    // install the constants table: Once the constants table is installed
-    // finalization of classes will eagerly want to evaluate constants and doing
-    // so will require those two classes to be available.
-    EnsureExternalClassIsLookedUp();
+    // Ensure that `pragma` class is looked up before we install the constants
+    // table: Once the constants table is installed finalization of classes will
+    // eagerly want to evaluate constants and doing so will require those two
+    // classes to be available.
     EnsurePragmaClassIsLookedUp();
 
     // Sets the constants array to an empty array with the length equal to
@@ -1812,8 +1793,7 @@ void KernelLoader::FinishLoading(const Class& klass) {
 //
 //   `is_invisible_function`: if `@pragma('vm:invisible)` was found.
 //
-//   `native_name`: set if `@ExternalName(...)` / @pragma('vm:external-name)`
-//    was identified.
+//   `native_name`: set if @pragma('vm:external-name)` was identified.
 //
 //   `has_pragma_annotation`: if `@pragma(...)` was found (no information
 //   is given on the kind of pragma directive).
@@ -1849,7 +1829,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         // We can only read in the constant table once all classes have been
         // finalized (otherwise we can't create instances of the classes!).
         //
-        // We therefore delay the scanning for `ExternalName {name: ... }`
+        // We therefore delay the scanning for `@pragma('vm:external-name')`
         // constants in the annotation list to later.
         if (has_annotations_of_interest != nullptr) {
           *has_annotations_of_interest = true;
@@ -1860,10 +1840,6 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
 
         // For pragma annotations, we seek into the constants table and peek
         // into the Kernel representation of the constant.
-        //
-        // TODO(sjindel): Refactor `ExternalName` handling to do this as well
-        // and avoid the "potential natives" list.
-
         helper_.ReadByte();      // Skip the tag.
         helper_.ReadPosition();  // Skip fileOffset.
         helper_.SkipDartType();  // Skip type.
@@ -1905,9 +1881,6 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
 
         helper_.ReadByte();  // Skip the tag.
 
-        // Obtain `dart:_internal::ExternalName.name`.
-        EnsureExternalClassIsLookedUp();
-
         // Obtain `dart:_internal::pragma`.
         EnsurePragmaClassIsLookedUp();
 
@@ -1917,15 +1890,8 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         }
         const intptr_t constant_table_index = helper_.ReadUInt();
         // We have a candidate. Let's look if it's an instance of the
-        // ExternalName or Pragma class.
+        // `pragma` class.
         if (constant_reader.IsInstanceConstant(constant_table_index,
-                                               external_name_class_)) {
-          if (native_name != nullptr) {
-            constant = constant_reader.ReadConstant(constant_table_index);
-            ASSERT(constant.clazz() == external_name_class_.ptr());
-            *native_name ^= constant.GetField(external_name_field_);
-          }
-        } else if (constant_reader.IsInstanceConstant(constant_table_index,
                                                       pragma_class_)) {
           *has_pragma_annotation = true;
           if (native_name != nullptr || is_invisible_function != nullptr) {

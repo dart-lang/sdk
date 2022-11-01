@@ -337,19 +337,6 @@ class KernelLoader : public ValueObject {
 
   UntaggedFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
-  void EnsureExternalClassIsLookedUp() {
-    if (external_name_class_.IsNull()) {
-      ASSERT(external_name_field_.IsNull());
-      const Library& internal_lib =
-          Library::Handle(zone_, dart::Library::InternalLibrary());
-      external_name_class_ = internal_lib.LookupClass(Symbols::ExternalName());
-      external_name_field_ = external_name_class_.LookupField(Symbols::name());
-    }
-    ASSERT(!external_name_class_.IsNull());
-    ASSERT(!external_name_field_.IsNull());
-    ASSERT(external_name_class_.is_declaration_loaded());
-  }
-
   void EnsurePragmaClassIsLookedUp() {
     if (pragma_class_.IsNull()) {
       const Library& core_lib =
@@ -405,8 +392,6 @@ class KernelLoader : public ValueObject {
   TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
 
-  Class& external_name_class_;
-  Field& external_name_field_;
   GrowableObjectArray& annotation_list_;
   GrowableObjectArray& potential_pragma_functions_;
   Object& static_field_value_;
