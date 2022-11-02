@@ -760,7 +760,7 @@ void SourceReport::CollectAllScripts(
       // New one. Insert.
       ScriptTableEntry* tmp = new ScriptTableEntry();
       tmp->key = &url;
-      tmp->index = next_script_index_++;
+      tmp->index = -1;
       tmp->script = wrapper.script;
       local_script_table_entries->Add(tmp);
       local_script_table->Insert(tmp);
