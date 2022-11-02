@@ -152,13 +152,23 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
         stringToDartString: stringToDartString,
         wrapDartFunction: function(dartFunction, exportFunctionName, argCount) {
             const wrapped = function (...args) {
-                // Pad `undefined` for optional arguments that aren't passed so that
-                // the trampoline can replace these values with defaults.
+                // Compute the last defined argument so we can support default
+                // arguments in callbacks.
+                var lastDefinedArg = -1;
+                for (var i = args.length - 1; i >= 0; i--) {
+                    if (args[i] !== undefined) {
+                        lastDefinedArg = i;
+                        break;
+                    }
+                }
+
+                // Pad `undefined` for optional arguments that aren't passed so
+                // that the trampoline can replace these values with defaults.
                 while (args.length < argCount) {
                     args.push(undefined);
                 }
                 return dartInstance.exports[`${exportFunctionName}`](
-                    dartFunction, ...args.map(dartInstance.exports.$dartifyRaw));
+                    dartFunction, lastDefinedArg, ...args.map(dartInstance.exports.$dartifyRaw));
             };
             wrapped.dartFunction = dartFunction;
             wrapped[jsWrappedDartFunctionSymbol] = true;

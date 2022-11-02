@@ -53,7 +53,6 @@ class JsUtilWasmOptimizer extends Transformer {
   final Procedure _allowInteropTarget;
   final Procedure _numToInt;
   final Class _wasmExternRefClass;
-  final Class _objectClass;
   final Class _pragmaClass;
   final Field _pragmaName;
   final Field _pragmaOptions;
@@ -91,7 +90,6 @@ class JsUtilWasmOptimizer extends Transformer {
             .getClass('dart:core', 'num')
             .procedures
             .firstWhere((p) => p.name.text == 'toInt'),
-        _objectClass = _coreTypes.objectClass,
         _pragmaClass = _coreTypes.pragmaClass,
         _pragmaName = _coreTypes.pragmaName,
         _pragmaOptions = _coreTypes.pragmaOptions,
@@ -232,87 +230,116 @@ class JsUtilWasmOptimizer extends Transformer {
   DartType get _nonNullableObjectType =>
       _coreTypes.objectRawType(Nullability.nonNullable);
 
-  Expression? _getInitializerFromTearOff(InstanceTearOff tearOff, int i) =>
-      tearOff.interfaceTargetReference.asProcedure.function
-          .positionalParameters[i].initializer;
+  Expression _variableCheckConstant(
+          VariableDeclaration variable, Constant constant) =>
+      StaticInvocation(_coreTypes.identicalProcedure,
+          Arguments([VariableGet(variable), ConstantExpression(constant)]));
+
+  Expression _variableNullCheck(VariableDeclaration variable) =>
+      _variableCheckConstant(variable, NullConstant());
+
+  List<Expression> _generateCallbackArguments(
+      FunctionType function, List<VariableDeclaration> positionalParameters,
+      [int? requiredParameterCount]) {
+    List<Expression> callbackArguments = [];
+    int length = requiredParameterCount ?? function.positionalParameters.length;
+    for (int i = 0; i < length; i++) {
+      callbackArguments.add(AsExpression(VariableGet(positionalParameters[i]),
+          function.positionalParameters[i]));
+    }
+    return callbackArguments;
+  }
+
+  Statement _generateDispatchCase(
+          FunctionType function,
+          VariableDeclaration callbackVariable,
+          List<VariableDeclaration> positionalParameters,
+          [int? requiredParameterCount]) =>
+      ReturnStatement(StaticInvocation(
+          _jsifyRawTarget,
+          Arguments([
+            FunctionInvocation(
+                FunctionAccessKind.FunctionType,
+                AsExpression(VariableGet(callbackVariable), function),
+                Arguments(_generateCallbackArguments(
+                    function, positionalParameters, requiredParameterCount)),
+                functionType: function),
+          ])));
+
+  /// Builds the body of a function trampoline. To support default arguments, we
+  /// find the last defined argument in JS, that is the last argument which was
+  /// explicitly passed by the user, and then we dispatch to a Dart function
+  /// with the right number of arguments.
+  Statement _createFunctionTrampolineBody(
+      FunctionType function,
+      VariableDeclaration callbackVariable,
+      VariableDeclaration lastDefinedArgument,
+      List<VariableDeclaration> positionalParameters) {
+    // Handle cases where some or all arguments are undefined.
+    // TODO(joshualitt): Consider using a switch instead.
+    List<Statement> dispatchCases = [];
+    for (int i = function.requiredParameterCount - 1;
+        i < function.positionalParameters.length;
+        i++) {
+      // In this case, [i] is the last defined argument which can range from
+      // -1(no arguments defined), to an actual index in the positional
+      // parameters. [_generateDispatchCase] must also take the required
+      // parameter count, which is always the index of the last defined argument
+      // + 1, i.e. the total number of defined arguments.
+      int requiredParameterCount = i + 1;
+      dispatchCases.add(IfStatement(
+          _variableCheckConstant(
+              lastDefinedArgument, DoubleConstant(i.toDouble())),
+          _generateDispatchCase(function, callbackVariable,
+              positionalParameters, requiredParameterCount),
+          null));
+    }
+
+    // Finally handle the case where all arguments are defined.
+    dispatchCases.add(_generateDispatchCase(
+        function, callbackVariable, positionalParameters));
+
+    return Block(dispatchCases);
+  }
 
   /// Creates a callback trampoline for the given [function]. This callback
-  /// trampoline expects a Dart callback as its first argument, followed by all
-  /// of the arguments to the Dart callback as Dart objects. The trampoline will
-  /// cast all incoming Dart objects to the appropriate types, dispatch, and
-  /// then `jsifyRaw` any returned value. [_createFunctionTrampoline] Returns a
-  /// [String] function name representing the name of the wrapping function.
+  /// trampoline expects a Dart callback as its first argument, then an integer
+  /// value(double type) indicating the position of the last defined argument,
+  /// followed by all of the arguments to the Dart callback as Dart objects.  We
+  /// will always pad the argument list up to the maximum number of positional
+  /// arguments with `undefined` values.  The trampoline will cast all incoming
+  /// Dart objects to the appropriate types, dispatch, and then `jsifyRaw` any
+  /// returned value. [_createFunctionTrampoline] Returns a [String] function
+  /// name representing the name of the wrapping function.
   /// TODO(joshualitt): Share callback trampolines if the [FunctionType]
   /// matches.
-  String _createFunctionTrampoline(
-      Procedure node, FunctionType function, Expression argument) {
+  /// TODO(joshualitt): Simplify the trampoline in JS for the case where there
+  /// are no default arguments.
+  String _createFunctionTrampoline(Procedure node, FunctionType function) {
     int fileOffset = node.fileOffset;
 
     // Create arguments for each positional parameter in the function. These
     // arguments will be converted in JS to Dart objects. The generated wrapper
     // will cast each argument to the correct type.  The first argument to this
     // function will be the Dart callback, which will be cast to the supplied
-    // [FunctionType] before being invoked.
+    // [FunctionType] before being invoked. The second argument will be the
+    // last defined argument which is necessary to support default arguments in
+    // callbacks.
     int parameterId = 1;
-    DartType nonNullableObjectType =
-        _objectClass.getThisType(_coreTypes, Nullability.nonNullable);
     final callbackVariable =
-        VariableDeclaration('callback', type: nonNullableObjectType);
-    List<VariableDeclaration> positionalParameters = [callbackVariable];
-    List<Expression> callbackArguments = [];
-    DartType nullableObjectType =
-        _objectClass.getThisType(_coreTypes, Nullability.nullable);
-    for (int i = 0; i < function.positionalParameters.length; i++) {
-      DartType type = function.positionalParameters[i];
-      Expression? defaultExpression;
-      bool hasDefault = i >= function.requiredParameterCount;
-      if (hasDefault) {
-        // We can only generate default values if we have a statically typed
-        // function argument.
-        Expression? initializer;
-        if (argument is ConstantExpression) {
-          Procedure callbackTarget = (argument.constant as TearOffConstant)
-              .targetReference
-              .asProcedure;
-          initializer =
-              callbackTarget.function.positionalParameters[i].initializer;
-        } else if (argument is FunctionExpression) {
-          initializer = argument.function.positionalParameters[i].initializer;
-        } else if (argument is InstanceTearOff) {
-          initializer = _getInitializerFromTearOff(argument, i);
-        } else if (argument is AsExpression &&
-            argument.operand is InstanceTearOff) {
-          initializer = _getInitializerFromTearOff(
-              argument.operand as InstanceTearOff, i);
-        } else {
-          throw 'Cannot pass default arguments.';
-        }
+        VariableDeclaration('callback', type: _nonNullableObjectType);
+    final lastDefinedArgument = VariableDeclaration('lastDefinedArgument',
+        type: _coreTypes.doubleNonNullableRawType);
 
-        // The initializer for a default argument must be a
-        // [ConstantExpression].
-        ConstantExpression init = initializer as ConstantExpression;
-        defaultExpression = ConstantExpression(init.constant, init.type);
-      }
-      VariableDeclaration variable =
-          VariableDeclaration('x${parameterId++}', type: nullableObjectType);
-      positionalParameters.add(variable);
-      Expression body;
-      if (hasDefault) {
-        body = ConditionalExpression(
-            StaticInvocation(
-                _coreTypes.identicalProcedure,
-                Arguments([
-                  VariableGet(variable),
-                  ConstantExpression(NullConstant())
-                ])),
-            defaultExpression ?? ConstantExpression(NullConstant()),
-            VariableGet(variable),
-            nullableObjectType);
-      } else {
-        body = VariableGet(variable);
-      }
-      callbackArguments.add(AsExpression(body, type));
+    // Initialize variable declarations.
+    List<VariableDeclaration> positionalParameters = [];
+    for (int j = 0; j < function.positionalParameters.length; j++) {
+      positionalParameters.add(
+          VariableDeclaration('x${parameterId++}', type: _nullableObjectType));
     }
+
+    Statement functionTrampolineBody = _createFunctionTrampolineBody(
+        function, callbackVariable, lastDefinedArgument, positionalParameters);
 
     // Create a new procedure for the callback trampoline. This procedure will
     // be exported from Wasm to JS so it can be called from JS. The argument
@@ -327,17 +354,10 @@ class JsUtilWasmOptimizer extends Transformer {
     final functionTrampoline = Procedure(
         Name(functionTrampolineName, _library),
         ProcedureKind.Method,
-        FunctionNode(
-            ReturnStatement(StaticInvocation(
-                _jsifyRawTarget,
-                Arguments([
-                  FunctionInvocation(
-                      FunctionAccessKind.FunctionType,
-                      AsExpression(VariableGet(callbackVariable), function),
-                      Arguments(callbackArguments),
-                      functionType: function),
-                ]))),
-            positionalParameters: positionalParameters,
+        FunctionNode(functionTrampolineBody,
+            positionalParameters: [callbackVariable, lastDefinedArgument]
+                .followedBy(positionalParameters)
+                .toList(),
             returnType: nullableWasmExternRefType)
           ..fileOffset = fileOffset,
         isStatic: true,
@@ -358,8 +378,7 @@ class JsUtilWasmOptimizer extends Transformer {
   /// [_createFunctionTrampoline] followed by `_wrapDartFunction`.
   StaticInvocation _allowInterop(
       Procedure node, FunctionType type, Expression argument) {
-    String functionTrampolineName =
-        _createFunctionTrampoline(node, type, argument);
+    String functionTrampolineName = _createFunctionTrampoline(node, type);
     return StaticInvocation(
         _wrapDartFunctionTarget,
         Arguments([
@@ -440,10 +459,7 @@ class JsUtilWasmOptimizer extends Transformer {
       return Let(
           v,
           ConditionalExpression(
-              StaticInvocation(
-                  _coreTypes.identicalProcedure,
-                  Arguments(
-                      [VariableGet(v), ConstantExpression(NullConstant())])),
+              _variableNullCheck(v),
               ConstantExpression(NullConstant()),
               InstanceInvocation(InstanceAccessKind.Instance, VariableGet(v),
                   _numToInt.name, Arguments([]),
