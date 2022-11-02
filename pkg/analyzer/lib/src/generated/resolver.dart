@@ -6,7 +6,10 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide NamedType, RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -58,7 +61,6 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
-import 'package:analyzer/src/dart/resolver/record_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
@@ -292,9 +294,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final ListPatternResolver listPatternResolver =
       ListPatternResolver(this);
 
-  late final RecordPatternResolver recordPatternResolver =
-      RecordPatternResolver(this);
-
   final bool genericMetadataIsEnabled;
 
   /// Stack for obtaining rewritten expressions.  Prior to visiting an
@@ -504,6 +503,44 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
+
+  @override
+  shared.RecordType<DartType>? asRecordType(DartType type) {
+    if (type is RecordType) {
+      return shared.RecordType(
+        positional: type.positionalFields.map((e) => e.type).toList(),
+        named: type.namedFields
+            .map((e) => shared.NamedType(e.name, e.type))
+            .toList(),
+      );
+    }
+    return null;
+  }
+
+  List<shared.RecordPatternField<AstNode>> buildSharedRecordTypeFields(
+    RecordPatternImpl node,
+  ) {
+    return node.fields.map((field) {
+      Token? nameToken;
+      var fieldName = field.fieldName;
+      if (fieldName != null) {
+        nameToken = fieldName.name;
+        if (nameToken == null) {
+          nameToken = field.pattern.variablePattern?.name;
+          if (nameToken == null) {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME,
+              field,
+            );
+          }
+        }
+      }
+      return shared.RecordPatternField(
+        name: nameToken?.lexeme,
+        pattern: field.pattern,
+      );
+    }).toList();
+  }
 
   /// Verify that the arguments in the given [argumentList] can be assigned to
   /// their corresponding parameters.
@@ -1051,6 +1088,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_debugPrint('PUSH ${expression.runtimeType} $expression'));
     }
     _rewriteStack.add(expression);
+  }
+
+  @override
+  DartType recordType(shared.RecordType<DartType> type) {
+    return RecordTypeImpl(
+      positionalFields: type.positional.map((type) {
+        return RecordTypePositionalFieldImpl(type: type);
+      }).toList(),
+      namedFields: type.named.map((namedType) {
+        return RecordTypeNamedFieldImpl(
+          name: namedType.name,
+          type: namedType.type,
+        );
+      }).toList(),
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   /// Replaces the expression [oldNode] with [newNode], updating the node's

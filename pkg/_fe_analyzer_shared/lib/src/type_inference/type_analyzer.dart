@@ -22,6 +22,34 @@ class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node> {
   CaseHeadOrDefaultInfo({required this.pattern, this.guard});
 }
 
+class NamedType<Type extends Object> {
+  final String name;
+  final Type type;
+
+  NamedType(this.name, this.type);
+}
+
+class RecordPatternField<Pattern extends Object> {
+  /// If not `null` then the field is named, otherwise it is positional.
+  final String? name;
+  final Pattern pattern;
+
+  RecordPatternField({
+    required this.name,
+    required this.pattern,
+  });
+}
+
+class RecordType<Type extends Object> {
+  final List<Type> positional;
+  final List<NamedType<Type>> named;
+
+  RecordType({
+    required this.positional,
+    required this.named,
+  });
+}
+
 /// Information about a relational operator.
 class RelationalOperatorResolution<Type extends Object> {
   /// Is `true` when the operator is `==` or `!=`.
@@ -533,6 +561,110 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     }
   }
 
+  /// Analyzes a record pattern.  [node] is the pattern itself, and [fields]
+  /// is the list of subpatterns.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (n * Pattern) where n = fields.length.
+  Type analyzeRecordPattern(
+    Type matchedType,
+    Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+    MatchContext<Node, Expression> context,
+    Node node, {
+    required List<RecordPatternField<Node>> fields,
+  }) {
+    void dispatchField(RecordPatternField<Node> field, Type matchedType) {
+      dispatchPattern(matchedType, typeInfos, context, field.pattern);
+    }
+
+    void dispatchFields(Type matchedType) {
+      for (int i = 0; i < fields.length; i++) {
+        dispatchField(fields[i], matchedType);
+      }
+    }
+
+    // Build the required type.
+    int requiredTypePositionalCount = 0;
+    List<NamedType<Type>> requiredTypeNamedTypes = [];
+    for (RecordPatternField<Node> field in fields) {
+      String? name = field.name;
+      if (name == null) {
+        requiredTypePositionalCount++;
+      } else {
+        requiredTypeNamedTypes.add(
+          new NamedType(name, objectQuestionType),
+        );
+      }
+    }
+    Type requiredType = recordType(
+      new RecordType(
+        positional: new List.filled(
+          requiredTypePositionalCount,
+          objectQuestionType,
+        ),
+        named: requiredTypeNamedTypes,
+      ),
+    );
+
+    // Stack: ()
+    RecordType<Type>? matchedRecordType = asRecordType(matchedType);
+    if (matchedRecordType != null) {
+      List<Type>? fieldTypes = _matchRecordTypeShape(fields, matchedRecordType);
+      if (fieldTypes != null) {
+        assert(fieldTypes.length == fields.length);
+        for (int i = 0; i < fields.length; i++) {
+          dispatchField(fields[i], fieldTypes[i]);
+        }
+      } else {
+        dispatchFields(objectQuestionType);
+      }
+    } else if (typeOperations.isDynamic(matchedType)) {
+      dispatchFields(dynamicType);
+    } else {
+      dispatchFields(objectQuestionType);
+    }
+    // Stack: (n * Pattern) where n = fields.length
+
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null &&
+        !typeOperations.isAssignableTo(matchedType, requiredType)) {
+      errors?.patternTypeMismatchInIrrefutableContext(
+        pattern: node,
+        context: irrefutableContext,
+        matchedType: matchedType,
+        requiredType: requiredType,
+      );
+    }
+    return requiredType;
+  }
+
+  /// Computes the type schema for a record pattern.
+  ///
+  /// Stack effect: none.
+  Type analyzeRecordPatternSchema({
+    required List<RecordPatternField<Node>> fields,
+  }) {
+    List<Type> positional = [];
+    List<NamedType<Type>> named = [];
+    for (RecordPatternField<Node> field in fields) {
+      Type fieldType = dispatchPatternSchema(field.pattern);
+      String? name = field.name;
+      if (name != null) {
+        named.add(new NamedType(name, fieldType));
+      } else {
+        positional.add(fieldType);
+      }
+    }
+    return recordType(
+      new RecordType<Type>(
+        positional: positional,
+        named: named,
+      ),
+    );
+  }
+
   /// Analyzes a relational pattern.  [node] is the pattern itself, [operator]
   /// is the resolution of the used relational operator, and [operand] is a
   /// constant expression.
@@ -836,6 +968,9 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   Type analyzeVariablePatternSchema(Type? declaredType) =>
       declaredType ?? unknownType;
 
+  /// If [type] is a record type, returns it.
+  RecordType<Type>? asRecordType(Type type);
+
   /// Calls the appropriate `analyze` method according to the form of
   /// [expression], and then adjusts the stack as needed to combine any
   /// sub-structures into a single expression.
@@ -1006,6 +1141,9 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Returns the type `List`, with type parameter [elementType].
   Type listType(Type elementType);
 
+  /// Builds the client specific record type.
+  Type recordType(RecordType<Type> type);
+
   /// Records that type inference has assigned a [type] to a [variable].  This
   /// is called once per variable, regardless of whether the variable's type is
   /// explicit or inferred.
@@ -1044,6 +1182,49 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     if (!typeOperations.isAssignableTo(type, boolType)) {
       errors?.nonBooleanCondition(expression);
     }
+  }
+
+  /// If the shape described by [fields] is the same as the shape of the
+  /// [matchedType], returns matched types for each field in [fields].
+  /// Otherwise returns `null`.
+  List<Type>? _matchRecordTypeShape(
+    List<RecordPatternField<Node>> fields,
+    RecordType<Type> matchedType,
+  ) {
+    Map<String, Type> matchedTypeNamed = {};
+    for (NamedType<Type> namedField in matchedType.named) {
+      matchedTypeNamed[namedField.name] = namedField.type;
+    }
+
+    List<Type> result = [];
+    int positionalIndex = 0;
+    int namedCount = 0;
+    for (RecordPatternField<Node> field in fields) {
+      Type? fieldType;
+      String? name = field.name;
+      if (name != null) {
+        fieldType = matchedTypeNamed[name];
+        if (fieldType == null) {
+          return null;
+        }
+        namedCount++;
+      } else {
+        if (positionalIndex >= matchedType.positional.length) {
+          return null;
+        }
+        fieldType = matchedType.positional[positionalIndex++];
+      }
+      result.add(fieldType);
+    }
+    if (positionalIndex != matchedType.positional.length) {
+      return null;
+    }
+    if (namedCount != matchedTypeNamed.length) {
+      return null;
+    }
+
+    assert(result.length == fields.length);
+    return result;
   }
 
   /// Records in [typeInfos] that a [pattern] binds a [variable] with a given

@@ -6,7 +6,8 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide NamedType, RecordPatternField;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -10533,15 +10534,17 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 
   @override
   void resolvePattern(
-      ResolverVisitor resolverVisitor,
-      DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
-      MatchContext<AstNode, Expression> context) {
-    resolverVisitor.recordPatternResolver.resolve(
-      node: this,
-      matchedType: matchedType,
-      typeInfos: typeInfos,
-      context: context,
+    ResolverVisitor resolverVisitor,
+    DartType matchedType,
+    Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+    MatchContext<AstNode, Expression> context,
+  ) {
+    resolverVisitor.analyzeRecordPattern(
+      matchedType,
+      typeInfos,
+      context,
+      this,
+      fields: resolverVisitor.buildSharedRecordTypeFields(this),
     );
   }
 
