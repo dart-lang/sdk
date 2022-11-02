@@ -1,6 +1,9 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--enable-experiment=records
+// @dart=2.19
+// ignore_for_file: experiment_not_enabled
 
 library get_object_rpc_test;
 
@@ -56,6 +59,9 @@ getUint8List() => uint8List;
 
 @pragma("vm:entry-point")
 getUint64List() => uint64List;
+
+@pragma("vm:entry-point")
+getRecord() => (1, x: 2, 3.0, y: 4.0);
 
 @pragma("vm:entry-point")
 getDummyClass() => _DummyClass();
@@ -640,6 +646,30 @@ var tests = <IsolateTest>[
       expect(e.sentinel.kind, startsWith('Expired'));
       expect(e.sentinel.valueAsString, equals('<expired>'));
     }
+  },
+
+  // A record.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Call eval to get a Dart record.
+    final evalResult =
+        await service.invoke(isolateId, isolate.rootLib!.id!, 'getRecord', [])
+            as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, '_Record');
+    expect(result.json!['_vmType'], 'Record');
+    expect(result.id, startsWith('objects/'));
+    expect(result.valueAsString, isNull);
+    expect(result.classRef!.name, '_Record');
+    expect(result.size, isPositive);
+    final fields = result.fields!;
+    expect(fields.length, 4);
+    // TODO(derekx): Include field names in this test once they are accessible
+    // through package:vm_service.
+    Set<num> fieldValues = Set.from(fields.map((f) => f.value as num));
+    expect(fieldValues.containsAll([1, 2, 3.0, 4.0]), true);
   },
 
   // library.
