@@ -158,6 +158,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return result;
   }
 
+  // TODO(johnniwinther): Remove [typeNeeded].
   ExpressionInferenceResult _inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed = false, bool forEffect = false}) {
@@ -167,13 +168,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // `UnknownType` should be used instead.
     // ignore: unnecessary_null_comparison
     assert(typeContext != null);
-
-    // When doing top level inference, we skip subexpressions whose type isn't
-    // needed so that we don't induce bogus dependencies on fields mentioned in
-    // those subexpressions.
-    if (!typeNeeded) {
-      return new ExpressionInferenceResult(const UnknownType(), expression);
-    }
 
     ExpressionInferenceResult result;
     if (expression is ExpressionJudgment) {
