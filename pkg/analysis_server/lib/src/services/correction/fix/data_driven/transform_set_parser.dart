@@ -131,8 +131,8 @@ class TransformSetParser {
   final ErrorReporter errorReporter;
 
   /// The name of the package from which the data file being translated was
-  /// found.
-  final String packageName;
+  /// found, or `null` for the SDK.
+  final String? packageName;
 
   /// The description of the element that is being transformed by the current
   /// transformation, or `null` if we are not in the process of parsing a
@@ -1057,7 +1057,9 @@ class TransformSetParser {
     if (node is YamlScalar) {
       var value = node.value;
       if (value is String) {
-        if (!(value.startsWith('dart:') || value.startsWith('package:'))) {
+        if (packageName != null &&
+            !value.startsWith('dart:') &&
+            !value.startsWith('package:')) {
           value = 'package:$packageName/$value';
         }
         return Uri.parse(value);
