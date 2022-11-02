@@ -26,6 +26,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 
 import '../builder/type_alias_builder.dart';
+import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
@@ -5499,8 +5500,76 @@ class RelationalPattern extends Pattern {
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression(
-        "Unimplemented RelationalMatcher.makeCondition");
+    DartType receiverType = matchedExpressionVariable.type;
+    Name name;
+    switch (kind) {
+      case RelationalPatternKind.equals:
+      case RelationalPatternKind.notEquals:
+        Expression result;
+        if (expression is NullLiteral || expression is NullConstant) {
+          result = inferenceVisitor.engine.forest.createEqualsNull(
+              fileOffset,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, matchedExpressionVariable));
+        } else {
+          ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
+              receiverType, equalsName, fileOffset,
+              callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+          result = inferenceVisitor.engine.forest.createEqualsCall(
+              fileOffset,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, matchedExpressionVariable),
+              expression,
+              target.getFunctionType(inferenceVisitor),
+              target.member as Procedure);
+        }
+        if (kind == RelationalPatternKind.notEquals) {
+          result = inferenceVisitor.engine.forest.createNot(fileOffset, result);
+        }
+        return result;
+      case RelationalPatternKind.lessThan:
+        name = lessThanName;
+        break;
+      case RelationalPatternKind.lessThanEqual:
+        name = lessThanOrEqualsName;
+        break;
+      case RelationalPatternKind.greaterThan:
+        name = greaterThanName;
+        break;
+      case RelationalPatternKind.greaterThanEqual:
+        name = greaterThanOrEqualsName;
+        break;
+    }
+    ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
+        receiverType, name, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    if (target.kind == ObjectAccessTargetKind.dynamic) {
+      return new DynamicInvocation(
+          DynamicAccessKind.Dynamic,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, matchedExpressionVariable),
+          name,
+          inferenceVisitor.engine.forest
+              .createArguments(fileOffset, [expression]));
+    } else if (target.member is! Procedure) {
+      inferenceVisitor.helper.addProblem(
+          templateUndefinedOperator.withArguments(
+              name.text, receiverType, inferenceVisitor.isNonNullableByDefault),
+          matchedExpressionVariable.fileOffset,
+          noLength);
+      return null;
+    } else {
+      return new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, matchedExpressionVariable),
+          name,
+          inferenceVisitor.engine.forest
+              .createArguments(fileOffset, [expression]),
+          functionType: target.getFunctionType(inferenceVisitor),
+          interfaceTarget: target.member as Procedure)
+        ..fileOffset = fileOffset;
+    }
   }
 
   @override

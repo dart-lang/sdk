@@ -172,7 +172,6 @@ class _SyncClosureContext implements ClosureContext {
 
   void _checkValidReturn(
       DartType returnType, ReturnStatement statement, DartType expressionType) {
-    assert(!inferrer.isTopLevel);
     if (inferrer.isNonNullableByDefault) {
       if (statement.expression == null) {
         // It is a compile-time error if s is `return;`, unless T is void,
@@ -312,7 +311,7 @@ class _SyncClosureContext implements ClosureContext {
       // inferred the return type.
       _returnStatements!.add(statement);
       _returnExpressionTypes!.add(type);
-    } else if (!inferrer.isTopLevel) {
+    } else {
       _checkValidReturn(_declaredReturnType, statement, type);
     }
   }
@@ -420,10 +419,8 @@ class _SyncClosureContext implements ClosureContext {
     }
 
     for (int i = 0; i < _returnStatements!.length; ++i) {
-      if (!inferrer.isTopLevel) {
-        _checkValidReturn(inferredReturnType, _returnStatements![i],
-            _returnExpressionTypes![i]);
-      }
+      _checkValidReturn(inferredReturnType, _returnStatements![i],
+          _returnExpressionTypes![i]);
     }
 
     return _inferredReturnType = demoteTypeInLibrary(
@@ -444,8 +441,7 @@ class _SyncClosureContext implements ClosureContext {
     } else {
       returnType = _declaredReturnType;
     }
-    if (!inferrer.isTopLevel &&
-        inferrer.libraryBuilder.isNonNullableByDefault &&
+    if (inferrer.libraryBuilder.isNonNullableByDefault &&
         !containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {
@@ -530,7 +526,6 @@ class _AsyncClosureContext implements ClosureContext {
 
   void _checkValidReturn(
       DartType returnType, ReturnStatement statement, DartType expressionType) {
-    assert(!inferrer.isTopLevel);
     if (inferrer.isNonNullableByDefault) {
       assert(
           futureValueType != null, "Future value type has not been computed.");
@@ -702,7 +697,7 @@ class _AsyncClosureContext implements ClosureContext {
       // inferred the return type.
       _returnStatements!.add(statement);
       _returnExpressionTypes!.add(type);
-    } else if (!inferrer.isTopLevel) {
+    } else {
       _checkValidReturn(_declaredReturnType, statement, type);
     }
   }
@@ -836,11 +831,10 @@ class _AsyncClosureContext implements ClosureContext {
     } else {
       futureValueType = inferrer.typeSchemaEnvironment.flatten(inferredType);
     }
-    if (!inferrer.isTopLevel) {
-      for (int i = 0; i < _returnStatements!.length; ++i) {
-        _checkValidReturn(
-            inferredType, _returnStatements![i], _returnExpressionTypes![i]);
-      }
+
+    for (int i = 0; i < _returnStatements!.length; ++i) {
+      _checkValidReturn(
+          inferredType, _returnStatements![i], _returnExpressionTypes![i]);
     }
 
     return _inferredReturnType =
@@ -862,8 +856,7 @@ class _AsyncClosureContext implements ClosureContext {
       returnType = _declaredReturnType;
     }
     returnType = inferrer.typeSchemaEnvironment.flatten(returnType);
-    if (!inferrer.isTopLevel &&
-        inferrer.libraryBuilder.isNonNullableByDefault &&
+    if (inferrer.libraryBuilder.isNonNullableByDefault &&
         !containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {

@@ -62,6 +62,24 @@ class DecoratedTypeOperations
   }
 
   @override
+  DecoratedType glb(DecoratedType type1, DecoratedType type2) {
+    // TODO: implement glb
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isAssignableTo(DecoratedType fromType, DecoratedType toType) {
+    // TODO: implement isAssignableTo
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isDynamic(DecoratedType type) {
+    // TODO: implement isDynamic
+    throw UnimplementedError();
+  }
+
+  @override
   bool isNever(DecoratedType type) {
     return false;
   }
@@ -97,6 +115,24 @@ class DecoratedTypeOperations
   @override
   bool isTypeParameterType(DecoratedType type) =>
       type.type is TypeParameterType;
+
+  @override
+  DecoratedType lub(DecoratedType type1, DecoratedType type2) {
+    // TODO: implement lub
+    throw UnimplementedError();
+  }
+
+  @override
+  DecoratedType makeNullable(DecoratedType type) {
+    // TODO: implement makeNullable
+    throw UnimplementedError();
+  }
+
+  @override
+  DecoratedType? matchListType(DecoratedType type) {
+    // TODO: implement matchListType
+    throw UnimplementedError();
+  }
 
   @override
   DecoratedType promoteToNonNull(DecoratedType type) {

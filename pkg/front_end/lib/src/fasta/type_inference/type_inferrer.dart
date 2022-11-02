@@ -148,7 +148,7 @@ class TypeInferrerImpl implements TypeInferrer {
             unpromotablePrivateFieldNames:
                 libraryBuilder.unpromotablePrivateFieldNames);
 
-  InferenceVisitorBase _createInferenceVisitor(InferenceHelper? helper) {
+  InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper) {
     // For full (non-top level) inference, we need access to the
     // InferenceHelper so that we can perform error reporting.
     return new InferenceVisitorImpl(this, helper, operations);

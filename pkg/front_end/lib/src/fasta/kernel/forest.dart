@@ -831,6 +831,21 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
+  EqualsCall createEqualsCall(int fileOffset, Expression left, Expression right,
+      FunctionType functionType, Procedure interfaceTarget) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new EqualsCall(left, right,
+        functionType: functionType, interfaceTarget: interfaceTarget)
+      ..fileOffset = fileOffset;
+  }
+
+  EqualsNull createEqualsNull(int fileOffset, Expression expression) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new EqualsNull(expression)..fileOffset = fileOffset;
+  }
+
   BinaryExpression createBinary(
       int fileOffset, Expression left, Name binaryName, Expression right) {
     // ignore: unnecessary_null_comparison

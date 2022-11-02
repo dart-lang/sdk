@@ -496,7 +496,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  TypeOperations2<DartType> get typeOperations => flowAnalysis.typeOperations;
+  TypeOperations<DartType> get typeOperations => flowAnalysis.typeOperations;
 
   @override
   DartType get unknownType => UnknownInferredType.instance;

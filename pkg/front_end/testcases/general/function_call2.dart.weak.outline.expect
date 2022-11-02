@@ -1,4 +1,19 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/function_call2.dart:23:22: Error: Cannot invoke an instance of '_Closure1' because it declares 'call' to be something other than a method.
+//  - '_Closure1' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var field1 = closure1();
+//                      ^
+//
+// pkg/front_end/testcases/general/function_call2.dart:24:22: Error: Cannot invoke an instance of '_Closure2' because it declares 'call' to be something other than a method.
+//  - '_Closure2' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var field2 = closure2();
+//                      ^
+//
 import self as self;
 import "dart:core" as core;
 
