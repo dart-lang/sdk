@@ -6,7 +6,7 @@ library dart2js.js_model.locals;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../closure_migrated.dart';
+import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';

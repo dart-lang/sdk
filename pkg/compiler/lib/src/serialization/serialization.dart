@@ -5,7 +5,7 @@
 import 'dart:collection';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
-import '../closure_migrated.dart';
+import '../closure.dart';
 import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
