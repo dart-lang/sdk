@@ -9,7 +9,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import 'annotations.dart';
 
 abstract class InferredData {

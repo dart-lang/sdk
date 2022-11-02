@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
 import 'engine_interfaces.dart';

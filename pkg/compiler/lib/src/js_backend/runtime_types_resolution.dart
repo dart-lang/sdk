@@ -19,7 +19,7 @@ import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import 'backend_usage.dart';
 
 abstract class RtiNode {

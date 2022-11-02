@@ -6,7 +6,7 @@ library types.constants;
 
 import '../../constants/constant_system.dart' as constant_system;
 import '../../constants/values.dart';
-import '../../world_interfaces.dart' show JClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import 'masks.dart';
 
 /// Computes the [TypeMask] for the constant [value].

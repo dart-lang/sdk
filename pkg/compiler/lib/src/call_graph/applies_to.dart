@@ -5,7 +5,7 @@
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
-import 'package:compiler/src/world_interfaces.dart';
+import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/selector.dart';
 
 class MemberAppliesTo {

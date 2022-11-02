@@ -14,7 +14,7 @@ import '../js/js.dart' as jsAst;
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'namer_interfaces.dart' show ModularNamer;
 import 'namer_migrated.dart' show suffixForGetInterceptor;
 import 'native_data.dart';

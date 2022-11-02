@@ -19,7 +19,7 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import 'closure.dart';
 import 'element_map_interfaces.dart' as interfaces;
 import 'element_map_migrated.dart';

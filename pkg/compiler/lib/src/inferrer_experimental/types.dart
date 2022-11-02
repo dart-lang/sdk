@@ -21,7 +21,7 @@ import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import '../inferrer/types.dart' as base
     show GlobalTypeInferenceResults, GlobalTypeInferenceMemberResult;
 

@@ -469,7 +469,6 @@ class JsClosedWorld implements JClosedWorld {
     return includesClosureCallInDomain(selector, receiver, abstractValueDomain);
   }
 
-  @override
   Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
 
   @override

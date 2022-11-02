@@ -12,7 +12,7 @@ import '../js_backend/no_such_method_registry_interfaces.dart';
 import '../native/behavior.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import '../inferrer/abstract_value_domain.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
