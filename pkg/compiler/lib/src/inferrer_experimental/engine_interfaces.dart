@@ -8,7 +8,7 @@ import '../common/elements.dart';
 import '../common/metrics.dart' show Metrics;
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/no_such_method_registry_interfaces.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../native/behavior.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';

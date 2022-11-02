@@ -16,8 +16,7 @@ import 'js_backend/field_analysis.dart' show JFieldAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
-import 'js_backend/no_such_method_registry_interfaces.dart'
-    show NoSuchMethodData;
+import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import 'js_emitter/sorter.dart';
 import 'js_model/element_map.dart';
