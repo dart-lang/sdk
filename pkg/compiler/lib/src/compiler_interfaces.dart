@@ -17,8 +17,7 @@ import 'diagnostics/source_span.dart';
 import 'diagnostics/spannable.dart';
 import 'elements/entities.dart' show Entity;
 import 'js_model/js_strategy_interfaces.dart';
-import 'kernel/kernel_strategy_migrated.dart'
-    show KernelFrontendStrategyForDeferredLoading;
+import 'kernel/kernel_strategy.dart' show KernelFrontendStrategy;
 import 'options.dart' show CompilerOptions;
 import 'universe/world_impact.dart' show WorldImpact;
 import 'compiler_migrated.dart';
@@ -42,7 +41,7 @@ abstract class CompilerDeferredLoadingFacade {
   DiagnosticReporter get reporter;
   Map<Entity, WorldImpact> get impactCache;
   CompilerOptions get options;
-  KernelFrontendStrategyForDeferredLoading get frontendStrategy;
+  KernelFrontendStrategy get frontendStrategy;
   CompilerOutput get outputProvider;
   ConstraintData? get programSplitConstraintsData;
 }
@@ -77,7 +76,7 @@ abstract class CompilerKernelStrategyFacade {
   DiagnosticReporter get reporter;
   Map<Entity, WorldImpact> get impactCache;
   CompilerOptions get options;
-  KernelFrontendStrategyForDeferredLoading get frontendStrategy;
+  KernelFrontendStrategy get frontendStrategy;
   CompilerOutput get outputProvider;
   ConstraintData? get programSplitConstraintsData;
   DeferredLoadTask get deferredLoadTask;
