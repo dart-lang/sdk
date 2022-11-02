@@ -6,8 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'common.dart';
 import 'elements/entities.dart';
 import 'js_model/closure.dart';
-import 'js_model/element_map_interfaces.dart';
-import 'js_model/element_map_migrated.dart';
+import 'js_model/element_map.dart';
 import 'serialization/serialization.dart';
 
 export 'closure_migrated.dart'

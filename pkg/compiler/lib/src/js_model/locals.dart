@@ -15,8 +15,7 @@ import '../elements/types.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 
-import 'element_map_interfaces.dart';
-import 'element_map_migrated.dart';
+import 'element_map.dart';
 import 'elements.dart' show JGeneratorBody;
 
 class GlobalLocalsMap {
