@@ -500,7 +500,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // inside expressions.
   bool _safeInInitializer(js.Expression node) => true;
 
-  visitGraph(HGraph graph) {
+  void visitGraph(HGraph graph) {
     preGenerateMethod(graph);
     currentGraph = graph;
     visitSubGraph(SubGraph(graph.entry, graph.exit));

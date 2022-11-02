@@ -28,7 +28,7 @@ import 'optimize.dart';
 ///    getInterceptor-call pair with a call to a 'one-shot interceptor' outlined
 ///    method.
 ///
-class SsaFinalizeInterceptors extends HBaseVisitor
+class SsaFinalizeInterceptors extends HBaseVisitor<void>
     implements OptimizationPhase {
   @override
   String get name => "SsaFinalizeInterceptors";
@@ -54,7 +54,7 @@ class SsaFinalizeInterceptors extends HBaseVisitor
   bool validPostcondition(HGraph graph) => true;
 
   @override
-  visitBasicBlock(HBasicBlock node) {
+  void visitBasicBlock(HBasicBlock node) {
     HInstruction instruction = node.first;
     while (instruction != null) {
       final next = instruction.next;

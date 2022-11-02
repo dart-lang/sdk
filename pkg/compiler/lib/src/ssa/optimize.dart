@@ -221,7 +221,7 @@ bool hasUnreachableExit(HBasicBlock block) {
 
 /// If both inputs to known operations are available execute the operation at
 /// compile-time.
-class SsaInstructionSimplifier extends HBaseVisitor
+class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     implements OptimizationPhase {
   // We don't produce constant-folded strings longer than this unless they have
   // a single use.  This protects against exponentially large constant folded
@@ -265,7 +265,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   bool validPostcondition(HGraph graph) => true;
 
   @override
-  visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock block) {
     simplifyPhis(block);
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -2774,7 +2774,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 }
 
-class SsaLiveBlockAnalyzer extends HBaseVisitor {
+class SsaLiveBlockAnalyzer extends HBaseVisitor<void> {
   final HGraph graph;
   final Set<HBasicBlock> live = {};
   final List<HBasicBlock> worklist = [];
@@ -3213,7 +3213,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 // A basic block looks at its sucessors and finds the intersection of
 // these computed ValueSet. It moves all instructions of the
 // intersection into its own list of instructions.
-class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
+class SsaCodeMotion extends HBaseVisitor<void> implements OptimizationPhase {
   final AbstractValueDomain _abstractValueDomain;
 
   @override
@@ -3324,7 +3324,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   }
 }
 
-class SsaTypeConversionInserter extends HBaseVisitor
+class SsaTypeConversionInserter extends HBaseVisitor<void>
     implements OptimizationPhase {
   @override
   final String name = "SsaTypeconversionInserter";
@@ -3482,7 +3482,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 /// Optimization phase that tries to eliminate memory loads (for example
 /// [HFieldGet]), when it knows the value stored in that memory location, and
 /// stores that overwrite with the same value.
-class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
+class SsaLoadElimination extends HBaseVisitor<void>
+    implements OptimizationPhase {
   final JClosedWorld _closedWorld;
   final JFieldAnalysis _fieldAnalysis;
   @override
