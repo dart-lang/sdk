@@ -15,7 +15,7 @@ import '../js_model/elements.dart' show JField;
 import '../js_model/js_to_frontend_map.dart' show JsToFrontendMap;
 import '../kernel/element_map.dart' show KernelToElementMap;
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;
-import '../kernel/kernel_world_interfaces.dart';
+import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_usage.dart';

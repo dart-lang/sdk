@@ -17,7 +17,7 @@ import '../elements/types.dart';
 import '../ir/util.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kelements.dart' show KLocalFunction;
-import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
+import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact;
 

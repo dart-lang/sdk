@@ -11,7 +11,7 @@ import '../common.dart';
 import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
-import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
+import '../kernel/kernel_world.dart' show KClosedWorld;
 
 // TODO(48820): delete typedef after the migration is complete.
 typedef Compiler = CompilerDeferredLoadingFacade;
