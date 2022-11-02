@@ -21,9 +21,9 @@ main() {
       const bool.fromEnvironment("dart.library._internal",
           defaultValue: NOT_PRESENT));
 
-  bool htmlSupportExpected = isDart2jsConfiguration || isDdcConfiguration;
   bool? hasHtmlSupport;
-  hasHtmlSupport = htmlSupportExpected; //# has_html_support: ok
+  hasHtmlSupport = true; //# has_html_support: ok
+  hasHtmlSupport = false; //# has_no_html_support: ok
 
   if (hasHtmlSupport != null) {
     bool expectedResult = hasHtmlSupport ? true : NOT_PRESENT;
@@ -50,12 +50,9 @@ main() {
             defaultValue: NOT_PRESENT));
   }
 
-  bool ioSupportExpected = !isDart2jsConfiguration &&
-      !isDdcConfiguration &&
-      !isVmAotConfiguration &&
-      !isDart2WasmConfiguration;
   bool? hasIoSupport;
-  hasIoSupport =  ioSupportExpected; //# has_io_support: ok
+  hasIoSupport = true; //# has_io_support: ok
+  hasIoSupport = false; //# has_no_io_support: ok
 
   if (hasIoSupport != null) {
     // Web platforms override 'dart.library.io' to return "false".
@@ -66,7 +63,7 @@ main() {
   }
 
   bool hasMirrorSupport = !isDart2jsConfiguration &&
-      !isDdcConfiguration && !isVmAotConfiguration && !isDart2WasmConfiguration;
+      !isDdcConfiguration && !isVmAotConfiguration;
   Expect.equals(
       hasMirrorSupport,
       const bool.fromEnvironment("dart.library.mirrors",
