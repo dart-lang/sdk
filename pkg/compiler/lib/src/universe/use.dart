@@ -22,7 +22,7 @@ import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
-import '../js_model/closure_migrated.dart' show JContextField;
+import '../js_model/closure.dart' show JContextField;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;

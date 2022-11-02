@@ -38,6 +38,7 @@ import '../universe/selector.dart';
 import '../world.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'locals.dart';
 
 class JsClosedWorld implements JClosedWorld {
   static const String tag = 'closed-world';
@@ -469,7 +470,6 @@ class JsClosedWorld implements JClosedWorld {
     return includesClosureCallInDomain(selector, receiver, abstractValueDomain);
   }
 
-  @override
   Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
 
   @override
@@ -658,5 +658,18 @@ class KernelSorter implements Sorter {
     MemberDefinition definition2 = elementMap.getMemberDefinition(b);
     return _compareSourceSpans(
         a, definition1.location, b, definition2.location);
+  }
+}
+
+/// [LocalLookup] implementation used to deserialize [JsClosedWorld].
+class LocalLookupImpl implements LocalLookup {
+  final GlobalLocalsMap _globalLocalsMap;
+
+  LocalLookupImpl(this._globalLocalsMap);
+
+  @override
+  Local getLocalByIndex(MemberEntity memberContext, int index) {
+    final map = _globalLocalsMap.getLocalsMap(memberContext);
+    return map.getLocalByIndex(index);
   }
 }

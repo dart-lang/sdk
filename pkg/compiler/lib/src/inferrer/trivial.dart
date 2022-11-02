@@ -11,7 +11,7 @@ import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import 'abstract_value_domain.dart';
 import 'abstract_value_strategy.dart';
 

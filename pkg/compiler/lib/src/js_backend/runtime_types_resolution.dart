@@ -12,14 +12,14 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
 import '../kernel/kelements.dart';
-import '../kernel/kernel_world_interfaces.dart';
+import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import 'backend_usage.dart';
 
 abstract class RtiNode {

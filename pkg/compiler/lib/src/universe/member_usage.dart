@@ -7,7 +7,7 @@ import 'dart:math' as Math;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../js_model/closure_migrated.dart' show JContextField;
+import '../js_model/closure.dart' show JContextField;
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'call_structure.dart';

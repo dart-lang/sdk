@@ -13,7 +13,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_emitter/interfaces.dart' show CodeEmitterTask;
 import '../native/enqueue.dart';
 import '../serialization/serialization.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import 'locals.dart';
 
 abstract class JsBackendStrategy {

@@ -62,7 +62,7 @@ class TransformSetManager {
       var sdkRoot = analysisContext.sdkRoot;
       if (sdkRoot != null) {
         var file = sdkRoot.getChildAssumingFile('lib/_internal/$dataFileName');
-        var transformSet = _loadTransformSet(file);
+        var transformSet = _loadTransformSet(file, null);
         if (transformSet != null) {
           transformSets.add(transformSet);
           _sdkCache = transformSet;
@@ -73,32 +73,34 @@ class TransformSetManager {
   }
 
   List<TransformSet> _fromFolder(Folder folder) {
+    var packageName = folder.parent.shortName;
     var transformSets = <TransformSet>[];
     var file = folder.getChildAssumingFile(dataFileName);
-    var transformSet = _loadTransformSet(file);
+    var transformSet = _loadTransformSet(file, packageName);
     if (transformSet != null) {
       transformSets.add(transformSet);
     }
     var childFolder = folder.getChildAssumingFolder(dataFolderName);
     if (childFolder.exists) {
-      _loadTransforms(transformSets, childFolder);
+      _loadTransforms(transformSets, childFolder, packageName);
     }
     return transformSets;
   }
 
   /// Recursively search all the children of the specified [folder],
   /// and add the transform sets found to the [transforms].
-  void _loadTransforms(List<TransformSet> transforms, Folder folder) {
+  void _loadTransforms(
+      List<TransformSet> transforms, Folder folder, String packageName) {
     for (var resource in folder.getChildren()) {
       if (resource is File) {
         if (resource.shortName.endsWith('.yaml')) {
-          var transformSet = _loadTransformSet(resource);
+          var transformSet = _loadTransformSet(resource, packageName);
           if (transformSet != null) {
             transforms.add(transformSet);
           }
         }
       } else if (resource is Folder) {
-        _loadTransforms(transforms, resource);
+        _loadTransforms(transforms, resource, packageName);
       }
     }
   }
@@ -106,7 +108,7 @@ class TransformSetManager {
   /// Read the [file] and parse the content. Return the transform set that was
   /// parsed, or `null` if the file doesn't exist, isn't readable, or if the
   /// content couldn't be parsed.
-  TransformSet? _loadTransformSet(File file) {
+  TransformSet? _loadTransformSet(File file, String? packageName) {
     try {
       var content = file.readAsStringSync();
       var parser = TransformSetParser(
@@ -115,7 +117,7 @@ class TransformSetManager {
             file.createSource(),
             isNonNullableByDefault: false,
           ),
-          file.parent.parent.shortName);
+          packageName);
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

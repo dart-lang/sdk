@@ -22,23 +22,16 @@ import '../universe/selector.dart';
 import '../world.dart';
 
 import 'element_map.dart';
-import 'kernel_world_interfaces.dart' as interfaces;
 
 /// The immutable result of the [ResolutionWorldBuilder].
-class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
-  @override
+class KClosedWorld implements BuiltWorld {
   final KernelToElementMap elementMap;
-  @override
   final KElementEnvironment elementEnvironment;
-  @override
   final DartTypes dartTypes;
-  @override
   final KCommonElements commonElements;
 
-  @override
   final NativeData nativeData;
   final InterceptorData interceptorData;
-  @override
   final BackendUsage backendUsage;
   final NoSuchMethodData noSuchMethodData;
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
@@ -51,10 +44,8 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
 
-  @override
   final KFieldAnalysis fieldAnalysis;
   final Iterable<ClassEntity> liveNativeClasses;
-  @override
   final Map<MemberEntity, MemberUsage> liveMemberUsage;
 
   @override
@@ -85,13 +76,11 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
   ///
   /// A closurized method is considered live if the enclosing class has been
   /// instantiated.
-  @override
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables;
 
   /// Set of (live) local functions (closures).
   ///
   /// A live function is one whose enclosing member function has been enqueued.
-  @override
   final Iterable<Local> localFunctions;
 
   @override
@@ -171,7 +160,6 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
 
   /// Returns `true` if [member] has been marked as used (called, read, etc.) in
   /// this world builder.
-  @override
   bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
 
   @override

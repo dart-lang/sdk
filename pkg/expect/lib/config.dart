@@ -31,3 +31,6 @@ bool get isDdcConfiguration {
 bool get isVmAotConfiguration {
   return _configuration.compiler == Compiler.dartkp;
 }
+
+bool get isDart2WasmConfiguration =>
+    _configuration.compiler == Compiler.dart2wasm;

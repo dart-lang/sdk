@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 
@@ -30,7 +30,8 @@ bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
 ///
 /// - Combine read/modify/write sequences into HReadModifyWrite instructions to
 ///   simplify codegen of expressions like `a.x += y`.
-class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
+class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
+    with CodegenPhase {
   final JClosedWorld _closedWorld;
   final CompilerOptions _options;
   HGraph graph;
@@ -47,7 +48,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   }
 
   @override
-  visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction != null) {
       HInstruction next = instruction.next;
@@ -372,7 +373,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
 
 /// Remove [HTypeKnown] instructions from the graph, to make codegen analysis
 /// easier.
-class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
+class SsaTypeKnownRemover extends HBaseVisitor<void> with CodegenPhase {
   @override
   void visitGraph(HGraph graph) {
     // Visit bottom-up to visit uses before instructions and capture refined
@@ -404,7 +405,8 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
 
 /// Remove [HPrimitiveCheck] instructions from the graph in '--trust-primitives'
 /// mode.
-class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor with CodegenPhase {
+class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor<void>
+    with CodegenPhase {
   final CompilerOptions _options;
 
   SsaTrustedPrimitiveCheckRemover(this._options);
@@ -439,7 +441,7 @@ class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor with CodegenPhase {
 }
 
 /// Remove trusted late variable checks.
-class SsaTrustedLateCheckRemover extends HBaseVisitor with CodegenPhase {
+class SsaTrustedLateCheckRemover extends HBaseVisitor<void> with CodegenPhase {
   final AbstractValueDomain _abstractValueDomain;
 
   SsaTrustedLateCheckRemover(this._abstractValueDomain);
@@ -495,7 +497,8 @@ class SsaTrustedLateCheckRemover extends HBaseVisitor with CodegenPhase {
 ///     b.y = v;
 /// -->
 ///     b.y = a.x = v;
-class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
+class SsaAssignmentChaining extends HBaseVisitor<HInstruction /*?*/ >
+    with CodegenPhase {
   final JClosedWorld _closedWorld;
 
   SsaAssignmentChaining(this._closedWorld);
@@ -662,7 +665,7 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
 ///   t2 = add(t0, t1);
 /// t0 and t1 would be marked and the resulting code would then be:
 ///   t2 = add(4, 3);
-class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
+class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
   final AbstractValueDomain _abstractValueDomain;
 
   /// List of [HInstruction] that the instruction merger expects in
@@ -1171,11 +1174,11 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
 /// Insert 'caches' for whole-function region-constants when the local minified
 /// name would be shorter than repeated references.  These are caches for 'this'
 /// and constant values.
-class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
+class SsaShareRegionConstants extends HBaseVisitor<void> with CodegenPhase {
   SsaShareRegionConstants();
 
   @override
-  visitGraph(HGraph graph) {
+  void visitGraph(HGraph graph) {
     // We need the async rewrite to be smarter about hoisting region constants
     // before it is worth-while.
     if (graph.needsAsyncRewrite) return;
@@ -1186,7 +1189,7 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
   }
 
   @override
-  visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction != null) {
       HInstruction next = instruction.next;

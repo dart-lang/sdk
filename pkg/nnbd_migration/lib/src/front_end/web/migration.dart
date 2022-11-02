@@ -145,22 +145,32 @@ String get rootPath => querySelector('.root')!.text!.trim();
 
 String? get sdkVersion => document.getElementById('sdk-version')!.text;
 
-void addArrowClickHandler(Element arrow) {
+void addArrowClickHandler(Element arrow, {bool startsCollapsed = false}) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul')!;
   // Animating height from "auto" to "0" is not supported by CSS [1], so all we
   // have are hacks. The `* 2` allows for events in which the list grows in
   // height when resized, with additional text wrapping.
   // [1] https://css-tricks.com/using-css-transitions-auto-dimensions/
   childList.style.maxHeight = '${childList.offsetHeight * 2}px';
+
+  void collapse() {
+    childList.classes.add('collapsed');
+    arrow.classes.add('collapsed');
+  }
+
+  void expand() {
+    childList.classes.remove('collapsed');
+    arrow.classes.remove('collapsed');
+  }
+
   arrow.onClick.listen((MouseEvent event) {
     if (!childList.classes.contains('collapsed')) {
-      childList.classes.add('collapsed');
-      arrow.classes.add('collapsed');
+      collapse();
     } else {
-      childList.classes.remove('collapsed');
-      arrow.classes.remove('collapsed');
+      expand();
     }
   });
+  if (startsCollapsed) collapse();
 }
 
 void addClickHandlers(String selector, bool clearEditDetails) {
@@ -947,7 +957,9 @@ void writeNavigationSubtree(
         });
         li.insertBefore(statusIcon, folderIcon);
       }
-      addArrowClickHandler(arrow);
+      addArrowClickHandler(arrow,
+          startsCollapsed:
+              entity.migrationStatus == UnitMigrationStatus.alreadyMigrated);
     } else if (entity is NavigationTreeFileNode) {
       if (enablePartialMigration) {
         var statusIcon = createIcon()..classes.add('status-icon');

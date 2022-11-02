@@ -7,7 +7,7 @@ import '../elements/types.dart';
 import '../ir/class_relation.dart';
 import 'member_usage.dart';
 import 'use.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 
 abstract class ResolutionWorldBuilder implements World {
   Iterable<ClassEntity> get directlyInstantiatedClasses;

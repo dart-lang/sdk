@@ -14,7 +14,8 @@ import 'optimize.dart' show OptimizationPhase;
 
 /// Optimization phase that tries to eliminate late field checks and memory
 /// loads.
-class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
+class SsaLateFieldOptimizer extends HBaseVisitor<void>
+    implements OptimizationPhase {
   @override
   final String name = "SsaLateFieldOptimizer";
 

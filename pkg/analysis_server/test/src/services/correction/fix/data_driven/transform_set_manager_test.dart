@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -45,6 +47,27 @@ class TransformSetManagerTest extends AbstractContextTest {
     var result = await (await session).getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
+
+    var elementMatcher = ElementMatcher(
+        importedUris: [Uri.parse('package:p1/test.dart')],
+        components: ['A'],
+        kinds: [ElementKind.classKind]);
+
+    var firstSet =
+        sets[0].transformsFor(elementMatcher, applyingBulkFixes: true);
+    expect(firstSet, isNotEmpty);
+    expect(
+      firstSet.first.element.libraryUris.first.path,
+      equals('p1/test.dart'),
+    );
+
+    var secondSet =
+        sets[1].transformsFor(elementMatcher, applyingBulkFixes: true);
+    expect(secondSet, isNotEmpty);
+    expect(
+      secondSet.first.element.libraryUris.first.path,
+      equals('p1/test.dart'),
+    );
   }
 
   Future<void> test_twoFiles_twoPackages() async {
@@ -87,11 +110,11 @@ class TransformSetManagerTest extends AbstractContextTest {
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2022-02-02
   element:
     uris:
       - 'test.dart'
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'

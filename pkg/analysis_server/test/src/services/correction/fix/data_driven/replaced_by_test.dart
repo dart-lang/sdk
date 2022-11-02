@@ -814,8 +814,17 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
 ${isOldRemoved ? '' : oldElement.declaration}
 ${newElement.declaration}
 ''');
-    setPackageData(_replacedBy(oldElement.kind, oldElement.components,
-        newElement.kind, newElement.components));
+
+    setPackageData(
+      _replacedBy(
+        oldElement.kind,
+        oldElement.components,
+        newElement.kind,
+        newElement.components,
+        oldUri: isOldRemoved ? Uri.parse('dart:core') : null,
+      ),
+    );
+
     var prefixDeclaration = isPrefixed ? ' as p' : '';
     var prefixReference = isPrefixed ? 'p.' : '';
     var invocation = isInvocation ? '()' : '';
@@ -858,15 +867,14 @@ ${newImport}var x = $prefixReference${newElement.reference}$invocation;
 
   Transform _replacedBy(ElementKind oldKind, List<String> oldComponents,
       ElementKind newKind, List<String> newComponents,
-      {bool isStatic = false}) {
-    var uris = [Uri.parse(importUri)];
+      {bool isStatic = false, Uri? oldUri}) {
     var oldElement = ElementDescriptor(
-        libraryUris: uris,
+        libraryUris: [oldUri ?? Uri.parse(importUri)],
         kind: oldKind,
         isStatic: isStatic,
         components: oldComponents);
     var newElement = ElementDescriptor(
-        libraryUris: uris,
+        libraryUris: [Uri.parse(importUri)],
         kind: newKind,
         isStatic: isStatic,
         components: newComponents);

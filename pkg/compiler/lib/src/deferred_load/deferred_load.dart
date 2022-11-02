@@ -286,7 +286,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
-import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
+import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../util/util.dart' show makeUnique;
 
 // TODO(48820): delete typedef after the migration is complete.

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -152,6 +153,38 @@ void f() {
 }
 ''');
     _assertMatcher('s', expectedComponents: ['s'], expectedKinds: []);
+  }
+
+  Future<void> test_matcherHasMoreComponents_differentUris() async {
+    var matcher = ElementMatcher(
+      importedUris: [Uri.parse('dart:core')],
+      components: ['A'],
+      kinds: [],
+    );
+
+    var element = ElementDescriptor(
+        libraryUris: [Uri.parse(importUri)],
+        kind: ElementKind.constructorKind,
+        components: ['', 'A'],
+        isStatic: false);
+
+    expect(matcher.matches(element), isFalse);
+  }
+
+  Future<void> test_matcherHasMoreComponents_sameUris() async {
+    var matcher = ElementMatcher(
+      importedUris: [Uri.parse(importUri)],
+      components: ['A'],
+      kinds: [],
+    );
+
+    var element = ElementDescriptor(
+        libraryUris: [Uri.parse(importUri)],
+        kind: ElementKind.constructorKind,
+        components: ['', 'A'],
+        isStatic: false);
+
+    expect(matcher.matches(element), isTrue);
   }
 
   Future<void> test_method_withoutTarget_resolved() async {

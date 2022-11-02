@@ -761,17 +761,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       local = addLocal(type);
       locals[node] = local;
     }
-    if (node.initializer != null) {
+
+    // Handle variable initialization. Nullable variables have an implicit
+    // initializer.
+    if (node.initializer != null ||
+        node.type.nullability == Nullability.nullable) {
+      Expression initializer =
+          node.initializer ?? ConstantExpression(NullConstant());
       if (capture != null) {
         w.ValueType expectedType = capture.written ? capture.type : local!.type;
         b.local_get(capture.context.currentLocal);
-        wrap(node.initializer!, expectedType);
+        wrap(initializer, expectedType);
         if (!capture.written) {
           b.local_tee(local!);
         }
         b.struct_set(capture.context.struct, capture.fieldIndex);
       } else {
-        wrap(node.initializer!, local!.type);
+        wrap(initializer, local!.type);
         b.local_set(local);
       }
     } else if (local != null && !local.type.defaultable) {

@@ -6,7 +6,7 @@ library dart2js.js_model.locals;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../closure_migrated.dart';
+import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -15,8 +15,7 @@ import '../elements/types.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 
-import 'element_map_interfaces.dart';
-import 'element_map_migrated.dart';
+import 'element_map.dart';
 import 'elements.dart' show JGeneratorBody;
 
 class GlobalLocalsMap {

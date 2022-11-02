@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../universe/world_builder.dart' show SelectorConstraintsStrategy;
-import '../world_interfaces.dart';
+import '../world.dart';
 import 'abstract_value_domain.dart';
 
 /// Strategy for the abstraction of runtime values used by the global type

@@ -15,12 +15,12 @@ import '../inferrer/engine_migrated.dart'
     show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_world_migrated.dart' show LocalLookupImpl;
+import '../js_model/js_world.dart' show LocalLookupImpl;
 import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 
 /// Results about a single element (e.g. a method, parameter, or field)

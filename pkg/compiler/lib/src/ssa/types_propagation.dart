@@ -10,7 +10,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'logging.dart';
 import 'nodes.dart';
 import 'optimize.dart';
@@ -31,7 +31,8 @@ import 'optimize.dart';
 /// type propagation results.
 // TODO(sra): The InvokeDynamicSpecializer should be consulted for better
 // targeted conditioning checks.
-class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
+class SsaTypePropagator extends HBaseVisitor<AbstractValue>
+    implements OptimizationPhase {
   final Map<int, HInstruction> workmap = {};
   final List<int> worklist = [];
   final Map<HInstruction, Function> pendingOptimizations = {};
@@ -76,7 +77,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   bool validPostcondition(HGraph graph) => true;
 
   @override
-  visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
         // Set the initial type for the phi. We're not using the type

@@ -26,7 +26,7 @@ import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'invoke_dynamic_specializers.dart';
 import 'validate.dart';
 
@@ -125,7 +125,7 @@ abstract class HVisitor<R> {
 }
 
 abstract class HGraphVisitor {
-  visitDominatorTree(HGraph graph) {
+  void visitDominatorTree(HGraph graph) {
     // Recursion free version of:
     //
     //     void visitBasicBlockAndSuccessors(HBasicBlock block) {
@@ -158,7 +158,7 @@ abstract class HGraphVisitor {
     }
   }
 
-  visitPostDominatorTree(HGraph graph) {
+  void visitPostDominatorTree(HGraph graph) {
     // Recursion-free version of:
     //
     //     void visitBasicBlockAndSuccessors(HBasicBlock block) {
@@ -189,7 +189,7 @@ abstract class HGraphVisitor {
     }
   }
 
-  visitBasicBlock(HBasicBlock /*!*/ block);
+  void visitBasicBlock(HBasicBlock /*!*/ block);
 }
 
 class _Frame {
@@ -203,10 +203,10 @@ class _Frame {
 abstract class HInstructionVisitor extends HGraphVisitor {
   HBasicBlock currentBlock;
 
-  visitInstruction(HInstruction node);
+  void visitInstruction(HInstruction node);
 
   @override
-  visitBasicBlock(HBasicBlock node) {
+  void visitBasicBlock(HBasicBlock node) {
     void visitInstructionList(HInstructionList list) {
       HInstruction instruction = list.first;
       while (instruction != null) {
@@ -412,11 +412,11 @@ class HGraph {
   toString() => 'HGraph($element)';
 }
 
-class HBaseVisitor extends HGraphVisitor implements HVisitor {
+class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   HBasicBlock currentBlock;
 
   @override
-  visitBasicBlock(HBasicBlock node) {
+  void visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
 
     HInstruction instruction = node.first;
@@ -426,215 +426,220 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
     }
   }
 
-  visitInstruction(HInstruction instruction) {}
+  // ignore: unnecessary_cast
+  R visitInstruction(HInstruction instruction) => null as R /*!*/;
 
-  visitBinaryArithmetic(HBinaryArithmetic node) => visitInvokeBinary(node);
-  visitBinaryBitOp(HBinaryBitOp node) => visitInvokeBinary(node);
-  visitInvoke(HInvoke node) => visitInstruction(node);
-  visitInvokeBinary(HInvokeBinary node) => visitInstruction(node);
-  visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
-  visitInvokeDynamicField(HInvokeDynamicField node) => visitInvokeDynamic(node);
-  visitInvokeUnary(HInvokeUnary node) => visitInstruction(node);
-  visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
-  visitControlFlow(HControlFlow node) => visitInstruction(node);
-  visitFieldAccess(HFieldAccess node) => visitInstruction(node);
-  visitRelational(HRelational node) => visitInvokeBinary(node);
+  R visitBinaryArithmetic(HBinaryArithmetic node) => visitInvokeBinary(node);
+  R visitBinaryBitOp(HBinaryBitOp node) => visitInvokeBinary(node);
+  R visitInvoke(HInvoke node) => visitInstruction(node);
+  R visitInvokeBinary(HInvokeBinary node) => visitInstruction(node);
+  R visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
+  R visitInvokeDynamicField(HInvokeDynamicField node) =>
+      visitInvokeDynamic(node);
+  R visitInvokeUnary(HInvokeUnary node) => visitInstruction(node);
+  R visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
+  R visitControlFlow(HControlFlow node) => visitInstruction(node);
+  R visitFieldAccess(HFieldAccess node) => visitInstruction(node);
+  R visitRelational(HRelational node) => visitInvokeBinary(node);
 
   @override
-  visitAbs(HAbs node) => visitInvokeUnary(node);
+  R visitAbs(HAbs node) => visitInvokeUnary(node);
   @override
-  visitAdd(HAdd node) => visitBinaryArithmetic(node);
+  R visitAdd(HAdd node) => visitBinaryArithmetic(node);
   @override
-  visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
+  R visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
   @override
-  visitBitNot(HBitNot node) => visitInvokeUnary(node);
+  R visitBitNot(HBitNot node) => visitInvokeUnary(node);
   @override
-  visitBitOr(HBitOr node) => visitBinaryBitOp(node);
+  R visitBitOr(HBitOr node) => visitBinaryBitOp(node);
   @override
-  visitBitXor(HBitXor node) => visitBinaryBitOp(node);
+  R visitBitXor(HBitXor node) => visitBinaryBitOp(node);
   @override
-  visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
+  R visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
   @override
-  visitBreak(HBreak node) => visitJump(node);
+  R visitBreak(HBreak node) => visitJump(node);
   @override
-  visitContinue(HContinue node) => visitJump(node);
-  visitCheck(HCheck node) => visitInstruction(node);
+  R visitContinue(HContinue node) => visitJump(node);
+  R visitCheck(HCheck node) => visitInstruction(node);
   @override
-  visitConstant(HConstant node) => visitInstruction(node);
+  R visitConstant(HConstant node) => visitInstruction(node);
   @override
-  visitCreate(HCreate node) => visitInstruction(node);
+  R visitCreate(HCreate node) => visitInstruction(node);
   @override
-  visitCreateBox(HCreateBox node) => visitInstruction(node);
+  R visitCreateBox(HCreateBox node) => visitInstruction(node);
   @override
-  visitDivide(HDivide node) => visitBinaryArithmetic(node);
+  R visitDivide(HDivide node) => visitBinaryArithmetic(node);
   @override
-  visitExit(HExit node) => visitControlFlow(node);
+  R visitExit(HExit node) => visitControlFlow(node);
   @override
-  visitExitTry(HExitTry node) => visitControlFlow(node);
+  R visitExitTry(HExitTry node) => visitControlFlow(node);
   @override
-  visitFieldGet(HFieldGet node) => visitFieldAccess(node);
+  R visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   @override
-  visitFieldSet(HFieldSet node) => visitFieldAccess(node);
+  R visitFieldSet(HFieldSet node) => visitFieldAccess(node);
   @override
-  visitFunctionReference(HFunctionReference node) => visitInstruction(node);
+  R visitFunctionReference(HFunctionReference node) => visitInstruction(node);
   @override
-  visitInvokeExternal(HInvokeExternal node) => visitInstruction(node);
+  R visitInvokeExternal(HInvokeExternal node) => visitInstruction(node);
   @override
-  visitForeignCode(HForeignCode node) => visitInstruction(node);
+  R visitForeignCode(HForeignCode node) => visitInstruction(node);
   @override
-  visitGetLength(HGetLength node) => visitInstruction(node);
+  R visitGetLength(HGetLength node) => visitInstruction(node);
   @override
-  visitGoto(HGoto node) => visitControlFlow(node);
+  R visitGoto(HGoto node) => visitControlFlow(node);
   @override
-  visitGreater(HGreater node) => visitRelational(node);
+  R visitGreater(HGreater node) => visitRelational(node);
   @override
-  visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
+  R visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
   @override
-  visitIdentity(HIdentity node) => visitRelational(node);
+  R visitIdentity(HIdentity node) => visitRelational(node);
   @override
-  visitIf(HIf node) => visitConditionalBranch(node);
+  R visitIf(HIf node) => visitConditionalBranch(node);
   @override
-  visitIndex(HIndex node) => visitInstruction(node);
+  R visitIndex(HIndex node) => visitInstruction(node);
   @override
-  visitIndexAssign(HIndexAssign node) => visitInstruction(node);
+  R visitIndexAssign(HIndexAssign node) => visitInstruction(node);
   @override
-  visitInterceptor(HInterceptor node) => visitInstruction(node);
+  R visitInterceptor(HInterceptor node) => visitInstruction(node);
   @override
-  visitInvokeClosure(HInvokeClosure node) => visitInvokeDynamic(node);
+  R visitInvokeClosure(HInvokeClosure node) => visitInvokeDynamic(node);
   @override
-  visitInvokeConstructorBody(HInvokeConstructorBody node) =>
+  R visitInvokeConstructorBody(HInvokeConstructorBody node) =>
       visitInvokeStatic(node);
   @override
-  visitInvokeGeneratorBody(HInvokeGeneratorBody node) =>
+  R visitInvokeGeneratorBody(HInvokeGeneratorBody node) =>
       visitInvokeStatic(node);
   @override
-  visitInvokeDynamicMethod(HInvokeDynamicMethod node) =>
+  R visitInvokeDynamicMethod(HInvokeDynamicMethod node) =>
       visitInvokeDynamic(node);
   @override
-  visitInvokeDynamicGetter(HInvokeDynamicGetter node) =>
+  R visitInvokeDynamicGetter(HInvokeDynamicGetter node) =>
       visitInvokeDynamicField(node);
   @override
-  visitInvokeDynamicSetter(HInvokeDynamicSetter node) =>
+  R visitInvokeDynamicSetter(HInvokeDynamicSetter node) =>
       visitInvokeDynamicField(node);
   @override
-  visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
+  R visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   @override
-  visitInvokeSuper(HInvokeSuper node) => visitInvokeStatic(node);
-  visitJump(HJump node) => visitControlFlow(node);
+  R visitInvokeSuper(HInvokeSuper node) => visitInvokeStatic(node);
+  R visitJump(HJump node) => visitControlFlow(node);
   @override
-  visitLazyStatic(HLazyStatic node) => visitInstruction(node);
+  R visitLazyStatic(HLazyStatic node) => visitInstruction(node);
   @override
-  visitLess(HLess node) => visitRelational(node);
+  R visitLess(HLess node) => visitRelational(node);
   @override
-  visitLessEqual(HLessEqual node) => visitRelational(node);
+  R visitLessEqual(HLessEqual node) => visitRelational(node);
   @override
-  visitLiteralList(HLiteralList node) => visitInstruction(node);
-  visitLocalAccess(HLocalAccess node) => visitInstruction(node);
+  R visitLiteralList(HLiteralList node) => visitInstruction(node);
+  R visitLocalAccess(HLocalAccess node) => visitInstruction(node);
   @override
-  visitLocalGet(HLocalGet node) => visitLocalAccess(node);
+  R visitLocalGet(HLocalGet node) => visitLocalAccess(node);
   @override
-  visitLocalSet(HLocalSet node) => visitLocalAccess(node);
+  R visitLocalSet(HLocalSet node) => visitLocalAccess(node);
   @override
-  visitLocalValue(HLocalValue node) => visitInstruction(node);
+  R visitLocalValue(HLocalValue node) => visitInstruction(node);
   @override
-  visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
+  R visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   @override
-  visitNegate(HNegate node) => visitInvokeUnary(node);
+  R visitNegate(HNegate node) => visitInvokeUnary(node);
   @override
-  visitNot(HNot node) => visitInstruction(node);
+  R visitNot(HNot node) => visitInstruction(node);
   @override
-  visitOneShotInterceptor(HOneShotInterceptor node) => visitInvokeDynamic(node);
+  R visitOneShotInterceptor(HOneShotInterceptor node) =>
+      visitInvokeDynamic(node);
   @override
-  visitPhi(HPhi node) => visitInstruction(node);
+  R visitPhi(HPhi node) => visitInstruction(node);
   @override
-  visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
+  R visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
   @override
-  visitParameterValue(HParameterValue node) => visitLocalValue(node);
+  R visitParameterValue(HParameterValue node) => visitLocalValue(node);
   @override
-  visitRangeConversion(HRangeConversion node) => visitCheck(node);
+  R visitRangeConversion(HRangeConversion node) => visitCheck(node);
   @override
-  visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
+  R visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
   @override
-  visitRef(HRef node) => node.value.accept(this);
+  R visitRef(HRef node) => node.value.accept(this);
   @override
-  visitRemainder(HRemainder node) => visitBinaryArithmetic(node);
+  R visitRemainder(HRemainder node) => visitBinaryArithmetic(node);
   @override
-  visitReturn(HReturn node) => visitControlFlow(node);
+  R visitReturn(HReturn node) => visitControlFlow(node);
   @override
-  visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
+  R visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   @override
-  visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
+  R visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   @override
-  visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
+  R visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   @override
-  visitSwitch(HSwitch node) => visitControlFlow(node);
+  R visitSwitch(HSwitch node) => visitControlFlow(node);
   @override
-  visitStatic(HStatic node) => visitInstruction(node);
+  R visitStatic(HStatic node) => visitInstruction(node);
   @override
-  visitStaticStore(HStaticStore node) => visitInstruction(node);
+  R visitStaticStore(HStaticStore node) => visitInstruction(node);
   @override
-  visitStringConcat(HStringConcat node) => visitInstruction(node);
+  R visitStringConcat(HStringConcat node) => visitInstruction(node);
   @override
-  visitStringify(HStringify node) => visitInstruction(node);
+  R visitStringify(HStringify node) => visitInstruction(node);
   @override
-  visitThis(HThis node) => visitParameterValue(node);
+  R visitThis(HThis node) => visitParameterValue(node);
   @override
-  visitThrow(HThrow node) => visitControlFlow(node);
+  R visitThrow(HThrow node) => visitControlFlow(node);
   @override
-  visitThrowExpression(HThrowExpression node) => visitInstruction(node);
+  R visitThrowExpression(HThrowExpression node) => visitInstruction(node);
   @override
-  visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
+  R visitTruncatingDivide(HTruncatingDivide node) =>
+      visitBinaryArithmetic(node);
   @override
-  visitTry(HTry node) => visitControlFlow(node);
+  R visitTry(HTry node) => visitControlFlow(node);
   @override
-  visitIsLateSentinel(HIsLateSentinel node) => visitInstruction(node);
+  R visitIsLateSentinel(HIsLateSentinel node) => visitInstruction(node);
   @override
-  visitLateValue(HLateValue node) => visitInstruction(node);
+  R visitLateValue(HLateValue node) => visitInstruction(node);
   @override
-  visitBoolConversion(HBoolConversion node) => visitCheck(node);
+  R visitBoolConversion(HBoolConversion node) => visitCheck(node);
   @override
-  visitNullCheck(HNullCheck node) => visitCheck(node);
-  visitLateCheck(HLateCheck node) => visitCheck(node);
+  R visitNullCheck(HNullCheck node) => visitCheck(node);
+  R visitLateCheck(HLateCheck node) => visitCheck(node);
   @override
-  visitLateReadCheck(HLateReadCheck node) => visitLateCheck(node);
+  R visitLateReadCheck(HLateReadCheck node) => visitLateCheck(node);
   @override
-  visitLateWriteOnceCheck(HLateWriteOnceCheck node) => visitLateCheck(node);
+  R visitLateWriteOnceCheck(HLateWriteOnceCheck node) => visitLateCheck(node);
   @override
-  visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) =>
+  R visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) =>
       visitLateCheck(node);
   @override
-  visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
+  R visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
   @override
-  visitTypeKnown(HTypeKnown node) => visitCheck(node);
+  R visitTypeKnown(HTypeKnown node) => visitCheck(node);
   @override
-  visitAwait(HAwait node) => visitInstruction(node);
+  R visitAwait(HAwait node) => visitInstruction(node);
   @override
-  visitYield(HYield node) => visitInstruction(node);
+  R visitYield(HYield node) => visitInstruction(node);
 
   @override
-  visitIsTest(HIsTest node) => visitInstruction(node);
+  R visitIsTest(HIsTest node) => visitInstruction(node);
   @override
-  visitIsTestSimple(HIsTestSimple node) => visitInstruction(node);
+  R visitIsTestSimple(HIsTestSimple node) => visitInstruction(node);
   @override
-  visitAsCheck(HAsCheck node) => visitCheck(node);
+  R visitAsCheck(HAsCheck node) => visitCheck(node);
   @override
-  visitAsCheckSimple(HAsCheckSimple node) => visitCheck(node);
+  R visitAsCheckSimple(HAsCheckSimple node) => visitCheck(node);
   @override
-  visitSubtypeCheck(HSubtypeCheck node) => visitCheck(node);
+  R visitSubtypeCheck(HSubtypeCheck node) => visitCheck(node);
   @override
-  visitLoadType(HLoadType node) => visitInstruction(node);
+  R visitLoadType(HLoadType node) => visitInstruction(node);
   @override
-  visitInstanceEnvironment(HInstanceEnvironment node) => visitInstruction(node);
+  R visitInstanceEnvironment(HInstanceEnvironment node) =>
+      visitInstruction(node);
   @override
-  visitTypeEval(HTypeEval node) => visitInstruction(node);
+  R visitTypeEval(HTypeEval node) => visitInstruction(node);
   @override
-  visitTypeBind(HTypeBind node) => visitInstruction(node);
+  R visitTypeBind(HTypeBind node) => visitInstruction(node);
 }
 
 class SubGraph {
   // The first and last block of the sub-graph.
-  final HBasicBlock start;
-  final HBasicBlock end;
+  final HBasicBlock /*!*/ start;
+  final HBasicBlock /*!*/ end;
 
   const SubGraph(this.start, this.end);
 
@@ -753,7 +758,7 @@ class HInstructionList {
 class HBasicBlock extends HInstructionList {
   // The [id] must be such that any successor's id is greater than
   // this [id]. The exception are back-edges.
-  int id;
+  int id = -1;
 
   static const int STATUS_NEW = 0;
   static const int STATUS_OPEN = 1;
@@ -775,8 +780,7 @@ class HBasicBlock extends HInstructionList {
   int dominatorDfsIn;
   int dominatorDfsOut;
 
-  HBasicBlock() : this.withId(null);
-  HBasicBlock.withId(this.id);
+  HBasicBlock();
 
   @override
   int get hashCode => id;
@@ -946,7 +950,7 @@ class HBasicBlock extends HInstructionList {
 
   void addDominatedBlock(HBasicBlock block) {
     assert(isClosed());
-    assert(id != null && block.id != null);
+    assert(id >= 0 && block.id >= 0);
     assert(dominatedBlocks.indexOf(block) < 0);
     // Keep the list of dominated blocks sorted such that if there are two
     // succeeding blocks in the list, the predecessor is before the successor.
@@ -966,7 +970,7 @@ class HBasicBlock extends HInstructionList {
 
   void removeDominatedBlock(HBasicBlock block) {
     assert(isClosed());
-    assert(id != null && block.id != null);
+    assert(id >= 0 && block.id >= 0);
     int index = dominatedBlocks.indexOf(block);
     assert(index >= 0);
     if (index == dominatedBlocks.length - 1) {
@@ -1285,7 +1289,7 @@ abstract class HInstruction implements SpannableWithEntity {
   bool typeEquals(covariant HInstruction other) => false;
   bool dataEquals(covariant HInstruction other) => false;
 
-  accept(HVisitor visitor);
+  R accept<R>(HVisitor<R> visitor);
 
   void notifyAddedToBlock(HBasicBlock targetBlock) {
     assert(!isInBasicBlock());
@@ -1577,7 +1581,7 @@ class HRef extends HInstruction {
   HInstruction get value => inputs[0];
 
   @override
-  accept(HVisitor visitor) => visitor.visitRef(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitRef(this);
 
   @override
   String toString() => 'HRef(${value})';
@@ -1636,7 +1640,7 @@ class HBoundsCheck extends HCheck {
   bool isControlFlow() => true;
 
   @override
-  accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitBoundsCheck(this);
   @override
   int typeCode() => HInstruction.BOUNDS_CHECK_TYPECODE;
   @override
@@ -1698,7 +1702,7 @@ class HCreate extends HInstruction {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitCreate(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitCreate(this);
 
   @override
   String toString() => 'HCreate($element, ${instantiatedTypes})';
@@ -1712,7 +1716,7 @@ class HCreateBox extends HInstruction {
   bool isAllocation(AbstractValueDomain domain) => true;
 
   @override
-  accept(HVisitor visitor) => visitor.visitCreateBox(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitCreateBox(this);
 
   @override
   String toString() => 'HCreateBox()';
@@ -1849,7 +1853,7 @@ class HInvokeClosure extends HInvokeDynamic {
     assert(!isInterceptedCall);
   }
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeClosure(this);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
@@ -1873,7 +1877,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   String toString() =>
       'invoke dynamic method: selector=$selector, mask=$receiverType';
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
@@ -1907,7 +1911,7 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeDynamicGetter(this);
 
   bool get isTearOff => element != null && element.isFunction;
 
@@ -1946,7 +1950,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeDynamicSetter(this);
 
   @override
   List<DartType> get typeArguments => const [];
@@ -1982,7 +1986,7 @@ class HInvokeStatic extends HInvoke {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeStatic(this);
 
   @override
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
@@ -2026,7 +2030,7 @@ class HInvokeSuper extends HInvokeStatic {
   @override
   toString() => 'invoke super: $element';
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeSuper(this);
 
   HInstruction get value {
     assert(isSetter);
@@ -2051,7 +2055,7 @@ class HInvokeConstructorBody extends HInvokeStatic {
   @override
   String toString() => 'invoke constructor body: ${element.name}';
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeConstructorBody(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeConstructorBody(this);
 }
 
 class HInvokeGeneratorBody extends HInvokeStatic {
@@ -2072,7 +2076,7 @@ class HInvokeGeneratorBody extends HInvokeStatic {
   @override
   String toString() => 'HInvokeGeneratorBody(${element.name})';
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeGeneratorBody(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeGeneratorBody(this);
 }
 
 abstract class HFieldAccess extends HInstruction {
@@ -2125,7 +2129,7 @@ class HFieldGet extends HFieldAccess {
   bool onlyThrowsNSM() => true;
 
   @override
-  accept(HVisitor visitor) => visitor.visitFieldGet(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitFieldGet(this);
 
   @override
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
@@ -2157,7 +2161,7 @@ class HFieldSet extends HFieldAccess {
 
   HInstruction get value => inputs[1];
   @override
-  accept(HVisitor visitor) => visitor.visitFieldSet(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitFieldSet(this);
 
   // HFieldSet is an expression if it has a user.
   @override
@@ -2177,7 +2181,7 @@ class HFunctionReference extends HInstruction {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitFunctionReference(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitFunctionReference(this);
 
   @override
   int typeCode() => HInstruction.FUNCTION_REFERENCE_TYPECODE;
@@ -2214,7 +2218,7 @@ class HGetLength extends HInstruction {
   bool onlyThrowsNSM() => true;
 
   @override
-  accept(HVisitor visitor) => visitor.visitGetLength(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitGetLength(this);
 
   @override
   int typeCode() => HInstruction.GET_LENGTH_TYPECODE;
@@ -2274,7 +2278,7 @@ class HReadModifyWrite extends HLateInstruction {
 
   HInstruction get value => inputs[1];
   @override
-  accept(HVisitor visitor) => visitor.visitReadModifyWrite(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitReadModifyWrite(this);
 
   @override
   bool isJsStatement() => isAssignOp;
@@ -2301,7 +2305,7 @@ class HLocalGet extends HLocalAccess {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitLocalGet(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
 
@@ -2315,7 +2319,7 @@ class HLocalSet extends HLocalAccess {
       : super(variable, [local, value], domain.emptyType);
 
   @override
-  accept(HVisitor visitor) => visitor.visitLocalSet(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLocalSet(this);
 
   HLocalValue get local => inputs[0];
   HInstruction get value => inputs[1];
@@ -2369,7 +2373,7 @@ class HInvokeExternal extends HInvoke {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitInvokeExternal(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeExternal(this);
 
   @override
   bool isJsStatement() => false;
@@ -2470,7 +2474,7 @@ class HForeignCode extends HForeign {
             nativeBehavior: nativeBehavior);
 
   @override
-  accept(HVisitor visitor) => visitor.visitForeignCode(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitForeignCode(this);
 
   @override
   bool isJsStatement() => isStatement;
@@ -2541,7 +2545,7 @@ class HAdd extends HBinaryArithmetic {
   HAdd(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitAdd(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitAdd(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.add;
@@ -2557,7 +2561,7 @@ class HDivide extends HBinaryArithmetic {
   HDivide(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitDivide(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitDivide(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.divide;
@@ -2573,7 +2577,7 @@ class HMultiply extends HBinaryArithmetic {
   HMultiply(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitMultiply(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitMultiply(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.multiply;
@@ -2589,7 +2593,7 @@ class HSubtract extends HBinaryArithmetic {
   HSubtract(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitSubtract(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitSubtract(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.subtract;
@@ -2605,7 +2609,7 @@ class HTruncatingDivide extends HBinaryArithmetic {
   HTruncatingDivide(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitTruncatingDivide(this);
 
   @override
   constant_system.BinaryOperation operation() =>
@@ -2622,7 +2626,7 @@ class HRemainder extends HBinaryArithmetic {
   HRemainder(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitRemainder(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitRemainder(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.remainder;
@@ -2650,7 +2654,7 @@ class HSwitch extends HControlFlow {
   HBasicBlock get defaultTarget => block.successors.last;
 
   @override
-  accept(HVisitor visitor) => visitor.visitSwitch(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitSwitch(this);
 
   @override
   String toString() => "HSwitch cases = $inputs";
@@ -2665,7 +2669,7 @@ class HShiftLeft extends HBinaryBitOp {
   HShiftLeft(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitShiftLeft(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitShiftLeft(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.shiftLeft;
@@ -2681,7 +2685,7 @@ class HShiftRight extends HBinaryBitOp {
   HShiftRight(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitShiftRight(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitShiftRight(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.shiftRight;
@@ -2697,7 +2701,7 @@ class HBitOr extends HBinaryBitOp {
   HBitOr(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitBitOr(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitBitOr(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.bitOr;
@@ -2713,7 +2717,7 @@ class HBitAnd extends HBinaryBitOp {
   HBitAnd(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitBitAnd(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitBitAnd(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.bitAnd;
@@ -2729,7 +2733,7 @@ class HBitXor extends HBinaryBitOp {
   HBitXor(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitBitXor(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitBitXor(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.bitXor;
@@ -2756,7 +2760,7 @@ abstract class HInvokeUnary extends HInstruction {
 class HNegate extends HInvokeUnary {
   HNegate(HInstruction input, AbstractValue type) : super(input, type);
   @override
-  accept(HVisitor visitor) => visitor.visitNegate(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitNegate(this);
 
   @override
   constant_system.UnaryOperation operation() => constant_system.negate;
@@ -2771,7 +2775,7 @@ class HNegate extends HInvokeUnary {
 class HAbs extends HInvokeUnary {
   HAbs(HInstruction input, AbstractValue type) : super(input, type);
   @override
-  accept(HVisitor visitor) => visitor.visitAbs(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitAbs(this);
 
   @override
   constant_system.UnaryOperation operation() => constant_system.abs;
@@ -2786,7 +2790,7 @@ class HAbs extends HInvokeUnary {
 class HBitNot extends HInvokeUnary {
   HBitNot(HInstruction input, AbstractValue type) : super(input, type);
   @override
-  accept(HVisitor visitor) => visitor.visitBitNot(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitBitNot(this);
 
   @override
   constant_system.UnaryOperation operation() => constant_system.bitNot;
@@ -2803,7 +2807,7 @@ class HExit extends HControlFlow {
   @override
   toString() => 'exit';
   @override
-  accept(HVisitor visitor) => visitor.visitExit(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitExit(this);
 }
 
 class HGoto extends HControlFlow {
@@ -2811,7 +2815,7 @@ class HGoto extends HControlFlow {
   @override
   toString() => 'goto';
   @override
-  accept(HVisitor visitor) => visitor.visitGoto(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitGoto(this);
 }
 
 abstract class HJump extends HControlFlow {
@@ -2852,7 +2856,7 @@ class HBreak extends HJump {
   String toString() => (label != null) ? 'break ${label.labelName}' : 'break';
 
   @override
-  accept(HVisitor visitor) => visitor.visitBreak(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitBreak(this);
 }
 
 class HContinue extends HJump {
@@ -2869,7 +2873,7 @@ class HContinue extends HJump {
       (label != null) ? 'continue ${label.labelName}' : 'continue';
 
   @override
-  accept(HVisitor visitor) => visitor.visitContinue(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitContinue(this);
 }
 
 class HTry extends HControlFlow {
@@ -2880,7 +2884,7 @@ class HTry extends HControlFlow {
   @override
   toString() => 'try';
   @override
-  accept(HVisitor visitor) => visitor.visitTry(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitTry(this);
   HBasicBlock get joinBlock => this.block.successors.last;
 }
 
@@ -2894,7 +2898,7 @@ class HExitTry extends HControlFlow {
   @override
   toString() => 'exit try';
   @override
-  accept(HVisitor visitor) => visitor.visitExitTry(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitExitTry(this);
   HBasicBlock get bodyTrySuccessor => block.successors[0];
 }
 
@@ -2905,7 +2909,7 @@ class HIf extends HConditionalBranch {
   @override
   toString() => 'if';
   @override
-  accept(HVisitor visitor) => visitor.visitIf(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitIf(this);
 
   HBasicBlock get thenBlock {
     assert(identical(block.dominatedBlocks[0], block.successors[0]));
@@ -2931,7 +2935,7 @@ class HLoopBranch extends HConditionalBranch {
   @override
   toString() => 'loop-branch';
   @override
-  accept(HVisitor visitor) => visitor.visitLoopBranch(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLoopBranch(this);
 }
 
 class HConstant extends HInstruction {
@@ -2942,7 +2946,7 @@ class HConstant extends HInstruction {
   @override
   toString() => 'literal: ${constant.toStructuredText(null)}';
   @override
-  accept(HVisitor visitor) => visitor.visitConstant(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitConstant(this);
 
   @override
   bool isConstant() => true;
@@ -2989,7 +2993,7 @@ class HNot extends HInstruction {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitNot(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitNot(this);
   @override
   int typeCode() => HInstruction.NOT_TYPECODE;
   @override
@@ -3009,7 +3013,7 @@ class HLocalValue extends HInstruction {
   @override
   toString() => 'local ${sourceElement.name}';
   @override
-  accept(HVisitor visitor) => visitor.visitLocalValue(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLocalValue(this);
 }
 
 class HParameterValue extends HLocalValue {
@@ -3042,7 +3046,7 @@ class HParameterValue extends HLocalValue {
   @override
   toString() => 'parameter ${sourceElement.name}';
   @override
-  accept(HVisitor visitor) => visitor.visitParameterValue(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitParameterValue(this);
 }
 
 class HThis extends HParameterValue {
@@ -3057,7 +3061,7 @@ class HThis extends HParameterValue {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitThis(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitThis(this);
 
   @override
   bool isCodeMotionInvariant() => true;
@@ -3102,7 +3106,7 @@ class HPhi extends HInstruction {
   @override
   toString() => 'phi $id';
   @override
-  accept(HVisitor visitor) => visitor.visitPhi(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitPhi(this);
 }
 
 abstract class HRelational extends HInvokeBinary {
@@ -3118,7 +3122,7 @@ class HIdentity extends HRelational {
   HIdentity(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitIdentity(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitIdentity(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.identity;
@@ -3134,7 +3138,7 @@ class HGreater extends HRelational {
   HGreater(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitGreater(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitGreater(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.greater;
@@ -3150,7 +3154,7 @@ class HGreaterEqual extends HRelational {
   HGreaterEqual(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitGreaterEqual(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.greaterEqual;
@@ -3166,7 +3170,7 @@ class HLess extends HRelational {
   HLess(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitLess(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLess(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.less;
@@ -3182,7 +3186,7 @@ class HLessEqual extends HRelational {
   HLessEqual(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
   @override
-  accept(HVisitor visitor) => visitor.visitLessEqual(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLessEqual(this);
 
   @override
   constant_system.BinaryOperation operation() => constant_system.lessEqual;
@@ -3204,7 +3208,7 @@ class HReturn extends HControlFlow {
   @override
   toString() => 'return';
   @override
-  accept(HVisitor visitor) => visitor.visitReturn(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitReturn(this);
 }
 
 class HThrowExpression extends HInstruction {
@@ -3216,7 +3220,7 @@ class HThrowExpression extends HInstruction {
   @override
   toString() => 'throw expression';
   @override
-  accept(HVisitor visitor) => visitor.visitThrowExpression(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitThrowExpression(this);
   @override
   bool canThrow(AbstractValueDomain domain) => true;
 }
@@ -3226,7 +3230,7 @@ class HAwait extends HInstruction {
   @override
   toString() => 'await';
   @override
-  accept(HVisitor visitor) => visitor.visitAwait(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitAwait(this);
   // An await will throw if its argument is not a real future.
   @override
   bool canThrow(AbstractValueDomain domain) => true;
@@ -3244,7 +3248,7 @@ class HYield extends HInstruction {
   @override
   toString() => 'yield';
   @override
-  accept(HVisitor visitor) => visitor.visitYield(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitYield(this);
   @override
   bool canThrow(AbstractValueDomain domain) => false;
   @override
@@ -3262,7 +3266,7 @@ class HThrow extends HControlFlow {
   @override
   toString() => 'throw';
   @override
-  accept(HVisitor visitor) => visitor.visitThrow(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitThrow(this);
 }
 
 // TODO(johnniwinther): Change this to a "HStaticLoad" of a field when we use
@@ -3285,7 +3289,7 @@ class HStatic extends HInstruction {
   @override
   toString() => 'static ${element.name}';
   @override
-  accept(HVisitor visitor) => visitor.visitStatic(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitStatic(this);
 
   @override
   int gvnHashCode() => super.gvnHashCode() ^ element.hashCode;
@@ -3324,7 +3328,7 @@ class HInterceptor extends HInstruction {
   @override
   String toString() => 'interceptor on $interceptedClasses';
   @override
-  accept(HVisitor visitor) => visitor.visitInterceptor(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInterceptor(this);
   HInstruction get receiver => inputs[0];
 
   bool get isConditionalConstantInterceptor => inputs.length == 2;
@@ -3379,7 +3383,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
   String toString() =>
       'one shot interceptor: selector=$selector, mask=$receiverType';
   @override
-  accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitOneShotInterceptor(this);
 }
 
 /// An [HLazyStatic] is a static that is initialized lazily at first read.
@@ -3399,7 +3403,7 @@ class HLazyStatic extends HInstruction {
   @override
   toString() => 'lazy static ${element.name}';
   @override
-  accept(HVisitor visitor) => visitor.visitLazyStatic(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLazyStatic(this);
 
   @override
   int typeCode() => 30;
@@ -3421,7 +3425,7 @@ class HStaticStore extends HInstruction {
   @override
   toString() => 'static store ${element.name}';
   @override
-  accept(HVisitor visitor) => visitor.visitStaticStore(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitStaticStore(this);
 
   HInstruction get value => inputs.single;
 
@@ -3441,7 +3445,7 @@ class HLiteralList extends HInstruction {
   @override
   toString() => 'literal list';
   @override
-  accept(HVisitor visitor) => visitor.visitLiteralList(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLiteralList(this);
 
   @override
   bool isAllocation(AbstractValueDomain domain) => true;
@@ -3461,7 +3465,7 @@ class HIndex extends HInstruction {
   @override
   String toString() => 'index operator';
   @override
-  accept(HVisitor visitor) => visitor.visitIndex(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitIndex(this);
 
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
@@ -3500,7 +3504,7 @@ class HIndexAssign extends HInstruction {
   @override
   String toString() => 'index assign operator';
   @override
-  accept(HVisitor visitor) => visitor.visitIndexAssign(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitIndexAssign(this);
 
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
@@ -3533,7 +3537,7 @@ class HLateValue extends HLateInstruction {
   HInstruction get target => inputs.single;
 
   @override
-  accept(HVisitor visitor) => visitor.visitLateValue(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLateValue(this);
   @override
   toString() => 'HLateValue($target)';
 }
@@ -3577,7 +3581,7 @@ class HPrimitiveCheck extends HCheck {
   bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
 
   @override
-  accept(HVisitor visitor) => visitor.visitPrimitiveCheck(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitPrimitiveCheck(this);
 
   @override
   bool isJsStatement() => true;
@@ -3631,7 +3635,7 @@ class HBoolConversion extends HCheck {
   bool isCodeMotionInvariant() => false;
 
   @override
-  accept(HVisitor visitor) => visitor.visitBoolConversion(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitBoolConversion(this);
 
   @override
   int typeCode() => HInstruction.BOOL_CONVERSION_TYPECODE;
@@ -3676,7 +3680,7 @@ class HNullCheck extends HCheck {
   bool isCodeMotionInvariant() => false;
 
   @override
-  accept(HVisitor visitor) => visitor.visitNullCheck(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitNullCheck(this);
 
   @override
   int typeCode() => HInstruction.NULL_CHECK_TYPECODE;
@@ -3732,7 +3736,7 @@ class HLateReadCheck extends HLateCheck {
       : super(input, name, isTrusted, type);
 
   @override
-  accept(HVisitor visitor) => visitor.visitLateReadCheck(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLateReadCheck(this);
 
   @override
   int typeCode() => HInstruction.LATE_READ_CHECK_TYPECODE;
@@ -3767,7 +3771,7 @@ class HLateWriteOnceCheck extends HLateCheck {
       : super(input, name, isTrusted, type);
 
   @override
-  accept(HVisitor visitor) => visitor.visitLateWriteOnceCheck(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLateWriteOnceCheck(this);
 
   @override
   int typeCode() => HInstruction.LATE_WRITE_ONCE_CHECK_TYPECODE;
@@ -3802,7 +3806,8 @@ class HLateInitializeOnceCheck extends HLateCheck {
       : super(input, name, isTrusted, type);
 
   @override
-  accept(HVisitor visitor) => visitor.visitLateInitializeOnceCheck(this);
+  R accept<R>(HVisitor<R> visitor) =>
+      visitor.visitLateInitializeOnceCheck(this);
 
   @override
   int typeCode() => HInstruction.LATE_INITIALIZE_ONCE_CHECK_TYPECODE;
@@ -3842,7 +3847,7 @@ class HTypeKnown extends HCheck {
   @override
   toString() => 'TypeKnown $knownType';
   @override
-  accept(HVisitor visitor) => visitor.visitTypeKnown(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitTypeKnown(this);
 
   @override
   bool isJsStatement() => false;
@@ -3889,7 +3894,7 @@ class HRangeConversion extends HCheck {
   bool get isMovable => false;
 
   @override
-  accept(HVisitor visitor) => visitor.visitRangeConversion(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitRangeConversion(this);
 }
 
 class HStringConcat extends HInstruction {
@@ -3902,7 +3907,7 @@ class HStringConcat extends HInstruction {
   HInstruction get right => inputs[1];
 
   @override
-  accept(HVisitor visitor) => visitor.visitStringConcat(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitStringConcat(this);
   @override
   toString() => "string concat";
 
@@ -3935,7 +3940,7 @@ class HStringify extends HInstruction {
   bool canThrow(AbstractValueDomain domain) => !_isPure;
 
   @override
-  accept(HVisitor visitor) => visitor.visitStringify(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitStringify(this);
   @override
   toString() => "stringify";
 
@@ -4269,7 +4274,7 @@ class HIsTest extends HInstruction {
           isCast: false);
 
   @override
-  accept(HVisitor visitor) => visitor.visitIsTest(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitIsTest(this);
 
   @override
   int typeCode() => HInstruction.IS_TEST_TYPECODE;
@@ -4305,7 +4310,7 @@ class HIsTestSimple extends HInstruction {
           isCast: false);
 
   @override
-  accept(HVisitor visitor) => visitor.visitIsTestSimple(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitIsTestSimple(this);
 
   @override
   int typeCode() => HInstruction.IS_TEST_SIMPLE_TYPECODE;
@@ -4455,7 +4460,7 @@ class HAsCheck extends HCheck {
   bool isJsStatement() => false;
 
   @override
-  accept(HVisitor visitor) => visitor.visitAsCheck(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitAsCheck(this);
 
   @override
   int typeCode() => HInstruction.AS_CHECK_TYPECODE;
@@ -4501,7 +4506,7 @@ class HAsCheckSimple extends HCheck {
   bool isJsStatement() => false;
 
   @override
-  accept(HVisitor visitor) => visitor.visitAsCheckSimple(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitAsCheckSimple(this);
 
   bool isRedundant(JClosedWorld closedWorld, CompilerOptions options) =>
       _typeTest(checkedInput, dartType, checkedType, closedWorld, options,
@@ -4537,7 +4542,7 @@ class HSubtypeCheck extends HCheck {
   HInstruction get typeInput => inputs[1];
 
   @override
-  accept(HVisitor visitor) => visitor.visitSubtypeCheck(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitSubtypeCheck(this);
 
   @override
   int typeCode() => HInstruction.SUBTYPE_CHECK_TYPECODE;
@@ -4571,7 +4576,7 @@ class HLoadType extends HRtiInstruction {
       : this(TypeExpressionRecipe(dartType), instructionType);
 
   @override
-  accept(HVisitor visitor) => visitor.visitLoadType(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitLoadType(this);
 
   @override
   int typeCode() => HInstruction.LOAD_TYPE_TYPECODE;
@@ -4602,7 +4607,7 @@ class HInstanceEnvironment extends HRtiInstruction {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitInstanceEnvironment(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitInstanceEnvironment(this);
 
   @override
   int typeCode() => HInstruction.INSTANCE_ENVIRONMENT_TYPECODE;
@@ -4629,7 +4634,7 @@ class HTypeEval extends HRtiInstruction {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitTypeEval(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitTypeEval(this);
 
   @override
   int typeCode() => HInstruction.TYPE_EVAL_TYPECODE;
@@ -4656,7 +4661,7 @@ class HTypeBind extends HRtiInstruction {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitTypeBind(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitTypeBind(this);
 
   @override
   int typeCode() => HInstruction.TYPE_BIND_TYPECODE;
@@ -4678,7 +4683,7 @@ class HIsLateSentinel extends HInstruction {
   }
 
   @override
-  accept(HVisitor visitor) => visitor.visitIsLateSentinel(this);
+  R accept<R>(HVisitor<R> visitor) => visitor.visitIsLateSentinel(this);
 
   @override
   int typeCode() => HInstruction.IS_LATE_SENTINEL_TYPECODE;

@@ -6,7 +6,7 @@
 
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../world_interfaces.dart' show JClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -649,7 +649,8 @@ class Range {
 /// integer instructions. While visiting the graph, this phase also
 /// removes unnecessary bounds checks, and comparisons that are proven
 /// to be true or false.
-class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
+class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
+    implements OptimizationPhase {
   @override
   String get name => 'SSA value range builder';
 
@@ -1171,7 +1172,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 }
 
 /// Tries to find a range for the update instruction of a loop phi.
-class LoopUpdateRecognizer extends HBaseVisitor {
+class LoopUpdateRecognizer extends HBaseVisitor<Range> {
   final JClosedWorld closedWorld;
   final Map<HInstruction, Range> ranges;
   final ValueRangeInfo info;

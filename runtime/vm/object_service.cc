@@ -26,6 +26,17 @@ static void AddNameProperties(JSONObject* jsobj,
   }
 }
 
+static inline void AddValuePropertyToBoundField(const JSONObject& field,
+                                                const Object& value) {
+  if (value.IsBool() || value.IsSmi() || value.IsMint() || value.IsDouble()) {
+    // If the value is a bool, int, or double, we directly add the value to the
+    // response instead of adding an @Instance.
+    field.AddPropertyNoEscape("value", value.ToCString());
+  } else {
+    field.AddProperty("value", value);
+  }
+}
+
 void Object::AddCommonObjectProperties(JSONObject* jsobj,
                                        const char* protocol_type,
                                        bool ref) const {
@@ -1244,23 +1255,29 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "_RecordType");
-
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
   {
-    JSONArray arr(&jsobj, "fields");
+    JSONArray jsarr(&jsobj, "fields");
+    String& name = String::Handle();
+    AbstractType& type = AbstractType::Handle();
     const intptr_t num_fields = NumFields();
     const intptr_t num_positional_fields = NumPositionalFields();
-    AbstractType& type = AbstractType::Handle();
-    String& name = String::Handle();
-    for (intptr_t i = 0; i < num_fields; ++i) {
-      JSONObject field(&arr);
-      type = FieldTypeAt(i);
-      field.AddProperty("type", type);
-      if (i >= num_positional_fields) {
-        name = FieldNameAt(i - num_positional_fields);
-        field.AddProperty("name", name.ToCString());
+    for (intptr_t index = 0; index < num_fields; ++index) {
+      JSONObject jsfield(&jsarr);
+      // TODO(derekx): Remove this because BoundField isn't a response type in
+      // the spec.
+      jsfield.AddProperty("type", "BoundField");
+      if (index < num_positional_fields) {
+        jsfield.AddProperty("name", index);
       } else {
-        field.AddProperty("pos", i);
+        name = FieldNameAt(index - num_positional_fields);
+        jsfield.AddProperty("name", name.ToCString());
       }
+      type = FieldTypeAt(index);
+      jsfield.AddProperty("value", type);
     }
   }
 }
@@ -1648,7 +1665,6 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "_Record");
-  jsobj.AddProperty("numFields", num_fields());
   jsobj.AddServiceId(*this);
   if (ref) {
     return;
@@ -1656,30 +1672,27 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t offset;
   intptr_t count;
   stream->ComputeOffsetAndCount(num_fields(), &offset, &count);
-  if (offset > 0) {
-    jsobj.AddProperty("offset", offset);
-  }
-  if (count < num_fields()) {
-    jsobj.AddProperty("count", count);
-  }
   intptr_t limit = offset + count;
   ASSERT(limit <= num_fields());
   {
     JSONArray jsarr(&jsobj, "fields");
-    Object& obj = Object::Handle();
     String& name = String::Handle();
+    Object& value = Object::Handle();
     const intptr_t num_positional_fields = NumPositionalFields();
     const Array& field_names = Array::Handle(this->field_names());
     for (intptr_t index = offset; index < limit; ++index) {
-      JSONObject field(&jsarr);
-      obj = FieldAt(index);
-      field.AddProperty("value", obj);
-      if (index >= num_positional_fields) {
-        name ^= field_names.At(index - num_positional_fields);
-        field.AddProperty("name", name);
+      JSONObject jsfield(&jsarr);
+      // TODO(derekx): Remove this because BoundField isn't a response type in
+      // the spec.
+      jsfield.AddProperty("type", "BoundField");
+      if (index < num_positional_fields) {
+        jsfield.AddProperty("name", index);
       } else {
-        field.AddProperty("pos", index);
+        name ^= field_names.At(index - num_positional_fields);
+        jsfield.AddProperty("name", name.ToCString());
       }
+      value = FieldAt(index);
+      AddValuePropertyToBoundField(jsfield, value);
     }
   }
 }

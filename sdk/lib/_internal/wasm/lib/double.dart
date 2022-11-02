@@ -29,7 +29,11 @@ class double {
       [@deprecated double onError(String source)?]) {
     double? result = tryParse(source);
     if (result == null) {
-      throw FormatException('Invalid double $source');
+      if (onError == null) {
+        throw FormatException('Invalid double $source');
+      } else {
+        return onError(source);
+      }
     }
     return result;
   }

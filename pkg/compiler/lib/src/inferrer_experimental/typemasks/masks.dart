@@ -20,7 +20,7 @@ import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world_interfaces.dart' show JClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../../inferrer/abstract_value_domain.dart';
 import '../../inferrer/abstract_value_strategy.dart';
 import 'constants.dart';
