@@ -30,7 +30,7 @@ abstract class _ListBase<E> extends ListBase<E> {
     final int actualEnd = RangeError.checkValidRange(start, end, listLength);
     int length = actualEnd - start;
     if (length == 0) return <E>[];
-    return _GrowableList<E>(length)..setRange(0, length, this);
+    return _GrowableList<E>(length)..setRange(0, length, this, start);
   }
 
   void forEach(f(E element)) {
