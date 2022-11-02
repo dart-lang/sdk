@@ -489,7 +489,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     _unexpected();
   }
 
@@ -807,7 +807,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     _unexpected();
   }
 

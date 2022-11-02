@@ -177,11 +177,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
+        viewToken: viewToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -942,12 +943,13 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
+        viewToken: viewToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -3088,6 +3090,7 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
+  final Token? viewToken;
   final Token? augmentToken;
   final Token name;
 
@@ -3095,6 +3098,7 @@ class ClassDeclarationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
+      this.viewToken,
       this.augmentToken,
       required this.name})
       : super("ClassDeclaration", type);
@@ -3104,6 +3108,7 @@ class ClassDeclarationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
+        "viewToken": viewToken,
         "augmentToken": augmentToken,
         "name": name,
       };
@@ -4473,6 +4478,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
+  final Token? viewToken;
   final Token? augmentToken;
   final Token name;
 
@@ -4480,6 +4486,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
+      this.viewToken,
       this.augmentToken,
       required this.name})
       : super("NamedMixinApplication", type);
@@ -4489,6 +4496,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
+        "viewToken": viewToken,
         "augmentToken": augmentToken,
         "name": name,
       };

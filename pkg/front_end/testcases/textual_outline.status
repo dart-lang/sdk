@@ -112,6 +112,7 @@ general/records_opt_out: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
+general/view_class_declaration: FormatterCrash
 late_lowering/later: FormatterCrash
 macros/augment_class: FormatterCrash
 macros/augment_concrete: FormatterCrash
@@ -195,3 +196,4 @@ variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash
 variance/mixin_type_parameter_modifier: FormatterCrash
 variance/unconstrained_inference: FormatterCrash
+views/view_class_declaration: FormatterCrash

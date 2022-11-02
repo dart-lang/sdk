@@ -250,6 +250,14 @@ class ExperimentalFlag {
       enabledVersion: const Version(2, 19),
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19));
+
+  static const ExperimentalFlag views = const ExperimentalFlag(
+      name: 'views',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 19),
+      experimentEnabledVersion: const Version(2, 19),
+      experimentReleasedVersion: const Version(2, 19));
 }
 
 /// Interface for accessing the global state of experimental features.
@@ -397,6 +405,10 @@ class GlobalFeatures {
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
+
+  GlobalFeature? _views;
+  GlobalFeature get views =>
+      _views ??= _computeGlobalFeature(ExperimentalFlag.views);
 }
 
 /// Interface for accessing the state of experimental features within a
@@ -541,6 +553,10 @@ class LibraryFeatures {
   LibraryFeature get variance =>
       _variance ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.variance, canonicalUri, libraryVersion);
+
+  LibraryFeature? _views;
+  LibraryFeature get views => _views ??= globalFeatures._computeLibraryFeature(
+      ExperimentalFlag.views, canonicalUri, libraryVersion);
 }
 
 ExperimentalFlag? parseExperimentalFlag(String flag) {
@@ -595,6 +611,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.valueClass;
     case "variance":
       return ExperimentalFlag.variance;
+    case "views":
+      return ExperimentalFlag.views;
   }
   return null;
 }
@@ -642,6 +660,7 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
   ExperimentalFlag.valueClass: ExperimentalFlag.valueClass.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
+  ExperimentalFlag.views: ExperimentalFlag.views.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {

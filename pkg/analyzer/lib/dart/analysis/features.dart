@@ -72,6 +72,9 @@ abstract class Feature {
   /// Feature information for unnamed libraries.
   static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
 
+  /// Feature information for views.
+  static final views = ExperimentalFeatures.views;
+
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;
 

@@ -934,7 +934,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     debugEvent("beginClassDeclaration");
     push(begin);
   }

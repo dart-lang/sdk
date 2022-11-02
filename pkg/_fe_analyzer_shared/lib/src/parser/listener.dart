@@ -134,7 +134,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -760,7 +760,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").
   /// Substructures:

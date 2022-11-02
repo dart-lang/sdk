@@ -55,6 +55,7 @@ class FeatureSets {
       EnableString.records,
       EnableString.super_parameters,
       EnableString.unnamed_libraries,
+      EnableString.views,
     ],
   );
 
