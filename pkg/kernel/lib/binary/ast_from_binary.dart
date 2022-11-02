@@ -136,6 +136,12 @@ class BinaryBuilder {
   List<Constant> _constantTable = const <Constant>[];
   late List<CanonicalName> _linkTable;
   late Map<int, DartType?> _cachedSimpleInterfaceTypes;
+  List<FunctionType?> _voidFunctionFunctionTypesCache = [
+    null,
+    null,
+    null,
+    null
+  ];
   int _transformerFlags = 0;
   Library? _currentLibrary;
   int _componentStartOffset = 0;
@@ -3274,6 +3280,19 @@ class BinaryBuilder {
     int nullabilityIndex = readByte();
     List<DartType> positional = readDartTypeList();
     DartType returnType = readDartType();
+    if (positional.isEmpty && returnType is VoidType) {
+      // "FunctionType(void Function())" with different nullabilities.
+      assert(
+          _voidFunctionFunctionTypesCache.length == Nullability.values.length);
+      FunctionType? cached = _voidFunctionFunctionTypesCache[nullabilityIndex];
+      if (cached != null) {
+        return cached;
+      }
+      FunctionType result = new FunctionType(
+          const [], const VoidType(), Nullability.values[nullabilityIndex]);
+      _voidFunctionFunctionTypesCache[nullabilityIndex] = result;
+      return result;
+    }
     return new FunctionType(
         positional, returnType, Nullability.values[nullabilityIndex]);
   }
