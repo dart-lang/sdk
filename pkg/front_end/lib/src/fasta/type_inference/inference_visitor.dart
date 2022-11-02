@@ -7856,7 +7856,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    // TODO(cstefantsova): Should the expression be inferred?
+    ExpressionInferenceResult expressionResult =
+        inferExpression(matcher.expression, matchedType, true);
+    matcher.expression = expressionResult.expression..parent = matcher;
     return const PatternInferenceResult();
   }
 
