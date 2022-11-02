@@ -18,7 +18,7 @@ import '../js_model/class_type_variable_access.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
-import 'closure_migrated.dart'
+import 'closure.dart'
     show
         ClosureClassData,
         ContextClassData,

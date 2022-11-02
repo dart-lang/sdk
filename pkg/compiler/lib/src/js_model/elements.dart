@@ -11,7 +11,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
-import 'closure_migrated.dart';
+import 'closure.dart';
 
 const String jsElementPrefix = 'j:';
 

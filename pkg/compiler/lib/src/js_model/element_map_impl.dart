@@ -50,7 +50,6 @@ import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 
 import 'closure.dart';
-import 'closure_migrated.dart' as closureMigrated;
 import 'elements.dart';
 import 'element_map.dart';
 import 'env.dart';
@@ -363,8 +362,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       if (env.cls != null) {
         classMap[env.cls!] = cls;
       }
-      if (cls is! closureMigrated.JContext &&
-          cls is! closureMigrated.JClosureClass) {
+      if (cls is! JContext && cls is! JClosureClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);
       }
@@ -1736,7 +1734,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         JContextField(variable.name!, boxLocal, isConst: variable.isConst);
     members.register(
         boxedField,
-        closureMigrated.ClosureFieldData(
+        ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(variable),
                 MemberKind.closureField, variable),
             memberThisType));
@@ -1756,13 +1754,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       NodeBox box = info.capturedVariablesAccessor!;
 
       Map<Name, IndexedMember> memberMap = {};
-      closureMigrated.JContext container =
-          closureMigrated.JContext(member.library, box.name);
+      JContext container = JContext(member.library, box.name);
       BoxLocal boxLocal = BoxLocal(container);
       InterfaceType thisType =
           types.interfaceType(container, const <DartType>[]);
       InterfaceType supertype = commonElements.objectType;
-      JClassData containerData = closureMigrated.ContextClassData(
+      JClassData containerData = ContextClassData(
           ContextContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
@@ -1826,18 +1823,17 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     SourceSpan location = computeSourceSpanFromTreeNode(node);
     Map<Name, IndexedMember> memberMap = {};
 
-    JClass classEntity = closureMigrated.JClosureClass(enclosingLibrary, name);
+    JClass classEntity = JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     InterfaceType thisType =
         types.interfaceType(classEntity, const <DartType>[]);
-    closureMigrated.ClosureClassData closureData =
-        closureMigrated.ClosureClassData(
-            ClosureClassDefinition(location),
-            thisType,
-            supertype,
-            getOrderedTypeSet(supertype.element as IndexedClass)
-                .extendClass(types, thisType));
+    ClosureClassData closureData = ClosureClassData(
+        ClosureClassDefinition(location),
+        thisType,
+        supertype,
+        getOrderedTypeSet(supertype.element as IndexedClass)
+            .extendClass(types, thisType));
     classes.register(classEntity, closureData, ClosureClassEnv(memberMap));
 
     Local? closureEntity;
@@ -1846,8 +1842,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       final parent = node.parent as ir.FunctionDeclaration;
       closureEntityNode = parent.variable;
     } else if (node.parent is ir.FunctionExpression) {
-      closureEntity = closureMigrated.AnonymousClosureLocal(
-          classEntity as closureMigrated.JClosureClass);
+      closureEntity = AnonymousClosureLocal(classEntity as JClosureClass);
     }
 
     IndexedFunction callMethod = JClosureCallMethod(classEntity,
@@ -1888,7 +1883,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
     members.register<IndexedFunction, FunctionData>(
         callMethod,
-        closureMigrated.ClosureFunctionData(
+        ClosureFunctionData(
             ClosureMemberDefinition(
                 location, MemberKind.closureCall, node.parent!),
             memberThisType,
@@ -2026,7 +2021,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
     members.register<IndexedField, JFieldData>(
         closureField,
-        closureMigrated.ClosureFieldData(
+        ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField, sourceNode),
             memberThisType));
@@ -2072,7 +2067,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
     members.register<IndexedField, JFieldData>(
         closureField,
-        closureMigrated.ClosureFieldData(
+        ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField, sourceNode),
             memberThisType));
