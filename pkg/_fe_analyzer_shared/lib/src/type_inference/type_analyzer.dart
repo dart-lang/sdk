@@ -171,7 +171,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   TypeAnalyzerOptions get options;
 
   /// Returns the client's implementation of the [TypeOperations] class.
-  TypeOperations2<Type> get typeOperations;
+  TypeOperations<Type> get typeOperations;
 
   /// Returns the unknown type context (`?`) used in type inference.
   Type get unknownType;

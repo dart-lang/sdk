@@ -92,7 +92,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Class? mapEntryClass;
 
   @override
-  final TypeOperations2<DartType> typeOperations;
+  final TypeOperations<DartType> typeOperations;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.

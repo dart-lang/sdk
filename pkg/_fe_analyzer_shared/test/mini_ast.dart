@@ -611,7 +611,7 @@ abstract class LValue extends Expression {
 }
 
 class MiniAstOperations
-    with TypeOperations<Type>, TypeOperations2<Type>
+    with TypeOperations<Type>
     implements Operations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,

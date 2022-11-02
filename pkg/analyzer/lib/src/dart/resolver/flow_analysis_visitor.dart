@@ -378,7 +378,7 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
 }
 
 class TypeSystemOperations
-    with TypeOperations<DartType>, TypeOperations2<DartType>
+    with TypeOperations<DartType>
     implements Operations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
