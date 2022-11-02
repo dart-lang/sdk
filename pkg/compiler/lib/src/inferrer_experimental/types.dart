@@ -16,7 +16,7 @@ import '../inferrer_experimental/engine_migrated.dart'
     show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_world_migrated.dart' show LocalLookupImpl;
+import '../js_model/js_world.dart' show LocalLookupImpl;
 import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';

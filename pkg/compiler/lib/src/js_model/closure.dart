@@ -16,7 +16,7 @@ import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
 import 'closure_migrated.dart' as migrated;
-import 'js_world_builder_interfaces.dart' show JsClosedWorldBuilder;
+import 'js_world_builder.dart' show JsClosedWorldBuilder;
 
 export 'closure_migrated.dart'
     show AnonymousClosureLocal, JClosureField, JContextField;
