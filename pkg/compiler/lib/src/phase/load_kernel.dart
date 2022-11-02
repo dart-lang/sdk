@@ -133,10 +133,16 @@ class _LoadFromKernelResult {
 
 void _doGlobalTransforms(Component component) {
   transformMixins.transformLibraries(component.libraries);
-  // referenceFromIndex is only necessary in the case where a module containing
-  // a stub definition is invalidated, and then reloaded, because we need to
-  // keep existing references to that stub valid. Here, we have the whole
-  // program, and therefore do not need it.
+}
+
+// Perform any backend-specific transforms here that can be done on both
+// serialized components and components from source.
+// TODO(srujzs): Can we combine this with the above?
+void _doTransformsOnKernelLoad(Component component) {
+  // referenceFromIndex is only necessary in the case where a module
+  // containing a stub definition is invalidated, and then reloaded, because
+  // we need to keep existing references to that stub valid. Here, we have the
+  // whole program, and therefore do not need it.
   StaticInteropClassEraser(ir.CoreTypes(component), null)
       .visitComponent(component);
 }
@@ -397,6 +403,9 @@ Future<Output?> run(Input input) async {
     moduleLibraries = result.moduleLibraries;
   }
   if (component == null) return null;
+  // TODO(srujzs): These transforms can occur multiple times on the same
+  // component. Currently, it isn't an issue.
+  _doTransformsOnKernelLoad(component);
   if (input.forceSerialization) {
     // TODO(johnniwinther): Remove this when #34942 is fixed.
     List<int> data = serializeComponent(component);
