@@ -166,15 +166,16 @@ class TestParser extends Parser {
 
   @override
   Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
-      Token? macroToken, DirectiveContext? directiveState) {
+      Token? macroToken, Token? viewToken, DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
         '$start, '
         '$keyword, '
         '$macroToken, '
+        '$viewToken, '
         '$directiveState)');
     indent++;
     var result = super.parseTopLevelKeywordDeclaration(
-        start, keyword, macroToken, directiveState);
+        start, keyword, macroToken, viewToken, directiveState);
     indent--;
     return result;
   }
@@ -629,16 +630,21 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassOrNamedMixinApplication(Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token classKeyword) {
+  Token parseClassOrNamedMixinApplication(
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? augmentToken,
+      Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
         '$macroToken, '
+        '$viewToken, '
         '$augmentToken, '
         '$classKeyword)');
     indent++;
     var result = super.parseClassOrNamedMixinApplication(
-        abstractToken, macroToken, augmentToken, classKeyword);
+        abstractToken, macroToken, viewToken, augmentToken, classKeyword);
     indent--;
     return result;
   }

@@ -43,6 +43,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
   EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
+  EnableString.views: ExperimentalFeatures.views,
 };
 
 /// Constant strings for enabling each of the currently known experimental
@@ -119,6 +120,9 @@ class EnableString {
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
+
+  /// String to enable the experiment "views"
+  static const String views = 'views';
 }
 
 class ExperimentalFeatures {
@@ -366,6 +370,16 @@ class ExperimentalFeatures {
     experimentalReleaseVersion: null,
     releaseVersion: null,
   );
+
+  static final views = ExperimentalFeature(
+    index: 24,
+    enableString: EnableString.views,
+    isEnabledByDefault: IsEnabledByDefault.views,
+    isExpired: IsExpired.views,
+    documentation: 'Views',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -442,6 +456,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "variance"
   static const bool variance = false;
+
+  /// Default state of the experiment "views"
+  static const bool views = false;
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -519,6 +536,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
+
+  /// Expiration status of the experiment "views"
+  static const bool views = false;
 }
 
 mixin _CurrentState {
@@ -603,6 +623,9 @@ mixin _CurrentState {
 
   /// Current state for the flag "variance"
   bool get variance => isEnabled(ExperimentalFeatures.variance);
+
+  /// Current state for the flag "views"
+  bool get views => isEnabled(ExperimentalFeatures.views);
 
   bool isEnabled(covariant ExperimentalFeature feature);
 }

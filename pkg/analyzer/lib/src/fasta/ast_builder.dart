@@ -143,6 +143,9 @@ class AstBuilder extends StackListener {
   /// `true` if unnamed-library behavior is enabled
   final bool enableUnnamedLibraries;
 
+  /// `true` if views are enabled
+  final bool enableViews;
+
   final FeatureSet _featureSet;
 
   final LineInfo _lineInfo;
@@ -167,6 +170,7 @@ class AstBuilder extends StackListener {
         enableRecords = _featureSet.isEnabled(Feature.records),
         enableUnnamedLibraries =
             _featureSet.isEnabled(Feature.unnamedLibraries),
+        enableViews = _featureSet.isEnabled(Feature.views),
         uri = uri ?? fileUri;
 
   @override
@@ -209,7 +213,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     assert(_classLikeBuilder == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
@@ -222,7 +226,18 @@ class AstBuilder extends StackListener {
         macroToken = null;
       }
     }
+    if (!enableViews) {
+      if (viewToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.views,
+          startToken: viewToken,
+        );
+        // Pretend that 'view' didn't occur while this feature is incomplete.
+        viewToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
+    push(viewToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -352,7 +367,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
       if (macroToken != null) {
@@ -364,7 +379,18 @@ class AstBuilder extends StackListener {
         macroToken = null;
       }
     }
+    if (!enableViews) {
+      if (viewToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.views,
+          startToken: viewToken,
+        );
+        // Pretend that 'view' didn't occur while this feature is incomplete.
+        viewToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
+    push(viewToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -572,6 +598,7 @@ class AstBuilder extends StackListener {
       metadata: null,
       abstractKeyword: null,
       macroKeyword: null,
+      viewKeyword: null,
       augmentKeyword: null,
       classKeyword: Token(Keyword.CLASS, 0),
       name: StringToken(TokenType.STRING, className, -1),
@@ -2541,6 +2568,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValue.WithClause) as WithClauseImpl;
     var superclass = pop() as NamedTypeImpl;
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var viewKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -2558,6 +2586,7 @@ class AstBuilder extends StackListener {
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
         macroKeyword: macroKeyword,
+        viewKeyword: viewKeyword,
         augmentKeyword: augmentKeyword,
         superclass: superclass,
         withClause: withClause,
@@ -3466,6 +3495,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var viewKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -3480,6 +3510,7 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
+      viewKeyword: viewKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
       name: name.token,
@@ -5289,6 +5320,7 @@ class AstBuilder extends StackListener {
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? abstractKeyword;
   final Token? macroKeyword;
+  final Token? viewKeyword;
   final Token? augmentKeyword;
   final Token classKeyword;
   final Token name;
@@ -5305,6 +5337,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.rightBracket,
     required this.abstractKeyword,
     required this.macroKeyword,
+    required this.viewKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
     required this.name,
@@ -5320,6 +5353,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       metadata: metadata,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
+      viewKeyword: viewKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
       name: name,

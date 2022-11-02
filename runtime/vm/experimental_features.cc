@@ -27,7 +27,6 @@ bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
 
 const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
   constexpr const char* kFeatureNames[] = {
-      "unnamed-libraries",
       "nonfunction-type-aliases",
       "non-nullable",
       "extension-methods",
@@ -42,6 +41,7 @@ const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
       "named-arguments-anywhere",
       "super-parameters",
       "inference-update-1",
+      "unnamed-libraries",
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureNames));
   return kFeatureNames[static_cast<int>(feature)];

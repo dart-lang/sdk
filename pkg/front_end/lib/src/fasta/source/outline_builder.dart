@@ -862,7 +862,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     debugEvent("beginClassDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -881,7 +881,14 @@ class OutlineBuilder extends StackListenerImpl {
         macroToken = null;
       }
     }
+    if (viewToken != null) {
+      if (reportIfNotEnabled(
+          libraryFeatures.views, viewToken.charOffset, viewToken.length)) {
+        viewToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
+    push(viewToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -957,7 +964,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     debugEvent("beginNamedMixinApplication");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -969,12 +976,19 @@ class OutlineBuilder extends StackListenerImpl {
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
     if (macroToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.macros,
-          macroToken.next!.charOffset, macroToken.next!.length)) {
+      if (reportIfNotEnabled(
+          libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
         macroToken = null;
       }
     }
+    if (viewToken != null) {
+      if (reportIfNotEnabled(
+          libraryFeatures.views, viewToken.charOffset, viewToken.length)) {
+        viewToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
+    push(viewToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -1129,6 +1143,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
       ]),
       /* augment token */ ValueKinds.TokenOrNull,
+      /* view token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -1145,6 +1160,9 @@ class OutlineBuilder extends StackListenerImpl {
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
+    // TODO(johnniwinther): Create builder for view.
+    // ignore: unused_local_variable
+    Token? viewToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
@@ -2050,6 +2068,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilder,
       ]),
       /* augment token */ ValueKinds.TokenOrNull,
+      /* view token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -2064,6 +2083,10 @@ class OutlineBuilder extends StackListenerImpl {
     Object? mixinApplication = pop();
     Object? supertype = pop();
     Token? augmentToken = pop(NullValue.Token) as Token?;
+    // TODO(johnniwinther): Report error on 'view' here; it can't be used on
+    // named mixin applications.
+    // ignore: unused_local_variable
+    Token? viewToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
