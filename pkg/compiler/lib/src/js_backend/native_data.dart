@@ -11,7 +11,7 @@ import '../common/elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../ir/annotations.dart';
 import '../js_model/js_to_frontend_map.dart' show identity, JsToFrontendMap;
-import '../kernel/element_map_interfaces.dart';
+import '../kernel/element_map.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../serialization/serialization.dart';
 import '../util/util.dart';
@@ -166,7 +166,7 @@ class NativeBasicData {
       this._jsInteropMembers);
 
   factory NativeBasicData.fromIr(
-      KernelToElementMapForNativeData map, IrAnnotationData data) {
+      KernelToElementMap map, IrAnnotationData data) {
     ElementEnvironment env = map.elementEnvironment;
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo = {};
     Map<LibraryEntity, String> jsInteropLibraries = {};
@@ -454,8 +454,7 @@ class NativeData implements NativeBasicData {
       this._nativeFieldLoadBehavior,
       this._nativeFieldStoreBehavior);
 
-  factory NativeData.fromIr(
-      KernelToElementMapForNativeData map, IrAnnotationData data) {
+  factory NativeData.fromIr(KernelToElementMap map, IrAnnotationData data) {
     NativeBasicData nativeBasicData = NativeBasicData.fromIr(map, data);
     Map<MemberEntity, String> nativeMemberName = {};
     Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = {};

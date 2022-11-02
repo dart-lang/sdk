@@ -7,8 +7,7 @@ import '../common/elements.dart';
 import '../elements/entities.dart' show ClassEntity;
 import '../elements/indexed.dart' show IndexedClass;
 import '../elements/types.dart' show InterfaceType;
-import '../kernel/element_map_interfaces.dart'
-    show KernelToElementMapForClassHierarchy;
+import '../kernel/element_map.dart' show KernelToElementMap;
 import '../serialization/serialization.dart';
 import 'class_set.dart';
 
@@ -574,7 +573,7 @@ class ClassHierarchyBuilder {
   final Map<ClassEntity, Set<ClassEntity>> mixinUses = {};
 
   final CommonElements _commonElements;
-  final KernelToElementMapForClassHierarchy _elementMap;
+  final KernelToElementMap _elementMap;
 
   ClassHierarchyBuilder(this._commonElements, this._elementMap);
 

@@ -22,6 +22,15 @@ class SharedTypeAnalyzerErrors
       {required this.helper, required this.uriForInstrumentation});
 
   @override
+  void argumentTypeNotAssignable({
+    required Expression argument,
+    required DartType argumentType,
+    required DartType parameterType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void assertInErrorRecovery() {
     // TODO(paulberry): figure out how to do this.
   }
@@ -84,6 +93,14 @@ class SharedTypeAnalyzerErrors
   @override
   void refutablePatternInIrrefutableContext(Node pattern, Node context) {
     throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void relationalPatternOperatorReturnTypeNotAssignableToBool({
+    required Node node,
+    required DartType returnType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override

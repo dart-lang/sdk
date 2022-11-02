@@ -54,7 +54,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, StringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -76,8 +75,8 @@ class AstBuilder extends StackListener {
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
   ScriptTagImpl? scriptTag;
-  final List<Directive> directives = <Directive>[];
-  final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
+  final List<DirectiveImpl> directives = [];
+  final List<CompilationUnitMemberImpl> declarations = [];
 
   @override
   final Uri uri;
@@ -195,7 +194,7 @@ class AstBuilder extends StackListener {
 
     var expression = pop() as ExpressionImpl;
     push(token);
-    if (expression is CascadeExpression) {
+    if (expression is CascadeExpressionImpl) {
       push(expression);
     } else {
       push(
@@ -242,7 +241,7 @@ class AstBuilder extends StackListener {
     debugEvent("ExtensionHeader");
 
     var typeParameters = pop() as TypeParameterListImpl?;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, extensionKeyword);
 
     SimpleIdentifierImpl? name;
@@ -381,7 +380,7 @@ class AstBuilder extends StackListener {
   void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
     var name = pop() as SimpleIdentifierImpl;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
 
     var comment = _findComment(metadata, name.beginToken);
     var typeParameter = TypeParameterImpl(
@@ -407,10 +406,10 @@ class AstBuilder extends StackListener {
     }
   }
 
-  ConstructorInitializer? buildInitializer(Object initializerObject) {
+  ConstructorInitializerImpl? buildInitializer(Object initializerObject) {
     if (initializerObject is FunctionExpressionInvocationImpl) {
-      Expression function = initializerObject.function;
-      if (function is SuperExpression) {
+      var function = initializerObject.function;
+      if (function is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: function.superKeyword,
           period: null,
@@ -418,7 +417,7 @@ class AstBuilder extends StackListener {
           argumentList: initializerObject.argumentList,
         );
       }
-      if (function is ThisExpression) {
+      if (function is ThisExpressionImpl) {
         return RedirectingConstructorInvocationImpl(
           thisKeyword: function.thisKeyword,
           period: null,
@@ -451,7 +450,7 @@ class AstBuilder extends StackListener {
           target, initializerObject);
     }
 
-    if (initializerObject is PropertyAccess) {
+    if (initializerObject is PropertyAccessImpl) {
       return buildInitializerTargetExpressionRecovery(
           initializerObject.target, initializerObject);
     }
@@ -460,14 +459,14 @@ class AstBuilder extends StackListener {
       Token? thisKeyword;
       Token? period;
       SimpleIdentifierImpl fieldName;
-      Expression left = initializerObject.leftHandSide;
+      var left = initializerObject.leftHandSide;
       if (left is PropertyAccessImpl) {
         var target = left.target;
         if (target is ThisExpressionImpl) {
           thisKeyword = target.thisKeyword;
           period = left.operator;
         } else {
-          assert(target is SuperExpression);
+          assert(target is SuperExpressionImpl);
           // Recovery:
           // Parser has reported FieldInitializedOutsideDeclaringClass.
         }
@@ -477,7 +476,7 @@ class AstBuilder extends StackListener {
       } else {
         // Recovery:
         // Parser has reported invalid assignment.
-        var superExpression = left as SuperExpression;
+        var superExpression = left as SuperExpressionImpl;
         fieldName = ast.simpleIdentifier(superExpression.superKeyword);
       }
       return ConstructorFieldInitializerImpl(
@@ -489,16 +488,16 @@ class AstBuilder extends StackListener {
       );
     }
 
-    if (initializerObject is AssertInitializer) {
+    if (initializerObject is AssertInitializerImpl) {
       return initializerObject;
     }
 
-    if (initializerObject is IndexExpression) {
+    if (initializerObject is IndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
           initializerObject.target, initializerObject);
     }
 
-    if (initializerObject is CascadeExpression) {
+    if (initializerObject is CascadeExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
           initializerObject.target, initializerObject);
     }
@@ -506,8 +505,8 @@ class AstBuilder extends StackListener {
     return null;
   }
 
-  ConstructorInitializer? buildInitializerTargetExpressionRecovery(
-      Expression? target, Object initializerObject) {
+  ConstructorInitializerImpl? buildInitializerTargetExpressionRecovery(
+      ExpressionImpl? target, Object initializerObject) {
     ArgumentListImpl? argumentList;
     while (true) {
       if (target is FunctionExpressionInvocationImpl) {
@@ -523,7 +522,7 @@ class AstBuilder extends StackListener {
         break;
       }
     }
-    if (target is SuperExpression) {
+    if (target is SuperExpressionImpl) {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidSuperInInitializer,
@@ -535,7 +534,7 @@ class AstBuilder extends StackListener {
         argumentList:
             argumentList ?? _syntheticArgumentList(target.superKeyword),
       );
-    } else if (target is ThisExpression) {
+    } else if (target is ThisExpressionImpl) {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidThisInInitializer,
@@ -551,11 +550,11 @@ class AstBuilder extends StackListener {
     return null;
   }
 
-  void checkFieldFormalParameters(FormalParameterList? parameterList) {
+  void checkFieldFormalParameters(FormalParameterListImpl? parameterList) {
     var parameters = parameterList?.parameters;
     if (parameters != null) {
       for (var parameter in parameters) {
-        if (parameter is FieldFormalParameter) {
+        if (parameter is FieldFormalParameterImpl) {
           // This error is reported in the BodyBuilder.endFormalParameter.
           handleRecoverableError(messageFieldInitializerOutsideConstructor,
               parameter.thisKeyword, parameter.thisKeyword);
@@ -674,8 +673,8 @@ class AstBuilder extends StackListener {
 
     if (!enableNamedArgumentsAnywhere) {
       bool hasSeenNamedArgument = false;
-      for (Expression expression in expressions) {
-        if (expression is NamedExpression) {
+      for (var expression in expressions) {
+        if (expression is NamedExpressionImpl) {
           hasSeenNamedArgument = true;
         } else if (hasSeenNamedArgument) {
           // Positional argument after named argument.
@@ -907,21 +906,21 @@ class AstBuilder extends StackListener {
       }
       var pattern = pop() as DartPatternImpl;
       push(SwitchPatternCaseImpl(
-          labels: <Label>[],
+          labels: <LabelImpl>[],
           keyword: caseKeyword,
           pattern: pattern,
           whenClause: whenClause,
           colon: colon,
-          statements: <Statement>[]));
+          statements: <StatementImpl>[]));
     } else {
       var expression = pop() as ExpressionImpl;
       push(
         SwitchCaseImpl(
-          labels: <Label>[],
+          labels: <LabelImpl>[],
           keyword: caseKeyword,
           expression: expression,
           colon: colon,
-          statements: <Statement>[],
+          statements: <StatementImpl>[],
         ),
       );
     }
@@ -936,14 +935,14 @@ class AstBuilder extends StackListener {
     debugEvent("ClassConstructor");
 
     var bodyObject = pop();
-    var initializers = (pop() as List<ConstructorInitializer>?) ?? const [];
+    var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
     var separator = pop() as Token?;
     var parameters = pop() as FormalParameterListImpl;
-    var typeParameters = pop() as TypeParameterList?;
+    var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop();
     pop(); // return type
     var modifiers = pop() as _Modifiers?;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
 
     ConstructorNameImpl? redirectedConstructor;
@@ -964,7 +963,7 @@ class AstBuilder extends StackListener {
           uri);
     }
 
-    SimpleIdentifier prefixOrName;
+    SimpleIdentifierImpl prefixOrName;
     Token? period;
     SimpleIdentifierImpl? nameOrNull;
     if (name is SimpleIdentifierImpl) {
@@ -1010,7 +1009,7 @@ class AstBuilder extends StackListener {
     );
 
     _classLikeBuilder?.members.add(constructor);
-    if (_classLikeBuilder is MixinDeclaration) {
+    if (_classLikeBuilder is MixinDeclarationImpl) {
       // TODO (danrubel): Report an error if this is a mixin declaration.
     }
   }
@@ -1054,10 +1053,10 @@ class AstBuilder extends StackListener {
     }
 
     var parameters = pop() as FormalParameterListImpl;
-    var typeParameters = pop() as TypeParameterList?;
-    var constructorName = pop() as Identifier;
+    var typeParameters = pop() as TypeParameterListImpl?;
+    var constructorName = pop() as IdentifierImpl;
     var modifiers = pop() as _Modifiers?;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
 
     if (typeParameters != null) {
@@ -1068,13 +1067,13 @@ class AstBuilder extends StackListener {
 
     // Decompose the preliminary ConstructorName into the type name and
     // the actual constructor name.
-    SimpleIdentifier returnType;
+    SimpleIdentifierImpl returnType;
     Token? period;
     SimpleIdentifierImpl? name;
-    Identifier typeName = constructorName;
-    if (typeName is SimpleIdentifier) {
+    IdentifierImpl typeName = constructorName;
+    if (typeName is SimpleIdentifierImpl) {
       returnType = typeName;
-    } else if (typeName is PrefixedIdentifier) {
+    } else if (typeName is PrefixedIdentifierImpl) {
       returnType = typeName.prefix;
       period = typeName.period;
       name =
@@ -1142,7 +1141,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var variables = popTypedList2<VariableDeclaration>(count);
+    var variables = popTypedList2<VariableDeclarationImpl>(count);
     var type = pop() as TypeAnnotationImpl?;
     var variableList = VariableDeclarationListImpl(
       comment: null,
@@ -1153,7 +1152,7 @@ class AstBuilder extends StackListener {
       variables: variables,
     );
     var covariantKeyword = covariantToken;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     _classLikeBuilder?.members.add(
       FieldDeclarationImpl(
@@ -1186,7 +1185,7 @@ class AstBuilder extends StackListener {
     var name = pop();
     var returnType = pop() as TypeAnnotationImpl?;
     var modifiers = pop() as _Modifiers?;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
 
     assert(parameters != null || optional('get', getOrSet!));
@@ -1260,7 +1259,7 @@ class AstBuilder extends StackListener {
   @override
   void endCombinators(int count) {
     debugEvent("Combinators");
-    push(popTypedList<Combinator>(count) ?? NullValue.Combinators);
+    push(popTypedList<CombinatorImpl>(count) ?? NullValue.Combinators);
   }
 
   @override
@@ -1315,7 +1314,7 @@ class AstBuilder extends StackListener {
     var value = popIfNotNull(equalSign) as StringLiteralImpl?;
     if (value is StringInterpolationImpl) {
       for (var child in value.childEntities) {
-        if (child is InterpolationExpression) {
+        if (child is InterpolationExpressionImpl) {
           // This error is reported in OutlineBuilder.endLiteralString
           handleRecoverableError(
               messageInterpolationInUri, child.beginToken, child.endToken);
@@ -1341,7 +1340,7 @@ class AstBuilder extends StackListener {
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
 
-    push(popTypedList<Configuration>(count) ?? NullValue.ConditionalUris);
+    push(popTypedList<ConfigurationImpl>(count) ?? NullValue.ConditionalUris);
   }
 
   @override
@@ -1439,10 +1438,10 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Export");
 
-    var combinators = pop() as List<Combinator>?;
-    var configurations = pop() as List<Configuration>?;
+    var combinators = pop() as List<CombinatorImpl>?;
+    var configurations = pop() as List<ConfigurationImpl>?;
     var uri = pop() as StringLiteralImpl;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, exportKeyword);
     directives.add(
       ExportDirectiveImpl(
@@ -1521,7 +1520,7 @@ class AstBuilder extends StackListener {
     var typeParameters = pop() as TypeParameterListImpl?;
     var constructorName = pop();
     var modifiers = pop() as _Modifiers?;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
 
     FunctionBodyImpl body;
     if (bodyObject is FunctionBodyImpl) {
@@ -1724,8 +1723,8 @@ class AstBuilder extends StackListener {
     }
 
     var defaultValue = pop() as _ParameterDefaultValue?;
-    var name = pop() as SimpleIdentifier?;
-    var typeOrFunctionTypedParameter = pop() as AstNode?;
+    var name = pop() as SimpleIdentifierImpl?;
+    var typeOrFunctionTypedParameter = pop() as AstNodeImpl?;
     var modifiers = pop() as _Modifiers?;
     var keyword = modifiers?.finalConstOrVarKeyword;
     var covariantKeyword = modifiers?.covariantKeyword;
@@ -1736,7 +1735,7 @@ class AstBuilder extends StackListener {
         startToken: requiredKeyword,
       );
     }
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
 
@@ -1849,7 +1848,7 @@ class AstBuilder extends StackListener {
     }
 
     ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
-    FormalParameter parameter = node;
+    FormalParameterImpl parameter = node;
     if (analyzerKind != ParameterKind.REQUIRED) {
       parameter = DefaultFormalParameterImpl(
         parameter: node,
@@ -1883,16 +1882,16 @@ class AstBuilder extends StackListener {
     debugEvent("FormalParameters");
 
     var rawParameters = popTypedList(count) ?? const <Object>[];
-    List<FormalParameter> parameters = <FormalParameter>[];
+    var parameters = <FormalParameterImpl>[];
     Token? leftDelimiter;
     Token? rightDelimiter;
     for (Object raw in rawParameters) {
       if (raw is _OptionalFormalParameters) {
-        parameters.addAll(raw.parameters ?? const <FormalParameter>[]);
+        parameters.addAll(raw.parameters ?? const []);
         leftDelimiter = raw.leftDelimiter;
         rightDelimiter = raw.rightDelimiter;
       } else {
-        parameters.add(raw as FormalParameter);
+        parameters.add(raw as FormalParameterImpl);
       }
     }
     push(
@@ -2011,7 +2010,7 @@ class AstBuilder extends StackListener {
     assert(optional('hide', hideKeyword));
     debugEvent("Hide");
 
-    var hiddenNames = pop() as List<SimpleIdentifier>;
+    var hiddenNames = pop() as List<SimpleIdentifierImpl>;
     push(
       HideCombinatorImpl(
         keyword: hideKeyword,
@@ -2095,13 +2094,13 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("Import");
 
-    var combinators = pop() as List<Combinator>?;
+    var combinators = pop() as List<CombinatorImpl>?;
     var deferredKeyword = pop(NullValue.Deferred) as Token?;
     var asKeyword = pop(NullValue.As) as Token?;
     var prefix = pop(NullValue.Prefix) as SimpleIdentifierImpl?;
-    var configurations = pop() as List<Configuration>?;
+    var configurations = pop() as List<ConfigurationImpl>?;
     var uri = pop() as StringLiteralImpl;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, importKeyword);
 
     if (!enableMacros) {
@@ -2148,13 +2147,13 @@ class AstBuilder extends StackListener {
   void endInitializedIdentifier(Token nameToken) {
     debugEvent("InitializedIdentifier");
 
-    var node = pop() as AstNode?;
-    VariableDeclaration variable;
+    var node = pop() as AstNodeImpl?;
+    VariableDeclarationImpl variable;
     // TODO(paulberry): This seems kludgy.  It would be preferable if we
     // could respond to a "handleNoVariableInitializer" event by converting a
     // SimpleIdentifier into a VariableDeclaration, and then when this code was
     // reached, node would always be a VariableDeclaration.
-    if (node is VariableDeclaration) {
+    if (node is VariableDeclarationImpl) {
       variable = node;
     } else if (node is SimpleIdentifierImpl) {
       variable = VariableDeclarationImpl(
@@ -2182,7 +2181,7 @@ class AstBuilder extends StackListener {
 
     push(colon);
 
-    var initializers = <ConstructorInitializer>[];
+    var initializers = <ConstructorInitializerImpl>[];
     for (Object initializerObject in initializerObjects) {
       var initializer = buildInitializer(initializerObject);
       if (initializer != null) {
@@ -2190,8 +2189,12 @@ class AstBuilder extends StackListener {
       } else {
         handleRecoverableError(
             messageInvalidInitializer,
-            initializerObject is AstNode ? initializerObject.beginToken : colon,
-            initializerObject is AstNode ? initializerObject.endToken : colon);
+            initializerObject is AstNodeImpl
+                ? initializerObject.beginToken
+                : colon,
+            initializerObject is AstNodeImpl
+                ? initializerObject.endToken
+                : colon);
       }
     }
 
@@ -2222,7 +2225,7 @@ class AstBuilder extends StackListener {
     debugEvent("LabeledStatement");
 
     var statement = pop() as StatementImpl;
-    var labels = popTypedList2<Label>(labelCount);
+    var labels = popTypedList2<LabelImpl>(labelCount);
     push(
       LabeledStatementImpl(
         labels: labels,
@@ -2235,7 +2238,7 @@ class AstBuilder extends StackListener {
   void endLibraryAugmentation(
       Token libraryKeyword, Token augmentKeyword, Token semicolon) {
     final uri = pop() as StringLiteralImpl;
-    final metadata = pop() as List<Annotation>?;
+    final metadata = pop() as List<AnnotationImpl>?;
     final comment = _findComment(metadata, libraryKeyword);
     directives.add(
       LibraryAugmentationDirectiveImpl(
@@ -2255,7 +2258,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("LibraryName");
 
-    var libraryName = hasName ? pop() as List<SimpleIdentifier>? : null;
+    var libraryName = hasName ? pop() as List<SimpleIdentifierImpl>? : null;
 
     if (!hasName && !enableUnnamedLibraries) {
       _reportFeatureNotEnabled(
@@ -2268,7 +2271,7 @@ class AstBuilder extends StackListener {
         : LibraryIdentifierImpl(
             components: libraryName,
           );
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, libraryKeyword);
     directives.add(
       LibraryDirectiveImpl(
@@ -2299,7 +2302,7 @@ class AstBuilder extends StackListener {
       var first = parts.first as Token;
       var last = parts.last as Token;
       Quote quote = analyzeQuote(first.lexeme);
-      List<InterpolationElement> elements = <InterpolationElement>[];
+      var elements = <InterpolationElementImpl>[];
       elements.add(
         InterpolationStringImpl(
           contents: first,
@@ -2315,7 +2318,7 @@ class AstBuilder extends StackListener {
               value: unescape(part.lexeme, quote, part, this),
             ),
           );
-        } else if (part is InterpolationExpression) {
+        } else if (part is InterpolationExpressionImpl) {
           elements.add(part);
         } else {
           internalProblem(
@@ -2367,7 +2370,7 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifierImpl;
     var returnType = pop() as TypeAnnotationImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var metadata = pop(NullValue.Metadata) as List<Annotation>?;
+    var metadata = pop(NullValue.Metadata) as List<AnnotationImpl>?;
     final functionExpression = FunctionExpressionImpl(
       typeParameters: typeParameters,
       parameters: parameters,
@@ -2429,7 +2432,7 @@ class AstBuilder extends StackListener {
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
 
-    push(popTypedList<Annotation>(count) ?? NullValue.Metadata);
+    push(popTypedList<AnnotationImpl>(count) ?? NullValue.Metadata);
   }
 
   @override
@@ -2543,7 +2546,7 @@ class AstBuilder extends StackListener {
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var abstractKeyword = modifiers?.abstractKeyword;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(
       ClassTypeAliasImpl(
@@ -2579,8 +2582,13 @@ class AstBuilder extends StackListener {
         (optional('{', leftDelimeter) && optional('}', rightDelimeter)));
     debugEvent("OptionalFormalParameters");
 
-    push(_OptionalFormalParameters(
-        popTypedList2<FormalParameter>(count), leftDelimeter, rightDelimeter));
+    push(
+      _OptionalFormalParameters(
+        popTypedList2<FormalParameterImpl>(count),
+        leftDelimeter,
+        rightDelimeter,
+      ),
+    );
   }
 
   @override
@@ -2605,7 +2613,7 @@ class AstBuilder extends StackListener {
     debugEvent("Part");
 
     var uri = pop() as StringLiteralImpl;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, partKeyword);
     directives.add(
       PartDirectiveImpl(
@@ -2632,10 +2640,10 @@ class AstBuilder extends StackListener {
       uri = libraryNameOrUri;
     } else {
       name = LibraryIdentifierImpl(
-        components: libraryNameOrUri as List<SimpleIdentifier>,
+        components: libraryNameOrUri as List<SimpleIdentifierImpl>,
       );
     }
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, partKeyword);
     directives.add(
       PartOfDirectiveImpl(
@@ -2689,9 +2697,9 @@ class AstBuilder extends StackListener {
       elements.removeLast();
       namedFields = last;
     }
-    var positionalFields = <RecordTypeAnnotationPositionalField>[];
+    var positionalFields = <RecordTypeAnnotationPositionalFieldImpl>[];
     for (var elem in elements) {
-      positionalFields.add(elem as RecordTypeAnnotationPositionalField);
+      positionalFields.add(elem as RecordTypeAnnotationPositionalFieldImpl);
     }
     push(RecordTypeAnnotationImpl(
       leftParenthesis: leftBracket,
@@ -2706,9 +2714,9 @@ class AstBuilder extends StackListener {
   void endRecordTypeEntry() {
     debugEvent("RecordTypeEntry");
 
-    var name = pop() as SimpleIdentifier?;
+    var name = pop() as SimpleIdentifierImpl?;
     var type = pop() as TypeAnnotationImpl;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
 
     push(RecordTypeAnnotationPositionalFieldImpl(
       metadata: metadata,
@@ -2724,7 +2732,7 @@ class AstBuilder extends StackListener {
     var elements =
         popTypedList<RecordTypeAnnotationPositionalFieldImpl>(count) ??
             const [];
-    var fields = <RecordTypeAnnotationNamedField>[];
+    var fields = <RecordTypeAnnotationNamedFieldImpl>[];
     for (var elem in elements) {
       fields.add(RecordTypeAnnotationNamedFieldImpl(
         metadata: elem.metadata,
@@ -2791,7 +2799,7 @@ class AstBuilder extends StackListener {
     assert(optional('show', showKeyword));
     debugEvent("Show");
 
-    var shownNames = pop() as List<SimpleIdentifier>;
+    var shownNames = pop() as List<SimpleIdentifierImpl>;
     push(
       ShowCombinatorImpl(
         keyword: showKeyword,
@@ -2806,13 +2814,12 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("SwitchBlock");
 
-    var membersList = popTypedList2<List<SwitchMember>>(caseCount);
-    List<SwitchMember> members =
-        membersList.expand((members) => members).toList();
+    var membersList = popTypedList2<List<SwitchMemberImpl>>(caseCount);
+    var members = membersList.expand((members) => members).toList();
 
     Set<String> labels = <String>{};
-    for (SwitchMember member in members) {
-      for (Label label in member.labels) {
+    for (var member in members) {
+      for (var label in member.labels) {
         if (!labels.add(label.label.name)) {
           handleRecoverableError(
               templateDuplicateLabelInSwitchStatement
@@ -2843,8 +2850,8 @@ class AstBuilder extends StackListener {
         : optional(':', colonAfterDefault!));
     debugEvent("SwitchCase");
 
-    var statements = popTypedList2<Statement>(statementCount);
-    List<SwitchMember?> members;
+    var statements = popTypedList2<StatementImpl>(statementCount);
+    List<SwitchMemberImpl?> members;
 
     List<LabelImpl> popLabels() {
       final labels = <LabelImpl>[];
@@ -2856,9 +2863,9 @@ class AstBuilder extends StackListener {
     }
 
     SwitchMemberImpl updateSwitchMember({
-      required SwitchMember member,
-      List<Label>? labels,
-      List<Statement>? statements,
+      required SwitchMemberImpl member,
+      List<LabelImpl>? labels,
+      List<StatementImpl>? statements,
     }) {
       if (member is SwitchCaseImpl) {
         return SwitchCaseImpl(
@@ -2891,7 +2898,7 @@ class AstBuilder extends StackListener {
 
     if (labelCount == 0 && defaultKeyword == null) {
       // Common situation: case with no default and no labels.
-      members = popTypedList2<SwitchMember>(expressionCount);
+      members = popTypedList2<SwitchMemberImpl>(expressionCount);
     } else {
       // Labels and case statements may be intertwined
       if (defaultKeyword != null) {
@@ -2900,15 +2907,15 @@ class AstBuilder extends StackListener {
           labels: labels,
           keyword: defaultKeyword,
           colon: colonAfterDefault!,
-          statements: <Statement>[],
+          statements: <StatementImpl>[],
         );
-        members = List<SwitchMember?>.filled(expressionCount + 1, null);
+        members = List.filled(expressionCount + 1, null);
         members[expressionCount] = member;
       } else {
-        members = List<SwitchMember?>.filled(expressionCount, null);
+        members = List.filled(expressionCount, null);
       }
       for (int index = expressionCount - 1; index >= 0; --index) {
-        var member = pop() as SwitchMember;
+        var member = pop() as SwitchMemberImpl;
         final labels = popLabels();
         members[index] = updateSwitchMember(
           member: member,
@@ -2936,7 +2943,7 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchStatement");
 
     var rightBracket = pop() as Token;
-    var members = pop() as List<SwitchMember>;
+    var members = pop() as List<SwitchMemberImpl>;
     var leftBracket = pop() as Token;
     var condition = pop() as _ParenthesizedCondition;
     push(
@@ -2985,7 +2992,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var variables = popTypedList2<VariableDeclaration>(count);
+    var variables = popTypedList2<VariableDeclarationImpl>(count);
     var type = pop() as TypeAnnotationImpl?;
     var variableList = VariableDeclarationListImpl(
       comment: null,
@@ -2995,7 +3002,7 @@ class AstBuilder extends StackListener {
       type: type,
       variables: variables,
     );
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(
       TopLevelVariableDeclarationImpl(
@@ -3025,7 +3032,7 @@ class AstBuilder extends StackListener {
     var modifiers = pop() as _Modifiers?;
     var augmentKeyword = modifiers?.augmentKeyword;
     var externalKeyword = modifiers?.externalKeyword;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(
       FunctionDeclarationImpl(
@@ -3053,7 +3060,7 @@ class AstBuilder extends StackListener {
     debugEvent("TryStatement");
 
     var finallyBlock = popIfNotNull(finallyKeyword) as BlockImpl?;
-    var catchClauses = popTypedList2<CatchClause>(catchCount);
+    var catchClauses = popTypedList2<CatchClauseImpl>(catchCount);
     var body = pop() as BlockImpl;
     push(
       TryStatementImpl(
@@ -3072,7 +3079,7 @@ class AstBuilder extends StackListener {
     assert(optional('>', rightBracket));
     debugEvent("TypeArguments");
 
-    var arguments = popTypedList2<TypeAnnotation>(count);
+    var arguments = popTypedList2<TypeAnnotationImpl>(count);
     push(
       TypeArgumentListImpl(
         leftBracket: leftBracket,
@@ -3094,7 +3101,7 @@ class AstBuilder extends StackListener {
       var typeParameters = pop() as TypeParameterListImpl?;
       var name = pop() as SimpleIdentifierImpl;
       var returnType = pop() as TypeAnnotationImpl?;
-      var metadata = pop() as List<Annotation>?;
+      var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, typedefKeyword);
       declarations.add(
         FunctionTypeAliasImpl(
@@ -3112,9 +3119,9 @@ class AstBuilder extends StackListener {
       var type = pop() as TypeAnnotationImpl;
       var templateParameters = pop() as TypeParameterListImpl?;
       var name = pop() as SimpleIdentifierImpl;
-      var metadata = pop() as List<Annotation>?;
+      var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, typedefKeyword);
-      if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
+      if (type is! GenericFunctionTypeImpl && !enableNonFunctionTypeAliases) {
         _reportFeatureNotEnabled(
           feature: ExperimentalFeatures.nonfunction_type_aliases,
           startToken: equals,
@@ -3138,7 +3145,7 @@ class AstBuilder extends StackListener {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(popTypedList<TypeAnnotation>(count) ?? NullValue.TypeList);
+    push(popTypedList<TypeAnnotationImpl>(count) ?? NullValue.TypeList);
   }
 
   @override
@@ -3161,11 +3168,9 @@ class AstBuilder extends StackListener {
     var bound = pop() as TypeAnnotationImpl?;
 
     // Peek to leave type parameters on top of stack.
-    var typeParameters = peek() as List<TypeParameter>;
+    var typeParameters = peek() as List<TypeParameterImpl>;
 
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    (typeParameters[index] as TypeParameterImpl)
+    typeParameters[index]
       ..extendsKeyword = extendsOrSuper
       ..bound = bound
       ..varianceKeyword = variance;
@@ -3177,7 +3182,7 @@ class AstBuilder extends StackListener {
     assert(optional('>', endToken));
     debugEvent("TypeVariables");
 
-    var typeParameters = pop() as List<TypeParameter>;
+    var typeParameters = pop() as List<TypeParameterImpl>;
     push(
       TypeParameterListImpl(
         leftBracket: beginToken,
@@ -3209,11 +3214,11 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("VariablesDeclaration");
 
-    var variables = popTypedList2<VariableDeclaration>(count);
+    var variables = popTypedList2<VariableDeclarationImpl>(count);
     var modifiers = pop(NullValue.Modifiers) as _Modifiers?;
     var type = pop() as TypeAnnotationImpl?;
     var keyword = modifiers?.finalConstOrVarKeyword;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, variables[0].beginToken);
     // var comment = _findComment(metadata,
     //     variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
@@ -3371,13 +3376,14 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(',', comma));
     debugEvent("CatchBlock");
 
-    var body = pop() as Block;
-    var catchParameterList = popIfNotNull(catchKeyword) as FormalParameterList?;
-    var type = popIfNotNull(onKeyword) as TypeAnnotation?;
+    var body = pop() as BlockImpl;
+    var catchParameterList =
+        popIfNotNull(catchKeyword) as FormalParameterListImpl?;
+    var type = popIfNotNull(onKeyword) as TypeAnnotationImpl?;
     Token? exception;
     Token? stackTrace;
     if (catchParameterList != null) {
-      List<FormalParameter> catchParameters = catchParameterList.parameters;
+      var catchParameters = catchParameterList.parameters;
       if (catchParameters.isNotEmpty) {
         exception = catchParameters[0].name;
       }
@@ -3388,7 +3394,7 @@ class AstBuilder extends StackListener {
     push(
       CatchClauseImpl(
         onKeyword: onKeyword,
-        exceptionType: type as TypeAnnotationImpl?,
+        exceptionType: type,
         catchKeyword: catchKeyword,
         leftParenthesis: catchParameterList?.leftParenthesis,
         exceptionParameter: exception != null
@@ -3403,7 +3409,7 @@ class AstBuilder extends StackListener {
               )
             : null,
         rightParenthesis: catchParameterList?.rightParenthesis,
-        body: body as BlockImpl,
+        body: body,
       ),
     );
   }
@@ -3465,7 +3471,7 @@ class AstBuilder extends StackListener {
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var abstractKeyword = modifiers?.abstractKeyword;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, begin);
     // leftBracket, members, and rightBracket
     // are set in [endClassOrMixinBody].
@@ -3596,7 +3602,7 @@ class AstBuilder extends StackListener {
     assert(firstIdentifier.isIdentifier);
     debugEvent("DottedName");
 
-    var components = popTypedList2<SimpleIdentifier>(count);
+    var components = popTypedList2<SimpleIdentifierImpl>(count);
     push(
       DottedNameImpl(
         components: components,
@@ -3695,7 +3701,7 @@ class AstBuilder extends StackListener {
     debugEvent("EnumElements");
     final builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    var constants = popTypedList2<EnumConstantDeclaration>(elementsCount);
+    var constants = popTypedList2<EnumConstantDeclarationImpl>(elementsCount);
     builder.constants.addAll(constants);
 
     if (optional(';', elementsEndToken)) {
@@ -3721,7 +3727,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, enumKeyword);
 
     if (!enableEnhancedEnums &&
@@ -3902,15 +3908,15 @@ class AstBuilder extends StackListener {
     var iterable = pop() as ExpressionImpl;
     var variableOrDeclaration = pop()!;
 
-    ForEachParts forLoopParts;
-    if (variableOrDeclaration is VariableDeclarationStatement) {
-      VariableDeclarationList variableList = variableOrDeclaration.variables;
+    ForEachPartsImpl forLoopParts;
+    if (variableOrDeclaration is VariableDeclarationStatementImpl) {
+      var variableList = variableOrDeclaration.variables;
       forLoopParts = ForEachPartsWithDeclarationImpl(
         loopVariable: DeclaredIdentifierImpl(
-          comment: variableList.documentationComment as CommentImpl?,
+          comment: variableList.documentationComment,
           metadata: variableList.metadata,
           keyword: variableList.keyword,
-          type: variableList.type as TypeAnnotationImpl?,
+          type: variableList.type,
           name: variableList.variables.first.name,
         ),
         inKeyword: inKeyword,
@@ -3945,8 +3951,8 @@ class AstBuilder extends StackListener {
     assert(optional(';', leftSeparator));
     assert(updateExpressionCount >= 0);
 
-    var updates = popTypedList2<Expression>(updateExpressionCount);
-    var conditionStatement = pop() as Statement;
+    var updates = popTypedList2<ExpressionImpl>(updateExpressionCount);
+    var conditionStatement = pop() as StatementImpl;
     var initializerPart = pop();
 
     ExpressionImpl? condition;
@@ -3955,10 +3961,10 @@ class AstBuilder extends StackListener {
       condition = conditionStatement.expression;
       rightSeparator = conditionStatement.semicolon!;
     } else {
-      rightSeparator = (conditionStatement as EmptyStatement).semicolon;
+      rightSeparator = (conditionStatement as EmptyStatementImpl).semicolon;
     }
 
-    ForParts forLoopParts;
+    ForPartsImpl forLoopParts;
     if (initializerPart is VariableDeclarationStatementImpl) {
       forLoopParts = ForPartsWithDeclarationsImpl(
         variableList: initializerPart.variables,
@@ -4008,7 +4014,7 @@ class AstBuilder extends StackListener {
         push(identifier);
       }
     } else if (context == IdentifierContext.enumValueDeclaration) {
-      var metadata = pop() as List<Annotation>?;
+      var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, token);
       push(
         EnumConstantDeclarationImpl(
@@ -4027,7 +4033,7 @@ class AstBuilder extends StackListener {
   void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
 
-    push(popTypedList<SimpleIdentifier>(count) ?? NullValue.IdentifierList);
+    push(popTypedList<SimpleIdentifierImpl>(count) ?? NullValue.IdentifierList);
   }
 
   @override
@@ -4083,10 +4089,10 @@ class AstBuilder extends StackListener {
     var index = pop() as ExpressionImpl;
     var target = pop() as ExpressionImpl?;
     if (target == null) {
-      var receiver = pop() as CascadeExpression;
+      var receiver = pop() as CascadeExpressionImpl;
       var token = peek() as Token;
       push(receiver);
-      IndexExpression expression = IndexExpressionImpl.forCascade(
+      var expression = IndexExpressionImpl.forCascade(
         period: token,
         question: question,
         leftBracket: leftBracket,
@@ -4228,7 +4234,7 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("ListPattern");
 
-    var elements = popTypedList2<DartPattern>(count);
+    var elements = popTypedList2<DartPatternImpl>(count);
     var typeArguments = pop() as TypeArgumentListImpl?;
     push(ListPatternImpl(
         typeArguments: typeArguments,
@@ -4286,7 +4292,7 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    List<CollectionElement> elements = popCollectionElements(count);
+    var elements = popCollectionElements(count);
     var typeArguments = pop() as TypeArgumentListImpl?;
 
     push(
@@ -4338,7 +4344,7 @@ class AstBuilder extends StackListener {
     // behavior and will be removed once unified collection has been enabled
     bool hasSetEntry,
   ) {
-    List<CollectionElement> elements = popCollectionElements(count);
+    var elements = popCollectionElements(count);
 
     var typeArguments = pop() as TypeArgumentListImpl?;
     push(
@@ -4356,7 +4362,7 @@ class AstBuilder extends StackListener {
   void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
     debugEvent('MapPattern');
 
-    var entries = popTypedList2<MapPatternEntry>(count);
+    var entries = popTypedList2<MapPatternEntryImpl>(count);
     var typeArguments = pop() as TypeArgumentListImpl?;
     push(MapPatternImpl(
         typeArguments: typeArguments,
@@ -4387,7 +4393,7 @@ class AstBuilder extends StackListener {
     var augmentKeyword = pop(NullValue.Token) as Token?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
-    var metadata = pop() as List<Annotation>?;
+    var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, mixinKeyword);
 
     _classLikeBuilder = _MixinDeclarationBuilder(
@@ -4633,7 +4639,7 @@ class AstBuilder extends StackListener {
     var pattern = pop() as DartPatternImpl;
     RecordPatternFieldNameImpl? fieldName;
     if (colon != null) {
-      var name = (pop() as SimpleIdentifier?)?.token;
+      var name = (pop() as SimpleIdentifierImpl?)?.token;
       fieldName = RecordPatternFieldNameImpl(name: name, colon: colon);
     }
     push(RecordPatternFieldImpl(fieldName: fieldName, pattern: pattern));
@@ -4749,11 +4755,11 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("RecoverImport");
 
-    var combinators = pop() as List<Combinator>?;
+    var combinators = pop() as List<CombinatorImpl>?;
     var deferredKeyword = pop(NullValue.Deferred) as Token?;
     var asKeyword = pop(NullValue.As) as Token?;
     var prefix = pop(NullValue.Prefix) as SimpleIdentifierImpl?;
-    var configurations = pop() as List<Configuration>?;
+    var configurations = pop() as List<ConfigurationImpl>?;
 
     final directive = directives.last as ImportDirectiveImpl;
 
@@ -4964,7 +4970,7 @@ class AstBuilder extends StackListener {
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
-    push(popTypedList<TypeParameter>(count));
+    push(popTypedList<TypeParameterImpl>(count));
   }
 
   @override
@@ -5054,7 +5060,7 @@ class AstBuilder extends StackListener {
   void handleVoidKeywordWithTypeArguments(Token voidKeyword) {
     assert(optional('void', voidKeyword));
     debugEvent("VoidKeywordWithTypeArguments");
-    var arguments = pop() as TypeArgumentList;
+    var arguments = pop() as TypeArgumentListImpl;
 
     // TODO(paulberry): is this sufficient, or do we need to hook the "void"
     // keyword up to an element?
@@ -5074,7 +5080,7 @@ class AstBuilder extends StackListener {
     return token == null || identical(value, token.stringValue);
   }
 
-  List<CommentReference> parseCommentReferences(Token dartdoc) {
+  List<CommentReferenceImpl> parseCommentReferences(Token dartdoc) {
     // Parse dartdoc into potential comment reference source/offset pairs
     int count = parser.parseCommentReferences(dartdoc);
     List sourcesAndOffsets = List.filled(count * 2, null);
@@ -5095,15 +5101,15 @@ class AstBuilder extends StackListener {
       }
     }
 
-    return popTypedList<CommentReference>(count) ?? const [];
+    return popTypedList<CommentReferenceImpl>(count) ?? const [];
   }
 
-  List<CollectionElement> popCollectionElements(int count) {
+  List<CollectionElementImpl> popCollectionElements(int count) {
     // TODO(scheglov) Not efficient.
-    final elements = <CollectionElement>[];
+    final elements = <CollectionElementImpl>[];
     for (int index = count - 1; index >= 0; --index) {
       var element = pop();
-      elements.add(element as CollectionElement);
+      elements.add(element as CollectionElementImpl);
     }
     return elements.reversed.toList();
   }
@@ -5142,8 +5148,8 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void reportErrorIfSuper(Expression expression) {
-    if (expression is SuperExpression) {
+  void reportErrorIfSuper(ExpressionImpl expression) {
+    if (expression is SuperExpressionImpl) {
       // This error is also reported by the body builder.
       handleRecoverableError(messageMissingAssignableSelector,
           expression.beginToken, expression.endToken);
@@ -5151,7 +5157,7 @@ class AstBuilder extends StackListener {
   }
 
   CommentImpl? _findComment(
-      List<Annotation>? metadata, Token tokenAfterMetadata) {
+      List<AnnotationImpl>? metadata, Token tokenAfterMetadata) {
     // Find the dartdoc tokens
     var dartdoc = parser.findDartDoc(tokenAfterMetadata);
     if (dartdoc == null) {
@@ -5172,7 +5178,7 @@ class AstBuilder extends StackListener {
     }
 
     // Build and return the comment
-    List<CommentReference> references = parseCommentReferences(dartdoc);
+    var references = parseCommentReferences(dartdoc);
     List<Token> tokens = <Token>[dartdoc];
     if (dartdoc.lexeme.startsWith('///')) {
       dartdoc = dartdoc.next;
@@ -5211,13 +5217,13 @@ class AstBuilder extends StackListener {
     );
   }
 
-  List<NamedType> _popNamedTypeList({
+  List<NamedTypeImpl> _popNamedTypeList({
     required ErrorCode errorCode,
   }) {
-    final types = pop() as List<TypeAnnotation>;
-    final namedTypes = <NamedType>[];
+    final types = pop() as List<TypeAnnotationImpl>;
+    final namedTypes = <NamedTypeImpl>[];
     for (final type in types) {
-      if (type is NamedType) {
+      if (type is NamedTypeImpl) {
         namedTypes.add(type);
       } else {
         errorReporter.errorReporter?.reportErrorForNode(errorCode, type);
@@ -5331,7 +5337,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
 class _ClassLikeDeclarationBuilder {
   final CommentImpl? comment;
-  final List<Annotation>? metadata;
+  final List<AnnotationImpl>? metadata;
   final TypeParameterListImpl? typeParameters;
 
   Token leftBracket;
@@ -5359,7 +5365,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token name;
   final WithClauseImpl? withClause;
   final ImplementsClauseImpl? implementsClause;
-  final List<EnumConstantDeclaration> constants = [];
+  final List<EnumConstantDeclarationImpl> constants = [];
   Token? semicolon;
 
   _EnumDeclarationBuilder({
@@ -5530,7 +5536,7 @@ class _OperatorName {
 
 /// Data structure placed on the stack as a container for optional parameters.
 class _OptionalFormalParameters {
-  final List<FormalParameter>? parameters;
+  final List<FormalParameterImpl>? parameters;
   final Token leftDelimiter;
   final Token rightDelimiter;
 

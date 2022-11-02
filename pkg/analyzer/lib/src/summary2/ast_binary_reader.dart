@@ -375,7 +375,7 @@ class AstBinaryReader {
     var flags = _readByte();
     var type = _readOptionalNode() as TypeAnnotationImpl?;
     var name = _readDeclarationName();
-    var metadata = _readNodeList<Annotation>();
+    var metadata = _readNodeList<AnnotationImpl>();
     return DeclaredIdentifierImpl(
       comment: null,
       metadata: metadata,
@@ -431,7 +431,7 @@ class AstBinaryReader {
   }
 
   DottedName _readDottedName() {
-    var components = _readNodeList<SimpleIdentifier>();
+    var components = _readNodeList<SimpleIdentifierImpl>();
     return DottedNameImpl(
       components: components,
     );
@@ -469,7 +469,7 @@ class AstBinaryReader {
     var type = _readOptionalNode() as TypeAnnotationImpl?;
     var formalParameters = _readOptionalNode() as FormalParameterListImpl?;
     var flags = _readByte();
-    var metadata = _readNodeList<Annotation>();
+    var metadata = _readNodeList<AnnotationImpl>();
     var name = _readDeclarationName();
     var node = FieldFormalParameterImpl(
       name: name,
@@ -523,7 +523,7 @@ class AstBinaryReader {
 
   FormalParameterList _readFormalParameterList() {
     var flags = _readByte();
-    var parameters = _readNodeList<FormalParameter>();
+    var parameters = _readNodeList<FormalParameterImpl>();
 
     return FormalParameterListImpl(
       leftParenthesis: Tokens.openParenthesis(),
@@ -547,7 +547,7 @@ class AstBinaryReader {
   ForPartsWithDeclarations _readForPartsWithDeclarations() {
     var variables = readNode() as VariableDeclarationListImpl;
     var condition = _readOptionalNode() as ExpressionImpl?;
-    var updaters = _readNodeList<Expression>();
+    var updaters = _readNodeList<ExpressionImpl>();
     return ForPartsWithDeclarationsImpl(
       condition: condition,
       leftSeparator: Tokens.semicolon(),
@@ -560,7 +560,7 @@ class AstBinaryReader {
   ForPartsWithExpression _readForPartsWithExpression() {
     var initialization = _readOptionalNode() as ExpressionImpl?;
     var condition = _readOptionalNode() as ExpressionImpl?;
-    var updaters = _readNodeList<Expression>();
+    var updaters = _readNodeList<ExpressionImpl>();
     return ForPartsWithExpressionImpl(
       condition: condition,
       initialization: initialization,
@@ -605,7 +605,7 @@ class AstBinaryReader {
     var returnType = _readOptionalNode() as TypeAnnotationImpl?;
     var formalParameters = readNode() as FormalParameterListImpl;
     var flags = _readByte();
-    var metadata = _readNodeList<Annotation>();
+    var metadata = _readNodeList<AnnotationImpl>();
     var name = _readDeclarationName();
     var node = FunctionTypedFormalParameterImpl(
       comment: null,
@@ -815,7 +815,7 @@ class AstBinaryReader {
   ListLiteral _readListLiteral() {
     var flags = _readByte();
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var elements = _readNodeList<CollectionElement>();
+    var elements = _readNodeList<CollectionElementImpl>();
 
     var node = ListLiteralImpl(
       constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
@@ -1045,7 +1045,7 @@ class AstBinaryReader {
     var flags = _readByte();
     var isMapOrSetBits = _readByte();
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var elements = _readNodeList<CollectionElement>();
+    var elements = _readNodeList<CollectionElementImpl>();
     var node = SetOrMapLiteralImpl(
       constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
       elements: elements,
@@ -1069,7 +1069,7 @@ class AstBinaryReader {
   SimpleFormalParameter _readSimpleFormalParameter() {
     var type = _readOptionalNode() as TypeAnnotationImpl?;
     var flags = _readByte();
-    var metadata = _readNodeList<Annotation>();
+    var metadata = _readNodeList<AnnotationImpl>();
     var name = AstBinaryFlags.hasName(flags) ? _readDeclarationName() : null;
 
     var node = SimpleFormalParameterImpl(
@@ -1139,7 +1139,7 @@ class AstBinaryReader {
   }
 
   StringInterpolation _readStringInterpolation() {
-    var elements = _readNodeList<InterpolationElement>();
+    var elements = _readNodeList<InterpolationElementImpl>();
     var node = StringInterpolationImpl(
       elements: elements,
     );
@@ -1205,7 +1205,7 @@ class AstBinaryReader {
   }
 
   TypeArgumentList _readTypeArgumentList() {
-    var arguments = _readNodeList<TypeAnnotation>();
+    var arguments = _readNodeList<TypeAnnotationImpl>();
     return TypeArgumentListImpl(
       leftBracket: Tokens.lt(),
       arguments: arguments,
@@ -1225,7 +1225,7 @@ class AstBinaryReader {
   TypeParameter _readTypeParameter() {
     var name = _readDeclarationName();
     var bound = _readOptionalNode() as TypeAnnotationImpl?;
-    var metadata = _readNodeList<Annotation>();
+    var metadata = _readNodeList<AnnotationImpl>();
 
     var node = TypeParameterImpl(
       comment: null,
@@ -1239,7 +1239,7 @@ class AstBinaryReader {
   }
 
   TypeParameterList _readTypeParameterList() {
-    var typeParameters = _readNodeList<TypeParameter>();
+    var typeParameters = _readNodeList<TypeParameterImpl>();
     return TypeParameterListImpl(
       leftBracket: Tokens.lt(),
       typeParameters: typeParameters,
@@ -1270,8 +1270,8 @@ class AstBinaryReader {
   VariableDeclarationList _readVariableDeclarationList() {
     var flags = _readByte();
     var type = _readOptionalNode() as TypeAnnotationImpl?;
-    var variables = _readNodeList<VariableDeclaration>();
-    var metadata = _readNodeList<Annotation>();
+    var variables = _readNodeList<VariableDeclarationImpl>();
+    var metadata = _readNodeList<AnnotationImpl>();
 
     return VariableDeclarationListImpl(
       comment: null,

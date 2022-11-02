@@ -220,6 +220,10 @@ Statement match(Pattern pattern, Expression initializer,
 
 CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
 
+Pattern relationalPattern(
+        RelationalOperatorResolution<Type>? operator, Expression operand) =>
+    _RelationalPattern(operator, operand, location: computeLocation());
+
 Statement return_() => new _Return(location: computeLocation());
 
 Statement switch_(Expression expression, List<StatementCase> cases,
@@ -2271,6 +2275,19 @@ class _MiniAstErrors
   StackTrace? _assertInErrorRecoveryStack;
 
   @override
+  void argumentTypeNotAssignable({
+    required Expression argument,
+    required Type argumentType,
+    required Type parameterType,
+  }) {
+    _recordError(
+      'argumentTypeNotAssignable(argument: ${argument.errorId}, '
+      'argumentType: ${argumentType.type}, '
+      'parameterType: ${parameterType.type})',
+    );
+  }
+
+  @override
   void assertInErrorRecovery() {
     if (_accumulatedErrors.isEmpty) {
       _assertInErrorRecoveryStack ??= StackTrace.current;
@@ -2348,6 +2365,18 @@ class _MiniAstErrors
   void refutablePatternInIrrefutableContext(Node pattern, Node context) {
     _recordError('refutablePatternInIrrefutableContext(${pattern.errorId}, '
         '${context.errorId})');
+  }
+
+  @override
+  void relationalPatternOperatorReturnTypeNotAssignableToBool({
+    required Node node,
+    required Type returnType,
+  }) {
+    _recordError(
+      'relationalPatternOperatorReturnTypeNotAssignableToBool('
+      'node: ${node.errorId}, '
+      'returnType: ${returnType.type})',
+    );
   }
 
   @override
@@ -3058,6 +3087,39 @@ class _PropertyElement {
   final Type _type;
 
   _PropertyElement(this._type);
+}
+
+class _RelationalPattern extends Pattern {
+  final RelationalOperatorResolution<Type>? operator;
+  final Expression operand;
+
+  _RelationalPattern(this.operator, this.operand, {required super.location})
+      : super._();
+
+  Type computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeRelationalPatternSchema();
+
+  @override
+  void preVisit(
+      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+    operand.preVisit(visitor);
+  }
+
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    h.typeAnalyzer.analyzeRelationalPattern(
+        matchedType, typeInfos, context, this, operator, operand);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+        'relationalPattern', [Kind.expression, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
+  }
+
+  @override
+  _debugString({required bool needsKeywordOrType}) => '$operator $operand';
 }
 
 class _Return extends Statement {

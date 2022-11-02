@@ -29,9 +29,7 @@ testMessageCall() {
   try {
     call_with_bar(new Callable());
   } catch (e) {
-    final noMatchingArgs =
-        "has no instance method 'call' with matching arguments";
-    Expect.isTrue(e.toString().contains(noMatchingArgs));
+    Expect.isTrue(e.toString().contains("has no instance method 'call'"));
   }
 }
 

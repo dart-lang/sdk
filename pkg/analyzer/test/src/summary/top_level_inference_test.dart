@@ -355,6 +355,14 @@ class C implements A, B {
 
 @reflectiveTest
 class TopLevelInferenceTest extends PubPackageResolutionTest {
+  void checkElementText(LibraryElement library, String expected) {
+    checkElementTextWithConfiguration(
+      library,
+      expected,
+      configuration: ElementTextConfiguration(),
+    );
+  }
+
   test_initializer_additive() async {
     var library = await _encodeDecodeLibrary(r'''
 var vPlusIntInt = 1 + 2;
