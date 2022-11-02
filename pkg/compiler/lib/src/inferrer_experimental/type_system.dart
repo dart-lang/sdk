@@ -128,80 +128,80 @@ class TypeSystem {
     _currentMember = null;
   }
 
-  late final TypeInformation nullType =
+  late final ConcreteTypeInformation nullType =
       getConcreteTypeFor(_abstractValueDomain.nullType);
 
-  late final TypeInformation intType =
+  late final ConcreteTypeInformation intType =
       getConcreteTypeFor(_abstractValueDomain.intType);
 
-  late final TypeInformation uint32Type =
+  late final ConcreteTypeInformation uint32Type =
       getConcreteTypeFor(_abstractValueDomain.uint32Type);
 
-  late final TypeInformation uint31Type =
+  late final ConcreteTypeInformation uint31Type =
       getConcreteTypeFor(_abstractValueDomain.uint31Type);
 
-  late final TypeInformation positiveIntType =
+  late final ConcreteTypeInformation positiveIntType =
       getConcreteTypeFor(_abstractValueDomain.positiveIntType);
 
-  late final TypeInformation numType =
+  late final ConcreteTypeInformation numType =
       getConcreteTypeFor(_abstractValueDomain.numType);
 
-  late final TypeInformation boolType =
+  late final ConcreteTypeInformation boolType =
       getConcreteTypeFor(_abstractValueDomain.boolType);
 
-  late final TypeInformation functionType =
+  late final ConcreteTypeInformation functionType =
       getConcreteTypeFor(_abstractValueDomain.functionType);
 
-  late final TypeInformation listType =
+  late final ConcreteTypeInformation listType =
       getConcreteTypeFor(_abstractValueDomain.listType);
 
-  late final TypeInformation constListType =
+  late final ConcreteTypeInformation constListType =
       getConcreteTypeFor(_abstractValueDomain.constListType);
 
-  late final TypeInformation fixedListType =
+  late final ConcreteTypeInformation fixedListType =
       getConcreteTypeFor(_abstractValueDomain.fixedListType);
 
-  late final TypeInformation growableListType =
+  late final ConcreteTypeInformation growableListType =
       getConcreteTypeFor(_abstractValueDomain.growableListType);
 
-  late final TypeInformation mutableArrayType =
+  late final ConcreteTypeInformation mutableArrayType =
       getConcreteTypeFor(_abstractValueDomain.mutableArrayType);
 
-  late final TypeInformation setType =
+  late final ConcreteTypeInformation setType =
       getConcreteTypeFor(_abstractValueDomain.setType);
 
-  late final TypeInformation constSetType =
+  late final ConcreteTypeInformation constSetType =
       getConcreteTypeFor(_abstractValueDomain.constSetType);
 
-  late final TypeInformation mapType =
+  late final ConcreteTypeInformation mapType =
       getConcreteTypeFor(_abstractValueDomain.mapType);
 
-  late final TypeInformation constMapType =
+  late final ConcreteTypeInformation constMapType =
       getConcreteTypeFor(_abstractValueDomain.constMapType);
 
-  late final TypeInformation stringType =
+  late final ConcreteTypeInformation stringType =
       getConcreteTypeFor(_abstractValueDomain.stringType);
 
-  late final TypeInformation typeType =
+  late final ConcreteTypeInformation typeType =
       getConcreteTypeFor(_abstractValueDomain.typeType);
 
-  late final TypeInformation dynamicType =
+  late final ConcreteTypeInformation dynamicType =
       getConcreteTypeFor(_abstractValueDomain.dynamicType);
 
   // Subtype of Future returned by async methods.
-  late final TypeInformation asyncFutureType =
+  late final ConcreteTypeInformation asyncFutureType =
       getConcreteTypeFor(_abstractValueDomain.asyncFutureType);
 
-  late final TypeInformation syncStarIterableType =
+  late final ConcreteTypeInformation syncStarIterableType =
       getConcreteTypeFor(_abstractValueDomain.syncStarIterableType);
 
-  late final TypeInformation asyncStarStreamType =
+  late final ConcreteTypeInformation asyncStarStreamType =
       getConcreteTypeFor(_abstractValueDomain.asyncStarStreamType);
 
-  late final TypeInformation lateSentinelType =
+  late final ConcreteTypeInformation lateSentinelType =
       getConcreteTypeFor(_abstractValueDomain.lateSentinelType);
 
-  late final TypeInformation nonNullEmptyType =
+  late final ConcreteTypeInformation nonNullEmptyType =
       getConcreteTypeFor(_abstractValueDomain.emptyType);
 
   TypeInformation stringLiteralType(String value) {
@@ -220,11 +220,11 @@ class TypeSystem {
         _abstractValueDomain, value, abstractValue);
   }
 
-  bool isLiteralTrue(TypeInformation info) {
+  bool isLiteralTrue(TypeInformation? info) {
     return info is BoolLiteralTypeInformation && info.value == true;
   }
 
-  bool isLiteralFalse(TypeInformation info) {
+  bool isLiteralFalse(TypeInformation? info) {
     return info is BoolLiteralTypeInformation && info.value == false;
   }
 
@@ -245,7 +245,7 @@ class TypeSystem {
 
   /// Returns `true` if `selector` should be updated to reflect the new
   /// `receiverType`.
-  bool selectorNeedsUpdate(TypeInformation info, AbstractValue mask) {
+  bool selectorNeedsUpdate(TypeInformation info, AbstractValue? mask) {
     return info.type != mask;
   }
 
@@ -511,7 +511,7 @@ class TypeSystem {
     return map;
   }
 
-  AbstractValue newTypedSelector(TypeInformation info, AbstractValue mask) {
+  AbstractValue? newTypedSelector(TypeInformation info, AbstractValue? mask) {
     // Only type the selector if [info] is concrete, because the other
     // kinds of [TypeInformation] have the empty type at this point of
     // analysis.

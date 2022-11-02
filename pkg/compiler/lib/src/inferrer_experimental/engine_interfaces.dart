@@ -52,7 +52,7 @@ abstract class InferrerEngine {
 
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element);
   TypeInformation addReturnTypeForMethod(
-      FunctionEntity element, TypeInformation unused, TypeInformation newType);
+      FunctionEntity element, TypeInformation newType);
   TypeInformation registerAwait(ir.Node node, TypeInformation argument);
   TypeInformation registerCalledClosure(
       ir.Node node,
@@ -64,20 +64,20 @@ abstract class InferrerEngine {
       {bool inLoop});
   TypeInformation registerCalledMember(
       Object node,
-      Selector selector,
+      Selector? selector,
       MemberEntity caller,
       MemberEntity callee,
-      ArgumentsTypes arguments,
+      ArgumentsTypes? arguments,
       SideEffectsBuilder sideEffectsBuilder,
       bool inLoop);
   TypeInformation registerCalledSelector(
       CallType callType,
       ir.Node node,
       Selector selector,
-      AbstractValue mask,
+      AbstractValue? mask,
       TypeInformation receiverType,
       MemberEntity caller,
-      ArgumentsTypes arguments,
+      ArgumentsTypes? arguments,
       SideEffectsBuilder sideEffectsBuilder,
       {bool inLoop,
       bool isConditional});
@@ -87,7 +87,7 @@ abstract class InferrerEngine {
   TypeInformation typeOfParameter(Local element);
   void analyze(MemberEntity element);
   void forEachElementMatching(
-      Selector selector, AbstractValue mask, bool f(MemberEntity element));
+      Selector selector, AbstractValue? mask, bool f(MemberEntity element));
   bool checkIfExposesThis(ConstructorEntity element);
   void recordExposesThis(ConstructorEntity element, bool exposesThis);
   void recordReturnType(FunctionEntity element, TypeInformation type);
