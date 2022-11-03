@@ -536,10 +536,6 @@ class StaticUse {
   factory StaticUse.constructorInvoke(
       ConstructorEntity element, CallStructure callStructure) {
     assert(
-        element.isConstructor,
-        failedAt(element,
-            "Constructor invocation element $element must be a constructor."));
-    assert(
         (callStructure as dynamic) != null, // TODO(48820): remove when sound
         failedAt(
             element,
@@ -559,12 +555,6 @@ class StaticUse {
     assert(
         (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
-    assert(
-        element.isConstructor,
-        failedAt(
-            element,
-            "Typed constructor invocation element $element "
-            "must be a constructor."));
     return StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
@@ -581,12 +571,6 @@ class StaticUse {
     assert(
         (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
-    assert(
-        element.isConstructor,
-        failedAt(
-            element,
-            "Const constructor invocation element $element "
-            "must be a constructor."));
     return StaticUse.internal(element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,

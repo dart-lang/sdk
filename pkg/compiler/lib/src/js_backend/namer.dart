@@ -898,7 +898,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
   /// [element]. The returned id is guaranteed to be a valid JavaScript
   /// identifier.
   String _proposeNameForMember(MemberEntity element) {
-    if (element.isConstructor) {
+    if (element is ConstructorEntity) {
       return _proposeNameForConstructor(element);
     } else if (element is JGeneratorBody) {
       return _proposeNameForMember(element.function) + r'$body';

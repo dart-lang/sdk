@@ -80,7 +80,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     ModularNamer namer = ModularNamerImpl(
         registry, closedWorld.commonElements, _codegen.fixedNames);
     ModularEmitter emitter = ModularEmitterImpl(namer, registry, _options);
-    if (member.isConstructor &&
+    if (member is ConstructorEntity &&
         member.enclosingClass == closedWorld.commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
       return registry.close(null);

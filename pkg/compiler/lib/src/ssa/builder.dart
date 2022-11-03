@@ -536,7 +536,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         MemberEntity member = _initialTargetElement;
         String name = member.name;
         if (member.isInstanceMember ||
-            member.isConstructor ||
+            member is ConstructorEntity ||
             member.isStatic) {
           name = "${member.enclosingClass.name}.$name";
           if (definition.kind == MemberKind.constructorBody) {
@@ -657,7 +657,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// to `dynamic` (represented as `null`) so the bindings are available for
   /// building types up the inheritance chain of generative constructors.
   void _addClassTypeVariablesIfNeeded(MemberEntity member) {
-    if (!member.isConstructor && member is! ConstructorBodyEntity) {
+    if (member is! ConstructorEntity && member is! ConstructorBodyEntity) {
       return;
     }
     ClassEntity cls = member.enclosingClass;
@@ -5894,7 +5894,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           selector != null ||
               function.isStatic ||
               function.isTopLevel ||
-              function.isConstructor ||
+              function is ConstructorEntity ||
               function is ConstructorBodyEntity,
           failedAt(function, "Missing selector for inlining of $function."));
       if (selector != null) {
@@ -6046,7 +6046,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     void doInlining() {
-      if (function.isConstructor) {
+      if (function is ConstructorEntity) {
         registry.registerStaticUse(
             StaticUse.constructorInlining(function, instanceType));
       } else {
@@ -6325,7 +6325,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     ClassEntity enclosing = function.enclosingClass;
-    if ((function.isConstructor || function is ConstructorBodyEntity) &&
+    if ((function is ConstructorEntity || function is ConstructorBodyEntity) &&
         _rtiNeed.classNeedsTypeArguments(enclosing)) {
       InterfaceType thisType = _elementEnvironment.getThisType(enclosing);
       thisType.typeArguments.forEach((_typeVariable) {
@@ -6435,7 +6435,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     bool trusted = false;
     if (function.isStatic ||
         function.isTopLevel ||
-        function.isConstructor ||
+        function is ConstructorEntity ||
         function is ConstructorBodyEntity) {
       // We inline static methods, top-level methods, constructors and
       // constructor bodies only from direct call sites.
@@ -7134,7 +7134,7 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         enableUserAssertions: enableUserAssertions,
         omitImplicitCasts: omitImplicitCasts);
     ir.FunctionNode node = getFunctionNode(elementMap, function);
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       visitor.data.isConstructor = true;
       MemberDefinition definition = elementMap.getMemberDefinition(function);
       ir.Node node = definition.node;

@@ -233,7 +233,7 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   String _qualifiedStaticName(MemberEntity member) {
-    if (member.isConstructor || member.isStatic) {
+    if (member is ConstructorEntity || member.isStatic) {
       return '${_className(member.enclosingClass!)}.${member.name!}';
     }
     return member.name!;

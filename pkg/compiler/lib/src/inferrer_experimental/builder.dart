@@ -1590,9 +1590,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       _setStateAfter(_state, stateWhenSentinel, stateWhenNotSentinel);
 
       return _types.boolType;
-    } else if (member.isConstructor) {
-      return handleConstructorInvoke(node, node.arguments, selector,
-          member as ConstructorEntity, arguments);
+    } else if (member is ConstructorEntity) {
+      return handleConstructorInvoke(
+          node, node.arguments, selector, member, arguments);
     } else {
       assert(member.isFunction, "Unexpected static invocation target: $member");
       TypeInformation type =

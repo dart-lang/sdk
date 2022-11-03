@@ -311,7 +311,9 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
       infoBuilder
           .addTypeDependencies(elementEnvironment.getFunctionType(element));
     }
-    if (element.isStatic || element.isTopLevel || element.isConstructor) {
+    if (element.isStatic ||
+        element.isTopLevel ||
+        element is ConstructorEntity) {
       infoBuilder.addMember(element);
       infoBuilder.addDirectMemberDependencies(element);
     }

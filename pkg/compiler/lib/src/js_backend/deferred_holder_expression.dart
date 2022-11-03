@@ -168,7 +168,7 @@ class DeferredHolderExpression extends js.DeferredExpression
   String _className(ClassEntity cls) => cls.name.replaceAll('&', '_');
 
   String _qualifiedStaticName(MemberEntity member) {
-    if (member.isConstructor || member.isStatic) {
+    if (member is ConstructorEntity || member.isStatic) {
       return '${_className(member.enclosingClass)}.${member.name}';
     }
     return member.name;

@@ -1131,7 +1131,7 @@ class ProgramBuilder {
     js.Expression code = _generatedCode[element];
 
     bool isApplyTarget =
-        !element.isConstructor && !element.isGetter && !element.isSetter;
+        element is! ConstructorEntity && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
 
     bool needsTearOff =

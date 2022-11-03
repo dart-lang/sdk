@@ -196,7 +196,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
             isStatic: field.isStatic,
             isAssignable: field.isAssignable,
             isConst: field.isConst);
-      } else if (oldMember.isConstructor) {
+      } else if (oldMember is ConstructorEntity) {
         final constructor = oldMember as IndexedConstructor;
         ParameterStructure parameterStructure =
             annotations.hasNoElision(constructor)
@@ -248,7 +248,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           "whereas new member $newMember has index ${newMember.memberIndex}");
       if (newMember is IndexedField) {
         fieldMap[data.node as ir.Field] = newMember;
-      } else if (newMember.isConstructor) {
+      } else if (newMember is ConstructorEntity) {
         constructorMap[data.node] = newMember as IndexedConstructor;
       } else {
         methodMap[data.node as ir.Procedure] = newMember as IndexedFunction;
@@ -380,7 +380,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           final node = data.definition.node as ir.Member;
           if (member is IndexedField) {
             fieldMap[node as ir.Field] = member;
-          } else if (member.isConstructor) {
+          } else if (member is ConstructorEntity) {
             constructorMap[node] = member as IndexedConstructor;
           } else {
             methodMap[node as ir.Procedure] = member as IndexedFunction;

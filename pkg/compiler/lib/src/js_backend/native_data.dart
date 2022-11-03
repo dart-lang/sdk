@@ -301,7 +301,7 @@ class NativeBasicData {
   bool isJsInteropMember(MemberEntity element) {
     // TODO(johnniwinther): Share this with [NativeData.isJsInteropMember].
     if (element.isFunction ||
-        element.isConstructor ||
+        element is ConstructorEntity ||
         element.isGetter ||
         element.isSetter) {
       final function = element as FunctionEntity;
@@ -624,7 +624,7 @@ class NativeData implements NativeBasicData {
   @override
   bool isJsInteropMember(MemberEntity element) {
     if (element.isFunction ||
-        element.isConstructor ||
+        element is ConstructorEntity ||
         element.isGetter ||
         element.isSetter) {
       final function = element as FunctionEntity;
@@ -654,8 +654,8 @@ class NativeData implements NativeBasicData {
   String? getFixedBackendName(MemberEntity element) {
     String? name = _nativeMemberName[element];
     if (name == null && isJsInteropMember(element)) {
-      if (element.isConstructor) {
-        name = _jsClassNameHelper(element.enclosingClass!);
+      if (element is ConstructorEntity) {
+        name = _jsClassNameHelper(element.enclosingClass);
       } else {
         name = _jsMemberNameHelper(element);
         // Top-level static JS interop members can be associated with a dotted
@@ -704,8 +704,8 @@ class NativeData implements NativeBasicData {
   String? getFixedBackendMethodPath(FunctionEntity element) {
     if (!isJsInteropMember(element)) return null;
     if (element.isInstanceMember) return 'this';
-    if (element.isConstructor) {
-      return _fixedBackendClassPath(element.enclosingClass!);
+    if (element is ConstructorEntity) {
+      return _fixedBackendClassPath(element.enclosingClass);
     }
     StringBuffer sb = StringBuffer();
     sb.write(_jsLibraryNameHelper(element.library));

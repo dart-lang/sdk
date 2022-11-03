@@ -309,7 +309,7 @@ class ElementInfoCollector {
       kind = FunctionInfo.METHOD_FUNCTION_KIND;
     }
 
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       name = name == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";
@@ -321,9 +321,8 @@ class ElementInfoCollector {
     FunctionModifiers modifiers = FunctionModifiers(
       isStatic: function.isStatic,
       isConst: function.isConst,
-      isFactory: function.isConstructor
-          ? (function as ConstructorEntity).isFactoryConstructor
-          : false,
+      isFactory:
+          function is ConstructorEntity ? function.isFactoryConstructor : false,
       isExternal: function.isExternal,
     );
     List<CodeSpan> code = dumpInfoTask.codeOf(function);
@@ -1015,7 +1014,7 @@ class DumpInfoAnnotator {
     if (size == 0 && !shouldKeep(function)) return null;
 
     var compareName = function.name;
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       compareName = compareName == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";

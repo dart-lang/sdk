@@ -192,9 +192,6 @@ abstract class JMember extends IndexedMember {
   bool get isFunction => false;
 
   @override
-  bool get isConstructor => false;
-
-  @override
   bool get isInstanceMember => enclosingClass != null && !_isStatic;
 
   @override
@@ -237,9 +234,6 @@ abstract class JConstructor extends JFunction
       : super(enclosingClass.library, enclosingClass, name, parameterStructure,
             AsyncMarker.SYNC,
             isExternal: isExternal);
-
-  @override
-  bool get isConstructor => true;
 
   @override
   bool get isInstanceMember => false;

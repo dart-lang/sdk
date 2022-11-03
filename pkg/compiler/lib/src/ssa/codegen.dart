@@ -2174,7 +2174,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           node.sourceInformation));
     } else {
       StaticUse staticUse;
-      if (element.isConstructor) {
+      if (element is ConstructorEntity) {
         CallStructure callStructure =
             CallStructure.unnamed(arguments.length, node.typeArguments.length);
         staticUse = StaticUse.constructorInvoke(element, callStructure);
@@ -2381,8 +2381,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         var arguments =
             visitArguments(inputs, start: target.isInstanceMember ? 1 : 0);
-        template =
-            target.isConstructor ? 'new #.$targetName(#)' : '#.$targetName(#)';
+        template = target is ConstructorEntity
+            ? 'new #.$targetName(#)'
+            : '#.$targetName(#)';
         templateInputs = [receiverExpression, arguments];
       }
       js.Expression expression = js.js
@@ -2393,7 +2394,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (_nativeData.isJsInteropMember(target)) {
-      if (target.isStatic || target.isTopLevel || target.isConstructor) {
+      if (target.isStatic || target.isTopLevel || target is ConstructorEntity) {
         String path = _nativeData.getFixedBackendMethodPath(target);
         js.Expression pathExpression =
             js.js.uncachedExpressionTemplate(path).instantiate([]);

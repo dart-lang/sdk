@@ -139,7 +139,7 @@ class Selector {
       return Selector.getter(name);
     } else if (element is FieldEntity) {
       return Selector.getter(name);
-    } else if (element.isConstructor) {
+    } else if (element is ConstructorEntity) {
       return Selector.callConstructor(name);
     } else {
       throw failedAt(element, "Cannot get selector from $element");
