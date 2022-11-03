@@ -844,14 +844,8 @@ void main() async {
 
         // Verify that we don't include package names twice into paths
         // while building the treemap.
-        if (Platform.isWindows) {
-          // Note: in Windows we don't consider main.dart part of package:input
-          // for some reason.
-          expect(findChild(treemap, 'package:input/input.dart'), isNotNull);
-        } else {
-          expect(childrenNames(findChild(treemap, 'package:input')!),
-              equals({'main.dart', 'input.dart'}));
-        }
+        expect(childrenNames(findChild(treemap, 'package:input')!),
+            equals({'main.dart', 'input.dart'}));
       });
     });
 
