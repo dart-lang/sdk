@@ -5550,7 +5550,8 @@ class _UnmodifiableByteDataView extends _ByteDataView
 
 class _UnmodifiableByteBufferView extends _ByteBuffer
     implements UnmodifiableByteBufferView {
-  _UnmodifiableByteBufferView(_ByteBuffer data) : super(data._data);
+  _UnmodifiableByteBufferView(ByteBuffer data)
+      : super(unsafeCast<_ByteBuffer>(data)._data);
 
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) =>
       new UnmodifiableUint8ListView(super.asUint8List(offsetInBytes, length));
