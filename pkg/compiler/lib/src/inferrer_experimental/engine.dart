@@ -135,8 +135,8 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
   @override
-  void forEachElementMatching(
-      Selector selector, AbstractValue mask, bool f(MemberEntity element)) {
+  void forEachElementMatching(Selector selector, AbstractValue /*?*/ mask,
+      bool f(MemberEntity element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
     for (MemberEntity e in elements) {
       if (!f(e)) return;
@@ -645,7 +645,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   /// Visits [body] to compute the [TypeInformation] node for [member].
   TypeInformation _computeMemberTypeInformation(
-      MemberEntity member, ir.Node body) {
+      MemberEntity member, ir.Node /*?*/ body) {
     KernelTypeGraphBuilder visitor = KernelTypeGraphBuilder(
         _options,
         closedWorld,
@@ -914,7 +914,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// Returns the new type for [analyzedElement].
   @override
   TypeInformation addReturnTypeForMethod(
-      FunctionEntity element, TypeInformation unused, TypeInformation newType) {
+      FunctionEntity element, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
     // TODO(ngeoffray): Clean up. We do this check because
     // [SimpleTypesInferrer] deals with two different inferrers.
@@ -936,10 +936,10 @@ class InferrerEngine implements interfaces.InferrerEngine {
   @override
   TypeInformation registerCalledMember(
       Object node,
-      Selector selector,
+      Selector /*?*/ selector,
       MemberEntity caller,
       MemberEntity callee,
-      ArgumentsTypes arguments,
+      ArgumentsTypes /*?*/ arguments,
       SideEffectsBuilder sideEffectsBuilder,
       bool inLoop) {
     CallSiteTypeInformation info = StaticCallSiteTypeInformation(
@@ -983,10 +983,10 @@ class InferrerEngine implements interfaces.InferrerEngine {
       CallType callType,
       ir.Node node,
       Selector selector,
-      AbstractValue mask,
+      AbstractValue /*?*/ mask,
       TypeInformation receiverType,
       MemberEntity caller,
-      ArgumentsTypes arguments,
+      ArgumentsTypes /*?*/ arguments,
       SideEffectsBuilder sideEffectsBuilder,
       {bool inLoop,
       bool isConditional}) {

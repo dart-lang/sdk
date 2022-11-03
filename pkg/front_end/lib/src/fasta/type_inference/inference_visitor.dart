@@ -4,7 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide NamedType, RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
@@ -7887,6 +7890,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       required MatchContext<Node, Expression> context}) {
     // TODO(cstefantsova): Implement visitRecordMatcher.
     return const PatternInferenceResult();
+  }
+
+  @override
+  shared.RecordType<DartType>? asRecordType(DartType type) {
+    // TODO: implement asRecordType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType recordType(shared.RecordType<DartType> type) {
+    // TODO: implement recordType
+    throw new UnimplementedError('TODO(scheglov)');
   }
 }
 

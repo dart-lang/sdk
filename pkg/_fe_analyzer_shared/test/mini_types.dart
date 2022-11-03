@@ -44,6 +44,25 @@ class FunctionType extends Type {
   }
 }
 
+class NamedType extends Type {
+  final String name;
+  final Type innerType;
+
+  NamedType(this.name, this.innerType) : super._();
+
+  @override
+  NamedType? recursivelyDemote({required bool covariant}) {
+    Type? newInnerType = innerType.recursivelyDemote(covariant: covariant);
+    if (newInnerType == null) return null;
+    return NamedType(name, newInnerType);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    return '$innerType $name';
+  }
+}
+
 /// Representation of a "simple" type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.  A "simple" type is either an interface type
 /// with zero or more type parameters (e.g. `double`, or `Map<int, String>`), a
@@ -125,6 +144,60 @@ class QuestionType extends Type {
       result = '($result)';
     }
     return result;
+  }
+}
+
+class RecordType extends Type {
+  final List<Type> positional;
+  final List<NamedType> named;
+
+  RecordType({
+    required this.positional,
+    required this.named,
+  }) : super._();
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    List<Type>? newPositional;
+    for (var i = 0; i < positional.length; i++) {
+      var newType = positional[i].recursivelyDemote(covariant: covariant);
+      if (newType != null) {
+        newPositional ??= positional.toList();
+        newPositional[i] = newType;
+      }
+    }
+
+    List<NamedType>? newNamed;
+    for (var i = 0; i < named.length; i++) {
+      var newType = named[i].recursivelyDemote(covariant: covariant);
+      if (newType != null) {
+        newNamed ??= named.toList();
+        newNamed[i] = newType;
+      }
+    }
+
+    if (newPositional == null && newNamed == null) {
+      return null;
+    }
+    return RecordType(
+      positional: newPositional ?? positional,
+      named: newNamed ?? named,
+    );
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var positionalStr = positional.map((e) => '$e').join(', ');
+    var namedStr = named.map((e) => '$e').join(', ');
+    if (namedStr.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        return '($positionalStr, {$namedStr})';
+      } else {
+        return '({$namedStr})';
+      }
+    } else {
+      return '($positionalStr)';
+    }
   }
 }
 

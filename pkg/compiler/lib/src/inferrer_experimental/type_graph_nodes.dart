@@ -987,16 +987,14 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   final MemberEntity calledElement;
 
   StaticCallSiteTypeInformation(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context,
-      ir.Node? call,
-      MemberEntity enclosing,
+      super.abstractValueDomain,
+      super.context,
+      super.call,
+      super.enclosing,
       this.calledElement,
-      Selector selector,
-      ArgumentsTypes arguments,
-      bool inLoop)
-      : super(abstractValueDomain, context, call, enclosing, selector,
-            arguments, inLoop);
+      super.selector,
+      super.arguments,
+      super.inLoop);
 
   ir.StaticInvocation get invocationNode => _call as ir.StaticInvocation;
 

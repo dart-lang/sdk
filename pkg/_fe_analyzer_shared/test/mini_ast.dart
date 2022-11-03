@@ -10,7 +10,10 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show EqualityInfo, FlowAnalysis, Operations;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide NamedType, RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
@@ -119,6 +122,11 @@ Statement do_(List<Statement> body, Expression condition) {
 Expression expr(String typeStr) =>
     new _PlaceholderExpression(new Type(typeStr), location: computeLocation());
 
+/// Creates a pseudo-expression having type [type] that otherwise has no
+/// effect on flow analysis.
+Expression expr2(Type type) =>
+    new _PlaceholderExpression(type, location: computeLocation());
+
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
 /// indicates that this `for` statement is actually a collection element, so
 /// `null` should be passed to [for_bodyBegin].
@@ -219,6 +227,9 @@ Statement match(Pattern pattern, Expression initializer,
         isLate: isLate, isFinal: isFinal, location: computeLocation());
 
 CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
+
+Pattern recordPattern(List<RecordPatternField<Pattern>> fields) =>
+    _RecordPattern(fields, location: computeLocation());
 
 Pattern relationalPattern(
         RelationalOperatorResolution<Type>? operator, Expression operand) =>
@@ -2693,6 +2704,22 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  shared.RecordType<Type>? asRecordType(Type type) {
+    if (type is RecordType) {
+      return shared.RecordType<Type>(
+        positional: type.positional,
+        named: type.named.map((namedType) {
+          return shared.NamedType(
+            namedType.name,
+            namedType.innerType,
+          );
+        }).toList(),
+      );
+    }
+    return null;
+  }
+
+  @override
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
           Expression expression, Type context) =>
       _irBuilder.guard(expression, () => expression.visit(_harness, context));
@@ -2838,6 +2865,14 @@ class _MiniAstTypeAnalyzer
   _PropertyElement lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
+  }
+
+  @override
+  RecordType recordType(shared.RecordType<Type> type) {
+    return RecordType(
+      positional: type.positional,
+      named: type.named.map((e) => NamedType(e.name, e.type)).toList(),
+    );
   }
 
   @override
@@ -3087,6 +3122,57 @@ class _PropertyElement {
   final Type _type;
 
   _PropertyElement(this._type);
+}
+
+class _RecordPattern extends Pattern {
+  final List<RecordPatternField<Pattern>> fields;
+
+  _RecordPattern(this.fields, {required super.location}) : super._();
+
+  Type computeSchema(Harness h) {
+    return h.typeAnalyzer.analyzeRecordPatternSchema(
+      fields: fields,
+    );
+  }
+
+  @override
+  void preVisit(
+    PreVisitor visitor,
+    VariableBinder<Node, Var, Type> variableBinder,
+  ) {
+    for (var field in fields) {
+      field.pattern.preVisit(visitor, variableBinder);
+    }
+  }
+
+  void visit(
+    Harness h,
+    Type matchedType,
+    Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+    MatchContext<Node, Expression> context,
+  ) {
+    var requiredType = h.typeAnalyzer.analyzeRecordPattern(
+        matchedType, typeInfos, context, this,
+        fields: fields);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.atom(requiredType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+      'recordPattern',
+      [...List.filled(fields.length, Kind.pattern), Kind.type, Kind.type],
+      Kind.pattern,
+      names: ['matchedType', 'requiredType'],
+      location: location,
+    );
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var fieldStrings = [
+      for (var field in fields)
+        field.pattern._debugString(needsKeywordOrType: needsKeywordOrType)
+    ];
+    return '(${fieldStrings.join(', ')})';
+  }
 }
 
 class _RelationalPattern extends Pattern {
