@@ -1161,32 +1161,8 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
 
 void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-
   PrintSharedInstanceJSON(&jsobj, ref);
-  // TODO(regis): Wouldn't it be simpler to provide a Closure::PrintJSONImpl()?
-  if (IsClosure()) {
-    jsobj.AddProperty("kind", "Closure");
-  } else {
-    jsobj.AddProperty("kind", "PlainInstance");
-  }
-  if (IsClosure()) {
-    // TODO(regis): How about closureInstantiatorTypeArguments and
-    // closureFunctionTypeArguments?
-    jsobj.AddProperty("closureFunction",
-                      Function::Handle(Closure::Cast(*this).function()));
-    jsobj.AddProperty("closureContext",
-                      Context::Handle(Closure::Cast(*this).context()));
-  }
-  if (ref) {
-    return;
-  }
-  if (IsClosure()) {
-    Debugger* debugger = Isolate::Current()->debugger();
-    Breakpoint* bpt = debugger->BreakpointAtActivation(*this);
-    if (bpt != NULL) {
-      jsobj.AddProperty("_activationBreakpoint", bpt);
-    }
-  }
+  jsobj.AddProperty("kind", "PlainInstance");
 }
 
 void AbstractType::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -1647,7 +1623,22 @@ void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Closure");
+  jsobj.AddProperty("closureFunction",
+                    Function::Handle(Closure::Cast(*this).function()));
+  jsobj.AddProperty("closureContext",
+                    Context::Handle(Closure::Cast(*this).context()));
+  if (ref) {
+    return;
+  }
+
+  Debugger* debugger = Isolate::Current()->debugger();
+  Breakpoint* bpt = debugger->BreakpointAtActivation(*this);
+  if (bpt != nullptr) {
+    jsobj.AddProperty("_activationBreakpoint", bpt);
+  }
 }
 
 void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
