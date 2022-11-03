@@ -9,6 +9,14 @@
 #include "vm/json_stream.h"
 #include "vm/os.h"
 
+#if defined(DART_USE_ABSL)
+#include "third_party/absl/debugging/leak_check.h"
+
+#define ABSL_IGNORE_LEAK(expr) absl::IgnoreLeak(expr)
+#else
+#define ABSL_IGNORE_LEAK(expr) (expr)
+#endif  // defined(DART_USE_ABSL)
+
 namespace dart {
 
 DEFINE_FLAG(bool, print_flags, false, "Print flags as they are being parsed.");
@@ -294,7 +302,8 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       break;
     }
     case Flag::kString: {
-      *flag->charp_ptr_ = argument == NULL ? NULL : Utils::StrDup(argument);
+      *flag->charp_ptr_ =
+          argument == NULL ? NULL : ABSL_IGNORE_LEAK(Utils::StrDup(argument));
       break;
     }
     case Flag::kInteger: {
