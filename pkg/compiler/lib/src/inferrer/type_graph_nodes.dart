@@ -17,7 +17,7 @@ import '../util/util.dart' show Setlet;
 import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
-import 'engine_interfaces.dart';
+import 'engine.dart';
 import 'locals_handler.dart' show ArgumentsTypes;
 import 'type_system.dart';
 

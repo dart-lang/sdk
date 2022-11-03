@@ -12,7 +12,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler_interfaces.dart' show CompilerTypeInferenceFacade;
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../inferrer_experimental/engine_migrated.dart'
+import '../inferrer_experimental/engine.dart'
     show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';

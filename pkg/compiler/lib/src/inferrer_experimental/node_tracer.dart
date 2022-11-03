@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../util/util.dart' show Setlet;
 import '../inferrer/abstract_value_domain.dart';
 import 'debug.dart' as debug;
-import 'engine_interfaces.dart';
+import 'engine.dart';
 import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the

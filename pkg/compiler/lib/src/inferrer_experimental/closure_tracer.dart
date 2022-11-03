@@ -7,7 +7,7 @@ library compiler.src.inferrer.closure_tracer;
 import '../common/names.dart' show Identifiers, Names;
 import '../elements/entities.dart';
 import 'debug.dart' as debug;
-import 'engine_interfaces.dart';
+import 'engine.dart';
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
