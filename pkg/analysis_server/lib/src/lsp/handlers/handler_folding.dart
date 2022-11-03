@@ -90,13 +90,13 @@ class FoldingHandler
   /// that another starts. In this case, we shrink the previous range (and if
   /// this makes it a single line, remove it).
   void _compensateForLineFolding(List<FoldingRange> foldingRanges) {
-    // Loop over items expect last (`-1`). We can skip the last item because
+    // Loop over items except last (`-1`). We can skip the last item because
     // it has no next item.
     for (var i = 0; i < foldingRanges.length - 1; i++) {
       final range = foldingRanges[i];
       final next = foldingRanges[i + 1];
-      // If this item runs into the next...
-      if (range.endLine >= next.startLine) {
+      // If this item runs into the next but does not completely enclose it...
+      if (range.endLine >= next.startLine && range.endLine <= next.endLine) {
         // Truncate it to end on the line before.
         final newEndLine = next.startLine - 1;
 
