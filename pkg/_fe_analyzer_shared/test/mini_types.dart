@@ -44,23 +44,14 @@ class FunctionType extends Type {
   }
 }
 
-class NamedType extends Type {
+class NamedType {
   final String name;
-  final Type innerType;
+  final Type type;
 
-  NamedType(this.name, this.innerType) : super._();
-
-  @override
-  NamedType? recursivelyDemote({required bool covariant}) {
-    Type? newInnerType = innerType.recursivelyDemote(covariant: covariant);
-    if (newInnerType == null) return null;
-    return NamedType(name, newInnerType);
-  }
+  NamedType(this.name, this.type);
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    return '$innerType $name';
-  }
+  String toString() => '$type $name';
 }
 
 /// Representation of a "simple" type suitable for unit testing of code in the
@@ -169,10 +160,10 @@ class RecordType extends Type {
 
     List<NamedType>? newNamed;
     for (var i = 0; i < named.length; i++) {
-      var newType = named[i].recursivelyDemote(covariant: covariant);
+      var newType = named[i].type.recursivelyDemote(covariant: covariant);
       if (newType != null) {
         newNamed ??= named.toList();
-        newNamed[i] = newType;
+        newNamed[i] = NamedType(named[i].name, newType);
       }
     }
 

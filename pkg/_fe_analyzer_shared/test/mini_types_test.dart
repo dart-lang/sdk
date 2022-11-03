@@ -62,41 +62,6 @@ main() {
       });
     });
 
-    group('NamedType:', () {
-      test('unchanged', () {
-        var namedType = NamedType('foo', Type('int'));
-        expect(namedType.recursivelyDemote(covariant: true), isNull);
-        expect(namedType.recursivelyDemote(covariant: false), isNull);
-      });
-
-      group('type parameters:', () {
-        test('unchanged', () {
-          var type = Type('Map<int, String>');
-          var namedType = NamedType('foo', type);
-          expect(namedType.recursivelyDemote(covariant: true), isNull);
-          expect(namedType.recursivelyDemote(covariant: false), isNull);
-        });
-
-        test('covariant', () {
-          var type = Type('Map<T&int, String>');
-          var namedType = NamedType('foo', type);
-          expect(
-            namedType.recursivelyDemote(covariant: true)!.type,
-            'Map<T, String> foo',
-          );
-        });
-
-        test('contravariant', () {
-          var type = Type('Map<T&int, String>');
-          var namedType = NamedType('foo', type);
-          expect(
-            namedType.recursivelyDemote(covariant: false)!.type,
-            'Map<Never, String> foo',
-          );
-        });
-      });
-    });
-
     group('NonFunctionType', () {
       test('unchanged', () {
         expect(Type('int').recursivelyDemote(covariant: true), isNull);

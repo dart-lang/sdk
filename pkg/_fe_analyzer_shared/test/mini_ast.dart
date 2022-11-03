@@ -2711,7 +2711,7 @@ class _MiniAstTypeAnalyzer
         named: type.named.map((namedType) {
           return shared.NamedType(
             namedType.name,
-            namedType.innerType,
+            namedType.type,
           );
         }).toList(),
       );
