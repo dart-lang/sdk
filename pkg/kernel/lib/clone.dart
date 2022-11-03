@@ -73,6 +73,11 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
+  TreeNode visitView(View node) {
+    throw 'Cloning of views is not implemented';
+  }
+
+  @override
   TreeNode visitConstructor(Constructor node) {
     throw 'Cloning of constructors is not implemented here';
   }

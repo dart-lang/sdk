@@ -42,6 +42,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitView(View node) {
+    visited.add(NodeKind.View);
+    node.visitChildren(this);
+  }
+
+  @override
   void defaultMember(Member node) {}
   @override
   void visitField(Field node) {
@@ -762,6 +768,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitViewType(ViewType node) {
+    visited.add(DartTypeKind.ViewType);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     visited.add(DartTypeKind.IntersectionType);
     node.visitChildren(this);
@@ -909,6 +921,8 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitExtensionReference(Extension node) {}
   @override
+  void visitViewReference(View node) {}
+  @override
   void defaultMemberReference(Member node) {}
   @override
   void visitFieldReference(Field node) {}
@@ -1050,6 +1064,7 @@ enum NodeKind {
   SwitchCase,
   TypeParameter,
   Typedef,
+  View,
 }
 
 enum MemberKind {
@@ -1173,6 +1188,7 @@ enum DartTypeKind {
   RecordType,
   TypeParameterType,
   TypedefType,
+  ViewType,
   VoidType,
 }
 

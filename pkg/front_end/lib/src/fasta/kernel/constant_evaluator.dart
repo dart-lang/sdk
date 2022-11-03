@@ -4787,6 +4787,12 @@ class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    return node.typeArguments
+        .every((DartType typeArgument) => typeArgument.accept(this));
+  }
+
+  @override
   bool visitIntersectionType(IntersectionType node) {
     return node.left.accept(this) && node.right.accept(this);
   }

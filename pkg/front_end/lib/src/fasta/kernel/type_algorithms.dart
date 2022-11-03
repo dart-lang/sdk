@@ -1185,6 +1185,11 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    return anyTypeVariables(node.typeArguments);
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return node.typeArgument.accept(this);
   }
