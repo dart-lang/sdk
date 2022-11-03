@@ -246,7 +246,7 @@ abstract class ApplyableTypeInformation implements TypeInformation {
 /// [getDefaultTypeOfParameter] and [setDefaultTypeOfParameter] for details.
 class PlaceholderTypeInformation extends TypeInformation {
   PlaceholderTypeInformation(
-      AbstractValueDomain abstractValueDomain, MemberTypeInformation context)
+      AbstractValueDomain abstractValueDomain, MemberTypeInformation? context)
       : super(abstractValueDomain.uncomputedType, context);
 
   @override
@@ -935,7 +935,7 @@ enum CallType {
   forIn,
 }
 
-bool validCallType(CallType callType, ir.Node? call, Selector selector) {
+bool validCallType(CallType callType, ir.Node? call) {
   switch (callType) {
     case CallType.access:
       return call is ir.Node;
@@ -962,7 +962,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
 
   CallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context,
+      MemberTypeInformation? context,
       this._call,
       this.caller,
       this.selector,
@@ -1067,28 +1067,29 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     extends CallSiteTypeInformation {
   final CallType _callType;
   final TypeInformation receiver;
-  final AbstractValue mask;
+  final AbstractValue? mask;
   final bool isConditional;
   bool? _hasClosureCallTargets;
 
   /// Cached concrete targets of this call.
   Iterable<MemberEntity>? _concreteTargets;
 
+  /// Recomputed when _concreteTargets changes.
+  bool? _targetsIncludeComplexNoSuchMethod;
+
   DynamicCallSiteTypeInformation(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context,
+      super.abstractValueDomain,
+      super.ontext,
       this._callType,
-      T? call,
-      MemberEntity enclosing,
-      Selector selector,
+      super.call,
+      super.enclosing,
+      super.selector,
       this.mask,
       this.receiver,
-      ArgumentsTypes arguments,
-      bool inLoop,
-      this.isConditional)
-      : super(abstractValueDomain, context, call, enclosing, selector,
-            arguments, inLoop) {
-    assert(validCallType(_callType, _call, selector));
+      super.arguments,
+      super.inLoop,
+      this.isConditional) {
+    assert(validCallType(_callType, _call));
   }
 
   void _addCall(MemberTypeInformation callee) {
@@ -1107,6 +1108,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
         inferrer.closedWorld.includesClosureCall(selector!, typeMask);
     final concreteTargets = _concreteTargets =
         inferrer.closedWorld.locateMembers(selector!, typeMask);
+    _targetsIncludeComplexNoSuchMethod = null;
     receiver.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1144,7 +1146,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
-    return _concreteTargets!.any((MemberEntity e) {
+    return _targetsIncludeComplexNoSuchMethod ??=
+        _concreteTargets!.any((MemberEntity e) {
       return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
@@ -1267,7 +1270,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     final typeMask = computeTypedSelector(inferrer);
     final localSelector = selector!;
     inferrer.updateSelectorInMember(
-        caller, _callType, _call, localSelector, typeMask);
+        caller, _callType, _call as ir.TreeNode, localSelector, typeMask);
 
     _hasClosureCallTargets =
         closedWorld.includesClosureCall(localSelector, typeMask);
@@ -1276,6 +1279,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
     // Update the call graph if the targets could have changed.
     if (!identical(concreteTargets, oldTargets)) {
+      _targetsIncludeComplexNoSuchMethod = null;
       // Add calls to new targets to the graph.
       concreteTargets
           .where((target) => !oldTargets.contains(target))
@@ -1363,13 +1367,15 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
       final call = _call!;
-      inferrer.updateSelectorInMember(caller, _callType, call, selector, mask);
+      inferrer.updateSelectorInMember(
+          caller, _callType, call as ir.TreeNode, selector, mask);
       final oldTargets = concreteTargets;
       final localSelector = selector!;
       _hasClosureCallTargets =
           inferrer.closedWorld.includesClosureCall(localSelector, mask);
       final newConcreteTargets = _concreteTargets =
           inferrer.closedWorld.locateMembers(localSelector, mask);
+      _targetsIncludeComplexNoSuchMethod = null;
       for (MemberEntity element in newConcreteTargets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
@@ -1418,16 +1424,14 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   final TypeInformation closure;
 
   ClosureCallSiteTypeInformation(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context,
-      ir.Node? call,
-      MemberEntity enclosing,
-      Selector selector,
+      super.abstractValueDomain,
+      super.context,
+      super.call,
+      super.enclosing,
+      super.selector,
       this.closure,
-      ArgumentsTypes arguments,
-      bool inLoop)
-      : super(abstractValueDomain, context, call, enclosing, selector,
-            arguments, inLoop);
+      super.arguments,
+      super.inLoop);
 
   @override
   void addToGraph(InferrerEngine inferrer) {
@@ -2116,7 +2120,7 @@ class AwaitTypeInformation extends TypeInformation {
   final ir.Node _node;
 
   AwaitTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context, this._node)
+      MemberTypeInformation? context, this._node)
       : super(abstractValueDomain.uncomputedType, context);
 
   // TODO(22894): Compute a better type here.
@@ -2138,7 +2142,7 @@ class YieldTypeInformation extends TypeInformation {
   final ir.Node _node;
 
   YieldTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context, this._node)
+      MemberTypeInformation? context, this._node)
       : super(abstractValueDomain.uncomputedType, context);
 
   @override

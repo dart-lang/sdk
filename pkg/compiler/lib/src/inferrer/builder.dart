@@ -1076,7 +1076,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   TypeInformation _handleDynamic(
       CallType callType,
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,
@@ -1107,7 +1107,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 
   TypeInformation handleDynamicGet(
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,
@@ -1117,7 +1117,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 
   TypeInformation handleDynamicSet(
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,
@@ -1130,7 +1130,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   TypeInformation handleDynamicInvoke(
       CallType callType,
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,

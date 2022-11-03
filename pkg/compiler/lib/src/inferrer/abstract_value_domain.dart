@@ -634,5 +634,5 @@ abstract class AbstractValueDomain {
   /// Serializes this [value] for this domain to [sink].
   // TODO(48820): Remove covariant when DataSinkWriter is migrated.
   void writeAbstractValueToDataSink(
-      covariant DataSinkWriter sink, AbstractValue value);
+      covariant DataSinkWriter sink, AbstractValue? value);
 }

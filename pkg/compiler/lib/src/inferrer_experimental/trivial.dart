@@ -32,7 +32,8 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   AbstractValue get dynamicType => const TrivialAbstractValue();
 
   @override
-  void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue value) {}
+  void writeAbstractValueToDataSink(
+      DataSinkWriter sink, AbstractValue? value) {}
 
   @override
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source) =>

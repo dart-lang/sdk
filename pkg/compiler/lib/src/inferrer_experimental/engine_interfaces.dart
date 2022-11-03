@@ -40,10 +40,10 @@ abstract class InferrerEngine {
   TypeInformation typeOfMemberWithSelector(
       MemberEntity element, Selector? selector);
   void updateSelectorInMember(MemberEntity owner, CallType callType,
-      ir.Node? node, Selector? selector, AbstractValue? mask);
+      ir.TreeNode node, Selector? selector, AbstractValue? mask);
   void updateParameterInputs(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes? arguments, Selector? selector,
-      {required bool remove, bool addToQueue = true});
+      {required bool remove, required bool addToQueue});
   bool returnsListElementType(Selector selector, AbstractValue mask);
   bool returnsMapValueType(Selector selector, AbstractValue mask);
   void analyzeListAndEnqueue(ListTypeInformation info);
@@ -59,11 +59,11 @@ abstract class InferrerEngine {
       Selector selector,
       TypeInformation closure,
       MemberEntity caller,
-      ArgumentsTypes arguments,
+      ArgumentsTypes? arguments,
       SideEffectsBuilder sideEffectsBuilder,
-      {bool inLoop});
+      {required bool inLoop});
   TypeInformation registerCalledMember(
-      Object node,
+      ir.Node node,
       Selector? selector,
       MemberEntity caller,
       MemberEntity callee,
@@ -79,8 +79,8 @@ abstract class InferrerEngine {
       MemberEntity caller,
       ArgumentsTypes? arguments,
       SideEffectsBuilder sideEffectsBuilder,
-      {bool inLoop,
-      bool isConditional});
+      {required bool inLoop,
+      required bool isConditional});
   TypeInformation registerYield(ir.Node node, TypeInformation argument);
   TypeInformation returnTypeOfMember(MemberEntity element);
   TypeInformation typeOfMember(MemberEntity element);
@@ -94,7 +94,7 @@ abstract class InferrerEngine {
   void recordTypeOfField(FieldEntity element, TypeInformation type);
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type);
   void runOverAllElements();
-  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element);
+  Iterable<MemberEntity>? getCallersOfForTesting(MemberEntity element);
   void close();
   void clear();
 }
