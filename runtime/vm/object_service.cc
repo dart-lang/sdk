@@ -1669,18 +1669,15 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  intptr_t offset;
-  intptr_t count;
-  stream->ComputeOffsetAndCount(num_fields(), &offset, &count);
-  intptr_t limit = offset + count;
-  ASSERT(limit <= num_fields());
+
   {
     JSONArray jsarr(&jsobj, "fields");
     String& name = String::Handle();
     Object& value = Object::Handle();
+    const intptr_t num_fields = this->num_fields();
     const intptr_t num_positional_fields = NumPositionalFields();
     const Array& field_names = Array::Handle(this->field_names());
-    for (intptr_t index = offset; index < limit; ++index) {
+    for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
       // TODO(derekx): Remove this because BoundField isn't a response type in
       // the spec.
