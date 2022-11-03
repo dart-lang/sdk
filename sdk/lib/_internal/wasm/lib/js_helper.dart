@@ -28,10 +28,12 @@ class JSValue {
   bool operator ==(Object that) =>
       that is JSValue && areEqualInJS(_ref, that._ref);
 
+  @override
+  String toString() => stringify(_ref);
+
+  // Overrides to avoid using [ObjectToJS].
   WasmExternRef toExternRef() => _ref;
-  String toString() => jsStringToDartString(_ref);
-  List<Object?> toObjectList() => toDartList(_ref);
-  Object toObject() => jsObjectToDartObject(_ref);
+  JSValue toJS() => this;
 }
 
 extension DoubleToJS on double {
