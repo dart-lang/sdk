@@ -57,6 +57,10 @@ namespace dart {
   V(AllocateObjectParameterized)                                               \
   V(AllocateObjectSlow)                                                        \
   V(AllocateRecord)                                                            \
+  V(AllocateRecord2)                                                           \
+  V(AllocateRecord2Named)                                                      \
+  V(AllocateRecord3)                                                           \
+  V(AllocateRecord3Named)                                                      \
   V(AllocateUnhandledException)                                                \
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \

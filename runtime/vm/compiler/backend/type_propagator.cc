@@ -1653,6 +1653,10 @@ CompileType AllocateRecordInstr::ComputeType() const {
   return CompileType::FromCid(kRecordCid);
 }
 
+CompileType AllocateSmallRecordInstr::ComputeType() const {
+  return CompileType::FromCid(kRecordCid);
+}
+
 CompileType LoadUntaggedInstr::ComputeType() const {
   return CompileType::Dynamic();
 }

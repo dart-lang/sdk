@@ -948,6 +948,21 @@ Fragment BaseFlowGraphBuilder::AllocateRecord(TokenPosition position,
   return Fragment(allocate);
 }
 
+Fragment BaseFlowGraphBuilder::AllocateSmallRecord(TokenPosition position,
+                                                   intptr_t num_fields,
+                                                   bool has_named_fields) {
+  ASSERT(num_fields == 2 || num_fields == 3);
+  Value* value2 = (num_fields > 2) ? Pop() : nullptr;
+  Value* value1 = Pop();
+  Value* value0 = Pop();
+  Value* field_names = has_named_fields ? Pop() : nullptr;
+  AllocateSmallRecordInstr* allocate = new (Z) AllocateSmallRecordInstr(
+      InstructionSource(position), num_fields, field_names, value0, value1,
+      value2, GetNextDeoptId());
+  Push(allocate);
+  return Fragment(allocate);
+}
+
 Fragment BaseFlowGraphBuilder::AllocateTypedData(TokenPosition position,
                                                  classid_t class_id) {
   Value* num_elements = Pop();
