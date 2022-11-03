@@ -1105,6 +1105,27 @@ void KernelLoader::FinishTopLevelClassLoading(
         helper_.SkipCanonicalNameReference();  // skip member reference
       }
     }
+
+    const intptr_t view_count = helper_.ReadListLength();
+    for (intptr_t i = 0; i < view_count; ++i) {
+      helper_.ReadTag();                     // read tag.
+      helper_.SkipCanonicalNameReference();  // skip canonical name.
+      helper_.SkipStringReference();         // skip name.
+      helper_.SkipListOfExpressions();       // skip annotations.
+      helper_.ReadUInt();                    // read source uri index.
+      helper_.ReadPosition();                // read file offset.
+      helper_.ReadByte();                    // skip flags.
+      helper_.SkipTypeParametersList();      // skip type parameter list.
+      helper_.SkipDartType();                // skip representation-type.
+
+      const intptr_t view_member_count = helper_.ReadListLength();
+      for (intptr_t j = 0; j < view_member_count; ++j) {
+        helper_.SkipName();                    // skip name.
+        helper_.ReadByte();                    // read kind.
+        helper_.ReadByte();                    // read flags.
+        helper_.SkipCanonicalNameReference();  // skip member reference
+      }
+    }
   }
 
   fields_.Clear();

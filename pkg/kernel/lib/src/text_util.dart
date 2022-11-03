@@ -152,6 +152,41 @@ String extensionNameToString(Extension? node) {
   return node == null ? 'null' : node.name;
 }
 
+String qualifiedViewNameToString(View node, {bool includeLibraryName = false}) {
+  TreeNode? parent = node.parent;
+  if (parent is Library && includeLibraryName) {
+    return libraryNameToString(parent) + '::' + viewNameToString(node);
+  } else {
+    return viewNameToString(node);
+  }
+}
+
+String qualifiedViewNameToStringByReference(Reference? reference,
+    {bool includeLibraryName = false}) {
+  if (reference == null) {
+    return '<missing-view-reference>';
+  } else {
+    View? node = reference.node as View?;
+    if (node != null) {
+      return qualifiedViewNameToString(node,
+          includeLibraryName: includeLibraryName);
+    } else {
+      CanonicalName? canonicalName = reference.canonicalName;
+      // ignore: unnecessary_null_comparison
+      if (canonicalName != null) {
+        return qualifiedCanonicalNameToString(canonicalName,
+            includeLibraryName: includeLibraryName);
+      } else {
+        return '<unlinked-view-reference>';
+      }
+    }
+  }
+}
+
+String viewNameToString(View? node) {
+  return node == null ? 'null' : node.name;
+}
+
 String qualifiedTypedefNameToString(Typedef node,
     {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;

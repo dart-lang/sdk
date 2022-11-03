@@ -252,6 +252,40 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   @override
+  DartType? visitViewType(ViewType a, DartType b) {
+    if (b is ViewType &&
+        a.view == b.view &&
+        a.typeArguments.length == b.typeArguments.length) {
+      Nullability? nullability = mergeNullability(a.nullability, b.nullability);
+      if (nullability != null) {
+        return mergeViewTypes(a, b, nullability);
+      }
+    }
+    if (b is InvalidType) {
+      return b;
+    }
+    return null;
+  }
+
+  DartType? mergeViewTypes(ViewType a, ViewType b, Nullability nullability) {
+    assert(a.view == b.view);
+    assert(a.typeArguments.length == b.typeArguments.length);
+    if (a.typeArguments.isEmpty) {
+      return new ViewType(a.view, nullability);
+    }
+    List<DartType> newTypeArguments =
+        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
+    for (int i = 0; i < a.typeArguments.length; i++) {
+      DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
+      if (newType == null) {
+        return null;
+      }
+      newTypeArguments[i] = newType;
+    }
+    return new ViewType(a.view, nullability, newTypeArguments);
+  }
+
+  @override
   DartType? visitFutureOrType(FutureOrType a, DartType b) {
     if (b is FutureOrType) {
       Nullability? nullability = mergeNullability(a.nullability, b.nullability);

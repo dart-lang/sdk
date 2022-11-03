@@ -2965,6 +2965,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       type.onType.accept(this);
 
   @override
+  js_ast.Expression visitViewType(ViewType type) =>
+      type.representationType.accept(this);
+
+  @override
   js_ast.Expression visitFutureOrType(FutureOrType type) {
     var normalizedType = _futureOrNormalizer.normalize(type);
     return normalizedType is FutureOrType

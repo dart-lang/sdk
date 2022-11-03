@@ -272,6 +272,14 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       }
       break;
     }
+    case kViewType: {
+      // We skip the view type and only use the representation type.
+      ReadNullability();
+      SkipCanonicalNameReference();    // read index for canonical name.
+      SkipListOfDartTypes();           // read type arguments
+      CalculateDartTypeFingerprint();  // read representation type.
+      break;
+    }
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();

@@ -1093,6 +1093,14 @@ class BinaryBuilder {
     return name.reference;
   }
 
+  Reference readNonNullViewReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    if (name == null) {
+      throw 'Expected a view reference to be valid but was `null`.';
+    }
+    return name.reference;
+  }
+
   void skipMemberReference() {
     skipCanonicalNameReference();
   }
@@ -1253,6 +1261,7 @@ class BinaryBuilder {
     _readTypedefList(library);
     _readClassList(library, classOffsets);
     _readExtensionList(library);
+    _readViewList(library);
     library.fieldsInternal = _readFieldList(library);
     library.proceduresInternal = _readProcedureList(library, procedureOffsets);
 
@@ -1298,6 +1307,19 @@ class BinaryBuilder {
     } else {
       library.extensionsInternal = new List<Extension>.generate(
           length, (int index) => readExtension()..parent = library,
+          growable: useGrowableLists);
+    }
+  }
+
+  void _readViewList(Library library) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      library.viewsInternal = emptyListOfView;
+    } else {
+      library.viewsInternal = new List<View>.generate(
+          length, (int index) => readView()..parent = library,
           growable: useGrowableLists);
     }
   }
@@ -1578,6 +1600,74 @@ class BinaryBuilder {
     return new ExtensionMemberDescriptor(
         name: name,
         kind: ExtensionMemberKind.values[kind],
+        member: canonicalName.reference)
+      ..flags = flags;
+  }
+
+  View readView() {
+    int tag = readByte();
+    assert(tag == Tag.View);
+
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
+    Reference reference = canonicalName.reference;
+    View? node = reference.node as View?;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
+
+    String name = readStringReference();
+    assert(() {
+      debugPath.add(name);
+      return true;
+    }());
+
+    List<Expression> annotations = readAnnotationList();
+
+    Uri fileUri = readUriReference();
+
+    if (node == null) {
+      node = new View(name: name, reference: reference, fileUri: fileUri);
+    }
+    node.annotations = annotations;
+    setParents(annotations, node);
+
+    node.fileOffset = readOffset();
+
+    node.flags = readByte();
+
+    readAndPushTypeParameterList(node.typeParameters, node);
+    DartType representationType = readDartType();
+    typeParameterStack.length = 0;
+
+    node.name = name;
+    node.fileUri = fileUri;
+    node.representationType = representationType;
+
+    node.members = _readViewMemberDescriptorList();
+
+    return node;
+  }
+
+  List<ViewMemberDescriptor> _readViewMemberDescriptorList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return emptyListOfViewMemberDescriptor;
+    }
+    return new List<ViewMemberDescriptor>.generate(
+        length, (_) => _readViewMemberDescriptor(),
+        growable: useGrowableLists);
+  }
+
+  ViewMemberDescriptor _readViewMemberDescriptor() {
+    Name name = readName();
+    int kind = readByte();
+    int flags = readByte();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
+    return new ViewMemberDescriptor(
+        name: name,
+        kind: ViewMemberKind.values[kind],
         member: canonicalName.reference)
       ..flags = flags;
   }
@@ -3168,6 +3258,8 @@ class BinaryBuilder {
         return _readInterfaceType();
       case Tag.SimpleInterfaceType:
         return _readSimpleInterfaceType(forSupertype);
+      case Tag.ViewType:
+        return _readViewType();
       case Tag.FunctionType:
         return _readFunctionType();
       case Tag.SimpleFunctionType:
@@ -3256,6 +3348,18 @@ class BinaryBuilder {
         Nullability.values[nullabilityIndex], const <DartType>[]);
     _cachedSimpleInterfaceTypes[cacheIndex] = result;
     return result;
+  }
+
+  DartType _readViewType() {
+    int nullabilityIndex = readByte();
+    Reference reference = readNonNullViewReference();
+    List<DartType> typeArguments = readDartTypeList();
+    DartType representationType = readDartType();
+    return new ViewType.byReference(
+        reference,
+        Nullability.values[nullabilityIndex],
+        typeArguments,
+        representationType);
   }
 
   DartType _readFunctionType() {
@@ -3569,6 +3673,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   Extension readExtension() {
     final int nodeOffset = _byteOffset;
     final Extension result = super.readExtension();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  View readView() {
+    final int nodeOffset = _byteOffset;
+    final View result = super.readView();
     return _associateMetadata(result, nodeOffset);
   }
 

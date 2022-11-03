@@ -1142,6 +1142,12 @@ class CoreTypes {
       return isTop(type.typeArgument);
     }
 
+    // If the representation type, R, is a top type then the view type, V0, is a
+    // top type, otherwise V0 is a proper subtype of Object?.
+    if (type is ViewType) {
+      return isTop(type.representationType);
+    }
+
     return false;
   }
 

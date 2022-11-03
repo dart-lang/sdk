@@ -815,6 +815,8 @@ class LibraryHelper {
     // * kParts
     // * kTypedefs
     // * kClasses
+    // * kExtensions
+    // * kViews
     // * kToplevelField
     // * kToplevelProcedures
     // * kSourceReferences
@@ -1546,6 +1548,7 @@ class TypeTranslator {
   void BuildRecordType();
   void BuildTypeParameterType();
   void BuildIntersectionType();
+  void BuildViewType();
 
   class TypeParameterScope {
    public:

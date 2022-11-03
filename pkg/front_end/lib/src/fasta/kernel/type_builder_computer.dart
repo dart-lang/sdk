@@ -112,6 +112,11 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   @override
+  TypeBuilder visitViewType(ViewType node) {
+    throw "Not implemented";
+  }
+
+  @override
   TypeBuilder visitFutureOrType(FutureOrType node) {
     TypeBuilder argument = node.typeArgument.accept(this);
     return new NamedTypeBuilder.forDartType(node, futureOrDeclaration,

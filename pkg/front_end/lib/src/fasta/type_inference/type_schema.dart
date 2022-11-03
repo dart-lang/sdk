@@ -154,6 +154,14 @@ class _IsKnownVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (!typeArgument.accept(this)) return false;
+    }
+    return true;
+  }
+
+  @override
   bool visitRecordType(RecordType node) {
     for (DartType positional in node.positional) {
       if (!positional.accept(this)) return false;

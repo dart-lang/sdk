@@ -735,6 +735,17 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
     sb.write(nullabilityToText(node.declaredNullability, typeRepresentation));
   }
+
+  @override
+  void visitViewType(ViewType node) {
+    sb.write(node.view.name);
+    if (node.typeArguments.isNotEmpty) {
+      sb.write('<');
+      visitList(node.typeArguments);
+      sb.write('>');
+    }
+    sb.write(nullabilityToText(node.declaredNullability, typeRepresentation));
+  }
 }
 
 /// Returns `true` if [type] is `Object` from `dart:core`.

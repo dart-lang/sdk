@@ -118,6 +118,11 @@ class AstPrinter {
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
+  void writeViewName(Reference? reference) {
+    _sb.write(qualifiedViewNameToStringByReference(reference,
+        includeLibraryName: _strategy.includeLibraryNamesInMembers));
+  }
+
   void writeQualifiedCanonicalNameToString(CanonicalName canonicalName) {
     _sb.write(qualifiedCanonicalNameToString(canonicalName,
         includeLibraryName: _strategy.includeLibraryNamesInMembers,
