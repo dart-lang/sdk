@@ -122,11 +122,6 @@ Statement do_(List<Statement> body, Expression condition) {
 Expression expr(String typeStr) =>
     new _PlaceholderExpression(new Type(typeStr), location: computeLocation());
 
-/// Creates a pseudo-expression having type [type] that otherwise has no
-/// effect on flow analysis.
-Expression expr2(Type type) =>
-    new _PlaceholderExpression(type, location: computeLocation());
-
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
 /// indicates that this `for` statement is actually a collection element, so
 /// `null` should be passed to [for_bodyBegin].
