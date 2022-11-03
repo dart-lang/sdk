@@ -11,8 +11,7 @@ import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler_interfaces.dart' show CompilerTypeInferenceFacade;
 import '../elements/entities.dart';
-import '../inferrer/engine_migrated.dart'
-    show KernelGlobalTypeInferenceElementData;
+import '../inferrer/engine.dart' show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
 import '../js_model/js_world.dart' show LocalLookupImpl;

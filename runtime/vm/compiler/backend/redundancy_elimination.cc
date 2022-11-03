@@ -3859,6 +3859,10 @@ void AllocationSinking::CreateMaterializationAt(
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(kRecordCid));
     num_elements = instr->num_fields();
+  } else if (auto instr = alloc->AsAllocateSmallRecord()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->class_table()->At(kRecordCid));
+    num_elements = instr->num_fields();
   } else {
     UNREACHABLE();
   }

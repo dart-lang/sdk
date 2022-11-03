@@ -806,7 +806,7 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
     macro.ClassDeclaration definingClass =
-        getClassDeclaration(builder.classBuilder as SourceClassBuilder);
+        getClassDeclaration(builder.classBuilder);
 
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,

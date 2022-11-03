@@ -13,21 +13,28 @@ body:
     id: commit_hash
     attributes:
       label: Commit(s) to merge
-      description: What are the shortened commit hash(es) that have been merged to main?
+      description: What are the commit hash(es) that have been merged to main?
     validations:
       required: true
   - type: input
     id: target
     attributes:
       label: Target
-      description: Should this be cherry-picked to beta, stable or both??
+      description: Should this be cherry-picked to beta, stable or both?
+    validations:
+      required: true
+  - type: input
+    id: changelist
+    attributes:
+      label: Prepared changelist for beta/stable
+      description: Gerrit changelist against beta/stable per https://github.com/dart-lang/sdk/wiki/Cherry-picks-to-a-release-channel
     validations:
       required: true
   - type: textarea
     id: issue_description
     attributes:
       label: Issue Description
-      description: Brief description of the issue.  What is the issue? What platforms are the problems occurring on?
+      description: Brief description of the issue. What is the issue? What platforms are the problems occurring on?
     validations:
       required: true
   - type: textarea
@@ -59,7 +66,7 @@ body:
     id: original_issue
     attributes:
       label: Issue link(s)
-      description: Add links to the original issues fixed by this cp
+      description: Add links to the original issues fixed by this cherry-pick
     validations:
       required: true
   - type: textarea

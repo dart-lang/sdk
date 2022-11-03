@@ -1283,10 +1283,7 @@ Nullability KernelReaderHelper::ReadNullability() {
 }
 
 Variance KernelReaderHelper::ReadVariance() {
-  if (translation_helper_.info().kernel_binary_version() >= 34) {
-    return reader_.ReadVariance();
-  }
-  return kCovariant;
+  return reader_.ReadVariance();
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
@@ -3806,11 +3803,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
 
-  if (translation_helper_.info().kernel_binary_version() >= 38) {
-    // We do not use the library mode for the type test, which is indicated by
-    // the flag kIsExpressionFlagForNonNullableByDefault.
-    ReadFlags();
-  }
+  ReadFlags();
 
   Fragment instructions = BuildExpression();  // read operand.
 
@@ -4061,11 +4054,31 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
     }
   }
   const intptr_t num_fields = positional_count + named_count;
-
-  // TODO(dartbug.com/49719): provide specialized allocation stubs for small
-  // records.
-
   Fragment instructions;
+
+  if (num_fields == 2 ||
+      (num_fields == 3 && AllocateSmallRecordABI::kValue2Reg != kNoRegister)) {
+    // Generate specialized allocation for a small number of fields.
+    const bool has_named_fields = named_count > 0;
+    if (has_named_fields) {
+      instructions += Constant(*field_names);
+    }
+    for (intptr_t i = 0; i < positional_count; ++i) {
+      instructions += BuildExpression();  // read ith expression.
+    }
+    ReadListLength();  // read list length.
+    for (intptr_t i = 0; i < named_count; ++i) {
+      SkipStringReference();              // read ith name.
+      instructions += BuildExpression();  // read ith expression.
+    }
+    SkipDartType();  // read recordType.
+
+    instructions +=
+        B->AllocateSmallRecord(position, num_fields, has_named_fields);
+
+    return instructions;
+  }
+
   instructions += Constant(*field_names);
   instructions += B->AllocateRecord(position, num_fields);
   LocalVariable* record = MakeTemporary();

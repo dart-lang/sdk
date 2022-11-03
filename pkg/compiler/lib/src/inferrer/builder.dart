@@ -27,7 +27,7 @@ import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../util/util.dart';
-import 'engine_interfaces.dart';
+import 'engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
@@ -1076,7 +1076,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   TypeInformation _handleDynamic(
       CallType callType,
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,
@@ -1107,7 +1107,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 
   TypeInformation handleDynamicGet(
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,
@@ -1117,7 +1117,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 
   TypeInformation handleDynamicSet(
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,
@@ -1130,7 +1130,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   TypeInformation handleDynamicInvoke(
       CallType callType,
-      ir.Node node,
+      ir.TreeNode node,
       Selector selector,
       AbstractValue? mask,
       TypeInformation receiverType,

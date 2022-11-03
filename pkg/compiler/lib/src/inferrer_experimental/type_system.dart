@@ -72,8 +72,8 @@ class TypeSystem {
       Map<ir.TreeNode, SetTypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<ir.TreeNode, TypeInformation> allocatedMaps =
-      Map<ir.TreeNode, TypeInformation>();
+  final Map<ir.TreeNode, MapTypeInformation> allocatedMaps =
+      Map<ir.TreeNode, MapTypeInformation>();
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = Set<TypeInformation>();

@@ -242,6 +242,45 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     });
   }
 
+  Future<void> test_nested() async {
+    final content = '''
+    class MyClass2 {/*[0*/
+      void f() {/*[1*/
+        void g() {/*[2*/
+          //
+        /*2]*/}
+      /*1]*/}
+    /*0]*/}
+    ''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
+  }
+
+  Future<void> test_nested_lineFoldingOnly() async {
+    lineFoldingOnly = true;
+    final content = '''
+    class MyClass2 {/*[0*/
+      void f() {/*[1*/
+        void g() {/*[2*/
+          //
+        /*2]*/}
+      /*1]*/}
+    /*0]*/}
+    ''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
+  }
+
   Future<void> test_nonDartFile() async {
     await computeRanges(simplePubspecContent, uri: pubspecFileUri);
     expectNoRanges();

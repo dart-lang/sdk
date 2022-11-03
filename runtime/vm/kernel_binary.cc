@@ -121,9 +121,8 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
     return nullptr;
   }
 
-  uint32_t formatVersion = reader->ReadUInt32();
-  if ((formatVersion < kMinSupportedKernelFormatVersion) ||
-      (formatVersion > kMaxSupportedKernelFormatVersion)) {
+  const uint32_t format_version = reader->ReadUInt32();
+  if (format_version != kSupportedKernelFormatVersion) {
     if (error != nullptr) {
       *error = kKernelInvalidBinaryFormatVersion;
     }
@@ -143,7 +142,6 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   }
 
   std::unique_ptr<Program> program(new Program());
-  program->binary_version_ = formatVersion;
   program->binary_.typed_data = reader->typed_data();
   program->binary_.kernel_data = reader->buffer();
   program->binary_.kernel_data_size = reader->size();

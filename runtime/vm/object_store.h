@@ -242,6 +242,10 @@ class ObjectPointerVisitor;
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
   RW(Code, allocate_record_stub)                                               \
+  RW(Code, allocate_record2_stub)                                              \
+  RW(Code, allocate_record2_named_stub)                                        \
+  RW(Code, allocate_record3_stub)                                              \
+  RW(Code, allocate_record3_named_stub)                                        \
   RW(Code, allocate_unhandled_exception_stub)                                  \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
@@ -334,6 +338,10 @@ class ObjectPointerVisitor;
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
   DO(allocate_record_stub, AllocateRecord)                                     \
+  DO(allocate_record2_stub, AllocateRecord2)                                   \
+  DO(allocate_record2_named_stub, AllocateRecord2Named)                        \
+  DO(allocate_record3_stub, AllocateRecord3)                                   \
+  DO(allocate_record3_named_stub, AllocateRecord3Named)                        \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
   DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \

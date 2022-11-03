@@ -354,6 +354,9 @@ class BaseFlowGraphBuilder {
   Fragment AllocateClosure(TokenPosition position = TokenPosition::kNoSource);
   Fragment CreateArray();
   Fragment AllocateRecord(TokenPosition position, intptr_t num_fields);
+  Fragment AllocateSmallRecord(TokenPosition position,
+                               intptr_t num_fields,
+                               bool has_named_fields);
   Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);

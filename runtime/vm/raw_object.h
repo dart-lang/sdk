@@ -1694,8 +1694,6 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ObjectPtr, retained_kernel_blob)
   VISIT_TO(retained_kernel_blob)
 
-  uint32_t kernel_binary_version_;
-
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     return reinterpret_cast<CompressedObjectPtr*>(&constants_table_);
   }

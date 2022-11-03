@@ -19,6 +19,7 @@ namespace dart {
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateRecord)                                                            \
+  V(AllocateSmallRecord)                                                       \
   V(AllocateSuspendState)                                                      \
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \

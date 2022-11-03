@@ -7679,6 +7679,68 @@ void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id(), env());
 }
 
+LocationSummary* AllocateSmallRecordInstr::MakeLocationSummary(Zone* zone,
+                                                               bool opt) const {
+  ASSERT(num_fields() == 2 || num_fields() == 3);
+  const intptr_t kNumInputs = InputCount();
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  if (has_named_fields()) {
+    locs->set_in(
+        0, Location::RegisterLocation(AllocateSmallRecordABI::kFieldNamesReg));
+    locs->set_in(
+        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+    locs->set_in(
+        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+    if (num_fields() > 2) {
+      locs->set_in(
+          3, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
+    }
+  } else {
+    locs->set_in(
+        0, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+    locs->set_in(
+        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+    if (num_fields() > 2) {
+      locs->set_in(
+          2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
+    }
+  }
+  locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
+  return locs;
+}
+
+void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  auto object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  if (has_named_fields()) {
+    switch (num_fields()) {
+      case 2:
+        stub = object_store->allocate_record2_named_stub();
+        break;
+      case 3:
+        stub = object_store->allocate_record3_named_stub();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    switch (num_fields()) {
+      case 2:
+        stub = object_store->allocate_record2_stub();
+        break;
+      case 3:
+        stub = object_store->allocate_record3_stub();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+}
+
 #undef __
 
 }  // namespace dart

@@ -1156,6 +1156,104 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
+                                                       intptr_t num_fields,
+                                                       bool has_named_fields) {
+  ASSERT(num_fields == 2 || num_fields == 3);
+  const Register result_reg = AllocateSmallRecordABI::kResultReg;
+  const Register field_names_reg = AllocateSmallRecordABI::kFieldNamesReg;
+  const Register value0_reg = AllocateSmallRecordABI::kValue0Reg;
+  const Register value1_reg = AllocateSmallRecordABI::kValue1Reg;
+  const Register value2_reg = AllocateSmallRecordABI::kValue2Reg;
+  const Register temp_reg = AllocateSmallRecordABI::kTempReg;
+  Label slow_case;
+
+  if ((num_fields > 2) && (value2_reg == kNoRegister)) {
+    // Not implemented.
+    __ Breakpoint();
+    return;
+  }
+
+#if defined(DEBUG)
+  // Need to account for the debug checks added by
+  // StoreCompressedIntoObjectNoBarrier.
+  const auto distance = Assembler::kFarJump;
+#else
+  const auto distance = Assembler::kNearJump;
+#endif
+  __ TryAllocateObject(kRecordCid, target::Record::InstanceSize(num_fields),
+                       &slow_case, distance, result_reg, temp_reg);
+
+  __ LoadImmediate(temp_reg, num_fields);
+  __ StoreToOffset(
+      temp_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
+      kFourBytes);
+
+  if (!has_named_fields) {
+    __ LoadObject(field_names_reg, Object::empty_array());
+  }
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg,
+      FieldAddress(result_reg, target::Record::field_names_offset()),
+      field_names_reg);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::field_offset(0)),
+      value0_reg);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::field_offset(1)),
+      value1_reg);
+
+  if (num_fields > 2) {
+    __ StoreCompressedIntoObjectNoBarrier(
+        result_reg, FieldAddress(result_reg, target::Record::field_offset(2)),
+        value2_reg);
+  }
+
+  __ Ret();
+
+  __ Bind(&slow_case);
+
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Space on the stack for the return value.
+  __ PushObject(Smi::ZoneHandle(Smi::New(num_fields)));
+  if (has_named_fields) {
+    __ PushRegister(field_names_reg);
+  } else {
+    __ PushObject(Object::empty_array());
+  }
+  __ PushRegistersInOrder({value0_reg, value1_reg});
+  if (num_fields > 2) {
+    __ PushRegister(value2_reg);
+  } else {
+    __ PushObject(NullObject());
+  }
+  __ CallRuntime(kAllocateSmallRecordRuntimeEntry, 5);
+  __ Drop(5);
+  __ PopRegister(result_reg);
+
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateAllocateRecord2Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord2NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/true);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord3Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord3NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/true);
+}
+
 // The UnhandledException class lives in the VM isolate, so it cannot cache
 // an allocation stub for itself. Instead, we cache it in the stub code list.
 void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(

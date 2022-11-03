@@ -733,6 +733,29 @@ DEFINE_RUNTIME_ENTRY(AllocateRecord, 2) {
   arguments.SetReturn(record);
 }
 
+// Allocate a new small record instance and initialize its fields.
+// Arg0: number of fields.
+// Arg1: field names.
+// Arg2-Arg4: field values.
+// Return value: newly allocated record.
+DEFINE_RUNTIME_ENTRY(AllocateSmallRecord, 5) {
+  const Smi& num_fields = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& field_names = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& value0 = Instance::CheckedHandle(zone, arguments.ArgAt(2));
+  const auto& value1 = Instance::CheckedHandle(zone, arguments.ArgAt(3));
+  const auto& value2 = Instance::CheckedHandle(zone, arguments.ArgAt(4));
+  const Record& record =
+      Record::Handle(zone, Record::New(num_fields.Value(), field_names,
+                                       SpaceForRuntimeAllocation()));
+  ASSERT(num_fields.Value() == 2 || num_fields.Value() == 3);
+  record.SetFieldAt(0, value0);
+  record.SetFieldAt(1, value1);
+  if (num_fields.Value() > 2) {
+    record.SetFieldAt(2, value2);
+  }
+  arguments.SetReturn(record);
+}
+
 // Allocate a SuspendState object.
 // Arg0: frame size.
 // Arg1: existing SuspendState object or function data.

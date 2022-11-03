@@ -458,6 +458,7 @@ struct InstrAttrs {
   M(AllocateObject, _)                                                         \
   M(AllocateClosure, _)                                                        \
   M(AllocateRecord, _)                                                         \
+  M(AllocateSmallRecord, _)                                                    \
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
@@ -7024,6 +7025,82 @@ class AllocateRecordInstr : public TemplateAllocation<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AllocateRecordInstr);
+};
+
+// Allocates and initializes fields of a small record object
+// (with 2 or 3 fields).
+class AllocateSmallRecordInstr : public TemplateAllocation<4> {
+ public:
+  AllocateSmallRecordInstr(const InstructionSource& source,
+                           intptr_t num_fields,  // 2 or 3.
+                           Value* field_names,   // Optional.
+                           Value* value0,
+                           Value* value1,
+                           Value* value2,  // Optional.
+                           intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id),
+        num_fields_(num_fields),
+        has_named_fields_(field_names != nullptr) {
+    ASSERT(num_fields == 2 || num_fields == 3);
+    ASSERT((num_fields > 2) == (value2 != nullptr));
+    if (has_named_fields_) {
+      SetInputAt(0, field_names);
+      SetInputAt(1, value0);
+      SetInputAt(2, value1);
+      if (num_fields > 2) {
+        SetInputAt(3, value2);
+      }
+    } else {
+      SetInputAt(0, value0);
+      SetInputAt(1, value1);
+      if (num_fields > 2) {
+        SetInputAt(2, value2);
+      }
+    }
+  }
+
+  DECLARE_INSTRUCTION(AllocateSmallRecord)
+  virtual CompileType ComputeType() const;
+
+  intptr_t num_fields() const { return num_fields_; }
+  bool has_named_fields() const { return has_named_fields_; }
+
+  virtual intptr_t InputCount() const {
+    return (has_named_fields_ ? 1 : 0) + num_fields_;
+  }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    if (has_named_fields_) {
+      if (pos == 0) {
+        return &Slot::Record_field_names();
+      } else {
+        return &Slot::GetRecordFieldSlot(
+            Thread::Current(), compiler::target::Record::field_offset(pos - 1));
+      }
+    } else {
+      return &Slot::GetRecordFieldSlot(
+          Thread::Current(), compiler::target::Record::field_offset(pos));
+    }
+  }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    return Heap::IsAllocatableInNewSpace(
+        compiler::target::Record::InstanceSize(num_fields_));
+  }
+
+#define FIELD_LIST(F)                                                          \
+  F(const intptr_t, num_fields_)                                               \
+  F(const bool, has_named_fields_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateSmallRecordInstr,
+                                          TemplateAllocation,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateSmallRecordInstr);
 };
 
 // This instruction captures the state of the object which had its allocation
