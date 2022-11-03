@@ -6,4 +6,3 @@
 
 [ $compiler == dart2analyzer ]
 class/large_class_declaration_test: Slow, Pass
-vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
