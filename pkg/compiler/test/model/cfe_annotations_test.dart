@@ -299,7 +299,7 @@ main(List<String> args) {
 
           if (expectedCreatesText != null) {
             String createsText;
-            if (memberEntity.isField) {
+            if (memberEntity is FieldEntity) {
               createsText = nativeData
                   .getNativeFieldLoadBehavior(memberEntity)
                   .typesInstantiated
@@ -319,7 +319,7 @@ main(List<String> args) {
 
           if (expectedReturnsText != null) {
             String returnsText;
-            if (memberEntity.isField) {
+            if (memberEntity is FieldEntity) {
               returnsText = nativeData
                   .getNativeFieldLoadBehavior(memberEntity)
                   .typesReturned

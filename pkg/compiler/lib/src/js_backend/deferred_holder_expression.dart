@@ -438,7 +438,7 @@ class DeferredHolderExpressionFinalizerImpl
   bool _isPropertyOfStaticStateHolder(MemberEntity element) {
     // TODO(ahe): Make sure this method's documentation is always true and
     // remove the word "intend".
-    return element.isField;
+    return element is FieldEntity;
   }
 
   Holder globalObjectForMember(MemberEntity entity) {

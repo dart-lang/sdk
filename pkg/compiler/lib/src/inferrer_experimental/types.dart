@@ -422,7 +422,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       if (element.isFunction) {
         // [functionType] is null if the inferrer did not run.
         return closedWorld.abstractValueDomain.functionType;
-      } else if (element.isField) {
+      } else if (element is FieldEntity) {
         return resultOfMember(element).type;
       } else if (element.isGetter) {
         return resultOfMember(element).returnType;
@@ -430,7 +430,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         assert(false, failedAt(element, "Unexpected member $element"));
         return closedWorld.abstractValueDomain.dynamicType;
       }
-    } else if (element.isGetter || element.isField) {
+    } else if (element.isGetter || element is FieldEntity) {
       assert(selector.isCall || selector.isSetter);
       return closedWorld.abstractValueDomain.dynamicType;
     } else {

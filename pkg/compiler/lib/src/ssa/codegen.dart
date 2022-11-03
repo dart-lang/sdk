@@ -99,7 +99,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       ModularNamer namer,
       ModularEmitter emitter) {
     js.Expression code;
-    if (member.isField) {
+    if (member is FieldEntity) {
       code = generateLazyInitializer(
           member, graph, codegen, closedWorld, registry, namer, emitter);
     } else {
@@ -2075,7 +2075,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void registerGetter(HInvokeDynamic node) {
     if (node.element != null &&
-        (node.element.isGetter || node.element.isField)) {
+        (node.element.isGetter || node.element is FieldEntity)) {
       // This is a dynamic read which we have found to have a single target but
       // for some reason haven't inlined. We are _still_ accessing the target
       // dynamically but we don't need to enqueue more than target for this to
@@ -2203,13 +2203,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Selector selector = node.selector;
     bool useAliasedSuper = canUseAliasedSuperMember(superElement, selector);
     if (selector.isGetter) {
-      if (superElement.isField || superElement.isGetter) {
+      if (superElement is FieldEntity || superElement.isGetter) {
         _registry.registerStaticUse(StaticUse.superGet(superElement));
       } else {
         _registry.registerStaticUse(StaticUse.superTearOff(node.element));
       }
     } else if (selector.isSetter) {
-      if (superElement.isField) {
+      if (superElement is FieldEntity) {
         _registry.registerStaticUse(StaticUse.superFieldSet(superElement));
       } else {
         assert(superElement.isSetter);
@@ -2225,7 +2225,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    if (superElement.isField) {
+    if (superElement is FieldEntity) {
       // TODO(sra): We can lower these in the simplifier.
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
       use(node.getDartReceiver(_closedWorld));
@@ -2841,7 +2841,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   @override
   void visitStatic(HStatic node) {
     MemberEntity element = node.element;
-    assert(element.isFunction || element.isField);
+    assert(element.isFunction || element is FieldEntity);
     if (element.isFunction) {
       push(_emitter
           .staticClosureAccess(element)

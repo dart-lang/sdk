@@ -840,7 +840,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     // the field. This usually removes the demand for the call-through stub and
     // makes the field load available to further optimization, e.g. LICM.
 
-    if (element.isField && element.name == node.selector.name) {
+    if (element is FieldEntity && element.name == node.selector.name) {
       FieldEntity field = element;
       if (!_nativeData.isNativeMember(field) &&
           !node.isCallOnInterceptor(_closedWorld)) {

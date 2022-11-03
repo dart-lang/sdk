@@ -94,7 +94,7 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
         results.resultOfMember(member);
     if (member.isFunction || member.isConstructor || member.isGetter) {
       return getTypeMaskValue(memberResult.returnType);
-    } else if (member.isField) {
+    } else if (member is FieldEntity) {
       return getTypeMaskValue(memberResult.type);
     } else {
       assert(member.isSetter);

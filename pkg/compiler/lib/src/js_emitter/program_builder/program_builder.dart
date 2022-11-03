@@ -431,7 +431,7 @@ class ProgramBuilder {
             String jsName =
                 _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
-            if (member.isGetter || member.isField || member.isFunction) {
+            if (member.isGetter || member is FieldEntity || member.isFunction) {
               Iterable<Selector> selectors =
                   _codegenWorld.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
@@ -446,7 +446,7 @@ class ProgramBuilder {
               }
             }
 
-            if (member.isSetter || (member.isField && !member.isConst)) {
+            if (member.isSetter || (member is FieldEntity && !member.isConst)) {
               Iterable<Selector> selectors =
                   _codegenWorld.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
@@ -527,7 +527,7 @@ class ProgramBuilder {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = memberElements
-        .where((e) => !e.isField)
+        .where((e) => e is! FieldEntity)
         .cast<FunctionEntity>()
         .map<StaticMethod>(_buildStaticMethod)
         .toList();
@@ -585,13 +585,13 @@ class ProgramBuilder {
         _commonElements, _outputUnitData, _task, _namer, _rtiChecks);
 
     void visitInstanceMember(MemberEntity member) {
-      if (!member.isAbstract && !member.isField) {
+      if (!member.isAbstract && member is! FieldEntity) {
         if (member is! JSignatureMethod) {
           Method method = _buildMethod(member);
           if (method != null) methods.add(method);
         }
       }
-      if (member.isGetter || member.isField) {
+      if (member.isGetter || member is FieldEntity) {
         Map<Selector, SelectorConstraints> selectors =
             _codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {

@@ -563,7 +563,7 @@ class ResolutionWorldBuilder extends WorldBuilder
     EnumSet<MemberUse> useSet = EnumSet();
     MemberUsage usage = _getMemberUsage(element, useSet);
 
-    if ((element.isStatic || element.isTopLevel) && element.isField) {
+    if ((element.isStatic || element.isTopLevel) && element is FieldEntity) {
       _allReferencedStaticFields.add(staticUse.element as FieldEntity);
     }
     // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
@@ -723,11 +723,11 @@ class ResolutionWorldBuilder extends WorldBuilder
         // classes, which may not be the case when a native class is subclassed.
         bool isNative = _nativeBasicData.isNativeClass(cls);
         usage = MemberUsage(member);
-        if (member.isField && !isNative) {
+        if (member is FieldEntity && !isNative) {
           useSet.addAll(usage.init());
         }
         if (!checkEnqueuerConsistency) {
-          if (member.isField && isNative) {
+          if (member is FieldEntity && isNative) {
             registerUsedElement(member);
           }
           if (member.isFunction &&
@@ -774,7 +774,7 @@ class ResolutionWorldBuilder extends WorldBuilder
         }
       } else {
         usage = MemberUsage(member);
-        if (member.isField) {
+        if (member is FieldEntity) {
           useSet.addAll(usage.init());
         }
       }

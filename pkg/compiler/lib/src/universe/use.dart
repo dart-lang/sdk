@@ -356,7 +356,7 @@ class StaticUse {
             "Static get element $element must be a top-level "
             "or static field or getter."));
     assert(
-        element.isField || element.isGetter,
+        element is FieldEntity || element.isGetter,
         failedAt(element,
             "Static get element $element must be a field or a getter."));
     return StaticUse.internal(element, StaticUseKind.STATIC_GET,
@@ -373,7 +373,7 @@ class StaticUse {
             "Static set element $element "
             "must be a top-level or static method."));
     assert(
-        (element.isField && element.isAssignable) || element.isSetter,
+        (element is FieldEntity && element.isAssignable) || element.isSetter,
         failedAt(element,
             "Static set element $element must be a field or a setter."));
     return StaticUse.internal(element, StaticUseKind.STATIC_SET,
@@ -389,8 +389,6 @@ class StaticUse {
             element,
             "Static init element $element must be a top-level "
             "or static method."));
-    assert(element.isField,
-        failedAt(element, "Static init element $element must be a field."));
     return StaticUse.internal(element, StaticUseKind.FIELD_INIT);
   }
 
@@ -420,7 +418,7 @@ class StaticUse {
         failedAt(
             element, "Super get element $element must be an instance method."));
     assert(
-        element.isField || element.isGetter,
+        element is FieldEntity || element.isGetter,
         failedAt(element,
             "Super get element $element must be a field or a getter."));
     return StaticUse.internal(element, StaticUseKind.SUPER_GET);
@@ -432,8 +430,6 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(
             element, "Super set element $element must be an instance method."));
-    assert(element.isField,
-        failedAt(element, "Super set element $element must be a field."));
     return StaticUse.internal(element, StaticUseKind.SUPER_FIELD_SET);
   }
 
@@ -521,7 +517,7 @@ class StaticUse {
         failedAt(element,
             "Direct get element $element must be an instance member."));
     assert(
-        element.isField || element.isGetter,
+        element is FieldEntity || element.isGetter,
         failedAt(element,
             "Direct get element $element must be a field or a getter."));
     return StaticUse.internal(element, StaticUseKind.STATIC_GET);
@@ -533,8 +529,6 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(element,
             "Direct set element $element must be an instance member."));
-    assert(element.isField,
-        failedAt(element, "Direct set element $element must be a field."));
     return StaticUse.internal(element, StaticUseKind.STATIC_SET);
   }
 

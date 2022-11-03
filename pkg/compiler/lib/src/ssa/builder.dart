@@ -5111,7 +5111,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     MemberEntity element =
         closedWorld.locateSingleMember(selector, receiverType);
     if (element != null &&
-        !element.isField &&
+        element is! FieldEntity &&
         !(element.isGetter && selector.isCall) &&
         !(element.isFunction && selector.isGetter) &&
         !isOptimizableOperation(selector, element)) {
@@ -5553,7 +5553,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return;
     }
     MemberEntity member = _elementMap.getMember(target);
-    if (member.isField) {
+    if (member is FieldEntity) {
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
       if (fieldData.isEffectivelyConstant) {
         ConstantValue value = fieldData.constantValue;

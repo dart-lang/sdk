@@ -128,7 +128,7 @@ class InferredDataImpl implements InferredData {
     }
     SideEffects sideEffects = SideEffects.empty();
     for (MemberEntity e in _closedWorld.locateMembers(selector, receiver)) {
-      if (e.isField) {
+      if (e is FieldEntity) {
         if (selector.isGetter) {
           if (!_closedWorld.fieldNeverChanges(e)) {
             sideEffects.setDependsOnInstancePropertyStore();

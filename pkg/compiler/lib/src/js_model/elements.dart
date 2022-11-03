@@ -192,9 +192,6 @@ abstract class JMember extends IndexedMember {
   bool get isFunction => false;
 
   @override
-  bool get isField => false;
-
-  @override
   bool get isConstructor => false;
 
   @override
@@ -682,9 +679,6 @@ class JField extends JMember implements FieldEntity, IndexedField {
     sink.writeBool(isConst);
     sink.end(tag);
   }
-
-  @override
-  bool get isField => true;
 
   @override
   String get _kind => 'field';

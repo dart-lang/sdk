@@ -552,7 +552,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
   }
 
   bool _isShadowingSuperField(FieldEntity element) {
-    assert(element.isField);
+    assert(element is FieldEntity);
     Name fieldName = element.memberName;
     LibraryEntity memberLibrary = element.library;
     ClassEntity lookupClass =
@@ -561,7 +561,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
       MemberEntity foundMember =
           _elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
       if (foundMember != null) {
-        if (foundMember.isField) {
+        if (foundMember is FieldEntity) {
           if (!fieldName.isPrivate || memberLibrary == foundMember.library) {
             // Private fields can only be shadowed by a field declared in the
             // same library.
@@ -1012,7 +1012,7 @@ class Namer extends ModularNamer implements interfaces.Namer {
 
   @override
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
-    assert(!member.isField); // Fields do not need super aliases.
+    assert(member is! FieldEntity); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
       String className = member.enclosingClass.name.replaceAll('&', '_');
       String invocationName = operatorNameToIdentifier(member.name);

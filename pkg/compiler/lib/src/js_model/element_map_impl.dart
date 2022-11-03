@@ -190,8 +190,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           : null;
       IndexedMember newMember;
       Name memberName = oldMember.memberName;
-      if (oldMember.isField) {
-        final field = oldMember as IndexedField;
+      if (oldMember is IndexedField) {
+        final field = oldMember;
         newMember = JField(newLibrary, newClass, memberName,
             isStatic: field.isStatic,
             isAssignable: field.isAssignable,
@@ -246,8 +246,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           "Member index mismatch: "
           "Old member $oldMember has index ${oldMember.memberIndex} "
           "whereas new member $newMember has index ${newMember.memberIndex}");
-      if (newMember.isField) {
-        fieldMap[data.node as ir.Field] = newMember as IndexedField;
+      if (newMember is IndexedField) {
+        fieldMap[data.node as ir.Field] = newMember;
       } else if (newMember.isConstructor) {
         constructorMap[data.node] = newMember as IndexedConstructor;
       } else {
@@ -378,8 +378,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         case MemberKind.regular:
         case MemberKind.constructor:
           final node = data.definition.node as ir.Member;
-          if (member.isField) {
-            fieldMap[node as ir.Field] = member as IndexedField;
+          if (member is IndexedField) {
+            fieldMap[node as ir.Field] = member;
           } else if (member.isConstructor) {
             constructorMap[node] = member as IndexedConstructor;
           } else {
@@ -2478,8 +2478,8 @@ class JsElementEnvironment extends ElementEnvironment
   void forEachInstanceField(
       ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
     forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
-      if (member.isField && member.isInstanceMember) {
-        f(declarer, member as FieldEntity);
+      if (member is FieldEntity && member.isInstanceMember) {
+        f(declarer, member);
       }
     });
   }
@@ -2491,9 +2491,9 @@ class JsElementEnvironment extends ElementEnvironment
     // potentially O(n^2) scan of the superclasses.
     forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
       if (declarer != cls) return;
-      if (!member.isField) return;
+      if (member is! FieldEntity) return;
       if (!member.isInstanceMember) return;
-      f(member as FieldEntity);
+      f(member);
     });
   }
 }

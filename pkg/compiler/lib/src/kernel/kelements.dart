@@ -81,9 +81,6 @@ abstract class KMember extends IndexedMember {
   bool get isFunction => false;
 
   @override
-  bool get isField => false;
-
-  @override
   bool get isConstructor => false;
 
   @override
@@ -247,9 +244,6 @@ class KField extends KMember implements FieldEntity, IndexedField {
       {required super.isStatic,
       required this.isAssignable,
       required this.isConst});
-
-  @override
-  bool get isField => true;
 
   @override
   String get _kind => 'field';

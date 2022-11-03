@@ -92,7 +92,7 @@ class ElementInfoCollector {
           info.topLevelFunctions.add(functionInfo);
           functionInfo.parent = info;
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member);
         if (fieldInfo != null) {
           info.topLevelVariables.add(fieldInfo);
@@ -241,7 +241,7 @@ class ElementInfoCollector {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
@@ -806,7 +806,7 @@ class DumpInfoAnnotator {
     environment.forEachLibraryMember(lib, (MemberEntity member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
         visitFunction(member, libname);
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         visitField(member, libname);
       } else {
         throw StateError('Class member not a function or field');
@@ -947,7 +947,7 @@ class DumpInfoAnnotator {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member, disambiguatedMemberName);
         if (fieldInfo != null) {
           for (var closureInfo in fieldInfo.closures) {
