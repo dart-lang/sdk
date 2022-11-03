@@ -5161,8 +5161,7 @@ class KernelProgramInfo : public Object {
                                   const Array& scripts,
                                   const Array& libraries_cache,
                                   const Array& classes_cache,
-                                  const Object& retained_kernel_blob,
-                                  const uint32_t binary_version);
+                                  const Object& retained_kernel_blob);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedKernelProgramInfo));
@@ -5193,11 +5192,6 @@ class KernelProgramInfo : public Object {
 
   ArrayPtr constants() const { return untag()->constants(); }
   void set_constants(const Array& constants) const;
-
-  uint32_t kernel_binary_version() const {
-    return untag()->kernel_binary_version_;
-  }
-  void set_kernel_binary_version(uint32_t version) const;
 
   // If we load a kernel blob with evaluated constants, then we delay setting
   // the native names of [Function] objects until we've read the constant table

@@ -1283,10 +1283,7 @@ Nullability KernelReaderHelper::ReadNullability() {
 }
 
 Variance KernelReaderHelper::ReadVariance() {
-  if (translation_helper_.info().kernel_binary_version() >= 34) {
-    return reader_.ReadVariance();
-  }
-  return kCovariant;
+  return reader_.ReadVariance();
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
@@ -3806,11 +3803,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
 
-  if (translation_helper_.info().kernel_binary_version() >= 38) {
-    // We do not use the library mode for the type test, which is indicated by
-    // the flag kIsExpressionFlagForNonNullableByDefault.
-    ReadFlags();
-  }
+  ReadFlags();
 
   Fragment instructions = BuildExpression();  // read operand.
 

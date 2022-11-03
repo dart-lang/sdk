@@ -14440,8 +14440,7 @@ KernelProgramInfoPtr KernelProgramInfo::New(
     const Array& scripts,
     const Array& libraries_cache,
     const Array& classes_cache,
-    const Object& retained_kernel_blob,
-    const uint32_t binary_version) {
+    const Object& retained_kernel_blob) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.untag()->set_string_offsets(string_offsets.ptr());
@@ -14454,7 +14453,6 @@ KernelProgramInfoPtr KernelProgramInfo::New(
   info.untag()->set_libraries_cache(libraries_cache.ptr());
   info.untag()->set_classes_cache(classes_cache.ptr());
   info.untag()->set_retained_kernel_blob(retained_kernel_blob.ptr());
-  info.set_kernel_binary_version(binary_version);
   return info.ptr();
 }
 
@@ -14474,10 +14472,6 @@ void KernelProgramInfo::set_scripts(const Array& scripts) const {
 
 void KernelProgramInfo::set_constants(const Array& constants) const {
   untag()->set_constants(constants.ptr());
-}
-
-void KernelProgramInfo::set_kernel_binary_version(uint32_t version) const {
-  StoreNonPointer(&untag()->kernel_binary_version_, version);
 }
 
 void KernelProgramInfo::set_constants_table(

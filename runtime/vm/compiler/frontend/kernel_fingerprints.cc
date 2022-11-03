@@ -555,9 +555,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kIsExpression:
       ReadPosition();                    // read position.
-      if (translation_helper_.info().kernel_binary_version() >= 38) {
-        BuildHash(ReadFlags());  // read flags.
-      }
+      BuildHash(ReadFlags());            // read flags.
       CalculateExpressionFingerprint();  // read operand.
       CalculateDartTypeFingerprint();    // read type.
       return;

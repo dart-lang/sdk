@@ -623,7 +623,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    60;
+    56;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
@@ -1291,7 +1291,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    120;
+    112;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
@@ -1950,7 +1950,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    60;
+    56;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
@@ -2619,7 +2619,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    120;
+    112;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
@@ -4613,7 +4613,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    60;
+    56;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
@@ -5282,7 +5282,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    120;
+    112;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
@@ -5935,7 +5935,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    60;
+    56;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
@@ -6595,7 +6595,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    120;
+    112;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
@@ -7246,7 +7246,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    60;
+    56;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
@@ -7907,7 +7907,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    120;
+    112;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
@@ -9877,7 +9877,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    60;
+    56;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
@@ -10538,7 +10538,7 @@ static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
-    120;
+    112;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
@@ -11263,7 +11263,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 60;
+    AOT_KernelProgramInfo_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     28;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 84;
@@ -12001,7 +12001,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 120;
+    AOT_KernelProgramInfo_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     48;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
@@ -12743,7 +12743,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 120;
+    AOT_KernelProgramInfo_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     48;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
@@ -14955,7 +14955,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 60;
+    AOT_KernelProgramInfo_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     28;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 84;
@@ -15694,7 +15694,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 120;
+    AOT_KernelProgramInfo_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     48;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
@@ -16420,7 +16420,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 60;
+    AOT_KernelProgramInfo_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     28;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 84;
@@ -17149,7 +17149,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 120;
+    AOT_KernelProgramInfo_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     48;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
@@ -17882,7 +17882,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 120;
+    AOT_KernelProgramInfo_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     48;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
@@ -20067,7 +20067,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 4;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 60;
+    AOT_KernelProgramInfo_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     28;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 84;
@@ -20797,7 +20797,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    AOT_KernelProgramInfo_InstanceSize = 120;
+    AOT_KernelProgramInfo_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     48;
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
