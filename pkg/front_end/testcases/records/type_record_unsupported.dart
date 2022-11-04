@@ -10,13 +10,13 @@ typedef R = Record; // Error.
 
 typedef AR = A<Record>; // Error.
 
-typedef AR2 = A<FromSupportedR>; // Error.
+typedef AR2 = A<FromSupportedR>; // Ok.
 
-typedef AR3 = A<FromSupportedRR>; // Error.
+typedef AR3 = A<FromSupportedRR>; // Ok.
 
 typedef AR4 = A<FromSupportedAR>; // Ok: indirect use.
 
-typedef RR = FromSupportedR; // Error.
+typedef RR = FromSupportedR; // Ok.
 
 Record foo1() => throw ''; // Error.
 
@@ -38,23 +38,23 @@ List<Record> foo9() => throw ''; // Error.
 
 dynamic foo10(List<Record> l) => null; // Error.
 
-FromSupportedR foo11() => throw ''; // Error.
+FromSupportedR foo11() => throw ''; // Ok.
 
 FromSupportedAR foo12() => throw ''; // Ok: indirect use.
 
-FromSupportedRR foo13() => throw ''; // Error.
+FromSupportedRR foo13() => throw ''; // Ok.
 
-dynamic foo14(FromSupportedR r) => null; // Error.
+dynamic foo14(FromSupportedR r) => null; // Ok.
 
 dynamic foo15(FromSupportedAR l) => null; // Ok: indirect use.
 
-dynamic foo16(FromSupportedRR l) => null; // Error.
+dynamic foo16(FromSupportedRR l) => null; // Ok.
 
-dynamic foo17() => FromSupportedR; // Error.
+dynamic foo17() => FromSupportedR; // Ok.
 
 dynamic foo18() => FromSupportedAR; // Ok: indirect use.
- 
-dynamic foo19() => FromSupportedRR; // Error.
+
+dynamic foo19() => FromSupportedRR; // Ok.
 
 abstract class A1 extends Record {} // Error.
 

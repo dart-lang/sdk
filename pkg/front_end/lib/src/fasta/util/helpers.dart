@@ -17,16 +17,11 @@ bool isRecordAccessAllowed(LibraryFeatures libraryFeatures) {
       libraryFeatures.records.isEnabled;
 }
 
-/// Returns `true` if [type] is `Record` from  `dart:core` or an alias of it.
-bool isRecordOrItsAlias(DartType type) {
+/// Returns `true` if [type] is `Record` from  `dart:core`.
+bool isDartCoreRecord(DartType type) {
   Class? targetClass;
   if (type is InterfaceType) {
     targetClass = type.classNode;
-  } else if (type is TypedefType) {
-    DartType unaliasedType = type.unalias;
-    if (unaliasedType is InterfaceType) {
-      targetClass = unaliasedType.classNode;
-    }
   }
   return targetClass != null &&
       targetClass.parent != null &&
