@@ -61,13 +61,18 @@ class _BoxedDouble implements double {
   static const int _exponentMask = 0x7FF0000000000000;
   static const int _mantissaMask = 0x000FFFFFFFFFFFFF;
 
-  int get hashCode {
-    int bits = doubleToIntBits(this);
-    if (bits == _signMask) bits = 0; // 0.0 == -0.0
-    return mix64(bits);
-  }
+  int get hashCode => _doubleHashCode(this);
+  int get _identityHashCode => _doubleHashCode(this);
 
-  int get _identityHashCode => hashCode;
+  static int _doubleHashCode(double value) {
+    const int maxInt = 0x7FFFFFFFFFFFFFFF;
+    int intValue = _toInt(value);
+    if (intValue.toDouble() == value && intValue != maxInt) {
+      return _BoxedInt._intHashCode(intValue);
+    }
+    int bits = doubleToIntBits(value);
+    return (bits ^ (bits >>> 32)) & 0x3FFFFFFF;
+  }
 
   double operator +(num other) => this + other.toDouble(); // Intrinsic +
   double operator -(num other) => this - other.toDouble(); // Intrinsic -
