@@ -195,15 +195,15 @@ class _GrowableList<E> extends _ModifiableList<E> {
   void addAll(Iterable<E> iterable) {
     var len = length;
     if (iterable is EfficientLengthIterable) {
-      if (identical(iterable, this)) {
-        throw new ConcurrentModificationError(this);
-      }
-      var cap = _capacity;
       // Pregrow if we know iterable.length.
       var iterLen = iterable.length;
       if (iterLen == 0) {
         return;
       }
+      if (identical(iterable, this)) {
+        throw new ConcurrentModificationError(this);
+      }
+      var cap = _capacity;
       var newLen = len + iterLen;
       if (newLen > cap) {
         do {
