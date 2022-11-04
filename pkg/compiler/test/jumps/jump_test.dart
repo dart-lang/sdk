@@ -36,7 +36,7 @@ class JumpDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalLocalsMap localsMap =
         compiler.globalInference.resultsForTesting.globalLocalsMap;

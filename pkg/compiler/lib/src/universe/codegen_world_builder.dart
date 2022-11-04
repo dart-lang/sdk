@@ -14,6 +14,7 @@ import '../js_backend/annotations.dart' show AnnotationsData;
 import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';

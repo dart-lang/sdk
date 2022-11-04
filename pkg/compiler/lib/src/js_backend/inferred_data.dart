@@ -6,10 +6,10 @@ import 'dart:collection' show Queue;
 
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world.dart';
 import 'annotations.dart';
 
 abstract class InferredData {

@@ -13,6 +13,7 @@ import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
 import '../../ir/class_relation.dart';
+import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -20,7 +21,6 @@ import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world.dart' show JClosedWorld;
 import '../../inferrer/abstract_value_domain.dart';
 import '../../inferrer/abstract_value_strategy.dart';
 import 'constants.dart';

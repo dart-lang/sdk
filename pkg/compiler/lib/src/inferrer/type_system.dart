@@ -7,7 +7,7 @@ import '../common.dart';
 import '../constants/values.dart' show BoolConstantValue;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../world.dart';
+import '../js_model/js_world.dart';
 import 'abstract_value_domain.dart';
 import 'type_graph_nodes.dart';
 

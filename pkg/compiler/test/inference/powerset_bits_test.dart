@@ -9,7 +9,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/inferrer/powersets/powersets.dart';
 import 'package:compiler/src/inferrer/powersets/powerset_bits.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
 import '../helpers/memory_compiler.dart';

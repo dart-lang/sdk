@@ -19,6 +19,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart'
     show TypeEnvironmentStructure, TypeRecipe, TypeExpressionRecipe;
 import '../native/behavior.dart';
@@ -26,7 +27,6 @@ import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show JClosedWorld;
 import 'invoke_dynamic_specializers.dart';
 import 'validate.dart';
 

@@ -27,7 +27,6 @@ import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world.dart';
 import '../inferrer/abstract_value_domain.dart';
 import 'builder.dart';
 import 'closure_tracer.dart';
@@ -60,7 +59,7 @@ class InferrerEngine {
   ]);
 
   /// The [JClosedWorld] on which inference reasoning is based.
-  final JsClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   final TypeSystem types;
   final Map<ir.TreeNode, TypeInformation> concreteTypes = {};
@@ -1159,7 +1158,7 @@ class _InferrerEngineMetrics extends MetricsBase {
 }
 
 class KernelTypeSystemStrategy implements TypeSystemStrategy {
-  final JsClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final GlobalLocalsMap _globalLocalsMap;
 
   KernelTypeSystemStrategy(this._closedWorld, this._globalLocalsMap);

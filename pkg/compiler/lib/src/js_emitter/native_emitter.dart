@@ -14,8 +14,8 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
-import '../world.dart' show JClosedWorld;
 
 import 'interfaces.dart' show CodeEmitterTask;
 import 'model.dart';

@@ -47,6 +47,7 @@ import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
 import '../js_backend/runtime_types_new.dart' show RecipeEncoderImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js/js.dart' as js;
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kernel_world.dart';
@@ -63,12 +64,11 @@ import '../tracer.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart';
-import '../world.dart';
 import 'closure.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'js_world.dart';
-import 'js_world_builder.dart' show JsClosedWorldBuilder;
+import 'js_world_builder.dart' show JClosedWorldBuilder;
 import 'locals.dart';
 import 'js_strategy_interfaces.dart' as interfaces;
 
@@ -182,7 +182,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
         closedWorld.annotationsData);
     ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
         _compiler.reporter, _elementMap, closedWorld.annotationsData);
-    JsClosedWorldBuilder closedWorldBuilder = JsClosedWorldBuilder(
+    JClosedWorldBuilder closedWorldBuilder = JClosedWorldBuilder(
         _elementMap,
         closureDataBuilder,
         _compiler.options,
@@ -199,7 +199,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   /// strategy.
   ///
   /// This is used to support serialization after type inference.
-  void registerJClosedWorld(covariant JsClosedWorld closedWorld) {
+  void registerJClosedWorld(covariant JClosedWorld closedWorld) {
     _elementMap = closedWorld.elementMap;
     sourceInformationStrategy.onElementMapAvailable(_elementMap);
   }

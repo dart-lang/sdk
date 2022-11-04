@@ -13,7 +13,7 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
 import 'memory_compiler.dart';

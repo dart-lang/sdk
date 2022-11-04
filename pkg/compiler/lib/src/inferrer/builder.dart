@@ -41,7 +41,7 @@ import 'type_system.dart';
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     with ir.VisitorNullMixin<TypeInformation> {
   final CompilerOptions _options;
-  final JsClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final InferrerEngine _inferrer;
   final TypeSystem _types;
   final MemberEntity _analyzedMember;

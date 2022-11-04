@@ -7,6 +7,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
+import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';

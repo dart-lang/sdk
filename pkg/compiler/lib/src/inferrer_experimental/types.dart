@@ -16,12 +16,11 @@ import '../inferrer_experimental/engine.dart'
     show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_world.dart' show LocalLookupImpl;
+import '../js_model/js_world.dart' show JClosedWorld, LocalLookupImpl;
 import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
 import '../inferrer/types.dart' as base
     show GlobalTypeInferenceResults, GlobalTypeInferenceMemberResult;
 

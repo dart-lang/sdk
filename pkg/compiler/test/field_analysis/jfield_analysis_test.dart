@@ -44,7 +44,7 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       {bool verbose = false}) {
     if (member is FieldEntity) {
       DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
-      JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
       JFieldAnalysis fieldAnalysis = closedWorld.fieldAnalysis;
       ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
       Features features = new Features();

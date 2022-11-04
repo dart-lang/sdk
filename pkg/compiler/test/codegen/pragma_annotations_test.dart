@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../helpers/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {

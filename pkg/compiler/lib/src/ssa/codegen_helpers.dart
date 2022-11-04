@@ -7,9 +7,9 @@
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 

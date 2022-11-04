@@ -81,10 +81,10 @@ import '../../js_backend/string_reference.dart'
         StringReferenceFinalizer,
         StringReferenceFinalizerImpl,
         StringReferenceResource;
+import '../../js_model/js_world.dart';
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
-import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';

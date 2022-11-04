@@ -21,7 +21,7 @@ import '../universe/selector.dart';
 import 'class_type_variable_access.dart';
 import 'elements.dart';
 import 'env.dart';
-import 'js_world_builder.dart' show JsClosedWorldBuilder;
+import 'js_world_builder.dart' show JClosedWorldBuilder;
 
 class ClosureDataImpl implements ClosureData {
   /// Tag used for identifying serialized [ClosureData] objects in a
@@ -335,7 +335,7 @@ class ClosureDataBuilder {
   }
 
   ClosureData createClosureEntities(
-      JsClosedWorldBuilder closedWorldBuilder,
+      JClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ClosureScopeModel> closureModels,
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
@@ -421,7 +421,7 @@ class ClosureDataBuilder {
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
   JsClosureClassInfo _produceSyntheticElements(
-      JsClosedWorldBuilder closedWorldBuilder,
+      JClosedWorldBuilder closedWorldBuilder,
       MemberEntity member,
       ir.FunctionNode node,
       KernelScopeInfo info,
