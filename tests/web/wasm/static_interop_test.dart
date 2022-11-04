@@ -28,6 +28,14 @@ extension StaticJSClassMethods on StaticJSClass {
   external String doSumUpTo2([String? a, String? b]);
   external String doSum1Or2NonNull(String a, [String b = 'bar']);
   external String doSumUpTo2NonNull([String a = 'foo', String b = 'bar']);
+
+  @JS('nameInJSMethod')
+  external String nameInDartMethod(String a, String b);
+  @JS('nameInJSGetter')
+  external String get nameInDartGetter;
+  @JS('nameInJSSetter')
+  external set nameInDartSetter(String v);
+  external String get nameInJSSetter;
 }
 
 void createClassTest() {
@@ -35,6 +43,7 @@ void createClassTest() {
     globalThis.JSClass = function(foo) {
       this.foo = foo;
       this.nonNullableInt = 6;
+      this.nameInJSGetter = 'foo';
       this.nonNullableIntReturnMethod = function() {
         return 7;
       }
@@ -63,6 +72,9 @@ void createClassTest() {
         return a + b;
       }
       this.doSumUpTo2NonNull = function(a, b) {
+        return a + b;
+      }
+      this.nameInJSMethod = function(a, b) {
         return a + b;
       }
     }
@@ -96,6 +108,11 @@ void createClassTest() {
   Expect.equals('foobar', foo.doSumUpTo2NonNull());
   Expect.equals('foobar', foo.doSumUpTo2NonNull('foo'));
   Expect.equals('foobar', foo.doSumUpTo2NonNull('foo', 'bar'));
+
+  Expect.equals('foobar', foo.nameInDartMethod('foo', 'bar'));
+  Expect.equals('foo', foo.nameInDartGetter);
+  foo.nameInDartSetter = 'boo';
+  Expect.equals('boo', foo.nameInJSSetter);
 }
 
 @JS('JSClass.NestedJSClass')
