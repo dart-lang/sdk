@@ -82,7 +82,8 @@ abstract class InferenceVisitor {
 
 class InferenceVisitorImpl extends InferenceVisitorBase
     with
-        TypeAnalyzer<Node, Statement, Expression, VariableDeclaration, DartType>
+        TypeAnalyzer<Node, Statement, Expression, VariableDeclaration, DartType,
+            Pattern>
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
@@ -1771,7 +1772,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression condition =
         ensureAssignableResult(expectedType, conditionResult).expression;
 
-    Map<VariableDeclaration, VariableTypeInfo<Node, DartType>> typeInfos = {};
+    Map<VariableDeclaration, VariableTypeInfo<Pattern, DartType>> typeInfos =
+        {};
     dispatchPattern(conditionResult.inferredType, typeInfos,
         MatchContext.simpleNonFinal, node.pattern);
 
@@ -7577,7 +7579,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void dispatchPattern(
       DartType matchedType,
-      Map<VariableDeclaration, VariableTypeInfo<Node, DartType>> typeInfos,
+      Map<VariableDeclaration, VariableTypeInfo<Pattern, DartType>> typeInfos,
       MatchContext<Node, Expression> context,
       Node node) {
     if (node is Pattern) {

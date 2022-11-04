@@ -20,7 +20,7 @@ class ListPatternResolver {
   void resolve({
     required ListPatternImpl node,
     required DartType matchedType,
-    required Map<PromotableElement, VariableTypeInfo<AstNode, DartType>>
+    required Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>>
         typeInfos,
     required MatchContext<AstNode, Expression> context,
   }) {

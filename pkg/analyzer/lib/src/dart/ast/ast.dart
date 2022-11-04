@@ -1127,7 +1127,7 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     resolverVisitor.analyzeLogicalPattern(
         matchedType, typeInfos, context, this, leftOperand, rightOperand,
@@ -1557,7 +1557,7 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     type.accept(resolverVisitor);
     resolverVisitor.analyzeCastPattern(
@@ -2805,7 +2805,7 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     resolverVisitor.analyzeExpression(expression, matchedType);
     expression = resolverVisitor.popRewrite()!;
@@ -3364,7 +3364,7 @@ abstract class DartPatternImpl extends AstNodeImpl implements DartPattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context);
 }
 
@@ -4738,7 +4738,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
   void resolvePattern(
     ResolverVisitor resolverVisitor,
     DartType matchedType,
-    Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+    Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
     MatchContext<AstNode, Expression> context,
   ) {
     resolverVisitor.extractorPatternResolver.resolve(
@@ -8106,7 +8106,7 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     resolverVisitor.listPatternResolver.resolve(
       node: this,
@@ -8322,7 +8322,7 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
@@ -9576,7 +9576,7 @@ class ParenthesizedPatternImpl extends DartPatternImpl
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     resolverVisitor.dispatchPattern(matchedType, typeInfos, context, pattern);
   }
@@ -10038,7 +10038,7 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     resolverVisitor.analyzeNullCheckOrAssertPattern(
         matchedType, typeInfos, context, this, operand,
@@ -10536,7 +10536,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   void resolvePattern(
     ResolverVisitor resolverVisitor,
     DartType matchedType,
-    Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+    Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
     MatchContext<AstNode, Expression> context,
   ) {
     resolverVisitor.analyzeRecordPattern(
@@ -10858,7 +10858,7 @@ class RelationalPatternImpl extends DartPatternImpl
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     resolverVisitor.analyzeRelationalPattern(
       matchedType,
@@ -13561,7 +13561,7 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   void resolvePattern(
       ResolverVisitor resolverVisitor,
       DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
     resolverVisitor.analyzeVariablePattern(matchedType, typeInfos, context,
         this, declaredElement, type?.typeOrThrow,
