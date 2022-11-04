@@ -208,7 +208,7 @@ class Collector {
 
   void computeNeededStatics() {
     bool isStaticFunction(MemberEntity element) =>
-        !element.isInstanceMember && !element.isField;
+        !element.isInstanceMember && element is! FieldEntity;
 
     Iterable<MemberEntity> elements =
         _generatedCode.keys.where(isStaticFunction);

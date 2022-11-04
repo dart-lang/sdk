@@ -58,7 +58,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
         if (original.isEmpty) return emptySet;
         return original.clone();
       }
-      if (member.isTopLevel || member.isStatic || member.isConstructor) {
+      if (member.isTopLevel || member.isStatic || member is ConstructorEntity) {
         // TODO(johnniwinther): Track super constructor invocations?
         return EnumSet.fromValues([Access.staticAccess]);
       } else if (member.isInstanceMember) {
@@ -110,7 +110,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
             potentialReads: emptySet,
             potentialWrites: createPotentialWrites(),
             potentialInvokes: emptySet);
-      } else if (member.isConstructor) {
+      } else if (member is ConstructorEntity) {
         return MethodUsage(member,
             potentialReads: emptySet,
             potentialInvokes: createPotentialInvokes());

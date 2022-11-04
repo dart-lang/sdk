@@ -188,8 +188,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       _state.markThisAsExposed();
     } else {
       _inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
-        if (element.isField) {
-          final field = element as FieldEntity;
+        if (element is FieldEntity) {
+          final field = element;
           if (!selector.isSetter &&
               _isInClassOrSubclass(field) &&
               field.isAssignable &&
@@ -212,7 +212,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 
   TypeInformation run() {
-    if (_analyzedMember.isField) {
+    if (_analyzedMember is FieldEntity) {
       if (_analyzedNode == null ||
           isNullLiteral(_analyzedNode as ir.Expression)) {
         // Eagerly bailout, because computing the closure data only
@@ -301,8 +301,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       // fields that we haven't initialized for sure.
       _elementMap.elementEnvironment.forEachLocalClassMember(cls,
           (MemberEntity member) {
-        if (member.isField && member.isInstanceMember && member.isAssignable) {
-          final type = _state.readField(member as FieldEntity);
+        if (member is FieldEntity &&
+            member.isInstanceMember &&
+            member.isAssignable) {
+          final type = _state.readField(member);
           MemberDefinition definition = _elementMap.getMemberDefinition(member);
           assert(definition.kind == MemberKind.regular);
           final node = definition.node as ir.Field;
@@ -1292,7 +1294,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       return finish(firstArgument.value);
     } else if (firstArgument is ir.StaticGet) {
       MemberEntity member = _elementMap.getMember(firstArgument.target);
-      if (member.isField) {
+      if (member is FieldEntity) {
         FieldAnalysisData fieldData =
             _closedWorld.fieldAnalysis.getFieldData(member as JField);
         final constantValue = fieldData.constantValue;
@@ -1588,9 +1590,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       _setStateAfter(_state, stateWhenSentinel, stateWhenNotSentinel);
 
       return _types.boolType;
-    } else if (member.isConstructor) {
-      return handleConstructorInvoke(node, node.arguments, selector,
-          member as ConstructorEntity, arguments);
+    } else if (member is ConstructorEntity) {
+      return handleConstructorInvoke(
+          node, node.arguments, selector, member, arguments);
     } else {
       assert(member.isFunction, "Unexpected static invocation target: $member");
       TypeInformation type =
@@ -1709,8 +1711,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
         // its type.
         if (targets.length == 1) {
           MemberEntity single = targets.first;
-          if (single.isField) {
-            final field = single as FieldEntity;
+          if (single is FieldEntity) {
+            final field = single;
             _state.updateField(field, rhsType);
           }
         }
@@ -2152,9 +2154,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
         // result type.
         type = _types.narrowType(type, _getStaticType(node));
       }
-    } else if (member.isField) {
-      DartType fieldType =
-          _elementMap.elementEnvironment.getFieldType(member as FieldEntity);
+    } else if (member is FieldEntity) {
+      DartType fieldType = _elementMap.elementEnvironment.getFieldType(member);
       if (fieldType.containsFreeTypeVariables) {
         // The result type varies with the call site so we narrow the static
         // result type.

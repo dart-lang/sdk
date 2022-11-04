@@ -92,7 +92,7 @@ class ElementInfoCollector {
           info.topLevelFunctions.add(functionInfo);
           functionInfo.parent = info;
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member);
         if (fieldInfo != null) {
           info.topLevelVariables.add(fieldInfo);
@@ -241,7 +241,7 @@ class ElementInfoCollector {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
@@ -309,7 +309,7 @@ class ElementInfoCollector {
       kind = FunctionInfo.METHOD_FUNCTION_KIND;
     }
 
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       name = name == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";
@@ -321,9 +321,8 @@ class ElementInfoCollector {
     FunctionModifiers modifiers = FunctionModifiers(
       isStatic: function.isStatic,
       isConst: function.isConst,
-      isFactory: function.isConstructor
-          ? (function as ConstructorEntity).isFactoryConstructor
-          : false,
+      isFactory:
+          function is ConstructorEntity ? function.isFactoryConstructor : false,
       isExternal: function.isExternal,
     );
     List<CodeSpan> code = dumpInfoTask.codeOf(function);
@@ -806,7 +805,7 @@ class DumpInfoAnnotator {
     environment.forEachLibraryMember(lib, (MemberEntity member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
         visitFunction(member, libname);
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         visitField(member, libname);
       } else {
         throw StateError('Class member not a function or field');
@@ -947,7 +946,7 @@ class DumpInfoAnnotator {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member, disambiguatedMemberName);
         if (fieldInfo != null) {
           for (var closureInfo in fieldInfo.closures) {
@@ -1015,7 +1014,7 @@ class DumpInfoAnnotator {
     if (size == 0 && !shouldKeep(function)) return null;
 
     var compareName = function.name;
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       compareName = compareName == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";

@@ -101,20 +101,20 @@ class FieldVisitor {
       // JavaScript constructor and their getters and setters are inherited.
       if (cls != holder && !isDirectlyInstantiated) return;
 
-      if (member.isField && !member.isStatic) {
+      if (member is FieldEntity && !member.isStatic) {
         visitField(member, holder: holder);
       }
     });
   }
 
   bool fieldNeedsGetter(FieldEntity field) {
-    assert(field.isField);
+    assert(field is FieldEntity);
     if (fieldAccessNeverThrows(field)) return false;
     return field.isInstanceMember && _codegenWorld.hasInvokedGetter(field);
   }
 
   bool fieldNeedsSetter(FieldEntity field) {
-    assert(field.isField);
+    assert(field is FieldEntity);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
     return field.isInstanceMember && _codegenWorld.hasInvokedSetter(field);

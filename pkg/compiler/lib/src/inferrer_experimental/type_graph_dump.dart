@@ -110,7 +110,7 @@ class TypeGraphDump {
       parts.add('get-${element.name}');
     } else if (element.isSetter) {
       parts.add('set-${element.name}');
-    } else if (element.isConstructor) {
+    } else if (element is ConstructorEntity) {
       if (element.name!.isEmpty) {
         parts.add('-constructor');
       } else {

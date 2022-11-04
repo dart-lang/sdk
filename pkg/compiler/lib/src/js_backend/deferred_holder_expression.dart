@@ -168,7 +168,7 @@ class DeferredHolderExpression extends js.DeferredExpression
   String _className(ClassEntity cls) => cls.name.replaceAll('&', '_');
 
   String _qualifiedStaticName(MemberEntity member) {
-    if (member.isConstructor || member.isStatic) {
+    if (member is ConstructorEntity || member.isStatic) {
       return '${_className(member.enclosingClass)}.${member.name}';
     }
     return member.name;
@@ -438,7 +438,7 @@ class DeferredHolderExpressionFinalizerImpl
   bool _isPropertyOfStaticStateHolder(MemberEntity element) {
     // TODO(ahe): Make sure this method's documentation is always true and
     // remove the word "intend".
-    return element.isField;
+    return element is FieldEntity;
   }
 
   Holder globalObjectForMember(MemberEntity entity) {

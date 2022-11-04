@@ -44,23 +44,14 @@ class FunctionType extends Type {
   }
 }
 
-class NamedType extends Type {
+class NamedType {
   final String name;
-  final Type innerType;
+  final Type type;
 
-  NamedType(this.name, this.innerType) : super._();
-
-  @override
-  NamedType? recursivelyDemote({required bool covariant}) {
-    Type? newInnerType = innerType.recursivelyDemote(covariant: covariant);
-    if (newInnerType == null) return null;
-    return NamedType(name, newInnerType);
-  }
+  NamedType(this.name, this.type);
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    return '$innerType $name';
-  }
+  String toString() => '$type $name';
 }
 
 /// Representation of a "simple" type suitable for unit testing of code in the
@@ -92,6 +83,16 @@ class NonFunctionType extends Type {
       return '$name<${args.join(', ')}>';
     }
   }
+}
+
+/// Exception thrown if a type fails to parse properly.
+class ParseError extends Error {
+  final String message;
+
+  ParseError(this.message);
+
+  @override
+  String toString() => message;
 }
 
 /// Representation of a promoted type parameter type suitable for unit testing
@@ -169,10 +170,10 @@ class RecordType extends Type {
 
     List<NamedType>? newNamed;
     for (var i = 0; i < named.length; i++) {
-      var newType = named[i].recursivelyDemote(covariant: covariant);
+      var newType = named[i].type.recursivelyDemote(covariant: covariant);
       if (newType != null) {
         newNamed ??= named.toList();
-        newNamed[i] = newType;
+        newNamed[i] = NamedType(named[i].name, newType);
       }
     }
 
@@ -308,7 +309,7 @@ class UnknownType extends Type {
 
 class _TypeParser {
   static final _typeTokenizationRegexp =
-      RegExp(_identifierPattern + r'|\(|\)|<|>|,|\?|\*|&');
+      RegExp(_identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}');
 
   static const _identifierPattern = '[_a-zA-Z][_a-zA-Z0-9]*';
 
@@ -329,7 +330,61 @@ class _TypeParser {
   }
 
   Never _parseFailure(String message) {
-    fail('Error parsing type `$_typeStr` at token $_currentToken: $message');
+    throw ParseError(
+        'Error parsing type `$_typeStr` at token $_currentToken: $message');
+  }
+
+  List<NamedType> _parseRecordTypeNamedFields() {
+    assert(_currentToken == '{');
+    _next();
+    var namedTypes = <NamedType>[];
+    while (_currentToken != '}') {
+      var type = _parseType();
+      var name = _currentToken;
+      if (_identifierRegexp.matchAsPrefix(name) == null) {
+        _parseFailure('Expected an identifier');
+      }
+      namedTypes.add(NamedType(name, type));
+      _next();
+      if (_currentToken == ',') {
+        _next();
+        continue;
+      }
+      if (_currentToken == '}') {
+        break;
+      }
+      _parseFailure('Expected `}` or `,`');
+    }
+    if (namedTypes.isEmpty) {
+      _parseFailure('Must have at least one named type between {}');
+    }
+    _next();
+    return namedTypes;
+  }
+
+  Type _parseRecordTypeRest(List<Type> positionalTypes) {
+    List<NamedType>? namedTypes;
+    while (_currentToken != ')') {
+      if (_currentToken == '{') {
+        namedTypes = _parseRecordTypeNamedFields();
+        if (_currentToken != ')') {
+          _parseFailure('Expected `)`');
+        }
+        break;
+      }
+      positionalTypes.add(_parseType());
+      if (_currentToken == ',') {
+        _next();
+        continue;
+      }
+      if (_currentToken == ')') {
+        break;
+      }
+      _parseFailure('Expected `)` or `,`');
+    }
+    _next();
+    return RecordType(
+        positional: positionalTypes, named: namedTypes ?? const []);
   }
 
   Type? _parseSuffix(Type type) {
@@ -373,6 +428,13 @@ class _TypeParser {
     //   unsuffixedType := identifier typeArgs?
     //                   | `?`
     //                   | `(` type `)`
+    //                   | `(` recordTypeFields `,` recordTypeNamedFields `)`
+    //                   | `(` recordTypeFields `,`? `)`
+    //                   | `(` recordTypeNamedFields? `)`
+    //   recordTypeFields := type (`,` type)*
+    //   recordTypeNamedFields := `{` recordTypeNamedField
+    //                            (`,` recordTypeNamedField)* `,`? `}`
+    //   recordTypeNamedField := type identifier
     //   typeArgs := `<` type (`,` type)* `>`
     //   nullability := (`?` | `*`)?
     //   suffix := `Function` `(` type (`,` type)* `)`
@@ -396,9 +458,16 @@ class _TypeParser {
     }
     if (_currentToken == '(') {
       _next();
+      if (_currentToken == ')' || _currentToken == '{') {
+        return _parseRecordTypeRest([]);
+      }
       var type = _parseType();
+      if (_currentToken == ',') {
+        _next();
+        return _parseRecordTypeRest([type]);
+      }
       if (_currentToken != ')') {
-        _parseFailure('Expected `)`');
+        _parseFailure('Expected `)` or `,`');
       }
       _next();
       return type;
@@ -431,7 +500,7 @@ class _TypeParser {
     var parser = _TypeParser._(typeStr, _tokenizeTypeStr(typeStr));
     var result = parser._parseType();
     if (parser._currentToken != '<END>') {
-      fail('Extra tokens after parsing type `$typeStr`: '
+      throw ParseError('Extra tokens after parsing type `$typeStr`: '
           '${parser._tokens.sublist(parser._i, parser._tokens.length - 1)}');
     }
     return result;
@@ -443,14 +512,16 @@ class _TypeParser {
     for (var match in _typeTokenizationRegexp.allMatches(typeStr)) {
       var extraChars = typeStr.substring(lastMatchEnd, match.start).trim();
       if (extraChars.isNotEmpty) {
-        fail('Unrecognized character(s) in type `$typeStr`: $extraChars');
+        throw ParseError(
+            'Unrecognized character(s) in type `$typeStr`: $extraChars');
       }
       result.add(typeStr.substring(match.start, match.end));
       lastMatchEnd = match.end;
     }
     var extraChars = typeStr.substring(lastMatchEnd).trim();
     if (extraChars.isNotEmpty) {
-      fail('Unrecognized character(s) in type `$typeStr`: $extraChars');
+      throw ParseError(
+          'Unrecognized character(s) in type `$typeStr`: $extraChars');
     }
     result.add('<END>');
     return result;

@@ -7698,7 +7698,9 @@ class Instance : public Object {
 
  protected:
 #ifndef PRODUCT
-  virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
+  virtual void PrintSharedInstanceJSON(JSONObject* jsobj,
+                                       bool ref,
+                                       bool include_id = true) const;
 #endif
 
  private:

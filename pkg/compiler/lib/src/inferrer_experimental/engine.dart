@@ -138,7 +138,7 @@ class InferrerEngine {
   /// called with [selector].
   void _updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
       Selector? selector, MemberEntity callee) {
-    if (callee.isField) {
+    if (callee is FieldEntity) {
       if (callee.isInstanceMember) {
         if (selector!.isSetter) {
           sideEffectsBuilder.setChangesInstanceProperty();
@@ -566,8 +566,8 @@ class InferrerEngine {
     });
     _addedInGraph++;
 
-    if (element.isField) {
-      final field = element as FieldEntity;
+    if (element is FieldEntity) {
+      final field = element;
       if (!field.isAssignable) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
@@ -745,7 +745,7 @@ class InferrerEngine {
       ArgumentsTypes? arguments, Selector? selector,
       {required bool remove, required bool addToQueue}) {
     if (callee.name == Identifiers.noSuchMethod_) return;
-    if (callee.isField) {
+    if (callee is FieldEntity) {
       if (selector!.isSetter) {
         ElementTypeInformation info = types.getInferredTypeOfMember(callee);
         if (remove) {
@@ -1087,7 +1087,7 @@ class InferrerEngine {
     } else if (selector!.isGetter) {
       if (element.isFunction) {
         return types.functionType;
-      } else if (element.isField) {
+      } else if (element is FieldEntity) {
         return typeOfMember(element);
       } else if (element.isGetter) {
         return returnTypeOfMember(element);
@@ -1095,7 +1095,7 @@ class InferrerEngine {
         assert(false, failedAt(element, "Unexpected member $element"));
         return types.dynamicType;
       }
-    } else if (element.isGetter || element.isField) {
+    } else if (element.isGetter || element is FieldEntity) {
       assert(selector.isCall || selector.isSetter);
       return types.dynamicType;
     } else {
@@ -1238,8 +1238,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   @override
   MemberTypeInformation createMemberTypeInformation(
       AbstractValueDomain abstractValueDomain, MemberEntity member) {
-    if (member.isField) {
-      final field = member as FieldEntity;
+    if (member is FieldEntity) {
+      final field = member;
       DartType type = _elementEnvironment.getFieldType(field);
       return FieldTypeInformation(abstractValueDomain, field, type);
     } else if (member.isGetter) {

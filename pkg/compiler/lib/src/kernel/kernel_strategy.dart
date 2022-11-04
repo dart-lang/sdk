@@ -394,7 +394,7 @@ class KernelWorkItem implements WorkItem {
       if (scopeModel.closureScopeModel != null) {
         _closureModels[element] = scopeModel.closureScopeModel!;
       }
-      if (element.isField && !element.isInstanceMember) {
+      if (element is FieldEntity && !element.isInstanceMember) {
         _fieldAnalysis.registerStaticField(
             element as KField, scopeModel.initializerComplexity);
       }

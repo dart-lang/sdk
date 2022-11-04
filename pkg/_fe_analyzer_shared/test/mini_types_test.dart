@@ -7,6 +7,206 @@ import 'package:test/test.dart';
 import 'mini_types.dart';
 
 main() {
+  group('parse', () {
+    var throwsParseError = throwsA(TypeMatcher<ParseError>());
+
+    group('non-function type:', () {
+      test('no type args', () {
+        var t = Type('int') as NonFunctionType;
+        expect(t.name, 'int');
+        expect(t.args, isEmpty);
+      });
+
+      test('type arg', () {
+        var t = Type('List<int>') as NonFunctionType;
+        expect(t.name, 'List');
+        expect(t.args, hasLength(1));
+        expect(t.args[0].type, 'int');
+      });
+
+      test('type args', () {
+        var t = Type('Map<int, String>') as NonFunctionType;
+        expect(t.name, 'Map');
+        expect(t.args, hasLength(2));
+        expect(t.args[0].type, 'int');
+        expect(t.args[1].type, 'String');
+      });
+
+      test('invalid type arg separator', () {
+        expect(() => Type('Map<int) String>'), throwsParseError);
+      });
+    });
+
+    test('invalid initial token', () {
+      expect(() => Type('<'), throwsParseError);
+    });
+
+    test('unknown type', () {
+      var t = Type('?');
+      expect(t, TypeMatcher<UnknownType>());
+    });
+
+    test('question type', () {
+      var t = Type('int?') as QuestionType;
+      expect(t.innerType.type, 'int');
+    });
+
+    test('star type', () {
+      var t = Type('int*') as StarType;
+      expect(t.innerType.type, 'int');
+    });
+
+    test('promoted type variable', () {
+      var t = Type('T&int') as PromotedTypeVariableType;
+      expect(t.innerType.type, 'T');
+      expect(t.promotion.type, 'int');
+    });
+
+    test('parenthesized type', () {
+      var t = Type('(int)');
+      expect(t.type, 'int');
+    });
+
+    test('invalid token terminating parenthesized type', () {
+      expect(() => Type('(?<'), throwsParseError);
+    });
+
+    group('function type:', () {
+      test('no parameters', () {
+        var t = Type('int Function()') as FunctionType;
+        expect(t.returnType.type, 'int');
+        expect(t.positionalParameters, isEmpty);
+      });
+
+      test('positional parameter', () {
+        var t = Type('int Function(String)') as FunctionType;
+        expect(t.returnType.type, 'int');
+        expect(t.positionalParameters, hasLength(1));
+        expect(t.positionalParameters[0].type, 'String');
+      });
+
+      test('positional parameters', () {
+        var t = Type('int Function(String, double)') as FunctionType;
+        expect(t.returnType.type, 'int');
+        expect(t.positionalParameters, hasLength(2));
+        expect(t.positionalParameters[0].type, 'String');
+        expect(t.positionalParameters[1].type, 'double');
+      });
+
+      test('invalid parameter separator', () {
+        expect(() => Type('int Function(String Function()< double)'),
+            throwsParseError);
+      });
+
+      test('invalid token after Function', () {
+        expect(() => Type('int Function&)'), throwsParseError);
+      });
+    });
+
+    group('record type:', () {
+      test('no fields', () {
+        var t = Type('()') as RecordType;
+        expect(t.positional, isEmpty);
+        expect(t.named, isEmpty);
+      });
+
+      test('named field', () {
+        var t = Type('({int x})') as RecordType;
+        expect(t.positional, isEmpty);
+        expect(t.named, hasLength(1));
+        expect(t.named[0].name, 'x');
+        expect(t.named[0].type.type, 'int');
+      });
+
+      test('named field followed by comma', () {
+        var t = Type('({int x,})') as RecordType;
+        expect(t.positional, isEmpty);
+        expect(t.named, hasLength(1));
+        expect(t.named[0].name, 'x');
+        expect(t.named[0].type.type, 'int');
+      });
+
+      test('named field followed by invalid token', () {
+        expect(() => Type('({int x))'), throwsParseError);
+      });
+
+      test('named field name is not an identifier', () {
+        expect(() => Type('({int )})'), throwsParseError);
+      });
+
+      test('named fields', () {
+        var t = Type('({int x, String y})') as RecordType;
+        expect(t.positional, isEmpty);
+        expect(t.named, hasLength(2));
+        expect(t.named[0].name, 'x');
+        expect(t.named[0].type.type, 'int');
+        expect(t.named[1].name, 'y');
+        expect(t.named[1].type.type, 'String');
+      });
+
+      test('curly braces followed by invalid token', () {
+        expect(() => Type('({int x}&'), throwsParseError);
+      });
+
+      test('curly braces but no named fields', () {
+        expect(() => Type('({})'), throwsParseError);
+      });
+
+      test('positional field', () {
+        var t = Type('(int,)') as RecordType;
+        expect(t.named, isEmpty);
+        expect(t.positional, hasLength(1));
+        expect(t.positional[0].type, 'int');
+      });
+
+      group('positional fields:', () {
+        test('two', () {
+          var t = Type('(int, String)') as RecordType;
+          expect(t.named, isEmpty);
+          expect(t.positional, hasLength(2));
+          expect(t.positional[0].type, 'int');
+          expect(t.positional[1].type, 'String');
+        });
+
+        test('three', () {
+          var t = Type('(int, String, double)') as RecordType;
+          expect(t.named, isEmpty);
+          expect(t.positional, hasLength(3));
+          expect(t.positional[0].type, 'int');
+          expect(t.positional[1].type, 'String');
+          expect(t.positional[2].type, 'double');
+        });
+      });
+
+      test('named and positional fields', () {
+        var t = Type('(int, {String x})') as RecordType;
+        expect(t.positional, hasLength(1));
+        expect(t.positional[0].type, 'int');
+        expect(t.named, hasLength(1));
+        expect(t.named[0].name, 'x');
+        expect(t.named[0].type.type, 'String');
+      });
+
+      test('terminated by invalid token', () {
+        expect(() => Type('(int, String('), throwsParseError);
+      });
+    });
+
+    group('invalid token:', () {
+      test('before other tokens', () {
+        expect(() => Type('#int'), throwsParseError);
+      });
+
+      test('at end', () {
+        expect(() => Type('int#'), throwsParseError);
+      });
+    });
+
+    test('extra token after type', () {
+      expect(() => Type('int)'), throwsParseError);
+    });
+  });
+
   group('recursivelyDemote:', () {
     group('FunctionType:', () {
       group('return type:', () {
@@ -58,41 +258,6 @@ main() {
                   .recursivelyDemote(covariant: false)!
                   .type,
               'void Function(T, String)');
-        });
-      });
-    });
-
-    group('NamedType:', () {
-      test('unchanged', () {
-        var namedType = NamedType('foo', Type('int'));
-        expect(namedType.recursivelyDemote(covariant: true), isNull);
-        expect(namedType.recursivelyDemote(covariant: false), isNull);
-      });
-
-      group('type parameters:', () {
-        test('unchanged', () {
-          var type = Type('Map<int, String>');
-          var namedType = NamedType('foo', type);
-          expect(namedType.recursivelyDemote(covariant: true), isNull);
-          expect(namedType.recursivelyDemote(covariant: false), isNull);
-        });
-
-        test('covariant', () {
-          var type = Type('Map<T&int, String>');
-          var namedType = NamedType('foo', type);
-          expect(
-            namedType.recursivelyDemote(covariant: true)!.type,
-            'Map<T, String> foo',
-          );
-        });
-
-        test('contravariant', () {
-          var type = Type('Map<T&int, String>');
-          var namedType = NamedType('foo', type);
-          expect(
-            namedType.recursivelyDemote(covariant: false)!.type,
-            'Map<Never, String> foo',
-          );
         });
       });
     });

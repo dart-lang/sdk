@@ -192,12 +192,6 @@ abstract class JMember extends IndexedMember {
   bool get isFunction => false;
 
   @override
-  bool get isField => false;
-
-  @override
-  bool get isConstructor => false;
-
-  @override
   bool get isInstanceMember => enclosingClass != null && !_isStatic;
 
   @override
@@ -240,9 +234,6 @@ abstract class JConstructor extends JFunction
       : super(enclosingClass.library, enclosingClass, name, parameterStructure,
             AsyncMarker.SYNC,
             isExternal: isExternal);
-
-  @override
-  bool get isConstructor => true;
 
   @override
   bool get isInstanceMember => false;
@@ -682,9 +673,6 @@ class JField extends JMember implements FieldEntity, IndexedField {
     sink.writeBool(isConst);
     sink.end(tag);
   }
-
-  @override
-  bool get isField => true;
 
   @override
   String get _kind => 'field';

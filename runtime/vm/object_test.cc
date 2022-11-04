@@ -6060,7 +6060,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "patch\\/integers.dart\",\"_kind\":\"kernel\"}"
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
-        "\"identityHashCode\":0,\"kind\":\"Int\",\"id\":\"\",\"valueAsString\":"
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"Int\",\"valueAsString\":"
         "\"-9223372036854775808\"}",
         buffer);
   }
@@ -6084,7 +6084,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "patch\\/double.dart\",\"_kind\":\"kernel\"}"
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
-        "\"identityHashCode\":0,\"kind\":\"Double\",\"id\":\"\","
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"Double\","
         "\"valueAsString\":\"0.1234\"}",
         buffer);
   }
@@ -6108,7 +6108,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "patch\\/string_patch.dart\",\"_kind\":\"kernel\"}"
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
-        "\"identityHashCode\":0,\"kind\":\"String\",\"id\":\"\",\"length\":2,"
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"String\",\"length\":2,"
         "\"valueAsString\":\"dw\"}",
         buffer);
   }
@@ -6146,7 +6146,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":\"\",\"name\":\"X0\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X0\","
         "\"parameterizedClass\":{\"type\":\"@Instance\",\"_vmType\":\"Class\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":"
         "\"Null\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
@@ -6156,7 +6156,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
         "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
-        "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"List\",\"length\":0}",
         buffer);
   }
   OS::PrintErr("\n\n\n");
@@ -6196,8 +6196,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":"
-        "\"\",\"name\":\"X0\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X0\","
+        "\"parameterizedClass\":{\"type\":\"@Instance\","
         "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -6206,7 +6206,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
         "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
-        "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"List\",\"length\":0}",
         buffer);
   }
   // LinkedHashMap reference
@@ -6245,8 +6245,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":"
-        "\"\",\"name\":\"X0\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X0\","
+        "\"parameterizedClass\":{\"type\":\"@Instance\","
         "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -6267,8 +6267,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":"
-        "\"\",\"name\":\"X1\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X1\","
+        "\"parameterizedClass\":{\"type\":\"@Instance\","
         "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -6277,7 +6277,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
         "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
-        "\"identityHashCode\":0,\"kind\":\"Map\",\"id\":\"\",\"length\":0}",
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"Map\",\"length\":0}",
         buffer);
   }
   // UserTag reference
@@ -6306,8 +6306,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"identityHashCode\":",
         buffer);
     EXPECT_SUBSTRING(
-        "\"kind\":\"PlainInstance\","
-        "\"id\":\"\"}",
+        "\"id\":\"\","
+        "\"kind\":\"PlainInstance\"}",
         buffer);
   }
   // Type reference

@@ -118,7 +118,7 @@ class MethodNode extends CallableNode {
 }
 
 bool _isProperty(Entity entity) =>
-    entity is MemberEntity && (entity.isField || entity.isGetter);
+    entity is MemberEntity && (entity is FieldEntity || entity.isGetter);
 
 class CallablePropertyNode extends CallableNode {
   final MemberEntity property;

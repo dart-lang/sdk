@@ -36,7 +36,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose = false}) {
-    if (member.isField) {
+    if (member is FieldEntity) {
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       DartTypes dartTypes = frontendStrategy.commonElements.dartTypes;
       KFieldAnalysis allocatorAnalysis =

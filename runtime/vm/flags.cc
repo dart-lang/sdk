@@ -9,14 +9,6 @@
 #include "vm/json_stream.h"
 #include "vm/os.h"
 
-#if defined(DART_USE_ABSL)
-#include "third_party/absl/debugging/leak_check.h"
-
-#define ABSL_IGNORE_LEAK(expr) absl::IgnoreLeak(expr)
-#else
-#define ABSL_IGNORE_LEAK(expr) (expr)
-#endif  // defined(DART_USE_ABSL)
-
 namespace dart {
 
 DEFINE_FLAG(bool, print_flags, false, "Print flags as they are being parsed.");
@@ -104,13 +96,11 @@ class Flag {
   Flag(const char* name, const char* comment, FlagHandler handler)
       : name_(name),
         comment_(comment),
-        string_value_("false"),
         flag_handler_(handler),
         type_(kFlagHandler) {}
   Flag(const char* name, const char* comment, OptionHandler handler)
       : name_(name),
         comment_(comment),
-        string_value_(nullptr),
         option_handler_(handler),
         type_(kOptionHandler) {}
 
@@ -158,7 +148,11 @@ class Flag {
 
   const char* name_;
   const char* comment_;
-  const char* string_value_;
+
+  // For kString, kOptionHandler, kFlagHandler flags this stores the copy
+  // of the original flag value passed to SetFlagFromString
+  Utils::CStringUniquePtr string_value_ =
+      Utils::CreateCStringUniquePtr(nullptr);
   union {
     void* addr_;
     bool* bool_ptr_;
@@ -168,7 +162,7 @@ class Flag {
     FlagHandler flag_handler_;
     OptionHandler option_handler_;
   };
-  FlagType type_;
+  const FlagType type_;
   bool changed_ = false;
 };
 
@@ -302,8 +296,9 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       break;
     }
     case Flag::kString: {
-      *flag->charp_ptr_ =
-          argument == NULL ? NULL : ABSL_IGNORE_LEAK(Utils::StrDup(argument));
+      flag->string_value_.reset(argument == nullptr ? nullptr
+                                                    : Utils::StrDup(argument));
+      *flag->charp_ptr_ = flag->string_value_.get();
       break;
     }
     case Flag::kInteger: {
@@ -344,11 +339,11 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       } else {
         return false;
       }
-      flag->string_value_ = argument;
+      flag->string_value_.reset(Utils::StrDup(argument));
       break;
     }
     case Flag::kOptionHandler: {
-      flag->string_value_ = argument;
+      flag->string_value_.reset(Utils::StrDup(argument));
       (flag->option_handler_)(argument);
       break;
     }
@@ -536,13 +531,14 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
     }
     case Flag::kFlagHandler: {
       jsflag.AddProperty("_flagType", "Bool");
-      jsflag.AddProperty("valueAsString", flag->string_value_);
+      const char* value = flag->string_value_.get();
+      jsflag.AddProperty("valueAsString", value == nullptr ? "false" : value);
       break;
     }
     case Flag::kOptionHandler: {
       jsflag.AddProperty("_flagType", "String");
       if (flag->string_value_ != nullptr) {
-        jsflag.AddProperty("valueAsString", flag->string_value_);
+        jsflag.AddProperty("valueAsString", flag->string_value_.get());
       } else {
         // valueAsString missing means NULL.
       }

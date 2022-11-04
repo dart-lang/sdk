@@ -67,7 +67,7 @@ class KernelAnnotationProcessor {
     elementEnvironment.forEachLibraryMember(library, (MemberEntity member) {
       ir.Member memberNode = elementMap.getMemberNode(member);
       String? memberName = annotationData.getJsInteropMemberName(memberNode);
-      if (member.isField) {
+      if (member is FieldEntity) {
         if (memberName != null) {
           // TODO(34174): Disallow js-interop fields.
           /*reporter.reportErrorMessage(
@@ -109,7 +109,7 @@ class KernelAnnotationProcessor {
         isJsLibrary = true;
 
         elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
-          if (member.isField) {
+          if (member is FieldEntity) {
             // TODO(34174): Disallow js-interop fields.
             /*reporter.reportErrorMessage(
                 member, MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED);*/

@@ -401,7 +401,7 @@ class JFieldAnalysis {
 
     closedWorld.liveMemberUsage
         .forEach((MemberEntity member, MemberUsage memberUsage) {
-      if (member.isField && !member.isInstanceMember) {
+      if (member is FieldEntity && !member.isInstanceMember) {
         StaticFieldData staticFieldData =
             closedWorld.fieldAnalysis._staticFieldData[member as KField]!;
         if (staticFieldData.hasDependencies) {

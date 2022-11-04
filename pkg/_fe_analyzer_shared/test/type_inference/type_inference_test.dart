@@ -1733,12 +1733,7 @@ main() {
                       pattern: Var('b').pattern(),
                     ),
                   ]),
-                  expr2(
-                    RecordType(
-                      positional: [Type('int'), Type('String')],
-                      named: [],
-                    ),
-                  ).checkContext('(int, ?)'),
+                  expr('(int, String)').checkContext('(int, ?)'),
                 ).checkIr(
                     'match(expr((int, String)), recordPattern(varPattern(a, '
                     'matchedType: int, staticType: int), varPattern(b, '
@@ -1765,12 +1760,7 @@ main() {
                     ),
                   ])
                     ..errorId = 'PATTERN',
-                  expr2(
-                    RecordType(
-                      positional: [Type('int')],
-                      named: [],
-                    ),
-                  ).checkContext('(int, ?)'),
+                  expr('(int,)').checkContext('(int, ?)'),
                 )..errorId = 'CONTEXT')
                     .checkIr('match(expr((int)), recordPattern(varPattern(a, '
                         'matchedType: Object?, staticType: int), '
@@ -1790,12 +1780,7 @@ main() {
               test('too few', () {
                 h.run([
                   ifCase(
-                    expr2(
-                      RecordType(
-                        positional: [Type('int')],
-                        named: [],
-                      ),
-                    ).checkContext('?'),
+                    expr('(int,)').checkContext('?'),
                     recordPattern([
                       RecordPatternField(
                         name: null,
@@ -1817,12 +1802,7 @@ main() {
               test('too many', () {
                 h.run([
                   ifCase(
-                    expr2(
-                      RecordType(
-                        positional: [Type('int'), Type('String')],
-                        named: [],
-                      ),
-                    ).checkContext('?'),
+                    expr('(int, String)').checkContext('?'),
                     recordPattern([
                       RecordPatternField(
                         name: null,
@@ -1909,15 +1889,7 @@ main() {
                       pattern: Var('b').pattern(),
                     ),
                   ]),
-                  expr2(
-                    RecordType(
-                      positional: [],
-                      named: [
-                        NamedType('a', Type('int')),
-                        NamedType('b', Type('String')),
-                      ],
-                    ),
-                  ).checkContext('({int a, ? b})'),
+                  expr('({int a, String b})').checkContext('({int a, ? b})'),
                 ).checkIr('match(expr(({int a, String b})), '
                     'recordPattern(varPattern(a, matchedType: int, '
                     'staticType: int), varPattern(b, matchedType: String, '
@@ -1943,12 +1915,7 @@ main() {
                     ),
                   ])
                     ..errorId = 'PATTERN',
-                  expr2(
-                    RecordType(
-                      positional: [],
-                      named: [NamedType('a', Type('int'))],
-                    ),
-                  ).checkContext('({int a, ? b})'),
+                  expr('({int a})').checkContext('({int a, ? b})'),
                 )..errorId = 'CONTEXT')
                     .checkIr('match(expr(({int a})), '
                         'recordPattern(varPattern(a, matchedType: Object?, '
@@ -1968,14 +1935,7 @@ main() {
               test('too few', () {
                 h.run([
                   ifCase(
-                    expr2(
-                      RecordType(
-                        positional: [],
-                        named: [
-                          NamedType('a', Type('int')),
-                        ],
-                      ),
-                    ).checkContext('?'),
+                    expr('({int a})').checkContext('?'),
                     recordPattern([
                       RecordPatternField(
                         name: 'a',
@@ -1998,15 +1958,7 @@ main() {
               test('too many', () {
                 h.run([
                   ifCase(
-                    expr2(
-                      RecordType(
-                        positional: [],
-                        named: [
-                          NamedType('a', Type('int')),
-                          NamedType('b', Type('String')),
-                        ],
-                      ),
-                    ).checkContext('?'),
+                    expr('({int a, String b})').checkContext('?'),
                     recordPattern([
                       RecordPatternField(
                         name: 'a',

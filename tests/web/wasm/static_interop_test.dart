@@ -243,6 +243,26 @@ void anonymousTest() {
   Expect.equals(null, anonymousJSClass.bleep);
 }
 
+@JS()
+@anonymous
+@staticInterop
+class AnonymousRedirectJSClass {
+  external factory AnonymousRedirectJSClass._({String Function(String)? foo});
+
+  factory AnonymousRedirectJSClass.concrete(String Function(String) foo) =>
+      AnonymousRedirectJSClass._(foo: allowInterop(foo));
+}
+
+extension AnonymousRedirectJSClassExtension on AnonymousRedirectJSClass {
+  external String foo(String bar);
+}
+
+void concreteFactoryConstructorTest() {
+  final anonymousRedirectJSClass =
+      AnonymousRedirectJSClass.concrete((String bar) => bar + bar);
+  Expect.equals('foofoo', anonymousRedirectJSClass.foo('foo'));
+}
+
 void main() {
   createClassTest();
   createClassWithNestedJSNameTest();
@@ -250,4 +270,5 @@ void main() {
   setDartObjectPropertyTest();
   topLevelMethodsTest();
   anonymousTest();
+  concreteFactoryConstructorTest();
 }

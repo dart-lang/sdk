@@ -454,7 +454,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         ClassEntity cls = member.enclosingClass!;
         bool isNative = _nativeBasicData.isNativeClass(cls);
         usage = MemberUsage(member, potentialAccess: potentialAccess);
-        if (member.isField && !isNative) {
+        if (member is FieldEntity && !isNative) {
           useSet.addAll(usage.init());
         }
         if (member is JSignatureMethod) {
@@ -501,7 +501,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         }
       } else {
         usage = MemberUsage(member, potentialAccess: potentialAccess);
-        if (member.isField) {
+        if (member is FieldEntity) {
           useSet.addAll(usage.init());
         }
       }
@@ -788,9 +788,8 @@ class CodegenWorldImpl implements CodegenWorld {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (usage.hasRead) {
         DartType? type;
-        if (member.isField) {
-          type = _closedWorld.elementEnvironment
-              .getFieldType(member as FieldEntity);
+        if (member is FieldEntity) {
+          type = _closedWorld.elementEnvironment.getFieldType(member);
         } else if (member.isGetter) {
           type = _closedWorld.elementEnvironment
               .getFunctionType(member as FunctionEntity)

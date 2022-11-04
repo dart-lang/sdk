@@ -228,8 +228,8 @@ class KClosedWorld implements BuiltWorld {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (usage.hasRead) {
         DartType? type;
-        if (member.isField) {
-          type = elementEnvironment.getFieldType(member as FieldEntity);
+        if (member is FieldEntity) {
+          type = elementEnvironment.getFieldType(member);
         } else if (member.isGetter) {
           type = elementEnvironment
               .getFunctionType(member as FunctionEntity)

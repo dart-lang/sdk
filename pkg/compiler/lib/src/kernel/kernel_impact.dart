@@ -518,9 +518,8 @@ class KernelImpactConverter implements ImpactRegistry {
   void registerSuperSet(ir.Member? target) {
     if (target != null) {
       MemberEntity member = elementMap.getMember(target);
-      if (member.isField) {
-        impactBuilder
-            .registerStaticUse(StaticUse.superFieldSet(member as FieldEntity));
+      if (member is FieldEntity) {
+        impactBuilder.registerStaticUse(StaticUse.superFieldSet(member));
       } else {
         impactBuilder.registerStaticUse(
             StaticUse.superSetterSet(member as FunctionEntity));

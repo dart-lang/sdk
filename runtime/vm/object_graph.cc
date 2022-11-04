@@ -948,7 +948,15 @@ class Pass1Visitor : public ObjectVisitor,
     if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
       obj->untag()->VisitPointersPrecise(isolate_group(), this);
     } else {
-      writer_->CountReferences(object_slots_->ObjectSlotsFor(cid)->length());
+      for (auto& slot : *object_slots_->ObjectSlotsFor(cid)) {
+        if (slot.is_compressed_pointer) {
+          auto target = reinterpret_cast<CompressedObjectPtr*>(
+              UntaggedObject::ToAddr(obj->untag()) + slot.offset);
+          VisitCompressedPointers(obj->heap_base(), target, target);
+        } else {
+          writer_->CountReferences(1);
+        }
+      }
     }
   }
 
