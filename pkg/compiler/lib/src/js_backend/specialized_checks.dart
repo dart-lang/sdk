@@ -7,8 +7,8 @@ import '../deferred_load/output_unit.dart' show OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
-import '../world.dart' show JClosedWorld;
 
 enum IsTestSpecialization {
   isNull,

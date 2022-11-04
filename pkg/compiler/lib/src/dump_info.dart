@@ -34,10 +34,10 @@ import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
 import 'js_model/js_strategy_interfaces.dart';
+import 'js_model/js_world.dart' show JClosedWorld;
 import 'js_backend/field_analysis.dart';
 import 'universe/world_impact.dart' show WorldImpact;
 import 'util/sink_adapter.dart';
-import 'world.dart' show JClosedWorld;
 
 class ElementInfoCollector {
   final CompilerDumpInfoFacade compiler;

@@ -5,8 +5,9 @@
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
-import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/selector.dart';
+
+import '../js_model/js_world.dart';
 
 class MemberAppliesTo {
   final MemberEntity member;

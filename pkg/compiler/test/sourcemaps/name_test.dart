@@ -83,7 +83,7 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.disableInlining]);
     Compiler compiler = result.compiler;
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JElementEnvironment env = closedWorld.elementEnvironment;
     LibraryEntity mainApp = env.mainLibrary;
 

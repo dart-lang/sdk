@@ -10,7 +10,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../inference/type_mask_test_helper.dart';
 import '../helpers/memory_compiler.dart';
 

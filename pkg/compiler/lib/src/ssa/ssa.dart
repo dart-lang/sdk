@@ -29,10 +29,10 @@ import '../js_emitter/startup_emitter/emitter.dart' show ModularEmitterImpl;
 import '../js_model/elements.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
-import '../world.dart' show JClosedWorld;
 
 import 'codegen.dart';
 import 'nodes.dart';

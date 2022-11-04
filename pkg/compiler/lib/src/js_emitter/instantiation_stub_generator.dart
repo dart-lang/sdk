@@ -12,12 +12,11 @@ import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/namer_interfaces.dart' show Namer;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import '../world.dart' show JClosedWorld;
-
 import 'model.dart';
 
 import 'interfaces.dart' show CodeEmitterTask, Emitter;

@@ -19,10 +19,10 @@ import '../js_backend/custom_elements_analysis.dart'
     show CustomElementsCodegenAnalysis;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
 
 import 'interfaces.dart' show Emitter;
 

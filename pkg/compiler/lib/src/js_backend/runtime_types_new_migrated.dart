@@ -7,9 +7,9 @@ library js_backend.runtime_types_new_migrated;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
+import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
 import '../universe/class_hierarchy.dart';
-import '../world.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
 
 class RecipeEncoding {

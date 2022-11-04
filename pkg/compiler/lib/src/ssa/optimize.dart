@@ -21,6 +21,7 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart'
     show
         TypeRecipe,
@@ -35,7 +36,6 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
-import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'interceptor_finalizer.dart';
 import 'late_field_optimizer.dart';

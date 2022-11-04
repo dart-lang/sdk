@@ -17,12 +17,12 @@ import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/behavior.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../world.dart';
 import 'closure.dart';
 
 /// Interface that translates between Kernel IR nodes and entities used for

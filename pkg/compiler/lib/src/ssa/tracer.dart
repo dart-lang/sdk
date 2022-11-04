@@ -10,8 +10,8 @@ import '../../compiler_api.dart' as api show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer_migrated.dart' show suffixForGetInterceptor;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../tracer.dart';
-import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
 /// Outputs SSA code in a format readable by Hydra IR.

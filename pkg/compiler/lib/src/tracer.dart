@@ -9,10 +9,10 @@ library tracer;
 import 'package:kernel/text/indentation.dart' show Indentation;
 
 import '../compiler_api.dart' as api;
+import 'js_model/js_world.dart' show JClosedWorld;
 import 'options.dart' show CompilerOptions;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/tracer.dart' show HTracer;
-import 'world.dart' show JClosedWorld;
 import 'tracer_interfaces.dart' as interfaces;
 
 String TRACE_FILTER_PATTERN_FOR_TEST;

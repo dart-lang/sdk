@@ -25,6 +25,7 @@ import '../js_backend/deferred_holder_expression.dart'
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
+import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
@@ -35,7 +36,6 @@ import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart';
 
 import 'codegen_interfaces.dart' as interfaces;
 import 'codegen_migrated.dart';

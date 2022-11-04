@@ -11,9 +11,9 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../helpers/type_test_helper.dart';
 
 void main() {

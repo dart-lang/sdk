@@ -36,7 +36,7 @@ import 'element_map_impl.dart';
 import 'js_to_frontend_map.dart';
 import 'js_world.dart';
 
-class JsClosedWorldBuilder {
+class JClosedWorldBuilder {
   final JsKernelToElementMap _elementMap;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
       ClassHierarchyNodesMap();
@@ -46,14 +46,14 @@ class JsClosedWorldBuilder {
   final DiagnosticReporter _reporter;
   final AbstractValueStrategy _abstractValueStrategy;
 
-  JsClosedWorldBuilder(this._elementMap, this._closureDataBuilder,
-      this._options, this._reporter, this._abstractValueStrategy);
+  JClosedWorldBuilder(this._elementMap, this._closureDataBuilder, this._options,
+      this._reporter, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
   DartTypes get _dartTypes => _elementMap.types;
 
-  JsClosedWorld convertClosedWorld(
+  JClosedWorld convertClosedWorld(
       KClosedWorld closedWorld,
       Map<MemberEntity, ClosureScopeModel> closureModels,
       OutputUnitData kOutputUnitData) {
@@ -212,7 +212,7 @@ class JsClosedWorldBuilder {
         (MemberUsage usage) =>
             MemberAccess(usage.reads, usage.writes, usage.invokes));
 
-    return JsClosedWorld(
+    return JClosedWorld(
         _elementMap,
         nativeData,
         interceptorData,

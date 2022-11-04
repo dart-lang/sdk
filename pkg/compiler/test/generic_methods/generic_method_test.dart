@@ -12,7 +12,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import '../helpers/d8_helper.dart';
 import '../helpers/memory_compiler.dart';

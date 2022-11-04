@@ -25,7 +25,7 @@ class DataAndIndices<T> {
 
 void serializeGlobalTypeInferenceResultsToSink(
     GlobalTypeInferenceResults results, DataSinkWriter sink) {
-  final closedWorld = results.closedWorld as JsClosedWorld;
+  final closedWorld = results.closedWorld;
   GlobalLocalsMap globalLocalsMap = results.globalLocalsMap;
   InferredData inferredData = results.inferredData;
   globalLocalsMap.writeToDataSink(sink);
@@ -40,7 +40,7 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
     Environment environment,
     AbstractValueStrategy abstractValueStrategy,
     ir.Component component,
-    JsClosedWorld closedWorld,
+    JClosedWorld closedWorld,
     DataSourceReader source) {
   source.registerComponentLookup(ComponentLookup(component));
   source.registerEntityLookup(ClosedEntityLookup(closedWorld.elementMap));
@@ -52,19 +52,18 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
       closedWorld.elementMap, closedWorld, globalLocalsMap, inferredData);
 }
 
-void serializeClosedWorldToSink(
-    JsClosedWorld closedWorld, DataSinkWriter sink) {
+void serializeClosedWorldToSink(JClosedWorld closedWorld, DataSinkWriter sink) {
   closedWorld.writeToDataSink(sink);
   sink.close();
 }
 
-JsClosedWorld deserializeClosedWorldFromSource(
+JClosedWorld deserializeClosedWorldFromSource(
     CompilerOptions options,
     DiagnosticReporter reporter,
     Environment environment,
     AbstractValueStrategy abstractValueStrategy,
     ir.Component component,
     DataSourceReader source) {
-  return JsClosedWorld.readFromDataSource(
+  return JClosedWorld.readFromDataSource(
       options, reporter, environment, abstractValueStrategy, component, source);
 }

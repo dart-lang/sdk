@@ -7,7 +7,7 @@
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/field_analysis.dart' show JFieldAnalysis;
-import '../world.dart' show JClosedWorld;
+import '../js_model/js_world.dart' show JClosedWorld;
 import 'logging.dart';
 import 'nodes.dart';
 import 'optimize.dart' show OptimizationPhase;

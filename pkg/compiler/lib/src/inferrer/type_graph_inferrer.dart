@@ -21,7 +21,7 @@ import 'types.dart';
 
 class TypeGraphInferrer implements TypesInferrer {
   late InferrerEngine inferrer;
-  final JsClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   final CompilerInferrerFacade _compiler;
   final GlobalLocalsMap _globalLocalsMap;

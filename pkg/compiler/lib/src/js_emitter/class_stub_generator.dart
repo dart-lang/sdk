@@ -18,11 +18,11 @@ import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
 import '../js_backend/namer_interfaces.dart' show Namer;
 import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import '../world.dart' show JClosedWorld;
 
 import 'interfaces.dart';
 import 'model.dart';

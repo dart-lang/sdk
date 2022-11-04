@@ -26,7 +26,6 @@ import '../js_model/js_world.dart';
 import '../js_model/js_strategy_interfaces.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
-import '../world.dart';
 import 'serialization.dart';
 import 'task_migrated.dart';
 
@@ -178,7 +177,7 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  void serializeClosedWorld(JsClosedWorld closedWorld) {
+  void serializeClosedWorld(JClosedWorld closedWorld) {
     measureSubtask('serialize closed world', () {
       _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
       api.BinaryOutputSink dataOutput =
@@ -189,7 +188,7 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  Future<DataAndIndices<JsClosedWorld>> deserializeClosedWorld(
+  Future<DataAndIndices<JClosedWorld>> deserializeClosedWorld(
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
@@ -212,7 +211,7 @@ class SerializationTask extends CompilerTask {
 
   void serializeGlobalTypeInference(
       GlobalTypeInferenceResults results, DataSourceIndices indices) {
-    JsClosedWorld closedWorld = results.closedWorld;
+    JClosedWorld closedWorld = results.closedWorld;
     ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
     serializeComponent(component);
 
@@ -232,7 +231,7 @@ class SerializationTask extends CompilerTask {
           Environment environment,
           AbstractValueStrategy abstractValueStrategy,
           ir.Component component,
-          DataAndIndices<JsClosedWorld> closedWorldAndIndices,
+          DataAndIndices<JClosedWorld> closedWorldAndIndices,
           bool useDeferredSourceReads) async {
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');

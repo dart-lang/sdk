@@ -75,7 +75,6 @@ import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
-import 'world.dart' show JClosedWorld;
 import 'compiler_migrated.dart';
 
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
@@ -598,16 +597,16 @@ class Compiler
         globalTypeInferenceResultsData);
   }
 
-  Future<DataAndIndices<JsClosedWorld>> produceClosedWorld(
+  Future<DataAndIndices<JClosedWorld>> produceClosedWorld(
       load_kernel.Output output, ModuleData moduleData) async {
     ir.Component component = output.component;
-    DataAndIndices<JsClosedWorld> closedWorldAndIndices;
+    DataAndIndices<JClosedWorld> closedWorldAndIndices;
     if (options.readClosedWorldUri == null) {
       Uri rootLibraryUri = output.rootLibraryUri;
       Iterable<Uri> libraries = output.libraries;
-      JsClosedWorld closedWorld =
+      JClosedWorld closedWorld =
           computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
-      closedWorldAndIndices = DataAndIndices<JsClosedWorld>(closedWorld, null);
+      closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
       if (options.writeClosedWorldUri != null) {
         serializationTask.serializeComponent(
             closedWorld.elementMap.programEnv.mainComponent);
@@ -633,15 +632,15 @@ class Compiler
       options.writeClosedWorldUri != null;
 
   bool shouldStopAfterClosedWorld(
-          DataAndIndices<JsClosedWorld> closedWorldAndIndices) =>
+          DataAndIndices<JClosedWorld> closedWorldAndIndices) =>
       closedWorldAndIndices == null ||
       closedWorldAndIndices.data == null ||
       shouldStopAfterClosedWorldFromFlags;
 
   Future<DataAndIndices<GlobalTypeInferenceResults>>
       produceGlobalTypeInferenceResults(
-          DataAndIndices<JsClosedWorld> closedWorldAndIndices) async {
-    JsClosedWorld closedWorld = closedWorldAndIndices.data;
+          DataAndIndices<JClosedWorld> closedWorldAndIndices) async {
+    JClosedWorld closedWorld = closedWorldAndIndices.data;
     DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
     if (options.readDataUri == null) {
       if (options.experimentalInferrer) {
@@ -727,7 +726,7 @@ class Compiler
     if (shouldStopAfterModularAnalysis) return;
 
     // Compute closed world.
-    DataAndIndices<JsClosedWorld> closedWorldAndIndices =
+    DataAndIndices<JClosedWorld> closedWorldAndIndices =
         await produceClosedWorld(output, moduleData);
     if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
 
