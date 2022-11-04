@@ -2313,11 +2313,6 @@ class BodyBuilder extends StackListenerImpl
           libraryFeatures.patterns, case_.charOffset, case_.charCount);
       Pattern pattern = toPattern(pop());
       Expression expression = popForValue();
-      for (VariableDeclaration variable in pattern.declaredVariables) {
-        // Skip synthetic variables.
-        if (variable.name == null) continue;
-        declareVariable(variable, scope);
-      }
       push(new Condition(expression, pattern, guard));
     } else {
       assert(checkState(token, [
@@ -3459,10 +3454,20 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginThenStatement(Token token) {
     debugEvent("beginThenStatement");
+    assert(checkState(token, [ValueKinds.Condition]));
     // This is matched by the call to [deferNode] in
     // [endThenStatement].
     typeInferrer.assignedVariables.beginNode();
+    Condition condition = peek() as Condition;
     enterLocalScope("then");
+    Pattern? pattern = condition.pattern;
+    if (pattern != null) {
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        // Skip synthetic variables.
+        if (variable.name == null) continue;
+        declareVariable(variable, scope);
+      }
+    }
   }
 
   @override
