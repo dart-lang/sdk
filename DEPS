@@ -139,7 +139,7 @@ vars = {
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
   "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
-  "markdown_rev": "f3873403f5b1a0319f78632a8fbc2b22315a7b83", # b/256680494
+  "markdown_rev": "9ff4a9f1d37c763f827084ba28a3d0bfec6b5d67",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
   "mime_rev": "d80f4d09067af87d84d9cb647acfa4d2d313d795",
