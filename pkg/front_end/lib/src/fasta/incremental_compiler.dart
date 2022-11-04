@@ -1241,8 +1241,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       for (Uri uri in builderUris) {
         List<int>? previousSource =
-            CompilerContext.current.uriToSource[uri]!.source;
-        // ignore: unnecessary_null_comparison
+            CompilerContext.current.uriToSource[uri]?.source;
         if (previousSource == null || previousSource.isEmpty) {
           recorderForTesting?.recordAdvancedInvalidationResult(
               AdvancedInvalidationResult.noPreviousSource);
