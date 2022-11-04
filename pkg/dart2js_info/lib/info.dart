@@ -235,7 +235,7 @@ class LibraryInfo extends BasicInfo {
       classes.isEmpty &&
       classTypes.isEmpty;
 
-  LibraryInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
+  LibraryInfo(String name, this.uri, OutputUnitInfo? outputUnit, int size)
       : super(InfoKind.library, name, outputUnit, size, null);
 
   LibraryInfo.internal() : super.internal(InfoKind.library);
@@ -325,8 +325,7 @@ class CodeSpan {
   /// the encoding).
   String? text;
 
-  CodeSpan({required this.start, required this.end, this.text});
-  CodeSpan.empty();
+  CodeSpan({this.start, this.end, this.text});
 }
 
 /// Information about a constant value.
