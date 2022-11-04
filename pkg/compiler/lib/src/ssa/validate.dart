@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'nodes.dart';
 
 class HValidator extends HInstructionVisitor {
   bool isValid = true;
-  HGraph graph;
+  late final HGraph graph;
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -71,10 +69,10 @@ class HValidator extends HInstructionVisitor {
 
     // Check that successors ids are always higher than the current one.
     // TODO(floitsch): this is, of course, not true for back-branches.
-    if (block.id == null) markInvalid("block without id");
+    if (block.id < 0) markInvalid("block without id");
     for (HBasicBlock successor in block.successors) {
       if (!isValid) break;
-      if (successor.id == null) markInvalid("successor without id");
+      if (successor.id < 0) markInvalid("successor without id");
       if (successor.id <= block.id && !successor.isLoopHeader()) {
         markInvalid("successor with lower id, but not a loop-header");
       }
@@ -100,8 +98,8 @@ class HValidator extends HInstructionVisitor {
       if (!identical(dominated.dominator, block)) {
         markInvalid("dominated block not pointing back");
       }
-      if (dominated.id == null || dominated.id <= lastId) {
-        markInvalid("dominated.id == null or dominated has <= id");
+      if (dominated.id == -1 || dominated.id <= lastId) {
+        markInvalid("dominated.id == -1 or dominated has <= id");
       }
       lastId = dominated.id;
     }
@@ -116,7 +114,7 @@ class HValidator extends HInstructionVisitor {
       assert(phi.inputs.length <= block.predecessors.length);
       for (int i = 0; i < phi.inputs.length; i++) {
         HInstruction input = phi.inputs[i];
-        if (!input.block.dominates(block.predecessors[i])) {
+        if (!input.block!.dominates(block.predecessors[i])) {
           markInvalid("Definition does not dominate use");
         }
       }
@@ -126,7 +124,7 @@ class HValidator extends HInstructionVisitor {
     // instruction's block.
     block.forEachInstruction((HInstruction instruction) {
       for (HInstruction input in instruction.inputs) {
-        if (!input.block.dominates(block)) {
+        if (!input.block!.dominates(block)) {
           markInvalid("Definition does not dominate use");
         }
       }
@@ -159,7 +157,7 @@ class HValidator extends HInstructionVisitor {
   static bool everyInstruction(
       List<HInstruction> instructions, bool Function(HInstruction, int) f) {
     if (instructions.length > kMaxValidatedInstructionListLength) return true;
-    var copy = List<HInstruction>.from(instructions);
+    var copy = List<HInstruction?>.from(instructions);
     // TODO(floitsch): there is currently no way to sort HInstructions before
     // we have assigned an ID. The loop is therefore O(n^2) for now.
     for (int i = 0; i < copy.length; i++) {
@@ -242,7 +240,7 @@ class NoUnusedPhiValidator extends HGraphVisitor {
 
   void visitPhi(HPhi phi) {
     if (phi.usedBy.isEmpty) {
-      print('Unused $phi in B${phi.block.id}');
+      print('Unused $phi in B${phi.block!.id}');
       isValid = false;
     }
   }
