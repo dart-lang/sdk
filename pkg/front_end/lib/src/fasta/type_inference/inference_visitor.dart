@@ -7755,7 +7755,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(_rewriteStack.isEmpty);
   }
 
-  PatternInferenceResult visitDummyMatcher(DummyPattern matcher,
+  PatternInferenceResult visitDummyPattern(DummyPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
@@ -7763,7 +7763,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitVariableMatcher(VariablePattern binder,
+  PatternInferenceResult visitVariablePattern(VariablePattern binder,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
@@ -7786,42 +7786,42 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitExpressionMatcher(ExpressionPattern matcher,
+  PatternInferenceResult visitExpressionPattern(ExpressionPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
     ExpressionInferenceResult expressionResult =
-        inferExpression(matcher.expression, matchedType, false);
-    matcher.expression = expressionResult.expression;
+        inferExpression(pattern.expression, matchedType, false);
+    pattern.expression = expressionResult.expression;
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitBinaryMatcher(BinaryPattern matcher,
+  PatternInferenceResult visitBinaryPattern(BinaryPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    matcher.left.acceptInference(this,
+    pattern.left.acceptInference(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
-    matcher.right.acceptInference(this,
+    pattern.right.acceptInference(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitCastMatcher(CastPattern matcher,
+  PatternInferenceResult visitCastPattern(CastPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    matcher.pattern.acceptInference(this,
+    pattern.pattern.acceptInference(this,
         matchedType: const DynamicType(),
         typeInfos: typeInfos,
         context: context);
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitNullAssertMatcher(NullAssertPattern matcher,
+  PatternInferenceResult visitNullAssertPattern(NullAssertPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
@@ -7829,11 +7829,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
-    return matcher.pattern.acceptInference(this,
+    return pattern.pattern.acceptInference(this,
         matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
   }
 
-  PatternInferenceResult visitNullCheckMatcher(NullCheckPattern matcher,
+  PatternInferenceResult visitNullCheckPattern(NullCheckPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
@@ -7841,54 +7841,54 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
-    return matcher.pattern.acceptInference(this,
+    return pattern.pattern.acceptInference(this,
         matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
   }
 
-  PatternInferenceResult visitListMatcher(ListPattern matcher,
+  PatternInferenceResult visitListPattern(ListPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    // TODO(cstefantsova): Implement visitListMatcher.
+    // TODO(cstefantsova): Implement visitListPattern.
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitRelationalMatcher(RelationalPattern matcher,
+  PatternInferenceResult visitRelationalPattern(RelationalPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
     ExpressionInferenceResult expressionResult =
-        inferExpression(matcher.expression, matchedType, true);
-    matcher.expression = expressionResult.expression..parent = matcher;
+        inferExpression(pattern.expression, matchedType, true);
+    pattern.expression = expressionResult.expression..parent = pattern;
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitMapMatcher(MapPattern matcher,
+  PatternInferenceResult visitMapPattern(MapPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    // TODO(cstefantsova): Implement visitMapMatcher.
+    // TODO(cstefantsova): Implement visitMapPattern.
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitNamedMatcher(NamedPattern matcher,
+  PatternInferenceResult visitNamedPattern(NamedPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    // TODO(cstefantsova): Implement visitNamedMatcher.
+    // TODO(cstefantsova): Implement visitNamedPattern.
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitRecordMatcher(RecordPattern matcher,
+  PatternInferenceResult visitRecordPattern(RecordPattern pattern,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    // TODO(cstefantsova): Implement visitRecordMatcher.
+    // TODO(cstefantsova): Implement visitRecordPattern.
     return const PatternInferenceResult();
   }
 

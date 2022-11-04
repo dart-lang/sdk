@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
   if(#t1 is core::int) {
-    core::int as = #t1;
+    core::int as = #t1{core::int};
     {}
   }
 }

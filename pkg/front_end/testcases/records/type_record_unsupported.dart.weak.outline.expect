@@ -44,30 +44,6 @@ library /*isNonNullableByDefault*/;
 // // @dart=2.17
 // ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/records/type_record_unsupported.dart:13:17: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// typedef AR2 = A<FromSupportedR>; // Error.
-//                 ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:15:17: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// typedef AR3 = A<FromSupportedRR>; // Error.
-//                 ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:19:14: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// typedef RR = FromSupportedR; // Error.
-//              ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/records/type_record_unsupported.dart:21:1: Error: The 'records' language feature is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
 // Record foo1() => throw ''; // Error.
@@ -104,38 +80,6 @@ library /*isNonNullableByDefault*/;
 // Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
 // dynamic foo10(List<Record> l) => null; // Error.
 //                    ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:41:1: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// FromSupportedR foo11() => throw ''; // Error.
-// ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:45:1: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// FromSupportedRR foo13() => throw ''; // Error.
-// ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:47:15: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// dynamic foo14(FromSupportedR r) => null; // Error.
-//               ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:51:15: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// dynamic foo16(FromSupportedRR l) => null; // Error.
-//               ^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
 // // @dart=2.17
 // ^^^^^^^^^^^^^
@@ -184,22 +128,6 @@ library /*isNonNullableByDefault*/;
 // Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
 // abstract class A6 with A<Record> {} // Error.
 //                          ^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:71:27: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A7 extends FromSupportedR {} // Error.
-//                           ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.17
-// ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/records/type_record_unsupported.dart:75:27: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
-// abstract class A9 extends FromSupportedRR {} // Error.
-//                           ^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/records/type_record_unsupported.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
 // // @dart=2.17
 // ^^^^^^^^^^^^^

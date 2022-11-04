@@ -429,6 +429,8 @@ abstract class AnalysisServer {
       var libraryPath = unitElement.element.library.source.fullName;
       var result = await currentSession.getResolvedLibrary(libraryPath);
       return result is ResolvedLibraryResult ? result : null;
+    } on InconsistentAnalysisException {
+      return null;
     } catch (exception, stackTrace) {
       instrumentationService.logException(exception, stackTrace);
     }

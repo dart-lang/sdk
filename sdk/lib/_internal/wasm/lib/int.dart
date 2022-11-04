@@ -429,8 +429,16 @@ class _BoxedInt implements int {
     return _binaryGcd(x, y, false);
   }
 
-  int get hashCode => this;
-  int get _identityHashCode => this;
+  int get hashCode => _intHashCode(this);
+  int get _identityHashCode => _intHashCode(this);
+
+  static int _intHashCode(int value) {
+    const int magic = 0x2D51;
+    int lower = (value & 0xFFFFFFFF) * magic;
+    int upper = (value >>> 32) * magic;
+    int upper_accum = upper + (lower >>> 32);
+    return (lower ^ upper_accum ^ (upper_accum >>> 32)) & 0x3FFFFFFF;
+  }
 
   external int operator ~();
   external int get bitLength;

@@ -3,7 +3,7 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  if(invalid-expression "Unimplemented NullAssertMatcher.makeCondition") {
+  if(invalid-expression "Unimplemented NullAssertPattern.makeCondition") {
     dynamic y = #t1;
     {}
   }

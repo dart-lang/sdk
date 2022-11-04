@@ -3,7 +3,7 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  if(invalid-expression "Unimplemented CastMatcher.makeCondition") {
+  if(invalid-expression "Unimplemented CastPattern.makeCondition") {
     dynamic y = #t1;
     {}
   }

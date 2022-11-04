@@ -5059,7 +5059,7 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   /// Variable declarations induced by nested variable patterns.
   ///
   /// These variables are initialized to the values captured by the variable
-  /// patterns nested in the matcher.
+  /// patterns nested in the pattern.
   List<VariableDeclaration> get declaredVariables;
 
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
@@ -5086,7 +5086,7 @@ class DummyPattern extends Pattern {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write('<dummy-matcher>');
+    printer.write('<dummy-pattern>');
   }
 
   @override
@@ -5098,7 +5098,7 @@ class DummyPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitDummyMatcher(this,
+    return visitor.visitDummyPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -5115,7 +5115,7 @@ class DummyPattern extends Pattern {
 
   @override
   String toString() {
-    return "DummyMatcher(${toStringInternal()})";
+    return "DummyPattern(${toStringInternal()})";
   }
 }
 
@@ -5137,7 +5137,7 @@ class ExpressionPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitExpressionMatcher(this,
+    return visitor.visitExpressionPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -5171,7 +5171,7 @@ class ExpressionPattern extends Pattern {
 
   @override
   String toString() {
-    return "ExpressionMatcher(${toStringInternal()})";
+    return "ExpressionPattern(${toStringInternal()})";
   }
 }
 
@@ -5211,14 +5211,14 @@ class BinaryPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitBinaryMatcher(this,
+    return visitor.visitBinaryPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented BinaryMatcher.makeCondition");
+    return new InvalidExpression("Unimplemented BinaryPattern.makeCondition");
   }
 
   @override
@@ -5254,7 +5254,7 @@ class BinaryPattern extends Pattern {
 
   @override
   String toString() {
-    return "BinaryMatcher(${toStringInternal()})";
+    return "BinaryPattern(${toStringInternal()})";
   }
 }
 
@@ -5276,14 +5276,14 @@ class CastPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitCastMatcher(this,
+    return visitor.visitCastPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented CastMatcher.makeCondition");
+    return new InvalidExpression("Unimplemented CastPattern.makeCondition");
   }
 
   @override
@@ -5303,7 +5303,7 @@ class CastPattern extends Pattern {
 
   @override
   String toString() {
-    return "CastMatcher(${toStringInternal()})";
+    return "CastPattern(${toStringInternal()})";
   }
 }
 
@@ -5324,7 +5324,7 @@ class NullAssertPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitNullAssertMatcher(this,
+    return visitor.visitNullAssertPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -5332,7 +5332,7 @@ class NullAssertPattern extends Pattern {
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
     return new InvalidExpression(
-        "Unimplemented NullAssertMatcher.makeCondition");
+        "Unimplemented NullAssertPattern.makeCondition");
   }
 
   @override
@@ -5351,11 +5351,11 @@ class NullAssertPattern extends Pattern {
 
   @override
   String toString() {
-    return "NullAssertMatcher(${toStringInternal()})";
+    return "NullAssertPattern(${toStringInternal()})";
   }
 }
 
-/// A [Pattern] for `matcher?`.
+/// A [Pattern] for `pattern?`.
 class NullCheckPattern extends Pattern {
   Pattern pattern;
 
@@ -5372,15 +5372,27 @@ class NullCheckPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitNullCheckMatcher(this,
+    return visitor.visitNullCheckPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression(
-        "Unimplemented NullCheckMatcher.makeCondition");
+    Expression? nestedCondition =
+        pattern.makeCondition(matchedExpressionVariable, inferenceVisitor);
+    Expression nullCheckCondition = inferenceVisitor.engine.forest.createNot(
+        fileOffset,
+        inferenceVisitor.engine.forest.createEqualsNull(
+            fileOffset,
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, matchedExpressionVariable)));
+    if (nestedCondition == null) {
+      return nullCheckCondition;
+    } else {
+      return inferenceVisitor.engine.forest.createLogicalExpression(fileOffset,
+          nullCheckCondition, doubleAmpersandName.text, nestedCondition);
+    }
   }
 
   @override
@@ -5399,7 +5411,7 @@ class NullCheckPattern extends Pattern {
 
   @override
   String toString() {
-    return "NullCheckMatcher(${toStringInternal()})";
+    return "NullCheckPattern(${toStringInternal()})";
   }
 }
 
@@ -5425,14 +5437,14 @@ class ListPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitListMatcher(this,
+    return visitor.visitListPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    throw new UnimplementedError("ListMatcher.makeCondition");
+    throw new UnimplementedError("ListPattern.makeCondition");
   }
 
   @override
@@ -5440,7 +5452,7 @@ class ListPattern extends Pattern {
       VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
     throw new UnimplementedError(
-        "ListMatcher.createDeclaredVariableInitializers");
+        "ListPattern.createDeclaredVariableInitializers");
   }
 
   @override
@@ -5450,9 +5462,9 @@ class ListPattern extends Pattern {
     printer.write('>');
     printer.write('[');
     String comma = '';
-    for (Pattern matcher in patterns) {
+    for (Pattern pattern in patterns) {
       printer.write(comma);
-      matcher.toTextInternal(printer);
+      pattern.toTextInternal(printer);
       comma = ', ';
     }
     printer.write(']');
@@ -5460,7 +5472,7 @@ class ListPattern extends Pattern {
 
   @override
   String toString() {
-    return "ListMatcher(${toStringInternal()})";
+    return "ListPattern(${toStringInternal()})";
   }
 }
 
@@ -5493,7 +5505,7 @@ class RelationalPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitRelationalMatcher(this,
+    return visitor.visitRelationalPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -5604,7 +5616,7 @@ class RelationalPattern extends Pattern {
 
   @override
   String toString() {
-    return "RelationalMatcher(${toStringInternal()})";
+    return "RelationalPattern(${toStringInternal()})";
   }
 }
 
@@ -5855,7 +5867,7 @@ class MapPattern extends Pattern {
 
   @override
   String toString() {
-    return 'MapMatcher(${toStringInternal()})';
+    return 'MapPattern(${toStringInternal()})';
   }
 
   @override
@@ -5864,7 +5876,7 @@ class MapPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitMapMatcher(this,
+    return visitor.visitMapPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -5883,7 +5895,7 @@ class MapPattern extends Pattern {
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented MapMatcher.makeCondition");
+    return new InvalidExpression("Unimplemented MapPattern.makeCondition");
   }
 }
 
@@ -5913,7 +5925,7 @@ class NamedPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitNamedMatcher(this,
+    return visitor.visitNamedPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -5931,7 +5943,7 @@ class NamedPattern extends Pattern {
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented NamedMatcher.makeCondition");
+    return new InvalidExpression("Unimplemented NamedPattern.makeCondition");
   }
 }
 
@@ -5962,7 +5974,7 @@ class RecordPattern extends Pattern {
 
   @override
   String toString() {
-    return 'RecordMatcher(${toStringInternal()})';
+    return 'RecordPattern(${toStringInternal()})';
   }
 
   @override
@@ -5971,7 +5983,7 @@ class RecordPattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitRecordMatcher(this,
+    return visitor.visitRecordPattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -5979,8 +5991,8 @@ class RecordPattern extends Pattern {
   void createDeclaredVariableInitializers(
       VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    for (Pattern matcher in patterns) {
-      matcher.createDeclaredVariableInitializers(
+    for (Pattern pattern in patterns) {
+      pattern.createDeclaredVariableInitializers(
           matchedExpressionVariable, inferenceVisitor);
     }
   }
@@ -5988,7 +6000,7 @@ class RecordPattern extends Pattern {
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented RecordMatcher.makeCondition");
+    return new InvalidExpression("Unimplemented RecordPattern.makeCondition");
   }
 }
 
@@ -6010,7 +6022,7 @@ class VariablePattern extends Pattern {
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    return visitor.visitVariableMatcher(this,
+    return visitor.visitVariablePattern(this,
         matchedType: matchedType, typeInfos: typeInfos, context: context);
   }
 
@@ -6033,8 +6045,39 @@ class VariablePattern extends Pattern {
   void createDeclaredVariableInitializers(
       VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    variable.initializer = inferenceVisitor.engine.forest
+    Expression? initializer;
+    if (type != null) {
+      if (!inferenceVisitor.isAssignable(
+          type!, matchedExpressionVariable.type)) {
+        // We need to insert an as-cast in this case to make refutable patterns
+        // work. Consider the following example.
+        //
+        //   test(num x) {
+        //     if (x case String y) {
+        //       // 'y' should be initialized here.
+        //     }
+        //   }
+        //
+        // To make the initialization of the variable 'y' inside of the body of
+        // the if-case statement type-safe, we need to insert the cast. The code
+        // is unreachable anyway, and the intention is to make the verifier
+        // happy.
+        initializer = inferenceVisitor.engine.forest.createAsExpression(
+            fileOffset,
+            inferenceVisitor.engine.forest.createVariableGet(
+                variable.fileOffset, matchedExpressionVariable),
+            type!,
+            forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
+      } else if (matchedExpressionVariable.type is DynamicType &&
+          type! is! DynamicType) {
+        initializer = inferenceVisitor.engine.forest
+            .createVariableGet(variable.fileOffset, matchedExpressionVariable)
+          ..promotedType = type!;
+      }
+    }
+    initializer ??= inferenceVisitor.engine.forest
         .createVariableGet(variable.fileOffset, matchedExpressionVariable);
+    variable.initializer = initializer;
   }
 
   @override
