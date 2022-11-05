@@ -211,13 +211,6 @@ class Intrinsifier {
     Procedure target = node.interfaceTarget;
     Class cls = target.enclosingClass!;
 
-    // _TypedListBase._setRange
-    if (cls == translator.typedListBaseClass && name == "_setRange") {
-      // Always fall back to alternative implementation.
-      b.i32_const(0);
-      return w.NumType.i32;
-    }
-
     // _TypedList._(get|set)(Int|Uint|Float)(8|16|32|64)
     if (cls == translator.typedListClass) {
       Match? match = RegExp("^_(get|set)(Int|Uint|Float)(8|16|32|64)\$")
