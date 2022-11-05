@@ -138,6 +138,9 @@ features:
   views:
     help: "Views"
 
+  sealed-class:
+    help: "Sealed class"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

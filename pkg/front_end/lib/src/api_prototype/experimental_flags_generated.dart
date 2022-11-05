@@ -187,6 +187,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19));
 
+  static const ExperimentalFlag sealedClass = const ExperimentalFlag(
+      name: 'sealed-class',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 19),
+      experimentEnabledVersion: const Version(2, 19),
+      experimentReleasedVersion: const Version(2, 19));
+
   static const ExperimentalFlag setLiterals = const ExperimentalFlag(
       name: 'set-literals',
       isEnabledByDefault: true,
@@ -374,6 +382,10 @@ class GlobalFeatures {
   GlobalFeature get records =>
       _records ??= _computeGlobalFeature(ExperimentalFlag.records);
 
+  GlobalFeature? _sealedClass;
+  GlobalFeature get sealedClass =>
+      _sealedClass ??= _computeGlobalFeature(ExperimentalFlag.sealedClass);
+
   GlobalFeature? _setLiterals;
   GlobalFeature get setLiterals =>
       _setLiterals ??= _computeGlobalFeature(ExperimentalFlag.setLiterals);
@@ -514,6 +526,11 @@ class LibraryFeatures {
       _records ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.records, canonicalUri, libraryVersion);
 
+  LibraryFeature? _sealedClass;
+  LibraryFeature get sealedClass =>
+      _sealedClass ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.sealedClass, canonicalUri, libraryVersion);
+
   LibraryFeature? _setLiterals;
   LibraryFeature get setLiterals =>
       _setLiterals ??= globalFeatures._computeLibraryFeature(
@@ -595,6 +612,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.patterns;
     case "records":
       return ExperimentalFlag.records;
+    case "sealed-class":
+      return ExperimentalFlag.sealedClass;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
     case "spread-collections":
@@ -648,6 +667,7 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
+  ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
       ExperimentalFlag.spreadCollections.isEnabledByDefault,
