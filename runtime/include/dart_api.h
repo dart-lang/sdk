@@ -1105,7 +1105,7 @@ Dart_CreateIsolateGroup(const char* script_uri,
  *   shutdown (may be NULL).
  * \param cleanup_callback A callback to be called when the isolate is being
  *   cleaned up (may be NULL).
- * \param isolate_data The embedder-specific data associated with this isolate.
+ * \param child_isolate_data The embedder-specific data associated with this isolate.
  * \param error Set to NULL if creation is successful, set to an error
  *   message otherwise. The caller is responsible for calling free() on the
  *   error message.
