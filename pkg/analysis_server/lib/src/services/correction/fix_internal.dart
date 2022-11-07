@@ -1256,6 +1256,9 @@ class FixProcessor extends BaseProcessor {
       //  a place where it can be reached (when possible).
       RemoveDeadCode.new,
     ],
+    HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
+      ReplaceColonWithEquals.new,
+    ],
     HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
       RemoveDeprecatedNewInCommentReference.new,
     ],

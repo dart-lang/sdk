@@ -10895,6 +10895,10 @@ CompileTimeErrorCode:
     comment: |-
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
+  OBSOLETE_COLON_FOR_DEFAULT_VALUE:
+    problemMessage: "Using a colon as a separator before a default value is no longer supported."
+    correctionMessage: "Try replacing the colon with an equal sign."
+    comment: No parameters.
   ON_REPEATED:
     problemMessage: "The type '{0}' can be included in the superclass constraints only once."
     correctionMessage: Try removing all except one occurrence of the type name.
@@ -17835,6 +17839,12 @@ HintCode:
         }
       }
       ```
+  DEPRECATED_COLON_FOR_DEFAULT_VALUE:
+    problemMessage: |-
+      Using a colon as a separator before a default value is deprecated and will
+      not be supported in language version 3.0 and later.
+    correctionMessage: "Try replacing the colon with an equal sign."
+    comment: No parameters.
   DEPRECATED_EXPORT_USE:
     problemMessage: "The ability to import '{0}' indirectly has been deprecated."
     correctionMessage: "Try importing '{0}' directly."

@@ -1122,7 +1122,7 @@ const A = null;
   test_metadata_namedParameter() async {
     await assertNoErrorsInCode(r'''
 const A = null;
-f({@A int p : 0}) {}''');
+f({@A int p = 0}) {}''');
     verifyTestResolved();
 
     var metadata = findElement.parameter('p').metadata;

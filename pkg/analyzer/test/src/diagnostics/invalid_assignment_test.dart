@@ -564,16 +564,16 @@ void main() {
 
   test_defaultValue_named() async {
     await assertErrorsInCode(r'''
-f({String x: 0}) {
+f({String x = 0}) {
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 13, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 1),
     ]);
   }
 
   test_defaultValue_named_sameType() async {
     await assertNoErrorsInCode(r'''
-f({String x: '0'}) {
+f({String x = '0'}) {
 }''');
   }
 

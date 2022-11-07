@@ -2508,7 +2508,7 @@ f([a = double.infinity]) {
 
   test_nonConstantDefaultValue_function_named() async {
     await assertNoErrorsInCode('''
-f({x : 2 + 3}) {}
+f({x = 2 + 3}) {}
 ''');
   }
 
@@ -2521,7 +2521,7 @@ f([x = 2 + 3]) {}
   test_nonConstantDefaultValue_inConstructor_named() async {
     await assertNoErrorsInCode(r'''
 class A {
-  A({x : 2 + 3}) {}
+  A({x = 2 + 3}) {}
 }
 ''');
   }
@@ -2537,7 +2537,7 @@ class A {
   test_nonConstantDefaultValue_method_named() async {
     await assertNoErrorsInCode(r'''
 class A {
-  m({x : 2 + 3}) {}
+  m({x = 2 + 3}) {}
 }
 ''');
   }

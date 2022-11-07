@@ -3579,6 +3579,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The class 'Object' can't extend any other class.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode OBSOLETE_COLON_FOR_DEFAULT_VALUE =
+      CompileTimeErrorCode(
+    'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+    "Using a colon as a separator before a default value is no longer "
+        "supported.",
+    correctionMessage: "Try replacing the colon with an equal sign.",
+  );
+
   ///  Parameters:
   ///  0: the name of the interface that is implemented more than once
   static const CompileTimeErrorCode ON_REPEATED = CompileTimeErrorCode(

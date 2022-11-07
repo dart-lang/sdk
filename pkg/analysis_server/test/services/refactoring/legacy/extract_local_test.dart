@@ -452,7 +452,7 @@ void foo(int x) {}
 void f() {
   foo(ppp: 42);
 }
-int foo({int ppp: 0}) => ppp + 1;
+int foo({int ppp = 0}) => ppp + 1;
 ''');
     _createRefactoring(testCode.indexOf('42'), 0);
     // check conditions
@@ -542,7 +542,7 @@ void f() {
 void f() {
   foo(ppp: 42);
 }
-int foo({int ppp: 0}) => ppp + 1;
+int foo({int ppp = 0}) => ppp + 1;
 ''');
     _createRefactoring(testCode.indexOf('pp: 42'), 0);
     // check conditions
