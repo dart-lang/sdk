@@ -473,12 +473,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Passed to noSuchMethod');
     }
 
-    Iterable<TypeInformation> inferredTargetTypes =
-        info.concreteTargets.map((MemberEntity entity) {
-      return inferrer.types.getInferredTypeOfMember(entity);
-    });
-    if (inferredTargetTypes.any((user) => user == currentUser)) {
-      addNewEscapeInformation(info);
+    final user = currentUser;
+    if (user is MemberTypeInformation) {
+      if (info.concreteTargets.contains(user.member)) {
+        addNewEscapeInformation(info);
+      }
     }
   }
 

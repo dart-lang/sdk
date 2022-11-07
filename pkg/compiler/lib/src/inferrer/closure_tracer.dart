@@ -107,9 +107,6 @@ class ClosureTracerVisitor extends TracerVisitor {
     }
   }
 
-  bool _checkIfCurrentUser(MemberEntity element) =>
-      inferrer.types.getInferredTypeOfMember(element) == currentUser;
-
   bool _checkIfFunctionApply(MemberEntity element) {
     return inferrer.closedWorld.commonElements.isFunctionApplyMethod(element);
   }
@@ -118,8 +115,9 @@ class ClosureTracerVisitor extends TracerVisitor {
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
     final selector = info.selector!;
+    final user = currentUser;
     if (selector.isCall) {
-      if (info.arguments!.contains(currentUser)) {
+      if (info.arguments!.contains(user)) {
         if (info.hasClosureCallTargets ||
             info.concreteTargets.any((element) => !element.isFunction)) {
           bailout('Passed to a closure');
@@ -127,8 +125,13 @@ class ClosureTracerVisitor extends TracerVisitor {
         if (info.concreteTargets.any(_checkIfFunctionApply)) {
           _tagAsFunctionApplyTarget("dynamic call");
         }
-      } else if (info.concreteTargets.any(_checkIfCurrentUser)) {
-        _registerCallForLaterAnalysis(info);
+      } else {
+        if (user is MemberTypeInformation) {
+          final currentUserMember = user.member;
+          if (info.concreteTargets.contains(currentUserMember)) {
+            _registerCallForLaterAnalysis(info);
+          }
+        }
       }
     } else if (selector.isGetter && selector.memberName == Names.call) {
       // We are potentially tearing off ourself here
