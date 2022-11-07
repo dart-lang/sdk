@@ -384,12 +384,11 @@ class Translator {
   Uint8List translate() {
     m = w.Module(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
-
-    closureLayouter.collect();
-    classInfoCollector.collect();
-
-    functions.collectImportsAndExports();
     mainFunction = _findMainMethod(libraries.first);
+
+    closureLayouter.collect([mainFunction.function]);
+    classInfoCollector.collect();
+    functions.collectImportsAndExports();
 
     initFunction =
         m.addFunction(m.addFunctionType(const [], const []), "#init");
@@ -400,7 +399,8 @@ class Translator {
 
     dispatchTable.build();
 
-    m.exportFunction("\$main", generateEntryFunction(mainFunction.reference));
+    m.exportFunction("\$getMain", generateGetMain(mainFunction));
+
     functions.initialize();
     while (functions.worklist.isNotEmpty) {
       Reference reference = functions.worklist.removeLast();
@@ -497,42 +497,14 @@ class Translator {
     }
   }
 
-  w.DefinedFunction generateEntryFunction(Reference mainReference) {
-    final ParameterInfo paramInfo = paramInfoFor(mainReference);
-    assert(paramInfo.typeParamCount == 0);
-    final w.BaseFunction mainFunction = functions.getFunction(mainReference);
-    final w.DefinedFunction entry =
-        m.addFunction(m.addFunctionType(const [], const []), "\$main");
-    final w.Instructions b = entry.body;
+  w.DefinedFunction generateGetMain(Procedure mainFunction) {
+    w.DefinedFunction getMain = m.addFunction(
+        m.addFunctionType(const [], const [w.RefType.extern(nullable: true)]));
+    constants.instantiateConstant(getMain, getMain.body,
+        StaticTearOffConstant(mainFunction), getMain.type.outputs.single);
+    getMain.body.end();
 
-    if (paramInfo.positional.isNotEmpty) {
-      // Supply dummy commandline arguments
-      constants.instantiateConstant(
-          entry,
-          b,
-          ListConstant(coreTypes.stringNonNullableRawType, const []),
-          mainFunction.type.inputs[0]);
-    }
-    if (paramInfo.positional.length > 1) {
-      // Supply dummy isolate
-      constants.instantiateConstant(
-          entry, b, NullConstant(), mainFunction.type.inputs[1]);
-    }
-    for (int i = 2; i < paramInfo.positional.length; i++) {
-      // Supply default values for positional parameters
-      constants.instantiateConstant(
-          entry, b, paramInfo.positional[i]!, mainFunction.type.inputs[i]);
-    }
-    for (String name in paramInfo.names) {
-      // Supply default values for named parameters
-      constants.instantiateConstant(entry, b, paramInfo.named[name]!,
-          mainFunction.type.inputs[paramInfo.nameIndex[name]!]);
-    }
-    b.call(mainFunction);
-    convertType(entry, outputOrVoid(mainFunction.type.outputs), voidMarker);
-    b.end();
-
-    return entry;
+    return getMain;
   }
 
   Class classForType(DartType type) {

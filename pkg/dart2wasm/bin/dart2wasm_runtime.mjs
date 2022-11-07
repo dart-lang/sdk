@@ -80,7 +80,7 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
         },
         scheduleCallback: function(milliseconds, closure) {
             setTimeout(function() {
-                dartInstance.exports.$call0(closure);
+                dartInstance.exports.$invokeCallback(closure);
             }, milliseconds);
         },
         futurePromise: new WebAssembly.Function(
@@ -407,5 +407,5 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
 // `moduleInstance` is the instantiated dart2wasm module
 // `args` are any arguments that should be passed into the main function.
 export const invoke = async (moduleInstance, ...args) => {
-    moduleInstance.exports.$main(...args);
+    moduleInstance.exports.$invokeMain(moduleInstance.exports.$getMain());
 }
