@@ -2201,3 +2201,89 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
 
   return null;
 }
+
+/// Shapes consist of a count of positional elements and a sorted list of
+/// named elements' names.
+class Shape {
+  int positionals;
+  List<String>? named;
+  Shape(this.positionals, this.named);
+
+  String toString() {
+    return 'Shape($positionals, [${named?.join(", ")}])';
+  }
+}
+
+final _shape = JS('', 'Symbol("shape")');
+var Record = JS('!', '''class Record {}''');
+final Object _RecordImpl = JS(
+    '!',
+    '''
+class _RecordImpl extends # {
+  constructor(values) {
+    super();
+    this.values = values;
+  }
+}
+''',
+    Record);
+
+/// Cache for Record shapes. These are keyed by a distinct shape recipe,
+/// which consists of an integer followed by space-separated named labels.
+final _shapes = JS('', 'new Map()');
+
+Object registerShape(@notNull String shapeRecipe, @notNull int positionals,
+    List<String>? named) {
+  var cached = JS('', '#.get(#)', _shapes, shapeRecipe);
+  if (cached != null) {
+    return cached;
+  }
+
+  Object recordClass = JS(
+      '!',
+      '''
+  class _Record extends # {
+    constructor(values) {
+      super(values);
+    }
+  }''',
+      _RecordImpl);
+
+  var shape = Shape(positionals, named);
+  var recordPrototype = JS('', '#.prototype', recordClass);
+  JS('', '#[#] = #', recordClass, _shape, shape);
+  JS('', '#[#] = #', recordPrototype, _shape, shape);
+
+  _recordGet(@notNull int index) =>
+      JS('!', 'function recordGet() {return this.values[#];}', index);
+
+  // Add convenience getters for accessing the record's field values.
+  var count = 0;
+  while (count < positionals) {
+    var name = '\$$count';
+    defineAccessor(recordPrototype, name,
+        get: _recordGet(count), enumerable: true);
+    count++;
+  }
+  if (named != null) {
+    for (final name in named) {
+      defineAccessor(recordPrototype, name,
+          get: _recordGet(count), enumerable: true);
+      count++;
+    }
+  }
+
+  JS('', '#.set(#, #)', _shapes, shapeRecipe, recordClass);
+  return recordClass;
+}
+
+/// Creates a shape and binds it to [values].
+///
+/// [shapeRecipe] consists of a space-separated list of elements, where the
+/// first element is the number of positional elements, followed by every
+/// named element in sorted order.
+Object recordLiteral(@notNull String shapeRecipe, @notNull int positionals,
+    List<String>? named, @notNull List values) {
+  var shape = registerShape(shapeRecipe, positionals, named);
+  return JS('!', 'new #(#)', shape, values);
+}

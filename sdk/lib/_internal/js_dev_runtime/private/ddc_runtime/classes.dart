@@ -339,6 +339,9 @@ bool isJsInterop(obj) {
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
   if (JS('!', '#[#] != null', obj, _extensionType)) return false;
+
+  // Exclude record types.
+  if (JS('!', '#[#] != null', obj, _shape)) return false;
   return !_jsInstanceOf(obj, Object);
 }
 

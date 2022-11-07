@@ -114,6 +114,14 @@ dload(obj, field) {
     if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
     if (hasMethod(type, f)) return bind(obj, f, null);
 
+    // Handle record types by trying to access [f] via convenience getters.
+    if (JS<bool>('!', '# instanceof #', obj, _RecordImpl) && f is String) {
+      // It is a compile-time error for record names to clash, so we don't
+      // need to check the positionals or named elements in any order.
+      var value = JS('', '#.#', obj, f);
+      if (JS('!', '# !== void 0', value)) return value;
+    }
+
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
   }
