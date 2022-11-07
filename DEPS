@@ -136,7 +136,7 @@ vars = {
   "intl_rev": "442193ccd19a8e36a07fcc3b3cac0e58c6f9c542",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
-  "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
+  "linter_rev": "657fa6d60373c144777ddb3ca0ab6ee7805ea2b3", # 1.29.0
   "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
   "markdown_rev": "9ff4a9f1d37c763f827084ba28a3d0bfec6b5d67",
