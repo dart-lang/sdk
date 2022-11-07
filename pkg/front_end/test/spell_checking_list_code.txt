@@ -93,6 +93,7 @@ augments
 auto
 automagically
 auxiliary
+averages
 awaited
 awaiting
 awaits
@@ -607,6 +608,7 @@ harness
 hashes
 hashing
 havoc
+headline
 heads
 heap
 height
@@ -987,6 +989,7 @@ payloads
 pdf
 pedantic
 per
+percentages
 perf
 permanently
 permit
@@ -1224,6 +1227,7 @@ rs
 runnable
 s
 safer
+sampled
 sandboxed
 sanitizing
 saw
@@ -1397,6 +1401,7 @@ suggests
 suite
 sum
 summarizing
+summed
 superclasses
 superinitializer
 superinterface
