@@ -150,7 +150,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
   "protobuf_rev": "ba29983968de5b54196c6c2a5cff1afbdda24ae2",
-  "pub_rev": "6506cc01b1bd17aff782037817d86a88a1c312e8", # manually rev'd
+  "pub_rev": "65c7f3e528f3f9978c4330cbd471070f17370f65", # manually rev'd
   "pub_semver_rev": "28159b8c5b96fc2709d0904389d7932880f68659",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "592656f9f5af6392509e9ff20a035fd30e5e5099",
