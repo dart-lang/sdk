@@ -66,9 +66,59 @@ class _BoxedInt implements int {
   external int operator |(int other);
   external int operator ^(int other);
 
-  external int operator >>(int other);
-  external int operator >>>(int other);
-  external int operator <<(int other);
+  int operator >>(int shift) {
+    // Unsigned comparison to check for large and negative shifts
+    if (_lt_u(shift, 64)) {
+      return _shr_s(this, shift);
+    }
+
+    if (shift < 0) {
+      throw ArgumentError(shift);
+    }
+
+    // shift >= 64, 0 or -1 depending on sign: `this >= 0 ? 0 : -1`
+    return _shr_s(this, 63);
+  }
+
+  int operator >>>(int shift) {
+    // Unsigned comparison to check for large and negative shifts
+    if (_lt_u(shift, 64)) {
+      return _shr_u(this, shift);
+    }
+
+    if (shift < 0) {
+      throw ArgumentError(shift);
+    }
+
+    // shift >= 64
+    return 0;
+  }
+
+  int operator <<(int shift) {
+    // Unsigned comparison to check for large and negative shifts
+    if (_lt_u(shift, 64)) {
+      return _shl(this, shift);
+    }
+
+    if (shift < 0) {
+      throw ArgumentError(shift);
+    }
+
+    // shift >= 64
+    return 0;
+  }
+
+  /// Wasm i64.lt_u instruction
+  external static bool _lt_u(int a, int b);
+
+  /// Wasm i64.shr_s instruction
+  external static int _shr_s(int a, int b);
+
+  /// Wasm i64.shr_u instruction
+  external static int _shr_u(int a, int b);
+
+  /// Wasm i64.shl instruction
+  external static int _shl(int a, int b);
 
   external bool operator <(num other);
   external bool operator >(num other);
