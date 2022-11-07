@@ -127,7 +127,7 @@ vars = {
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",
-  "glob_rev": "073007c5d00822a0ddc964c027785d1eb5559d68",
+  "glob_rev": "7f97bf5be6bfe8c90a92283e4c590dba2a676083",
   "html_rev": "0bf601959ac98e6cdf1925a1cdab70bd6a5ddc45",
   "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
   "http_parser_rev": "c73967535ce31120e218120f70ef98cc22688c82",
