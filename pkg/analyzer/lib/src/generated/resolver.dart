@@ -3386,6 +3386,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorName = nameNode.constructorName;
       name =
           constructorName.name?.name ?? '${constructorName.type.name.name}.new';
+    } else if (nameNode is RedirectingConstructorInvocation) {
+      name = nameNode.constructorName?.name;
+      if (name == null) {
+        var staticElement = nameNode.staticElement;
+        if (staticElement != null) {
+          name =
+              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
+        }
+      }
     } else if (nameNode is SuperConstructorInvocation) {
       name = nameNode.constructorName?.name;
       if (name == null) {
