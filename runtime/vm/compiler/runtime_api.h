@@ -597,9 +597,12 @@ class Record : public AllStatic {
   static word num_fields_offset();
   static word field_names_offset();
   static word field_offset(intptr_t index);
+  static intptr_t field_index_at_offset(intptr_t offset_in_bytes);
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kMaxElements;
 };
 
 class PointerBase : public AllStatic {

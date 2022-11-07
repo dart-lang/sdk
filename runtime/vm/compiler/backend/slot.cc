@@ -134,6 +134,7 @@ bool Slot::IsImmutableLengthSlot() const {
   switch (kind()) {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kTypedDataBase_length:
+    case Slot::Kind::kRecord_num_fields:
     case Slot::Kind::kString_length:
     case Slot::Kind::kTypeArguments_length:
       return true;

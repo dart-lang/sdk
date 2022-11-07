@@ -27294,6 +27294,8 @@ void RecordType::SetFieldNameAt(intptr_t index, const String& value) const {
 }
 
 void RecordType::set_field_names(const Array& value) const {
+  ASSERT(!value.IsNull());
+  ASSERT(value.IsImmutable());
   ASSERT(value.ptr() == Object::empty_array().ptr() || value.Length() > 0);
   untag()->set_field_names(value.ptr());
 }
@@ -27692,14 +27694,10 @@ intptr_t Record::NumPositionalFields() const {
   return num_fields() - NumNamedFields();
 }
 
-void Record::set_num_fields(intptr_t num_fields) const {
-  ASSERT(num_fields >= 0);
-  StoreNonPointer(&untag()->num_fields_, num_fields);
-}
-
 void Record::set_field_names(const Array& field_names) const {
   ASSERT(!field_names.IsNull());
   ASSERT(field_names.IsCanonical());
+  ASSERT(field_names.IsImmutable());
   ASSERT(field_names.ptr() == Object::empty_array().ptr() ||
          field_names.Length() > 0);
   untag()->set_field_names(field_names.ptr());
@@ -27711,12 +27709,12 @@ RecordPtr Record::New(intptr_t num_fields,
   ASSERT(num_fields >= 0);
   Record& result = Record::Handle();
   {
-    ObjectPtr raw =
+    RecordPtr raw = static_cast<RecordPtr>(
         Object::Allocate(Record::kClassId, Record::InstanceSize(num_fields),
-                         space, Record::ContainsCompressedPointers());
+                         space, Record::ContainsCompressedPointers()));
     NoSafepointScope no_safepoint;
+    raw->untag()->set_num_fields(Smi::New(num_fields));
     result ^= raw;
-    result.set_num_fields(num_fields);
   }
   result.set_field_names(field_names);
   return result.ptr();

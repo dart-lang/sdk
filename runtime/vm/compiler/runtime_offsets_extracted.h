@@ -73,9 +73,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -733,9 +734,11 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -1400,9 +1403,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -2060,9 +2064,11 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -2728,9 +2734,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -3394,9 +3401,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -4061,9 +4069,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -4723,9 +4732,11 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -5390,9 +5401,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -6042,9 +6054,11 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -6701,9 +6715,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -7353,9 +7368,11 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -8013,9 +8030,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -8671,9 +8689,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -9330,9 +9349,10 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -9984,9 +10004,11 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -10654,9 +10676,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -11387,9 +11411,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -12128,9 +12154,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -12867,9 +12895,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -13605,9 +13635,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -14344,9 +14376,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -15079,9 +15113,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -15817,9 +15853,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -16541,9 +16579,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -17273,9 +17313,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -18003,9 +18045,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -18732,9 +18776,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -19462,9 +19508,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 4;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -20188,9 +20236,11 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 8;
-static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word

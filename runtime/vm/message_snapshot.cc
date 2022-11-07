@@ -2860,17 +2860,14 @@ void MessageSerializer::Trace(Object* object) {
     ILLEGAL(MirrorReference)
     ILLEGAL(NativeFinalizer)
     ILLEGAL(ReceivePort)
+    ILLEGAL(Record)
+    ILLEGAL(RecordType)
     ILLEGAL(RegExp)
     ILLEGAL(StackTrace)
     ILLEGAL(SuspendState)
     ILLEGAL(UserTag)
     ILLEGAL(WeakProperty)
     ILLEGAL(WeakReference)
-
-    // TODO(dartbug.com/49719): allow sending records as long as their
-    // elements are objects that can be sent.
-    ILLEGAL(RecordType)
-    ILLEGAL(Record)
 
     // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
     // those are the only non-abstract classes (so we avoid checking more cids

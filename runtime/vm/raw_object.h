@@ -3219,9 +3219,9 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 class UntaggedRecord : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
 
-  int32_t num_fields_;
+  COMPRESSED_SMI_FIELD(SmiPtr, num_fields)
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
-  VISIT_FROM(field_names)
+  VISIT_FROM(num_fields)
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
 

@@ -10762,7 +10762,9 @@ class Float64x2 : public Instance {
 class Record : public Instance {
  public:
   intptr_t num_fields() const { return NumFields(ptr()); }
-  static intptr_t NumFields(RecordPtr ptr) { return ptr->untag()->num_fields_; }
+  static intptr_t NumFields(RecordPtr ptr) {
+    return Smi::Value(ptr->untag()->num_fields());
+  }
   static intptr_t num_fields_offset() {
     return OFFSET_OF(UntaggedRecord, num_fields_);
   }
@@ -10838,7 +10840,6 @@ class Record : public Instance {
   intptr_t GetFieldIndexByName(const String& field_name) const;
 
  private:
-  void set_num_fields(intptr_t num_fields) const;
   void set_field_names(const Array& field_names) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
