@@ -486,7 +486,7 @@ class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     [[setSt^]]
-    return Container();
+    return const Placeholder();
   }
 }
     ''';
@@ -1156,7 +1156,7 @@ final a = Stri^
       @override
       Widget build(BuildContext context) {
         [[setSt^]]
-        return Container();
+        return const Placeholder();
       }
     }
     ''';
@@ -1455,7 +1455,7 @@ void f(String a, {String? b}) {
       @override
       Widget build(BuildContext context) {
         [[setSt^]]
-        return Container();
+        return const Placeholder();
       }
     }
     ''';
@@ -3450,8 +3450,8 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';''';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';''';
 
   /// Nullability suffix expected in this test class.
   ///
@@ -3505,7 +3505,7 @@ class \${1:MyWidget} extends StatefulWidget {
 class _\${1:MyWidget}State extends State<\${1:MyWidget}> {
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3561,7 +3561,7 @@ class _\${1:MyWidget}State extends State<\${1:MyWidget}>
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3597,7 +3597,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3631,7 +3631,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3659,7 +3659,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 ''');
@@ -3685,7 +3685,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 ''');
@@ -3727,8 +3727,8 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
   @override
   String get expectedImports => '''
 import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';''';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';''';
 
   @override
   String get expectedNullableSuffix => '';

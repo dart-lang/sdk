@@ -48,7 +48,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   final flutter = Flutter.instance;
 
   late ClassElement? classWidget;
-  late ClassElement? classContainer;
+  late ClassElement? classPlaceholder;
 
   FlutterSnippetProducer(super.request);
 
@@ -74,7 +74,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
       return false;
     }
 
-    if ((classContainer = await getClass('Container')) == null) {
+    if ((classPlaceholder = await getClass('Placeholder')) == null) {
       return false;
     }
 
@@ -93,7 +93,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
     // Checked by isValid() before this will be called.
     final classBuildContext = this.classBuildContext!;
     final classWidget = this.classWidget!;
-    final classContainer = this.classContainer!;
+    final classPlaceholder = this.classPlaceholder!;
 
     // Add the build method.
     builder.writeln('  @override');
@@ -111,7 +111,8 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
         builder.writeln('{');
         builder.write('    return ');
         builder.selectAll(() {
-          builder.writeType(getType(classContainer));
+          builder.write('const ');
+          builder.writeType(getType(classPlaceholder));
           builder.write('()');
         });
         builder.writeln(';');
