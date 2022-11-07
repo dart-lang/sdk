@@ -16,7 +16,7 @@ import 'package:collection/collection.dart';
 class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<AstNode, Statement, Expression, PromotableElement,
-            DartType> {
+            DartType, DartPattern> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);

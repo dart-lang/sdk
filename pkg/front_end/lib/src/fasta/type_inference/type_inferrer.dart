@@ -158,9 +158,8 @@ class TypeInferrerImpl implements TypeInferrer {
   DartType inferImplicitFieldType(
       InferenceHelper helper, Expression initializer) {
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
-    ExpressionInferenceResult result = visitor.inferExpression(
-        initializer, const UnknownType(), true,
-        isVoidAllowed: true);
+    ExpressionInferenceResult result = visitor
+        .inferExpression(initializer, const UnknownType(), isVoidAllowed: true);
     DartType type = visitor.inferDeclarationType(result.inferredType);
     visitor.checkCleanState();
     return type;
@@ -171,8 +170,8 @@ class TypeInferrerImpl implements TypeInferrer {
       InferenceHelper helper, DartType declaredType, Expression initializer) {
     assert(!isTopLevel);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
-    ExpressionInferenceResult initializerResult = visitor
-        .inferExpression(initializer, declaredType, true, isVoidAllowed: true);
+    ExpressionInferenceResult initializerResult =
+        visitor.inferExpression(initializer, declaredType, isVoidAllowed: true);
     initializerResult = visitor.ensureAssignableResult(
         declaredType, initializerResult,
         isVoidAllowed: declaredType is VoidType);
@@ -285,7 +284,7 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(declaredType != null);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ExpressionInferenceResult result =
-        visitor.inferExpression(initializer, declaredType, true);
+        visitor.inferExpression(initializer, declaredType);
     if (hasDeclaredInitializer) {
       initializer =
           visitor.ensureAssignableResult(declaredType, result).expression;

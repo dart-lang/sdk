@@ -186,8 +186,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   TypeInferenceEngine get engine => _inferrer.engine;
 
-  bool get isTopLevel => _inferrer.isTopLevel;
-
   InferenceHelper get helper => _helper;
 
   CoreTypes get coreTypes => engine.coreTypes;
@@ -483,11 +481,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     nullabilityErrorTemplate ??= templateInvalidAssignmentErrorNullability;
     nullabilityPartErrorTemplate ??=
         templateInvalidAssignmentErrorPartNullability;
-
-    // We don't need to insert assignability checks when doing top level type
-    // inference since top level type inference only cares about the type that
-    // is inferred (the kernel code is discarded).
-    if (isTopLevel) return inferenceResult;
 
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
@@ -1615,26 +1608,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool inferenceNeeded = !skipTypeArgumentInference &&
         explicitTypeArguments == null &&
         calleeTypeParameters.isNotEmpty;
-    bool typeChecksNeeded = !isTopLevel;
-    bool useFormalAndActualTypes = inferenceNeeded ||
-        typeChecksNeeded ||
-        isSpecialCasedBinaryOperator ||
-        isSpecialCasedTernaryOperator;
 
     List<DartType>? inferredTypes;
     Substitution? substitution;
-    List<DartType>? formalTypes;
-    List<DartType>? actualTypes;
-    if (useFormalAndActualTypes) {
-      formalTypes = [];
-      actualTypes = [];
-    }
+    List<DartType> formalTypes = [];
+    List<DartType> actualTypes = [];
 
     List<VariableDeclaration>? localHoistedExpressions;
     if (libraryFeatures.namedArgumentsAnywhere.isEnabled &&
         arguments.argumentsOriginalOrder != null &&
         hoistedExpressions == null &&
-        !isTopLevel &&
         !isConst) {
       hoistedExpressions = localHoistedExpressions = <VariableDeclaration>[];
     }
@@ -1747,11 +1730,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           argumentExpression,
           isNonNullableByDefault
               ? inferredFormalType
-              : legacyErasure(inferredFormalType),
-          inferenceNeeded ||
-              isSpecialCasedBinaryOperator ||
-              isSpecialCasedTernaryOperator ||
-              typeChecksNeeded);
+              : legacyErasure(inferredFormalType));
     }
 
     List<EqualityInfo<DartType>?>? identicalInfo =
@@ -1806,12 +1785,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // We don't have `identical` info yet, so fill it in with `null` for
         // now.  Later, when we visit the function literal, we'll replace it.
         identicalInfo?.add(null);
-        if (useFormalAndActualTypes) {
-          formalTypes!.add(formalType);
-          // We don't have an inferred type yet, so fill it in with UnknownType
-          // for now.  Later, when we infer a type, we'll replace it.
-          actualTypes!.add(const UnknownType());
-        }
+        formalTypes.add(formalType);
+        // We don't have an inferred type yet, so fill it in with UnknownType
+        // for now.  Later, when we infer a type, we'll replace it.
+        actualTypes.add(const UnknownType());
       } else {
         ExpressionInferenceResult result = inferArgument(
             formalType, argumentExpression,
@@ -1832,10 +1809,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           namedArgument.value = expression..parent = namedArgument;
         }
         gatherer?.tryConstrainLower(formalType, inferredType);
-        if (useFormalAndActualTypes) {
-          formalTypes!.add(formalType);
-          actualTypes!.add(inferredType);
-        }
+        formalTypes.add(formalType);
+        actualTypes.add(inferredType);
       }
     }
     if (deferredFunctionLiterals != null) {
@@ -1845,7 +1820,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               calleeType.typeParameters.toSet(),
               inferenceNeeded
                   ? _computeUndeferredParamInfo(
-                      formalTypes!, deferredFunctionLiterals)
+                      formalTypes, deferredFunctionLiterals)
                   : const [])
           .planReconciliationStages()) {
         if (gatherer != null && !isFirstStage) {
@@ -1872,9 +1847,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           }
           gatherer?.tryConstrainLower(
               deferredArgument.formalType, inferredType);
-          if (useFormalAndActualTypes) {
-            actualTypes![deferredArgument.evaluationOrderIndex] = inferredType;
-          }
+          actualTypes[deferredArgument.evaluationOrderIndex] = inferredType;
         }
         isFirstStage = false;
       }
@@ -1893,7 +1866,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         "got ${namedIndex}.");
 
     if (isSpecialCasedBinaryOperator || isSpecialCasedTernaryOperator) {
-      if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
+      if (!identical(calleeType, unknownFunction)) {
         LocatedMessage? argMessage = helper.checkArgumentsForType(
             calleeType, arguments, offset,
             isExtensionMemberInvocation: isExtensionMemberInvocation);
@@ -1913,51 +1886,47 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         calleeType = replaceReturnType(
             calleeType,
             typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-                receiverType!, actualTypes![0],
+                receiverType!, actualTypes[0],
                 isNonNullableByDefault: isNonNullableByDefault));
       } else if (isSpecialCasedTernaryOperator) {
         calleeType = replaceReturnType(
             calleeType,
             typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
                 receiverType!,
-                actualTypes![0],
+                actualTypes[0],
                 actualTypes[1],
                 libraryBuilder.library));
       }
     }
 
     // Check for and remove duplicated named arguments.
-    if (!isTopLevel) {
-      List<NamedExpression> named = arguments.named;
-      Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
-      bool hasProblem = false;
-      int namedTypeIndex = arguments.positional.length;
-      List<NamedExpression> uniqueNamed = <NamedExpression>[];
-      for (NamedExpression expression in named) {
-        String name = expression.name;
-        if (seenNames.containsKey(name)) {
-          hasProblem = true;
-          NamedExpression prevNamedExpression = seenNames[name]!;
-          prevNamedExpression.value = helper.wrapInProblem(
-              _createDuplicateExpression(prevNamedExpression.fileOffset,
-                  prevNamedExpression.value, expression.value),
-              templateDuplicatedNamedArgument.withArguments(name),
-              expression.fileOffset,
-              name.length)
-            ..parent = prevNamedExpression;
-          if (useFormalAndActualTypes) {
-            formalTypes!.removeAt(namedTypeIndex);
-            actualTypes!.removeAt(namedTypeIndex);
-          }
-        } else {
-          seenNames[name] = expression;
-          uniqueNamed.add(expression);
-          namedTypeIndex++;
-        }
+    List<NamedExpression> named = arguments.named;
+    Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
+    bool hasProblem = false;
+    int namedTypeIndex = arguments.positional.length;
+    List<NamedExpression> uniqueNamed = <NamedExpression>[];
+    for (NamedExpression expression in named) {
+      String name = expression.name;
+      if (seenNames.containsKey(name)) {
+        hasProblem = true;
+        NamedExpression prevNamedExpression = seenNames[name]!;
+        prevNamedExpression.value = helper.wrapInProblem(
+            _createDuplicateExpression(prevNamedExpression.fileOffset,
+                prevNamedExpression.value, expression.value),
+            templateDuplicatedNamedArgument.withArguments(name),
+            expression.fileOffset,
+            name.length)
+          ..parent = prevNamedExpression;
+        formalTypes.removeAt(namedTypeIndex);
+        actualTypes.removeAt(namedTypeIndex);
+      } else {
+        seenNames[name] = expression;
+        uniqueNamed.add(expression);
+        namedTypeIndex++;
       }
-      if (hasProblem) {
-        arguments.named = uniqueNamed;
-      }
+    }
+    if (hasProblem) {
+      arguments.named = uniqueNamed;
     }
 
     if (inferenceNeeded) {
@@ -1981,7 +1950,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     List<DartType> positionalArgumentTypes = [];
     List<NamedType> namedArgumentTypes = [];
-    if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
+    if (!identical(calleeType, unknownFunction)) {
       LocatedMessage? argMessage = helper.checkArgumentsForType(
           calleeType, arguments, offset,
           isExtensionMemberInvocation: isExtensionMemberInvocation);
@@ -1999,12 +1968,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // Argument counts and names match. Compare types.
         int positionalShift = isImplicitExtensionMember ? 1 : 0;
         int numPositionalArgs = arguments.positional.length - positionalShift;
-        for (int i = 0; i < formalTypes!.length; i++) {
+        for (int i = 0; i < formalTypes.length; i++) {
           DartType formalType = formalTypes[i];
           DartType expectedType = substitution != null
               ? substitution.substituteType(formalType)
               : formalType;
-          DartType actualType = actualTypes![i];
+          DartType actualType = actualTypes[i];
           Expression expression;
           NamedExpression? namedExpression;
           bool coerceExpression;
@@ -2084,8 +2053,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       flowAnalysis.declare(parameter, true);
       inferMetadata(visitor, parameter, parameter.annotations);
       if (parameter.initializer != null) {
-        ExpressionInferenceResult initializerResult = visitor.inferExpression(
-            parameter.initializer!, parameter.type, !isTopLevel);
+        ExpressionInferenceResult initializerResult =
+            visitor.inferExpression(parameter.initializer!, parameter.type);
         parameter.initializer = initializerResult.expression
           ..parent = parameter;
       }
@@ -2093,8 +2062,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     for (VariableDeclaration parameter in function.namedParameters) {
       flowAnalysis.declare(parameter, true);
       inferMetadata(visitor, parameter, parameter.annotations);
-      ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.initializer!, parameter.type, !isTopLevel);
+      ExpressionInferenceResult initializerResult =
+          visitor.inferExpression(parameter.initializer!, parameter.type);
       parameter.initializer = initializerResult.expression..parent = parameter;
     }
 
@@ -2269,8 +2238,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       List<Expression>? annotations) {
     if (annotations != null) {
       for (int index = 0; index < annotations.length; index++) {
-        ExpressionInferenceResult result = visitor.inferExpression(
-            annotations[index], const UnknownType(), !isTopLevel);
+        ExpressionInferenceResult result =
+            visitor.inferExpression(annotations[index], const UnknownType());
         annotations[index] = result.expression..parent = parent;
       }
     }
@@ -2814,8 +2783,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration>? locallyHoistedExpressions;
-    if (hoistedExpressions == null && !isTopLevel) {
-      // We don't hoist in top-level inference.
+    if (hoistedExpressions == null) {
       hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
     }
     if (arguments.positional.isNotEmpty || arguments.named.isNotEmpty) {
@@ -2994,8 +2962,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration>? locallyHoistedExpressions;
-    if (hoistedExpressions == null && !isTopLevel) {
-      // We don't hoist in top-level inference.
+    if (hoistedExpressions == null) {
       hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
     }
     if (arguments.positional.isNotEmpty || arguments.named.isNotEmpty) {

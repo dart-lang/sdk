@@ -1161,7 +1161,7 @@ void Assembler::AddImmediate(Register reg,
   }
 }
 
-void Assembler::AddImmediate(Register dest, Register src, int32_t value) {
+void Assembler::AddImmediate(Register dest, Register src, int64_t value) {
   if (dest == src) {
     AddImmediate(dest, value);
     return;
@@ -1170,7 +1170,12 @@ void Assembler::AddImmediate(Register dest, Register src, int32_t value) {
     MoveRegister(dest, src);
     return;
   }
-  leaq(dest, Address(src, value));
+  if (Utils::IsInt(32, value)) {
+    leaq(dest, Address(src, value));
+    return;
+  }
+  LoadImmediate(dest, value);
+  addq(dest, src);
 }
 
 void Assembler::AddImmediate(const Address& address, const Immediate& imm) {

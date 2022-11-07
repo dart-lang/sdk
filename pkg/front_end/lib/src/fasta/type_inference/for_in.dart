@@ -82,8 +82,8 @@ class PropertyForInVariable implements ForInVariable {
 
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
-    ExpressionInferenceResult receiverResult = visitor.inferExpression(
-        propertySet.receiver, const UnknownType(), true);
+    ExpressionInferenceResult receiverResult =
+        visitor.inferExpression(propertySet.receiver, const UnknownType());
     propertySet.receiver = receiverResult.expression..parent = propertySet;
     DartType receiverType = receiverResult.inferredType;
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
@@ -128,9 +128,8 @@ class PropertyForInVariable implements ForInVariable {
         isVoidAllowed: true);
 
     propertySet.value = rhs..parent = propertySet;
-    ExpressionInferenceResult result = visitor.inferExpression(
-        propertySet, const UnknownType(), !visitor.isTopLevel,
-        isVoidAllowed: true);
+    ExpressionInferenceResult result = visitor
+        .inferExpression(propertySet, const UnknownType(), isVoidAllowed: true);
     return result.expression;
   }
 }
@@ -167,7 +166,7 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
         isVoidAllowed: true);
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
-        superPropertySet, const UnknownType(), !visitor.isTopLevel,
+        superPropertySet, const UnknownType(),
         isVoidAllowed: true);
     return result.expression;
   }
@@ -205,7 +204,7 @@ class SuperPropertyForInVariable implements ForInVariable {
         isVoidAllowed: true);
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
-        superPropertySet, const UnknownType(), !visitor.isTopLevel,
+        superPropertySet, const UnknownType(),
         isVoidAllowed: true);
     return result.expression;
   }
@@ -234,9 +233,8 @@ class StaticForInVariable implements ForInVariable {
         isVoidAllowed: true);
 
     staticSet.value = rhs..parent = staticSet;
-    ExpressionInferenceResult result = visitor.inferExpression(
-        staticSet, const UnknownType(), !visitor.isTopLevel,
-        isVoidAllowed: true);
+    ExpressionInferenceResult result = visitor
+        .inferExpression(staticSet, const UnknownType(), isVoidAllowed: true);
     return result.expression;
   }
 }

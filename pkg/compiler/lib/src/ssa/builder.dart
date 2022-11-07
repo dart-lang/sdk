@@ -105,7 +105,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// A stack of instructions.
   ///
   /// We build the SSA graph by simulating a stack machine.
-  List<HInstruction> stack = [];
+  List<HInstruction /*!*/ > stack = [];
 
   /// The count of nested loops we are currently building.
   ///
@@ -233,7 +233,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     stack.add(instruction);
   }
 
-  HInstruction pop() {
+  HInstruction /*!*/ pop() {
     return stack.removeLast();
   }
 
@@ -1905,7 +1905,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     SyntheticLocal indexVariable = localsHandler.createLocal('_i');
 
     // These variables are shared by initializer, condition, body and update.
-    HInstruction array; // Set in buildInitializer.
+    /*late final*/ HInstruction array; // Set in buildInitializer.
     bool isFixed; // Set in buildInitializer.
     HInstruction originalLength = null; // Set for growable lists.
 
@@ -2042,7 +2042,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     //   }
 
     // The iterator is shared between initializer, condition and body.
-    HInstruction iterator;
+    /*late final*/ HInstruction iterator;
     StaticType iteratorType = _getStaticForInIteratorType(node);
 
     void buildInitializer() {
@@ -3638,7 +3638,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Generate instructions to evaluate the positional arguments in source
   /// order.
-  List<HInstruction> _visitPositionalArguments(ir.Arguments arguments) {
+  List<HInstruction /*!*/ > _visitPositionalArguments(ir.Arguments arguments) {
     List<HInstruction> result = [];
     for (ir.Expression argument in arguments.positional) {
       argument.accept(this);
@@ -3649,7 +3649,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Generate instructions to evaluate the named arguments in source order.
   /// Returns a fresh map from parameter name to evaluated argument.
-  Map<String, HInstruction> _visitNamedArguments(ir.Arguments arguments) {
+  Map<String, HInstruction /*!*/ > _visitNamedArguments(
+      ir.Arguments arguments) {
     Map<String, HInstruction> values = {};
     for (ir.NamedExpression argument in arguments.named) {
       argument.value.accept(this);
@@ -3662,7 +3663,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// dynamic target (member function).  Dynamic targets use stubs to add
   /// defaulted arguments, so (unlike static targets) we do not add the default
   /// values.
-  List<HInstruction> _visitArgumentsForDynamicTarget(
+  List<HInstruction /*!*/ > _visitArgumentsForDynamicTarget(
       Selector selector, ir.Arguments arguments, List<DartType> typeArguments,
       [SourceInformation sourceInformation]) {
     List<HInstruction> values = _visitPositionalArguments(arguments);
@@ -3684,7 +3685,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// of named arguments. Return null if the arguments could not be correctly
   /// parsed because the user provided code with named parameters in a JS (non
   /// factory) function.
-  List<HInstruction> _visitArgumentsForNativeStaticTarget(
+  List<HInstruction /*!*/ > _visitArgumentsForNativeStaticTarget(
       ir.FunctionNode target, ir.Arguments arguments) {
     // Visit arguments in source order, then re-order and fill in defaults.
     var values = _visitPositionalArguments(arguments);

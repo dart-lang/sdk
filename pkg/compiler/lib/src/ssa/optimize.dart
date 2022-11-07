@@ -237,7 +237,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   final CodegenRegistry _registry;
   final OptimizationTestLog _log;
   final SsaMetrics _metrics;
-  HGraph _graph;
+  /*late final*/ HGraph _graph;
 
   SsaInstructionSimplifier(
       this._globalInferenceResults,
@@ -870,7 +870,8 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         } else {
           AbstractValue type = AbstractValueFactory.inferredTypeForMember(
               field, _globalInferenceResults);
-          load = HFieldGet(field, receiver, type, node.sourceInformation);
+          load = HFieldGet(field, receiver, type, node.sourceInformation,
+              isAssignable: field.isAssignable);
           _log?.registerFieldCall(node, load);
           node.block.addBefore(node, load);
           insertionPoint = load;

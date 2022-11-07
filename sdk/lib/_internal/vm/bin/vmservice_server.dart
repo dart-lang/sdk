@@ -150,6 +150,9 @@ class Server {
   bool get running => _server != null;
   bool acceptNewWebSocketConnections = true;
   int _port = -1;
+  // Ensures only one server is started even if many requests to launch
+  // the server come in concurrently.
+  Completer<bool>? _startingCompleter;
 
   /// Returns the server address including the auth token.
   Uri? get serverAddress {
@@ -401,6 +404,19 @@ class Server {
       // Already running.
       return this;
     }
+
+    {
+      final startingCompleter = _startingCompleter;
+      if (startingCompleter != null) {
+        if (!startingCompleter.isCompleted) {
+          await startingCompleter.future;
+        }
+        return this;
+      }
+    }
+
+    final startingCompleter = Completer<bool>();
+    _startingCompleter = startingCompleter;
     // Startup HTTP server.
     Future<bool> startServer() async {
       try {
@@ -431,11 +447,13 @@ class Server {
     }
 
     if (!(await startServer())) {
+      startingCompleter.complete(true);
       return this;
     }
     if (_service.isExiting) {
       serverPrint('Dart VM service HTTP server exiting before listening as '
           'vm service has received exit request\n');
+      startingCompleter.complete(true);
       await shutdown(true);
       return this;
     }
@@ -447,6 +465,7 @@ class Server {
     // Server is up and running.
     _notifyServerState(serverAddress.toString());
     onServerAddressChange('$serverAddress');
+    startingCompleter.complete(true);
     return this;
   }
 
@@ -481,7 +500,14 @@ class Server {
     return serverLocal.close(force: force);
   }
 
-  Future<Server> shutdown(bool forced) {
+  Future<Server> shutdown(bool forced) async {
+    // If start is pending, wait for it to complete.
+    if (_startingCompleter != null) {
+      if (!_startingCompleter!.isCompleted) {
+        await _startingCompleter!.future;
+      }
+    }
+
     if (_server == null) {
       // Not started.
       return Future.value(this);
@@ -492,11 +518,13 @@ class Server {
     return cleanup(forced).then((_) {
       serverPrint('Dart VM service no longer listening on $oldServerAddress');
       _server = null;
+      _startingCompleter = null;
       _notifyServerState('');
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
+      _startingCompleter = null;
       serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
       _notifyServerState('');
       onServerAddressChange(null);

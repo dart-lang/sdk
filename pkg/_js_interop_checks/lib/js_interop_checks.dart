@@ -43,6 +43,11 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasStaticInteropAnnotation = false;
   bool _libraryHasJSAnnotation = false;
   Map<Reference, Extension>? _libraryExtensionsIndex;
+  // TODO(joshualitt): These checks add value for our users, but unfortunately
+  // some backends support multiple native APIs. We should really make a neutral
+  // 'ExternalUsageVerifier` class, but until then we just disable this check on
+  // Dart2Wasm.
+  final bool enableDisallowedExternalCheck;
 
   /// Libraries that use `external` to exclude from checks on external.
   static final Iterable<String> _pathsWithAllowedDartExternalUsage = <String>[
@@ -83,7 +88,8 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _libraryIsGlobalNamespace = false;
 
   JsInteropChecks(
-      this._coreTypes, this._diagnosticsReporter, this._nativeClasses)
+      this._coreTypes, this._diagnosticsReporter, this._nativeClasses,
+      {this.enableDisallowedExternalCheck = true})
       : exportChecker =
             ExportChecker(_diagnosticsReporter, _coreTypes.objectClass);
 
@@ -413,6 +419,8 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Assumes given [member] is not JS interop, and reports an error if
   /// [member] is `external` and not an allowed `external` usage.
   void _checkDisallowedExternal(Member member) {
+    // Some backends have multiple native APIs.
+    if (!enableDisallowedExternalCheck) return;
     if (member.isExternal) {
       if (member.isExtensionMember) {
         if (!_isNativeExtensionMember(member)) {

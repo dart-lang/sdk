@@ -37,9 +37,6 @@ class Intrinsifier {
         '&': (b) => b.i64_and(),
         '|': (b) => b.i64_or(),
         '^': (b) => b.i64_xor(),
-        '<<': (b) => b.i64_shl(),
-        '>>': (b) => b.i64_shr_s(),
-        '>>>': (b) => b.i64_shr_u(),
         '<': (b) => b.i64_lt_s(),
         '<=': (b) => b.i64_le_s(),
         '>': (b) => b.i64_gt_s(),
@@ -210,13 +207,6 @@ class Intrinsifier {
     String name = node.name.text;
     Procedure target = node.interfaceTarget;
     Class cls = target.enclosingClass!;
-
-    // _TypedListBase._setRange
-    if (cls == translator.typedListBaseClass && name == "_setRange") {
-      // Always fall back to alternative implementation.
-      b.i32_const(0);
-      return w.NumType.i32;
-    }
 
     // _TypedList._(get|set)(Int|Uint|Float)(8|16|32|64)
     if (cls == translator.typedListClass) {
@@ -741,6 +731,42 @@ class Intrinsifier {
           codeGen.wrap(second, w.NumType.i64);
           b.i64_div_s();
           return w.NumType.i64;
+        case "_shl":
+          assert(cls == translator.boxedIntClass);
+          assert(node.arguments.positional.length == 2);
+          Expression first = node.arguments.positional[0];
+          Expression second = node.arguments.positional[1];
+          codeGen.wrap(first, w.NumType.i64);
+          codeGen.wrap(second, w.NumType.i64);
+          b.i64_shl();
+          return w.NumType.i64;
+        case "_shr_s":
+          assert(cls == translator.boxedIntClass);
+          assert(node.arguments.positional.length == 2);
+          Expression first = node.arguments.positional[0];
+          Expression second = node.arguments.positional[1];
+          codeGen.wrap(first, w.NumType.i64);
+          codeGen.wrap(second, w.NumType.i64);
+          b.i64_shr_s();
+          return w.NumType.i64;
+        case "_shr_u":
+          assert(cls == translator.boxedIntClass);
+          assert(node.arguments.positional.length == 2);
+          Expression first = node.arguments.positional[0];
+          Expression second = node.arguments.positional[1];
+          codeGen.wrap(first, w.NumType.i64);
+          codeGen.wrap(second, w.NumType.i64);
+          b.i64_shr_u();
+          return w.NumType.i64;
+        case "_lt_u":
+          assert(cls == translator.boxedIntClass);
+          assert(node.arguments.positional.length == 2);
+          Expression first = node.arguments.positional[0];
+          Expression second = node.arguments.positional[1];
+          codeGen.wrap(first, w.NumType.i64);
+          codeGen.wrap(second, w.NumType.i64);
+          b.i64_lt_u();
+          return w.NumType.i32; // bool
         case "_toInt":
           assert(cls == translator.boxedDoubleClass);
           assert(node.arguments.positional.length == 1);

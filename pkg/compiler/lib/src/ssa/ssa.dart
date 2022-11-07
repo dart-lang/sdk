@@ -46,7 +46,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
   final SsaBuilderTask _builder;
   final SsaOptimizerTask optimizer;
   final SourceInformationStrategy sourceInformationStrategy;
-  GlobalTypeInferenceResults _globalInferenceResults;
+  /*late*/ GlobalTypeInferenceResults _globalInferenceResults;
   CodegenInputs _codegen;
 
   SsaFunctionCompiler(

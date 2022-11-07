@@ -863,55 +863,6 @@ class _NaiveInt32x4 implements Int32x4 {
   }
 }
 
-@patch
-abstract class _TypedList extends _TypedListBase {
-  Float32x4 _getFloat32x4(int offsetInBytes) {
-    ByteData data = buffer.asByteData();
-    return Float32x4(
-        data.getFloat32(offsetInBytes + 0 * 4, Endian.host),
-        data.getFloat32(offsetInBytes + 1 * 4, Endian.host),
-        data.getFloat32(offsetInBytes + 2 * 4, Endian.host),
-        data.getFloat32(offsetInBytes + 3 * 4, Endian.host));
-  }
-
-  void _setFloat32x4(int offsetInBytes, Float32x4 value) {
-    ByteData data = buffer.asByteData();
-    data.setFloat32(offsetInBytes + 0 * 4, value.x, Endian.host);
-    data.setFloat32(offsetInBytes + 1 * 4, value.y, Endian.host);
-    data.setFloat32(offsetInBytes + 2 * 4, value.z, Endian.host);
-    data.setFloat32(offsetInBytes + 3 * 4, value.w, Endian.host);
-  }
-
-  Int32x4 _getInt32x4(int offsetInBytes) {
-    ByteData data = buffer.asByteData();
-    return Int32x4(
-        data.getInt32(offsetInBytes + 0 * 4, Endian.host),
-        data.getInt32(offsetInBytes + 1 * 4, Endian.host),
-        data.getInt32(offsetInBytes + 2 * 4, Endian.host),
-        data.getInt32(offsetInBytes + 3 * 4, Endian.host));
-  }
-
-  void _setInt32x4(int offsetInBytes, Int32x4 value) {
-    ByteData data = buffer.asByteData();
-    data.setInt32(offsetInBytes + 0 * 4, value.x, Endian.host);
-    data.setInt32(offsetInBytes + 1 * 4, value.y, Endian.host);
-    data.setInt32(offsetInBytes + 2 * 4, value.z, Endian.host);
-    data.setInt32(offsetInBytes + 3 * 4, value.w, Endian.host);
-  }
-
-  Float64x2 _getFloat64x2(int offsetInBytes) {
-    ByteData data = buffer.asByteData();
-    return Float64x2(data.getFloat64(offsetInBytes + 0 * 8, Endian.host),
-        data.getFloat64(offsetInBytes + 1 * 8, Endian.host));
-  }
-
-  void _setFloat64x2(int offsetInBytes, Float64x2 value) {
-    ByteData data = buffer.asByteData();
-    data.setFloat64(offsetInBytes + 0 * 8, value.x, Endian.host);
-    data.setFloat64(offsetInBytes + 1 * 8, value.y, Endian.host);
-  }
-}
-
 int _checkValidRange(int start, int? end, int length) {
   if (start > length) {
     throw RangeError.range(start, 0, length, 'checkValidRange');

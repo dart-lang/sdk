@@ -27,7 +27,7 @@ class ExtractorPatternResolver {
   void resolve({
     required ExtractorPatternImpl node,
     required DartType matchedType,
-    required Map<PromotableElement, VariableTypeInfo<AstNode, DartType>>
+    required Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>>
         typeInfos,
     required MatchContext<AstNode, Expression> context,
   }) {

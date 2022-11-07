@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:kernel/ast.dart';
 
 import '../fasta_codes.dart';
+import '../kernel/internal_ast.dart';
 import 'inference_helper.dart';
 
 /// Implementation of [TypeAnalyzerErrors] that reports errors using the
@@ -13,7 +14,7 @@ import 'inference_helper.dart';
 class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<Node, Statement, Expression, VariableDeclaration,
-            DartType> {
+            DartType, Pattern> {
   final InferenceHelper helper;
 
   final Uri uriForInstrumentation;

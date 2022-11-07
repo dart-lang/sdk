@@ -181,8 +181,11 @@ class ClosureLayouter extends RecursiveVisitor {
                     as ProcedureAttributesMetadataRepository)
                 .mapping;
 
-  void collect() {
+  void collect(List<FunctionNode> extraClosurizedFunctions) {
     translator.component.accept(this);
+    for (FunctionNode function in extraClosurizedFunctions) {
+      _visitFunctionNode(function);
+    }
     computeClusters();
   }
 

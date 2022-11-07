@@ -51,7 +51,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "642b786a850a9de5ab75ce872c98d7d560fe9fc2",
+  "co19_rev": "36cc25de009198a8516be7f12ac5b61069656d09",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "cdab7e4e26f3dd534bcb297ff3f9e9aa5c7a04fb",
 
@@ -139,7 +139,7 @@ vars = {
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
   "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
-  "markdown_rev": "f3873403f5b1a0319f78632a8fbc2b22315a7b83", # b/256680494
+  "markdown_rev": "9ff4a9f1d37c763f827084ba28a3d0bfec6b5d67",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
   "mime_rev": "d80f4d09067af87d84d9cb647acfa4d2d313d795",
@@ -150,7 +150,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
   "protobuf_rev": "ba29983968de5b54196c6c2a5cff1afbdda24ae2",
-  "pub_rev": "6506cc01b1bd17aff782037817d86a88a1c312e8", # manually rev'd
+  "pub_rev": "65c7f3e528f3f9978c4330cbd471070f17370f65", # manually rev'd
   "pub_semver_rev": "28159b8c5b96fc2709d0904389d7932880f68659",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "592656f9f5af6392509e9ff20a035fd30e5e5099",

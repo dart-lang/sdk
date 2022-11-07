@@ -239,9 +239,7 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     inputs.addAll(
         params.map((t) => adjustExternalType(translator.translateType(t))));
 
-    List<w.ValueType> outputs = returnType is VoidType ||
-            returnType is NeverType ||
-            returnType is NullType
+    List<w.ValueType> outputs = returnType is VoidType
         ? member.function?.asyncMarker == AsyncMarker.Async
             ? [adjustExternalType(translator.topInfo.nullableType)]
             : const []

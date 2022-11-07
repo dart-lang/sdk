@@ -235,8 +235,17 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
 
   void instantiate(Constant constant) {
     w.ValueType resultType = constant.accept(this);
-    assert(!translator.needsConversion(resultType, expectedType),
-        "For $constant: expected $expectedType, got $resultType");
+    if (translator.needsConversion(resultType, expectedType)) {
+      if (expectedType == const w.RefType.extern(nullable: true)) {
+        assert(resultType.isSubtypeOf(w.RefType.any(nullable: true)));
+        b.extern_externalize();
+      } else {
+        // This only happens in invalid but unreachable code produced by the
+        // TFA dead-code elimination.
+        b.comment("Constant in incompatible context");
+        b.unreachable();
+      }
+    }
   }
 
   @override
@@ -273,22 +282,11 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
 
   @override
   w.ValueType visitNullConstant(NullConstant node) {
-    w.ValueType? expectedType = this.expectedType;
-    if (expectedType != translator.voidMarker) {
-      if (expectedType.nullable) {
-        w.HeapType heapType =
-            expectedType is w.RefType ? expectedType.heapType : w.HeapType.data;
-        b.ref_null(heapType);
-      } else {
-        // This only happens in invalid but unreachable code produced by the
-        // TFA dead-code elimination.
-        b.comment("Non-nullable null constant");
-        b.block(const [], [expectedType]);
-        b.unreachable();
-        b.end();
-      }
-    }
-    return expectedType;
+    w.ValueType expectedType = this.expectedType;
+    w.HeapType heapType =
+        expectedType is w.RefType ? expectedType.heapType : w.HeapType.data;
+    b.ref_null(heapType);
+    return w.RefType(heapType, nullable: true);
   }
 
   w.ValueType _maybeBox(w.ValueType wasmType, void Function() pushValue) {

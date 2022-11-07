@@ -1017,7 +1017,7 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context);
 
   CaseHead when(Expression guard) =>
@@ -1298,7 +1298,7 @@ class _CastPattern extends Pattern {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     h.typeAnalyzer
         .analyzeCastPattern(matchedType, typeInfos, context, _inner, _type);
@@ -1578,7 +1578,7 @@ class _ConstantPattern extends Pattern {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     h.typeAnalyzer.analyzeConstantPattern(
         matchedType, typeInfos, context, this, constant);
@@ -2118,7 +2118,7 @@ class _ListPattern extends Pattern {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     var requiredType = h.typeAnalyzer.analyzeListPattern(
         matchedType, typeInfos, context, this,
@@ -2233,7 +2233,7 @@ class _LogicalPattern extends Pattern {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     h.typeAnalyzer.analyzeLogicalPattern(
         matchedType, typeInfos, context, this, _lhs, _rhs,
@@ -2270,7 +2270,7 @@ enum _LValueDisposition {
 
 class _MiniAstErrors
     implements
-        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type>,
+        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type, Pattern>,
         VariableBinderErrors<Node, Var> {
   final Set<String> _accumulatedErrors = {};
 
@@ -2401,7 +2401,7 @@ class _MiniAstErrors
 }
 
 class _MiniAstTypeAnalyzer
-    with TypeAnalyzer<Node, Statement, Expression, Var, Type> {
+    with TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern> {
   final Harness _harness;
 
   @override
@@ -2722,7 +2722,7 @@ class _MiniAstTypeAnalyzer
   @override
   void dispatchPattern(
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context,
       covariant Pattern node) {
     return node.visit(_harness, matchedType, typeInfos, context);
@@ -3004,7 +3004,7 @@ class _NullCheckOrAssertPattern extends Pattern {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     h.typeAnalyzer.analyzeNullCheckOrAssertPattern(
         matchedType, typeInfos, context, this, _inner,
@@ -3143,7 +3143,7 @@ class _RecordPattern extends Pattern {
   void visit(
     Harness h,
     Type matchedType,
-    Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+    Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
     MatchContext<Node, Expression> context,
   ) {
     var requiredType = h.typeAnalyzer.analyzeRecordPattern(
@@ -3189,7 +3189,7 @@ class _RelationalPattern extends Pattern {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     h.typeAnalyzer.analyzeRelationalPattern(
         matchedType, typeInfos, context, this, operator, operand);
@@ -3514,7 +3514,7 @@ class _VariablePattern extends Pattern {
   void visit(
       Harness h,
       Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     var staticType = h.typeAnalyzer.analyzeVariablePattern(
         matchedType, typeInfos, context, this, variable, declaredType,
