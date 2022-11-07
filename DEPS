@@ -107,7 +107,7 @@ vars = {
   "clock_rev": "97026d1657566bb0c9f5a33642712ec350e45084",
   "collection_rev": "efd709fc1760a595f8575f4137a1847de1b49d76",
   "convert_rev": "4feeb10d2f26d22eab461469da0739a57d001edf",
-  "crypto_rev": "7cf89d35b3d90786d9f7f75211b3b3cd7e4d173f",
+  "crypto_rev": "e175a95619ce23bfbd2ab34a4066f86aa0c108db",
   "csslib_rev": "ba2eb2d80530eedefadaade338a09c2dd60410f3",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -122,10 +122,10 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "f79a9828ad07e50d6e8352ac154cc16eb4d78d5c", # manually rev'd
 
-  "dartdoc_rev": "179ada02c1bf8e0d69c3255c49742c7513e33f6f",
+  "dartdoc_rev": "4b2e01b6e8c7c4e5e365026c182006b9616ecc28",
   "devtools_rev": "23444af89d716818f099974df3e4fffac87fd886",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
-  "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
+  "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",
   "glob_rev": "073007c5d00822a0ddc964c027785d1eb5559d68",
   "html_rev": "0bf601959ac98e6cdf1925a1cdab70bd6a5ddc45",
@@ -133,7 +133,7 @@ vars = {
   "http_parser_rev": "c73967535ce31120e218120f70ef98cc22688c82",
   "http_rev": "63390263e230bbd0aa2dae286fd7a64098e09029",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "intl_rev": "dda8ade30e8865843c6650a20a18bbf94387adee",
+  "intl_rev": "442193ccd19a8e36a07fcc3b3cac0e58c6f9c542",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0
@@ -153,7 +153,7 @@ vars = {
   "pub_rev": "65c7f3e528f3f9978c4330cbd471070f17370f65", # manually rev'd
   "pub_semver_rev": "28159b8c5b96fc2709d0904389d7932880f68659",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
-  "shelf_rev": "592656f9f5af6392509e9ff20a035fd30e5e5099",
+  "shelf_rev": "5fd2593d47120232054ebcc794f3a028d903f1f8",
   "source_map_stack_trace_rev": "8d8078fcc81c8f7936805cd277198493e0b7fc62",
   "source_maps_rev": "b031e2cdbef5675ab9a92025202d323a5e7cc526",
   "source_span_rev": "d1d47e550b6f77ed9b4907339a8a5e430b9ca314",
@@ -163,10 +163,10 @@ vars = {
   "string_scanner_rev": "4a5cbc5c1127151ea507cc9da797b829857607e8",
   "sync_http_rev": "f5c1f18f579752112870fa2f1860470d28c6f605",
   "term_glyph_rev": "ec7cf7bb51ebb7d55760a1359f6697690dbc06ba",
-  "test_descriptor_rev": "66f14ce9159f425da000ad105e0b890fe396c2b7",
+  "test_descriptor_rev": "13dbc20e9d5c354b670353220c3ab95642ae228c",
   "test_process_rev": "1774aa7a94ebbc60924a7f7174adb02e84458c25",
   "test_reflective_loader_rev": "ef934b7a894d78601ba67d8f6207bd4505690456",
-  "test_rev": "173a36f2cd4fbf1b2309a87722664d802c74009b",
+  "test_rev": "f3fb3ab6a6e6068b2daaed95ca13e526238def26",
   "typed_data_rev": "6369490ede1c87a4a5758304a606a6e4eee364b9",
   "usage_rev": "fee1d9d9c295362f6edebfeebb9f8187711c55ab",
   "vector_math_rev": "1eee95b15e5d35cf519514cc253037b19705fb7a",
@@ -174,7 +174,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "eba15419e51836a67fee18d1b7fd1b875d890bc3",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "069b87091b0cd25ae1a5e5927cdf6a475fda5bf7",
+  "webdev_rev": "47c1c3317da20dc2cfb542aeafcd04a0f1f381f1",
   "webdriver_rev": "c28cf51fcd0bd306a11fa7d10743b8fe7434ea71",
   "webkit_inspection_protocol_rev": "b825c8f6a12200d619729903207ac826cce278da",
   "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",
