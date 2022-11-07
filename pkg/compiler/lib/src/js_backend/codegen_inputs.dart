@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../tracer_interfaces.dart';
+import '../tracer.dart' show Tracer;
 import 'checked_mode_helpers.dart';
 import 'namer_migrated.dart';
 import 'runtime_types_codegen.dart';

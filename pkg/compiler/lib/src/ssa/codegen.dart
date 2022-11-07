@@ -40,7 +40,7 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart';
 import '../native/behavior.dart';
 import '../options.dart';
-import '../tracer_interfaces.dart';
+import '../tracer.dart' show Tracer;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;

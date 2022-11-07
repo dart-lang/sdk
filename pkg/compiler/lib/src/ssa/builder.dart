@@ -534,7 +534,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       if (_tracer.isEnabled) {
         MemberEntity member = _initialTargetElement;
-        String name = member.name;
+        String name = member.name ?? '<null>';
         if (member.isInstanceMember ||
             member is ConstructorEntity ||
             member.isStatic) {
