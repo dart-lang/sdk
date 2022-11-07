@@ -1762,8 +1762,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           kinds.contains(TargetKind.type);
     } else if (target is TopLevelVariableDeclaration) {
       return kinds.contains(TargetKind.topLevelVariable);
-    } else if (target is TypeParameter) {
-      return kinds.contains(TargetKind.typeParameter);
     }
     return false;
   }
