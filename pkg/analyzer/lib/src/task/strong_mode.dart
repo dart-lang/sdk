@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/util/collection.dart';
 import 'package:collection/collection.dart';
 
 /// An object used to infer the type of instance fields and the return types of
@@ -33,6 +36,7 @@ class InstanceMemberInferrer {
     typeSystem = unit.library.typeSystem as TypeSystemImpl;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.classes);
+    _inferClasses(unit.enums);
     _inferClasses(unit.mixins);
   }
 
@@ -246,8 +250,8 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        field.type = combinedGetterType();
-        field.hasTypeInferred = true;
+        var type = combinedGetterType();
+        _setFieldType(field, type);
         return;
       }
 
@@ -292,8 +296,6 @@ class InstanceMemberInferrer {
 
       // Otherwise, declarations of static variables and fields that omit a
       // type will be inferred from their initializer if present.
-      field.typeInference?.perform();
-
       return;
     }
   }
@@ -301,7 +303,7 @@ class InstanceMemberInferrer {
   /// Infer type information for all of the instance members in the given
   /// [classElement].
   void _inferClass(InterfaceElement classElement) {
-    if (classElement is ClassOrMixinElementImpl) {
+    if (classElement is AbstractClassElementImpl) {
       if (classElement.hasBeenInferred) {
         return;
       }
@@ -336,13 +338,13 @@ class InstanceMemberInferrer {
           );
         }
         for (var method in classElement.methods) {
-          _inferExecutable(method);
+          _inferExecutable(method as MethodElementImpl);
         }
         //
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.
         //
-        classElement.constructors.forEach(_inferConstructorFieldFormals);
+        classElement.constructors.forEach(_inferConstructor);
         classElement.hasBeenInferred = true;
       } finally {
         elementsBeingInferred.remove(classElement);
@@ -361,15 +363,29 @@ class InstanceMemberInferrer {
     }
   }
 
-  void _inferConstructorFieldFormals(ConstructorElement constructor) {
-    for (ParameterElement parameter in constructor.parameters) {
-      if (parameter.hasImplicitType &&
-          parameter is FieldFormalParameterElementImpl) {
-        var field = parameter.field;
-        if (field != null) {
-          parameter.type = field.type;
+  void _inferConstructor(ConstructorElement constructor) {
+    constructor as ConstructorElementImpl;
+    for (final parameter in constructor.parameters) {
+      if (parameter.hasImplicitType) {
+        if (parameter is FieldFormalParameterElementImpl) {
+          final field = parameter.field;
+          if (field != null) {
+            parameter.type = field.type;
+          }
+        } else if (parameter is SuperFormalParameterElementImpl) {
+          final superParameter = parameter.superConstructorParameter;
+          if (superParameter != null) {
+            parameter.type = superParameter.type;
+          } else {
+            parameter.type = DynamicTypeImpl.instance;
+          }
         }
       }
+    }
+
+    final classElement = constructor.enclosingElement;
+    if (classElement is ClassElementImpl && classElement.isMixinApplication) {
+      _inferMixinApplicationConstructor(classElement, constructor);
     }
   }
 
@@ -460,6 +476,43 @@ class InstanceMemberInferrer {
     }
 
     _resetOperatorEqualParameterTypeToDynamic(element, overriddenElements);
+  }
+
+  void _inferMixinApplicationConstructor(
+    ClassElementImpl classElement,
+    ConstructorElementImpl constructor,
+  ) {
+    var superType = classElement.supertype;
+    if (superType != null) {
+      var index = classElement.constructors.indexOf(constructor);
+      var superConstructors = superType.element.constructors
+          .where((element) => element.isAccessibleIn(classElement.library))
+          .toList();
+      if (index < superConstructors.length) {
+        var baseConstructor = superConstructors[index];
+        var substitution = Substitution.fromInterfaceType(superType);
+        forCorrespondingPairs<ParameterElement, ParameterElement>(
+          constructor.parameters,
+          baseConstructor.parameters,
+          (parameter, baseParameter) {
+            var type = substitution.substituteType(baseParameter.type);
+            (parameter as ParameterElementImpl).type = type;
+          },
+        );
+        // Update arguments of `SuperConstructorInvocation` to have the types
+        // (which we have just set) of the corresponding formal parameters.
+        // MixinApp(x, y) : super(x, y);
+        var initializers = constructor.constantInitializers;
+        var initializer = initializers.single as SuperConstructorInvocation;
+        forCorrespondingPairs<ParameterElement, Expression>(
+          constructor.parameters,
+          initializer.argumentList.arguments,
+          (parameter, argument) {
+            (argument as SimpleIdentifierImpl).staticType = parameter.type;
+          },
+        );
+      }
+    }
   }
 
   /// If a parameter is covariant, any parameters that override it are too.
@@ -589,7 +642,6 @@ class InstanceMemberInferrer {
 
   static void _setFieldType(FieldElementImpl field, DartType type) {
     field.type = type;
-    field.hasTypeInferred = true;
   }
 }
 

@@ -25872,12 +25872,15 @@ library
     topLevelVariables
       static a @4
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
       static b @19
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
       static c @34
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
       static d @49
         type: int
@@ -36629,6 +36632,73 @@ library
 ''');
   }
 
+  test_type_inference_field_cycle() async {
+    var library = await buildLibrary('''
+class A {
+  static final x = y + 1;
+  static final y = x + 1;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          static final x @25
+            typeInferenceError: dependencyCycle
+              arguments: [x, y]
+            type: dynamic
+          static final y @51
+            typeInferenceError: dependencyCycle
+              arguments: [x, y]
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get x @-1
+            returnType: dynamic
+          synthetic static get y @-1
+            returnType: dynamic
+''');
+  }
+
+  test_type_inference_field_cycle_chain() async {
+    var library = await buildLibrary('''
+class A {
+  static final a = b.c;
+  static final b = A();
+  final c = a;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          static final a @25
+            typeInferenceError: dependencyCycle
+              arguments: [a, c]
+            type: dynamic
+          static final b @49
+            type: A
+          final c @66
+            typeInferenceError: dependencyCycle
+              arguments: [a, c]
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get a @-1
+            returnType: dynamic
+          synthetic static get b @-1
+            returnType: A
+          synthetic get c @-1
+            returnType: dynamic
+''');
+  }
+
   test_type_inference_field_depends_onFieldFormal() async {
     var library = await buildLibrary('''
 class A<T> {
@@ -36812,11 +36882,9 @@ library
 class A {
   A(_);
 }
-var a = A(() => b);
-var b = A(() => a);
+final a = A(() => b);
+final b = A(() => a);
 ''');
-    // There is no cycle with `a` and `b`, because `A` is not generic,
-    // so the type of `new A(...)` does not depend on its arguments.
     checkElementText(library, r'''
 library
   definingUnit
@@ -36828,25 +36896,19 @@ library
               requiredPositional _ @14
                 type: dynamic
     topLevelVariables
-      static a @24
-        type: A
-      static b @44
-        type: A
+      static final a @26
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final b @48
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
     accessors
       synthetic static get a @-1
-        returnType: A
-      synthetic static set a @-1
-        parameters
-          requiredPositional _a @-1
-            type: A
-        returnType: void
+        returnType: dynamic
       synthetic static get b @-1
-        returnType: A
-      synthetic static set b @-1
-        parameters
-          requiredPositional _b @-1
-            type: A
-        returnType: void
+        returnType: dynamic
 ''');
   }
 
@@ -36938,6 +37000,148 @@ library
           requiredPositional _x @-1
             type: dynamic Function([dynamic])
         returnType: void
+''');
+  }
+
+  test_type_inference_topVariable_cycle_afterChain() async {
+    // Note that `a` depends on `b`, but does not belong to the cycle.
+    var library = await buildLibrary('''
+final a = b;
+final b = c;
+final c = b;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        type: dynamic
+      static final b @19
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final c @32
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
+''');
+  }
+
+  test_type_inference_topVariable_cycle_beforeChain() async {
+    // Note that `c` depends on `b`, but does not belong to the cycle.
+    var library = await buildLibrary('''
+final a = b;
+final b = a;
+final c = b;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final b @19
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final c @32
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
+''');
+  }
+
+  test_type_inference_topVariable_cycle_inCycle() async {
+    // `b` and `c` form a cycle.
+    // `a` and `d` form a different cycle, even though `a` references `b`.
+    var library = await buildLibrary('''
+final a = b + d;
+final b = c;
+final c = b;
+final d = a;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        typeInferenceError: dependencyCycle
+          arguments: [a, d]
+        type: dynamic
+      static final b @23
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final c @36
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final d @49
+        typeInferenceError: dependencyCycle
+          arguments: [a, d]
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
+      synthetic static get d @-1
+        returnType: dynamic
+''');
+  }
+
+  test_type_inference_topVariable_cycle_sharedElement() async {
+    // 1. Push `a`, start resolving.
+    // 2. Go to `b`, push, start resolving.
+    // 3. Go to `c`, push, start resolving.
+    // 4. Go to `b`, detect cycle `[b, c]`, set `dynamic`, return.
+    // 5. Pop `c`, already inferred (to `dynamic`), return.
+    // 6. Continue resolving `b` (it is not done, and not popped yet).
+    // 7. Go to `a`, detect cycle `[a, b]`, set `dynamic`, return.
+    var library = await buildLibrary('''
+final a = b;
+final b = c + a;
+final c = b;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final b @19
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final c @36
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
 ''');
   }
 
