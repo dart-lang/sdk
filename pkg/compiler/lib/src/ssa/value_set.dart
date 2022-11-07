@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../universe/side_effects.dart' show SideEffects;
 import 'nodes.dart';
 
 class ValueSet {
   int size = 0;
-  List<HInstruction> table;
-  ValueSetNode collisions;
-  ValueSet() : table = List<HInstruction>.filled(8, null);
+  List<HInstruction?> table = List.filled(8, null);
+  ValueSetNode? collisions;
+  ValueSet();
 
   bool get isEmpty => size == 0;
   int get length => size;
@@ -35,14 +33,14 @@ class ValueSet {
     size++;
   }
 
-  HInstruction lookup(HInstruction instruction) {
+  HInstruction? lookup(HInstruction instruction) {
     int hashCode = instruction.gvnHashCode();
     int index = hashCode % table.length;
     // Look in the hash table.
-    HInstruction probe = table[index];
+    HInstruction? probe = table[index];
     if (probe != null && probe.gvnEquals(instruction)) return probe;
     // Look in the collisions list.
-    for (ValueSetNode node = collisions; node != null; node = node.next) {
+    for (ValueSetNode? node = collisions; node != null; node = node.next) {
       if (node.hashCode == hashCode) {
         HInstruction cached = node.value;
         if (cached.gvnEquals(instruction)) return cached;
@@ -56,17 +54,17 @@ class ValueSet {
     int depends = SideEffects.computeDependsOnFlags(flags);
     // Kill in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
-      HInstruction instruction = table[index];
+      HInstruction? instruction = table[index];
       if (instruction != null && instruction.sideEffects.dependsOn(depends)) {
         table[index] = null;
         size--;
       }
     }
     // Kill in the collisions list.
-    ValueSetNode previous = null;
-    ValueSetNode current = collisions;
+    ValueSetNode? previous = null;
+    ValueSetNode? current = collisions;
     while (current != null) {
-      ValueSetNode next = current.next;
+      ValueSetNode? next = current.next;
       HInstruction cached = current.value;
       if (cached.sideEffects.dependsOn(depends)) {
         if (previous == null) {
@@ -104,7 +102,7 @@ class ValueSet {
   // by iterating through the hash table and the collisions list and
   // calling [:other.add:].
   static ValueSet copyTo(
-      ValueSet other, List<HInstruction> table, ValueSetNode collisions) {
+      ValueSet other, List<HInstruction?> table, ValueSetNode? collisions) {
     // Copy elements from the hash table.
     for (final instruction in table) {
       if (instruction != null) other.add(instruction);
@@ -123,13 +121,13 @@ class ValueSet {
     ValueSet result = ValueSet();
     // Look in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
-      HInstruction instruction = table[index];
+      HInstruction? instruction = table[index];
       if (instruction != null && other.lookup(instruction) != null) {
         result.add(instruction);
       }
     }
     // Look in the collision list.
-    ValueSetNode current = collisions;
+    ValueSetNode? current = collisions;
     while (current != null) {
       HInstruction value = current.value;
       if (other.lookup(value) != null) {
@@ -147,7 +145,7 @@ class ValueSet {
     // Reset the table with a bigger capacity.
     assert(capacity > table.length);
     size = 0;
-    table = List<HInstruction>.filled(capacity, null);
+    table = List.filled(capacity, null);
     collisions = null;
     // Add the old instructions to the new table.
     copyTo(this, oldTable, oldCollisions);
@@ -163,6 +161,6 @@ class ValueSetNode {
   final int hash;
   @override
   int get hashCode => hash;
-  ValueSetNode next;
+  ValueSetNode? next;
   ValueSetNode(this.value, this.hash, this.next);
 }
