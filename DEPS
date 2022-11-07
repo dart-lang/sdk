@@ -74,7 +74,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_version": "git_revision:bca75abc01f303512da409cf25a1d267b89b7276",
+  "clang_version": "git_revision:f85c1f3b7c0bda64aef12201e2f5bbad6028582d",
   "gn_version": "git_revision:0bcd37bd2b83f1a9ee17088037ebdfe6eab6d31a",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
