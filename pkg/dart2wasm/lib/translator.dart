@@ -851,17 +851,11 @@ class Translator {
         return;
       }
       if (to != voidMarker) {
-        if (to is w.RefType && to.nullable) {
-          // This can happen when a void method has its return type overridden
-          // to return a value, in which case the selector signature will have a
-          // non-void return type to encompass all possible return values.
-          b.ref_null(to.heapType);
-        } else {
-          // This only happens in invalid but unreachable code produced by the
-          // TFA dead-code elimination.
-          b.comment("Non-nullable void conversion");
-          b.unreachable();
-        }
+        assert(to is w.RefType && to.nullable);
+        // This can happen when a void method has its return type overridden
+        // to return a value, in which case the selector signature will have a
+        // non-void return type to encompass all possible return values.
+        b.ref_null((to as w.RefType).heapType);
         return;
       }
     }
