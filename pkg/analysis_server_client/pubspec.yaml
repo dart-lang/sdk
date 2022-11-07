@@ -1,5 +1,5 @@
 name: analysis_server_client
-version: 2.0.0
+version: 2.0.1
 description:
   A client wrapper over analysis_server. Instances of the class Server manage a
   connection to a server process, and facilitate communication to and from the
