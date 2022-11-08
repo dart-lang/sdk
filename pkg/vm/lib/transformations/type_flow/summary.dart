@@ -55,6 +55,7 @@ class StatementVisitor {
   void visitUse(Use expr) => visitDefault(expr);
   void visitCall(Call expr) => visitDefault(expr);
   void visitExtract(Extract expr) => visitDefault(expr);
+  void visitApplyNullability(ApplyNullability expr) => visitDefault(expr);
   void visitCreateConcreteType(CreateConcreteType expr) => visitDefault(expr);
   void visitCreateRuntimeType(CreateRuntimeType expr) => visitDefault(expr);
   void visitTypeCheck(TypeCheck expr) => visitDefault(expr);
@@ -405,23 +406,7 @@ class Extract extends Statement {
         final typeArg = typeArgs[interfaceOffset + paramIndex];
         Type extracted = typeArg;
         if (typeArg is RuntimeType) {
-          final argNullability = typeArg.nullability;
-          if (argNullability != nullability) {
-            // Apply nullability of type parameter type.
-            Nullability result;
-            if (argNullability == Nullability.nullable ||
-                nullability == Nullability.nullable) {
-              result = Nullability.nullable;
-            } else if (argNullability == Nullability.legacy ||
-                nullability == Nullability.legacy) {
-              result = Nullability.legacy;
-            } else {
-              result = Nullability.nonNullable;
-            }
-            if (argNullability != result) {
-              extracted = typeArg.withNullability(result);
-            }
-          }
+          extracted = typeArg.applyNullability(nullability);
         } else {
           assert(typeArg is UnknownType);
         }
@@ -441,6 +426,33 @@ class Extract extends Statement {
     }
 
     return extractedType ?? const UnknownType();
+  }
+}
+
+// Applies nullability to a given type argument.
+class ApplyNullability extends Statement {
+  TypeExpr arg;
+
+  final Nullability nullability;
+
+  ApplyNullability(this.arg, this.nullability);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitApplyNullability(this);
+
+  @override
+  String dump() => "$label = _ApplyNullability ($arg, ${nullability.suffix})";
+
+  @override
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
+      CallHandler callHandler) {
+    Type argType = arg.getComputedType(computedTypes);
+    if (argType is RuntimeType) {
+      return argType.applyNullability(nullability);
+    } else {
+      assert(argType is UnknownType);
+    }
+    return argType;
   }
 }
 

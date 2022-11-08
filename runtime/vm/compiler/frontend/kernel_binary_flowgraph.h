@@ -232,7 +232,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                         bool negate);
   Fragment BranchIfEqual(TargetEntryInstr** then_entry,
                          TargetEntryInstr** otherwise_entry,
-                         bool negate);
+                         bool negate = false);
   Fragment BranchIfNull(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
                         bool negate = false);
@@ -312,6 +312,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                               TestFragment* side_exits);
   Fragment BuildConditionalExpression(TokenPosition* position);
   Fragment BuildStringConcatenation(TokenPosition* position);
+  Fragment BuildIsTest(TokenPosition position, const AbstractType& type);
+  Fragment BuildRecordIsTest(TokenPosition position, const RecordType& type);
   Fragment BuildIsExpression(TokenPosition* position);
   Fragment BuildAsExpression(TokenPosition* position);
   Fragment BuildTypeLiteral(TokenPosition* position);

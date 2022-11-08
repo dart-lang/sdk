@@ -843,6 +843,10 @@ CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE:
   status: hasFix
 CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
   status: noFix
+CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE:
+  status: needsFix
+  notes: |-
+    ReplaceColonWithEquals should fix the issue, but it needs tests.
 CompileTimeErrorCode.ON_REPEATED:
   status: needsEvaluation
 CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR:
@@ -1278,6 +1282,8 @@ HintCode.DEAD_CODE:
 HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
 HintCode.DEAD_CODE_ON_CATCH_SUBTYPE:
+  status: hasFix
+HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
 HintCode.DEPRECATED_EXPORT_USE:
   status: needsEvaluation
@@ -1761,6 +1767,8 @@ LintCode.cast_nullable_to_non_nullable:
   status: needsEvaluation
 LintCode.close_sinks:
   status: needsEvaluation
+LintCode.collection_methods_unrelated_type:
+  status: needsEvaluation
 LintCode.combinators_ordering:
   status: hasFix
 LintCode.comment_references:
@@ -1773,6 +1781,8 @@ LintCode.control_flow_in_finally:
   status: needsEvaluation
 LintCode.curly_braces_in_flow_control_structures:
   status: hasFix
+LintCode.dangling_library_doc_comments:
+  status: needsEvaluation
 LintCode.depend_on_referenced_packages:
   status: needsFix
 LintCode.deprecated_consistency:
@@ -1802,6 +1812,8 @@ LintCode.flutter_style_todos:
 LintCode.hash_and_equals:
   status: hasFix
 LintCode.implementation_imports:
+  status: needsEvaluation
+LintCode.implicit_call_tearoffs:
   status: needsEvaluation
 LintCode.invariant_booleans:
   status: needsEvaluation
@@ -2008,6 +2020,8 @@ LintCode.unnecessary_lambdas:
   status: hasFix
 LintCode.unnecessary_late:
   status: hasFix
+LintCode.unnecessary_library_directive:
+  status: needsEvaluation
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.unnecessary_null_aware_assignments:

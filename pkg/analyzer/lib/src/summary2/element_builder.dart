@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -226,8 +225,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ..hasInitializer = true
         ..isConst = true
         ..isEnumConstant = true
-        ..isStatic = true
-        ..type = DynamicTypeImpl.instance;
+        ..isStatic = true;
       _setCodeRange(field, constant);
       _setDocumentation(field, constant);
       field.metadata = _buildAnnotationsWithUnit(
@@ -469,7 +467,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       if (node.fields.type == null) {
         element.hasImplicitType = true;
-        element.type = DynamicTypeImpl.instance;
       }
 
       _enclosingContext.addNonSyntheticField(element);
@@ -1052,7 +1049,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       if (node.variables.type == null) {
         element.hasImplicitType = true;
-        element.type = DynamicTypeImpl.instance;
       }
 
       element.createImplicitAccessors(enclosingRef, name);

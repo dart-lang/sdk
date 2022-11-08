@@ -700,7 +700,7 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
         d->heap()->old_space()->AllocateSnapshot(instance_size));
     Deserializer::InitializeHeader(table, kArrayCid, instance_size);
     table->untag()->type_arguments_ = TypeArguments::null();
-    table->untag()->length_ = CompressedSmiPtr(Smi::New(length));
+    table->untag()->length_ = Smi::New(length);
     for (intptr_t i = 0; i < SetType::kFirstKeyIndex; i++) {
       table->untag()->data()[i] = Smi::New(0);
     }
@@ -4925,7 +4925,7 @@ class RecordSerializationCluster : public SerializationCluster {
     objects_.Add(record);
 
     s->Push(record->untag()->field_names());
-    const intptr_t num_fields = record->untag()->num_fields_;
+    const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
     for (intptr_t i = 0; i < num_fields; ++i) {
       s->Push(record->untag()->field(i));
     }
@@ -4938,7 +4938,7 @@ class RecordSerializationCluster : public SerializationCluster {
       RecordPtr record = objects_[i];
       s->AssignRef(record);
       AutoTraceObject(record);
-      const intptr_t num_fields = record->untag()->num_fields_;
+      const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
       s->WriteUnsigned(num_fields);
       target_memory_size_ += compiler::target::Record::InstanceSize(num_fields);
     }
@@ -4949,7 +4949,7 @@ class RecordSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; ++i) {
       RecordPtr record = objects_[i];
       AutoTraceObject(record);
-      const intptr_t num_fields = record->untag()->num_fields_;
+      const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
       s->WriteUnsigned(num_fields);
       WriteField(record, field_names());
       for (intptr_t j = 0; j < num_fields; ++j) {
@@ -4992,7 +4992,7 @@ class RecordDeserializationCluster
       Deserializer::InitializeHeader(record, kRecordCid,
                                      Record::InstanceSize(num_fields),
                                      stamp_canonical);
-      record->untag()->num_fields_ = num_fields;
+      record->untag()->num_fields_ = Smi::New(num_fields);
       record->untag()->field_names_ = static_cast<ArrayPtr>(d.ReadRef());
       for (intptr_t j = 0; j < num_fields; ++j) {
         record->untag()->data()[j] = d.ReadRef();
@@ -5722,7 +5722,7 @@ class ArrayDeserializationCluster
                                      stamp_canonical);
       array->untag()->type_arguments_ =
           static_cast<TypeArgumentsPtr>(d.ReadRef());
-      array->untag()->length_ = CompressedSmiPtr(Smi::New(length));
+      array->untag()->length_ = Smi::New(length);
       for (intptr_t j = 0; j < length; j++) {
         array->untag()->data()[j] = d.ReadRef();
       }

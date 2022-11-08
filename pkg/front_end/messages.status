@@ -921,6 +921,7 @@ TypedefNotType/example: Fail # Feature not yet enabled by default.
 TypedefNullableType/analyzerCode: Fail
 TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
 TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
+UnavailableDartLibrary/part_wrapped_script: Fail # Uses imports
 UndefinedExtensionGetter/analyzerCode: Fail
 UndefinedExtensionGetter/example: Fail
 UndefinedExtensionMethod/analyzerCode: Fail
@@ -963,7 +964,6 @@ UnterminatedString/script7: Fail
 UnterminatedString/script8: Fail
 UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
-UntranslatableUri/part_wrapped_script: Fail # Importing file in the (now) part.
 ValueForRequiredParameterNotProvidedError/analyzerCode: Fail
 ValueForRequiredParameterNotProvidedError/example: Fail
 ValueForRequiredParameterNotProvidedWarning/analyzerCode: Fail

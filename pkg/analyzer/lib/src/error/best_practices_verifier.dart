@@ -456,6 +456,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var separator = node.separator;
+    if (node.isNamed &&
+        separator != null &&
+        separator.type == TokenType.COLON) {
+      // This is a warning in code whose language version is < 3.0, but an error
+      // in code whose language version is >= 3.0.
+      if (_currentLibrary.languageVersion.effective.major < 3) {
+        _errorReporter.reportErrorForToken(
+            HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE, separator);
+      } else {
+        _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, separator);
+      }
+    }
+    super.visitDefaultFormalParameter(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
@@ -1762,8 +1781,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           kinds.contains(TargetKind.type);
     } else if (target is TopLevelVariableDeclaration) {
       return kinds.contains(TargetKind.topLevelVariable);
-    } else if (target is TypeParameter) {
-      return kinds.contains(TargetKind.typeParameter);
     }
     return false;
   }

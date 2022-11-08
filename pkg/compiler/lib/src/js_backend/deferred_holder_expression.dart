@@ -12,7 +12,7 @@ import '../serialization/serialization.dart';
 import '../util/util.dart';
 import '../js_emitter/model.dart';
 import '../constants/values.dart' show ConstantValue;
-import 'namer_migrated.dart';
+import 'namer.dart';
 
 // TODO(joshualitt): Figure out how to subsume more of the modular naming
 // framework into this approach. For example, we are still creating ModularNames

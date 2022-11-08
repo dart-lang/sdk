@@ -3379,6 +3379,9 @@ void TypeTranslator::BuildRecordType() {
     field_types.SetAt(pos++, result_);
     helper_->ReadFlags();
   }
+  if (named_count != 0) {
+    field_names.MakeImmutable();
+  }
 
   finalize_ = finalize;
 

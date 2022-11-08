@@ -18,8 +18,7 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/codegen_inputs.dart';
-import '../js_backend/namer_interfaces.dart';
-import '../js_backend/namer.dart' show AsyncName, StringBackedName;
+import '../js_backend/namer.dart' show AsyncName, Namer, StringBackedName;
 import '../js_backend/deferred_holder_expression.dart'
     show DeferredHolderExpression;
 import '../js_backend/string_reference.dart' show StringReference;
@@ -41,7 +40,7 @@ import 'codegen_interfaces.dart' as interfaces;
 import 'codegen_migrated.dart';
 export 'codegen_migrated.dart';
 
-class CodegenImpact extends WorldImpact {
+class CodegenImpact extends WorldImpact implements interfaces.CodegenImpact {
   const CodegenImpact();
 
   factory CodegenImpact.readFromDataSource(DataSourceReader source) =
@@ -51,27 +50,35 @@ class CodegenImpact extends WorldImpact {
     throw UnsupportedError('CodegenImpact.writeToDataSink');
   }
 
+  @override
   Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
     return const <Pair<DartType, DartType>>[];
   }
 
   Iterable<String> get constSymbols => const <String>[];
 
+  @override
   Iterable<Set<ClassEntity>> get specializedGetInterceptors {
     return const <Set<ClassEntity>>[];
   }
 
+  @override
   bool get usesInterceptor => false;
 
+  @override
   Iterable<AsyncMarker> get asyncMarkers => const <AsyncMarker>[];
 
+  @override
   Iterable<GenericInstantiation> get genericInstantiations =>
       const <GenericInstantiation>[];
 
+  @override
   Iterable<NativeBehavior> get nativeBehaviors => const [];
 
+  @override
   Iterable<FunctionEntity> get nativeMethods => const [];
 
+  @override
   Iterable<Selector> get oneShotInterceptors => const [];
 }
 

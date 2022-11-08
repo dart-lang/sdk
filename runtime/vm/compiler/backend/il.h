@@ -7065,6 +7065,11 @@ class AllocateSmallRecordInstr : public TemplateAllocation<4> {
   intptr_t num_fields() const { return num_fields_; }
   bool has_named_fields() const { return has_named_fields_; }
 
+  Value* field_names() const {
+    ASSERT(has_named_fields_);
+    return InputAt(0);
+  }
+
   virtual intptr_t InputCount() const {
     return (has_named_fields_ ? 1 : 0) + num_fields_;
   }

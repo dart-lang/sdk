@@ -1860,7 +1860,7 @@ void f({/*required*/ String s}) {}
 
   Future<void> test_topLevelFunction_parameterType_named_with_default() async {
     await analyze('''
-void f({String s: 'x'}) {}
+void f({String s = 'x'}) {}
 ''');
     var decoratedType = decoratedTypeAnnotation('String');
     var functionType = decoratedFunctionType('f');

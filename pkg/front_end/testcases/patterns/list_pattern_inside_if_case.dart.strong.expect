@@ -1,0 +1,95 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  if(#t1 is core::List<core::num> && #t1{core::List<core::num>}.{core::List::length}{core::int}.{core::num::>=}(3){(core::num) → core::bool} && ((let final core::num #t2 = #t1{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num} in #t2.{core::num::==}(1){(core::Object) → core::bool}) && (let final core::num #t3 = #t1{core::List<core::num>}.{core::List::[]}(1){(core::int) → core::num} in #t3.{core::num::==}(2){(core::Object) → core::bool}) && (let final core::num #t4 = #t1{core::List<core::num>}.{core::List::[]}(2){(core::int) → core::num} in #t4.{core::num::<}(3){(core::num) → core::bool}))) {
+    final core::List<core::num> #t5 = #t1 as{ForDynamic} core::List<core::num>;
+    {
+      return 0;
+    }
+  }
+  final dynamic #t6 = x;
+  if(#t6 is core::List<core::String?> && #t6{core::List<core::String?>}.{core::List::length}{core::int}.{core::num::>=}(3){(core::num) → core::bool} && ((let final core::String? #t7 = #t6{core::List<core::String?>}.{core::List::[]}(1){(core::int) → core::String?} in !(#t7 == null) && #t7 is core::String) && (let final core::String? #t8 = #t6{core::List<core::String?>}.{core::List::[]}(2){(core::int) → core::String?} in #t8 =={core::String::==}{(core::Object) → core::bool} "bar"))) {
+    final core::List<core::String?> #t9 = #t6 as{ForDynamic} core::List<core::String?>;
+    core::String? a = #t9.{core::List::[]}(0){(core::int) → core::String?};
+    core::String b = #t9.{core::List::[]}(1){(core::int) → core::String?} as{ForNonNullableByDefault} core::String;
+    {
+      return 1;
+    }
+  }
+  final dynamic #t10 = x;
+  if(#t10 is core::List<dynamic> && #t10{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool} && ((let final dynamic #t11 = #t10{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t11 is core::List<core::String?> && #t11{core::List<core::String?>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool} && (let final core::String? #t12 = #t11{core::List<core::String?>}.{core::List::[]}(0){(core::int) → core::String?} in !(#t12 == null))) && (let final dynamic #t13 = #t10{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in #t13.{core::Object::==}(0){(core::Object) → core::bool}))) {
+    final core::List<dynamic> #t14 = #t10 as{ForDynamic} core::List<dynamic>;
+    final core::List<core::String?> #t15 = #t14.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic} core::List<core::String?>;
+    core::String a = #t15.{core::List::[]}(0){(core::int) → core::String?} as{ForNonNullableByDefault} core::String;
+    core::String? b = #t15.{core::List::[]}(1){(core::int) → core::String?};
+    {
+      return 2;
+    }
+  }
+  final dynamic #t16 = x;
+  if(#t16 is core::List<dynamic> && #t16{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t17 = #t16{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t17 is core::List<dynamic> && #t17{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t18 = #t17{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t18 is core::List<dynamic> && #t18{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t19 = #t18{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in !(#t19 == null))))) {
+    final core::List<dynamic> #t20 = #t16 as{ForDynamic} core::List<dynamic>;
+    final core::List<dynamic> #t21 = #t20.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic} core::List<dynamic>;
+    final core::List<dynamic> #t22 = #t21.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic} core::List<dynamic>;
+    dynamic a = #t22.{core::List::[]}(0){(core::int) → dynamic};
+    {
+      return 3;
+    }
+  }
+  final dynamic #t23 = x;
+  if(!(#t23 == null) && (#t23 is core::List<dynamic> && #t23{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(3){(core::num) → core::bool} && ((let final dynamic #t24 = #t23{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t24.{core::Object::==}(1){(core::Object) → core::bool}) && (let final dynamic #t25 = #t23{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in #t25.{core::Object::==}(2){(core::Object) → core::bool}) && (let final dynamic #t26 = #t23{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic} in #t26.{core::Object::==}(3){(core::Object) → core::bool})))) {
+    final core::List<dynamic> #t27 = #t23 as{ForDynamic} core::List<dynamic>;
+    {
+      return 4;
+    }
+  }
+}
+static method test2(core::List<core::Object?> x) → dynamic {
+  final core::List<core::Object?> #t28 = x;
+  if(#t28 is core::List<core::num> && #t28{core::List<core::num>}.{core::List::length}{core::int}.{core::num::>=}(3){(core::num) → core::bool} && ((let final core::num #t29 = #t28{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num} in #t29.{core::num::==}(1){(core::Object) → core::bool}) && (let final core::num #t30 = #t28{core::List<core::num>}.{core::List::[]}(1){(core::int) → core::num} in #t30.{core::num::==}(2){(core::Object) → core::bool}) && (let final core::num #t31 = #t28{core::List<core::num>}.{core::List::[]}(2){(core::int) → core::num} in #t31.{core::num::<}(3){(core::num) → core::bool}))) {
+    final core::List<core::num> #t32 = #t28 as core::List<core::num>;
+    {
+      return 0;
+    }
+  }
+  final core::List<core::Object?> #t33 = x;
+  if(#t33 is core::List<core::String?> && #t33{core::List<core::String?>}.{core::List::length}{core::int}.{core::num::>=}(3){(core::num) → core::bool} && ((let final core::String? #t34 = #t33{core::List<core::String?>}.{core::List::[]}(1){(core::int) → core::String?} in !(#t34 == null) && #t34 is core::String) && (let final core::String? #t35 = #t33{core::List<core::String?>}.{core::List::[]}(2){(core::int) → core::String?} in #t35 =={core::String::==}{(core::Object) → core::bool} "bar"))) {
+    final core::List<core::String?> #t36 = #t33 as core::List<core::String?>;
+    core::String? a = #t36.{core::List::[]}(0){(core::int) → core::String?};
+    core::String b = #t36.{core::List::[]}(1){(core::int) → core::String?} as{ForNonNullableByDefault} core::String;
+    {
+      return 1;
+    }
+  }
+  final core::List<core::Object?> #t37 = x;
+  if(#t37.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool} && ((let final dynamic #t38 = #t37{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t38 is core::List<core::String?> && #t38{core::List<core::String?>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool} && (let final core::String? #t39 = #t38{core::List<core::String?>}.{core::List::[]}(0){(core::int) → core::String?} in !(#t39 == null))) && (let final dynamic #t40 = #t37{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in #t40.{core::Object::==}(0){(core::Object) → core::bool}))) {
+    final core::List<dynamic> #t41 = #t37;
+    final core::List<core::String?> #t42 = #t41.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic} core::List<core::String?>;
+    core::String a = #t42.{core::List::[]}(0){(core::int) → core::String?} as{ForNonNullableByDefault} core::String;
+    core::String? b = #t42.{core::List::[]}(1){(core::int) → core::String?};
+    {
+      return 2;
+    }
+  }
+  final core::List<core::Object?> #t43 = x;
+  if(#t43.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t44 = #t43{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t44 is core::List<dynamic> && #t44{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t45 = #t44{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t45 is core::List<dynamic> && #t45{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t46 = #t45{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in !(#t46 == null))))) {
+    final core::List<dynamic> #t47 = #t43;
+    final core::List<dynamic> #t48 = #t47.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic} core::List<dynamic>;
+    final core::List<dynamic> #t49 = #t48.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic} core::List<dynamic>;
+    dynamic a = #t49.{core::List::[]}(0){(core::int) → dynamic};
+    {
+      return 3;
+    }
+  }
+  final core::List<core::Object?> #t50 = x;
+  if(!(#t50 == null) && (#t50.{core::List::length}{core::int}.{core::num::>=}(3){(core::num) → core::bool} && ((let final dynamic #t51 = #t50{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t51.{core::Object::==}(1){(core::Object) → core::bool}) && (let final dynamic #t52 = #t50{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in #t52.{core::Object::==}(2){(core::Object) → core::bool}) && (let final dynamic #t53 = #t50{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic} in #t53.{core::Object::==}(3){(core::Object) → core::bool})))) {
+    final core::List<dynamic> #t54 = #t50;
+    {
+      return 4;
+    }
+  }
+}
+static method main() → dynamic {}

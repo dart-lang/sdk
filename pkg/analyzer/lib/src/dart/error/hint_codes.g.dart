@@ -117,6 +117,14 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
+    'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+    "Using a colon as a separator before a default value is deprecated and "
+        "will\nnot be supported in language version 3.0 and later.",
+    correctionMessage: "Try replacing the colon with an equal sign.",
+  );
+
   ///  Parameters:
   ///  0: the name of the element
   static const HintCode DEPRECATED_EXPORT_USE = HintCode(

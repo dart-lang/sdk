@@ -1059,7 +1059,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   const intptr_t fixed_size_plus_alignment_padding =
       (target::Record::field_offset(0) +
        target::ObjectAlignment::kObjectAlignment - 1);
-  __ AddScaled(temp_reg, num_fields_reg, TIMES_COMPRESSED_WORD_SIZE,
+  __ AddScaled(temp_reg, num_fields_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
                fixed_size_plus_alignment_padding);
   __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 
@@ -1099,10 +1099,9 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
         FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
   }
 
-  __ StoreToOffset(
-      num_fields_reg,
-      FieldAddress(result_reg, target::Record::num_fields_offset()),
-      kFourBytes);
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
+      num_fields_reg);
 
   __ StoreCompressedIntoObjectNoBarrier(
       result_reg,
@@ -1145,7 +1144,6 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
 
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
-  __ SmiTag(num_fields_reg);
   __ PushRegistersInOrder({num_fields_reg, field_names_reg});
   __ CallRuntime(kAllocateRecordRuntimeEntry, 2);
   __ Drop(2);
@@ -1184,10 +1182,10 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
   __ TryAllocateObject(kRecordCid, target::Record::InstanceSize(num_fields),
                        &slow_case, distance, result_reg, temp_reg);
 
-  __ LoadImmediate(temp_reg, num_fields);
-  __ StoreToOffset(
-      temp_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
-      kFourBytes);
+  __ LoadImmediate(temp_reg, Smi::RawValue(num_fields));
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
+      temp_reg);
 
   if (!has_named_fields) {
     __ LoadObject(field_names_reg, Object::empty_array());

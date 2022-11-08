@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.backend.impact_transformer;
 
 import '../common/elements.dart';
-import '../common/codegen.dart' show CodegenImpact;
+import '../common/codegen_interfaces.dart' show CodegenImpact;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -24,7 +22,7 @@ import '../util/util.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'interceptor_data.dart';
-import 'namer_interfaces.dart';
+import 'namer.dart';
 import 'native_data.dart';
 import 'runtime_types.dart';
 import 'runtime_types_resolution.dart';
@@ -100,13 +98,13 @@ class CodegenImpactTransformer {
         case ConstantValueKind.INSTANTIATION:
           transformed.registerStaticUse(StaticUse.staticInvoke(
               _closedWorld.commonElements.findType, CallStructure.ONE_ARG));
-          InstantiationConstantValue instantiation = constantUse.value;
+          final instantiation = constantUse.value as InstantiationConstantValue;
           _rtiChecksBuilder.registerGenericInstantiation(GenericInstantiation(
               instantiation.function.type, instantiation.typeArguments));
           break;
         case ConstantValueKind.DEFERRED_GLOBAL:
-          _closedWorld.outputUnitData
-              .registerConstantDeferredUse(constantUse.value);
+          _closedWorld.outputUnitData.registerConstantDeferredUse(
+              constantUse.value as DeferredGlobalConstantValue);
           break;
         default:
           break;
@@ -122,7 +120,7 @@ class CodegenImpactTransformer {
     for (StaticUse staticUse in impact.staticUses) {
       switch (staticUse.kind) {
         case StaticUseKind.CALL_METHOD:
-          FunctionEntity callMethod = staticUse.element;
+          final callMethod = staticUse.element as FunctionEntity;
           if (_rtiNeed.methodNeedsSignature(callMethod)) {
             _impacts.computeSignature
                 .registerImpact(transformed, _elementEnvironment);

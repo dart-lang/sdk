@@ -1125,6 +1125,7 @@ CompilationSetup createCompilationSetup(
       ..experimentReleasedVersionForTesting = experimentReleasedVersion
       ..skipPlatformVerification = true
       ..omitPlatform = true
+      ..omitOsMessageForTesting = true
       ..target = createTarget(folderOptions, context);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =

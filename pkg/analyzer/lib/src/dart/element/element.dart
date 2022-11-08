@@ -80,6 +80,10 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// A list containing all of the methods contained in this class.
   List<MethodElementImpl> _methods = _Sentinel.methodElement;
 
+  /// A flag indicating whether the types associated with the instance members
+  /// of this class have been inferred.
+  bool hasBeenInferred = false;
+
   /// This callback is set during mixins inference to handle reentrant calls.
   List<InterfaceType>? Function(AbstractClassElementImpl)?
       mixinInferenceCallback;
@@ -943,10 +947,6 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   ElementLinkedData? linkedData;
-
-  /// A flag indicating whether the types associated with the instance members
-  /// of this class have been inferred.
-  bool hasBeenInferred = false;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -4814,53 +4814,49 @@ class Modifier implements Comparable<Modifier> {
   /// initializer.
   static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
 
-  /// A flag used for fields and top-level variables that have implicit type,
-  /// and specify when the type has been inferred.
-  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 14);
-
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 15);
+      Modifier('HAS_PART_OF_DIRECTIVE', 14);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 17);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 16);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 18);
+  static const Modifier LATE = Modifier('LATE', 17);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 19);
+  static const Modifier MACRO = Modifier('MACRO', 18);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 20);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 21);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 20);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 22);
+  static const Modifier SETTER = Modifier('SETTER', 21);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 23);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 22);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 24);
+  static const Modifier STATIC = Modifier('STATIC', 23);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 25);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 24);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 26);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 25);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5800,12 +5796,6 @@ abstract class PropertyInducingElementImpl
   /// [offset].
   PropertyInducingElementImpl(super.name, super.offset);
 
-  bool get hasTypeInferred => hasModifier(Modifier.HAS_TYPE_INFERRED);
-
-  set hasTypeInferred(bool value) {
-    setModifier(Modifier.HAS_TYPE_INFERRED, value);
-  }
-
   @override
   bool get isConstantEvaluated => true;
 
@@ -5854,19 +5844,21 @@ abstract class PropertyInducingElementImpl
     linkedData?.read(this);
     if (_type != null) return _type!;
 
-    if (isSynthetic && _type == null) {
+    if (isSynthetic) {
       if (getter != null) {
-        _type = getter!.returnType;
+        return _type = getter!.returnType;
       } else if (setter != null) {
         List<ParameterElement> parameters = setter!.parameters;
-        _type = parameters.isNotEmpty
+        return _type = parameters.isNotEmpty
             ? parameters[0].type
             : DynamicTypeImpl.instance;
       } else {
-        _type = DynamicTypeImpl.instance;
+        return _type = DynamicTypeImpl.instance;
       }
     }
-    return super.typeInternal;
+
+    // We must be linking, and the type has not been set yet.
+    return _type = typeInference!.perform();
   }
 
   /// Return `true` if this variable needs the setter.
@@ -5912,7 +5904,7 @@ abstract class PropertyInducingElementImpl
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
 abstract class PropertyInducingElementTypeInference {
-  void perform();
+  DartType perform();
 }
 
 /// A concrete implementation of a [ShowElementCombinator].

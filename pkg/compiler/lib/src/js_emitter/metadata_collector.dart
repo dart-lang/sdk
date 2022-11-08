@@ -11,7 +11,7 @@ import '../deferred_load/output_unit.dart' show OutputUnit;
 
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
-import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 
 import 'interfaces.dart' show ModularEmitter;

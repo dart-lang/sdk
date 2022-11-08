@@ -329,6 +329,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
             names.SetAt(j, name);
             reader.ReadUInt();
           }
+          names.MakeImmutable();
           names ^= H.Canonicalize(names);
           field_names = &names;
         }

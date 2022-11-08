@@ -2310,7 +2310,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
     // num_positional = num_fields - field_names.length
     body += LoadLocal(parsed_function_->receiver_var());
     body += LoadNativeField(Slot::Record_num_fields());
-    body += Box(Slot::Record_num_fields().representation());
     body += LoadLocal(parsed_function_->receiver_var());
     body += LoadNativeField(Slot::Record_field_names());
     body += LoadNativeField(Slot::Array_length());
@@ -2390,7 +2389,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
 
   body += LoadLocal(parsed_function_->receiver_var());
   body += LoadNativeField(Slot::Record_num_fields());
-  body += Box(Slot::Record_num_fields().representation());
   body += LoadLocal(num_named);
   body += SmiBinaryOp(Token::kSUB);
   body += LoadLocal(index);

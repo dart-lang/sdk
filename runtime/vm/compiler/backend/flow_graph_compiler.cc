@@ -2645,8 +2645,6 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
   if (type.IsRecordType()) {
     // Subtype test cache stubs are not useful for record types.
     // Fall through to runtime.
-    // TODO(dartbug.com/49719): generate separate type test
-    // for each record field.
     return SubtypeTestCache::New();
   }
 
@@ -3339,10 +3337,8 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   // when building a dynamic closure call dispatcher, where any unboxed values
   // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
   // See FlowGraphBuilder::BuildDynamicCallVarsInit().
-  // Unboxed values are also allowed in record field getters.
   ASSERT(!RepresentationUtils::IsUnboxedInteger(rep) ||
-         function.IsDynamicClosureCallDispatcher(thread()) ||
-         function.IsRecordFieldGetter());
+         function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }
 

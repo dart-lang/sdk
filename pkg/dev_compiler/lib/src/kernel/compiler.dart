@@ -6506,8 +6506,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitRecordLiteral(RecordLiteral node) =>
-      defaultExpression(node);
+  js_ast.Expression visitRecordLiteral(RecordLiteral node) {
+    var names = node.named.map((element) => element.name);
+    var recipe = '${node.positional.length} ${names.join(" ")}';
+    var shapeExpr = runtimeCall('recordLiteral(#, #, #, [#])', [
+      js.string(recipe),
+      js.number(node.positional.length),
+      names.isEmpty ? js.call('void 0') : js.stringArray(names),
+      [
+        ...node.positional.map(_visitExpression),
+        ...node.named.map((e) => _visitExpression(e.value))
+      ]
+    ]);
+    return shapeExpr;
+  }
 
   @override
   js_ast.Expression visitAwaitExpression(AwaitExpression node) =>

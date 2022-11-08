@@ -5535,6 +5535,76 @@ const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
         r"""Try moving the import directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Uri uri_,
+        String string,
+        String
+            string2)> templateImportChainContext = const Template<
+        Message Function(Uri uri_, String string, String string2)>(
+    problemMessageTemplate:
+        r"""The unavailable library '#uri' is imported through these packages:
+
+#string
+Detailed import paths for (some of) the these imports:
+
+#string2""",
+    withArguments: _withArgumentsImportChainContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string, String string2)>
+    codeImportChainContext =
+    const Code<Message Function(Uri uri_, String string, String string2)>(
+        "ImportChainContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImportChainContext(
+    Uri uri_, String string, String string2) {
+  String? uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeImportChainContext,
+      problemMessage:
+          """The unavailable library '${uri}' is imported through these packages:
+
+${string}
+Detailed import paths for (some of) the these imports:
+
+${string2}""",
+      arguments: {'uri': uri_, 'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_, String string)>
+    templateImportChainContextSimple =
+    const Template<Message Function(Uri uri_, String string)>(
+        problemMessageTemplate:
+            r"""The unavailable library '#uri' is imported through these paths:
+
+#string""",
+        withArguments: _withArgumentsImportChainContextSimple);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string)>
+    codeImportChainContextSimple =
+    const Code<Message Function(Uri uri_, String string)>(
+        "ImportChainContextSimple",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImportChainContextSimple(Uri uri_, String string) {
+  String? uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeImportChainContextSimple,
+      problemMessage:
+          """The unavailable library '${uri}' is imported through these paths:
+
+${string}""",
+      arguments: {'uri': uri_, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIncorrectTypeArgumentVariable =
     messageIncorrectTypeArgumentVariable;
 
@@ -11516,6 +11586,27 @@ const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
     "TypedefUnaliasedTypeCause",
     severity: Severity.context,
     problemMessage: r"""This is the type denoted by the type alias.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)> templateUnavailableDartLibrary =
+    const Template<Message Function(Uri uri_)>(
+        problemMessageTemplate:
+            r"""Dart library '#uri' is not available on this platform.""",
+        withArguments: _withArgumentsUnavailableDartLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeUnavailableDartLibrary =
+    const Code<Message Function(Uri uri_)>("UnavailableDartLibrary",
+        analyzerCodes: <String>["URI_DOES_NOT_EXIST"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnavailableDartLibrary(Uri uri_) {
+  String? uri = relativizeUri(uri_);
+  return new Message(codeUnavailableDartLibrary,
+      problemMessage:
+          """Dart library '${uri}' is not available on this platform.""",
+      arguments: {'uri': uri_});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;

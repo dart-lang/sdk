@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.backend;
 
 import '../common.dart';
-import '../common/codegen.dart';
+import '../common/codegen_interfaces.dart';
 import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../js_model/elements.dart';
@@ -55,17 +53,11 @@ class FunctionInlineCache {
     return '$method'.startsWith(jsElementPrefix);
   }
 
-  /// Returns the current cache decision. This should only be used for testing.
-  int getCurrentCacheDecisionForTesting(FunctionEntity element) {
-    assert(checkFunction(element), failedAt(element));
-    return _cachedDecisions[element];
-  }
-
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
-  bool canInline(FunctionEntity element, {bool insideLoop}) {
+  bool? canInline(FunctionEntity element, {required bool insideLoop}) {
     assert(checkFunction(element), failedAt(element));
-    int decision = _cachedDecisions[element];
+    int? decision = _cachedDecisions[element];
 
     if (decision == null) {
       // TODO(sra): Have annotations for mustInline / noInline for constructor
@@ -114,9 +106,9 @@ class FunctionInlineCache {
     return null;
   }
 
-  void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
+  void markAsInlinable(FunctionEntity element, {required bool insideLoop}) {
     assert(checkFunction(element), failedAt(element));
-    int oldDecision = _cachedDecisions[element];
+    int? oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
       oldDecision = _unknown;
@@ -170,7 +162,7 @@ class FunctionInlineCache {
 
   void markAsNonInlinable(FunctionEntity element, {bool insideLoop = true}) {
     assert(checkFunction(element), failedAt(element));
-    int oldDecision = _cachedDecisions[element];
+    int? oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
       oldDecision = _unknown;

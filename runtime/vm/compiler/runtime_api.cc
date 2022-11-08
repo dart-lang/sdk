@@ -1034,6 +1034,11 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
+intptr_t Record::field_index_at_offset(intptr_t offset_in_bytes) {
+  return dart::Record::field_index_at_offset(
+      TranslateOffsetInWordsToHost(offset_in_bytes));
+}
+
 word String::InstanceSize(word payload_size) {
   return RoundedAllocationSize(String::InstanceSize() + payload_size);
 }
@@ -1109,6 +1114,7 @@ namespace target {
 
 const word Array::kMaxElements = Array_kMaxElements;
 const word Context::kMaxElements = Context_kMaxElements;
+const word Record::kMaxElements = Record_kMaxElements;
 
 }  // namespace target
 }  // namespace compiler

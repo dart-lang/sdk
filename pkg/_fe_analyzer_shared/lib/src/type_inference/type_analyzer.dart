@@ -572,6 +572,60 @@ mixin TypeAnalyzer<
     }
   }
 
+  /// Analyzes an object pattern.  [node] is the pattern itself, and [fields]
+  /// is the list of subpatterns.  The [requiredType] must be not `null` in
+  /// irrefutable contexts, but can be `null` in refutable contexts, then
+  /// [downwardInferObjectPatternRequiredType] is invoked to infer the type.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (n * Pattern) where n = fields.length.
+  Type analyzeObjectPattern(
+    Type matchedType,
+    Map<Variable, VariableTypeInfo<Pattern, Type>> typeInfos,
+    MatchContext<Node, Expression> context,
+    Pattern node, {
+    required Type? requiredType,
+    required List<RecordPatternField<Pattern>> fields,
+  }) {
+    requiredType ??= downwardInferObjectPatternRequiredType(
+      matchedType: matchedType,
+      pattern: node,
+    );
+
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null &&
+        !typeOperations.isAssignableTo(matchedType, requiredType)) {
+      errors?.patternTypeMismatchInIrrefutableContext(
+        pattern: node,
+        context: irrefutableContext,
+        matchedType: matchedType,
+        requiredType: requiredType,
+      );
+    }
+
+    // Stack: ()
+    for (RecordPatternField<Pattern> field in fields) {
+      Type propertyType = resolveObjectPatternPropertyGet(
+        receiverType: requiredType,
+        field: field,
+      );
+      dispatchPattern(propertyType, typeInfos, context, field.pattern);
+    }
+    // Stack: (n * Pattern) where n = fields.length
+
+    return requiredType;
+  }
+
+  /// Computes the type schema for an object pattern.  [type] is the type
+  /// specified with the object name, and with the type arguments applied.
+  ///
+  /// Stack effect: none.
+  Type analyzeObjectPatternSchema(Type type) {
+    return type;
+  }
+
   /// Analyzes a record pattern.  [node] is the pattern itself, and [fields]
   /// is the list of subpatterns.
   ///
@@ -584,9 +638,9 @@ mixin TypeAnalyzer<
     Map<Variable, VariableTypeInfo<Pattern, Type>> typeInfos,
     MatchContext<Node, Expression> context,
     Pattern node, {
-    required List<RecordPatternField<Node>> fields,
+    required List<RecordPatternField<Pattern>> fields,
   }) {
-    void dispatchField(RecordPatternField<Node> field, Type matchedType) {
+    void dispatchField(RecordPatternField<Pattern> field, Type matchedType) {
       dispatchPattern(matchedType, typeInfos, context, field.pattern);
     }
 
@@ -599,7 +653,7 @@ mixin TypeAnalyzer<
     // Build the required type.
     int requiredTypePositionalCount = 0;
     List<NamedType<Type>> requiredTypeNamedTypes = [];
-    for (RecordPatternField<Node> field in fields) {
+    for (RecordPatternField<Pattern> field in fields) {
       String? name = field.name;
       if (name == null) {
         requiredTypePositionalCount++;
@@ -655,11 +709,11 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   Type analyzeRecordPatternSchema({
-    required List<RecordPatternField<Node>> fields,
+    required List<RecordPatternField<Pattern>> fields,
   }) {
     List<Type> positional = [];
     List<NamedType<Type>> named = [];
-    for (RecordPatternField<Node> field in fields) {
+    for (RecordPatternField<Pattern> field in fields) {
       Type fieldType = dispatchPatternSchema(field.pattern);
       String? name = field.name;
       if (name != null) {
@@ -1031,6 +1085,12 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Statement).
   void dispatchStatement(Statement statement);
 
+  /// Infers the type for the [pattern], should be a subtype of [matchedType].
+  Type downwardInferObjectPatternRequiredType({
+    required Type matchedType,
+    required Pattern pattern,
+  });
+
   /// Called after visiting an expression case.
   ///
   /// [node] is the enclosing switch expression, and [caseIndex] is the index of
@@ -1155,6 +1215,14 @@ mixin TypeAnalyzer<
   /// Builds the client specific record type.
   Type recordType(RecordType<Type> type);
 
+  /// Returns the type of the property in [receiverType] that corresponds to
+  /// the name of the [field].  If the property cannot be resolved, the client
+  /// should report an error, and return `dynamic` for recovery.
+  Type resolveObjectPatternPropertyGet({
+    required Type receiverType,
+    required RecordPatternField<Pattern> field,
+  });
+
   /// Records that type inference has assigned a [type] to a [variable].  This
   /// is called once per variable, regardless of whether the variable's type is
   /// explicit or inferred.
@@ -1199,7 +1267,7 @@ mixin TypeAnalyzer<
   /// [matchedType], returns matched types for each field in [fields].
   /// Otherwise returns `null`.
   List<Type>? _matchRecordTypeShape(
-    List<RecordPatternField<Node>> fields,
+    List<RecordPatternField<Pattern>> fields,
     RecordType<Type> matchedType,
   ) {
     Map<String, Type> matchedTypeNamed = {};
@@ -1210,7 +1278,7 @@ mixin TypeAnalyzer<
     List<Type> result = [];
     int positionalIndex = 0;
     int namedCount = 0;
-    for (RecordPatternField<Node> field in fields) {
+    for (RecordPatternField<Pattern> field in fields) {
       Type? fieldType;
       String? name = field.name;
       if (name != null) {

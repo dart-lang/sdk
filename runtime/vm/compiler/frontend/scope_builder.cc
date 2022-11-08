@@ -837,6 +837,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kIsExpression:
+      needs_expr_temp_ = true;
       helper_.ReadPosition();  // read position.
       helper_.ReadFlags();     // read flags.
       VisitExpression();  // read operand.

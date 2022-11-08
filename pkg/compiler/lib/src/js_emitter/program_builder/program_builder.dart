@@ -22,13 +22,13 @@ import '../../js_backend/backend_usage.dart';
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/namer_interfaces.dart' show Namer;
+import '../../js_backend/namer.dart' show Namer;
 import '../../js_backend/namer.dart' show StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
-import '../../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
-import '../../js_backend/runtime_types_new_migrated.dart' show RecipeEncoding;
+import '../../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding;
 import '../../js_backend/runtime_types_new.dart' as newRti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;

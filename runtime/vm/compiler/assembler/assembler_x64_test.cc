@@ -6087,9 +6087,9 @@ ASSEMBLER_TEST_GENERATE(ImmediateMacros64, assembler) {
   }
   {
     __ LoadImmediate(RAX, 5);
-    __ AddImmediate(RBX, RAX, kTrillion);
+    __ AddImmediate(RCX, RAX, kTrillion);
     Label ok;
-    __ CompareImmediate(RBX, 5 + kTrillion);
+    __ CompareImmediate(RCX, 5 + kTrillion);
     __ j(EQUAL, &ok);
     __ int3();
     __ Bind(&ok);
@@ -6116,10 +6116,10 @@ ASSEMBLER_TEST_RUN(ImmediateMacros64, test) {
       "jz +7\n"
       "int3\n"
       "movl rax,5\n"
-      "movq rbx,0x000000e8d4a51000\n"
-      "addq rbx,rax\n"
+      "movq rcx,0x000000e8d4a51000\n"
+      "addq rcx,rax\n"
       "movq tmp,0x000000e8d4a51005\n"
-      "cmpq rbx,tmp\n"
+      "cmpq rcx,tmp\n"
       "jz +7\n"
       "int3\n"
       "movl rax,0x2a\n"

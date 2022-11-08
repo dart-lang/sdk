@@ -29,103 +29,95 @@ class Target {
 
 /// An enumeration of the kinds of targets to which an annotation can be
 /// applied.
-///
-/// More values will be added in the future, as the Dart language evolves.
-class TargetKind {
-  // This class is not meant to be instantiated or extended; this constructor
-  // prevents instantiation and extension.
-  const TargetKind._(this.displayString, this.name);
-
-  /// A numeric identifier for the enumerated value.
-  int get index => values.indexOf(this);
-
-  /// A user visible string used to describe this target kind.
-  final String displayString;
-
-  /// The name of the [TargetKind] value.
-  ///
-  /// The name is a string containing the source identifier used to declare the [TargetKind] value.
-  /// For example, the result of `TargetKind.classType.name` is the string "classType".
-  final String name;
-
+enum TargetKind {
   /// Indicates that an annotation is valid on any class declaration.
-  static const classType = TargetKind._('classes', 'classType');
+  classType,
 
   /// Indicates that an annotation is valid on any enum declaration.
-  static const enumType = TargetKind._('enums', 'enumType');
+  enumType,
 
   /// Indicates that an annotation is valid on any extension declaration.
-  static const extension = TargetKind._('extensions', 'extension');
+  extension,
 
   /// Indicates that an annotation is valid on any field declaration, both
   /// instance and static fields, whether it's in a class, mixin or extension.
-  static const field = TargetKind._('fields', 'field');
+  field,
 
   /// Indicates that an annotation is valid on any top-level function
   /// declaration.
-  static const function = TargetKind._('top-level functions', 'function');
+  function,
 
   /// Indicates that an annotation is valid on the first directive in a library,
   /// whether that's a `library`, `import`, `export` or `part` directive. This
   /// doesn't include the `part of` directive in a part file.
-  static const library = TargetKind._('libraries', 'library');
+  library,
 
   /// Indicates that an annotation is valid on any getter declaration, both
   /// instance or static getters, whether it's in a class, mixin, extension, or
   /// at the top-level of a library.
-  static const getter = TargetKind._('getters', 'getter');
+  getter,
 
   /// Indicates that an annotation is valid on any method declaration, both
   /// instance and static methods, whether it's in a class, mixin or extension.
-  static const method = TargetKind._('methods', 'method');
+  method,
 
   /// Indicates that an annotation is valid on any mixin declaration.
-  static const mixinType = TargetKind._('mixins', 'mixinType');
+  mixinType,
 
   /// Indicates that an annotation is valid on any formal parameter declaration,
   /// whether it's in a function, method, constructor, or closure.
-  static const parameter = TargetKind._('parameters', 'parameter');
+  parameter,
 
   /// Indicates that an annotation is valid on any setter declaration, both
   /// instance or static setters, whether it's in a class, mixin, extension, or
   /// at the top-level of a library.
-  static const setter = TargetKind._('setters', 'setter');
+  setter,
 
   /// Indicates that an annotation is valid on any top-level variable
   /// declaration.
-  static const topLevelVariable =
-      TargetKind._('top-level variables', 'topLevelVariable');
+  topLevelVariable,
 
   /// Indicates that an annotation is valid on any declaration that introduces a
   /// type. This includes classes, enums, mixins and typedefs, but does not
   /// include extensions because extensions don't introduce a type.
-  static const type =
-      TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
+  type,
 
-  /// Indicates that an annotation is valid on any typedef declaration.`
-  static const typedefType = TargetKind._('typedefs', 'typedefType');
+  /// Indicates that an annotation is valid on any typedef declaration.
+  typedefType,
+}
 
-  /// Indicates that an annotation is valid on any type parameter declaration.
-  static const typeParameter = TargetKind._('type parameters', 'typeParameter');
-
-  static const values = [
-    classType,
-    enumType,
-    extension,
-    field,
-    function,
-    library,
-    getter,
-    method,
-    mixinType,
-    parameter,
-    setter,
-    topLevelVariable,
-    type,
-    typedefType,
-    typeParameter,
-  ];
-
-  @override
-  String toString() => 'TargetKind.$name';
+extension TargetKindExtension on TargetKind {
+  /// Return a user visible string used to describe this target kind.
+  String get displayString {
+    switch (this) {
+      case TargetKind.classType:
+        return 'classes';
+      case TargetKind.enumType:
+        return 'enums';
+      case TargetKind.extension:
+        return 'extensions';
+      case TargetKind.field:
+        return 'fields';
+      case TargetKind.function:
+        return 'top-level functions';
+      case TargetKind.library:
+        return 'libraries';
+      case TargetKind.getter:
+        return 'getters';
+      case TargetKind.method:
+        return 'methods';
+      case TargetKind.mixinType:
+        return 'mixins';
+      case TargetKind.parameter:
+        return 'parameters';
+      case TargetKind.setter:
+        return 'setters';
+      case TargetKind.topLevelVariable:
+        return 'top-level variables';
+      case TargetKind.type:
+        return 'types (classes, enums, mixins, or typedefs)';
+      case TargetKind.typedefType:
+        return 'typedefs';
+    }
+  }
 }

@@ -2687,6 +2687,32 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       }
       return false;
 
+    case Slot::Kind::kRecord_num_fields:
+      if (instance.IsRecord()) {
+        *result = Smi::New(Record::Cast(instance).num_fields());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kRecord_field_names:
+      if (instance.IsRecord()) {
+        *result = Record::Cast(instance).field_names();
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kRecordField:
+      if (instance.IsRecord()) {
+        const intptr_t index = compiler::target::Record::field_index_at_offset(
+            field.offset_in_bytes());
+        const Record& record = Record::Cast(instance);
+        if (index < record.num_fields()) {
+          *result = record.FieldAt(index);
+        }
+        return true;
+      }
+      return false;
+
     default:
       break;
   }
@@ -2723,10 +2749,10 @@ bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !calls_initializer()) return nullptr;
 
+  Definition* orig_instance = instance()->definition()->OriginalDefinition();
   if (IsImmutableLengthLoad()) {
     ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
+    if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
       // For fixed length arrays if the array is the result of a known
       // constructor call we can replace the length load with the length
       // argument passed to the constructor.
@@ -2749,16 +2775,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         // Here, we forward the third.
         return call->ArgumentAt(3);
       }
-    } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
-      if (slot().kind() == Slot::Kind::kArray_length) {
-        return create_array->num_elements()->definition();
-      }
-    } else if (AllocateTypedDataInstr* alloc_typed_data =
-                   array->AsAllocateTypedData()) {
-      if (slot().kind() == Slot::Kind::kTypedDataBase_length) {
-        return alloc_typed_data->num_elements()->definition();
-      }
-    } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
+    } else if (LoadFieldInstr* load_array = orig_instance->AsLoadField()) {
       // For arrays with guarded lengths, replace the length load
       // with a constant.
       const Slot& slot = load_array->slot();
@@ -2769,73 +2786,124 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
     }
-  } else if (slot().kind() == Slot::Kind::kTypedDataView_typed_data) {
-    // This case cover the first explicit argument to typed data view
-    // factories, the data (buffer).
-    ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
-      if (IsTypedDataViewFactory(call->function()) ||
-          IsUnmodifiableTypedDataViewFactory(call->function())) {
-        return call->ArgumentAt(1);
+  }
+
+  switch (slot().kind()) {
+    case Slot::Kind::kArray_length:
+      if (CreateArrayInstr* create_array = orig_instance->AsCreateArray()) {
+        return create_array->num_elements()->definition();
       }
-    }
-  } else if (slot().kind() == Slot::Kind::kTypedDataView_offset_in_bytes) {
-    // This case cover the second explicit argument to typed data view
-    // factories, the offset into the buffer.
-    ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
-      if (IsTypedDataViewFactory(call->function())) {
-        return call->ArgumentAt(2);
-      } else if (call->function().recognized_kind() ==
-                 MethodRecognizer::kByteDataFactory) {
-        // A _ByteDataView returned from the ByteData constructor always
-        // has an offset of 0.
-        return flow_graph->GetConstant(Object::smi_zero());
+      break;
+    case Slot::Kind::kTypedDataBase_length:
+      if (AllocateTypedDataInstr* alloc_typed_data =
+              orig_instance->AsAllocateTypedData()) {
+        return alloc_typed_data->num_elements()->definition();
       }
-    }
-  } else if (slot().IsTypeArguments()) {
-    ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
-      if (call->is_known_list_constructor()) {
-        return call->ArgumentAt(0);
-      } else if (IsTypedDataViewFactory(call->function()) ||
-                 IsUnmodifiableTypedDataViewFactory(call->function())) {
-        return flow_graph->constant_null();
-      }
-      switch (call->function().recognized_kind()) {
-        case MethodRecognizer::kByteDataFactory:
-        case MethodRecognizer::kLinkedHashBase_getData:
-        case MethodRecognizer::kImmutableLinkedHashBase_getData:
-          return flow_graph->constant_null();
-        default:
-          break;
-      }
-    } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
-      return create_array->type_arguments()->definition();
-    } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
-      const Slot& slot = load_array->slot();
-      switch (slot.kind()) {
-        case Slot::Kind::kDartField: {
-          // For trivially exact fields we know that type arguments match
-          // static type arguments exactly.
-          const Field& field = slot.field();
-          if (field.static_type_exactness_state().IsTriviallyExact()) {
-            return flow_graph->GetConstant(TypeArguments::Handle(
-                AbstractType::Handle(field.type()).arguments()));
-          }
-          break;
+      break;
+    case Slot::Kind::kTypedDataView_typed_data:
+      // This case cover the first explicit argument to typed data view
+      // factories, the data (buffer).
+      ASSERT(!calls_initializer());
+      if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
+        if (IsTypedDataViewFactory(call->function()) ||
+            IsUnmodifiableTypedDataViewFactory(call->function())) {
+          return call->ArgumentAt(1);
         }
-
-        case Slot::Kind::kLinkedHashBase_data:
-          return flow_graph->constant_null();
-
-        default:
-          break;
       }
-    }
+      break;
+    case Slot::Kind::kTypedDataView_offset_in_bytes:
+      // This case cover the second explicit argument to typed data view
+      // factories, the offset into the buffer.
+      ASSERT(!calls_initializer());
+      if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
+        if (IsTypedDataViewFactory(call->function())) {
+          return call->ArgumentAt(2);
+        } else if (call->function().recognized_kind() ==
+                   MethodRecognizer::kByteDataFactory) {
+          // A _ByteDataView returned from the ByteData constructor always
+          // has an offset of 0.
+          return flow_graph->GetConstant(Object::smi_zero());
+        }
+      }
+      break;
+    case Slot::Kind::kRecord_num_fields:
+      ASSERT(!calls_initializer());
+      if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
+        return flow_graph->GetConstant(
+            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+      } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
+        return flow_graph->GetConstant(
+            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+      } else {
+        const AbstractType* type = instance()->Type()->ToAbstractType();
+        if (type->IsRecordType()) {
+          return flow_graph->GetConstant(
+              Smi::Handle(Smi::New(RecordType::Cast(*type).NumFields())));
+        }
+      }
+      break;
+    case Slot::Kind::kRecord_field_names:
+      ASSERT(!calls_initializer());
+      if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
+        return alloc_rec->field_names()->definition();
+      } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
+        if (alloc_rec->has_named_fields()) {
+          return alloc_rec->field_names()->definition();
+        } else {
+          return flow_graph->GetConstant(Object::empty_array());
+        }
+      } else {
+        const AbstractType* type = instance()->Type()->ToAbstractType();
+        if (type->IsRecordType()) {
+          return flow_graph->GetConstant(
+              Array::Handle(RecordType::Cast(*type).field_names()));
+        }
+      }
+      break;
+    case Slot::Kind::kTypeArguments:
+      ASSERT(!calls_initializer());
+      if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
+        if (call->is_known_list_constructor()) {
+          return call->ArgumentAt(0);
+        } else if (IsTypedDataViewFactory(call->function()) ||
+                   IsUnmodifiableTypedDataViewFactory(call->function())) {
+          return flow_graph->constant_null();
+        }
+        switch (call->function().recognized_kind()) {
+          case MethodRecognizer::kByteDataFactory:
+          case MethodRecognizer::kLinkedHashBase_getData:
+          case MethodRecognizer::kImmutableLinkedHashBase_getData:
+            return flow_graph->constant_null();
+          default:
+            break;
+        }
+      } else if (CreateArrayInstr* create_array =
+                     orig_instance->AsCreateArray()) {
+        return create_array->type_arguments()->definition();
+      } else if (LoadFieldInstr* load_array = orig_instance->AsLoadField()) {
+        const Slot& slot = load_array->slot();
+        switch (slot.kind()) {
+          case Slot::Kind::kDartField: {
+            // For trivially exact fields we know that type arguments match
+            // static type arguments exactly.
+            const Field& field = slot.field();
+            if (field.static_type_exactness_state().IsTriviallyExact()) {
+              return flow_graph->GetConstant(TypeArguments::Handle(
+                  AbstractType::Handle(field.type()).arguments()));
+            }
+            break;
+          }
+
+          case Slot::Kind::kLinkedHashBase_data:
+            return flow_graph->constant_null();
+
+          default:
+            break;
+        }
+      }
+      break;
+    default:
+      break;
   }
 
   // Try folding away loads from constant objects.
@@ -7674,7 +7742,8 @@ void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(),
       compiler->isolate_group()->object_store()->allocate_record_stub());
-  __ LoadImmediate(AllocateRecordABI::kNumFieldsReg, num_fields());
+  __ LoadImmediate(AllocateRecordABI::kNumFieldsReg,
+                   Smi::RawValue(num_fields()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }

@@ -75,8 +75,9 @@
   CONSTANT(Instructions, kPolymorphicEntryOffsetAOT)                           \
   CONSTANT(Instructions, kBarePayloadAlignment)                                \
   CONSTANT(Instructions, kNonBarePayloadAlignment)                             \
-  CONSTANT(Page, kBytesPerCardLog2)                                            \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
+  CONSTANT(Page, kBytesPerCardLog2)                                            \
+  CONSTANT(Record, kMaxElements)                                               \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \

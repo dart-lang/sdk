@@ -6,7 +6,7 @@ import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/codegen_inputs.dart';
-import '../js_backend/namer_migrated.dart' show operatorNameToIdentifier;
+import '../js_backend/namer.dart' show operatorNameToIdentifier;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';

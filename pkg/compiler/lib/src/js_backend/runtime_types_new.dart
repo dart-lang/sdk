@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.runtime_types_new;
 
 import 'package:js_shared/synced/recipe_syntax.dart';
@@ -15,23 +13,18 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
-import '../js_emitter/js_emitter.dart' show ModularEmitter;
+import '../js_emitter/interfaces.dart' show ModularEmitter;
+import '../universe/class_hierarchy.dart';
 import 'namer.dart' show StringBackedName;
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
-import 'runtime_types_new_interfaces.dart' as interfaces;
-import 'runtime_types_new_migrated.dart';
 
-export 'runtime_types_new_migrated.dart';
-
-abstract class RecipeEncoder implements interfaces.RecipeEncoder {
+abstract class RecipeEncoder {
   /// Returns a [RecipeEncoding] representing the given [recipe] to be
   /// evaluated against a type environment with shape [structure].
-  @override
   RecipeEncoding encodeRecipe(covariant ModularEmitter emitter,
       TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
 
-  @override
   // TODO(48820): Remove covariant when ModularEmitter is migrated.
   jsAst.Literal encodeGroundRecipe(
       covariant ModularEmitter emitter, TypeRecipe recipe);
@@ -82,7 +75,7 @@ class RecipeEncoderImpl implements RecipeEncoder {
 class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final RecipeEncoderImpl _encoder;
   final ModularEmitter _emitter;
-  final TypeEnvironmentStructure _environment;
+  final TypeEnvironmentStructure? _environment;
   final TypeRecipe _recipe;
   final bool metadata;
 
@@ -129,7 +122,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       _emitCode(Recipe.pushDynamic);
       assert(recipe.types.isNotEmpty);
     } else {
-      visit(recipe.classType, null);
+      visit(recipe.classType!, null);
       // TODO(sra): The separator can be omitted when the parser will have
       // reduced to the top of stack to an Rti value.
       _emitCode(Recipe.toType);
@@ -211,7 +204,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitTypeVariableType(TypeVariableType type, _) {
-    TypeEnvironmentStructure environment = _environment;
+    final environment = _environment;
     if (environment is SingletonTypeEnvironmentStructure) {
       if (type == environment.variable) {
         _emitInteger(0);
@@ -219,7 +212,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       }
     }
     if (environment is FullTypeEnvironmentStructure) {
-      int index = indexTypeVariable(
+      final index = indexTypeVariable(
           _closedWorld, _rtiSubstitutions, environment, type,
           metadata: metadata);
       if (index != null) {
@@ -390,6 +383,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
           _emitCode(Recipe.separator);
         }
         visit(typeVariable.bound, _);
+        first = false;
       }
       _emitCode(Recipe.endTypeArguments);
     }
@@ -592,3 +586,58 @@ class RulesetEncoder {
         _rightBracket
       ]);
 }
+
+class RecipeEncoding {
+  final jsAst.Literal recipe;
+  final Set<TypeVariableType> typeVariables;
+
+  const RecipeEncoding(this.recipe, this.typeVariables);
+}
+
+int? indexTypeVariable(
+    JClosedWorld world,
+    RuntimeTypesSubstitutions rtiSubstitutions,
+    FullTypeEnvironmentStructure environment,
+    TypeVariableType type,
+    {bool metadata = false}) {
+  int i = environment.bindings.indexOf(type);
+  if (i >= 0) {
+    // Indices are 1-based since '0' encodes using the entire type for the
+    // singleton structure.
+    return i + 1;
+  }
+
+  TypeVariableEntity element = type.element;
+  // TODO(48820): remove `!`. Added to increase coverage of null assertions
+  // while the compiler runs in unsound null safety.
+  ClassEntity cls = element.typeDeclaration! as ClassEntity;
+
+  if (metadata) {
+    if (identical(environment.classType!.element, cls)) {
+      // Indexed class type variables come after the bound function type
+      // variables.
+      return 1 + environment.bindings.length + element.index;
+    }
+  }
+
+  // TODO(sra): We might be in a context where the class type variable has an
+  // index, even though in the general case it is not at a specific index.
+
+  ClassHierarchy classHierarchy = world.classHierarchy;
+  var test = mustCheckAllSubtypes(world, cls)
+      ? classHierarchy.anyStrictSubtypeOf
+      : classHierarchy.anyStrictSubclassOf;
+  if (test(cls, (ClassEntity subclass) {
+    return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
+  })) {
+    return null;
+  }
+
+  // Indexed class type variables come after the bound function type
+  // variables.
+  return 1 + environment.bindings.length + element.index;
+}
+
+bool mustCheckAllSubtypes(JClosedWorld world, ClassEntity cls) =>
+    world.isUsedAsMixin(cls) ||
+    world.extractTypeArgumentsInterfacesNewRti.contains(cls);

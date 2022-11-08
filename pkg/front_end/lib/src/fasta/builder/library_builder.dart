@@ -63,6 +63,10 @@ abstract class LibraryBuilder implements ModifierBuilder {
   @override
   Uri get fileUri;
 
+  /// Returns the [Uri]s for the libraries that this library depend upon, either
+  /// through import or export.
+  Iterable<Uri> get dependencies;
+
   /// Returns the import uri for the library.
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
@@ -145,7 +149,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   Builder? lookup(String name, int charOffset, Uri fileUri);
 
-  void recordAccess(int charOffset, int length, Uri fileUri);
+  void recordAccess(
+      LibraryBuilder accessor, int charOffset, int length, Uri fileUri);
 
   bool get isNonNullableByDefault;
 
@@ -342,7 +347,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  void recordAccess(int charOffset, int length, Uri fileUri) {}
+  void recordAccess(
+      LibraryBuilder accessor, int charOffset, int length, Uri fileUri) {}
 
   @override
   Nullability get nullable {

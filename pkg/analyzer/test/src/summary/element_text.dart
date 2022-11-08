@@ -989,6 +989,11 @@ class _ElementWriter {
         kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
       }
       _writelnWithIndent('typeInferenceError: $kindName');
+      _withIndent(() {
+        if (kindName == 'dependencyCycle') {
+          _writelnWithIndent('arguments: ${inferenceError?.arguments}');
+        }
+      });
     }
   }
 

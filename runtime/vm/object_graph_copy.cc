@@ -1437,7 +1437,9 @@ class ObjectCopy : public Base {
 
   void CopyRecord(typename Types::Record from, typename Types::Record to) {
     const intptr_t num_fields = Record::NumFields(Types::GetRecordPtr(from));
-    UntagRecord(to)->num_fields_ = UntagRecord(from)->num_fields_;
+    Base::StoreCompressedPointersNoBarrier(
+        from, to, OFFSET_OF(UntaggedRecord, num_fields_),
+        OFFSET_OF(UntaggedRecord, num_fields_));
     Base::ForwardCompressedPointer(from, to,
                                    OFFSET_OF(UntaggedRecord, field_names_));
     Base::ForwardCompressedPointers(

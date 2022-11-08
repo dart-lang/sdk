@@ -5062,6 +5062,14 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   /// patterns nested in the pattern.
   List<VariableDeclaration> get declaredVariables;
 
+  /// Statements for declaration and initialization of [declaredVariables]
+  ///
+  /// These are the statements that needs to present in the desugared code in
+  /// order to properly initialize [declaredVariables]. It includes, for
+  /// example, declaration of synthetic helper variables. It also includes
+  /// [declaredVariables].
+  List<Statement> get declaredVariableInitializers;
+
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -5070,15 +5078,42 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
 
   /// Creates the desugared matching condition.
   ///
+  /// For example, the desugaring of an if-case has the following general shape.
+  ///
+  ///     matchedExpressionVariable
+  ///     if (condition) {
+  ///       declaredVariableInitializers
+  ///       bodyOfIfCase
+  ///     }
+  ///
+  /// [makeCondition] creates the `condition` of that desugaring. The condition
+  /// is true if and only if the examined run-time value matches the pattern.
+  /// Some patterns match always, for example, [VariablePattern] with `var`
+  /// instead of the type. In that case [makeCondition] return `null`.
   /// [matchedExpressionVariable] is the variable initialized to the value of
   /// the expression being matched.
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor);
 
-  /// Creates initializing expressions for the variables captured by the pattern
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor);
+  /// Creates initializing statements for the variables captured by the pattern
+  ///
+  /// For example, the desugaring of an if-case has the following general shape.
+  ///
+  ///     matchedExpressionVariable
+  ///     if (condition) {
+  ///       declaredVariableInitializers
+  ///       bodyOfIfCase
+  ///     }
+  ///
+  /// [createDeclaredVariableInitializers] creates
+  /// `declaredVariableInitializers` of that desugaring, which is a sequence of
+  /// statements that declares and initializes the variables induced by
+  /// [VariablePattern]s nested into the pattern being matched. That series of
+  /// statements includes [VariableDeclaration]s corresponding to the
+  /// [VariablePattern]s as well as any other necessary statements, such as the
+  /// declarations of the helper intermediate variables.
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor);
 }
 
 class DummyPattern extends Pattern {
@@ -5091,6 +5126,9 @@ class DummyPattern extends Pattern {
 
   @override
   List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  List<Statement> get declaredVariableInitializers => const [];
 
   @override
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
@@ -5109,9 +5147,8 @@ class DummyPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {}
 
   @override
   String toString() {
@@ -5130,6 +5167,9 @@ class ExpressionPattern extends Pattern {
 
   @override
   List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  List<Statement> get declaredVariableInitializers => const [];
 
   @override
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
@@ -5160,9 +5200,8 @@ class ExpressionPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5187,22 +5226,16 @@ class BinaryPattern extends Pattern {
   Pattern right;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables =>
+      [...left.declaredVariables, ...right.declaredVariables];
+
+  @override
+  late final List<Statement> declaredVariableInitializers;
 
   BinaryPattern(this.left, this.kind, this.right, int fileOffset)
       : super(fileOffset) {
     left.parent = this;
     right.parent = this;
-
-    if (kind == BinaryPatternKind.or) {
-      // All branches should declare same variables.
-      declaredVariables.addAll(left.declaredVariables);
-    } else {
-      // Branches together declare the variables.
-      declaredVariables
-        ..addAll(left.declaredVariables)
-        ..addAll(right.declaredVariables);
-    }
   }
 
   @override
@@ -5222,19 +5255,26 @@ class BinaryPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    if (kind == BinaryPatternKind.and) {
-      // All branches together define the set of declared variables.
-      left.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-      right.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-    } else {
-      // All branches define the same set of variables.
-      left.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
+    switch (kind) {
+      case BinaryPatternKind.and:
+        // All branches together define the set of declared variables.
+        left.createDeclaredVariableInitializers(
+            matchedExpression, matchedType, inferenceVisitor);
+        right.createDeclaredVariableInitializers(
+            matchedExpression, matchedType, inferenceVisitor);
+        declaredVariableInitializers = [
+          ...left.declaredVariableInitializers,
+          ...right.declaredVariableInitializers
+        ];
+        break;
+      case BinaryPatternKind.or:
+        // All branches define the same set of variables.
+        left.createDeclaredVariableInitializers(
+            matchedExpression, matchedType, inferenceVisitor);
+        declaredVariableInitializers = [...left.declaredVariableInitializers];
+        break;
     }
   }
 
@@ -5271,6 +5311,10 @@ class CastPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   @override
+  List<Statement> get declaredVariableInitializers =>
+      pattern.declaredVariableInitializers;
+
+  @override
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -5287,11 +5331,10 @@ class CastPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
     pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
+        matchedExpression, matchedType, inferenceVisitor);
   }
 
   @override
@@ -5319,6 +5362,10 @@ class NullAssertPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   @override
+  List<Statement> get declaredVariableInitializers =>
+      pattern.declaredVariableInitializers;
+
+  @override
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -5336,11 +5383,10 @@ class NullAssertPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
     pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
+        matchedExpression, matchedType, inferenceVisitor);
   }
 
   @override
@@ -5365,6 +5411,10 @@ class NullCheckPattern extends Pattern {
 
   @override
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
+
+  @override
+  List<Statement> get declaredVariableInitializers =>
+      pattern.declaredVariableInitializers;
 
   @override
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
@@ -5396,11 +5446,10 @@ class NullCheckPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
     pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
+        matchedExpression, matchedType, inferenceVisitor);
   }
 
   @override
@@ -5421,14 +5470,15 @@ class ListPattern extends Pattern {
   List<Pattern> patterns;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables =>
+      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
+
+  @override
+  late final List<Statement> declaredVariableInitializers;
 
   ListPattern(this.typeArgument, this.patterns, int fileOffset)
       : super(fileOffset) {
     setParents(patterns, this);
-    for (Pattern pattern in patterns) {
-      declaredVariables.addAll(pattern.declaredVariables);
-    }
   }
 
   @override
@@ -5444,15 +5494,186 @@ class ListPattern extends Pattern {
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    throw new UnimplementedError("ListPattern.makeCondition");
+    // targetListType: List<`typeArgument`>
+    DartType targetListType = new InterfaceType(
+        inferenceVisitor.coreTypes.listClass,
+        Nullability.nonNullable,
+        <DartType>[typeArgument]);
+
+    ObjectAccessTarget lengthTarget = inferenceVisitor.findInterfaceMember(
+        targetListType, lengthName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    bool typeCheckForTargetListNeeded = !inferenceVisitor.isAssignable(
+            targetListType, matchedExpressionVariable.type) ||
+        matchedExpressionVariable.type is DynamicType;
+
+    // lengthGet: `matchedExpressionVariable`.length
+    Expression lengthGet = new InstanceGet(
+        InstanceAccessKind.Instance,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, matchedExpressionVariable)
+          ..promotedType = typeCheckForTargetListNeeded ? targetListType : null,
+        lengthName,
+        resultType: lengthTarget.getGetterType(inferenceVisitor),
+        interfaceTarget: lengthTarget.member as Procedure)
+      ..fileOffset = fileOffset;
+
+    ObjectAccessTarget greaterThanOrEqualsTarget =
+        inferenceVisitor.findInterfaceMember(
+            inferenceVisitor.coreTypes.intNonNullableRawType,
+            greaterThanOrEqualsName,
+            fileOffset,
+            callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+
+    // greaterThanOrEqualsInvocation: `lengthGet` >= `patterns.length`
+    //   ==> `matchedExpressionVariable`.length >= `patterns.length`
+    Expression greaterThanOrEqualsInvocation = new InstanceInvocation(
+        InstanceAccessKind.Instance,
+        lengthGet,
+        greaterThanOrEqualsName,
+        inferenceVisitor.engine.forest.createArguments(fileOffset, [
+          inferenceVisitor.engine.forest
+              .createIntLiteral(fileOffset, patterns.length)
+        ]),
+        functionType:
+            greaterThanOrEqualsTarget.getFunctionType(inferenceVisitor),
+        interfaceTarget: greaterThanOrEqualsTarget.member as Procedure)
+      ..fileOffset = fileOffset;
+
+    // typeAndLengthCheck: `matchedExpressionVariable` is `targetListType`
+    //     && `greaterThanOrEqualsInvocation`
+    //   ==> [`matchedExpressionVariable` is List<`typeArgument`> &&]?
+    //       `matchedExpressionVariable`.length >= `patterns.length`
+    Expression typeAndLengthCheck;
+    if (typeCheckForTargetListNeeded) {
+      typeAndLengthCheck = inferenceVisitor.engine.forest
+          .createLogicalExpression(
+              fileOffset,
+              inferenceVisitor.engine.forest.createIsExpression(
+                  fileOffset,
+                  inferenceVisitor.engine.forest
+                      .createVariableGet(fileOffset, matchedExpressionVariable),
+                  targetListType,
+                  forNonNullableByDefault: false),
+              doubleAmpersandName.text,
+              greaterThanOrEqualsInvocation);
+    } else {
+      typeAndLengthCheck = greaterThanOrEqualsInvocation;
+    }
+
+    Expression? patternConditions;
+    ObjectAccessTarget elementAccess = inferenceVisitor.findInterfaceMember(
+        targetListType, indexGetName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    FunctionType elementAccessFunctionType =
+        elementAccess.getFunctionType(inferenceVisitor);
+    for (int i = 0; i < patterns.length; i++) {
+      // listElement: `matchedExpressionVariable`[`i`]
+      Expression listElement = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, matchedExpressionVariable)
+            ..promotedType = targetListType,
+          indexGetName,
+          inferenceVisitor.engine.forest.createArguments(fileOffset,
+              [inferenceVisitor.engine.forest.createIntLiteral(fileOffset, i)]),
+          functionType: elementAccessFunctionType,
+          interfaceTarget: elementAccess.member as Procedure);
+
+      // listElementVariable: `typeArgument` VAR = `listElement`
+      //   ==> `typeArgument` VAR = `matchedExpressionVariable`[`i`];
+      VariableDeclaration listElementVariable = inferenceVisitor.engine.forest
+          .createVariableDeclarationForValue(listElement, type: typeArgument);
+
+      Expression? patternCondition =
+          patterns[i].makeCondition(listElementVariable, inferenceVisitor);
+      if (patternCondition != null) {
+        // patternCondition: let `listElementVariable` in `patternCondition`
+        //   ==> let VAR = `matchedExpressionVariable`[`i`]
+        //       in `patternCondition`
+        patternCondition = inferenceVisitor.engine.forest
+            .createLet(listElementVariable, patternCondition);
+        if (patternConditions == null) {
+          patternConditions = patternCondition;
+        } else {
+          // patternCondition: `patternConditions` && `patternCondition`
+          //   ==> `patternConditions` &&
+          //       (let VAR = `matchedExpressionVariable`[`i`] in
+          //           `patternCondition`)
+          patternConditions = inferenceVisitor.engine.forest
+              .createLogicalExpression(fileOffset, patternConditions,
+                  doubleAmpersandName.text, patternCondition);
+        }
+      }
+    }
+
+    // return: `typeAndLengthCheck` [&& `patternConditions`]
+    //   ==> `matchedExpressionVariable` is List<`typeArgument`> &&
+    //       `matchedExpressionVariable`.length >= `patterns.length` [&&
+    //           (let VAR = `matchedExpressionVariable`[`i`]` in
+    //               `patternCondition`)]*
+    if (patternConditions == null) {
+      return typeAndLengthCheck;
+    } else {
+      return inferenceVisitor.engine.forest.createLogicalExpression(fileOffset,
+          typeAndLengthCheck, doubleAmpersandName.text, patternConditions);
+    }
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    throw new UnimplementedError(
-        "ListPattern.createDeclaredVariableInitializers");
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
+    // targetListType: List<`typeArgument`>
+    DartType targetListType = new InterfaceType(
+        inferenceVisitor.coreTypes.listClass,
+        Nullability.nonNullable,
+        [typeArgument]);
+
+    // listInitializer: `matchedExpression` [as `targetListType`]?
+    //   ==> `matchedExpression` [as List<`typeArgument`>]?
+    Expression listInitializer;
+    if (inferenceVisitor.isAssignable(targetListType, matchedType) &&
+        matchedType is! DynamicType) {
+      listInitializer = matchedExpression;
+    } else {
+      listInitializer = inferenceVisitor.engine.forest.createAsExpression(
+          fileOffset, matchedExpression, targetListType,
+          forNonNullableByDefault: false,
+          forDynamic: matchedType is DynamicType);
+    }
+
+    // listVariable: `targetListType` VAR = `listInitializer`
+    //   ==> List<`typeArgument`> VAR =
+    //       `matchedExpression` [as List<`typeArgument`>]?;
+    VariableDeclaration listVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(listInitializer,
+            type: targetListType);
+
+    ObjectAccessTarget elementTarget = inferenceVisitor.findInterfaceMember(
+        targetListType, indexGetName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    FunctionType elementAccessFunctionType =
+        elementTarget.getFunctionType(inferenceVisitor);
+    Procedure elementAccessInterfaceTarget = elementTarget.member as Procedure;
+    for (int i = 0; i < patterns.length; i++) {
+      // element: `listVariable`[`i`]
+      Expression element = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, listVariable),
+          indexGetName,
+          inferenceVisitor.engine.forest.createArguments(fileOffset,
+              [inferenceVisitor.engine.forest.createIntLiteral(fileOffset, i)]),
+          functionType: elementAccessFunctionType,
+          interfaceTarget: elementAccessInterfaceTarget);
+      patterns[i].createDeclaredVariableInitializers(
+          element, typeArgument, inferenceVisitor);
+    }
+
+    declaredVariableInitializers = [
+      listVariable,
+      for (Pattern pattern in patterns) ...pattern.declaredVariableInitializers
+    ];
   }
 
   @override
@@ -5498,6 +5719,9 @@ class RelationalPattern extends Pattern {
 
   @override
   List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  List<Statement> get declaredVariableInitializers => const [];
 
   @override
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
@@ -5585,9 +5809,8 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5629,6 +5852,9 @@ class WildcardPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => const [];
 
   @override
+  List<Statement> get declaredVariableInitializers => const [];
+
+  @override
   PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
       {required DartType matchedType,
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
@@ -5654,9 +5880,8 @@ class WildcardPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5839,16 +6064,19 @@ class MapPattern extends Pattern {
   final List<MapPatternEntry> entries;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables => [
+        for (MapPatternEntry entry in entries) ...[
+          ...entry.key.declaredVariables,
+          ...entry.value.declaredVariables
+        ]
+      ];
+
+  @override
+  late final List<Statement> declaredVariableInitializers;
 
   MapPattern(this.keyType, this.valueType, this.entries, int fileOffset)
       : assert((keyType == null) == (valueType == null)),
-        super(fileOffset) {
-    for (MapPatternEntry entry in entries) {
-      declaredVariables.addAll(entry.key.declaredVariables);
-      declaredVariables.addAll(entry.value.declaredVariables);
-    }
-  }
+        super(fileOffset);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5881,14 +6109,21 @@ class MapPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
     for (MapPatternEntry entry in entries) {
       entry.key.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
+          matchedExpression, matchedType, inferenceVisitor);
       entry.value.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
+          matchedExpression, matchedType, inferenceVisitor);
+    }
+
+    declaredVariableInitializers = [];
+    for (MapPatternEntry entry in entries) {
+      declaredVariableInitializers
+          .addAll(entry.key.declaredVariableInitializers);
+      declaredVariableInitializers
+          .addAll(entry.value.declaredVariableInitializers);
     }
   }
 
@@ -5902,6 +6137,9 @@ class MapPattern extends Pattern {
 class NamedPattern extends Pattern {
   final String name;
   final Pattern pattern;
+
+  @override
+  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   NamedPattern(this.name, this.pattern, int fileOffset) : super(fileOffset) {
     pattern.parent = this;
@@ -5930,15 +6168,15 @@ class NamedPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
     pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
+        matchedExpression, matchedType, inferenceVisitor);
   }
 
   @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
+  List<Statement> get declaredVariableInitializers =>
+      pattern.declaredVariableInitializers;
 
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
@@ -5951,13 +6189,14 @@ class RecordPattern extends Pattern {
   final List<Pattern> patterns;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables =>
+      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
+
+  @override
+  late final List<Statement> declaredVariableInitializers;
 
   RecordPattern(this.patterns, int fileOffset) : super(fileOffset) {
     setParents(patterns, this);
-    for (Pattern pattern in patterns) {
-      declaredVariables.addAll(pattern.declaredVariables);
-    }
   }
 
   @override
@@ -5988,13 +6227,16 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    for (Pattern pattern in patterns) {
-      pattern.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
+    for (Pattern matcher in patterns) {
+      matcher.createDeclaredVariableInitializers(
+          matchedExpression, matchedType, inferenceVisitor);
     }
+
+    declaredVariableInitializers = [
+      for (Pattern pattern in patterns) ...pattern.declaredVariableInitializers
+    ];
   }
 
   @override
@@ -6010,10 +6252,13 @@ class VariablePattern extends Pattern {
   VariableDeclaration variable;
 
   @override
-  final List<VariableDeclaration> declaredVariables;
+  List<VariableDeclaration> get declaredVariables => [variable];
+
+  @override
+  final List<Statement> declaredVariableInitializers;
 
   VariablePattern(this.type, this.name, this.variable, int fileOffset)
-      : declaredVariables = [variable],
+      : declaredVariableInitializers = [variable],
         super(fileOffset);
 
   @override
@@ -6042,42 +6287,33 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    Expression? initializer;
-    if (type != null) {
-      if (!inferenceVisitor.isAssignable(
-          type!, matchedExpressionVariable.type)) {
-        // We need to insert an as-cast in this case to make refutable patterns
-        // work. Consider the following example.
-        //
-        //   test(num x) {
-        //     if (x case String y) {
-        //       // 'y' should be initialized here.
-        //     }
-        //   }
-        //
-        // To make the initialization of the variable 'y' inside of the body of
-        // the if-case statement type-safe, we need to insert the cast. The code
-        // is unreachable anyway, and the intention is to make the verifier
-        // happy.
-        initializer = inferenceVisitor.engine.forest.createAsExpression(
-            fileOffset,
-            inferenceVisitor.engine.forest.createVariableGet(
-                variable.fileOffset, matchedExpressionVariable),
-            type!,
-            forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
-      } else if (matchedExpressionVariable.type is DynamicType &&
-          type! is! DynamicType) {
-        initializer = inferenceVisitor.engine.forest
-            .createVariableGet(variable.fileOffset, matchedExpressionVariable)
-          ..promotedType = type!;
-      }
+  void createDeclaredVariableInitializers(Expression matchedExpression,
+      DartType matchedType, InferenceVisitorBase inferenceVisitor) {
+    if (!inferenceVisitor.isAssignable(variable.type, matchedType) ||
+        matchedType is DynamicType && variable.type is! DynamicType) {
+      // We need to insert an as-cast in this case to make refutable patterns
+      // work. Consider the following example.
+      //
+      //   test(num x) {
+      //     if (x case String y) {
+      //       // 'y' should be initialized here.
+      //     }
+      //   }
+      //
+      // To make the initialization of the variable 'y' inside of the body of
+      // the if-case statement type-safe, we need to insert the cast. The code
+      // is unreachable anyway, and the intention is to make the verifier
+      // happy.
+      // TODO(cstefantsova): Either optimize this using a [VariableGet] and a
+      // promoted type or to add flag to [AsExpression] that signals (to
+      // backends) that this cast can be skipped.
+      variable.initializer = inferenceVisitor.engine.forest.createAsExpression(
+          fileOffset, matchedExpression, variable.type,
+          forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault,
+          forDynamic: matchedType is DynamicType);
+    } else {
+      variable.initializer = matchedExpression;
     }
-    initializer ??= inferenceVisitor.engine.forest
-        .createVariableGet(variable.fileOffset, matchedExpressionVariable);
-    variable.initializer = initializer;
   }
 
   @override

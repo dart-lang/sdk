@@ -1456,7 +1456,7 @@ class A {
   Future<void> test_namedArgument_inBody() async {
     await indexTestUnit(r'''
 fa(pa) => fb(pb: true);
-fb({pb: false}) {}
+fb({pb = false}) {}
 void f() {
   fa(null);
 }
@@ -1465,7 +1465,7 @@ void f() {
     // validate change
     return _assertSuccessfulRefactoring(r'''
 fa(pa) => fb(pb: true);
-fb({pb: false}) {}
+fb({pb = false}) {}
 void f() {
   fb(pb: true);
 }
@@ -1474,7 +1474,7 @@ void f() {
 
   Future<void> test_namedArguments() async {
     await indexTestUnit(r'''
-test({a: 0, b: 2}) {
+test({a = 0, b = 2}) {
   print(a + b);
 }
 void f() {

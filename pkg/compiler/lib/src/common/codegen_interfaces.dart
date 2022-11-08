@@ -10,8 +10,27 @@ import '../serialization/serialization.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
-
+import '../universe/world_impact.dart';
+import '../util/util.dart';
 import 'codegen_migrated.dart';
+
+abstract class CodegenImpact extends WorldImpact {
+  Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks;
+
+  Iterable<Set<ClassEntity>> get specializedGetInterceptors;
+
+  bool get usesInterceptor;
+
+  Iterable<AsyncMarker> get asyncMarkers;
+
+  Iterable<GenericInstantiation> get genericInstantiations;
+
+  Iterable<NativeBehavior> get nativeBehaviors;
+
+  Iterable<FunctionEntity> get nativeMethods;
+
+  Iterable<Selector> get oneShotInterceptors;
+}
 
 abstract class CodegenRegistry {
   @deprecated

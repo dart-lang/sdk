@@ -2251,7 +2251,11 @@ class LoadOptimizer : public ValueObject {
                 forward_def = alloc->InputAt(pos)->definition();
               } else {
                 // Fields not provided as an input to the instruction are
-                // initialized to null during allocation.
+                // initialized to null during allocation (except
+                // Record::num_fields).
+                // Accesses to Record::num_fields should be folded in
+                // LoadFieldInstr::Canonicalize.
+                ASSERT(slot->kind() != Slot::Kind::kRecord_num_fields);
                 forward_def = graph_->constant_null();
               }
             }

@@ -40,9 +40,14 @@ extension ElementAnnotationExtensions on ElementAnnotation {
           // We can't directly translate the index from the analyzed TargetKind
           // constant to TargetKinds.values because the analyzer from the SDK
           // may have been compiled with a different version of pkg:meta.
-          final stringRepresentation =
-              kindObject.getField('name')!.toStringValue()!;
-          final name = 'TargetKind.$stringRepresentation';
+          var index = kindObject.getField('index')!.toIntValue()!;
+          var targetKindClass =
+              (kindObject.type as InterfaceType).element as EnumElementImpl;
+          // Instead, map constants to their TargetKind by comparing getter
+          // names.
+          var getter = targetKindClass.constants[index];
+          var name = 'TargetKind.${getter.name}';
+
           var foundTargetKind = _targetKindsByName[name];
           if (foundTargetKind != null) {
             kinds.add(foundTargetKind);

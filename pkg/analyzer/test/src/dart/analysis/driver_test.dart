@@ -1891,7 +1891,7 @@ class B {}
     newFile(b, r'''
 import 'a.dart';
 main() {
-  foo({int p: C}) {}
+  foo({int p = C}) {}
   foo();
 }
 ''');

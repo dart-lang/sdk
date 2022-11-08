@@ -161,8 +161,48 @@
 
 #### Linter
 
-Updated the Linter to `1.28.0`, which includes changes that
+Updated the Linter to `1.29.0`, which includes changes that
 
+- add new lint: `dangling_library_doc_comments`.
+- fix `no_leading_underscores_for_local_identifiers` to not report super formals
+  as local variables.
+- fix `unnecessary_overrides` false negatives.
+- fix `cancel_subscriptions` for nullable fields.
+- add new lint: `collection_methods_unrelated_type`.
+- update `library_names` to support unnamed libraries.
+- fix `unnecessary_parenthesis` support for as-expressions.
+- fix `use_build_context_synchronously` to check for context property accesses.
+- fix false positive in `comment_references`.
+- improved unrelated type checks to handle enums and cascades.
+- fix `unnecessary_brace_in_string_interps` for `this` expressions .
+- update `use_build_context_synchronously` for `BuildContext.mounted`.
+- improve `flutter_style_todos` to handle more cases.
+- fix `use_build_context_synchronously` to check for `BuildContext`s in named
+  expressions.
+- fix `exhaustive_cases` to check parenthesized expressions
+- improves performance for:
+  - `avoid_null_checks_in_equality_operators`.
+  - `join_return_with_statement`.
+  - `recursive_getters`.
+  - `unnecessary_lambdas`.
+  - `diagnostic_describe_all_properties`.
+  - `prefer_foreach`.
+  - `avoid_escaping_inner_quotes`.
+  - `cascade_invocations`.
+  - `tighten_type_of_initializing_formals`.
+  - `prefer_interpolation_to_compose_strings`.
+  - `prefer_constructors_over_static_methods`.
+  - `avoid_returning_null`.
+  - `parameter_assignments`.
+  - `prefer_constructors_over_static_methods`.
+  - `prefer_interpolation_to_compose_strings`.
+  - `avoid_returning_null`.
+  - `avoid_returning_this`.
+  - `flutter_style_todos`.
+  - `avoid_positional_boolean_parameters`.
+  - `prefer_const_constructors`.
+- add new lint: `implicit_call_tearoffs`.
+- add new lint: `unnecessary_library_directive`.
 - update `avoid_redundant_argument_values` to work with enum declarations.
 - improve performance for `prefer_contains`.
 - add new lint: `unreachable_from_main`.

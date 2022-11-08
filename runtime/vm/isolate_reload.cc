@@ -2127,7 +2127,8 @@ void ProgramReloadContext::InvalidateSuspendStates(
 class FieldInvalidator {
  public:
   explicit FieldInvalidator(Zone* zone)
-      : cls_(Class::Handle(zone)),
+      : zone_(zone),
+        cls_(Class::Handle(zone)),
         cls_fields_(Array::Handle(zone)),
         entry_(Object::Handle(zone)),
         value_(Object::Handle(zone)),
@@ -2228,16 +2229,22 @@ class FieldInvalidator {
   }
 
   DART_FORCE_INLINE
-  void CheckValueType(bool null_safety,
-                      const Object& value,
-                      const Field& field) {
+  bool CheckAssignabilityUsingCache(bool null_safety,
+                                    const Object& value,
+                                    const AbstractType& type,
+                                    const Field& field) {
     ASSERT(!value.IsSentinel());
     if (!null_safety && value.IsNull()) {
-      return;
+      return true;
     }
-    type_ = field.type();
-    if (type_.IsDynamicType()) {
-      return;
+
+    if (type.IsDynamicType()) {
+      return true;
+    }
+
+    if (type.IsRecordType()) {
+      return CheckAssignabilityForRecordType(null_safety, value,
+                                             RecordType::Cast(type), field);
     }
 
     cls_ = value.clazz();
@@ -2267,13 +2274,11 @@ class FieldInvalidator {
     }
     entries_ = cache_.cache();
 
-    bool cache_hit = false;
     for (intptr_t i = 0; entries_.At(i) != Object::null();
          i += SubtypeTestCache::kTestEntryLength) {
       if ((entries_.At(i + SubtypeTestCache::kInstanceCidOrSignature) ==
            instance_cid_or_signature_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kDestinationType) ==
-           type_.ptr()) &&
+          (entries_.At(i + SubtypeTestCache::kDestinationType) == type.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
            instance_type_arguments_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
@@ -2286,41 +2291,77 @@ class FieldInvalidator {
           (entries_.At(
                i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
            delayed_function_type_arguments_.ptr())) {
-        cache_hit = true;
-        if (entries_.At(i + SubtypeTestCache::kTestResult) !=
-            Bool::True().ptr()) {
-          ASSERT(!FLAG_identity_reload);
-          field.set_needs_load_guard(true);
-        }
-        break;
+        return entries_.At(i + SubtypeTestCache::kTestResult) ==
+               Bool::True().ptr();
       }
     }
 
-    if (!cache_hit) {
-      instance_ ^= value.ptr();
-      if (!instance_.IsAssignableTo(type_, instantiator_type_arguments_,
-                                    function_type_arguments_)) {
-        // Even if doing an identity reload, type check can fail if hot reload
-        // happens while constructor is still running and field is not
-        // initialized yet, so it has a null value.
-        ASSERT(!FLAG_identity_reload || instance_.IsNull());
-        field.set_needs_load_guard(true);
-      } else {
-        // Do not add record instances to cache as they don't have a valid
-        // key (type of a record depends on types of all its fields).
-        // TODO(dartbug.com/49719): consider testing each record field using
-        // SubtypeTestCache.
-        if (cid != kRecordCid) {
-          cache_.AddCheck(
-              instance_cid_or_signature_, type_, instance_type_arguments_,
-              instantiator_type_arguments_, function_type_arguments_,
-              parent_function_type_arguments_, delayed_function_type_arguments_,
-              Bool::True());
-        }
+    instance_ ^= value.ptr();
+    if (instance_.IsAssignableTo(type, instantiator_type_arguments_,
+                                 function_type_arguments_)) {
+      // Do not add record instances to cache as they don't have a valid
+      // key (type of a record depends on types of all its fields).
+      if (cid != kRecordCid) {
+        cache_.AddCheck(instance_cid_or_signature_, type,
+                        instance_type_arguments_, instantiator_type_arguments_,
+                        function_type_arguments_,
+                        parent_function_type_arguments_,
+                        delayed_function_type_arguments_, Bool::True());
       }
+      return true;
+    }
+
+    return false;
+  }
+
+  bool CheckAssignabilityForRecordType(bool null_safety,
+                                       const Object& value,
+                                       const RecordType& type,
+                                       const Field& field) {
+    if (!value.IsRecord()) {
+      return false;
+    }
+
+    const Record& record = Record::Cast(value);
+    const intptr_t num_fields = record.num_fields();
+    if (num_fields != type.NumFields() ||
+        record.field_names() != type.field_names()) {
+      return false;
+    }
+
+    // This method can be called recursively, so cannot reuse handles.
+    auto& field_value = Object::Handle(zone_);
+    auto& field_type = AbstractType::Handle(zone_);
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      field_value = record.FieldAt(i);
+      field_type = type.FieldTypeAt(i);
+      if (!CheckAssignabilityUsingCache(null_safety, field_value, field_type,
+                                        field)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  DART_FORCE_INLINE
+  void CheckValueType(bool null_safety,
+                      const Object& value,
+                      const Field& field) {
+    ASSERT(!value.IsSentinel());
+    if (!null_safety && value.IsNull()) {
+      return;
+    }
+    type_ = field.type();
+    if (!CheckAssignabilityUsingCache(null_safety, value, type_, field)) {
+      // Even if doing an identity reload, type check can fail if hot reload
+      // happens while constructor is still running and field is not
+      // initialized yet, so it has a null value.
+      ASSERT(!FLAG_identity_reload || value.IsNull());
+      field.set_needs_load_guard(true);
     }
   }
 
+  Zone* zone_;
   Class& cls_;
   Array& cls_fields_;
   Object& entry_;

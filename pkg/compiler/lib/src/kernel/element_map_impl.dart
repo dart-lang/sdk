@@ -36,7 +36,7 @@ import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
-import '../js_backend/namer_interfaces.dart';
+import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';

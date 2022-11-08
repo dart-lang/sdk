@@ -3463,8 +3463,6 @@ class BodyBuilder extends StackListenerImpl
     Pattern? pattern = condition.pattern;
     if (pattern != null) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
-        // Skip synthetic variables.
-        if (variable.name == null) continue;
         declareVariable(variable, scope);
       }
     }

@@ -1754,8 +1754,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             type: conditionResult.inferredType);
     Expression? matchCondition =
         node.pattern.makeCondition(matchedExpressionVariable, this);
-    node.pattern
-        .createDeclaredVariableInitializers(matchedExpressionVariable, this);
+    node.pattern.createDeclaredVariableInitializers(
+        engine.forest
+            .createVariableGet(node.fileOffset, matchedExpressionVariable),
+        matchedExpressionVariable.type,
+        this);
 
     flowAnalysis.ifStatement_thenBegin(condition, node);
     StatementInferenceResult thenResult = inferStatement(node.then);
@@ -1781,12 +1784,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     List<Statement> replacementStatements = [matchedExpressionVariable];
     if (matchCondition == null) {
-      replacementStatements.addAll(node.pattern.declaredVariables);
+      replacementStatements.addAll(node.pattern.declaredVariableInitializers);
       replacementStatements.add(then);
     } else {
-      if (node.pattern.declaredVariables.isNotEmpty) {
+      if (node.pattern.declaredVariableInitializers.isNotEmpty) {
         List<Statement> thenBodyStatements = [];
-        thenBodyStatements.addAll(node.pattern.declaredVariables);
+        thenBodyStatements.addAll(node.pattern.declaredVariableInitializers);
         thenBodyStatements.add(then);
         then = engine.forest
             .createBlock(then.fileOffset, then.fileOffset, thenBodyStatements);
@@ -7700,7 +7703,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
           typeInfos,
       required MatchContext<Node, Expression> context}) {
-    // TODO(cstefantsova): Implement visitListPattern.
+    // TODO(cstefantsova): Should we infer a more precise type than DynamicType?
+    DartType elementType;
+    if (pattern.typeArgument is ImplicitTypeArgument) {
+      elementType = pattern.typeArgument = const DynamicType();
+    } else {
+      elementType = pattern.typeArgument;
+    }
+    for (Pattern pattern in pattern.patterns) {
+      pattern.acceptInference(this,
+          matchedType: elementType, typeInfos: typeInfos, context: context);
+    }
     return const PatternInferenceResult();
   }
 
@@ -7751,6 +7764,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   DartType recordType(shared.RecordType<DartType> type) {
     // TODO: implement recordType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType downwardInferObjectPatternRequiredType({
+    required DartType matchedType,
+    required Pattern pattern,
+  }) {
+    // TODO: implement downwardInferObjectPatternRequiredType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType resolveObjectPatternPropertyGet({
+    required DartType receiverType,
+    required RecordPatternField<Pattern> field,
+  }) {
+    // TODO: implement resolveObjectPatternPropertyGet
     throw new UnimplementedError('TODO(scheglov)');
   }
 }

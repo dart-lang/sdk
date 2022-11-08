@@ -1,10 +1,5 @@
 main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
-
-  import "package:foo/nonexisting.dart";
-
-}
-library from "package:foo/nonexisting.dart" as non {
 //
 // Problems in library:
 //
@@ -12,5 +7,10 @@ library from "package:foo/nonexisting.dart" as non {
 // import "package:foo/nonexisting.dart";
 //        ^
 //
+
+  import "package:foo/nonexisting.dart";
+
+}
+library from "package:foo/nonexisting.dart" as non {
 
 }

@@ -27,11 +27,10 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/namer_interfaces.dart' show ModularNamer;
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
-import '../js_backend/runtime_types_new_migrated.dart'
-    show RecipeEncoding, indexTypeVariable;
+import '../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding, indexTypeVariable;
 import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/interfaces.dart' show ModularEmitter;
@@ -40,7 +39,7 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart';
 import '../native/behavior.dart';
 import '../options.dart';
-import '../tracer_interfaces.dart';
+import '../tracer.dart' show Tracer;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;

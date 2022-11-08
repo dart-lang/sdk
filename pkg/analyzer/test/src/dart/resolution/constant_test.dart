@@ -374,7 +374,7 @@ class A {
   final bool f1;
   final bool f2;
 
-  const A({this.f1: false}) : this.f2 = f1 && true;
+  const A({this.f1 = false}) : this.f2 = f1 && true;
 }
 ''');
 

@@ -1685,6 +1685,78 @@ main() {
       });
     });
 
+    group('Object:', () {
+      group('Refutable:', () {
+        test('inferred', () {
+          h.addDownwardInfer(name: 'B', context: 'A<int>', result: 'B<int>');
+          h.addMember('B<int>', 'foo', 'int');
+          h.run([
+            ifCase(
+              expr('A<int>').checkContext('?'),
+              objectPattern(
+                requiredType: ObjectPatternRequiredType.name('B'),
+                fields: [
+                  RecordPatternField(
+                    name: 'foo',
+                    pattern: Var('foo').pattern(),
+                  ),
+                ],
+              ),
+              [],
+            ).checkIr('ifCase(expr(A<int>), objectPattern(varPattern(foo, '
+                'matchedType: int, staticType: int), matchedType: A<int>, '
+                'requiredType: B<int>), true, block(), noop)'),
+          ]);
+        });
+      });
+
+      group('Irrefutable:', () {
+        test('assignable', () {
+          h.addMember('num', 'foo', 'bool');
+          h.run([
+            match(
+              objectPattern(
+                requiredType: ObjectPatternRequiredType.type('num'),
+                fields: [
+                  RecordPatternField(
+                    name: 'foo',
+                    pattern: Var('foo').pattern(),
+                  ),
+                ],
+              ),
+              expr('int').checkContext('num'),
+            ).checkIr('match(expr(int), objectPattern(varPattern(foo, '
+                'matchedType: bool, staticType: bool), '
+                'matchedType: int, requiredType: num))'),
+          ]);
+        });
+
+        test('not assignable', () {
+          h.addMember('int', 'foo', 'bool');
+          h.run([
+            (match(
+              objectPattern(
+                requiredType: ObjectPatternRequiredType.type('int'),
+                fields: [
+                  RecordPatternField(
+                    name: 'foo',
+                    pattern: Var('foo').pattern(),
+                  ),
+                ],
+              )..errorId = 'PATTERN',
+              expr('num').checkContext('int'),
+            )..errorId = 'CONTEXT')
+                .checkIr('match(expr(num), objectPattern(varPattern(foo, '
+                    'matchedType: bool, staticType: bool), '
+                    'matchedType: num, requiredType: int))'),
+          ], expectedErrors: {
+            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT, matchedType: num, requiredType: int)'
+          });
+        });
+      });
+    });
+
     group('Record:', () {
       group('Positional:', () {
         group('Match dynamic:', () {
