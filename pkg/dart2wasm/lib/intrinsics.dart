@@ -9,6 +9,7 @@ import 'package:dart2wasm/translator.dart';
 import 'package:kernel/ast.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
+import 'abi.dart' show kWasmAbiEnumIndex;
 
 typedef CodeGenCallback = void Function(w.Instructions);
 
@@ -18,10 +19,6 @@ typedef CodeGenCallback = void Function(w.Instructions);
 /// member in [generateMemberIntrinsic].
 class Intrinsifier {
   final CodeGenerator codeGen;
-
-  // The ABI type sizes are the same for 32-bit Wasm as for 32-bit ARM, so we
-  // can just use an ABI enum index corresponding to a 32-bit ARM platform.
-  static const int abiEnumIndex = 0; // androidArm
 
   static const w.ValueType boolType = w.NumType.i32;
   static const w.ValueType intType = w.NumType.i64;
@@ -487,7 +484,7 @@ class Intrinsifier {
       } else if (arg is StaticInvocation) {
         if (arg.target.enclosingLibrary.name == "dart.ffi" &&
             arg.name.text == "_abi") {
-          constIndex = abiEnumIndex;
+          constIndex = kWasmAbiEnumIndex;
         }
       }
       if (constIndex != null) {
