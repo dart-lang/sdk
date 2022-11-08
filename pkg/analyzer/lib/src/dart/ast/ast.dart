@@ -4741,11 +4741,13 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
     Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
     MatchContext<AstNode, Expression> context,
   ) {
-    resolverVisitor.extractorPatternResolver.resolve(
-      node: this,
-      matchedType: matchedType,
-      typeInfos: typeInfos,
-      context: context,
+    resolverVisitor.analyzeObjectPattern(
+      matchedType,
+      typeInfos,
+      context,
+      this,
+      requiredType: null,
+      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
     );
   }
 
@@ -10544,7 +10546,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
       typeInfos,
       context,
       this,
-      fields: resolverVisitor.buildSharedRecordTypeFields(this),
+      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
     );
   }
 

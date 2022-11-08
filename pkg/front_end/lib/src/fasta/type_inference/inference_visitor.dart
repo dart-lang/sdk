@@ -7753,6 +7753,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO: implement recordType
     throw new UnimplementedError('TODO(scheglov)');
   }
+
+  @override
+  DartType downwardInferObjectPatternRequiredType({
+    required DartType matchedType,
+    required Pattern pattern,
+  }) {
+    // TODO: implement downwardInferObjectPatternRequiredType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType resolveObjectPatternPropertyGet({
+    required DartType receiverType,
+    required RecordPatternField<Pattern> field,
+  }) {
+    // TODO: implement resolveObjectPatternPropertyGet
+    throw new UnimplementedError('TODO(scheglov)');
+  }
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].

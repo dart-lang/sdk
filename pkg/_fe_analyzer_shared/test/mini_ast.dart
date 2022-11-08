@@ -223,6 +223,17 @@ Statement match(Pattern pattern, Expression initializer,
 
 CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
 
+Pattern objectPattern({
+  required ObjectPatternRequiredType requiredType,
+  required List<RecordPatternField<Pattern>> fields,
+}) {
+  return _ObjectPattern(
+    requiredType: requiredType,
+    fields: fields,
+    location: computeLocation(),
+  );
+}
+
 Pattern recordPattern(List<RecordPatternField<Pattern>> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
@@ -501,6 +512,19 @@ class Harness {
     _thisType = Type(type);
   }
 
+  /// Updates the harness with a new result for [downwardInfer].
+  void addDownwardInfer({
+    required String name,
+    required String context,
+    required String result,
+  }) {
+    _operations.addDownwardInfer(
+      name: name,
+      context: context,
+      result: result,
+    );
+  }
+
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
   void addFactor(String from, String what, String result) {
@@ -777,6 +801,10 @@ class MiniAstOperations
     '?, Null': Type('Null'),
   };
 
+  static final Map<String, Type> _coreDownwardInferenceResults = {
+    'List <: Iterable<int>': Type('List<int>'),
+  };
+
   bool? _legacy;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
@@ -787,6 +815,9 @@ class MiniAstOperations
 
   final Map<String, Type> _lubs = Map.of(_coreLubs);
 
+  final Map<String, Type> _downwardInferenceResults =
+      Map.of(_coreDownwardInferenceResults);
+
   Map<String, Map<String, String>> _promotionExceptions = {};
 
   final Set<_PropertyElement> promotableFields = {};
@@ -795,6 +826,16 @@ class MiniAstOperations
 
   set legacy(bool value) {
     _legacy = value;
+  }
+
+  /// Updates the harness with a new result for [downwardInfer].
+  void addDownwardInfer({
+    required String name,
+    required String context,
+    required String result,
+  }) {
+    var query = '$name <: $context';
+    _downwardInferenceResults[query] = Type(result);
   }
 
   /// Updates the harness so that when a [factor] query is invoked on types
@@ -824,6 +865,14 @@ class MiniAstOperations
     } else {
       return TypeClassification.potentiallyNullable;
     }
+  }
+
+  /// Returns the downward inference result of a type with the given [name],
+  /// in the [context]. For example infer `List<int>` from `Iterable<int>`.
+  Type downwardInfer(String name, Type context) {
+    var query = '$name <: $context';
+    return _downwardInferenceResults[query] ??
+        fail('Unknown downward inference query: $query');
   }
 
   @override
@@ -980,6 +1029,27 @@ class Node {
   }
 
   String toString() => 'Node#$id';
+}
+
+/// Either the type, or the name of a type constructor.
+class ObjectPatternRequiredType {
+  final Type? type;
+  final String? name;
+
+  ObjectPatternRequiredType.name(this.name) : type = null;
+
+  ObjectPatternRequiredType.type(String type)
+      : type = Type(type),
+        name = null;
+
+  @override
+  String toString() {
+    if (type != null) {
+      return '(type: $type)';
+    } else {
+      return '(name: $name)';
+    }
+  }
 }
 
 abstract class Pattern extends Node with CaseHead, CaseHeads {
@@ -2737,6 +2807,18 @@ class _MiniAstTypeAnalyzer
   void dispatchStatement(Statement statement) =>
       _irBuilder.guard(statement, () => statement.visit(_harness));
 
+  @override
+  Type downwardInferObjectPatternRequiredType({
+    required Type matchedType,
+    required covariant _ObjectPattern pattern,
+  }) {
+    var name = pattern.requiredType.name;
+    if (name == null) {
+      fail('Expected type constructor name at ${pattern.location}');
+    }
+    return typeOperations.downwardInfer(name, matchedType);
+  }
+
   void finish() {
     flow.finish();
   }
@@ -2868,6 +2950,14 @@ class _MiniAstTypeAnalyzer
       positional: type.positional,
       named: type.named.map((e) => NamedType(e.name, e.type)).toList(),
     );
+  }
+
+  @override
+  Type resolveObjectPatternPropertyGet({
+    required Type receiverType,
+    required RecordPatternField<Pattern> field,
+  }) {
+    return _harness.getMember(receiverType, field.name!)._type;
   }
 
   @override
@@ -3034,6 +3124,61 @@ class _NullLiteral extends Expression {
     var result = h.typeAnalyzer.analyzeNullLiteral(this);
     h.irBuilder.atom('null', Kind.expression, location: location);
     return result;
+  }
+}
+
+class _ObjectPattern extends Pattern {
+  final ObjectPatternRequiredType requiredType;
+  final List<RecordPatternField<Pattern>> fields;
+
+  _ObjectPattern({
+    required this.requiredType,
+    required this.fields,
+    required super.location,
+  }) : super._();
+
+  Type computeSchema(Harness h) {
+    return h.typeAnalyzer.analyzeObjectPatternSchema(requiredType.type!);
+  }
+
+  @override
+  void preVisit(
+    PreVisitor visitor,
+    VariableBinder<Node, Var, Type> variableBinder,
+  ) {
+    for (var field in fields) {
+      field.pattern.preVisit(visitor, variableBinder);
+    }
+  }
+
+  void visit(
+    Harness h,
+    Type matchedType,
+    Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
+    MatchContext<Node, Expression> context,
+  ) {
+    var requiredType = h.typeAnalyzer.analyzeObjectPattern(
+        matchedType, typeInfos, context, this,
+        requiredType: this.requiredType.type, fields: fields);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.atom(requiredType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+      'objectPattern',
+      [...List.filled(fields.length, Kind.pattern), Kind.type, Kind.type],
+      Kind.pattern,
+      names: ['matchedType', 'requiredType'],
+      location: location,
+    );
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var fieldStrings = [
+      for (var field in fields)
+        field.pattern._debugString(needsKeywordOrType: needsKeywordOrType)
+    ];
+    final requiredType = this.requiredType;
+    return '$requiredType(${fieldStrings.join(', ')})';
   }
 }
 

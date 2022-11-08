@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -44,7 +45,6 @@ import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/constructor_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
-import 'package:analyzer/src/dart/resolver/extractor_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
@@ -288,9 +288,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
 
-  late final ExtractorPatternResolver extractorPatternResolver =
-      ExtractorPatternResolver(this);
-
   late final ListPatternResolver listPatternResolver =
       ListPatternResolver(this);
 
@@ -517,10 +514,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return null;
   }
 
-  List<shared.RecordPatternField<AstNode>> buildSharedRecordTypeFields(
-    RecordPatternImpl node,
+  List<SharedAnalyzerRecordField> buildSharedRecordPatternFields(
+    List<RecordPatternFieldImpl> fields,
   ) {
-    return node.fields.map((field) {
+    return fields.map((field) {
       Token? nameToken;
       var fieldName = field.fieldName;
       if (fieldName != null) {
@@ -535,7 +532,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           }
         }
       }
-      return shared.RecordPatternField(
+      return SharedAnalyzerRecordField(
+        node: field,
         name: nameToken?.lexeme,
         pattern: field.pattern,
       );
@@ -798,6 +796,47 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void dispatchStatement(Statement statement) {
     statement.accept(this);
+  }
+
+  @override
+  DartType downwardInferObjectPatternRequiredType({
+    required DartType matchedType,
+    required covariant ExtractorPatternImpl pattern,
+  }) {
+    var typeNode = pattern.type;
+    if (typeNode.typeArguments == null) {
+      var typeNameElement = typeNode.name.staticElement;
+      if (typeNameElement is InterfaceElement) {
+        var typeParameters = typeNameElement.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          var typeArguments = _inferTypeArguments(
+            typeParameters: typeParameters,
+            errorNode: typeNode,
+            declaredType: typeNameElement.thisType,
+            contextType: matchedType,
+          );
+          return typeNode.type = typeNameElement.instantiate(
+            typeArguments: typeArguments,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
+      } else if (typeNameElement is TypeAliasElement) {
+        var typeParameters = typeNameElement.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          var typeArguments = _inferTypeArguments(
+            typeParameters: typeParameters,
+            errorNode: typeNode,
+            declaredType: typeNameElement.aliasedType,
+            contextType: matchedType,
+          );
+          return typeNode.type = typeNameElement.instantiate(
+            typeArguments: typeArguments,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
+      }
+    }
+    return typeNode.typeOrThrow;
   }
 
   @override
@@ -1207,6 +1246,62 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.accept(this);
       return PropertyElementResolverResult();
     }
+  }
+
+  @override
+  DartType resolveObjectPatternPropertyGet({
+    required DartType receiverType,
+    required covariant SharedAnalyzerRecordField field,
+  }) {
+    var fieldNode = field.node;
+    var nameToken = fieldNode.fieldName?.name;
+    nameToken ??= field.pattern.variablePattern?.name;
+    if (nameToken == null) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME,
+        fieldNode,
+      );
+      return typeProvider.dynamicType;
+    }
+
+    var result = typePropertyResolver.resolve(
+      receiver: null,
+      receiverType: receiverType,
+      name: nameToken.lexeme,
+      propertyErrorEntity: nameToken,
+      nameErrorEntity: nameToken,
+    );
+
+    if (result.needsGetterError) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.UNDEFINED_GETTER,
+        nameToken,
+        [nameToken.lexeme, receiverType],
+      );
+    }
+
+    var getter = result.getter;
+    if (getter != null) {
+      fieldNode.fieldElement = getter;
+      if (getter is PropertyAccessorElement) {
+        return getter.returnType;
+      } else {
+        // TODO(scheglov) https://github.com/dart-lang/language/issues/2561
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.UNDEFINED_GETTER,
+          nameToken,
+          [nameToken.lexeme, receiverType],
+        );
+        return getter.type;
+      }
+    }
+
+    var recordField = result.recordField;
+    if (recordField != null) {
+      return recordField.type;
+    }
+
+    return typeProvider.dynamicType;
   }
 
   RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
@@ -3119,6 +3214,35 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return true;
   }
 
+  /// Infers type arguments corresponding to [typeParameters] used it the
+  /// [declaredType], so that thr resulting type is a subtype of [contextType].
+  List<DartType> _inferTypeArguments({
+    required List<TypeParameterElement> typeParameters,
+    required AstNode errorNode,
+    required DartType declaredType,
+    required DartType contextType,
+  }) {
+    var inferrer = GenericInferrer(
+      typeSystem,
+      typeParameters,
+      inferenceErrorListener: InferenceErrorReporter(
+        errorReporter,
+        isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+        isGenericMetadataEnabled: genericMetadataIsEnabled,
+      ),
+      errorNode: errorNode,
+      genericMetadataIsEnabled: genericMetadataIsEnabled,
+    );
+    inferrer.constrainReturnType(declaredType, contextType);
+    return inferrer.partialInfer().map((typeArgument) {
+      if (typeArgument is UnknownInferredType) {
+        return typeProvider.dynamicType;
+      } else {
+        return typeArgument;
+      }
+    }).toList();
+  }
+
   /// If `expression` should be treated as `expression.call`, inserts an
   /// [ImplicitCallReference] node which wraps [expression].
   void _insertImplicitCallReference(ExpressionImpl expression,
@@ -4424,6 +4548,19 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static void _setNodeNameScope(AstNode node, Scope scope) {
     node.setProperty(_nameScopeProperty, scope);
   }
+}
+
+/// Implementation of [shared.RecordPatternField] that adds analyzer node,
+/// used for error reporting.
+class SharedAnalyzerRecordField
+    extends shared.RecordPatternField<DartPatternImpl> {
+  final RecordPatternFieldImpl node;
+
+  SharedAnalyzerRecordField({
+    required this.node,
+    required super.name,
+    required super.pattern,
+  });
 }
 
 /// Tracker for whether a `switch` statement has `default` or is on an
