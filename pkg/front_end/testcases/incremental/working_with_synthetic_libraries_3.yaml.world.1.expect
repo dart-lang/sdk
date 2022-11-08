@@ -7,6 +7,10 @@ library from "org-dartlang-test:///main.dart" as main {
 // part "dart:foo/nonexisting.dart";
 //      ^
 //
+// org-dartlang-test:///main.dart:1:6: Error: Dart library 'dart:foo/nonexisting.dart' is not available on this platform.
+// part "dart:foo/nonexisting.dart";
+//      ^
+//
 
   part dart:foo/nonexisting.dart;
 }

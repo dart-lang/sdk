@@ -4436,11 +4436,32 @@ DefaultValueInRedirectingFactoryConstructor:
 UntranslatableUri:
   problemMessage: "Not found: '#uri'"
   analyzerCode: URI_DOES_NOT_EXIST
+  exampleAllowMoreCodes: true # PackageNotFound will precede this message.
+  script: |
+    import "package:expect/non_existing_file";
+
+UnavailableDartLibrary:
+  problemMessage: "Dart library '#uri' is not available on this platform."
+  analyzerCode: URI_DOES_NOT_EXIST
   script: |
     import "dart:non_existing_library";
 
-    main() {
-    }
+ImportChainContext:
+  problemMessage: |
+    The unavailable library '#uri' is imported through these packages:
+
+    #string
+    Detailed import paths for (some of) the these imports:
+    
+    #string2
+  severity: CONTEXT
+
+ImportChainContextSimple:
+  problemMessage: |
+    The unavailable library '#uri' is imported through these paths:
+
+    #string
+  severity: CONTEXT
 
 CantReadFile:
   problemMessage: "Error when reading '#uri': #string"
@@ -4448,9 +4469,6 @@ CantReadFile:
   external: test/packages_format_error_test.dart
   script: |
     import "non_existing_file.dart";
-
-    main() {
-    }
 
 ExceptionReadingFile:
   problemMessage: "Exception when reading '#uri': #string"

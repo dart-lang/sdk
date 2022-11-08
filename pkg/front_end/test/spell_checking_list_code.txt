@@ -397,6 +397,7 @@ dispatched
 distribute
 diverged
 divided
+divides
 dm
 doc
 docs
@@ -493,6 +494,7 @@ ext
 extenders
 extracted
 extracts
+extras
 f
 faced
 factor
@@ -1025,6 +1027,7 @@ precompilations
 precompile
 precompiled
 precompiling
+precomputed
 preexisted
 preexisting
 preferably
@@ -1274,6 +1277,7 @@ shas
 shelf
 shifts
 shl
+shortening
 showing
 shr
 shrinking
@@ -1452,6 +1456,7 @@ tex
 textualize
 textualized
 th
+thereby
 therein
 thereof
 they'll
@@ -1512,6 +1517,7 @@ un
 unaffected
 unaligned
 unaltered
+unavailable
 unbound
 uncategorized
 uncomment
@@ -1563,6 +1569,7 @@ unreachable
 unregister
 unregistered
 unregisters
+unreversed
 unseen
 unset
 unshadowed

@@ -3,6 +3,10 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
+// org-dartlang-test:///main.dart:1:8: Error: Not found: 'package:example/b.dart'
+// import "package:example/b.dart";
+//        ^
+//
 // org-dartlang-test:///main.dart:4:3: Error: Method not found: 'b'.
 //   b();
 //   ^
@@ -16,12 +20,5 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 library from "package:example/b.dart" as b {
-//
-// Problems in library:
-//
-// org-dartlang-test:///main.dart:1:8: Error: Not found: 'package:example/b.dart'
-// import "package:example/b.dart";
-//        ^
-//
 
 }

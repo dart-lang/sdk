@@ -150,7 +150,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   final bool isUnsupported;
 
-  final List<Object> accessors = <Object>[];
+  final List<LibraryAccess> accessors = [];
 
   @override
   String? name;
@@ -714,6 +714,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         ]);
 
     return suffix;
+  }
+
+  @override
+  Iterable<Uri> get dependencies sync* {
+    for (Export export in exports) {
+      yield export.exported.importUri;
+    }
+    for (Import import in imports) {
+      LibraryBuilder? imported = import.imported;
+      if (imported != null) {
+        yield imported.importUri;
+      }
+    }
   }
 
   void addExport(
@@ -1589,15 +1602,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  void recordAccess(int charOffset, int length, Uri fileUri) {
-    accessors.add(fileUri);
-    accessors.add(charOffset);
-    accessors.add(length);
+  void recordAccess(
+      LibraryBuilder accessor, int charOffset, int length, Uri fileUri) {
+    accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
     if (accessProblem != null) {
       addProblem(accessProblem!, charOffset, length, fileUri);
     }
   }
 
+  /// Reports [message] on all libraries that access this library.
   void addProblemAtAccessors(Message message) {
     if (accessProblem == null) {
       if (accessors.isEmpty && this == loader.first) {
@@ -1605,11 +1618,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // we need to report a problem.
         loader.addProblem(message, -1, 1, null);
       }
-      for (int i = 0; i < accessors.length; i += 3) {
-        Uri accessor = accessors[i] as Uri;
-        int charOffset = accessors[i + 1] as int;
-        int length = accessors[i + 2] as int;
-        addProblem(message, charOffset, length, accessor);
+      for (int i = 0; i < accessors.length; i++) {
+        LibraryAccess access = accessors[i];
+        access.accessor.addProblem(
+            message, access.charOffset, access.length, access.fileUri);
       }
       accessProblem = message;
     }
@@ -5442,4 +5454,13 @@ class GenericFunctionTypeCheck {
   final int charOffset;
 
   GenericFunctionTypeCheck(this.type, this.fileUri, this.charOffset);
+}
+
+class LibraryAccess {
+  final LibraryBuilder accessor;
+  final Uri fileUri;
+  final int charOffset;
+  final int length;
+
+  LibraryAccess(this.accessor, this.fileUri, this.charOffset, this.length);
 }
