@@ -17,7 +17,7 @@ import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/constant_emitter.dart';
 import '../../js_backend/namer_interfaces.dart';
-import '../../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../js_model/js_world.dart' show JClosedWorld;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;

@@ -19,7 +19,7 @@ import '../js_model/elements.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
 import 'namer_interfaces.dart';
-import 'runtime_types_new_interfaces.dart' show RecipeEncoder;
+import 'runtime_types_new.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
 
 typedef _ConstantReferenceGenerator = jsAst.Expression Function(

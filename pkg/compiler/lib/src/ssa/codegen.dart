@@ -29,9 +29,8 @@ import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer_interfaces.dart' show ModularNamer;
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
-import '../js_backend/runtime_types_new_migrated.dart'
-    show RecipeEncoding, indexTypeVariable;
+import '../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding, indexTypeVariable;
 import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/interfaces.dart' show ModularEmitter;

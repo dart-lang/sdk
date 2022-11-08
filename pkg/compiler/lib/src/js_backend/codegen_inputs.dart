@@ -6,7 +6,7 @@ import '../tracer.dart' show Tracer;
 import 'checked_mode_helpers.dart';
 import 'namer_migrated.dart';
 import 'runtime_types_codegen.dart';
-import 'runtime_types_new_interfaces.dart';
+import 'runtime_types_new.dart';
 
 /// Holds resources only used during code generation.
 class CodegenInputs {

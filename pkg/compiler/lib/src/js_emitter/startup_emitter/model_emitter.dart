@@ -59,7 +59,7 @@ import '../../js_backend/js_backend.dart'
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
-import '../../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoderImpl, Ruleset, RulesetEncoder;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
