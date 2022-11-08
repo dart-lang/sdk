@@ -1359,6 +1359,28 @@ void f() {
     expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
+  Future<void> test_parameterType_nullableTypeWithArguments() async {
+    await indexTestUnit('''
+abstract class C {
+  List<int>? get x;
+}
+class D {
+  f(C c) {
+    var x = c.x;
+// start
+    if (x != null) {
+      print(x);
+    }
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    await refactoring.checkInitialConditions();
+    expect(refactoring.parameters[0].type, 'List<int>?');
+  }
+
   Future<void> test_prefixPartOfQualified() async {
     await indexTestUnit('''
 class A {
