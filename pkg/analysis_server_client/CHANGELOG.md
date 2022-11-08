@@ -1,3 +1,8 @@
+# 2.0.1
+
+* Updated the readme to reflect that this package is discontinued; see
+  https://github.com/dart-lang/sdk/issues/50262 for details.
+
 # 2.0.0
 
 * Migrated to null safety.
