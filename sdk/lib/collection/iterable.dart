@@ -205,7 +205,8 @@ abstract class IterableMixin<E> implements Iterable<E> {
       if (index == elementIndex) return element;
       elementIndex++;
     }
-    throw RangeError.index(index, this, "index", null, elementIndex);
+    throw IndexError.withLength(index, elementIndex,
+        indexable: this, name: "index");
   }
 
   String toString() => IterableBase.iterableToShortString(this, '(', ')');

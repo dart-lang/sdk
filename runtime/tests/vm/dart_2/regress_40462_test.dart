@@ -51,8 +51,10 @@ TypeError var22 = TypeError();
 CastError var23 = CastError();
 NullThrownError var24 = new NullThrownError();
 ArgumentError var25 = ArgumentError.value(27, '', 18);
-RangeError var26 = RangeError.index(1, 42, '+m', 'JjY', 46);
-IndexError var27 = IndexError(38, 29, 'R1Z', 'VnR7', 13);
+RangeError var26 =
+    IndexError.withLength(1, 46, indexable: 42, name: '+m', message: 'JjY');
+IndexError var27 =
+    IndexError.withLength(38, 13, indexable: 29, name: 'R1Z', message: 'VnR7');
 FallThroughError var28 = new FallThroughError();
 AbstractClassInstantiationError var29 = AbstractClassInstantiationError('Sq');
 UnsupportedError var30 = UnsupportedError('(OXv');
@@ -899,7 +901,8 @@ class X1 extends X0 {
 
   @override
   Int32x4List call(int par1) {
-    var26 ??= IndexError(27, 18, '+Qy9', '', 6);
+    var26 ??=
+        IndexError.withLength(27, 6, indexable: 18, name: '+Qy9', message: '');
     {
       int loc0 = 41;
       while (--loc0 > 0) {
@@ -939,7 +942,10 @@ class X1 extends X0 {
                                           ((loc0).modInverse(loc1) as int)))
                                       .isNegative),
                                   ('D\u2665Sp' ==
-                                      IndexError(14, 12, 'PDTOXf', '&5e', 13))
+                                      IndexError.withLength(14, 13,
+                                          indexable: 12,
+                                          name: 'PDTOXf',
+                                          message: '&5e'))
                                 ]) ??
                           [true, (!(false))])
                       : [true]));
@@ -984,7 +990,8 @@ extension XE1 on X1 {
             : CastError());
       }
     }
-    return IndexError(15, 17, 'yw', '', 20);
+    return IndexError.withLength(15, 20,
+        indexable: 17, name: 'yw', message: '');
   }
 
   Expando<String> foo1_Extension1() {

@@ -2052,7 +2052,7 @@ class LengthList extends JavaScriptObject
 
   Length operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 
@@ -2377,7 +2377,7 @@ class NumberList extends JavaScriptObject
 
   Number operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 
@@ -2860,7 +2860,7 @@ class StringList extends JavaScriptObject
 
   String operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 
@@ -3849,7 +3849,7 @@ class TransformList extends JavaScriptObject
 
   Transform operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 

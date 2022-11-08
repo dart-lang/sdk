@@ -66,6 +66,9 @@
 - Deprecated `FallThroughError`. Has not been thrown since Dart 2.0
   (see [#49529]).
 - Added `copyWith` extension method on `DateTime` (see [#24644]).
+- Deprecated `RangeError.checkValidIndex` in favor of `IndexError.check`.
+- Deprecated `IndexError` constructor in favor of `IndexError.withLength`
+  constructor.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [#24644]: https://github.com/dart-lang/sdk/issues/24644

@@ -1047,9 +1047,11 @@ Error diagnoseIndexError(indexable, index) {
   if (index is! int) return new ArgumentError.value(index, 'index');
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
-  // [RangeError.checkValidIndex] with no optional parameters provided.
+  // [IndexError.check] with no optional parameters
+  // provided.
   if (index < 0 || index >= length) {
-    return new RangeError.index(index, indexable, 'index', null, length);
+    return new IndexError.withLength(index, length,
+        indexable: indexable, name: 'index');
   }
   // The above should always match, but if it does not, use the following.
   return new RangeError.value(index, 'index');
