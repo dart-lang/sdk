@@ -692,7 +692,7 @@ class ResolutionSink extends _SummaryDataWriter {
     }
 
     if (identical(element, DynamicElementImpl.instance)) {
-      return _references._indexOfReference(_references.dynamicReference) << 1;
+      return _references._dynamicReferenceIndex << 1;
     }
 
     var reference = (element as ElementImpl).reference;
@@ -964,22 +964,26 @@ class _BundleWriterReferences {
   /// The `dynamic` class is declared in `dart:core`, but is not a class.
   /// Also, it is static, so we cannot set `reference` for it.
   /// So, we have to push it in a separate way.
-  final Reference dynamicReference;
+  final Reference _dynamicReference;
 
   /// References used in all libraries being linked.
   /// Element references in nodes are indexes in this list.
-  /// TODO(scheglov) Do we really use this list?
-  final List<Reference?> references = [null];
+  final List<Reference?> _references = [null];
 
   final List<int> _referenceParents = [0];
   final List<String> _referenceNames = [''];
 
-  _BundleWriterReferences(this.dynamicReference);
+  _BundleWriterReferences(this._dynamicReference);
+
+  /// The index for the `dynamic` element.
+  int get _dynamicReferenceIndex {
+    return _indexOfReference(_dynamicReference);
+  }
 
   /// We need indexes for references during linking, but once we are done,
   /// we must clear indexes to make references ready for linking a next bundle.
   void _clearIndexes() {
-    for (var reference in references) {
+    for (var reference in _references) {
       if (reference != null) {
         reference.index = null;
       }
@@ -997,9 +1001,9 @@ class _BundleWriterReferences {
     _referenceParents.add(parentIndex);
     _referenceNames.add(reference.name);
 
-    index = references.length;
+    index = _references.length;
     reference.index = index;
-    references.add(reference);
+    _references.add(reference);
     return index;
   }
 }
