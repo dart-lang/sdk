@@ -74,7 +74,7 @@ var tests = <VMTest>[
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kFileDoesNotExist));
-      expect(e.message, startsWith("_readDevFSFile: FileSystemException: "));
+      expect(e.message, startsWith("_readDevFSFile: PathNotFoundException: "));
     }
     expect(caughtException, isTrue);
 
