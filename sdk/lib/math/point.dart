@@ -58,7 +58,7 @@ class Point<T extends num> {
   /// Example:
   /// ```dart
   /// var point = const Point(10, 100) - const Point(10, 10); // Point(0, 90)
-  /// point = const Point(-10, -20) - const Point(10, 100); // Point(-110, -120)
+  /// point = const Point(-10, -20) - const Point(100, 100); // Point(-110, -120)
   /// ```
   Point<T> operator -(Point<T> other) {
     return Point<T>((x - other.x) as T, (y - other.y) as T);
