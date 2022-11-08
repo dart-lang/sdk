@@ -11,7 +11,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
+    hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -225,7 +225,7 @@ CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
 
 Pattern objectPattern({
   required ObjectPatternRequiredType requiredType,
-  required List<RecordPatternField<Pattern>> fields,
+  required List<shared.RecordPatternField<Node, Pattern>> fields,
 }) {
   return _ObjectPattern(
     requiredType: requiredType,
@@ -234,7 +234,7 @@ Pattern objectPattern({
   );
 }
 
-Pattern recordPattern(List<RecordPatternField<Pattern>> fields) =>
+Pattern recordPattern(List<SharedRecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
 Pattern relationalPattern(
@@ -281,6 +281,8 @@ Pattern wildcard(
         {String? type, String? expectInferredType, bool isFinal = false}) =>
     _VariablePattern(type == null ? null : Type(type), null, expectInferredType,
         isFinal: isFinal, location: computeLocation());
+
+typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
 
 mixin CaseHead implements CaseHeads, Node {
   @override
@@ -1124,6 +1126,12 @@ abstract class Promotable {
 /// might not be promoted.
 abstract class PromotableLValue extends LValue implements Promotable {
   PromotableLValue._({required super.location}) : super._();
+}
+
+/// TODO(scheglov) This node is used temporary to model 'node'.
+class RecordPatternField implements Node {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -2955,7 +2963,7 @@ class _MiniAstTypeAnalyzer
   @override
   Type resolveObjectPatternPropertyGet({
     required Type receiverType,
-    required RecordPatternField<Pattern> field,
+    required SharedRecordPatternField field,
   }) {
     return _harness.getMember(receiverType, field.name!)._type;
   }
@@ -3129,7 +3137,7 @@ class _NullLiteral extends Expression {
 
 class _ObjectPattern extends Pattern {
   final ObjectPatternRequiredType requiredType;
-  final List<RecordPatternField<Pattern>> fields;
+  final List<SharedRecordPatternField> fields;
 
   _ObjectPattern({
     required this.requiredType,
@@ -3265,7 +3273,7 @@ class _PropertyElement {
 }
 
 class _RecordPattern extends Pattern {
-  final List<RecordPatternField<Pattern>> fields;
+  final List<SharedRecordPatternField> fields;
 
   _RecordPattern(this.fields, {required super.location}) : super._();
 

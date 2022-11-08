@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
+    hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -88,6 +88,9 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
+
+typedef SharedRecordPatternField
+    = shared.RecordPatternField<RecordPatternFieldImpl, DartPatternImpl>;
 
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
@@ -514,7 +517,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return null;
   }
 
-  List<SharedAnalyzerRecordField> buildSharedRecordPatternFields(
+  List<SharedRecordPatternField> buildSharedRecordPatternFields(
     List<RecordPatternFieldImpl> fields,
   ) {
     return fields.map((field) {
@@ -532,7 +535,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           }
         }
       }
-      return SharedAnalyzerRecordField(
+      return shared.RecordPatternField(
         node: field,
         name: nameToken?.lexeme,
         pattern: field.pattern,
@@ -1251,7 +1254,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType resolveObjectPatternPropertyGet({
     required DartType receiverType,
-    required covariant SharedAnalyzerRecordField field,
+    required covariant SharedRecordPatternField field,
   }) {
     var fieldNode = field.node;
     var nameToken = fieldNode.fieldName?.name;
@@ -4548,19 +4551,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static void _setNodeNameScope(AstNode node, Scope scope) {
     node.setProperty(_nameScopeProperty, scope);
   }
-}
-
-/// Implementation of [shared.RecordPatternField] that adds analyzer node,
-/// used for error reporting.
-class SharedAnalyzerRecordField
-    extends shared.RecordPatternField<DartPatternImpl> {
-  final RecordPatternFieldImpl node;
-
-  SharedAnalyzerRecordField({
-    required this.node,
-    required super.name,
-    required super.pattern,
-  });
 }
 
 /// Tracker for whether a `switch` statement has `default` or is on an

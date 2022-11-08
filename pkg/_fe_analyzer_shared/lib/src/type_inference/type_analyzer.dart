@@ -29,12 +29,17 @@ class NamedType<Type extends Object> {
   NamedType(this.name, this.type);
 }
 
-class RecordPatternField<Pattern extends Object> {
+class RecordPatternField<Node extends Object, Pattern extends Object> {
+  /// The client specific node from which this object was created.  It can be
+  /// used for error reporting.
+  final Node node;
+
   /// If not `null` then the field is named, otherwise it is positional.
   final String? name;
   final Pattern pattern;
 
   RecordPatternField({
+    required this.node,
     required this.name,
     required this.pattern,
   });
@@ -587,7 +592,7 @@ mixin TypeAnalyzer<
     MatchContext<Node, Expression> context,
     Pattern node, {
     required Type? requiredType,
-    required List<RecordPatternField<Pattern>> fields,
+    required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     requiredType ??= downwardInferObjectPatternRequiredType(
       matchedType: matchedType,
@@ -606,7 +611,7 @@ mixin TypeAnalyzer<
     }
 
     // Stack: ()
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       Type propertyType = resolveObjectPatternPropertyGet(
         receiverType: requiredType,
         field: field,
@@ -638,9 +643,12 @@ mixin TypeAnalyzer<
     Map<Variable, VariableTypeInfo<Pattern, Type>> typeInfos,
     MatchContext<Node, Expression> context,
     Pattern node, {
-    required List<RecordPatternField<Pattern>> fields,
+    required List<RecordPatternField<Node, Pattern>> fields,
   }) {
-    void dispatchField(RecordPatternField<Pattern> field, Type matchedType) {
+    void dispatchField(
+      RecordPatternField<Node, Pattern> field,
+      Type matchedType,
+    ) {
       dispatchPattern(matchedType, typeInfos, context, field.pattern);
     }
 
@@ -653,7 +661,7 @@ mixin TypeAnalyzer<
     // Build the required type.
     int requiredTypePositionalCount = 0;
     List<NamedType<Type>> requiredTypeNamedTypes = [];
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       String? name = field.name;
       if (name == null) {
         requiredTypePositionalCount++;
@@ -709,11 +717,11 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   Type analyzeRecordPatternSchema({
-    required List<RecordPatternField<Pattern>> fields,
+    required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     List<Type> positional = [];
     List<NamedType<Type>> named = [];
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       Type fieldType = dispatchPatternSchema(field.pattern);
       String? name = field.name;
       if (name != null) {
@@ -1220,7 +1228,7 @@ mixin TypeAnalyzer<
   /// should report an error, and return `dynamic` for recovery.
   Type resolveObjectPatternPropertyGet({
     required Type receiverType,
-    required RecordPatternField<Pattern> field,
+    required RecordPatternField<Node, Pattern> field,
   });
 
   /// Records that type inference has assigned a [type] to a [variable].  This
@@ -1267,7 +1275,7 @@ mixin TypeAnalyzer<
   /// [matchedType], returns matched types for each field in [fields].
   /// Otherwise returns `null`.
   List<Type>? _matchRecordTypeShape(
-    List<RecordPatternField<Pattern>> fields,
+    List<RecordPatternField<Node, Pattern>> fields,
     RecordType<Type> matchedType,
   ) {
     Map<String, Type> matchedTypeNamed = {};
@@ -1278,7 +1286,7 @@ mixin TypeAnalyzer<
     List<Type> result = [];
     int positionalIndex = 0;
     int namedCount = 0;
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       Type? fieldType;
       String? name = field.name;
       if (name != null) {
