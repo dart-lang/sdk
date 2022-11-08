@@ -18,8 +18,7 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/codegen_inputs.dart';
-import '../js_backend/namer_interfaces.dart';
-import '../js_backend/namer.dart' show AsyncName, StringBackedName;
+import '../js_backend/namer.dart' show AsyncName, Namer, StringBackedName;
 import '../js_backend/deferred_holder_expression.dart'
     show DeferredHolderExpression;
 import '../js_backend/string_reference.dart' show StringReference;

@@ -22,7 +22,7 @@ import '../../js_backend/backend_usage.dart';
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/namer_interfaces.dart' show Namer;
+import '../../js_backend/namer.dart' show Namer;
 import '../../js_backend/namer.dart' show StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;

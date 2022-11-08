@@ -22,7 +22,7 @@ import '../util/util.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'interceptor_data.dart';
-import 'namer_interfaces.dart';
+import 'namer.dart';
 import 'native_data.dart';
 import 'runtime_types.dart';
 import 'runtime_types_resolution.dart';

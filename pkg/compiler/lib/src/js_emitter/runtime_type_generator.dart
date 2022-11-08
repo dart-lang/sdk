@@ -10,7 +10,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer_interfaces.dart' show Namer;
+import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_backend/runtime_types_codegen.dart'
     show ClassChecks, ClassFunctionType, TypeCheck;

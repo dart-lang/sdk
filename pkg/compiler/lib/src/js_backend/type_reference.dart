@@ -77,7 +77,7 @@ import '../js_model/type_recipe.dart'
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
-import 'namer_migrated.dart' as namer;
+import 'namer.dart' as namer;
 import 'runtime_types_new.dart' show RecipeEncoder;
 
 /// Run the minifier for 'type$' property names even in non-minified mode,

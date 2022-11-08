@@ -15,8 +15,7 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
-import 'namer_interfaces.dart' show ModularNamer;
-import 'namer_migrated.dart' show suffixForGetInterceptor;
+import 'namer.dart' show ModularNamer, suffixForGetInterceptor;
 import 'native_data.dart';
 
 abstract class InterceptorData {

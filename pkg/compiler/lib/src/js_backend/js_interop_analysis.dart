@@ -11,7 +11,7 @@ import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
 import '../universe/codegen_world_builder.dart';
 import '../universe/world_builder.dart' show SelectorConstraints;
-import 'namer_interfaces.dart';
+import 'namer.dart';
 import 'native_data.dart';
 
 jsAst.Statement? buildJsInteropBootstrap(

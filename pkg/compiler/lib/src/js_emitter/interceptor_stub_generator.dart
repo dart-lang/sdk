@@ -12,7 +12,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer_interfaces.dart' show Namer;
+import '../js_backend/namer.dart' show Namer;
 import '../js_backend/custom_elements_analysis.dart'
     show CustomElementsCodegenAnalysis;
 import '../js_backend/native_data.dart';

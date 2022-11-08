@@ -16,7 +16,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
-import '../js_backend/namer_interfaces.dart' show Namer;
+import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_model/js_strategy_interfaces.dart';
 import '../js_model/js_world.dart' show JClosedWorld;

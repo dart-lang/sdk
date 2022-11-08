@@ -27,7 +27,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/namer_interfaces.dart' show ModularNamer;
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;

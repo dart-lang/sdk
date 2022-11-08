@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer_interfaces.dart' show Namer;
+import '../js_backend/namer.dart' show Namer;
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/call_structure.dart' show CallStructure;
