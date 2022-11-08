@@ -1083,6 +1083,7 @@ evolution
 exact
 exactly
 examine
+examined
 examining
 example
 examples

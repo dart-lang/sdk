@@ -243,14 +243,15 @@ class Forest {
 
   Expression createAsExpression(
       int fileOffset, Expression expression, DartType type,
-      {required bool forNonNullableByDefault}) {
+      {required bool forNonNullableByDefault, bool forDynamic = false}) {
     // ignore: unnecessary_null_comparison
     assert(forNonNullableByDefault != null);
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new AsExpression(expression, type)
       ..fileOffset = fileOffset
-      ..isForNonNullableByDefault = forNonNullableByDefault;
+      ..isForNonNullableByDefault = forNonNullableByDefault
+      ..isForDynamic = forDynamic;
   }
 
   Expression createSpreadElement(int fileOffset, Expression expression,
