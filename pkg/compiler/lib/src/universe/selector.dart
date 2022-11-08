@@ -240,6 +240,11 @@ class Selector {
     if (!memberName.matches(element.memberName)) {
       return false;
     }
+    return appliesStructural(element);
+  }
+
+  bool appliesStructural(MemberEntity element) {
+    assert(name == element.name);
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
     if (element is FieldEntity) {
