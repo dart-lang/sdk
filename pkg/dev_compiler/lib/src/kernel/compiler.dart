@@ -975,6 +975,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
           return emitDeferredType(normalizedType,
               emitNullability: emitNullability);
+        } else if (t is RecordType) {
+          var positional = t.positional.map(emitDeferredType);
+          var named = t.named.map((n) => emitDeferredType(n.type));
+          return _emitRecordType(t, positional, named);
         } else if (t is TypeParameterType) {
           return _emitTypeParameterType(t, emitNullability: emitNullability);
         }
@@ -1018,6 +1022,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               t.positionalParameters.any(defer) ||
               t.namedParameters.any((np) => defer(np.type)) ||
               t.typeParameters.any((tp) => defer(tp.bound));
+        }
+        if (t is RecordType) {
+          return t.positional.any(defer) || t.named.any((n) => defer(n.type));
         }
         return false;
       }
@@ -2907,6 +2914,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
           type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type));
     }
+    if (type is RecordType) {
+      return type.positional.every(_canEmitTypeAtTopLevel) &&
+          type.named.every((n) => _canEmitTypeAtTopLevel(n.type));
+    }
     if (type is TypedefType) {
       return type.typeArguments.every(_canEmitTypeAtTopLevel);
     }
@@ -3247,7 +3258,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitRecordType(type) => defaultDartType(type);
+  js_ast.Expression visitRecordType(type) {
+    var positionalTypeReps = type.positional.map((p) => p.accept(this));
+    var namedTypeReps = type.named.map((n) => n.type.accept(this));
+    return _emitRecordType(type, positionalTypeReps, namedTypeReps);
+  }
+
+  js_ast.Expression _emitRecordType(
+          RecordType type,
+          Iterable<js_ast.Expression> positionalTypeReps,
+          Iterable<js_ast.Expression> namedTypeReps) =>
+      _emitInvalidNode(type);
 
   /// Emits an expression that lets you access statics on a [type] from code.
   js_ast.Expression _emitConstructorAccess(InterfaceType type) {
