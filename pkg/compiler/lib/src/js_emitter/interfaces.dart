@@ -43,6 +43,8 @@ abstract class ModularEmitter {
   jsAst.Expression staticClosureAccess(covariant FunctionEntity element);
   jsAst.Expression staticFieldAccess(FieldEntity element);
   jsAst.Expression staticFunctionAccess(FunctionEntity element);
+  jsAst.Name typeVariableAccessNewRti(TypeVariableEntity element);
+  jsAst.Name typeAccessNewRti(ClassEntity element);
 }
 
 abstract class Emitter extends ModularEmitter {

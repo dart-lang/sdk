@@ -192,9 +192,11 @@ abstract class ModularEmitter implements interfaces.ModularEmitter {
   jsAst.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS name representing the type [e].
+  @override
   jsAst.Name typeAccessNewRti(ClassEntity e);
 
   /// Returns the JS name representing the type variable [e].
+  @override
   jsAst.Name typeVariableAccessNewRti(TypeVariableEntity e);
 
   /// Returns the JS code for accessing the embedded [global].

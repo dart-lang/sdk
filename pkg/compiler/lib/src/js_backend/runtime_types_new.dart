@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.runtime_types_new;
 
 import 'package:js_shared/synced/recipe_syntax.dart';
@@ -15,7 +13,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
-import '../js_emitter/js_emitter.dart' show ModularEmitter;
+import '../js_emitter/interfaces.dart' show ModularEmitter;
 import 'namer.dart' show StringBackedName;
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
@@ -82,7 +80,7 @@ class RecipeEncoderImpl implements RecipeEncoder {
 class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final RecipeEncoderImpl _encoder;
   final ModularEmitter _emitter;
-  final TypeEnvironmentStructure _environment;
+  final TypeEnvironmentStructure? _environment;
   final TypeRecipe _recipe;
   final bool metadata;
 
@@ -129,7 +127,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       _emitCode(Recipe.pushDynamic);
       assert(recipe.types.isNotEmpty);
     } else {
-      visit(recipe.classType, null);
+      visit(recipe.classType!, null);
       // TODO(sra): The separator can be omitted when the parser will have
       // reduced to the top of stack to an Rti value.
       _emitCode(Recipe.toType);
@@ -211,7 +209,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitTypeVariableType(TypeVariableType type, _) {
-    TypeEnvironmentStructure environment = _environment;
+    final environment = _environment;
     if (environment is SingletonTypeEnvironmentStructure) {
       if (type == environment.variable) {
         _emitInteger(0);
@@ -219,7 +217,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       }
     }
     if (environment is FullTypeEnvironmentStructure) {
-      int index = indexTypeVariable(
+      final index = indexTypeVariable(
           _closedWorld, _rtiSubstitutions, environment, type,
           metadata: metadata);
       if (index != null) {
@@ -390,6 +388,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
           _emitCode(Recipe.separator);
         }
         visit(typeVariable.bound, _);
+        first = false;
       }
       _emitCode(Recipe.endTypeArguments);
     }
