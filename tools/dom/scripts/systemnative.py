@@ -749,7 +749,7 @@ class DartiumBackend(HtmlDartGenerator):
             blinkNativeIndexed = """
   $TYPE operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return _nativeIndexedGetter(index);
   }
 
@@ -813,7 +813,7 @@ class DartiumBackend(HtmlDartGenerator):
             '\n'
             '  $TYPE operator[](int index) {\n'
             '    if (index < 0 || index >= length)\n'
-            '      throw new RangeError.index(index, this);\n'
+            '      throw new IndexError.withLength(index, length, indexable: this);\n'
             '    return $INDEXED_GETTER(index);\n'
             '  }\n',
             TYPE=dart_element_type,

@@ -1484,7 +1484,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 '  $TYPE operator[](int index) {\n'
                 '    if (JS("bool", "# >>> 0 !== # || # >= #", index,\n'
                 '        index, index, length))\n'
-                '      throw new RangeError.index(index, this);\n'
+                '      throw new IndexError.withLength(index, length, indexable: this);\n'
                 '    return $INDEXED_GETTER$NULLASSERT;\n'
                 '  }',
                 INDEXED_GETTER=indexed_getter,

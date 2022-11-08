@@ -21,7 +21,7 @@ extension _ElementExtension on Element {
   /// is a match up to [thisIndex].
   Element? _locateElement(ElementLocation location, int thisIndex) {
     final components = location.components;
-    RangeError.checkValidIndex(thisIndex, components);
+    IndexError.check(thisIndex, components.length, indexable: components);
 
     final nextIndex = thisIndex + 1;
     if (nextIndex == components.length) {
