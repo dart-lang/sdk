@@ -131,8 +131,8 @@ luci.console_view(
     refs = ["refs/heads/main"],
 )
 
-# Put the SDK category first on the consoles
 def sdk_builder_category():
+    """Put the SDK category first on the consoles"""
     for channel, console in [
         ["main", "be"],
         ["main", "alt"],
@@ -142,17 +142,22 @@ def sdk_builder_category():
     ]:
         for builder_type, short_name in [
             ["linux", "l"],
+            ["linux-arm64", "la"],
+            ["linux-riscv64", "lv"],
             ["mac", "m"],
             ["mac-arm64", "m1"],
             ["win", "w"],
+            ["win-arm64", "wa"],
         ]:
-            luci.console_view_entry(
-                builder = "dart-internal:ci/dart-sdk-%s-%s" %
-                          (builder_type, channel),
-                short_name = short_name,
-                category = "sdk",
-                console_view = console,
-            )
+            if channel not in ["beta", "stable"] or \
+               builder_type not in ["linux-riscv64", "win-arm64"]:
+                luci.console_view_entry(
+                    builder = "dart-internal:ci/dart-sdk-%s-%s" %
+                              (builder_type, channel),
+                    short_name = short_name,
+                    category = "sdk",
+                    console_view = console,
+                )
         luci.console_view_entry(
             builder = "dart-internal:ci/debianpackage-linux-%s" % channel,
             short_name = "dp",
