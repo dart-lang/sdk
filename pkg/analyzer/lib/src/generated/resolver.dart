@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
+    hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -88,6 +88,9 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
+
+typedef SharedRecordPatternField
+    = shared.RecordPatternField<RecordPatternFieldImpl, DartPatternImpl>;
 
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
@@ -514,7 +517,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return null;
   }
 
-  List<SharedAnalyzerRecordField> buildSharedRecordPatternFields(
+  List<SharedRecordPatternField> buildSharedRecordPatternFields(
     List<RecordPatternFieldImpl> fields,
   ) {
     return fields.map((field) {
@@ -532,7 +535,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           }
         }
       }
-      return SharedAnalyzerRecordField(
+      return shared.RecordPatternField(
         node: field,
         name: nameToken?.lexeme,
         pattern: field.pattern,
@@ -743,6 +746,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void dispatchCollectionElement(
+    covariant CollectionElementImpl element,
+    covariant CollectionLiteralContext? context,
+  ) {
+    if (element is ExpressionImpl) {
+      dispatchExpression(element, context?.elementType ?? unknownType);
+    } else {
+      element.resolveElement(this, context);
+    }
+    popRewrite();
+  }
+
+  @override
   ExpressionTypeAnalysisResult<DartType> dispatchExpression(
       covariant ExpressionImpl expression, DartType context) {
     int? stackDepth;
@@ -896,6 +912,32 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void handle_ifElement_conditionEnd(covariant IfElementImpl node) {
+    // Stack: (Expression condition)
+    var condition = popRewrite()!;
+
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition,
+        whyNotPromoted: whyNotPromoted);
+  }
+
+  @override
+  void handle_ifElement_elseEnd(
+    covariant IfElementImpl node,
+    covariant CollectionElementImpl ifFalse,
+  ) {
+    nullSafetyDeadCodeVerifier.flowEnd(ifFalse);
+  }
+
+  @override
+  void handle_ifElement_thenEnd(
+    covariant IfElementImpl node,
+    covariant CollectionElementImpl ifTrue,
+  ) {
+    nullSafetyDeadCodeVerifier.flowEnd(ifTrue);
+  }
+
+  @override
   void handle_ifStatement_conditionEnd(Statement node) {
     // Stack: (Expression condition)
     var condition = popRewrite()!;
@@ -943,6 +985,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       required int numStatements}) {
     nullSafetyDeadCodeVerifier.flowEnd(node.members[caseIndex]);
   }
+
+  @override
+  void handleNoCollectionElement(AstNode node) {}
 
   @override
   void handleNoGuard(AstNode node, int caseIndex) {
@@ -1251,7 +1296,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType resolveObjectPatternPropertyGet({
     required DartType receiverType,
-    required covariant SharedAnalyzerRecordField field,
+    required covariant SharedRecordPatternField field,
   }) {
     var fieldNode = field.node;
     var nameToken = fieldNode.fieldName?.name;
@@ -2286,30 +2331,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitHideCombinator(HideCombinator node) {}
 
   @override
-  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
-    flowAnalysis.flow?.ifStatement_conditionBegin();
-    Expression condition = node.condition;
-    analyzeExpression(condition, typeProvider.boolType);
-    condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
-
-    boolExpressionVerifier.checkForNonBoolCondition(condition,
-        whyNotPromoted: whyNotPromoted);
-
-    flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-    (node.thenElement as CollectionElementImpl).resolveElement(this, context);
-    popRewrite();
-    nullSafetyDeadCodeVerifier.flowEnd(node.thenElement);
-
-    var elseElement = node.elseElement;
-    if (elseElement != null) {
-      flowAnalysis.flow?.ifStatement_elseBegin();
-      (elseElement as CollectionElementImpl).resolveElement(this, context);
-      popRewrite();
-      nullSafetyDeadCodeVerifier.flowEnd(elseElement);
+  void visitIfElement(
+    covariant IfElementImpl node, {
+    CollectionLiteralContext? context,
+  }) {
+    final caseClause = node.caseClause;
+    if (caseClause != null) {
+      // TODO(scheglov) Implement
+      throw UnimplementedError();
+    } else {
+      analyzeIfElement(
+        node: node,
+        condition: node.expression,
+        ifTrue: node.thenElement,
+        ifFalse: node.elseElement,
+        context: context,
+      );
     }
-
-    flowAnalysis.flow?.ifStatement_end(elseElement != null);
   }
 
   @override
@@ -3626,7 +3664,10 @@ class ResolverVisitorForMigration extends ResolverVisitor {
   }
 
   @override
-  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
+  void visitIfElement(
+    covariant IfElementImpl node, {
+    CollectionLiteralContext? context,
+  }) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
@@ -3635,7 +3676,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
     } else {
       var element = conditionalKnownValue ? node.thenElement : node.elseElement;
       if (element != null) {
-        (element as CollectionElementImpl).resolveElement(this, context);
+        element.resolveElement(this, context);
         popRewrite();
       }
     }
@@ -4548,19 +4589,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static void _setNodeNameScope(AstNode node, Scope scope) {
     node.setProperty(_nameScopeProperty, scope);
   }
-}
-
-/// Implementation of [shared.RecordPatternField] that adds analyzer node,
-/// used for error reporting.
-class SharedAnalyzerRecordField
-    extends shared.RecordPatternField<DartPatternImpl> {
-  final RecordPatternFieldImpl node;
-
-  SharedAnalyzerRecordField({
-    required this.node,
-    required super.name,
-    required super.pattern,
-  });
 }
 
 /// Tracker for whether a `switch` statement has `default` or is on an

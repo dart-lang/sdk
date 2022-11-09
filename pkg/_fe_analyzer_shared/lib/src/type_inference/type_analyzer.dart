@@ -29,12 +29,17 @@ class NamedType<Type extends Object> {
   NamedType(this.name, this.type);
 }
 
-class RecordPatternField<Pattern extends Object> {
+class RecordPatternField<Node extends Object, Pattern extends Object> {
+  /// The client specific node from which this object was created.  It can be
+  /// used for error reporting.
+  final Node node;
+
   /// If not `null` then the field is named, otherwise it is positional.
   final String? name;
   final Pattern pattern;
 
   RecordPatternField({
+    required this.node,
     required this.name,
     required this.pattern,
   });
@@ -341,6 +346,33 @@ mixin TypeAnalyzer<
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 
+  /// Analyzes a collection element of the form `if (condition) ifTrue` or
+  /// `if (condition) ifTrue else ifFalse`.
+  ///
+  /// [node] should be the AST node for the entire element, [condition] for
+  /// the condition expression, [ifTrue] for the "then" branch, and [ifFalse]
+  /// for the "else" branch (if present).
+  ///
+  /// Stack effect: pushes (Expression condition, CollectionElement ifTrue,
+  /// CollectionElement ifFalse).  Note that if there is no `else` clause, the
+  /// representation for `ifFalse` will be pushed by
+  /// [handleNoCollectionElement].
+  void analyzeIfElement({
+    required Node node,
+    required Expression condition,
+    required Node ifTrue,
+    required Node? ifFalse,
+    required Object? context,
+  }) {
+    // Stack: ()
+    flow?.ifStatement_conditionBegin();
+    analyzeExpression(condition, boolType);
+    handle_ifElement_conditionEnd(node);
+    // Stack: (Expression condition)
+    flow?.ifStatement_thenBegin(condition, node);
+    _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
+  }
+
   /// Analyzes a statement of the form `if (condition) ifTrue` or
   /// `if (condition) ifTrue else ifFalse`.
   ///
@@ -587,7 +619,7 @@ mixin TypeAnalyzer<
     MatchContext<Node, Expression> context,
     Pattern node, {
     required Type? requiredType,
-    required List<RecordPatternField<Pattern>> fields,
+    required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     requiredType ??= downwardInferObjectPatternRequiredType(
       matchedType: matchedType,
@@ -606,7 +638,7 @@ mixin TypeAnalyzer<
     }
 
     // Stack: ()
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       Type propertyType = resolveObjectPatternPropertyGet(
         receiverType: requiredType,
         field: field,
@@ -638,9 +670,12 @@ mixin TypeAnalyzer<
     Map<Variable, VariableTypeInfo<Pattern, Type>> typeInfos,
     MatchContext<Node, Expression> context,
     Pattern node, {
-    required List<RecordPatternField<Pattern>> fields,
+    required List<RecordPatternField<Node, Pattern>> fields,
   }) {
-    void dispatchField(RecordPatternField<Pattern> field, Type matchedType) {
+    void dispatchField(
+      RecordPatternField<Node, Pattern> field,
+      Type matchedType,
+    ) {
       dispatchPattern(matchedType, typeInfos, context, field.pattern);
     }
 
@@ -653,7 +688,7 @@ mixin TypeAnalyzer<
     // Build the required type.
     int requiredTypePositionalCount = 0;
     List<NamedType<Type>> requiredTypeNamedTypes = [];
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       String? name = field.name;
       if (name == null) {
         requiredTypePositionalCount++;
@@ -709,11 +744,11 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   Type analyzeRecordPatternSchema({
-    required List<RecordPatternField<Pattern>> fields,
+    required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     List<Type> positional = [];
     List<NamedType<Type>> named = [];
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       Type fieldType = dispatchPatternSchema(field.pattern);
       String? name = field.name;
       if (name != null) {
@@ -1037,6 +1072,15 @@ mixin TypeAnalyzer<
   RecordType<Type>? asRecordType(Type type);
 
   /// Calls the appropriate `analyze` method according to the form of
+  /// collection [element], and then adjusts the stack as needed to combine
+  /// any sub-structures into a single collection element.
+  ///
+  /// For example, if [element] is an `if` element, calls [analyzeIfElement].
+  ///
+  /// Stack effect: pushes (CollectionElement).
+  void dispatchCollectionElement(Node element, Object? context);
+
+  /// Calls the appropriate `analyze` method according to the form of
   /// [expression], and then adjusts the stack as needed to combine any
   /// sub-structures into a single expression.
   ///
@@ -1121,6 +1165,15 @@ mixin TypeAnalyzer<
   SwitchStatementMemberInfo<Node, Statement, Expression>
       getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
+  /// Called after visiting the expression of an `if` element.
+  void handle_ifElement_conditionEnd(Node node) {}
+
+  /// Called after visiting the `else` element of an `if` element.
+  void handle_ifElement_elseEnd(Node node, Node ifFalse) {}
+
+  /// Called after visiting the `then` element of an `if` element.
+  void handle_ifElement_thenEnd(Node node, Node ifTrue) {}
+
   /// Called after visiting the expression of an `if` statement.
   void handle_ifStatement_conditionEnd(Statement node) {}
 
@@ -1169,6 +1222,13 @@ mixin TypeAnalyzer<
       {required int caseIndex,
       required int executionPathIndex,
       required int numStatements});
+
+  /// Called when visiting a syntactic construct where there is an implicit
+  /// no-op collection element.  For example, this is called in place of the
+  /// missing `else` part of an `if` element that lacks an `else` clause.
+  ///
+  /// Stack effect: pushes (CollectionElement).
+  void handleNoCollectionElement(Node node);
 
   /// Called when visiting a `case` that lacks a guard clause.  Since the lack
   /// of a guard clause is semantically equivalent to `when true`, this method
@@ -1220,7 +1280,7 @@ mixin TypeAnalyzer<
   /// should report an error, and return `dynamic` for recovery.
   Type resolveObjectPatternPropertyGet({
     required Type receiverType,
-    required RecordPatternField<Pattern> field,
+    required RecordPatternField<Node, Pattern> field,
   });
 
   /// Records that type inference has assigned a [type] to a [variable].  This
@@ -1253,6 +1313,29 @@ mixin TypeAnalyzer<
     // Stack: (Statement ifTrue, Statement ifFalse)
   }
 
+  /// Common functionality shared by [analyzeIfElement] and
+  /// [analyzeIfCaseElement].
+  ///
+  /// Stack effect: pushes (CollectionElement ifTrue,
+  /// CollectionElement ifFalse).
+  void _analyzeIfElementCommon(
+      Node node, Node ifTrue, Node? ifFalse, Object? context) {
+    // Stack: ()
+    dispatchCollectionElement(ifTrue, context);
+    handle_ifElement_thenEnd(node, ifTrue);
+    // Stack: (CollectionElement ifTrue)
+    if (ifFalse == null) {
+      handleNoCollectionElement(node);
+      flow?.ifStatement_end(false);
+    } else {
+      flow?.ifStatement_elseBegin();
+      dispatchCollectionElement(ifFalse, context);
+      flow?.ifStatement_end(true);
+      handle_ifElement_elseEnd(node, ifFalse);
+    }
+    // Stack: (CollectionElement ifTrue, CollectionElement ifFalse)
+  }
+
   void _checkGuardType(Expression expression, Type type) {
     // TODO(paulberry): harmonize this with analyzer's checkForNonBoolExpression
     // TODO(paulberry): spec says the type must be `bool` or `dynamic`.  This
@@ -1267,7 +1350,7 @@ mixin TypeAnalyzer<
   /// [matchedType], returns matched types for each field in [fields].
   /// Otherwise returns `null`.
   List<Type>? _matchRecordTypeShape(
-    List<RecordPatternField<Pattern>> fields,
+    List<RecordPatternField<Node, Pattern>> fields,
     RecordType<Type> matchedType,
   ) {
     Map<String, Type> matchedTypeNamed = {};
@@ -1278,7 +1361,7 @@ mixin TypeAnalyzer<
     List<Type> result = [];
     int positionalIndex = 0;
     int namedCount = 0;
-    for (RecordPatternField<Pattern> field in fields) {
+    for (RecordPatternField<Node, Pattern> field in fields) {
       Type? fieldType;
       String? name = field.name;
       if (name != null) {

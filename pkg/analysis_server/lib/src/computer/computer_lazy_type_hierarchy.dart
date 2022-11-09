@@ -110,36 +110,27 @@ class DartLazyTypeHierarchyComputer {
   /// Gets immediate sub types for the class/mixin [element].
   Future<List<TypeHierarchyRelatedItem>> _getSubtypes(
       InterfaceElement target, SearchEngine searchEngine) async {
-    final targetType = target.thisType;
-
-    /// Helper to check whether [type] refers to the same class as [target]
-    /// irrespective of any concrete type arguments.
-    bool isTargetClass(InterfaceType? type) =>
-        type?.element == targetType.element;
-
-    /// Helper to convert an [InterfaceElement] to a [TypeHierarchyRelatedItem].
-    TypeHierarchyRelatedItem toHierarchyItem(InterfaceElement element) {
+    /// Helper to convert a [SearchMatch] to a [TypeHierarchyRelatedItem].
+    TypeHierarchyRelatedItem toHierarchyItem(SearchMatch match) {
+      final element = match.element as InterfaceElement;
       final type = element.thisType;
-      if (element is MixinElement &&
-          element.superclassConstraints.any(isTargetClass)) {
-        return TypeHierarchyRelatedItem.constrainedTo(type);
-      } else if (isTargetClass(element.supertype)) {
-        return TypeHierarchyRelatedItem.extends_(type);
-      } else if (element.interfaces.any(isTargetClass)) {
-        return TypeHierarchyRelatedItem.implements(type);
-      } else if (element.mixins.any(isTargetClass)) {
-        return TypeHierarchyRelatedItem.mixesIn(type);
-      } else {
-        assert(false, 'Subtype found with unknown relationship type');
-        return TypeHierarchyRelatedItem.unknown(type);
+      switch (match.kind) {
+        case MatchKind.REFERENCE_IN_EXTENDS_CLAUSE:
+          return TypeHierarchyRelatedItem.extends_(type);
+        case MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE:
+          return TypeHierarchyRelatedItem.implements(type);
+        case MatchKind.REFERENCE_IN_ON_CLAUSE:
+          return TypeHierarchyRelatedItem.constrainedTo(type);
+        case MatchKind.REFERENCE_IN_WITH_CLAUSE:
+          return TypeHierarchyRelatedItem.mixesIn(type);
+        default:
+          assert(false, 'Subtype found with unknown relationship type');
+          return TypeHierarchyRelatedItem.unknown(type);
       }
     }
 
     var matches = await searchEngine.searchSubtypes(target);
-    return matches
-        .map((match) => match.element as InterfaceElement)
-        .map(toHierarchyItem)
-        .toList();
+    return matches.map(toHierarchyItem).toList();
   }
 
   /// Gets immediate super types for the class/mixin [element].

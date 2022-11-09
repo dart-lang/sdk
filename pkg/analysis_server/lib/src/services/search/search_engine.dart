@@ -29,15 +29,35 @@ class MatchKind {
       MatchKind('INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS');
 
   /// A reference to an element in which it is referenced.
-  static const MatchKind REFERENCE = MatchKind('REFERENCE');
+  static const MatchKind REFERENCE = MatchKind.reference('REFERENCE');
 
   /// A tear-off reference to a constructor.
   static const MatchKind REFERENCE_BY_CONSTRUCTOR_TEAR_OFF =
-      MatchKind('REFERENCE_BY_CONSTRUCTOR_TEAR_OFF');
+      MatchKind.reference('REFERENCE_BY_CONSTRUCTOR_TEAR_OFF');
+
+  /// A reference to an element in an extends clause.
+  static const MatchKind REFERENCE_IN_EXTENDS_CLAUSE =
+      MatchKind.reference('REFERENCE_IN_EXTENDS_CLAUSE');
+
+  /// A reference to an element in an implements clause.
+  static const MatchKind REFERENCE_IN_IMPLEMENTS_CLAUSE =
+      MatchKind.reference('REFERENCE_IN_IMPLEMENTS_CLAUSE');
+
+  /// A reference to an element in a with clause.
+  static const MatchKind REFERENCE_IN_WITH_CLAUSE =
+      MatchKind.reference('REFERENCE_IN_WITH_CLAUSE');
+
+  /// A reference to an element in an on clause.
+  static const MatchKind REFERENCE_IN_ON_CLAUSE =
+      MatchKind.reference('REFERENCE_IN_ON_CLAUSE');
 
   final String name;
 
-  const MatchKind(this.name);
+  final bool isReference;
+
+  const MatchKind(this.name) : isReference = false;
+
+  const MatchKind.reference(this.name) : isReference = true;
 
   @override
   String toString() => name;

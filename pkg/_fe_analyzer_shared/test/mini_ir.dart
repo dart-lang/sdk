@@ -37,6 +37,9 @@ enum Kind {
   /// share the same body.
   caseHeads,
 
+  /// A collection element.
+  collectionElement,
+
   /// An expression.
   expression,
 

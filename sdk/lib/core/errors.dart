@@ -324,7 +324,6 @@ class RangeError extends ArgumentError {
   /// otherwise the length is found as `indexable.length`.
   ///
   /// Returns [index] if it is a valid index.
-  @Deprecated("Use IndexError.check instead.")
   static int checkValidIndex(int index, dynamic indexable,
       [String? name, int? length, String? message]) {
     length ??= (indexable.length as int);

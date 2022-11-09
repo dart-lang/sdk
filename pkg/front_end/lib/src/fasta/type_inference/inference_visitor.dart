@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
+    hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -7777,11 +7777,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  void dispatchCollectionElement(Node element, Object? context) {
+    // TODO: implement dispatchCollectionElement
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   DartType resolveObjectPatternPropertyGet({
     required DartType receiverType,
-    required RecordPatternField<Pattern> field,
+    required shared.RecordPatternField<Node, Pattern> field,
   }) {
     // TODO: implement resolveObjectPatternPropertyGet
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void handleNoCollectionElement(Node element) {
+    // TODO: implement handleNoCollectionElement
     throw new UnimplementedError('TODO(scheglov)');
   }
 }

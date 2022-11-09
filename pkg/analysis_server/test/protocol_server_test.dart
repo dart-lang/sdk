@@ -263,6 +263,10 @@ class EnumTest {
       MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
           SearchResultKind.INVOCATION,
       MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_EXTENDS_CLAUSE: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_WITH_CLAUSE: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_ON_CLAUSE: SearchResultKind.REFERENCE,
     });
   }
 }

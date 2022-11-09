@@ -1814,7 +1814,7 @@ LintCode.hash_and_equals:
 LintCode.implementation_imports:
   status: needsEvaluation
 LintCode.implicit_call_tearoffs:
-  status: needsEvaluation
+  status: hasFix
 LintCode.invariant_booleans:
   status: needsEvaluation
 LintCode.iterable_contains_unrelated_type:

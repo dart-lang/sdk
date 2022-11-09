@@ -13,6 +13,7 @@ import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_enum_constant_test.dart' as add_enum_constant_test;
 import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
+import 'add_explicit_call_test.dart' as add_explicit_call;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_extension_override_test.dart' as add_extension_override;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
@@ -253,6 +254,7 @@ void main() {
     add_diagnostic_property_reference.main();
     add_enum_constant_test.main();
     add_eol_at_end_of_file.main();
+    add_explicit_call.main();
     add_explicit_cast.main();
     add_extension_override.main();
     add_field_formal_parameters.main();
