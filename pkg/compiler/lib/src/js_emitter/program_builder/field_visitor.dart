@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of dart2js.js_emitter.program_builder;
 
 /// [member] is an instance field.
@@ -35,9 +33,6 @@ class FieldVisitor {
   ///
   /// If the class is not directly instantiated
   void visitFields(AcceptField f, ClassEntity cls) {
-    assert(
-        cls != null, failedAt(NO_LOCATION_SPANNABLE, 'Expected a ClassEntity'));
-
     bool isNativeClass = _nativeData.isNativeClass(cls);
 
     // If the class is never instantiated we still need to set it up for
@@ -45,7 +40,7 @@ class FieldVisitor {
     bool isDirectlyInstantiated =
         _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
-    void visitField(FieldEntity field, {ClassEntity holder}) {
+    void visitField(FieldEntity field, {required ClassEntity holder}) {
       // Simple getters and setters are generated in the emitter rather than
       // being compiled through the SSA pipeline.
       bool needsGetter = false;
@@ -108,13 +103,11 @@ class FieldVisitor {
   }
 
   bool fieldNeedsGetter(FieldEntity field) {
-    assert(field is FieldEntity);
     if (fieldAccessNeverThrows(field)) return false;
     return field.isInstanceMember && _codegenWorld.hasInvokedGetter(field);
   }
 
   bool fieldNeedsSetter(FieldEntity field) {
-    assert(field is FieldEntity);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
     return field.isInstanceMember && _codegenWorld.hasInvokedSetter(field);
