@@ -139,7 +139,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     }
   }
 
-  jsAst.Expression? reifyType(DartType type, OutputUnit outputUnit) {
+  jsAst.Expression reifyType(DartType type, OutputUnit outputUnit) {
     return _addTypeInOutputUnit(type, outputUnit);
   }
 
