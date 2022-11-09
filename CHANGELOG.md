@@ -38,6 +38,7 @@
   - `prefer_const_constructors`
 - new lint: `implicit_call_tearoffs`
 - new lint: `unnecessary_library_directive`
+- new lint: `enable_null_safety`
 
 # 1.28.0
 
