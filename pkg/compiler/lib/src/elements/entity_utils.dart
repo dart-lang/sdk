@@ -7,7 +7,7 @@ library entity_utils;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show isUserDefinableOperator, isMinusOperator;
 
-import 'entities.dart' show Entity, FunctionEntity;
+import 'entities.dart' show FunctionEntity;
 
 // Somewhat stable ordering for libraries using [Uri]s
 int compareLibrariesUris(Uri a, Uri b) {
@@ -61,27 +61,6 @@ int compareSourceUris(Uri uri1, Uri uri2) {
   // the Uris to usually be clustered together with a common scheme and path
   // prefix.
   return '${uri1}'.compareTo('${uri2}');
-}
-
-/// Compare entities within the same compilation unit.
-int compareEntities(Entity element1, int? line1, int? column1, Entity element2,
-    int? line2, int? column2) {
-  line1 ??= -1;
-  line2 ??= -1;
-  int r = line1.compareTo(line2);
-  if (r != 0) return r;
-
-  column1 ??= -1;
-  column2 ??= -1;
-  r = column1.compareTo(column2);
-  if (r != 0) return r;
-
-  r = element1.name!.compareTo(element2.name!);
-  if (r != 0) return r;
-
-  // Same file, position and name.  If this happens, we should find out why
-  // and make the order total and independent of hashCode.
-  return element1.hashCode.compareTo(element2.hashCode);
 }
 
 String reconstructConstructorName(FunctionEntity element) {
