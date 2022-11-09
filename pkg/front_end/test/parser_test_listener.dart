@@ -212,12 +212,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
     seen(viewToken);
+    seen(sealedToken);
     seen(augmentToken);
     seen(name);
     doPrint('beginClassDeclaration('
@@ -225,6 +232,7 @@ class ParserTestListener implements Listener {
         '$abstractToken, '
         '$macroToken, '
         '$viewToken, '
+        '$sealedToken, '
         '$augmentToken, '
         '$name)');
     indent++;

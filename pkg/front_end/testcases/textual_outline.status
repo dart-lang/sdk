@@ -109,6 +109,7 @@ general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/records: FormatterCrash
 general/records_opt_out: FormatterCrash
+general/sealed_class_declaration: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
@@ -187,6 +188,7 @@ regress/issue_37285: FormatterCrash
 regress/issue_39091_1: FormatterCrash
 regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
+sealed_class/sealed_class_declaration: FormatterCrash
 super_parameters/issue47741: FormatterCrash
 super_parameters/issue47922: FormatterCrash
 super_parameters/issue48714: FormatterCrash

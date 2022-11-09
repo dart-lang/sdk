@@ -1848,6 +1848,9 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The 'view' keyword, or `null` if the keyword was absent.
   final Token? viewKeyword;
 
+  /// The 'sealed' keyword, or `null` if the keyword was absent.
+  final Token? sealedKeyword;
+
   /// The 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
 
@@ -1903,6 +1906,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.abstractKeyword,
     required this.macroKeyword,
     required this.viewKeyword,
+    required this.sealedKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
     required super.name,
@@ -1946,6 +1950,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     return abstractKeyword ??
         macroKeyword ??
         viewKeyword ??
+        sealedKeyword ??
         augmentKeyword ??
         classKeyword;
   }
@@ -1986,6 +1991,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('viewKeyword', viewKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('classKeyword', classKeyword)
     ..addToken('name', name)

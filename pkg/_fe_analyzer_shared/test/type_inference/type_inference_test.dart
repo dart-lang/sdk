@@ -22,7 +22,7 @@ main() {
     group('If:', () {
       test('Condition context', () {
         h.run([
-          ifElement_(
+          ifElement(
             expr('dynamic').checkContext('bool'),
             expr('Object').asCollectionElement,
           )
@@ -33,7 +33,7 @@ main() {
 
       test('With else', () {
         h.run([
-          ifElement_(
+          ifElement(
             expr('bool'),
             expr('Object').asCollectionElement,
             expr('Object').asCollectionElement,
@@ -46,7 +46,7 @@ main() {
       group('Context:', () {
         test('Element type', () {
           h.run([
-            ifElement_(
+            ifElement(
               expr('bool'),
               expr('Object').checkContext('int').asCollectionElement,
               expr('Object').checkContext('int').asCollectionElement,
@@ -55,6 +55,104 @@ main() {
                     'if(expr(bool), celt(expr(Object)), celt(expr(Object)))')
                 .inContextElementType('int'),
           ]);
+        });
+      });
+    });
+
+    group('If-case:', () {
+      test('Expression context', () {
+        h.run([
+          ifCaseElement(
+            expr('Object').checkContext('?'),
+            intLiteral(0).pattern,
+            intLiteral(1).checkContext('int').asCollectionElement,
+          )
+              .checkIr('if(expression: expr(Object), pattern: '
+                  'const(0, matchedType: Object), guard: true, '
+                  'ifTrue: celt(1), ifFalse: noop)')
+              .inContextElementType('int'),
+        ]);
+      });
+
+      test('With else', () {
+        h.run([
+          ifCaseElement(
+            expr('Object'),
+            intLiteral(0).pattern,
+            intLiteral(1).checkContext('int').asCollectionElement,
+            intLiteral(2).checkContext('int').asCollectionElement,
+          )
+              .checkIr('if(expression: expr(Object), pattern: '
+                  'const(0, matchedType: Object), guard: true, '
+                  'ifTrue: celt(1), ifFalse: celt(2))')
+              .inContextElementType('int'),
+        ]);
+      });
+
+      test('With guard', () {
+        var x = Var('x');
+        h.run([
+          ifCaseElement(
+            expr('Object'),
+            x.pattern().when(x.expr.eq(intLiteral(0))),
+            intLiteral(1).checkContext('int').asCollectionElement,
+          )
+              .checkIr('if(expression: expr(Object), pattern: '
+                  'varPattern(x, matchedType: Object, staticType: Object), '
+                  'guard: ==(x, 0), ifTrue: celt(1), ifFalse: noop)')
+              .inContextElementType('int'),
+        ]);
+      });
+
+      test('Allows refutable patterns', () {
+        var x = Var('x');
+        h.run([
+          ifCaseElement(
+            expr('Object'),
+            x.pattern(type: 'int'), // has type, refutable
+            intLiteral(1).checkContext('int').asCollectionElement,
+          )
+              .checkIr('if(expression: expr(Object), pattern: varPattern(x, '
+                  'matchedType: Object, staticType: int), guard: true, '
+                  'ifTrue: celt(1), ifFalse: noop)')
+              .inContextElementType('int'),
+        ]);
+      });
+
+      group('Guard not assignable to bool', () {
+        test('int', () {
+          var x = Var('x');
+          h.run([
+            ifCaseElement(
+              expr('Object'),
+              x.pattern().when(expr('int')..errorId = 'GUARD'),
+              intLiteral(0).checkContext('int').asCollectionElement,
+            ).inContextElementType('int'),
+          ], expectedErrors: {
+            'nonBooleanCondition(GUARD)'
+          });
+        });
+
+        test('bool', () {
+          var x = Var('x');
+          h.run([
+            ifCaseElement(
+              expr('Object'),
+              x.pattern().when(expr('bool')),
+              intLiteral(0).checkContext('int').asCollectionElement,
+            ).inContextElementType('int'),
+          ], expectedErrors: {});
+        });
+
+        test('dynamic', () {
+          var x = Var('x');
+          h.run([
+            ifCaseElement(
+              expr('Object'),
+              x.pattern().when(expr('dynamic')),
+              intLiteral(0).checkContext('int').asCollectionElement,
+            ).inContextElementType('int'),
+          ], expectedErrors: {});
         });
       });
     });

@@ -176,13 +176,20 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
         viewToken: viewToken,
+        sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -3091,6 +3098,7 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token? abstractToken;
   final Token? macroToken;
   final Token? viewToken;
+  final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
 
@@ -3099,6 +3107,7 @@ class ClassDeclarationBegin extends ParserAstNode {
       this.abstractToken,
       this.macroToken,
       this.viewToken,
+      this.sealedToken,
       this.augmentToken,
       required this.name})
       : super("ClassDeclaration", type);
@@ -3109,6 +3118,7 @@ class ClassDeclarationBegin extends ParserAstNode {
         "abstractToken": abstractToken,
         "macroToken": macroToken,
         "viewToken": viewToken,
+        "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,
       };

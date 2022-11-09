@@ -66,10 +66,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
-    listener?.beginClassDeclaration(
-        begin, abstractToken, macroToken, viewToken, augmentToken, name);
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    listener?.beginClassDeclaration(begin, abstractToken, macroToken, viewToken,
+        sealedToken, augmentToken, name);
   }
 
   @override

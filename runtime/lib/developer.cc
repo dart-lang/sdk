@@ -9,6 +9,8 @@
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/heap/heap.h"
+#include "vm/isolate.h"
 #include "vm/message.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -161,6 +163,18 @@ DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   int64_t port_id = port.Id();
   return String::NewFormatted(ISOLATE_SERVICE_ID_FORMAT_STRING, port_id);
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Developer_reachability_barrier, 0, 0) {
+#if defined(PRODUCT)
+  return Smi::New(0);
+#else
+  IsolateGroup* isolate_group = thread->isolate_group();
+  ASSERT(isolate_group != nullptr);
+  Heap* heap = isolate_group->heap();
+  ASSERT(heap != nullptr);
+  return Integer::New(heap->ReachabilityBarrier());
 #endif
 }
 

@@ -35,12 +35,11 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
 
   late final dartCodeUri = Uri.file(convertPath('/sdk/lib/core/core.dart'));
 
-  /// Matches a [TypeHierarchyItem] for [Object] with an 'extends' relationship.
-  Matcher get _isExtendsObject => TypeMatcher<TypeHierarchyItem>()
+  /// Matches a [TypeHierarchyItem] for [Object].
+  Matcher get _isObject => TypeMatcher<TypeHierarchyItem>()
       .having((e) => e.name, 'name', 'Object')
       .having((e) => e.uri, 'uri', dartCodeUri)
       .having((e) => e.kind, 'kind', SymbolKind.Class)
-      .having((e) => e.detail, 'detail', 'extends')
       .having((e) => e.selectionRange, 'selectionRange', _isValidRange)
       .having((e) => e.range, 'range', _isValidRange);
 
@@ -155,7 +154,6 @@ import 'main.dart';
           _isItem(
             'MyClass2',
             otherFileUri,
-            detail: 'extends',
             range: otherCode.ranges[0].range,
             selectionRange: otherCode.ranges[1].range,
           ),
@@ -174,7 +172,6 @@ class MyCla^ss1 {}
           _isItem(
             'MyClass2',
             mainFileUri,
-            detail: 'extends',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),
@@ -193,7 +190,6 @@ class MyCla^ss1 {}
           _isItem(
             'MyClass2',
             mainFileUri,
-            detail: 'implements',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),
@@ -212,7 +208,6 @@ class MyCla^ss1 {}
           _isItem(
             'MyMixin1',
             mainFileUri,
-            detail: 'constrained to',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),
@@ -231,7 +226,6 @@ mixin MyMi^xin1 {}
           _isItem(
             'MyClass1',
             mainFileUri,
-            detail: 'mixes in',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),
@@ -266,7 +260,6 @@ class MyCla^ss2 extends MyClass1 {}
           _isItem(
             'MyClass1',
             otherFileUri,
-            detail: 'extends',
             range: otherCode.ranges[0].range,
             selectionRange: otherCode.ranges[1].range,
           ),
@@ -285,7 +278,6 @@ class MyCla^ss2 extends MyClass1 {}
           _isItem(
             'MyClass1',
             mainFileUri,
-            detail: 'extends',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),
@@ -334,11 +326,10 @@ class MyCla^ss2 implements MyClass1 {}
     expect(
         supertypes,
         equals([
-          _isExtendsObject,
+          _isObject,
           _isItem(
             'MyClass1',
             mainFileUri,
-            detail: 'implements',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),
@@ -357,7 +348,6 @@ mixin MyMix^in1 on MyClass1 {}
           _isItem(
             'MyClass1',
             mainFileUri,
-            detail: 'constrained to',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),
@@ -373,11 +363,10 @@ class MyCla^ss1 with MyMixin1 {}
     expect(
         supertypes,
         equals([
-          _isExtendsObject,
+          _isObject,
           _isItem(
             'MyMixin1',
             mainFileUri,
-            detail: 'mixes in',
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
           ),

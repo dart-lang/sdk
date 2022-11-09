@@ -86,10 +86,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
-    super.beginClassDeclaration(
-        beginToken, abstractToken, macroToken, viewToken, augmentToken, name);
+  void beginClassDeclaration(
+      Token beginToken,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    super.beginClassDeclaration(beginToken, abstractToken, macroToken,
+        viewToken, sealedToken, augmentToken, name);
     begin('ClassDeclaration');
   }
 

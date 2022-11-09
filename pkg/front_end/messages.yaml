@@ -3818,8 +3818,8 @@ PatchDeclarationOrigin:
   severity: CONTEXT
 
 PatchInjectionFailed:
-  problemMessage: "Can't inject '#name' into '#uri'."
-  correctionMessage: "Try adding '@patch'."
+  problemMessage: "Can't inject public '#name' into '#uri'."
+  correctionMessage: "Make '#name' private, or make sure injected library has \"dart\" scheme and is private (e.g. \"dart:_internal\")."
 
 PatchNonExternal:
   problemMessage: "Can't apply this patch as its origin declaration isn't external."

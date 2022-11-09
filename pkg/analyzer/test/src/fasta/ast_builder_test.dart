@@ -277,6 +277,23 @@ ClassDeclaration
 ''');
   }
 
+  void test_class_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+sealed class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  sealedKeyword: sealed
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_view() {
     var parseResult = parseStringWithErrors(r'''
 view class A {}

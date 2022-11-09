@@ -861,8 +861,14 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     debugEvent("beginClassDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -887,8 +893,15 @@ class OutlineBuilder extends StackListenerImpl {
         viewToken = null;
       }
     }
+    if (sealedToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.sealedClass,
+          sealedToken.charOffset, sealedToken.length)) {
+        sealedToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
     push(viewToken ?? NullValue.Token);
+    push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -1143,6 +1156,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
       ]),
       /* augment token */ ValueKinds.TokenOrNull,
+      /* sealed token */ ValueKinds.TokenOrNull,
       /* view token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
@@ -1160,6 +1174,9 @@ class OutlineBuilder extends StackListenerImpl {
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
+    // TODO(kallentu): Support sealed in source library builder.
+    // ignore: unused_local_variable
+    Token? sealedToken = pop(NullValue.Token) as Token?;
     // TODO(johnniwinther): Create builder for view.
     // ignore: unused_local_variable
     Token? viewToken = pop(NullValue.Token) as Token?;

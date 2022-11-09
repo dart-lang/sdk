@@ -1220,9 +1220,11 @@ class DumpInfoTask extends CompilerTask
 
   /// Registers that a javascript AST node [code] was produced by the dart
   /// Entity [entity].
-  void registerEntityAst(Entity entity, jsAst.Node code) {
+  void registerEntityAst(Entity? entity, jsAst.Node code) {
     if (compiler.options.dumpInfo) {
-      _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
+      if (entity != null) {
+        _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
+      }
       _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
     }
   }

@@ -139,7 +139,7 @@ CompilerOptions setupCompilerOptions(
           printToStdErr = true;
           break;
         case Severity.info:
-          printToStdOut = true;
+          printToStdErr = true;
           break;
         case Severity.context:
         case Severity.ignored:
@@ -148,7 +148,9 @@ CompilerOptions setupCompilerOptions(
       if (Verbosity.shouldPrint(verbosity, message)) {
         if (printToStdErr) {
           printDiagnosticMessage(message, stderr.writeln);
-        } else if (printToStdOut) {
+        }
+        // ignore: dead_code
+        else if (printToStdOut) {
           printDiagnosticMessage(message, stdout.writeln);
         }
       }

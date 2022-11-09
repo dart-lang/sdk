@@ -1,0 +1,3 @@
+// @dart = 2.18
+sealed
+class A {}

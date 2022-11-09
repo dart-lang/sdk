@@ -146,6 +146,9 @@ class AstBuilder extends StackListener {
   /// `true` if views are enabled
   final bool enableViews;
 
+  /// `true` if sealed-class is enabled
+  final bool enableSealedClass;
+
   final FeatureSet _featureSet;
 
   final LineInfo _lineInfo;
@@ -171,6 +174,7 @@ class AstBuilder extends StackListener {
         enableUnnamedLibraries =
             _featureSet.isEnabled(Feature.unnamedLibraries),
         enableViews = _featureSet.isEnabled(Feature.views),
+        enableSealedClass = _featureSet.isEnabled(Feature.sealed_class),
         uri = uri ?? fileUri;
 
   @override
@@ -212,8 +216,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     assert(_classLikeBuilder == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
@@ -236,8 +246,19 @@ class AstBuilder extends StackListener {
         viewToken = null;
       }
     }
+    if (!enableSealedClass) {
+      if (sealedToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.sealed_class,
+          startToken: sealedToken,
+        );
+        // Pretend that 'sealed' didn't occur while this feature is incomplete.
+        sealedToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
     push(viewToken ?? NullValue.Token);
+    push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -599,6 +620,7 @@ class AstBuilder extends StackListener {
       abstractKeyword: null,
       macroKeyword: null,
       viewKeyword: null,
+      sealedKeyword: null,
       augmentKeyword: null,
       classKeyword: Token(Keyword.CLASS, 0),
       name: StringToken(TokenType.STRING, className, -1),
@@ -3495,6 +3517,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var sealedKeyword = pop(NullValue.Token) as Token?;
     var viewKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
@@ -3511,6 +3534,7 @@ class AstBuilder extends StackListener {
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
       viewKeyword: viewKeyword,
+      sealedKeyword: sealedKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
       name: name.token,
@@ -5321,6 +5345,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? abstractKeyword;
   final Token? macroKeyword;
   final Token? viewKeyword;
+  final Token? sealedKeyword;
   final Token? augmentKeyword;
   final Token classKeyword;
   final Token name;
@@ -5338,6 +5363,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.abstractKeyword,
     required this.macroKeyword,
     required this.viewKeyword,
+    required this.sealedKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
     required this.name,
@@ -5354,6 +5380,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
       viewKeyword: viewKeyword,
+      sealedKeyword: sealedKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
       name: name,

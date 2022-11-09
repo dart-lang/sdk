@@ -126,8 +126,14 @@ class ParserCreatorListener extends Listener {
   ParserCreatorListener(this.out);
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 

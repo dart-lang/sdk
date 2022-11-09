@@ -202,7 +202,16 @@ Statement ifCase(
       location: location);
 }
 
-CollectionElement ifElement_(Expression condition, CollectionElement ifTrue,
+CollectionElement ifCaseElement(
+    Expression expression, CaseHead caseHead, CollectionElement ifTrue,
+    [CollectionElement? ifFalse]) {
+  var location = computeLocation();
+  return new _IfCaseElement(
+      expression, caseHead._pattern!, caseHead._guard, ifTrue, ifFalse,
+      location: location);
+}
+
+CollectionElement ifElement(Expression condition, CollectionElement ifTrue,
     [CollectionElement? ifFalse]) {
   var location = computeLocation();
   return new _IfElement(condition, ifTrue, ifFalse, location: location);
@@ -2200,6 +2209,55 @@ class _IfCase extends _IfBase {
         ],
         Kind.statement,
         location: location);
+  }
+}
+
+class _IfCaseElement extends _IfElementBase {
+  final Expression _expression;
+  final Pattern _pattern;
+  final Expression? _guard;
+
+  _IfCaseElement(
+      this._expression, this._pattern, this._guard, super.ifTrue, super.ifFalse,
+      {required super.location});
+
+  @override
+  String get _conditionPartString => '$_expression case $_pattern';
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    _expression.preVisit(visitor);
+    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    _pattern.preVisit(visitor, variableBinder);
+    variableBinder.finish();
+    _guard?.preVisit(visitor);
+    super.preVisit(visitor);
+  }
+
+  @override
+  void visit(Harness h, Object context) {
+    h.typeAnalyzer.analyzeIfCaseElement(
+      node: this,
+      expression: _expression,
+      pattern: _pattern,
+      guard: _guard,
+      ifTrue: ifTrue,
+      ifFalse: ifFalse,
+      context: context,
+    );
+    h.irBuilder.apply(
+      'if',
+      [
+        Kind.expression,
+        Kind.pattern,
+        Kind.expression,
+        Kind.collectionElement,
+        Kind.collectionElement,
+      ],
+      Kind.collectionElement,
+      names: ['expression', 'pattern', 'guard', 'ifTrue', 'ifFalse'],
+      location: location,
+    );
   }
 }
 
