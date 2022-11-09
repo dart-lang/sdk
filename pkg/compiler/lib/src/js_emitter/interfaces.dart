@@ -12,6 +12,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 
 import 'metadata_collector.dart' show MetadataCollector;
+import 'native_emitter.dart';
 import 'startup_emitter/fragment_merger.dart';
 
 abstract class CodeEmitterTask {
@@ -20,19 +21,6 @@ abstract class CodeEmitterTask {
   NativeEmitter get nativeEmitter;
   Emitter get emitter;
   MetadataCollector get metadataCollector;
-}
-
-abstract class NativeEmitter {
-  Map<ClassEntity, List<ClassEntity>> get subtypes;
-  Map<ClassEntity, List<ClassEntity>> get directSubtypes;
-  Set<FunctionEntity> get nativeMethods;
-  List<jsAst.Statement> generateParameterStubStatements(
-      FunctionEntity member,
-      bool isInterceptedMethod,
-      jsAst.Name invocationName,
-      List<jsAst.Parameter> stubParameters,
-      List<jsAst.Expression> argumentsBuffer,
-      int indexOfLastOptionalArgumentInParameters);
 }
 
 abstract class ModularEmitter {
@@ -55,4 +43,5 @@ abstract class Emitter extends ModularEmitter {
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
   int compareConstants(ConstantValue a, ConstantValue b);
   jsAst.Expression interceptorClassAccess(ClassEntity e);
+  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 }

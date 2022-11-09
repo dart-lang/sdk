@@ -6,7 +6,8 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/native_data.dart' show NativeData;
-import '../js_emitter/interfaces.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter/interfaces.dart' show CodeEmitterTask;
+import '../js_emitter/native_emitter.dart';
 import '../options.dart';
 import '../universe/use.dart' show TypeUse;
 import '../universe/world_impact.dart'

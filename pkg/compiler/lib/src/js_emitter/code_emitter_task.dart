@@ -247,6 +247,7 @@ abstract class Emitter implements ModularEmitter, interfaces.Emitter {
 
   @override
   int compareConstants(ConstantValue a, ConstantValue b);
+  @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 
   /// Returns the size of the code generated for a given output [unit].

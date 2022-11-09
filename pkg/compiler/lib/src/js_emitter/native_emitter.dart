@@ -17,9 +17,8 @@ import '../native/enqueue.dart' show NativeCodegenEnqueuer;
 
 import 'interfaces.dart' show CodeEmitterTask;
 import 'model.dart';
-import 'interfaces.dart' as interfaces;
 
-class NativeEmitter implements interfaces.NativeEmitter {
+class NativeEmitter {
   final CodeEmitterTask _emitterTask;
   final JClosedWorld _closedWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -28,15 +27,12 @@ class NativeEmitter implements interfaces.NativeEmitter {
   bool hasNativeClasses = false;
 
   // Caches the native subtypes of a native class.
-  @override
   Map<ClassEntity, List<ClassEntity>> subtypes = {};
 
-  @override
   // Caches the direct native subtypes of a native class.
   Map<ClassEntity, List<ClassEntity>> directSubtypes = {};
 
   // Caches the methods that have a native body.
-  @override
   Set<FunctionEntity> nativeMethods = {};
 
   // Type metadata redirections, where the key is the class type data being
@@ -314,7 +310,6 @@ class NativeEmitter implements interfaces.NativeEmitter {
     });
   }
 
-  @override
   List<jsAst.Statement> generateParameterStubStatements(
       FunctionEntity member,
       bool isInterceptedMethod,

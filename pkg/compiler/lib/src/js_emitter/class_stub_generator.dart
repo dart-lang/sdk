@@ -212,7 +212,7 @@ class ClassStubGenerator {
     jsAst.Expression code;
     if (field.isElided) {
       code = js("function() { return #; }",
-          _emitter.constantReference(field.constantValue));
+          _emitter.constantReference(field.constantValue!));
     } else {
       String template;
       if (field.needsInterceptedGetterOnReceiver) {

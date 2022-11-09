@@ -9,7 +9,7 @@ import '../common/codegen_interfaces.dart' show CodegenImpact;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_emitter/interfaces.dart' show NativeEmitter;
+import '../js_emitter/native_emitter.dart';
 import '../js_model/js_world.dart';
 import '../native/enqueue.dart';
 import '../native/behavior.dart';

@@ -41,17 +41,14 @@ import '../../universe/class_hierarchy.dart';
 import '../../universe/codegen_world_builder.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show SelectorConstraints;
-import '../js_emitter.dart'
-    show
-        ClassStubGenerator,
-        CodeEmitterTask,
-        Emitter,
-        InstantiationStubGenerator,
-        InterceptorStubGenerator,
-        MainCallStubGenerator,
-        ParameterStubGenerator,
-        RuntimeTypeGenerator,
-        TypeTestProperties;
+import '../class_stub_generator.dart' show ClassStubGenerator;
+import '../instantiation_stub_generator.dart' show InstantiationStubGenerator;
+import '../interceptor_stub_generator.dart' show InterceptorStubGenerator;
+import '../main_call_stub_generator.dart' show MainCallStubGenerator;
+import '../parameter_stub_generator.dart' show ParameterStubGenerator;
+import '../runtime_type_generator.dart'
+    show RuntimeTypeGenerator, TypeTestProperties;
+import '../interfaces.dart' show CodeEmitterTask, Emitter;
 import '../model.dart';
 import '../sorter.dart';
 

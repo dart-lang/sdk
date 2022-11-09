@@ -21,7 +21,7 @@ class Program {
 
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
-  final js.Expression typeToInterceptorMap;
+  final js.Expression? typeToInterceptorMap;
 
   // TODO(floitsch): we should store the metadata directly instead of storing
   // the collector. However, the old emitter still updates the data.
@@ -173,7 +173,8 @@ class StaticField {
   final FieldEntity element;
 
   final js.Name name;
-  final js.Name getterName;
+  // Null for static non-final fields.
+  final js.Name? getterName;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
   final js.Expression code;
@@ -252,7 +253,7 @@ class Class {
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
-  final js.Expression functionTypeIndex;
+  final js.Expression? functionTypeIndex;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
@@ -305,11 +306,11 @@ class MixinApplication extends Class {
       List<StubMethod> checkedSetters,
       List<StubMethod> gettersSetters,
       List<StubMethod> isChecks,
-      js.Expression functionTypeIndex,
-      {required bool hasRtiField,
-      required bool onlyForRti,
-      required bool onlyForConstructor,
-      required bool isDirectlyInstantiated})
+      js.Expression? functionTypeIndex,
+      {required super.hasRtiField,
+      required super.onlyForRti,
+      required super.onlyForConstructor,
+      required super.isDirectlyInstantiated})
       : super(
             element,
             typeData,
@@ -322,10 +323,6 @@ class MixinApplication extends Class {
             gettersSetters,
             isChecks,
             functionTypeIndex,
-            hasRtiField: hasRtiField,
-            onlyForRti: onlyForRti,
-            onlyForConstructor: onlyForConstructor,
-            isDirectlyInstantiated: isDirectlyInstantiated,
             isNative: false,
             isClosureBaseClass: false,
             isMixinApplicationWithMembers: false);
@@ -363,9 +360,9 @@ class Field {
 
   final bool needsCheckedSetter;
 
-  final ConstantValue initializerInAllocator;
+  final ConstantValue? initializerInAllocator;
 
-  final ConstantValue constantValue;
+  final ConstantValue? constantValue;
 
   final bool isElided;
 
@@ -488,7 +485,7 @@ class InstanceMethod extends DartMethod {
     super.name,
     super.code,
     super.parameterStubs,
-    js.Name super.callName, {
+    super.callName, {
     required super.needsTearOff,
     super.tearOffName,
     this.aliasName,
@@ -559,7 +556,7 @@ abstract class StaticMethod implements Method {}
 
 class StaticDartMethod extends DartMethod implements StaticMethod {
   StaticDartMethod(super.element, super.name, super.code, super.parameterStubs,
-      js.Name super.callName,
+      super.callName,
       {required super.needsTearOff,
       super.tearOffName,
       required super.canBeApplied,
