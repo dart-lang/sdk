@@ -17,19 +17,19 @@ const _details = r'''
 **BAD:**
 ```dart
 var points = List();
-var addresses = Map();
-var uniqueNames = Set();
-var ids = LinkedHashSet();
-var coordinates = LinkedHashMap();
+var addresses = Map<String, String>();
+var uniqueNames = Set<String>();
+var ids = LinkedHashSet<int>();
+var coordinates = LinkedHashMap<int, int>();
 ```
 
 **GOOD:**
 ```dart
 var points = [];
-var addresses = <String,String>{};
+var addresses = <String, String>{};
 var uniqueNames = <String>{};
 var ids = <int>{};
-var coordinates = <int,int>{};
+var coordinates = <int, int>{};
 ```
 
 **EXCEPTIONS:**
