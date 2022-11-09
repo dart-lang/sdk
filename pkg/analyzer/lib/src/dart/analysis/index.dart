@@ -787,7 +787,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitOnClause(OnClause node) {
     for (NamedType namedType in node.superclassConstraints) {
-      recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
+      recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
     }
   }
 

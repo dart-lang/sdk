@@ -27,6 +27,17 @@ class SearchResultKindTest {
     expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE),
         SearchResultKind.REFERENCE);
     expect(
+        newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_EXTENDS_CLAUSE),
+        SearchResultKind.REFERENCE);
+    expect(
+        newSearchResultKind_fromEngine(
+            MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE),
+        SearchResultKind.REFERENCE);
+    expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_WITH_CLAUSE),
+        SearchResultKind.REFERENCE);
+    expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_ON_CLAUSE),
+        SearchResultKind.REFERENCE);
+    expect(
         newSearchResultKind_fromEngine(
             MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF),
         SearchResultKind.REFERENCE);

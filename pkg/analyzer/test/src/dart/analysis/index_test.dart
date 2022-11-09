@@ -106,6 +106,17 @@ mixin M5 on M2 {}
       ..isAncestorOf('M5 on M2', length: 2);
   }
 
+  test_isConstraint_MixinDeclaration_onClause() async {
+    await _indexTestUnit('''
+class A {} // 1
+mixin M on A {} // 2
+''');
+    ClassElement elementA = findElement.class_('A');
+    assertThat(elementA)
+      ..isConstraintAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
+  }
+
   test_isExtendedBy_ClassDeclaration_isQualified() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class A {}
@@ -232,17 +243,6 @@ enum E implements A { // 2
     await _indexTestUnit('''
 class A {} // 1
 mixin M implements A {} // 2
-''');
-    ClassElement elementA = findElement.class_('A');
-    assertThat(elementA)
-      ..isImplementedAt('A {} // 2', false)
-      ..isReferencedAt('A {} // 2', false);
-  }
-
-  test_isImplementedBy_MixinDeclaration_onClause() async {
-    await _indexTestUnit('''
-class A {} // 1
-mixin M on A {} // 2
 ''');
     ClassElement elementA = findElement.class_('A');
     assertThat(elementA)
@@ -1929,6 +1929,11 @@ class _ElementIndexAssert {
         relations,
         IndexRelationKind.IS_ANCESTOR_OF,
         test._expectedLocation(search, false, length: length));
+  }
+
+  void isConstraintAt(String search, bool isQualified, {int? length}) {
+    test._assertHasRelation(element, relations, IndexRelationKind.CONSTRAINS,
+        test._expectedLocation(search, isQualified, length: length));
   }
 
   void isExtendedAt(String search, bool isQualified, {int? length}) {

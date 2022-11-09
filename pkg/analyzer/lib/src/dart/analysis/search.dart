@@ -321,9 +321,13 @@ class Search {
     }
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, type, searchedFiles, const {
-      IndexRelationKind.IS_EXTENDED_BY: SearchResultKind.REFERENCE,
-      IndexRelationKind.IS_MIXED_IN_BY: SearchResultKind.REFERENCE,
-      IndexRelationKind.IS_IMPLEMENTED_BY: SearchResultKind.REFERENCE
+      IndexRelationKind.IS_EXTENDED_BY:
+          SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
+      IndexRelationKind.IS_MIXED_IN_BY:
+          SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
+      IndexRelationKind.IS_IMPLEMENTED_BY:
+          SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
+      IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
     });
     return results;
   }
@@ -803,6 +807,10 @@ enum SearchResultKind {
   INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
   REFERENCE,
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+  REFERENCE_IN_EXTENDS_CLAUSE,
+  REFERENCE_IN_WITH_CLAUSE,
+  REFERENCE_IN_ON_CLAUSE,
+  REFERENCE_IN_IMPLEMENTS_CLAUSE,
 }
 
 /// A single subtype of a type.
@@ -1216,12 +1224,13 @@ class _IndexRequest {
           Element enclosingElement =
               _getEnclosingElement(enclosingUnitElement, offset);
           results.add(SearchResult._(
-              enclosingElement,
-              resultKind,
-              offset,
-              index.usedElementLengths[i],
-              true,
-              index.usedElementIsQualifiedFlags[i]));
+            enclosingElement,
+            resultKind,
+            offset,
+            index.usedElementLengths[i],
+            true,
+            index.usedElementIsQualifiedFlags[i],
+          ));
         }
       }
     }
