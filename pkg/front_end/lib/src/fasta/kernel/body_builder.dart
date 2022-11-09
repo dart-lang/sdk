@@ -76,6 +76,7 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Message,
         Template,
+        messageNamedFieldClashesWithPositionalFieldInRecord,
         noLength,
         templateDuplicatedRecordLiteralFieldName,
         templateDuplicatedRecordLiteralFieldNameContext,
@@ -4259,7 +4260,21 @@ class BodyBuilder extends StackListenerImpl
           originalElementOrder.add(expression);
         }
       }
+      if (namedElements != null) {
+        for (NamedExpression element in namedElements.values) {
+          if (tryParseRecordPositionalGetterName(
+                  element.name, positional.length) !=
+              null) {
+            libraryBuilder.addProblem(
+                messageNamedFieldClashesWithPositionalFieldInRecord,
+                element.fileOffset,
+                element.name.length,
+                uri);
+          }
+        }
+      }
     }
+
     push(new InternalRecordLiteral(
         positional, named, namedElements, originalElementOrder,
         isConst:

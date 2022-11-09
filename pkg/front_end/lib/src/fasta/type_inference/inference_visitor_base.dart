@@ -40,6 +40,7 @@ import '../names.dart';
 import '../problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'inference_helper.dart' show InferenceHelper;
 import 'inference_results.dart';
@@ -4031,6 +4032,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   ..fileOffset = fileOffset);
           }
         }
+      }
+      int? index = tryParseRecordPositionalGetterName(
+          text, recordType.positional.length);
+      if (index != null) {
+        DartType fieldType = recordType.positional[index];
+        result = new ExpressionInferenceResult(
+            fieldType,
+            new RecordIndexGet(receiver, recordType, index)
+              ..fileOffset = fileOffset);
       }
       if (result == null) {
         for (NamedType field in recordType.named) {
