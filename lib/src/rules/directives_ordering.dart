@@ -9,8 +9,8 @@ import '../analyzer.dart';
 
 const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
 const _details = r'''
-**DO** follow the conventions in the 
-[Effective Dart Guide](https://dart.dev/guides/language/effective-dart/style#ordering)
+**DO** follow the directive ordering conventions in
+[Effective Dart](https://dart.dev/guides/language/effective-dart/style#ordering):
 
 **DO** place `dart:` imports before other imports.
 
