@@ -15,7 +15,7 @@ const _details = r'''
 
 When mixing relative and absolute imports it's possible to create confusion
 where the same member gets imported in two different ways. One way to avoid
-that is to ensure you consistently use absolute imports for files withing the
+that is to ensure you consistently use absolute imports for files within the
 `lib/` directory.
 
 This is the opposite of 'prefer_relative_imports'.
