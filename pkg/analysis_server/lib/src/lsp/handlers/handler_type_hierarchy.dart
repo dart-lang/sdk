@@ -172,7 +172,6 @@ mixin _TypeHierarchyUtils {
         item is type_hierarchy.TypeHierarchyRelatedItem ? item.anchor : null;
     return TypeHierarchyItem(
       name: item.displayName,
-      detail: _detailFor(item),
       kind: SymbolKind.Class,
       uri: Uri.file(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
@@ -232,28 +231,5 @@ mixin _TypeHierarchyUtils {
       ),
     );
     return results.toList();
-  }
-
-  /// Gets the "detail" label for [item].
-  ///
-  /// This includes a user-visible description of the relationship between the
-  /// target item and [item].
-  String? _detailFor(type_hierarchy.TypeHierarchyItem item) {
-    if (item is! type_hierarchy.TypeHierarchyRelatedItem) {
-      return null;
-    }
-
-    switch (item.relationship) {
-      case type_hierarchy.TypeHierarchyItemRelationship.extends_:
-        return 'extends';
-      case type_hierarchy.TypeHierarchyItemRelationship.implements:
-        return 'implements';
-      case type_hierarchy.TypeHierarchyItemRelationship.mixesIn:
-        return 'mixes in';
-      case type_hierarchy.TypeHierarchyItemRelationship.constrainedTo:
-        return 'constrained to';
-      default:
-        return null;
-    }
   }
 }
