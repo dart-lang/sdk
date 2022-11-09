@@ -8540,6 +8540,17 @@ Message _withArgumentsNameNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNamedFieldClashesWithPositionalFieldInRecord =
+    messageNamedFieldClashesWithPositionalFieldInRecord;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNamedFieldClashesWithPositionalFieldInRecord =
+    const MessageCode("NamedFieldClashesWithPositionalFieldInRecord",
+        analyzerCodes: <String>["INVALID_FIELD_NAME"],
+        problemMessage:
+            r"""Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

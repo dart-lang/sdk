@@ -1,7 +1,10 @@
-class Fisk<TypeY extends Fisk<TypeY>> {}
+class A<TypeX extends A<TypeX>> {}
 
-class Hest<TypeX extends Hest<TypeX>> {}
+class B<TypeY extends B<TypeY>> {}
 
-class Naebdyr<TypeZ extends Map<Hest, Fisk>> {}
+class C<TypeZ extends Map<A, B>> {}
+
+extension D<TypeZ extends Map<A, B>> on int {}
 
 main() {}
+typedef E<TypeZ extends Map<A, B>> = int;

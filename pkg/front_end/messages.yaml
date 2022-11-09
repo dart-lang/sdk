@@ -5972,3 +5972,10 @@ RecordFieldsCantBePrivate:
   experiments: records
   script: |
     foo() => (_bar: 1);
+
+NamedFieldClashesWithPositionalFieldInRecord:
+  problemMessage: "Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field."
+  analyzerCode: INVALID_FIELD_NAME
+  experiments: records
+  script: |
+    foo() => (0, $0: 0);

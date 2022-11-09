@@ -29,3 +29,20 @@ bool isDartCoreRecord(DartType type) {
       targetClass.enclosingLibrary.importUri.scheme == "dart" &&
       targetClass.enclosingLibrary.importUri.path == "core";
 }
+
+int? tryParseRecordPositionalGetterName(String name, int positionalFieldCount) {
+  if (name.startsWith(r"$")) {
+    String suffix = name.substring(1);
+    int? impliedIndex = int.tryParse(suffix);
+    if (impliedIndex != null &&
+        impliedIndex >= 0 &&
+        impliedIndex < positionalFieldCount &&
+        suffix == "${impliedIndex}") {
+      return impliedIndex;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
