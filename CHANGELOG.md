@@ -170,8 +170,10 @@
 
 #### Linter
 
-Updated the Linter to `1.29.0`, which includes changes that
+Updated the Linter to `1.30.0`, which includes changes that
 
+- add new lint: `enable_null_safety`.
+- add new lint: `library_annotations`.
 - add new lint: `dangling_library_doc_comments`.
 - fix `no_leading_underscores_for_local_identifiers` to not report super formals
   as local variables.
