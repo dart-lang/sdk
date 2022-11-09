@@ -1553,7 +1553,7 @@ class DartFixKind {
   static const REPLACE_WITH_NULL_AWARE = FixKind(
     'dart.fix.replace.withNullAware',
     DartFixKindPriority.DEFAULT,
-    "Replace the '.' with a '?.' in the invocation",
+    "Replace the '{0}' with a '{1}' in the invocation",
   );
   static const REPLACE_WITH_TEAR_OFF = FixKind(
     'dart.fix.replace.withTearOff',
