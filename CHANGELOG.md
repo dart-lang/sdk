@@ -1,3 +1,9 @@
+# 1.30.0
+
+- new lint: `enable_null_safety`
+- new lint: `library_annotations`
+- miscellaneous documentation improvements
+
 # 1.29.0
 
 - new lint: `dangling_library_doc_comments`
@@ -38,7 +44,6 @@
   - `prefer_const_constructors`
 - new lint: `implicit_call_tearoffs`
 - new lint: `unnecessary_library_directive`
-- new lint: `enable_null_safety`
 
 # 1.28.0
 
