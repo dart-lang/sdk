@@ -1421,10 +1421,10 @@ class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
   @override
   void _addInjectedPatchMember(String name, Builder newBuilder) {
     assert(!name.startsWith('_'), "Unexpected private member $newBuilder");
-    exportMemberFromPatch(name, newBuilder);
+    _exportMemberFromPatch(name, newBuilder);
   }
 
-  void exportMemberFromPatch(String name, Builder member) {
+  void _exportMemberFromPatch(String name, Builder member) {
     if (!originLibrary.importUri.isScheme("dart") ||
         !originLibrary.importUri.path.startsWith("_")) {
       originLibrary.addProblem(

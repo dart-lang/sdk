@@ -32,6 +32,7 @@ count.#count
 d
 dart.dev
 dart2js_server
+dart:_internal
 dart:ffi
 dart_runner
 dartbug.com

@@ -10145,12 +10145,16 @@ const MessageCode messagePatchDeclarationOrigin = const MessageCode(
     problemMessage: r"""This is the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-    templatePatchInjectionFailed =
-    const Template<Message Function(String name, Uri uri_)>(
-        problemMessageTemplate: r"""Can't inject '#name' into '#uri'.""",
-        correctionMessageTemplate: r"""Try adding '@patch'.""",
-        withArguments: _withArgumentsPatchInjectionFailed);
+const Template<
+    Message Function(
+        String name,
+        Uri
+            uri_)> templatePatchInjectionFailed = const Template<
+        Message Function(String name, Uri uri_)>(
+    problemMessageTemplate: r"""Can't inject public '#name' into '#uri'.""",
+    correctionMessageTemplate:
+        r"""Make '#name' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
+    withArguments: _withArgumentsPatchInjectionFailed);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, Uri uri_)> codePatchInjectionFailed =
@@ -10164,8 +10168,9 @@ Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
   name = demangleMixinApplicationName(name);
   String? uri = relativizeUri(uri_);
   return new Message(codePatchInjectionFailed,
-      problemMessage: """Can't inject '${name}' into '${uri}'.""",
-      correctionMessage: """Try adding '@patch'.""",
+      problemMessage: """Can't inject public '${name}' into '${uri}'.""",
+      correctionMessage:
+          """Make '${name}' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
       arguments: {'name': name, 'uri': uri_});
 }
 
