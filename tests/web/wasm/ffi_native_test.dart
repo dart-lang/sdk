@@ -39,7 +39,7 @@ external int addUint64(int a, int b);
 @FfiNative<Bool Function(Bool)>("ffi.negateBool")
 external bool negateBool(bool b);
 
-@FfiNative<Bool Function(Int32)>("ffi.boolReturn")
+@FfiNative<Bool Function(Int)>("ffi.boolReturn")
 external bool boolReturn(int b);
 
 @FfiNative<Void Function()>("ffi.toggleBool")
@@ -47,6 +47,52 @@ external void toggleBool();
 
 @FfiNative<Double Function(Double)>("ffi.sqrt")
 external double sqrt(double d);
+
+@FfiNative<Char Function(Char)>("ffi.incrementChar")
+external int incrementChar(int a);
+
+@FfiNative<UnsignedChar Function(UnsignedChar)>("ffi.incrementUnsignedChar")
+external int incrementUnsignedChar(int a);
+
+@FfiNative<SignedChar Function(SignedChar)>("ffi.incrementSignedChar")
+external int incrementSignedChar(int a);
+
+@FfiNative<Short Function(Short)>("ffi.incrementShort")
+external int incrementShort(int a);
+
+@FfiNative<UnsignedShort Function(UnsignedShort)>("ffi.incrementUnsignedShort")
+external int incrementUnsignedShort(int a);
+
+@FfiNative<Int Function(Int)>("ffi.incrementInt")
+external int incrementInt(int a);
+
+@FfiNative<UnsignedInt Function(UnsignedInt)>("ffi.incrementUnsignedInt")
+external int incrementUnsignedInt(int a);
+
+@FfiNative<Long Function(Long)>("ffi.incrementLong")
+external int incrementLong(int a);
+
+@FfiNative<UnsignedLong Function(UnsignedLong)>("ffi.incrementUnsignedLong")
+external int incrementUnsignedLong(int a);
+
+@FfiNative<LongLong Function(LongLong)>("ffi.incrementLongLong")
+external int incrementLongLong(int a);
+
+@FfiNative<UnsignedLongLong Function(UnsignedLongLong)>(
+    "ffi.incrementUnsignedLongLong")
+external int incrementUnsignedLongLong(int a);
+
+@FfiNative<IntPtr Function(IntPtr)>("ffi.incrementIntPtr")
+external int incrementIntPtr(int a);
+
+@FfiNative<UintPtr Function(UintPtr)>("ffi.incrementUintPtr")
+external int incrementUintPtr(int a);
+
+@FfiNative<Size Function(Size)>("ffi.incrementSize")
+external int incrementSize(int a);
+
+@FfiNative<WChar Function(WChar)>("ffi.incrementWchar")
+external int incrementWchar(int a);
 
 class MyStruct extends Struct implements NativeFieldWrapperClass1 {
   @Double()
@@ -104,4 +150,20 @@ void main() {
   clearStruct(struct_);
   Expect.equals(struct_.ref.x, 0.0);
   Expect.equals(struct_.ref.y, 0);
+
+  Expect.equals(incrementChar(1), 2);
+  Expect.equals(incrementUnsignedChar(3), 4);
+  Expect.equals(incrementSignedChar(5), 6);
+  Expect.equals(incrementShort(7), 8);
+  Expect.equals(incrementUnsignedShort(9), 10);
+  Expect.equals(incrementInt(11), 12);
+  Expect.equals(incrementUnsignedInt(13), 14);
+  Expect.equals(incrementLong(15), 16);
+  Expect.equals(incrementUnsignedLong(17), 18);
+  Expect.equals(incrementLongLong(19), 20);
+  Expect.equals(incrementUnsignedLongLong(21), 22);
+  Expect.equals(incrementIntPtr(23), 24);
+  Expect.equals(incrementUintPtr(25), 26);
+  Expect.equals(incrementSize(27), 28);
+  Expect.equals(incrementWchar(29), 30);
 }

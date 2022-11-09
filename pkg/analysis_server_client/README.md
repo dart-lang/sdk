@@ -1,6 +1,3 @@
-[![pub package](https://img.shields.io/pub/v/analysis_server_client.svg)](https://pub.dev/packages/analysis_server_client)
-[![package publisher](https://img.shields.io/pub/publisher/analysis_server_client.svg)](https://pub.dev/packages/analysis_server_client/publisher)
-
 `package:analysis_server_client` is a client wrapper over the Analysis Server.
 
 ## Update: this package has been discontinued

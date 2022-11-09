@@ -113,6 +113,12 @@
 
 [#49878]: https://github.com/dart-lang/sdk/issues/49878
 
+- When a `dart:io` operation fails because a file is not found, throw
+  `PathNotFoundException`, a `FileSystemException` subclass, to make it
+  easier to handle "file not found" errors.
+
+[#12461]: https://github.com/dart-lang/sdk/issues/12461
+
 #### `dart:isolate`
 
 - Add `Isolate.run` to run a function in a new isolate.

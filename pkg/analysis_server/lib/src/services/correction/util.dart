@@ -1319,9 +1319,6 @@ class CorrectionUtils {
     // append simple name
     var name = element.displayName;
     sb.write(name);
-    if (isNullable) {
-      sb.write('?');
-    }
 
     // append type arguments
     if (typeArguments.isNotEmpty) {
@@ -1339,6 +1336,11 @@ class CorrectionUtils {
         }
       }
       sb.write('>');
+    }
+
+    // append nullability
+    if (isNullable) {
+      sb.write('?');
     }
 
     // done

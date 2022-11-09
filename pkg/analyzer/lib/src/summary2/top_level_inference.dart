@@ -253,8 +253,7 @@ class _PropertyInducingElementTypeInference
 
     var astResolver = AstResolver(_linker, _unitElement, _scope,
         enclosingClassElement: enclosingClassElement);
-    astResolver.resolveExpression(() => _node.initializer!,
-        buildElements: true); // TODO(scheglov) remove the flag
+    astResolver.resolveExpression(() => _node.initializer!);
 
     // Pop self from the stack.
     var self = _inferring.removeLast();

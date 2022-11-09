@@ -17,7 +17,7 @@ Directory tempDir() {
 }
 
 bool checkCreateInNonExistentFileSystemException(e) {
-  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Creation failed") != -1);
   if (Platform.operatingSystem == "linux") {
@@ -43,7 +43,7 @@ void testCreateInNonExistent(Directory temp, Function done) {
 }
 
 bool checkCreateTempInNonExistentFileSystemException(e) {
-  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   if (Platform.operatingSystem == "linux") {
     Expect.equals(2, e.osError.errorCode);
@@ -68,7 +68,7 @@ void testCreateTempInNonExistent(Directory temp, Function done) {
 }
 
 bool checkDeleteNonExistentFileSystemException(e) {
-  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   // File not not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
@@ -88,7 +88,7 @@ void testDeleteNonExistent(Directory temp, Function done) {
 }
 
 bool checkDeleteRecursivelyNonExistentFileSystemException(e) {
-  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Deletion failed") != -1);
   // File not not found has error code 2 on all supported platforms.
@@ -109,7 +109,7 @@ void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
 }
 
 bool checkListNonExistentFileSystemException(e) {
-  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Directory listing failed") != -1);
   if (Platform.operatingSystem == "linux") {
@@ -141,12 +141,12 @@ void testRenameNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
   var newPath = "${temp.path}/nonExistent2";
   Expect.throws(
-      () => nonExistent.renameSync(newPath), (e) => e is FileSystemException);
+      () => nonExistent.renameSync(newPath), (e) => e is PathNotFoundException);
   var renameDone = nonExistent.rename(newPath);
   renameDone
       .then((ignore) => Expect.fail('rename non existent'))
       .catchError((error) {
-    Expect.isTrue(error is FileSystemException);
+    Expect.isTrue(error is PathNotFoundException);
     done();
   });
 }

@@ -7,7 +7,10 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,6 +25,16 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
+  void assertHighlightText(TestCode testCode, int index, String expected) {
+    var actual = _getHighlightText(testCode, index);
+    if (actual != expected) {
+      print(testCode.code.trimRight());
+      print('-' * 32);
+      print(actual);
+    }
+    expect(actual, expected);
+  }
+
   Future<void> test_ANNOTATION_hasArguments() async {
     addTestFile('''
 class AAA {
@@ -452,15 +465,24 @@ AAA aaa;
   }
 
   Future<void> test_class_constructor_fieldFormalParameter() async {
-    addTestFile('''
+    var testCode = TestCode.parse(r'''
 class A {
   final int foo;
   A(this.foo);
 }
 ''');
+    addTestFile(testCode.code);
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'this.');
-    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'foo);');
+    assertHighlightText(testCode, -1, r'''
+0 + 5 |class| KEYWORD
+6 + 1 |A| CLASS
+12 + 5 |final| KEYWORD
+18 + 3 |int| CLASS
+22 + 3 |foo| INSTANCE_FIELD_DECLARATION
+29 + 1 |A| CLASS
+31 + 4 |this| KEYWORD
+36 + 3 |foo| INSTANCE_FIELD_REFERENCE
+''');
   }
 
   Future<void> test_CLASS_notDynamic() async {
@@ -674,7 +696,7 @@ class A {
   }
 
   Future<void> test_enum_constant() async {
-    addTestFile('''
+    var testCode = TestCode.parse(r'''
 enum MyEnum {AAA, BBB}
 
 void f() {
@@ -682,31 +704,43 @@ void f() {
   MyEnum.BBB;
 }
 ''');
+    addTestFile(testCode.code);
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA, ');
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB}');
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA;');
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB;');
+    assertHighlightText(testCode, -1, r'''
+0 + 4 |enum| KEYWORD
+5 + 6 |MyEnum| ENUM
+13 + 3 |AAA| ENUM_CONSTANT
+18 + 3 |BBB| ENUM_CONSTANT
+24 + 4 |void| KEYWORD
+29 + 1 |f| TOP_LEVEL_FUNCTION_DECLARATION
+37 + 6 |MyEnum| ENUM
+44 + 3 |AAA| ENUM_CONSTANT
+51 + 6 |MyEnum| ENUM
+58 + 3 |BBB| ENUM_CONSTANT
+''');
   }
 
   Future<void> test_enum_constructor() async {
-    addTestFile('''
+    var testCode = TestCode.parse(r'''
 const a = 0;
 
 enum E<T> {
-  v<int>.named(a); // 1
-  E.named(T a); // 2
+  [!v<int>.named(a);
+  E.named(T a);!]
 }
 ''');
+    addTestFile(testCode.code);
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'v<');
-    assertHasRegion(HighlightRegionType.CLASS, 'int>');
-    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'named(a)');
-    assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'a); // 1');
-    assertHasRegion(HighlightRegionType.ENUM, 'E.named');
-    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'named(T');
-    assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T a');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a); // 2');
+    assertHighlightText(testCode, 0, r'''
+28 + 1 |v| ENUM_CONSTANT
+30 + 3 |int| CLASS
+35 + 5 |named| CONSTRUCTOR
+41 + 1 |a| TOP_LEVEL_GETTER_REFERENCE
+47 + 1 |E| ENUM
+49 + 5 |named| CONSTRUCTOR
+55 + 1 |T| TYPE_PARAMETER
+57 + 1 |a| PARAMETER_DECLARATION
+''');
   }
 
   Future<void> test_enum_field_instance() async {
@@ -1684,6 +1718,29 @@ class A {
     assertHasRegion(type, 'unresolved(1)');
     assertHasRegion(type, 'unresolved(2)');
     assertHasRegion(type, 'unresolved(3)');
+  }
+
+  /// Returns the textual dump of the highlight regions that intersect with
+  /// the [index]th range in [testCode] (or all code if `-1`).
+  String _getHighlightText(TestCode testCode, int index) {
+    var window = index == -1
+        ? SourceRange(0, testCode.code.length)
+        : testCode.ranges[index].sourceRange;
+
+    // TODO(scheglov) Apparently, we don't sort in the server.
+    var sortedRegions = regions.sortedBy<num>((e) => e.offset);
+
+    var buffer = StringBuffer();
+    for (var region in sortedRegions) {
+      var offset = region.offset;
+      var end = offset + region.length;
+      if (window.contains(offset) || window.contains(end)) {
+        var regionDesc = '$offset + ${region.length}';
+        var regionCode = testCode.code.substring(offset, end);
+        buffer.writeln('$regionDesc |$regionCode| ${region.type.name}');
+      }
+    }
+    return buffer.toString();
   }
 }
 
