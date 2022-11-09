@@ -12,6 +12,7 @@ import '../builder/class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -264,8 +265,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             libraryBuilder.library)) {
       tearOffs = {};
       _tearOffDependencies = {};
-      declaration
-          .forEachConstructor((String constructorName, MemberBuilder builder) {
+      NameIterator<MemberBuilder> iterator =
+          declaration.fullConstructorNameIterator;
+      while (iterator.moveNext()) {
+        String constructorName = iterator.name;
+        MemberBuilder builder = iterator.current;
         Member? target = builder.invokeTarget;
         if (target != null) {
           if (target is Procedure && target.isRedirectingFactory) {
@@ -303,7 +307,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               libraryBuilder: libraryBuilder);
           f(tearOff);
         }
-      });
+      }
     }
   }
 }
