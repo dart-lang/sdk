@@ -1894,7 +1894,7 @@ abstract class ModularNamer {
 
   /// Returns the string that is to be used as the result of a call to
   /// [JS_GET_NAME] at [node] with argument [name].
-  jsAst.Name getNameForJsGetName(Spannable spannable, JsGetName name) {
+  jsAst.Name getNameForJsGetName(Spannable? spannable, JsGetName name) {
     switch (name) {
       case JsGetName.GETTER_PREFIX:
         return asName(fixedNames.getterPrefix);
@@ -1945,7 +1945,8 @@ abstract class ModularNamer {
       case JsGetName.RTI_FIELD_IS:
         return instanceFieldPropertyName(_commonElements.rtiIsField);
       default:
-        throw failedAt(spannable, 'Error: Namer has no name for "$name".');
+        throw failedAt(spannable ?? CURRENT_ELEMENT_SPANNABLE,
+            'Error: Namer has no name for "$name".');
     }
   }
 }
