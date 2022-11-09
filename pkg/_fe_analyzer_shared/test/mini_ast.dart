@@ -202,6 +202,12 @@ Statement ifCase(
       location: location);
 }
 
+CollectionElement ifElement_(Expression condition, CollectionElement ifTrue,
+    [CollectionElement? ifFalse]) {
+  var location = computeLocation();
+  return new _IfElement(condition, ifTrue, ifFalse, location: location);
+}
+
 Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
     new _IntLiteral(value,
         expectConversionToDouble: expectConversionToDouble,
@@ -319,11 +325,43 @@ mixin CaseHeads {
   }
 }
 
+/// Representation of a collection element in the pseudo-Dart language used for
+/// type analysis testing.
+abstract class CollectionElement extends Node {
+  CollectionElement({required super.location}) : super._();
+
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the IR produced matches [expectedIr].
+  CollectionElement checkIr(String expectedIr) =>
+      _CheckCollectionElementIr(this, expectedIr, location: computeLocation());
+
+  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
+  /// [type] as the context (for `List` and `Set` literals).
+  Statement inContextElementType(String type) =>
+      _CollectionElementInContext(this, _CollectionElementContextType(type),
+          location: computeLocation());
+
+  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
+  /// [keyType] and [valueType] as the context (for `Map` literals).
+  Statement inContextMapEntry(String keyType, String valueType) =>
+      _CollectionElementInContext(
+          this, _CollectionElementContextMapEntry(keyType, valueType),
+          location: computeLocation());
+
+  void preVisit(PreVisitor visitor);
+
+  void visit(Harness h, _CollectionElementContext context);
+}
+
 /// Representation of an expression in the pseudo-Dart language used for flow
 /// analysis testing.  Methods in this class may be used to create more complex
 /// expressions based on this one.
 abstract class Expression extends Node {
   Expression({required super.location}) : super._();
+
+  /// Creates a [CollectionElement] that, when analyzed, will analyze `this`.
+  CollectionElement get asCollectionElement =>
+      _ExpressionCollectionElement(this, location: computeLocation());
 
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert =>
@@ -1442,6 +1480,29 @@ class _CheckAssigned extends Statement {
   }
 }
 
+class _CheckCollectionElementIr extends CollectionElement {
+  final CollectionElement inner;
+
+  final String expectedIr;
+
+  _CheckCollectionElementIr(this.inner, this.expectedIr,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    inner.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$inner (should produce IR $expectedIr)';
+
+  @override
+  void visit(Harness h, _CollectionElementContext context) {
+    h.typeAnalyzer.dispatchCollectionElement(inner, context);
+    h.irBuilder.check(expectedIr, Kind.collectionElement, location: location);
+  }
+}
+
 class _CheckExpressionContext extends Expression {
   final Expression inner;
 
@@ -1605,6 +1666,48 @@ class _CheckUnassigned extends Statement {
     expect(h.flow.isUnassigned(variable), expectedUnassignedState,
         reason: 'at $location');
     h.irBuilder.atom('null', Kind.statement, location: location);
+  }
+}
+
+abstract class _CollectionElementContext {}
+
+class _CollectionElementContextMapEntry extends _CollectionElementContext {
+  final Type keyType;
+  final Type valueType;
+
+  _CollectionElementContextMapEntry(String keyType, String valueType)
+      : keyType = Type(keyType),
+        valueType = Type(valueType);
+}
+
+class _CollectionElementContextType extends _CollectionElementContext {
+  final Type elementType;
+
+  _CollectionElementContextType(String type) : elementType = Type(type);
+}
+
+/// TODO(scheglov) This is a weird statement. We need `ListLiteral`, etc.
+class _CollectionElementInContext extends Statement {
+  final CollectionElement element;
+
+  final _CollectionElementContext context;
+
+  _CollectionElementInContext(this.element, this.context,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    element.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$element (in context $context);';
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.dispatchCollectionElement(element, context);
+    h.irBuilder.apply('stmt', [Kind.collectionElement], Kind.statement,
+        location: location);
   }
 }
 
@@ -1808,6 +1911,30 @@ class _Equal extends Expression {
         operatorName, [Kind.expression, Kind.expression], Kind.expression,
         location: location);
     return result;
+  }
+}
+
+class _ExpressionCollectionElement extends CollectionElement {
+  final Expression expression;
+
+  _ExpressionCollectionElement(this.expression, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    expression.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$expression;';
+
+  @override
+  void visit(Harness h, _CollectionElementContext context) {
+    Type contextType = context is _CollectionElementContextType
+        ? context.elementType
+        : h.typeAnalyzer.unknownType;
+    h.typeAnalyzer.dispatchExpression(expression, contextType);
+    h.irBuilder.apply('celt', [Kind.expression], Kind.collectionElement,
+        location: location);
   }
 }
 
@@ -2074,6 +2201,61 @@ class _IfCase extends _IfBase {
         Kind.statement,
         location: location);
   }
+}
+
+class _IfElement extends _IfElementBase {
+  final Expression condition;
+
+  _IfElement(this.condition, super.ifTrue, super.ifFalse,
+      {required super.location});
+
+  @override
+  String get _conditionPartString => condition.toString();
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    condition.preVisit(visitor);
+    super.preVisit(visitor);
+  }
+
+  @override
+  void visit(Harness h, Object context) {
+    h.typeAnalyzer.analyzeIfElement(
+      node: this,
+      condition: condition,
+      ifTrue: ifTrue,
+      ifFalse: ifFalse,
+      context: context,
+    );
+    h.irBuilder.apply(
+      'if',
+      [Kind.expression, Kind.collectionElement, Kind.collectionElement],
+      Kind.collectionElement,
+      location: location,
+    );
+  }
+}
+
+abstract class _IfElementBase extends CollectionElement {
+  final CollectionElement ifTrue;
+  final CollectionElement? ifFalse;
+
+  _IfElementBase(this.ifTrue, this.ifFalse, {required super.location});
+
+  String get _conditionPartString;
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    visitor._assignedVariables.beginNode();
+    ifTrue.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
+    ifFalse?.preVisit(visitor);
+  }
+
+  @override
+  String toString() =>
+      'if ($_conditionPartString) $ifTrue' +
+      (ifFalse == null ? '' : 'else $ifFalse');
 }
 
 class _IfNull extends Expression {
@@ -2793,6 +2975,14 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  void dispatchCollectionElement(
+    covariant CollectionElement element,
+    covariant _CollectionElementContext context,
+  ) {
+    _irBuilder.guard(element, () => element.visit(_harness, context));
+  }
+
+  @override
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
           Expression expression, Type context) =>
       _irBuilder.guard(expression, () => expression.visit(_harness, context));
@@ -2890,6 +3080,11 @@ class _MiniAstTypeAnalyzer
     _irBuilder.apply(
         'case', [Kind.caseHeads, Kind.statement], Kind.statementCase,
         location: node.location);
+  }
+
+  @override
+  void handleNoCollectionElement(Node node) {
+    _irBuilder.atom('noop', Kind.collectionElement, location: node.location);
   }
 
   void handleNoCondition(Node node) {

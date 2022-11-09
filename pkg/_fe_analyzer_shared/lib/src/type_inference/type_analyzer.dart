@@ -346,6 +346,33 @@ mixin TypeAnalyzer<
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 
+  /// Analyzes a collection element of the form `if (condition) ifTrue` or
+  /// `if (condition) ifTrue else ifFalse`.
+  ///
+  /// [node] should be the AST node for the entire element, [condition] for
+  /// the condition expression, [ifTrue] for the "then" branch, and [ifFalse]
+  /// for the "else" branch (if present).
+  ///
+  /// Stack effect: pushes (Expression condition, CollectionElement ifTrue,
+  /// CollectionElement ifFalse).  Note that if there is no `else` clause, the
+  /// representation for `ifFalse` will be pushed by
+  /// [handleNoCollectionElement].
+  void analyzeIfElement({
+    required Node node,
+    required Expression condition,
+    required Node ifTrue,
+    required Node? ifFalse,
+    required Object? context,
+  }) {
+    // Stack: ()
+    flow?.ifStatement_conditionBegin();
+    analyzeExpression(condition, boolType);
+    handle_ifElement_conditionEnd(node);
+    // Stack: (Expression condition)
+    flow?.ifStatement_thenBegin(condition, node);
+    _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
+  }
+
   /// Analyzes a statement of the form `if (condition) ifTrue` or
   /// `if (condition) ifTrue else ifFalse`.
   ///
@@ -1045,6 +1072,15 @@ mixin TypeAnalyzer<
   RecordType<Type>? asRecordType(Type type);
 
   /// Calls the appropriate `analyze` method according to the form of
+  /// collection [element], and then adjusts the stack as needed to combine
+  /// any sub-structures into a single collection element.
+  ///
+  /// For example, if [element] is an `if` element, calls [analyzeIfElement].
+  ///
+  /// Stack effect: pushes (CollectionElement).
+  void dispatchCollectionElement(Node element, Object? context);
+
+  /// Calls the appropriate `analyze` method according to the form of
   /// [expression], and then adjusts the stack as needed to combine any
   /// sub-structures into a single expression.
   ///
@@ -1129,6 +1165,15 @@ mixin TypeAnalyzer<
   SwitchStatementMemberInfo<Node, Statement, Expression>
       getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
+  /// Called after visiting the expression of an `if` element.
+  void handle_ifElement_conditionEnd(Node node) {}
+
+  /// Called after visiting the `else` element of an `if` element.
+  void handle_ifElement_elseEnd(Node node, Node ifFalse) {}
+
+  /// Called after visiting the `then` element of an `if` element.
+  void handle_ifElement_thenEnd(Node node, Node ifTrue) {}
+
   /// Called after visiting the expression of an `if` statement.
   void handle_ifStatement_conditionEnd(Statement node) {}
 
@@ -1177,6 +1222,13 @@ mixin TypeAnalyzer<
       {required int caseIndex,
       required int executionPathIndex,
       required int numStatements});
+
+  /// Called when visiting a syntactic construct where there is an implicit
+  /// no-op collection element.  For example, this is called in place of the
+  /// missing `else` part of an `if` element that lacks an `else` clause.
+  ///
+  /// Stack effect: pushes (CollectionElement).
+  void handleNoCollectionElement(Node node);
 
   /// Called when visiting a `case` that lacks a guard clause.  Since the lack
   /// of a guard clause is semantically equivalent to `when true`, this method
@@ -1259,6 +1311,29 @@ mixin TypeAnalyzer<
       handle_ifStatement_elseEnd(node, ifFalse);
     }
     // Stack: (Statement ifTrue, Statement ifFalse)
+  }
+
+  /// Common functionality shared by [analyzeIfElement] and
+  /// [analyzeIfCaseElement].
+  ///
+  /// Stack effect: pushes (CollectionElement ifTrue,
+  /// CollectionElement ifFalse).
+  void _analyzeIfElementCommon(
+      Node node, Node ifTrue, Node? ifFalse, Object? context) {
+    // Stack: ()
+    dispatchCollectionElement(ifTrue, context);
+    handle_ifElement_thenEnd(node, ifTrue);
+    // Stack: (CollectionElement ifTrue)
+    if (ifFalse == null) {
+      handleNoCollectionElement(node);
+      flow?.ifStatement_end(false);
+    } else {
+      flow?.ifStatement_elseBegin();
+      dispatchCollectionElement(ifFalse, context);
+      flow?.ifStatement_end(true);
+      handle_ifElement_elseEnd(node, ifFalse);
+    }
+    // Stack: (CollectionElement ifTrue, CollectionElement ifFalse)
   }
 
   void _checkGuardType(Expression expression, Type type) {

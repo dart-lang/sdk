@@ -18,6 +18,48 @@ main() {
     h = Harness();
   });
 
+  group('Collection elements:', () {
+    group('If:', () {
+      test('Condition context', () {
+        h.run([
+          ifElement_(
+            expr('dynamic').checkContext('bool'),
+            expr('Object').asCollectionElement,
+          )
+              .checkIr('if(expr(dynamic), celt(expr(Object)), noop)')
+              .inContextElementType('int'),
+        ]);
+      });
+
+      test('With else', () {
+        h.run([
+          ifElement_(
+            expr('bool'),
+            expr('Object').asCollectionElement,
+            expr('Object').asCollectionElement,
+          )
+              .checkIr('if(expr(bool), celt(expr(Object)), celt(expr(Object)))')
+              .inContextElementType('int'),
+        ]);
+      });
+
+      group('Context:', () {
+        test('Element type', () {
+          h.run([
+            ifElement_(
+              expr('bool'),
+              expr('Object').checkContext('int').asCollectionElement,
+              expr('Object').checkContext('int').asCollectionElement,
+            )
+                .checkIr(
+                    'if(expr(bool), celt(expr(Object)), celt(expr(Object)))')
+                .inContextElementType('int'),
+          ]);
+        });
+      });
+    });
+  });
+
   group('Expressions:', () {
     group('integer literal', () {
       test('double context', () {

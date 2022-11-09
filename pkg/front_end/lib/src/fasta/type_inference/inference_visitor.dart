@@ -7777,11 +7777,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  void dispatchCollectionElement(Node element, Object? context) {
+    // TODO: implement dispatchCollectionElement
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   DartType resolveObjectPatternPropertyGet({
     required DartType receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {
     // TODO: implement resolveObjectPatternPropertyGet
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void handleNoCollectionElement(Node element) {
+    // TODO: implement handleNoCollectionElement
     throw new UnimplementedError('TODO(scheglov)');
   }
 }
