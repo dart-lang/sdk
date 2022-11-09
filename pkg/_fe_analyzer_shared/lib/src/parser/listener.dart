@@ -133,8 +133,14 @@ class Listener implements UnescapeErrorListener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {}
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)

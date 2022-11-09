@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/sealed_class_declaration.dart:7:1: Error: This requires the experimental 'sealed-class' language feature to be enabled.
+// Try passing the '--enable-experiment=sealed-class' command line option.
+// sealed class A {}
+// ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
