@@ -479,9 +479,17 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
+  if (heap_->stats_.state_ == Heap::kSecondScavenge) {
+    heap_->stats_.state_ = Heap::kMarkingStart;
+  }
 }
 
-void GCMarker::Epilogue() {}
+void GCMarker::Epilogue() {
+  if (heap_->stats_.state_ == Heap::kMarkingStart) {
+    heap_->stats_.state_ = Heap::kInitial;
+    heap_->stats_.reachability_barrier_ += 1;
+  }
+}
 
 enum RootSlices {
   kIsolate = 0,

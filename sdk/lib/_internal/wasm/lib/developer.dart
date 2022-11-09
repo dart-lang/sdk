@@ -27,6 +27,9 @@ void log(String message,
     StackTrace? stackTrace}) {}
 
 @patch
+int get reachabilityBarrier => 0;
+
+@patch
 bool get extensionStreamHasListener => false;
 
 @patch

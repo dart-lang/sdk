@@ -51,6 +51,20 @@ class Heap {
     kNumWeakSelectors
   };
 
+  // States for a state machine that represents the worst-case set of GCs
+  // that an unreachable object could survive before begin collected:
+  // a new-space object that is involved with a cycle with an old-space object
+  // is copied to survivor space, then promoted during concurrent marking,
+  // and finally proven unreachable in the next round of old-gen marking.
+  // We ignore the case of unreachable-but-not-yet-collected objects being
+  // made reachable again by allInstances.
+  enum LeakCountState {
+    kInitial = 0,
+    kFirstScavenge,
+    kSecondScavenge,
+    kMarkingStart,
+  };
+
   // Pattern for unused new space and swept old space.
   static const uint8_t kZapByte = 0xf3;
 
@@ -273,6 +287,8 @@ class Heap {
                                 JSONStream* stream) {
     old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
+
+  intptr_t ReachabilityBarrier() { return stats_.reachability_barrier_; }
 #endif  // PRODUCT
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
@@ -296,6 +312,8 @@ class Heap {
     intptr_t num_;
     GCType type_;
     GCReason reason_;
+    LeakCountState state_;  // State to track finalization of GCed object.
+    intptr_t reachability_barrier_;  // Tracks reachability of GCed objects.
 
     class Data : public ValueObject {
      public:

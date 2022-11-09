@@ -1696,10 +1696,17 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   if (abort_) {
     ReverseScavenge(&from);
     bytes_promoted = 0;
-  } else if ((CapacityInWords() - UsedInWords()) < KBInWords) {
-    // Don't scavenge again until the next old-space GC has occurred. Prevents
-    // performing one scavenge per allocation as the heap limit is approached.
-    heap_->assume_scavenge_will_fail_ = true;
+  } else {
+    if (heap_->stats_.state_ == Heap::kInitial) {
+      heap_->stats_.state_ = Heap::kFirstScavenge;
+    } else if (heap_->stats_.state_ == Heap::kFirstScavenge) {
+      heap_->stats_.state_ = Heap::kSecondScavenge;
+    }
+    if ((CapacityInWords() - UsedInWords()) < KBInWords) {
+      // Don't scavenge again until the next old-space GC has occurred. Prevents
+      // performing one scavenge per allocation as the heap limit is approached.
+      heap_->assume_scavenge_will_fail_ = true;
+    }
   }
   ASSERT(promotion_stack_.IsEmpty());
   MournWeakHandles();
