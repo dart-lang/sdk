@@ -88,11 +88,6 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Add 'await's everywhere in file",
   );
-  static const ADD_EXPLICIT_CAST = FixKind(
-    'dart.fix.add.explicitCast',
-    DartFixKindPriority.DEFAULT,
-    'Add cast',
-  );
   static const ADD_CALL_SUPER = FixKind(
     'dart.fix.add.callSuper',
     DartFixKindPriority.DEFAULT,
@@ -142,6 +137,16 @@ class DartFixKind {
     'dart.fix.add.extensionOverride',
     DartFixKindPriority.DEFAULT,
     "Add an extension override for '{0}'",
+  );
+  static const ADD_EXPLICIT_CALL = FixKind(
+    'dart.fix.add.explicitCall',
+    DartFixKindPriority.DEFAULT,
+    'Add explicit .call tearoff',
+  );
+  static const ADD_EXPLICIT_CAST = FixKind(
+    'dart.fix.add.explicitCast',
+    DartFixKindPriority.DEFAULT,
+    'Add cast',
   );
   static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
     'dart.fix.add.fieldFormalParameters',

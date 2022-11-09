@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
+import 'package:analysis_server/src/services/correction/dart/add_explicit_call.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_extension_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
@@ -483,6 +484,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,
+    ],
+    LintNames.implicit_call_tearoffs: [
+      AddExplicitCall.new,
     ],
     LintNames.leading_newlines_in_multiline_strings: [
       AddLeadingNewlineToString.new,
