@@ -1,3 +1,4 @@
-class Hest<TypeX extends Hest> {}
+class A<TypeX extends A> {}
 
 main() {}
+typedef C<TypeX extends C> = int;

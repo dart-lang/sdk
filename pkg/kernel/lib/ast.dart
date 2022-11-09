@@ -12328,7 +12328,7 @@ class ExtensionType extends DartType {
 
   final List<DartType> typeArguments;
 
-  final DartType onType;
+  DartType? _onType;
 
   ExtensionType(Extension extensionNode, Nullability declaredNullability,
       [List<DartType>? typeArguments])
@@ -12338,10 +12338,12 @@ class ExtensionType extends DartType {
   ExtensionType.byReference(
       this.extensionReference, this.declaredNullability, this.typeArguments)
       // ignore: unnecessary_null_comparison
-      : assert(declaredNullability != null),
-        onType = _computeOnType(extensionReference, typeArguments);
+      : assert(declaredNullability != null);
 
   Extension get extension => extensionReference.asExtension;
+
+  DartType get onType =>
+      _onType ??= _computeOnType(extensionReference, typeArguments);
 
   @override
   Nullability get nullability {
