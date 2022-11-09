@@ -1728,7 +1728,9 @@ severity: $severity
             classMacroApplicationData.classApplications = new ApplicationData(
                 libraryBuilder, classBuilder, classMacroApplications);
           }
-          classBuilder.forEach((String name, Builder memberBuilder) {
+          Iterator<Builder> memberIterator = classBuilder.fullMemberIterator;
+          while (memberIterator.moveNext()) {
+            Builder memberBuilder = memberIterator.current;
             if (memberBuilder is SourceProcedureBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
                   enclosingLibrary: libraryBuilder,
@@ -1755,8 +1757,11 @@ severity: $severity
               throw new UnsupportedError("Unexpected class member "
                   "$memberBuilder (${memberBuilder.runtimeType})");
             }
-          });
-          classBuilder.forEachConstructor((String name, Builder memberBuilder) {
+          }
+          Iterator<MemberBuilder> constructorIterator =
+              classBuilder.fullConstructorIterator;
+          while (constructorIterator.moveNext()) {
+            MemberBuilder memberBuilder = constructorIterator.current;
             if (memberBuilder is DeclaredSourceConstructorBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
                   enclosingLibrary: libraryBuilder,
@@ -1783,7 +1788,7 @@ severity: $severity
               throw new UnsupportedError("Unexpected constructor "
                   "$memberBuilder (${memberBuilder.runtimeType})");
             }
-          });
+          }
 
           if (classMacroApplicationData.classApplications != null ||
               classMacroApplicationData.memberApplications.isNotEmpty) {

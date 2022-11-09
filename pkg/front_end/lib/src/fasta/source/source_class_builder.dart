@@ -374,14 +374,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  void forEach(void f(String name, Builder builder)) {
-    new ClassMemberNameIterator(this, includeDuplicates: false).forEach(f);
-  }
+  Iterator<Builder> get fullMemberIterator =>
+      new ClassMemberIterator(this, includeDuplicates: false);
 
   @override
-  void forEachConstructor(void Function(String, MemberBuilder) f) {
-    new ClassConstructorNameIterator(this, includeDuplicates: false).forEach(f);
-  }
+  NameIterator<Builder> get fullMemberNameIterator =>
+      new ClassMemberNameIterator(this, includeDuplicates: false);
+
+  @override
+  Iterator<MemberBuilder> get fullConstructorIterator =>
+      new ClassConstructorIterator(this, includeDuplicates: false);
+
+  @override
+  NameIterator<MemberBuilder> get fullConstructorNameIterator =>
+      new ClassConstructorNameIterator(this, includeDuplicates: false);
 
   void forEachDeclaredField(
       void Function(String name, SourceFieldBuilder fieldBuilder) callback) {
@@ -1042,7 +1048,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    forEach((String name, Builder builder) {
+    Iterator<Builder> memberIterator = fullMemberIterator;
+    while (memberIterator.moveNext()) {
+      Builder builder = memberIterator.current;
       if (builder is SourceMemberBuilder) {
         builder.checkVariance(this, typeEnvironment);
         builder.checkTypes(libraryBuilder, typeEnvironment);
@@ -1052,16 +1060,18 @@ class SourceClassBuilder extends ClassBuilderImpl
             "Unexpected class member builder $builder "
             "(${builder.runtimeType})");
       }
-    });
+    }
 
-    forEachConstructor((String name, MemberBuilder builder) {
+    Iterator<MemberBuilder> constructorIterator = fullConstructorIterator;
+    while (constructorIterator.moveNext()) {
+      MemberBuilder builder = constructorIterator.current;
       if (builder is SourceMemberBuilder) {
         builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
         assert(false,
             "Unexpected constructor builder $builder (${builder.runtimeType})");
       }
-    });
+    }
   }
 
   void addSyntheticConstructor(
@@ -2613,6 +2623,52 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }
 
+class ClassMemberIterator<T extends Builder> implements Iterator<T> {
+  Iterator<T>? _iterator;
+  Iterator<SourceClassBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory ClassMemberIterator(SourceClassBuilder classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassMemberIterator._(classBuilder.origin,
+        includeDuplicates: includeDuplicates);
+  }
+
+  ClassMemberIterator._(SourceClassBuilder classBuilder,
+      {required this.includeDuplicates})
+      : _iterator = classBuilder.scope.filteredIterator<T>(
+            parent: classBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false),
+        augmentationBuilders = classBuilder._patches?.iterator;
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceClassBuilder augmentationClassBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationClassBuilder.scope.filteredIterator<T>(
+          parent: augmentationClassBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+}
+
 class ClassMemberNameIterator<T extends Builder> implements NameIterator<T> {
   NameIterator<T>? _iterator;
   Iterator<SourceClassBuilder>? augmentationBuilders;
@@ -2660,6 +2716,52 @@ class ClassMemberNameIterator<T extends Builder> implements NameIterator<T> {
 
   @override
   String get name => _iterator?.name ?? (throw new StateError('No element'));
+}
+
+class ClassConstructorIterator<T extends MemberBuilder> implements Iterator<T> {
+  Iterator<T>? _iterator;
+  Iterator<SourceClassBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory ClassConstructorIterator(SourceClassBuilder classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassConstructorIterator._(classBuilder.origin,
+        includeDuplicates: includeDuplicates);
+  }
+
+  ClassConstructorIterator._(SourceClassBuilder classBuilder,
+      {required this.includeDuplicates})
+      : _iterator = classBuilder.constructorScope.filteredIterator<T>(
+            parent: classBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false),
+        augmentationBuilders = classBuilder._patches?.iterator;
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceClassBuilder augmentationClassBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationClassBuilder.constructorScope.filteredIterator<T>(
+          parent: augmentationClassBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
 }
 
 class ClassConstructorNameIterator<T extends MemberBuilder>
