@@ -65,20 +65,48 @@ class TestCompilationResult {
 
 class TestCompiler {
   final SetupCompilerOptions setup;
+  final Map<Uri, Module> _modules = {};
+  late final ExpressionCompiler compiler;
 
-  TestCompiler(this.setup);
+  TestCompiler._(this.setup);
+
+  static Future<TestCompiler> create(
+      SetupCompilerOptions setup, Uri input, Uri packages) async {
+    final testCompiler = TestCompiler._(setup);
+    await testCompiler._createCompiler(input, packages);
+    return testCompiler;
+  }
 
   Future<TestCompilationResult> compile(
       {required Uri input,
-      required Uri packages,
       required int line,
       required int column,
       required Map<String, String> scope,
       required String expression}) async {
+    // clear previous errors
+    setup.errors.clear();
+
+    // compile
+    var jsExpression = await compiler.compileExpressionToJs(
+        _libraryUriFor(input), line, column, scope, expression);
+
+    if (setup.errors.isNotEmpty) {
+      jsExpression = setup.errors.toString().replaceAll(
+          RegExp(
+              r'org-dartlang-debug:synthetic_debug_expression:[0-9]*:[0-9]*:'),
+          '');
+
+      return TestCompilationResult(jsExpression, false);
+    }
+
+    return TestCompilationResult(jsExpression!, true);
+  }
+
+  Future<void> _createCompiler(Uri input, Uri packages) async {
     // initialize incremental compiler and create component
     setup.options.packagesFileUri = packages;
-    var compiler = DevelopmentIncrementalCompiler(setup.options, input);
-    var compilerResult = await compiler.computeDelta();
+    var frontend = DevelopmentIncrementalCompiler(setup.options, input);
+    var compilerResult = await frontend.computeDelta();
     var component = compilerResult.component;
     component.computeCanonicalNames();
 
@@ -115,46 +143,26 @@ class TestCompiler {
       debugPrint(printed);
     }
 
+    _collectModules(component);
+
     // create expression compiler
-    var evaluator = ExpressionCompiler(
+    compiler = ExpressionCompiler(
       setup.options,
       setup.moduleFormat,
       setup.errors,
-      compiler,
+      frontend,
       kernel2jsCompiler,
       component,
     );
-
-    // collect all module names and paths
-    var moduleInfo = _collectModules(component);
-    var module = moduleInfo[input]!;
-
-    setup.errors.clear();
-
-    // compile
-    var jsExpression = await evaluator.compileExpressionToJs(
-        module.package, line, column, scope, expression);
-
-    if (setup.errors.isNotEmpty) {
-      jsExpression = setup.errors.toString().replaceAll(
-          RegExp(
-              r'org-dartlang-debug:synthetic_debug_expression:[0-9]*:[0-9]*:'),
-          '');
-
-      return TestCompilationResult(jsExpression, false);
-    }
-
-    return TestCompilationResult(jsExpression!, true);
   }
 
-  Map<Uri, Module> _collectModules(Component component) {
-    var modules = <Uri, Module>{};
+  void _collectModules(Component component) {
     for (var library in component.libraries) {
-      modules[library.fileUri] = Module(library.importUri, library.fileUri);
+      _modules[library.fileUri] = Module(library.importUri, library.fileUri);
     }
-
-    return modules;
   }
+
+  String _libraryUriFor(Uri input) => _modules[input]!.package;
 }
 
 class TestDriver {
@@ -194,19 +202,27 @@ class TestDriver {
     tempDir.delete(recursive: true);
   }
 
-  Future<void> check(
-      {required Map<String, String> scope,
-      required String expression,
-      String? expectedError,
-      String? expectedResult}) async {
-    var result = await TestCompiler(options).compile(
+  Future<TestCompiler> createCompiler() =>
+      TestCompiler.create(options, input, packages);
+
+  Future<TestCompilationResult> compile({
+    required TestCompiler compiler,
+    required Map<String, String> scope,
+    required String expression,
+  }) async {
+    return compiler.compile(
         input: input,
-        packages: packages,
         line: line,
         column: 1,
         scope: scope,
         expression: expression);
+  }
 
+  void checkResult(
+    TestCompilationResult result, {
+    String? expectedError,
+    String? expectedResult,
+  }) {
     var success = expectedError == null;
     var message = success ? expectedResult! : expectedError;
 
@@ -217,6 +233,21 @@ class TestDriver {
             .having((r) => r.isSuccess, 'isSuccess', success));
   }
 
+  Future<void> check({
+    TestCompiler? compiler,
+    required Map<String, String> scope,
+    required String expression,
+    String? expectedError,
+    String? expectedResult,
+  }) async {
+    compiler ??= await createCompiler();
+    var result =
+        await compile(compiler: compiler, scope: scope, expression: expression);
+
+    checkResult(result,
+        expectedError: expectedError, expectedResult: expectedResult);
+  }
+
   String _normalize(String text) {
     return text
         .replaceAll(RegExp('\'.*foo.dart\''), '\'foo.dart\'')
@@ -224,8 +255,8 @@ class TestDriver {
   }
 
   Matcher _matches(String text) {
-    var unindented = RegExp.escape(text).replaceAll(RegExp('[ ]+'), '[ ]*');
-    return matches(RegExp(unindented, multiLine: true));
+    var unIndented = RegExp.escape(text).replaceAll(RegExp('[ ]+'), '[ ]*');
+    return matches(RegExp(unIndented, multiLine: true));
   }
 
   static int _getEvaluationLine(String source) {
@@ -244,10 +275,106 @@ class TestDriver {
 
 void main() {
   for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
-    group('Module format: $moduleFormat', () {
-      group('Unsound null safety:', () {
+    group('Module format: $moduleFormat |', () {
+      group('Unsound null safety |', () {
         var options = SetupCompilerOptions(
             soundNullSafety: false, moduleFormat: moduleFormat);
+
+        group('Expression compilations on the same expression compiler |', () {
+          var source = '''
+          ${options.dartLangComment}
+          main() {
+          }
+
+          void foo() {
+            /* evaluation placeholder */
+          }
+          ''';
+
+          late TestDriver driver;
+
+          setUp(() {
+            driver = TestDriver(options, source);
+          });
+
+          tearDown(() {
+            driver.delete();
+          });
+
+          test('successful expression compilations', () async {
+            var compiler = await driver.createCompiler();
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'true',
+                expectedResult: '''
+                (function() {
+                  return true;
+                }(
+                  
+                ))
+                ''');
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'false',
+                expectedResult: '''
+                (function() {
+                  return false;
+                }(
+                  
+                ))
+                ''');
+          });
+
+          test('some successful expression compilations', () async {
+            var compiler = await driver.createCompiler();
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'true',
+                expectedResult: '''
+                (function() {
+                  return true;
+                }(
+                  
+                ))
+                ''');
+            await driver.check(
+              compiler: compiler,
+              scope: <String, String>{},
+              expression: 'blah',
+              expectedError: "Undefined name 'blah'",
+            );
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'false',
+                expectedResult: '''
+                (function() {
+                  return false;
+                }(
+                  
+                ))
+                ''');
+          });
+
+          test('failing expression compilations', () async {
+            var compiler = await driver.createCompiler();
+            await driver.check(
+              compiler: compiler,
+              scope: <String, String>{},
+              expression: 'blah1',
+              expectedError: "Undefined name 'blah1'",
+            );
+            await driver.check(
+              compiler: compiler,
+              scope: <String, String>{},
+              expression: 'blah2',
+              expectedError: "Undefined name 'blah2'",
+            );
+          });
+        });
 
         group('Expression compiler import tests', () {
           var source = '''
@@ -507,9 +634,105 @@ void main() {
   }
 
   for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
-    group('Module format: $moduleFormat', () {
-      group('Sound null safety:', () {
+    group('Module format: $moduleFormat |', () {
+      group('Sound null safety |', () {
         var options = SetupCompilerOptions(soundNullSafety: true);
+
+        group('Expression compilations on the same expression compiler |', () {
+          var source = '''
+          ${options.dartLangComment}
+          main() {
+          }
+
+          void foo() {
+            /* evaluation placeholder */
+          }
+          ''';
+
+          late TestDriver driver;
+
+          setUp(() {
+            driver = TestDriver(options, source);
+          });
+
+          tearDown(() {
+            driver.delete();
+          });
+
+          test('successful expression compilations', () async {
+            var compiler = await driver.createCompiler();
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'true',
+                expectedResult: '''
+                (function() {
+                  return true;
+                }(
+                  
+                ))
+                ''');
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'false',
+                expectedResult: '''
+                (function() {
+                  return false;
+                }(
+                  
+                ))
+                ''');
+          });
+
+          test('some successful expression compilations', () async {
+            var compiler = await driver.createCompiler();
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'true',
+                expectedResult: '''
+                (function() {
+                  return true;
+                }(
+                  
+                ))
+                ''');
+            await driver.check(
+              compiler: compiler,
+              scope: <String, String>{},
+              expression: 'blah',
+              expectedError: "Undefined name 'blah'",
+            );
+            await driver.check(
+                compiler: compiler,
+                scope: <String, String>{},
+                expression: 'false',
+                expectedResult: '''
+                (function() {
+                  return false;
+                }(
+                  
+                ))
+                ''');
+          });
+
+          test('failing expression compilations', () async {
+            var compiler = await driver.createCompiler();
+            await driver.check(
+              compiler: compiler,
+              scope: <String, String>{},
+              expression: 'blah1',
+              expectedError: "Undefined name 'blah1'",
+            );
+            await driver.check(
+              compiler: compiler,
+              scope: <String, String>{},
+              expression: 'blah2',
+              expectedError: "Undefined name 'blah2'",
+            );
+          });
+        });
 
         group('Expression compiler import tests', () {
           var source = '''
