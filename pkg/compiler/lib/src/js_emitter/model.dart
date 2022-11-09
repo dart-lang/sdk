@@ -407,7 +407,7 @@ abstract class Method {
   /// The name of the method. If the method is a [ParameterStubMethod] for a
   /// static function, then the name can be `null`. In that case, only the
   /// [ParameterStubMethod.callName] should be used.
-  final js.Name name;
+  final js.Name? name;
   final js.Expression code;
 
   Method(this.element, this.name, this.code);
@@ -508,7 +508,7 @@ class InstanceMethod extends DartMethod {
 
   @override
   String toString() {
-    return 'InstanceMethod(name=${name.key},element=${element}'
+    return 'InstanceMethod(name=${name!.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -517,12 +517,12 @@ class InstanceMethod extends DartMethod {
 /// to a method in the original Dart program. Examples are getter and setter
 /// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
-  StubMethod(js.Name name, js.Expression code, {MemberEntity? element})
+  StubMethod(js.Name? name, js.Expression code, {MemberEntity? element})
       : super(element, name, code);
 
   @override
   String toString() {
-    return 'StubMethod(name=${name.key},element=${element}'
+    return 'StubMethod(name=${name!.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -544,13 +544,12 @@ class ParameterStubMethod extends StubMethod {
   /// If a stub's member can not be torn off, the [callName] is `null`.
   js.Name? callName;
 
-  ParameterStubMethod(js.Name name, this.callName, js.Expression code,
-      {required MemberEntity element})
-      : super(name, code, element: element);
+  ParameterStubMethod(super.name, this.callName, super.code,
+      {required super.element});
 
   @override
   String toString() {
-    return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'
+    return 'ParameterStubMethod(name=${name!.key}, callName=${callName?.key}'
         ', element=${element}'
         ', code=${js.nodeToString(code)})';
   }
@@ -574,7 +573,7 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
   @override
   String toString() {
-    return 'StaticDartMethod(name=${name.key},element=${element}'
+    return 'StaticDartMethod(name=${name!.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -586,7 +585,7 @@ class StaticStubMethod extends StubMethod implements StaticMethod {
 
   @override
   String toString() {
-    return 'StaticStubMethod(name=${name.key},element=${element}}'
+    return 'StaticStubMethod(name=${name!.key},element=${element}}'
         ',code=${js.nodeToString(code)})';
   }
 }
