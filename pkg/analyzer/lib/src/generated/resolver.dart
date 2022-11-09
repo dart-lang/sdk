@@ -2337,8 +2337,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     final caseClause = node.caseClause;
     if (caseClause != null) {
-      // TODO(scheglov) Implement
-      throw UnimplementedError();
+      analyzeIfCaseElement(
+        node: node,
+        expression: node.expression,
+        pattern: caseClause.pattern,
+        guard: caseClause.whenClause?.expression,
+        ifTrue: node.thenElement,
+        ifFalse: node.elseElement,
+        context: context,
+      );
+      // Stack: (Expression, Guard)
+      popRewrite(); // guard
+      popRewrite()!; // expression
     } else {
       analyzeIfElement(
         node: node,

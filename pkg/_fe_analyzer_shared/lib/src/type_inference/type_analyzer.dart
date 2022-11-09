@@ -308,6 +308,47 @@ mixin TypeAnalyzer<
     return result.resolveShorting();
   }
 
+  /// Analyzes a collection element of the form
+  /// `if (expression case pattern) ifTrue` or
+  /// `if (expression case pattern) ifTrue else ifFalse`.
+  ///
+  /// [node] should be the AST node for the entire element, [expression] for
+  /// the expression, [pattern] for the pattern to match, [ifTrue] for the
+  /// "then" branch, and [ifFalse] for the "else" branch (if present).
+  ///
+  /// Stack effect: pushes (Expression scrutinee, Pattern, Expression guard,
+  /// CollectionElement ifTrue, CollectionElement ifFalse).  If there is no
+  /// `else` clause, the representation for `ifFalse` will be pushed by
+  /// [handleNoCollectionElement].  If there is no guard, the representation
+  /// for `guard` will be pushed by [handleNoGuard].
+  void analyzeIfCaseElement({
+    required Node node,
+    required Expression expression,
+    required Pattern pattern,
+    required Expression? guard,
+    required Node ifTrue,
+    required Node? ifFalse,
+    required Object? context,
+  }) {
+    // Stack: ()
+    flow?.ifStatement_conditionBegin();
+    Type initializerType = analyzeExpression(expression, unknownType);
+    // Stack: (Expression)
+    Map<Variable, VariableTypeInfo<Pattern, Type>> typeInfos = {};
+    // TODO(paulberry): rework handling of isFinal
+    dispatchPattern(initializerType, typeInfos,
+        new MatchContext(isFinal: false, topPattern: pattern), pattern);
+    // Stack: (Expression, Pattern)
+    if (guard != null) {
+      _checkGuardType(guard, analyzeExpression(guard, boolType));
+    } else {
+      handleNoGuard(node, 0);
+    }
+    // Stack: (Expression, Pattern, Guard)
+    flow?.ifStatement_thenBegin(null, node);
+    _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
+  }
+
   /// Analyzes a statement of the form `if (expression case pattern) ifTrue` or
   /// `if (expression case pattern) ifTrue else ifFalse`.
   ///
