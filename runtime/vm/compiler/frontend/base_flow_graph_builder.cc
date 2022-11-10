@@ -202,25 +202,16 @@ Fragment BaseFlowGraphBuilder::BranchIfStrictEqual(
   return Fragment(branch).closed();
 }
 
-Fragment BaseFlowGraphBuilder::Return(TokenPosition position,
-                                      intptr_t yield_index) {
+Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   Fragment instructions;
 
   Value* value = Pop();
   ASSERT(stack_ == nullptr);
   const Function& function = parsed_function_->function();
-  Representation representation;
-  if (function.has_unboxed_integer_return()) {
-    representation = kUnboxedInt64;
-  } else if (function.has_unboxed_double_return()) {
-    representation = kUnboxedDouble;
-  } else {
-    ASSERT(!function.has_unboxed_return());
-    representation = kTagged;
-  }
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(InstructionSource(position), value, GetNextDeoptId(),
-                          yield_index, representation);
+  const Representation representation =
+      FlowGraph::ReturnRepresentationOf(function);
+  ReturnInstr* return_instr = new (Z) ReturnInstr(
+      InstructionSource(position), value, GetNextDeoptId(), representation);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;

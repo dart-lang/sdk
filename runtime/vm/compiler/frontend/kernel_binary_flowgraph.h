@@ -153,9 +153,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
   IndirectGotoInstr* IndirectGoto(intptr_t target_count);
-  Fragment Return(
-      TokenPosition position,
-      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(TokenPosition position);
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment ThrowNoSuchMethodError(const Function& target,
