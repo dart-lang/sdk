@@ -3136,6 +3136,14 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
   String get _serviceTypeName => 'HttpServerConnection';
 }
 
+// Common interface of [ServerSocket] and [SecureServerSocket] used by
+// [_HttpServer].
+abstract class ServerSocketBase<T extends Socket> implements Stream<T> {
+  int get port;
+  InternetAddress get address;
+  Future<void> close();
+}
+
 // HTTP server waiting for socket connections.
 class _HttpServer extends Stream<HttpRequest>
     with _ServiceObject
@@ -3249,7 +3257,7 @@ class _HttpServer extends Stream<HttpRequest>
   Future close({bool force = false}) {
     closed = true;
     Future result;
-    if (_serverSocket != null && _closeServer) {
+    if (_closeServer) {
       result = _serverSocket.close();
     } else {
       result = Future.value();
@@ -3348,9 +3356,7 @@ class _HttpServer extends Stream<HttpRequest>
   // Indicated if the http server has been closed.
   bool closed = false;
 
-  // The server listen socket. Untyped as it can be both ServerSocket and
-  // SecureServerSocket.
-  final dynamic /*ServerSocket|SecureServerSocket*/ _serverSocket;
+  final ServerSocketBase _serverSocket;
   final bool _closeServer;
 
   // Set of currently connected clients.
