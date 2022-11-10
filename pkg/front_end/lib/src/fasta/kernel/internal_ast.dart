@@ -5340,13 +5340,14 @@ class CastPattern extends Pattern {
     //   ==> `type` VAR = `matchedExpressionVariable` as `type`;
     VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
         .createVariableDeclarationForValue(castExpression, type: type);
+
     Expression? patternCondition =
         pattern.makeCondition(intermediateVariable, inferenceVisitor);
-
     if (patternCondition == null) {
-      // TODO(cstefantsova): The cast in this case can be removed if any
-      //  variable is initialized via this pattern, and therefore will have the
-      //  cast in its initializer expression.
+      // TODO(cstefantsova): As an optimization of the generated code size and
+      // the number of runtime checks, the cast in this case can be removed if
+      // any variable is initialized via this pattern, and therefore will have
+      // the cast in its initializer expression.
 
       // return: let `intermediateVariable` in true
       //   ==> let `type` VAR = `matchedExpressionVariable` as `type` in true
