@@ -314,7 +314,7 @@ class Duration implements Comparable<Duration> {
   ///
   /// A negative [Duration] is always considered shorter than a positive one.
   ///
-  /// It is always the case that `duration1.compareTo(duration2) < 0` iff
+  /// It is always the case that `duration1.compareTo(duration2) < 0` if
   /// `(someDate + duration1).compareTo(someDate + duration2) < 0`.
   int compareTo(Duration other) => _duration.compareTo(other._duration);
 
