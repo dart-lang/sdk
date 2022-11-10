@@ -297,8 +297,6 @@ Pattern wildcard(
     _VariablePattern(type == null ? null : Type(type), null, expectInferredType,
         isFinal: isFinal, location: computeLocation());
 
-typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
-
 mixin CaseHead implements CaseHeads, Node {
   @override
   List<CaseHead> get _caseHeads => [this];
@@ -1184,7 +1182,8 @@ abstract class PromotableLValue extends LValue implements Promotable {
 }
 
 /// A field in object and record patterns.
-class RecordPatternField extends Node {
+class RecordPatternField extends Node
+    implements shared.RecordPatternField<Node, Pattern> {
   final String? name;
   final Pattern pattern;
 
@@ -1194,13 +1193,8 @@ class RecordPatternField extends Node {
     required super.location,
   }) : super._();
 
-  SharedRecordPatternField get asShared {
-    return SharedRecordPatternField(
-      node: this,
-      name: name,
-      pattern: pattern,
-    );
-  }
+  @override
+  Node get node => this;
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -3238,7 +3232,7 @@ class _MiniAstTypeAnalyzer
   @override
   Type resolveObjectPatternPropertyGet({
     required Type receiverType,
-    required SharedRecordPatternField field,
+    required shared.RecordPatternField<Node, Pattern> field,
   }) {
     return _harness.getMember(receiverType, field.name!)._type;
   }
@@ -3442,7 +3436,7 @@ class _ObjectPattern extends Pattern {
   ) {
     var requiredType = h.typeAnalyzer.analyzeObjectPattern(
         matchedType, typeInfos, context, this,
-        requiredType: this.requiredType.type, fields: fields.asShared);
+        requiredType: this.requiredType.type, fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -3554,7 +3548,7 @@ class _RecordPattern extends Pattern {
 
   Type computeSchema(Harness h) {
     return h.typeAnalyzer.analyzeRecordPatternSchema(
-      fields: fields.asShared,
+      fields: fields,
     );
   }
 
@@ -3576,7 +3570,7 @@ class _RecordPattern extends Pattern {
   ) {
     var requiredType = h.typeAnalyzer.analyzeRecordPattern(
         matchedType, typeInfos, context, this,
-        fields: fields.asShared);
+        fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -4114,11 +4108,5 @@ class _Write extends Expression {
     lhs._visitWrite(h, this, type, rhs);
     // TODO(paulberry): null shorting
     return new SimpleTypeAnalysisResult<Type>(type: type);
-  }
-}
-
-extension on List<RecordPatternField> {
-  List<SharedRecordPatternField> get asShared {
-    return map((field) => field.asShared).toList();
   }
 }
