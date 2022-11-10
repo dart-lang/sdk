@@ -3605,7 +3605,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       throw UnimplementedError('(${nameNode.runtimeType}) $nameNode');
     }
 
-    var isPlural = requiredParameterCount - actualArgumentCount > 1;
+    var isPlural = requiredParameterCount > 1;
     var arguments = <Object>[];
     if (isPlural) {
       arguments.add(requiredParameterCount);

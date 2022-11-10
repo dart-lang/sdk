@@ -164,7 +164,7 @@ void f() {
   A.named(5, n: 1);
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
           70, 1,
           messageContains: ["expected by 'named'"]),
     ]);
@@ -180,9 +180,10 @@ void f() {
   A(5, n: 1);
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
-          58, 1,
-          messageContains: ["expected by 'A.new'"]),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          58, 1, messageContains: [
+        "2 positional arguments expected by 'A.new', but 1 found."
+      ]),
     ]);
   }
 

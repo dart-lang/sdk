@@ -812,11 +812,11 @@ CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
 CompileTimeErrorCode.NOT_BINARY_OPERATOR:
   status: needsEvaluation
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
   status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
   status: hasFix
 CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
@@ -1801,6 +1801,8 @@ LintCode.empty_constructor_bodies:
   status: hasFix
 LintCode.empty_statements:
   status: hasFix
+LintCode.enable_null_safety:
+  status: needsEvaluation
 LintCode.eol_at_end_of_file:
   status: hasFix
 LintCode.exhaustive_cases:
@@ -1823,6 +1825,8 @@ LintCode.join_return_with_assignment:
   status: needsEvaluation
 LintCode.leading_newlines_in_multiline_strings:
   status: hasFix
+LintCode.library_annotations:
+  status: needsEvaluation
 LintCode.library_names:
   status: needsEvaluation
 LintCode.library_prefixes:
