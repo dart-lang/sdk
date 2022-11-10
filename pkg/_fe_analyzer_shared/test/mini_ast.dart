@@ -240,7 +240,7 @@ CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
 
 Pattern objectPattern({
   required ObjectPatternRequiredType requiredType,
-  required List<shared.RecordPatternField<Node, Pattern>> fields,
+  required List<RecordPatternField> fields,
 }) {
   return _ObjectPattern(
     requiredType: requiredType,
@@ -249,7 +249,7 @@ Pattern objectPattern({
   );
 }
 
-Pattern recordPattern(List<SharedRecordPatternField> fields) =>
+Pattern recordPattern(List<RecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
 Pattern relationalPattern(
@@ -1130,6 +1130,14 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder);
 
+  RecordPatternField recordField([String? name]) {
+    return RecordPatternField(
+      name: name,
+      pattern: this,
+      location: computeLocation(),
+    );
+  }
+
   @override
   String toString() => _debugString(needsKeywordOrType: true);
 
@@ -1175,10 +1183,24 @@ abstract class PromotableLValue extends LValue implements Promotable {
   PromotableLValue._({required super.location}) : super._();
 }
 
-/// TODO(scheglov) This node is used temporary to model 'node'.
-class RecordPatternField implements Node {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+/// A field in object and record patterns.
+class RecordPatternField extends Node {
+  final String? name;
+  final Pattern pattern;
+
+  RecordPatternField({
+    required this.name,
+    required this.pattern,
+    required super.location,
+  }) : super._();
+
+  SharedRecordPatternField get asShared {
+    return SharedRecordPatternField(
+      node: this,
+      name: name,
+      pattern: pattern,
+    );
+  }
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -3390,7 +3412,7 @@ class _NullLiteral extends Expression {
 
 class _ObjectPattern extends Pattern {
   final ObjectPatternRequiredType requiredType;
-  final List<SharedRecordPatternField> fields;
+  final List<RecordPatternField> fields;
 
   _ObjectPattern({
     required this.requiredType,
@@ -3420,7 +3442,7 @@ class _ObjectPattern extends Pattern {
   ) {
     var requiredType = h.typeAnalyzer.analyzeObjectPattern(
         matchedType, typeInfos, context, this,
-        requiredType: this.requiredType.type, fields: fields);
+        requiredType: this.requiredType.type, fields: fields.asShared);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -3526,13 +3548,13 @@ class _PropertyElement {
 }
 
 class _RecordPattern extends Pattern {
-  final List<SharedRecordPatternField> fields;
+  final List<RecordPatternField> fields;
 
   _RecordPattern(this.fields, {required super.location}) : super._();
 
   Type computeSchema(Harness h) {
     return h.typeAnalyzer.analyzeRecordPatternSchema(
-      fields: fields,
+      fields: fields.asShared,
     );
   }
 
@@ -3554,7 +3576,7 @@ class _RecordPattern extends Pattern {
   ) {
     var requiredType = h.typeAnalyzer.analyzeRecordPattern(
         matchedType, typeInfos, context, this,
-        fields: fields);
+        fields: fields.asShared);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -4092,5 +4114,11 @@ class _Write extends Expression {
     lhs._visitWrite(h, this, type, rhs);
     // TODO(paulberry): null shorting
     return new SimpleTypeAnalysisResult<Type>(type: type);
+  }
+}
+
+extension on List<RecordPatternField> {
+  List<SharedRecordPatternField> get asShared {
+    return map((field) => field.asShared).toList();
   }
 }
