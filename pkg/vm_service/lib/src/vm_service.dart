@@ -7120,15 +7120,18 @@ class RetainingObject {
   /// An object that is part of a retaining path.
   ObjRef? value;
 
-  /// The offset of the retaining object in a containing list.
+  /// If `value` is a List, `parentListIndex` is the index where the previous
+  /// object on the retaining path is located.
   @optional
   int? parentListIndex;
 
-  /// The key mapping to the retaining object in a containing map.
+  /// If `value` is a Map, `parentMapKey` is the key mapping to the previous
+  /// object on the retaining path.
   @optional
   ObjRef? parentMapKey;
 
-  /// The name of the field containing the retaining object within an object.
+  /// If `value` is a non-List, non-Map object, `parentField` is the name of the
+  /// field containing the previous object on the retaining path.
   @optional
   String? parentField;
 
