@@ -1128,7 +1128,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
 
   Array& field_array = Array::Handle();
   Field& field = Field::Handle();
-  Instance& field_value = Instance::Handle();
+  Object& field_value = Object::Handle();
   {
     JSONArray jsarr(jsobj, "fields");
     for (intptr_t i = classes.length() - 1; i >= 0; i--) {
@@ -1137,7 +1137,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
         for (intptr_t j = 0; j < field_array.Length(); j++) {
           field ^= field_array.At(j);
           if (!field.is_static()) {
-            field_value ^= GetField(field);
+            field_value = GetField(field);
             JSONObject jsfield(&jsarr);
             jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);

@@ -93,6 +93,8 @@ Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
     }
   } else if (ref is M.Sentinel) {
     return new SentinelValueElement(ref, queue: queue).element;
+  } else if (ref is num || ref is String) {
+    return new SpanElement()..text = ref.toString();
   }
   throw new Exception('Unknown ref type (${ref.runtimeType})');
 }
