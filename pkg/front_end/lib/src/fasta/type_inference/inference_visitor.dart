@@ -1744,10 +1744,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression condition =
         ensureAssignableResult(expectedType, conditionResult).expression;
 
-    Map<VariableDeclaration, VariableTypeInfo<Pattern, DartType>> typeInfos =
-        {};
-    dispatchPattern(conditionResult.inferredType, typeInfos,
-        MatchContext.simpleNonFinal, node.pattern);
+    dispatchPattern(
+        conditionResult.inferredType,
+        new SharedMatchContext(
+            isFinal: false, topPattern: node.pattern, typeInfos: {}),
+        node.pattern);
 
     VariableDeclaration matchedExpressionVariable = engine.forest
         .createVariableDeclarationForValue(condition,
@@ -7432,19 +7433,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void dispatchPattern(
-      DartType matchedType,
-      Map<VariableDeclaration, VariableTypeInfo<Pattern, DartType>> typeInfos,
-      MatchContext<Node, Expression> context,
-      Node node) {
+      DartType matchedType, SharedMatchContext context, Node node) {
     if (node is Pattern) {
-      node.acceptInference(this,
-          matchedType: matchedType, typeInfos: typeInfos, context: context);
+      node.acceptInference(this, matchedType: matchedType, context: context);
     } else {
       // The front end's representation of a switch cases currently doesn't have
       // any support for patterns; each case is represented as an expression.
       // So analyze it as a constant pattern.
-      analyzeConstantPattern(
-          matchedType, typeInfos, context, node, node as Expression);
+      analyzeConstantPattern(matchedType, context, node, node as Expression);
     }
   }
 
@@ -7611,19 +7607,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(_rewriteStack.isEmpty);
   }
 
-  PatternInferenceResult visitDummyPattern(DummyPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitDummyPattern(
+    DummyPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitVariablePattern(VariablePattern binder,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitVariablePattern(
+    VariablePattern binder, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     DartType inferredType =
         inferDeclarationType(matchedType, forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, binder.variable.fileOffset,
@@ -7634,76 +7630,76 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitWildcardBinder(WildcardPattern binder,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitWildcardBinder(
+    WildcardPattern binder, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitExpressionPattern(ExpressionPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitExpressionPattern(
+    ExpressionPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     ExpressionInferenceResult expressionResult =
         inferExpression(pattern.expression, matchedType);
     pattern.expression = expressionResult.expression;
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitBinaryPattern(BinaryPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    pattern.left.acceptInference(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
-    pattern.right.acceptInference(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult visitBinaryPattern(
+    BinaryPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    pattern.left
+        .acceptInference(this, matchedType: matchedType, context: context);
+    pattern.right
+        .acceptInference(this, matchedType: matchedType, context: context);
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitCastPattern(CastPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    pattern.pattern.acceptInference(this,
-        matchedType: pattern.type, typeInfos: typeInfos, context: context);
+  PatternInferenceResult visitCastPattern(
+    CastPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    pattern.pattern
+        .acceptInference(this, matchedType: pattern.type, context: context);
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitNullAssertPattern(NullAssertPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitNullAssertPattern(
+    NullAssertPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
     return pattern.pattern.acceptInference(this,
-        matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
+        matchedType: nestedMatchedType, context: context);
   }
 
-  PatternInferenceResult visitNullCheckPattern(NullCheckPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitNullCheckPattern(
+    NullCheckPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
     return pattern.pattern.acceptInference(this,
-        matchedType: nestedMatchedType, typeInfos: typeInfos, context: context);
+        matchedType: nestedMatchedType, context: context);
   }
 
-  PatternInferenceResult visitListPattern(ListPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitListPattern(
+    ListPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     // TODO(cstefantsova): Should we infer a more precise type than DynamicType?
     DartType elementType;
     if (pattern.typeArgument is ImplicitTypeArgument) {
@@ -7712,46 +7708,45 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       elementType = pattern.typeArgument;
     }
     for (Pattern pattern in pattern.patterns) {
-      pattern.acceptInference(this,
-          matchedType: elementType, typeInfos: typeInfos, context: context);
+      pattern.acceptInference(this, matchedType: elementType, context: context);
     }
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitRelationalPattern(RelationalPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitRelationalPattern(
+    RelationalPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     ExpressionInferenceResult expressionResult =
         inferExpression(pattern.expression, matchedType);
     pattern.expression = expressionResult.expression..parent = pattern;
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitMapPattern(MapPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitMapPattern(
+    MapPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     // TODO(cstefantsova): Implement visitMapPattern.
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitNamedPattern(NamedPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitNamedPattern(
+    NamedPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     // TODO(cstefantsova): Implement visitNamedPattern.
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitRecordPattern(RecordPattern pattern,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult visitRecordPattern(
+    RecordPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     // TODO(cstefantsova): Implement visitRecordPattern.
     return const PatternInferenceResult();
   }

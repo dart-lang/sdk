@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -20,9 +16,7 @@ class ListPatternResolver {
   void resolve({
     required ListPatternImpl node,
     required DartType matchedType,
-    required Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>>
-        typeInfos,
-    required MatchContext<AstNode, Expression> context,
+    required SharedMatchContext context,
   }) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -39,7 +33,7 @@ class ListPatternResolver {
     }
 
     node.requiredType = resolverVisitor.analyzeListPattern(
-        matchedType, typeInfos, context, node,
+        matchedType, context, node,
         elementType: typeArguments?.arguments.first.typeOrThrow,
         elements: node.elements);
   }

@@ -6,6 +6,8 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -88,6 +90,9 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
+
+typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
+    DartPattern, DartType, PromotableElement>;
 
 typedef SharedRecordPatternField
     = shared.RecordPatternField<RecordPatternFieldImpl, DartPatternImpl>;
@@ -785,19 +790,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void dispatchPattern(
-      DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<DartPattern, DartType>> typeInfos,
-      MatchContext<AstNode, Expression> context,
-      AstNode node) {
+      DartType matchedType, SharedMatchContext context, AstNode node) {
     if (node is DartPatternImpl) {
-      node.resolvePattern(this, matchedType, typeInfos, context);
+      node.resolvePattern(this, matchedType, context);
     } else {
       // This can occur inside conventional switch statements, since
       // [SwitchCase] points directly to an [Expression] rather than to a
       // [ConstantPattern].  So we mimic what
       // [ConstantPatternImpl.resolvePattern] would do.
-      analyzeConstantPattern(
-          matchedType, typeInfos, context, node, node as Expression);
+      analyzeConstantPattern(matchedType, context, node, node as Expression);
       // Stack: (Expression)
       popRewrite();
       // Stack: ()

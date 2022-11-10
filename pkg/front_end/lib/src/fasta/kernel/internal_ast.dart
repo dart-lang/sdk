@@ -22,8 +22,8 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
 
 import '../builder/type_alias_builder.dart';
 import '../fasta_codes.dart';
@@ -34,6 +34,9 @@ import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/object_access_target.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
+
+typedef SharedMatchContext = shared
+    .MatchContext<Node, Expression, Pattern, DartType, VariableDeclaration>;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
@@ -5070,11 +5073,11 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   /// [declaredVariables].
   List<Statement> get declaredVariableInitializers;
 
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context});
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  });
 
   /// Creates the desugared matching condition.
   ///
@@ -5131,13 +5134,13 @@ class DummyPattern extends Pattern {
   List<Statement> get declaredVariableInitializers => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitDummyPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5172,13 +5175,13 @@ class ExpressionPattern extends Pattern {
   List<Statement> get declaredVariableInitializers => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitExpressionPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5239,13 +5242,13 @@ class BinaryPattern extends Pattern {
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitBinaryPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5315,13 +5318,13 @@ class CastPattern extends Pattern {
       pattern.declaredVariableInitializers;
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitCastPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5402,13 +5405,13 @@ class NullAssertPattern extends Pattern {
       pattern.declaredVariableInitializers;
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitNullAssertPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5453,13 +5456,13 @@ class NullCheckPattern extends Pattern {
       pattern.declaredVariableInitializers;
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitNullCheckPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5518,13 +5521,13 @@ class ListPattern extends Pattern {
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitListPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5760,13 +5763,13 @@ class RelationalPattern extends Pattern {
   List<Statement> get declaredVariableInitializers => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitRelationalPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -5891,13 +5894,13 @@ class WildcardPattern extends Pattern {
   List<Statement> get declaredVariableInitializers => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitWildcardBinder(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -6135,13 +6138,13 @@ class MapPattern extends Pattern {
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitMapPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -6194,13 +6197,13 @@ class NamedPattern extends Pattern {
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitNamedPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -6253,13 +6256,13 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitRecordPattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
@@ -6298,13 +6301,13 @@ class VariablePattern extends Pattern {
         super(fileOffset);
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitVariablePattern(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
