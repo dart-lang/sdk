@@ -126,18 +126,6 @@ enum InstanceKind {
 
   /// An instance of the Dart class RawReceivePort
   receivePort,
-
-  /// An instance of Record.
-  record,
-
-  /// An instance of RecordType
-  recordType,
-
-  /// An instance of Finalizer
-  finalizer,
-
-  /// An instance of WeakReference
-  weakReference,
 }
 
 bool isTypedData(InstanceKind kind) {
@@ -466,8 +454,7 @@ abstract class Instance extends Object implements InstanceRef {
 
 abstract class BoundField {
   FieldRef get decl;
-  dynamic get name;
-  Guarded<dynamic> get value;
+  Guarded<InstanceRef> get value;
 }
 
 abstract class NativeField {
