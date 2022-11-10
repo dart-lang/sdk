@@ -3465,6 +3465,7 @@ class BodyBuilder extends StackListenerImpl
     if (pattern != null) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
       }
     }
   }

@@ -1761,6 +1761,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         this);
 
     flowAnalysis.ifStatement_thenBegin(condition, node);
+    for (VariableDeclaration variable in node.pattern.declaredVariables) {
+      flowAnalysis.declare(variable, true);
+    }
     StatementInferenceResult thenResult = inferStatement(node.then);
     Statement then;
     if (thenResult.hasChanged) {
