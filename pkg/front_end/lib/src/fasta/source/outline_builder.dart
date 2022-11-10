@@ -876,11 +876,6 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(typeVariables ?? NullValue.TypeVariables);
-    libraryBuilder.currentTypeParameterScopeBuilder
-        .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
-    libraryBuilder.setCurrentClassName(name.lexeme);
-    inAbstractClass = abstractToken != null;
-    push(abstractToken != null ? abstractMask : 0);
     if (macroToken != null) {
       if (reportIfNotEnabled(
           libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
@@ -899,6 +894,16 @@ class OutlineBuilder extends StackListenerImpl {
         sealedToken = null;
       }
     }
+    if (viewToken != null) {
+      libraryBuilder.currentTypeParameterScopeBuilder
+          .markAsViewDeclaration(name.lexeme, name.charOffset, typeVariables);
+    } else {
+      libraryBuilder.currentTypeParameterScopeBuilder
+          .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
+    }
+    libraryBuilder.setCurrentClassName(name.lexeme);
+    inAbstractClass = abstractToken != null;
+    push(abstractToken != null ? abstractMask : 0);
     push(macroToken ?? NullValue.Token);
     push(viewToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
@@ -1243,20 +1248,37 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
 
-      libraryBuilder.addClass(
+      if (viewToken != null) {
+        libraryBuilder.addViewDeclaration(
           metadata,
           modifiers,
           name as String,
           typeVariables,
-          supertype,
-          mixinApplication,
-          interfaces,
+          /*supertype,
+            mixinApplication,
+            interfaces,*/
           startCharOffset,
           nameOffset,
           endToken.charOffset,
-          supertypeOffset,
-          isMacro: macroToken != null,
-          isAugmentation: augmentToken != null);
+          /*supertypeOffset,
+            isAugmentation: augmentToken != null*/
+        );
+      } else {
+        libraryBuilder.addClass(
+            metadata,
+            modifiers,
+            name as String,
+            typeVariables,
+            supertype,
+            mixinApplication,
+            interfaces,
+            startCharOffset,
+            nameOffset,
+            endToken.charOffset,
+            supertypeOffset,
+            isMacro: macroToken != null,
+            isAugmentation: augmentToken != null);
+      }
     }
     libraryBuilder.setCurrentClassName(null);
     popDeclarationContext(DeclarationContext.Class);

@@ -1,10 +1,10 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+
 import '../scope.dart';
-import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'builder_mixins.dart';
 import 'declaration_builder.dart';
@@ -13,17 +13,17 @@ import 'metadata_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
-abstract class ExtensionBuilder implements DeclarationBuilder {
-  /// Type parameters declared on the extension.
+abstract class ViewBuilder implements DeclarationBuilder {
+  /// Type parameters declared on the view.
   ///
-  /// This is `null` if the extension is not generic.
+  /// This is `null` if the view is not generic.
   List<TypeVariableBuilder>? get typeParameters;
 
-  /// The type of the on-clause of the extension declaration.
-  TypeBuilder get onType;
+  /// The type of the underlying representation.
+  DartType get representationType;
 
-  /// Return the [Extension] built by this builder.
-  Extension get extension;
+  /// Return the [View] built by this builder.
+  View get view;
 
   /// Looks up extension member by [name] taking privacy into account.
   ///
@@ -42,11 +42,11 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   void forEach(void f(String name, Builder builder));
 }
 
-abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
+abstract class ViewBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
-    implements ExtensionBuilder {
-  ExtensionBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
-      String name, LibraryBuilder parent, int charOffset, Scope scope)
+    implements ViewBuilder {
+  ViewBuilderImpl(List<MetadataBuilder>? metadata, int modifiers, String name,
+      LibraryBuilder parent, int charOffset, Scope scope)
       : super(metadata, modifiers, name, parent, charOffset, scope);
 
   @override
@@ -58,19 +58,9 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    if (library is SourceLibraryBuilder &&
-        library.libraryFeatures.extensionTypes.isEnabled) {
-      return new ExtensionType(extension, nullability, arguments);
-    } else {
-      throw new UnsupportedError(
-          "ExtensionBuilder.buildTypesWithBuiltArguments "
-          "is not supported in library '${library.importUri}'.");
-    }
+    return new ViewType(view, nullability, arguments);
   }
 
   @override
-  bool get isExtension => true;
-
-  @override
-  String get debugName => "ExtensionBuilder";
+  String get debugName => "ViewBuilder";
 }

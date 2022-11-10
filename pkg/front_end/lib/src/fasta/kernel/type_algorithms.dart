@@ -24,6 +24,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 
+import '../builder/view_builder.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 
 import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
@@ -45,6 +46,7 @@ import '../problems.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_type_alias_builder.dart';
+import '../source/source_view_builder.dart';
 
 /// Initial value for "variance" that is to be computed by the compiler.
 const int pendingVariance = -1;
@@ -841,6 +843,8 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
           }
         } else if (declaration is ExtensionBuilder) {
           visitTypeVariables(declaration.typeParameters);
+        } else if (declaration is ViewBuilder) {
+          visitTypeVariables(declaration.typeParameters);
         } else if (declaration is TypeVariableBuilder) {
           // Do nothing. The type variable is handled by its parent declaration.
         } else if (declaration is BuiltinTypeDeclarationBuilder) {
@@ -932,6 +936,9 @@ List<List<RawTypeCycleElement>> findRawTypeCycles(
   } else if (declaration is SourceExtensionBuilder) {
     return _findRawTypeCyclesFromTypeVariables(
         declaration, declaration.typeParameters);
+  } else if (declaration is SourceViewBuilder) {
+    return _findRawTypeCyclesFromTypeVariables(
+        declaration, declaration.typeParameters);
   } else {
     unhandled('$declaration (${declaration.runtimeType})', 'findRawTypeCycles',
         declaration.charOffset, declaration.fileUri);
@@ -1016,6 +1023,8 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
   } else if (declaration is SourceTypeAliasBuilder) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   } else if (declaration is SourceExtensionBuilder) {
+    issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
+  } else if (declaration is SourceViewBuilder) {
     issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
   } else {
     unhandled(

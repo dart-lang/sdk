@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart';
 
 import '../messages.dart';
 import '../scope.dart';
-
 import 'builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
