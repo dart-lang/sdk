@@ -25,13 +25,8 @@ as follows:
 * an argument to `Map<K, V>.remove` should be related to `K`
 * an argument to `Map<K, V>.[]` should be related to `K`
 * an argument to `Queue<E>.remove` should be related to `E`
-* an argument to `Set<E>.containsAll` should be related to `Iterable<E>`
-* an argument to `Set<E>.difference` should be related to `Set<E>`
-* an argument to `Set<E>.intersection` should be related to `Set<E>`
 * an argument to `Set<E>.lookup` should be related to `E`
 * an argument to `Set<E>.remove` should be related to `E`
-* an argument to `Set<E>.removeAll` should be related to `Iterable<E>`
-* an argument to `Set<E>.retainAll` should be related to `Iterable<E>`
 
 **BAD:**
 ```dart
@@ -45,7 +40,7 @@ void someFunction() {
 ```dart
 void someFunction() {
   var set = <int>{};
-  set.removeAll({'1'}); // LINT
+  set.remove('1'); // LINT
 }
 ```
 
@@ -61,7 +56,7 @@ void someFunction() {
 ```dart
 void someFunction() {
   var set = <int>{};
-  set.removeAll({1}); // OK
+  set.remove(1); // OK
 }
 ```
 
@@ -133,24 +128,6 @@ class _Visitor extends UnrelatedTypesProcessors {
           'remove',
           ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
-        // Argument to `Set<E>.containsAll` should be assignable to `Set<E>`.
-        MethodDefinitionForElement(
-          typeProvider.setElement,
-          'containsAll',
-          ExpectedArgumentKind.assignableToIterableOfTypeArgument,
-        ),
-        // Argument to `Set<E>.difference` should be assignable to `Set<E>`.
-        MethodDefinitionForElement(
-          typeProvider.setElement,
-          'difference',
-          ExpectedArgumentKind.assignableToCollection,
-        ),
-        // Argument to `Set<E>.intersection` should be assignable to `Set<E>`.
-        MethodDefinitionForElement(
-          typeProvider.setElement,
-          'intersection',
-          ExpectedArgumentKind.assignableToCollection,
-        ),
         // Argument to `Set<E>.lookup` should be assignable to `E`.
         MethodDefinitionForElement(
           typeProvider.setElement,
@@ -162,18 +139,6 @@ class _Visitor extends UnrelatedTypesProcessors {
           typeProvider.setElement,
           'remove',
           ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-        // Argument to `Set<E>.removeAll` should be assignable to `Set<E>`.
-        MethodDefinitionForElement(
-          typeProvider.setElement,
-          'removeAll',
-          ExpectedArgumentKind.assignableToIterableOfTypeArgument,
-        ),
-        // Argument to `Set<E>.retainAll` should be assignable to `Set<E>`.
-        MethodDefinitionForElement(
-          typeProvider.setElement,
-          'retainAll',
-          ExpectedArgumentKind.assignableToIterableOfTypeArgument,
         ),
       ];
 

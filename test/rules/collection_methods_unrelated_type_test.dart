@@ -234,56 +234,6 @@ class CollectionMethodsUnrelatedTypeSetTest extends LintRuleTest {
   @override
   String get lintRule => 'collection_methods_unrelated_type';
 
-  test_containsAll_related_subtype() async {
-    await assertNoDiagnostics('''
-void f(Set<num> set, Set<int> other) {
-  set.containsAll(other);
-}
-''');
-  }
-
-  test_containsAll_unrelated() async {
-    await assertDiagnostics('''
-void f(Set<num> set, Set<String> other) {
-  set.containsAll(other);
-}
-''', [lint(60, 5)]);
-  }
-
-  test_difference_related_subtype() async {
-    await assertNoDiagnostics(
-      '''
-void f(Set<num> set, Set<int> other) {
-  set.difference(other);
-}
-''',
-    );
-  }
-
-  test_difference_unrelated() async {
-    await assertDiagnostics('''
-void f(Set<num> set, Set<String> other) {
-  set.difference(other);
-}
-''', [lint(59, 5)]);
-  }
-
-  test_intersection_related_subtype() async {
-    await assertNoDiagnostics('''
-void f(Set<num> set, Set<int> other) {
-  set.intersection(other);
-}
-''');
-  }
-
-  test_intersection_unrelated() async {
-    await assertDiagnostics('''
-void f(Set<num> set, Set<String> other) {
-  set.intersection(other);
-}
-''', [lint(61, 5)]);
-  }
-
   test_lookup_related_subtype() async {
     await assertNoDiagnostics('var x = <num>{}.lookup(1);');
   }
@@ -304,37 +254,5 @@ void f(Set<num> set, Set<String> other) {
       '''var x = <num>{}.remove('1');''',
       [lint(23, 3)],
     );
-  }
-
-  test_removeAll_related_subtype() async {
-    await assertNoDiagnostics('''
-void f(Set<num> set, List<int> other) {
-  set.removeAll(other);
-}
-''');
-  }
-
-  test_removeAll_unrelated() async {
-    await assertDiagnostics('''
-void f(Set<num> set, List<String> other) {
-  set.removeAll(other);
-}
-''', [lint(59, 5)]);
-  }
-
-  test_retainAll_related_subtype() async {
-    await assertNoDiagnostics('''
-void f(Set<num> set, List<int> other) {
-  set.retainAll(other);
-}
-''');
-  }
-
-  test_retainAll_unrelated() async {
-    await assertDiagnostics('''
-void f(Set<num> set, List<String> other) {
-  set.retainAll(other);
-}
-''', [lint(59, 5)]);
   }
 }
