@@ -434,8 +434,18 @@ abstract class FileSystemEntity {
   ///     files and directories. Recursive watching is not supported.
   ///     Note: When watching files directly, delete events might not happen
   ///     as expected.
-  ///   * `OS X`: Uses `FSEvents`. The implementation supports watching both
-  ///     files and directories. Recursive watching is supported.
+  ///   * `OS X`: Uses the
+  ///     [File System Events API](https://developer.apple.com/library/archive/documentation/Darwin/Conceptual/FSEvents_ProgGuide/TechnologyOverview/TechnologyOverview.html).
+  ///     The implementation supports watching both files and directories.
+  ///     Recursive watching is supported.
+  ///     This API has several limitations:
+  ///
+  ///     * Changes that occurred shortly *before* the [watch] method was
+  ///       called may still appear in the [Stream].
+  ///     * Changes that occur in a short period of time may arrive
+  ///       out-of-order.
+  ///     * Multiple changes made in a single directory may be coalesced into
+  ///       a single `FileSystemEvent`.
   ///
   /// The system will start listening for events once the returned [Stream] is
   /// being listened to, not when the call to [watch] is issued.
