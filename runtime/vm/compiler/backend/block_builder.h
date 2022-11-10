@@ -63,7 +63,7 @@ class BlockBuilder : public ValueObject {
     const auto representation = FlowGraph::ReturnRepresentationOf(function);
     ReturnInstr* instr = new ReturnInstr(
         Source(), value, CompilerState::Current().GetNextDeoptId(),
-        UntaggedPcDescriptors::kInvalidYieldIndex, representation);
+        representation);
     AddInstruction(instr);
     entry_->set_last_instruction(instr);
     return instr;

@@ -13,15 +13,15 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// This class is responsible for collecting import and export annotations.
 /// It also creates Wasm functions for Dart members and manages the worklist
 /// used to achieve tree shaking.
-class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
+class FunctionCollector {
   final Translator translator;
 
   // Wasm function for each Dart function
   final Map<Reference, w.BaseFunction> _functions = {};
   // Names of exported functions
-  final Map<Reference, String> exports = {};
+  final Map<Reference, String> _exports = {};
   // Functions for which code has not yet been generated
-  final List<Reference> worklist = [];
+  final List<Reference> _worklist = [];
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
   // For each class ID, which functions should be added to the worklist if an
@@ -53,6 +53,10 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     }
   }
 
+  bool isWorkListEmpty() => _worklist.isEmpty;
+
+  Reference popWorkList() => _worklist.removeLast();
+
   void _importOrExport(Member member) {
     String? importName = translator.getPragma(member, "wasm:import");
     if (importName != null) {
@@ -63,7 +67,7 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
         String name = importName.substring(dot + 1);
         if (member is Procedure) {
           w.FunctionType ftype = _makeFunctionType(
-              member.reference, member.function.returnType, null,
+              translator, member.reference, member.function.returnType, null,
               isImportOrExport: true);
           _functions[member.reference] =
               m.importFunction(module, name, ftype, "$importName (import)");
@@ -78,20 +82,22 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
   }
 
   void addExport(Reference target, String exportName) {
-    exports[target] = exportName;
+    _exports[target] = exportName;
   }
+
+  String? getExport(Reference target) => _exports[target];
 
   void initialize() {
     // Add exports to the module and add exported functions to the worklist
-    for (var export in exports.entries) {
+    for (var export in _exports.entries) {
       Reference target = export.key;
       Member node = target.asMember;
       if (node is Procedure) {
-        worklist.add(target);
+        _worklist.add(target);
         assert(!node.isInstanceMember);
         assert(!node.isGetter);
         w.FunctionType ftype = _makeFunctionType(
-            target, node.function.returnType, null,
+            translator, target, node.function.returnType, null,
             isImportOrExport: true);
         w.DefinedFunction function = m.addFunction(ftype, "$node");
         _functions[target] = function;
@@ -116,14 +122,14 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
 
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
-      worklist.add(target);
+      _worklist.add(target);
       if (target.isAsyncInnerReference) {
         w.BaseFunction outer = getFunction(target.asProcedure.reference);
         return addAsyncInnerFunctionFor(outer);
       }
       w.FunctionType ftype = target.isTearOffReference
           ? translator.dispatchTable.selectorForTarget(target).signature
-          : target.asMember.accept1(this, target);
+          : target.asMember.accept1(_FunctionTypeGenerator(translator), target);
       return m.addFunction(ftype, "${target.asMember}");
     });
   }
@@ -157,6 +163,12 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
       }
     }
   }
+}
+
+class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
+  final Translator translator;
+
+  _FunctionTypeGenerator(this.translator);
 
   @override
   w.FunctionType defaultMember(Member node, Reference target) {
@@ -168,7 +180,7 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     if (!node.isInstanceMember) {
       if (target == node.fieldReference) {
         // Static field initializer function
-        return _makeFunctionType(target, node.type, null);
+        return _makeFunctionType(translator, target, node.type, null);
       }
       String kind = target == node.setterReference ? "setter" : "getter";
       throw "No implicit $kind function for static field: $node";
@@ -181,70 +193,70 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     assert(!node.isAbstract);
     return node.isInstanceMember
         ? translator.dispatchTable.selectorForTarget(node.reference).signature
-        : _makeFunctionType(target, node.function.returnType, null);
+        : _makeFunctionType(translator, target, node.function.returnType, null);
   }
 
   @override
   w.FunctionType visitConstructor(Constructor node, Reference target) {
-    return _makeFunctionType(target, VoidType(),
+    return _makeFunctionType(translator, target, VoidType(),
         translator.classInfo[node.enclosingClass]!.nonNullableType);
   }
+}
 
-  w.FunctionType _makeFunctionType(
-      Reference target, DartType returnType, w.ValueType? receiverType,
-      {bool isImportOrExport = false}) {
-    Member member = target.asMember;
-    int typeParamCount = 0;
-    Iterable<DartType> params;
-    if (member is Field) {
-      params = [if (target.isImplicitSetter) member.setterType];
-    } else {
-      FunctionNode function = member.function!;
-      typeParamCount = (member is Constructor
-              ? member.enclosingClass.typeParameters
-              : function.typeParameters)
-          .length;
-      List<String> names = [for (var p in function.namedParameters) p.name!]
-        ..sort();
-      Map<String, DartType> nameTypes = {
-        for (var p in function.namedParameters) p.name!: p.type
-      };
-      params = [
-        for (var p in function.positionalParameters) p.type,
-        for (String name in names) nameTypes[name]!
-      ];
-      function.positionalParameters.map((p) => p.type);
-    }
-
-    List<w.ValueType> typeParameters = List.filled(typeParamCount,
-        translator.classInfo[translator.typeClass]!.nonNullableType);
-
-    // The only reference types allowed as parameters and returns on imported
-    // or exported functions for JS interop are `externref` and `funcref`.
-    w.ValueType adjustExternalType(w.ValueType type) {
-      if (isImportOrExport && type is w.RefType) {
-        if (type.heapType.isSubtypeOf(w.HeapType.func)) {
-          return w.RefType.func(nullable: true);
-        }
-        return w.RefType.extern(nullable: true);
-      }
-      return type;
-    }
-
-    List<w.ValueType> inputs = [];
-    if (receiverType != null) {
-      inputs.add(adjustExternalType(receiverType));
-    }
-    inputs.addAll(typeParameters.map(adjustExternalType));
-    inputs.addAll(
-        params.map((t) => adjustExternalType(translator.translateType(t))));
-
-    List<w.ValueType> outputs = returnType is VoidType
-        ? member.function?.asyncMarker == AsyncMarker.Async
-            ? [adjustExternalType(translator.topInfo.nullableType)]
-            : const []
-        : [adjustExternalType(translator.translateType(returnType))];
-
-    return m.addFunctionType(inputs, outputs);
+w.FunctionType _makeFunctionType(Translator translator, Reference target,
+    DartType returnType, w.ValueType? receiverType,
+    {bool isImportOrExport = false}) {
+  Member member = target.asMember;
+  int typeParamCount = 0;
+  Iterable<DartType> params;
+  if (member is Field) {
+    params = [if (target.isImplicitSetter) member.setterType];
+  } else {
+    FunctionNode function = member.function!;
+    typeParamCount = (member is Constructor
+            ? member.enclosingClass.typeParameters
+            : function.typeParameters)
+        .length;
+    List<String> names = [for (var p in function.namedParameters) p.name!]
+      ..sort();
+    Map<String, DartType> nameTypes = {
+      for (var p in function.namedParameters) p.name!: p.type
+    };
+    params = [
+      for (var p in function.positionalParameters) p.type,
+      for (String name in names) nameTypes[name]!
+    ];
+    function.positionalParameters.map((p) => p.type);
   }
+
+  List<w.ValueType> typeParameters = List.filled(typeParamCount,
+      translator.classInfo[translator.typeClass]!.nonNullableType);
+
+  // The only reference types allowed as parameters and returns on imported or
+  // exported functions for JS interop are `externref` and `funcref`.
+  w.ValueType adjustExternalType(w.ValueType type) {
+    if (isImportOrExport && type is w.RefType) {
+      if (type.heapType.isSubtypeOf(w.HeapType.func)) {
+        return w.RefType.func(nullable: true);
+      }
+      return w.RefType.extern(nullable: true);
+    }
+    return type;
+  }
+
+  List<w.ValueType> inputs = [];
+  if (receiverType != null) {
+    inputs.add(adjustExternalType(receiverType));
+  }
+  inputs.addAll(typeParameters.map(adjustExternalType));
+  inputs.addAll(
+      params.map((t) => adjustExternalType(translator.translateType(t))));
+
+  List<w.ValueType> outputs = returnType is VoidType
+      ? member.function?.asyncMarker == AsyncMarker.Async
+          ? [adjustExternalType(translator.topInfo.nullableType)]
+          : const []
+      : [adjustExternalType(translator.translateType(returnType))];
+
+  return translator.m.addFunctionType(inputs, outputs);
 }

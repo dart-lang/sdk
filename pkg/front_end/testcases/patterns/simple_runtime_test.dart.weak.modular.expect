@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  if(#t1 is core::List<dynamic> && #t1{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t2 = #t1{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t2 is core::String)) {
+    final core::List<dynamic> #t3 = #t1 as{ForDynamic} core::List<dynamic>;
+    core::String y = #t3.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic,ForNonNullableByDefault} core::String;
+    {
+      return y;
+    }
+  }
+  else {
+    return null;
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(self::test(<core::String>["one", "two", "three"]), "one");
+  self::expectEquals(self::test(<core::int>[1, 2, 3]), null);
+  self::expectEquals(self::test(<core::bool>[true, false]), null);
+  self::expectEquals(self::test(<dynamic>[]), null);
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}

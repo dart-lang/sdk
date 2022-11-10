@@ -3,5 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 test(dynamic x) {
-  if (x case var y as int) {}
+  if (x case var y as int) {
+    return 0;
+  }
+  if (x case [var y as String]) {
+    return 1;
+  }
+  if (x case [[var y] as List<bool>, 0]) {
+    return 2;
+  }
+  if (x case 1 as int) {
+    return 3;
+  }
+  if (x case var _ as String) {
+    return 4;
+  }
 }

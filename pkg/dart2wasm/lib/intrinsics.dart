@@ -72,9 +72,6 @@ class Intrinsifier {
       'unary-': (b) {
         b.f64_neg();
       },
-      'roundToDouble': (b) {
-        b.f64_nearest();
-      },
       'floorToDouble': (b) {
         b.f64_floor();
       },
@@ -88,7 +85,6 @@ class Intrinsifier {
   };
   static final Map<String, w.ValueType> unaryResultMap = {
     'toDouble': w.NumType.f64,
-    'roundToDouble': w.NumType.f64,
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
     'truncateToDouble': w.NumType.f64,

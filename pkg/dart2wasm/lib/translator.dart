@@ -402,8 +402,8 @@ class Translator {
     m.exportFunction("\$getMain", generateGetMain(mainFunction));
 
     functions.initialize();
-    while (functions.worklist.isNotEmpty) {
-      Reference reference = functions.worklist.removeLast();
+    while (!functions.isWorkListEmpty()) {
+      Reference reference = functions.popWorkList();
       Member member = reference.asMember;
       var function =
           functions.getExistingFunction(reference) as w.DefinedFunction;
@@ -421,7 +421,7 @@ class Translator {
           ? canonicalName
           : "${member.enclosingLibrary.importUri} $canonicalName";
 
-      String? exportName = functions.exports[reference];
+      String? exportName = functions.getExport(reference);
 
       if (options.printKernel || options.printWasm) {
         if (exportName != null) {
@@ -540,7 +540,8 @@ class Translator {
     return false;
   }
 
-  bool isWasmType(Class cls) => _hasSuperclass(cls, wasmTypesBaseClass);
+  bool isWasmType(Class cls) =>
+      cls == wasmTypesBaseClass || _hasSuperclass(cls, wasmTypesBaseClass);
 
   bool isFfiCompound(Class cls) => _hasSuperclass(cls, ffiCompoundClass);
 

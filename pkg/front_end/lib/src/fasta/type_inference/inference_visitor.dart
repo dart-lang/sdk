@@ -1761,6 +1761,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         this);
 
     flowAnalysis.ifStatement_thenBegin(condition, node);
+    for (VariableDeclaration variable in node.pattern.declaredVariables) {
+      flowAnalysis.declare(variable, true);
+    }
     StatementInferenceResult thenResult = inferStatement(node.then);
     Statement then;
     if (thenResult.hasChanged) {
@@ -7668,9 +7671,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           typeInfos,
       required MatchContext<Node, Expression> context}) {
     pattern.pattern.acceptInference(this,
-        matchedType: const DynamicType(),
-        typeInfos: typeInfos,
-        context: context);
+        matchedType: pattern.type, typeInfos: typeInfos, context: context);
     return const PatternInferenceResult();
   }
 

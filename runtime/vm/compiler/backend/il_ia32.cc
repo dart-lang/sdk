@@ -262,9 +262,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ int3();
   __ Bind(&done);
 #endif
-  if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
-    compiler->EmitYieldPositionMetadata(source(), yield_index());
-  }
   __ LeaveDartFrame();
   __ ret();
 }

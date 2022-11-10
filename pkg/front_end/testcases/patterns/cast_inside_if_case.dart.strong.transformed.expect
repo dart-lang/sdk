@@ -1,10 +1,38 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  if(invalid-expression "Unimplemented CastPattern.makeCondition") {
-    dynamic y = #t1;
-    {}
+  if(let final core::int #t2 = #t1 as{ForNonNullableByDefault} core::int in true) {
+    core::int y = #t1 as{ForNonNullableByDefault} core::int;
+    {
+      return 0;
+    }
+  }
+  final dynamic #t3 = x;
+  if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in let final core::String #t5 = #t4 as{ForNonNullableByDefault} core::String in true)) {
+    final core::List<dynamic> #t6 = #t3 as{ForDynamic} core::List<dynamic>;
+    core::String y = #t6.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::String;
+    {
+      return 1;
+    }
+  }
+  final dynamic #t7 = x;
+  if(#t7 is core::List<dynamic> && #t7{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool} && ((let final dynamic #t8 = #t7{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in let final core::List<core::bool> #t9 = #t8 as{ForNonNullableByDefault} core::List<core::bool> in #t9.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) && (let final dynamic #t10 = #t7{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in #t10.{core::Object::==}(0){(core::Object) → core::bool}))) {
+    final core::List<dynamic> #t11 = #t7 as{ForDynamic} core::List<dynamic>;
+    final core::List<dynamic> #t12 = #t11.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::List<core::bool>;
+    dynamic y = #t12.{core::List::[]}(0){(core::int) → dynamic};
+    {
+      return 2;
+    }
+  }
+  final dynamic #t13 = x;
+  if(let final core::int #t14 = #t13 as{ForNonNullableByDefault} core::int in #t14.{core::num::==}(1){(core::Object) → core::bool}) {
+    return 3;
+  }
+  final dynamic #t15 = x;
+  if(let final core::String #t16 = #t15 as{ForNonNullableByDefault} core::String in true) {
+    return 4;
   }
 }

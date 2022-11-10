@@ -5327,14 +5327,50 @@ class CastPattern extends Pattern {
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented CastPattern.makeCondition");
+    // castExpression: `matchedExpressionVariable` as `type`
+    Expression castExpression = inferenceVisitor.engine.forest
+        .createAsExpression(
+            fileOffset,
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, matchedExpressionVariable),
+            type,
+            forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
+
+    // intermediateVariable: `type` VAR = `castExpression`;
+    //   ==> `type` VAR = `matchedExpressionVariable` as `type`;
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(castExpression, type: type);
+
+    Expression? patternCondition =
+        pattern.makeCondition(intermediateVariable, inferenceVisitor);
+    if (patternCondition == null) {
+      // TODO(cstefantsova): As an optimization of the generated code size and
+      // the number of runtime checks, the cast in this case can be removed if
+      // any variable is initialized via this pattern, and therefore will have
+      // the cast in its initializer expression.
+
+      // return: let `intermediateVariable` in true
+      //   ==> let `type` VAR = `matchedExpressionVariable` as `type` in true
+      return inferenceVisitor.engine.forest.createLet(intermediateVariable,
+          inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, true));
+    } else {
+      // return: let `intermediateVariable` in `patternCondition`
+      //   ==> let `type` VAR = `matchedExpressionVariable` as `type` in
+      //       `patternCondition`
+      return inferenceVisitor.engine.forest
+          .createLet(intermediateVariable, patternCondition);
+    }
   }
 
   @override
   void createDeclaredVariableInitializers(Expression matchedExpression,
       DartType matchedType, InferenceVisitorBase inferenceVisitor) {
     pattern.createDeclaredVariableInitializers(
-        matchedExpression, matchedType, inferenceVisitor);
+        inferenceVisitor.engine.forest.createAsExpression(
+            fileOffset, matchedExpression, type,
+            forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault),
+        type,
+        inferenceVisitor);
   }
 
   @override

@@ -580,8 +580,7 @@ Fragment FlowGraphBuilder::NativeCall(const String& name,
 }
 
 Fragment FlowGraphBuilder::Return(TokenPosition position,
-                                  bool omit_result_type_check,
-                                  intptr_t yield_index) {
+                                  bool omit_result_type_check) {
   Fragment instructions;
   const Function& function = parsed_function_->function();
 
@@ -597,7 +596,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
     instructions += DebugStepCheck(position);
   }
 
-  instructions += BaseFlowGraphBuilder::Return(position, yield_index);
+  instructions += BaseFlowGraphBuilder::Return(position);
 
   return instructions;
 }

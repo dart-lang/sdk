@@ -1483,10 +1483,9 @@ IndirectGotoInstr* StreamingFlowGraphBuilder::IndirectGoto(
   return flow_graph_builder_->IndirectGoto(target_count);
 }
 
-Fragment StreamingFlowGraphBuilder::Return(TokenPosition position,
-                                           intptr_t yield_index) {
-  return flow_graph_builder_->Return(position, /*omit_result_type_check=*/false,
-                                     yield_index);
+Fragment StreamingFlowGraphBuilder::Return(TokenPosition position) {
+  return flow_graph_builder_->Return(position,
+                                     /*omit_result_type_check=*/false);
 }
 
 Fragment StreamingFlowGraphBuilder::EvaluateAssertion() {

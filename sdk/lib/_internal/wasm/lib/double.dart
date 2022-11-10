@@ -57,6 +57,9 @@ class _BoxedDouble implements double {
   @pragma("wasm:entry-point")
   double value = 0.0;
 
+  static const int _mantissaBits = 52;
+  static const int _exponentBits = 11;
+  static const int _exponentBias = 1023;
   static const int _signMask = 0x8000000000000000;
   static const int _exponentMask = 0x7FF0000000000000;
   static const int _mantissaMask = 0x000FFFFFFFFFFFFF;
@@ -166,7 +169,34 @@ class _BoxedDouble implements double {
   int ceil() => ceilToDouble().toInt();
   int truncate() => truncateToDouble().toInt();
 
-  external double roundToDouble();
+  double roundToDouble() {
+    return _roundToDouble(this);
+  }
+
+  static double _roundToDouble(final double d) {
+    final int bits = doubleToIntBits(d);
+    final int exponent = (bits >> _mantissaBits) & ((1 << _exponentBits) - 1);
+
+    if (exponent < _exponentBias) {
+      // The exponent is less than 0, which means the absolute value of the
+      // number is less than 1.
+      return (d * 2.0).truncateToDouble();
+    }
+
+    if (exponent >= _exponentBias + _mantissaBits) {
+      // The exponent is so big that the number is already an integer,
+      // or it is +/- infinity or NaN.
+      return d;
+    }
+
+    // Add 0.5 to the absolute value of the number and truncate the result.
+    final int shift = (_exponentBias + _mantissaBits - 1) - exponent;
+    final int adjust = _BoxedInt._shl(1, shift);
+    final int mask = _BoxedInt._shl(-2, shift);
+    final int rounded = (bits + adjust) & mask;
+    return intBitsToDouble(rounded);
+  }
+
   external double floorToDouble();
   external double ceilToDouble();
   external double truncateToDouble();
