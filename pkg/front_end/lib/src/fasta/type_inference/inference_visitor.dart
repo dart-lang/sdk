@@ -7668,9 +7668,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           typeInfos,
       required MatchContext<Node, Expression> context}) {
     pattern.pattern.acceptInference(this,
-        matchedType: const DynamicType(),
-        typeInfos: typeInfos,
-        context: context);
+        matchedType: pattern.type, typeInfos: typeInfos, context: context);
     return const PatternInferenceResult();
   }
 
