@@ -540,7 +540,8 @@ class Translator {
     return false;
   }
 
-  bool isWasmType(Class cls) => _hasSuperclass(cls, wasmTypesBaseClass);
+  bool isWasmType(Class cls) =>
+      cls == wasmTypesBaseClass || _hasSuperclass(cls, wasmTypesBaseClass);
 
   bool isFfiCompound(Class cls) => _hasSuperclass(cls, ffiCompoundClass);
 

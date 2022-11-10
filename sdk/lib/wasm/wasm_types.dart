@@ -11,6 +11,7 @@ library dart.wasm;
 //   parameter/return of static functions. No other uses of the types are valid.
 // - They are not assignable to or from any ordinary Dart types.
 // - The integer and float types can't be nullable.
+// - Their instance methods cannot be called virtually or dynamically.
 //
 // TODO(askesc): Give an error message if any of these constraints are violated.
 

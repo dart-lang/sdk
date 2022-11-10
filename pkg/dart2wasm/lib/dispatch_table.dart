@@ -235,9 +235,14 @@ class DispatchTable {
         ? 1
         : 0;
 
-    bool calledDynamically =
+    // _WasmBase and its subclass methods cannot be called dynamically
+    final cls = member.enclosingClass;
+    final isWasmType = cls != null && translator.isWasmType(cls);
+
+    final calledDynamically = !isWasmType &&
         translator.dynamics.maybeCalledDynamically(member, metadata);
-    var selector = selectorInfo.putIfAbsent(
+
+    final selector = selectorInfo.putIfAbsent(
         selectorId,
         () => SelectorInfo(
             translator,
@@ -277,11 +282,16 @@ class DispatchTable {
 
   void build() {
     // Collect class/selector combinations
+
+    // Maps class IDs to selector IDs of the class
     List<List<int>> selectorsInClass = [];
+
     for (ClassInfo info in translator.classes) {
       List<int> selectorIds = [];
       ClassInfo? superInfo = info.superInfo;
-      if (superInfo != null) {
+
+      // _WasmBase does not inherit from Object
+      if (superInfo != null && info.cls != translator.wasmTypesBaseClass) {
         int superId = superInfo.classId;
         selectorIds = List.of(selectorsInClass[superId]);
         for (int selectorId in selectorIds) {
