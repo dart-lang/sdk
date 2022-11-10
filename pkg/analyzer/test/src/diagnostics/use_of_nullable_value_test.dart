@@ -811,7 +811,7 @@ m() async {
 
   test_cascade_nonNullable() async {
     await assertNoErrorsInCode(r'''
-m() {
+f() {
   int x = 0;
   x..isEven;
 }
@@ -820,20 +820,18 @@ m() {
 
   test_cascade_nullable_indexed_assignment() async {
     await assertErrorsInCode(r'''
-m() {
-  List<int>? x;
+f(List<int>? x) {
   x..[0] = 1;
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          27, 1),
+          23, 1),
     ]);
   }
 
   test_cascade_nullable_indexed_assignment_null_aware() async {
     await assertNoErrorsInCode(r'''
-m() {
-  List<int>? x;
+f(List<int>? x) {
   x?..[0] = 1;
 }
 ''');
@@ -853,8 +851,7 @@ m() {
 
   test_cascade_nullable_method_invocation_null_aware() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int? x;
+f(int? x) {
   x?..abs();
 }
 ''');
@@ -862,20 +859,18 @@ m() {
 
   test_cascade_nullable_property_access() async {
     await assertErrorsInCode(r'''
-m() {
-  int? x;
+f(int? x) {
   x..isEven;
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          21, 6),
+          17, 6),
     ]);
   }
 
   test_cascade_nullable_property_access_null_aware() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int? x;
+m(int? x) {
   x?..isEven;
 }
 ''');
@@ -1137,8 +1132,7 @@ m<T extends Function>(List<T?> x) {
 
   test_member_questionDot_nullable() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int? x;
+f(int? x) {
   x?.isEven;
 }
 ''');
@@ -1199,8 +1193,7 @@ m(int? x) {
 
   test_method_questionDot_nullable() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int? x;
+m(int? x) {
   x?.round();
 }
 ''');

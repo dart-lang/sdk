@@ -1710,6 +1710,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     nullShortingTermination(node);
     _insertImplicitCallReference(node, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
   }
 
   @override
@@ -2449,6 +2450,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     nullShortingTermination(node);
     _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
   }
 
   @override
@@ -2614,6 +2616,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
     _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyMethodInvocation(node);
   }
 
   @override
@@ -2794,6 +2797,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     nullShortingTermination(node);
     _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
   }
 
   @override
