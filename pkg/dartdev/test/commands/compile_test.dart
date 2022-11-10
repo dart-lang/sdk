@@ -44,8 +44,8 @@ void defineCompileTests() {
         ],
       );
 
-      expect(result.stderr, contains(soundNullSafetyMessage));
-      expect(result.stdout, isEmpty);
+      expect(result.stdout, contains(soundNullSafetyMessage));
+      expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
       expect(File(outFile).existsSync(), true,
           reason: 'File not found: $outFile');
@@ -85,8 +85,8 @@ void defineCompileTests() {
         ],
       );
 
-      expect(result.stderr, contains(soundNullSafetyMessage));
-      expect(result.stdout, isEmpty);
+      expect(result.stdout, contains(soundNullSafetyMessage));
+      expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
       expect(File(outFile).existsSync(), true,
           reason: 'File not found: $outFile');
