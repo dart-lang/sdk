@@ -814,7 +814,10 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
 
 static constexpr char kResolvedFileRoot[] = "file:///";
 static constexpr intptr_t kResolvedFileRootLen = sizeof(kResolvedFileRoot) - 1;
-static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///sdk/";
+static constexpr char kResolvedFlutterRoot[] = "org-dartlang-sdk:///flutter/";
+static constexpr intptr_t kResolvedFlutterRootLen =
+    sizeof(kResolvedFlutterRoot) - 1;
+static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///";
 static constexpr intptr_t kResolvedSdkRootLen = sizeof(kResolvedSdkRoot) - 1;
 static constexpr char kResolvedGoogle3Root[] = "google3:///";
 static constexpr intptr_t kResolvedGoogle3RootLen =
@@ -830,10 +833,15 @@ static const char* ConvertResolvedURI(const char* str) {
     return str + kResolvedFileRootLen - 1;  // Leave a '/' on the front.
 #endif
   }
+  // Must do kResolvedFlutterRoot before kResolvedSdkRoot, since the latter is
+  // a prefix of the former.
+  if (len > kResolvedFlutterRootLen &&
+      strncmp(str, kResolvedFlutterRoot, kResolvedFlutterRootLen) == 0) {
+    return str + kResolvedFlutterRootLen;  // Strip off the entire prefix.
+  }
   if (len > kResolvedSdkRootLen &&
       strncmp(str, kResolvedSdkRoot, kResolvedSdkRootLen) == 0) {
-    // Leave "sdk/" as a prefix in the returned path.
-    return str + (kResolvedSdkRootLen - 4);
+    return str + kResolvedSdkRootLen;  // Strip off the entire prefix.
   }
   if (len > kResolvedGoogle3RootLen &&
       strncmp(str, kResolvedGoogle3Root, kResolvedGoogle3RootLen) == 0) {
