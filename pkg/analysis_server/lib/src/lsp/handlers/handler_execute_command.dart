@@ -50,6 +50,7 @@ class ExecuteCommandHandler
           '${params.command} is not a valid command identifier', null);
     }
 
+    server.analyticsManager.executedCommand(params.command);
     final workDoneToken = params.workDoneToken;
     final progress = workDoneToken != null
         ? ProgressReporter.clientProvided(server, workDoneToken)
