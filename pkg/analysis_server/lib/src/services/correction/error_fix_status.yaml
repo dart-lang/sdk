@@ -1802,7 +1802,9 @@ LintCode.empty_constructor_bodies:
 LintCode.empty_statements:
   status: hasFix
 LintCode.enable_null_safety:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to run the migration tool.
 LintCode.eol_at_end_of_file:
   status: hasFix
 LintCode.exhaustive_cases:
@@ -1826,7 +1828,7 @@ LintCode.join_return_with_assignment:
 LintCode.leading_newlines_in_multiline_strings:
   status: hasFix
 LintCode.library_annotations:
-  status: needsEvaluation
+  status: needsFix
 LintCode.library_names:
   status: needsEvaluation
 LintCode.library_prefixes:
