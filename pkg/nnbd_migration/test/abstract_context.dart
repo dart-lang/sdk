@@ -71,6 +71,9 @@ class ViewChild {
 class ViewChildren {
   const ViewChildren(Object selector, {Object? read});
 }
+class Injector {
+  dynamic get(Object token, [Object? notFoundValue]) => null;
+}
 ''');
     if (internalUris) {
       addPackageFile('angular', 'angular.dart', '''

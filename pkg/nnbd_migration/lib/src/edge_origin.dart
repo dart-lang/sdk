@@ -96,6 +96,31 @@ class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
 }
 
+/// Edge origin resulting from an assignment from a call to Angular's
+/// `Injector.get` in a test `setUp` callback.
+///
+/// For example, in the following code snippet:
+///
+///   Foo foo;
+///   setUp(() {
+///     foo = injector.get(Foo);
+///   });
+///
+/// this class is used for the edge connecting the type of the `foo` variable to
+/// `never`, due to the assignment from `injector.get`. While `Injector.get` has
+/// a return type of `dynamic`, it's use in a test `setUp` callback is more than
+/// likely intended to yield a non-null value.
+class AssignmentFromAngularInjectorGetOrigin extends EdgeOrigin {
+  AssignmentFromAngularInjectorGetOrigin(
+      super.source, SimpleIdentifier super.node);
+
+  @override
+  String get description => 'value retrieved from Injector.get in test setUp';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.assignmentFromAngularInjectorGet;
+}
+
 /// Edge origin resulting from a use of built_value's `@nullable` annotation.
 class BuiltValueNullableOrigin extends EdgeOrigin {
   BuiltValueNullableOrigin(super.source, AstNode super.node);
