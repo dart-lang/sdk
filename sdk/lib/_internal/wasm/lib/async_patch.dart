@@ -94,8 +94,13 @@ Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
   Object? result = _futurePromise(stack, operand);
   Zone._leave(current);
   if (result is _FutureError) {
-    // TODO(askesc): Combine stack traces
-    throw result.exception;
+    // TODO(joshualitt): `result.stackTrace` is not currently the complete stack
+    // trace. We might be able to stitch together `result.stackTrace` with
+    // `StackTrace.current`, but we would need to be able to handle the case
+    // where `result.stackTrace` is supplied by the user and must then be exact.
+    // Alternatively, we may be able to fix this when we actually generate stack
+    // traces.
+    Error.throwWithStackTrace(result.exception, result.stackTrace);
   }
   return result;
 }
