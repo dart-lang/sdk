@@ -12168,13 +12168,12 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   int token_index = 0;
 
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  intptr_t previous_start = 0;
   for (int line_index = 0; line_index < line_count; ++line_index) {
-    intptr_t start = previous_start + line_starts_reader.DeltaAt(line_index);
+    intptr_t start = line_starts_reader.At(line_index);
     // Output the rest of the tokens if we have no next line.
     intptr_t end = TokenPosition::kMaxSourcePos;
     if (line_index + 1 < line_count) {
-      end = start + line_starts_reader.DeltaAt(line_index + 1);
+      end = line_starts_reader.At(line_index + 1);
     }
     bool first = true;
     while (token_index < token_count) {
@@ -12195,7 +12194,6 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
       info.Add(value);
       ++token_index;
     }
-    previous_start = start;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return info.ptr();

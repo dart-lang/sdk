@@ -423,6 +423,7 @@ vm_sources_tests = [
   "isolate_reload_test.cc",
   "isolate_test.cc",
   "json_test.cc",
+  "kernel_test.cc",
   "log_test.cc",
   "longjump_test.cc",
   "malloc_hooks_test.cc",
