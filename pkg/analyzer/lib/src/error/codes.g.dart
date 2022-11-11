@@ -1171,6 +1171,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the field
+  static const CompileTimeErrorCode DUPLICATE_RECORD_PATTERN_FIELD =
+      CompileTimeErrorCode(
+    'DUPLICATE_RECORD_PATTERN_FIELD',
+    "The field '{0}' is already matched in this pattern.",
+    correctionMessage: "Try removing the duplicate field.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the variable
   static const CompileTimeErrorCode DUPLICATE_VARIABLE_PATTERN =
       CompileTimeErrorCode(

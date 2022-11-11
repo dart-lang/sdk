@@ -112,6 +112,36 @@ class DiagnosticFactory {
     );
   }
 
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  AnalysisError duplicateRecordPatternField({
+    required Source source,
+    required String name,
+    required RecordPatternField duplicateField,
+    required RecordPatternField originalField,
+  }) {
+    var originalNode = originalField.fieldName!;
+    var originalTarget = originalNode.name ?? originalNode.colon;
+    var duplicateNode = duplicateField.fieldName!;
+    var duplicateTarget = duplicateNode.name ?? duplicateNode.colon;
+    return AnalysisError(
+      source,
+      duplicateTarget.offset,
+      duplicateTarget.length,
+      CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD,
+      [name],
+      [
+        DiagnosticMessageImpl(
+          filePath: source.fullName,
+          length: originalTarget.length,
+          message: 'The first field.',
+          offset: originalTarget.offset,
+          url: source.uri.toString(),
+        ),
+      ],
+    );
+  }
+
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
   AnalysisError equalElementsInConstSet(

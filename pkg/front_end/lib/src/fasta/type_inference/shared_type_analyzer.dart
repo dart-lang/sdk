@@ -58,6 +58,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateRecordPatternField({
+    required String name,
+    required RecordPatternField<Node, Pattern> original,
+    required RecordPatternField<Node, Pattern> duplicate,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void inconsistentMatchVar(
       {required Node pattern,
       required DartType type,

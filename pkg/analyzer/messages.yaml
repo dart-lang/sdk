@@ -3518,6 +3518,12 @@ CompileTimeErrorCode:
 
       part 'part.dart';
       ```
+  DUPLICATE_RECORD_PATTERN_FIELD:
+    problemMessage: The field '{0}' is already matched in this pattern.
+    correctionMessage: Try removing the duplicate field.
+    comment: |-
+      Parameters:
+      0: the name of the field
   DUPLICATE_VARIABLE_PATTERN:
     problemMessage: The variable '{0}' is already defined in this pattern.
     correctionMessage: Try renaming the variable.

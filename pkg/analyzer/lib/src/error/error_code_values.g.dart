@@ -139,6 +139,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
   CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
   CompileTimeErrorCode.DUPLICATE_PART,
+  CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD,
   CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
   CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
   CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,

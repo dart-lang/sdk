@@ -354,6 +354,8 @@ CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
