@@ -144,13 +144,12 @@ vars = {
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
   "mime_rev": "d80f4d09067af87d84d9cb647acfa4d2d313d795",
   "mockito_rev": "748e88e4cbf7e3acd1144cd8e3ea4ae87ea8c9c2",
-  "oauth2_rev": "ee5c9b1ef5bfcd282c0637f319155f89634385ed",
   "package_config_rev": "cff98c90acc457a3b0750f0a7da0e351a35e5d0c",
   "path_rev": "58ba22c53e40a05c407abb070ec63674b3a38c4d",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "1ea5b031cfda37786d305292cb8104dffb45d9ae",
   "protobuf_rev": "4af1cb3c4e116d02d3b3d005fd9d4995fbc4c564",
-  "pub_rev": "65c7f3e528f3f9978c4330cbd471070f17370f65", # manually rev'd
+  "pub_rev": "6ac42d7644dedfcc500147ab47886eecab4b1b38", # manually rev'd
   "pub_semver_rev": "5ac4c28f6d5f2ac737ed5443a3ffcb1d18e2b271",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "5fd2593d47120232054ebcc794f3a028d903f1f8",
@@ -384,8 +383,6 @@ deps = {
       Var("dart_git") + "mime.git" + "@" + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
-  Var("dart_root") + "/third_party/pkg/oauth2":
-      Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_rev"),
