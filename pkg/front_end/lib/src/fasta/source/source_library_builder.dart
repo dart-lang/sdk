@@ -3038,7 +3038,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             parent: scope.withTypeVariables(typeVariables),
             debugName: "enum $name",
             isModifiable: false),
-        new ConstructorScope(name, constructors));
+        new ConstructorScope(name, constructors),
+        loader.coreLibrary);
     constructorReferences.clear();
 
     Map<String, TypeVariableBuilder>? typeVariablesByName =

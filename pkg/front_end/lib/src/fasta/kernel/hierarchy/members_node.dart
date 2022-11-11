@@ -560,13 +560,32 @@ class ClassMembersNodeBuilder {
       // problem once.
       ClassMember existing;
       ClassMember duplicate;
-      assert(a.fileUri == b.fileUri);
-      if (a.charOffset < b.charOffset) {
-        existing = a;
-        duplicate = b;
+      assert(a.fileUri == b.fileUri ||
+          a.name.text == "toString" &&
+              (a.fileUri.isScheme("org-dartlang-sdk") &&
+                      a.fileUri.pathSegments.isNotEmpty &&
+                      a.fileUri.pathSegments.last == "enum.dart" ||
+                  b.fileUri.isScheme("org-dartlang-sdk") &&
+                      b.fileUri.pathSegments.isNotEmpty &&
+                      b.fileUri.pathSegments.last == "enum.dart"));
+
+      if (a.fileUri != b.fileUri) {
+        if (a.fileUri.isScheme("org-dartlang-sdk")) {
+          existing = a;
+          duplicate = b;
+        } else {
+          assert(b.fileUri.isScheme("org-dartlang-sdk"));
+          existing = b;
+          duplicate = a;
+        }
       } else {
-        existing = b;
-        duplicate = a;
+        if (a.charOffset < b.charOffset) {
+          existing = a;
+          duplicate = b;
+        } else {
+          existing = b;
+          duplicate = a;
+        }
       }
       classBuilder.libraryBuilder.addProblem(
           templateDuplicatedDeclaration.withArguments(name),
