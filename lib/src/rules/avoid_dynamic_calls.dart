@@ -91,6 +91,10 @@ void functionTypeWithParameters(Function() function) {
 ''';
 
 class AvoidDynamicCalls extends LintRule {
+  static const LintCode code = LintCode('avoid_dynamic_calls',
+      "Method invocation or property access on a 'dynamic' target.",
+      correctionMessage: 'Try giving the target a type.');
+
   AvoidDynamicCalls()
       : super(
           name: 'avoid_dynamic_calls',
@@ -99,6 +103,9 @@ class AvoidDynamicCalls extends LintRule {
           group: Group.errors,
           maturity: Maturity.stable,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -123,28 +130,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
-
-  bool _lintIfDynamic(Expression? node) {
-    if (node?.staticType?.isDynamic ?? false) {
-      rule.reportLint(node);
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  void _lintIfDynamicOrFunction(Expression node, {DartType? staticType}) {
-    staticType ??= node.staticType;
-    if (staticType == null) {
-      return;
-    }
-    if (staticType.isDynamic) {
-      rule.reportLint(node);
-    }
-    if (staticType.isDartCoreFunction) {
-      rule.reportLint(node);
-    }
-  }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -225,22 +210,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _lintPrefixOrPostfixExpression(Expression root, Expression operand) {
-    if (_lintIfDynamic(operand)) {
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    if (node.operator.type == TokenType.BANG) {
+      // x! is not a dynamic call, even if "x" is dynamic.
       return;
     }
-    if (root is CompoundAssignmentExpression) {
-      if (root.readType?.isDynamic ?? false) {
-        // An assignment expression can only be a dynamic call if it is a
-        // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
-        // dynamic we should lint.
-        rule.reportLint(root);
-      }
-    }
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
     _lintPrefixOrPostfixExpression(node, node.operand);
   }
 
@@ -260,16 +235,48 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    if (node.operator.type == TokenType.BANG) {
-      // x! is not a dynamic call, even if "x" is dynamic.
-      return;
-    }
+  void visitPrefixExpression(PrefixExpression node) {
     _lintPrefixOrPostfixExpression(node, node.operand);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _lintIfDynamic(node.realTarget);
+  }
+
+  bool _lintIfDynamic(Expression? node) {
+    if (node?.staticType?.isDynamic ?? false) {
+      rule.reportLint(node);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void _lintIfDynamicOrFunction(Expression node, {DartType? staticType}) {
+    staticType ??= node.staticType;
+    if (staticType == null) {
+      return;
+    }
+    if (staticType.isDynamic) {
+      rule.reportLint(node);
+    }
+    if (staticType.isDartCoreFunction) {
+      rule.reportLint(node);
+    }
+  }
+
+  void _lintPrefixOrPostfixExpression(Expression root, Expression operand) {
+    if (_lintIfDynamic(operand)) {
+      return;
+    }
+    if (root is CompoundAssignmentExpression) {
+      if (root.readType?.isDynamic ?? false) {
+        // An assignment expression can only be a dynamic call if it is a
+        // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
+        // dynamic we should lint.
+        rule.reportLint(root);
+      }
+    }
   }
 }

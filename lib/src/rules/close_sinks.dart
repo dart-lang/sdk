@@ -61,12 +61,21 @@ bool _isSink(DartType type) => type.implementsInterface('Sink', 'dart.core');
 bool _isSocket(DartType type) => type.implementsInterface('Socket', 'dart.io');
 
 class CloseSinks extends LintRule {
+  static const LintCode code = LintCode(
+      'close_sinks', "Unclosed instance of 'Sink'.",
+      correctionMessage:
+          "Try invoking 'close' in the function in which the 'Sink' was "
+          'created.');
+
   CloseSinks()
       : super(
             name: 'close_sinks',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

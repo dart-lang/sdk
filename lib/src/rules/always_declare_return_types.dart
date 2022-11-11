@@ -45,12 +45,19 @@ typedef predicate = bool Function(Object o);
 ''';
 
 class AlwaysDeclareReturnTypes extends LintRule {
+  static const LintCode code = LintCode(
+      'always_declare_return_types', 'Missing return type on method.',
+      correctionMessage: 'Try adding a return type.');
+
   AlwaysDeclareReturnTypes()
       : super(
             name: 'always_declare_return_types',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

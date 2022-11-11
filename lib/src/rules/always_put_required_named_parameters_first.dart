@@ -35,12 +35,22 @@ m({b, c, @required a}) ;
 ''';
 
 class AlwaysPutRequiredNamedParametersFirst extends LintRule {
+  static const LintCode code = LintCode(
+      'always_put_required_named_parameters_first',
+      'Required named parameters should be before optional named parameters.',
+      correctionMessage:
+          'Try moving the required named parameter to be before any optional '
+          'named parameters.');
+
   AlwaysPutRequiredNamedParametersFirst()
       : super(
             name: 'always_put_required_named_parameters_first',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

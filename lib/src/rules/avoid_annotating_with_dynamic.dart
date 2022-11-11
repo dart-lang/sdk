@@ -36,12 +36,19 @@ lookUpOrDefault(String name, Map map, defaultValue) {
 ''';
 
 class AvoidAnnotatingWithDynamic extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_annotating_with_dynamic', "Unnecessary 'dynamic' type annotation.",
+      correctionMessage: "Try removing the type 'dynamic'.");
+
   AvoidAnnotatingWithDynamic()
       : super(
             name: 'avoid_annotating_with_dynamic',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

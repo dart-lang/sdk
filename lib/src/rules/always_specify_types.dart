@@ -59,6 +59,10 @@ main() {
 ''';
 
 class AlwaysSpecifyTypes extends LintRule {
+  static const LintCode code = LintCode(
+      'always_specify_types', 'Missing type annotation.',
+      correctionMessage: 'Try adding a type annotation.');
+
   AlwaysSpecifyTypes()
       : super(
             name: 'always_specify_types',
@@ -69,6 +73,9 @@ class AlwaysSpecifyTypes extends LintRule {
   @override
   List<String> get incompatibleRules =>
       const ['avoid_types_on_closure_parameters', 'omit_local_variable_types'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

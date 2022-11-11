@@ -47,11 +47,14 @@ HasScrollDirection scrollable = renderObject as dynamic;
 
 
 **DEPRECATED:** This advice is no longer recommended.
- 
+
 The rule will be removed in a future Linter release.
 ''';
 
 class AvoidAs extends LintRule {
+  static const LintCode code = LintCode('avoid_as', "Unnecessary use of 'as'.",
+      correctionMessage: "Try adding an explicit type check ('is').");
+
   AvoidAs()
       : super(
           name: 'avoid_as',
@@ -60,6 +63,9 @@ class AvoidAs extends LintRule {
           group: Group.style,
           maturity: Maturity.deprecated,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

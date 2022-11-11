@@ -16,12 +16,19 @@ Sorting list of pub dependencies makes maintenance easier.
 ''';
 
 class SortPubDependencies extends LintRule {
+  static const LintCode code = LintCode(
+      'sort_pub_dependencies', 'Unsorted dependencies.',
+      correctionMessage: 'Try sorting the dependencies.');
+
   SortPubDependencies()
       : super(
             name: 'sort_pub_dependencies',
             description: _desc,
             details: _details,
             group: Group.pub);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   PubspecVisitor getPubspecVisitor() => Visitor(this);
@@ -38,12 +45,12 @@ class Visitor extends PubspecVisitor<void> {
   }
 
   @override
-  void visitPackageDevDependencies(PSDependencyList dependencies) {
+  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
+  void visitPackageDevDependencies(PSDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 

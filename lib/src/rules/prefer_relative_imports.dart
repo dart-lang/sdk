@@ -36,12 +36,19 @@ import 'package:my_package/bar.dart';
 ''';
 
 class PreferRelativeImports extends LintRule {
+  static const LintCode code = LintCode('prefer_relative_imports',
+      "Use relative imports for files in the 'lib' directory.",
+      correctionMessage: 'Try converting the URI to a relative URI.');
+
   PreferRelativeImports()
       : super(
             name: 'prefer_relative_imports',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
