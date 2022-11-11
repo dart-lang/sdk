@@ -3192,18 +3192,6 @@ DuplicatedDeclarationUse:
         class C {}
       lib2.dart: |
         class C {}
-    - main.dart: |
-        class C {
-          method() {}
-          method() {}
-        }
-        main() => new C().method();
-    - main.dart: |
-        class C {
-          method() {}
-          method() {}
-        }
-        var f = new C().method();
 
 DuplicatedNamePreviouslyUsed:
   problemMessage: "Can't declare '#name' because it was already used in this scope."

@@ -195,9 +195,23 @@ library /*isNonNullableByDefault*/;
 //
 // class A<T> {
 //       ^
-// pkg/front_end/testcases/general/issue41842.dart:21:38: Context: 'A.>' is defined here.
-//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
-//                                      ^
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:24:7: Error: The non-abstract class 'B' is missing implementations for these members:
+//  - A.>
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class B<T> extends A<T> {
+//       ^
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
 //
 // pkg/front_end/testcases/general/issue41842.dart:31:9: Error: A constructor invocation can't have type arguments after the constructor name.
 // Try removing the type arguments or placing them after the class name.
@@ -259,6 +273,37 @@ static method main() → void {
 }
 
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue41842_lib.dart:7:7: Error: The non-abstract class 'Foo' is missing implementations for these members:
+//  - A.>
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Foo<T> extends A<T> {
+//       ^^^
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842_lib.dart:13:7: Error: The non-abstract class 'Bar' is missing implementations for these members:
+//  - A.>
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Bar<T> extends A<T> {
+//       ^^^
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
 import self as iss;
 import "dart:core" as core;
 import "issue41842.dart" as self;

@@ -72,6 +72,41 @@ library /*isNonNullableByDefault*/;
 //   int get implementedDuplicate2 => 42;
 //           ^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:40:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void superDuplicate2() {}
+//        ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:9:11: Context: This is the inherited member.
+//   int get superDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:45:11: Error: Can't declare a member that conflicts with an inherited one.
+//   int get extendedDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:13:8: Context: This is the inherited member.
+//   void extendedDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:54:11: Error: Can't declare a member that conflicts with an inherited one.
+//   int get mixedInDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:24:8: Context: This is the inherited member.
+//   void mixedInDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:58:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void interfaceDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:31:11: Context: This is the inherited member.
+//   int get interfaceDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:63:11: Error: Can't declare a member that conflicts with an inherited one.
+//   int get implementedDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:35:8: Context: This is the inherited member.
+//   void implementedDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
