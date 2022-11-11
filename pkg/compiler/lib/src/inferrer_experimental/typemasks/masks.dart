@@ -45,6 +45,8 @@ class CommonMasks with AbstractValueDomain {
   CommonElements get commonElements => _closedWorld.commonElements;
   DartTypes get dartTypes => _closedWorld.dartTypes;
 
+  final Map<TypeMask, Map<TypeMask, TypeMask>> _intersectionCache = {};
+
   /// Cache of [FlatTypeMask]s grouped by the possible values of the
   /// `FlatTypeMask.flags` property.
   final List<Map<ClassEntity, TypeMask>?> _canonicalizedTypeMasks = List.filled(

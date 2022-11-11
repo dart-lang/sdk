@@ -436,6 +436,11 @@ class FlatTypeMask extends TypeMask {
 
   @override
   TypeMask intersection(TypeMask other, CommonMasks domain) {
+    return (domain._intersectionCache[this] ??= {})[other] ??=
+        _intersection(other, domain);
+  }
+
+  TypeMask _intersection(TypeMask other, CommonMasks domain) {
     if (other is! FlatTypeMask) return other.intersection(this, domain);
     assert(TypeMask.assertIsNormalized(this, domain._closedWorld));
     assert(TypeMask.assertIsNormalized(other, domain._closedWorld));
