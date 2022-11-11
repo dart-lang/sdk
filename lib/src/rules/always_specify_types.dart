@@ -13,7 +13,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Specify type annotations.';
 
 const _details = r'''
-From the [flutter style guide](https://flutter.dev/style-guide/):
+From the [style guide for the flutter repo](https://flutter.dev/style-guide/):
 
 **DO** specify type annotations.
 
