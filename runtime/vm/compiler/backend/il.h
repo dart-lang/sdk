@@ -677,7 +677,7 @@ struct TargetInfo : public CidRange {
         target(target_arg),
         count(count_arg),
         exactness(exactness) {
-    ASSERT(target->IsZoneHandle());
+    DEBUG_ASSERT(target->IsNotTemporaryScopedHandle());
   }
   const Function* target;
   intptr_t count;
@@ -4275,7 +4275,7 @@ class TemplateDartCall : public VariadicDefinition {
         type_args_len_(type_args_len),
         argument_names_(argument_names),
         token_pos_(source.token_pos) {
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
+    DEBUG_ASSERT(argument_names.IsNotTemporaryScopedHandle());
     ASSERT(InputCount() >= kExtraInputs);
   }
 
@@ -4412,9 +4412,9 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
         entry_kind_(Code::EntryKind::kNormal),
         receiver_is_not_smi_(false),
         is_call_on_this_(false) {
-    ASSERT(function_name.IsNotTemporaryScopedHandle());
-    ASSERT(interface_target.IsNotTemporaryScopedHandle());
-    ASSERT(tearoff_interface_target.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function_name.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(interface_target.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(tearoff_interface_target.IsNotTemporaryScopedHandle());
     ASSERT(InputCount() > 0);
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
@@ -4750,7 +4750,7 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
         interface_target_(interface_target),
         selector_(selector) {
     ASSERT(selector != nullptr);
-    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(interface_target_.IsNotTemporaryScopedHandle());
     ASSERT(InputCount() > 0);
   }
 
@@ -5182,7 +5182,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
-    ASSERT(function.IsZoneHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
     ASSERT(!function.IsNull());
   }
 
@@ -5207,7 +5207,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
-    ASSERT(function.IsZoneHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
     ASSERT(!function.IsNull());
   }
 
@@ -5560,8 +5560,8 @@ class NativeCallInstr : public TemplateDartCall<0> {
         function_(function),
         token_pos_(source.token_pos),
         link_lazily_(link_lazily) {
-    ASSERT(name.IsZoneHandle());
-    ASSERT(function.IsZoneHandle());
+    DEBUG_ASSERT(name.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   }
 
   DECLARE_INSTRUCTION(NativeCall)
@@ -6184,7 +6184,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
       : TemplateDefinition(source),
         field_(field),
         token_pos_(source.token_pos) {
-    ASSERT(field.IsZoneHandle());
+    DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
     SetInputAt(kValuePos, value);
     CheckField(field);
   }
@@ -6828,7 +6828,7 @@ class AllocateObjectInstr : public AllocationInstr {
         has_type_arguments_(type_arguments != nullptr),
         type_arguments_slot_(nullptr),
         type_arguments_(type_arguments) {
-    ASSERT(cls.IsZoneHandle());
+    DEBUG_ASSERT(cls.IsNotTemporaryScopedHandle());
     ASSERT(!cls.IsNull());
     ASSERT((cls.NumTypeArguments() > 0) == has_type_arguments_);
     if (has_type_arguments_) {
@@ -7492,7 +7492,7 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
       : TemplateDefinition(source, deopt_id),
         token_pos_(source.token_pos),
         type_(type) {
-    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
+    DEBUG_ASSERT(type.IsNotTemporaryScopedHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
   }
@@ -7542,9 +7542,8 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
         token_pos_(source.token_pos),
         instantiator_class_(instantiator_class),
         function_(function) {
-    ASSERT(instantiator_class.IsReadOnlyHandle() ||
-           instantiator_class.IsZoneHandle());
-    ASSERT(function.IsReadOnlyHandle() || function.IsZoneHandle());
+    DEBUG_ASSERT(instantiator_class.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
     SetInputAt(2, type_arguments);
@@ -9806,7 +9805,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
         token_pos_(source.token_pos),
         function_name_(function_name),
         exception_type_(exception_type) {
-    ASSERT(function_name.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(function_name.IsSymbol());
     SetInputAt(0, value);
   }

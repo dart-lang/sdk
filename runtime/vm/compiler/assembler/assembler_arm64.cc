@@ -482,7 +482,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  ASSERT(IsNotTemporaryScopedHandle(object));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
 }
@@ -1255,7 +1255,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          MemoryOrder memory_order) {
   RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
   ASSERT(IsOriginalObject(value));
-  ASSERT(IsNotTemporaryScopedHandle(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   if (IsSameObject(compiler::NullObject(), value)) {
     str(NULL_REG, dest);
   } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
@@ -1273,7 +1273,7 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   // stlr does not feature an address operand.
   RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
   ASSERT(IsOriginalObject(value));
-  ASSERT(IsNotTemporaryScopedHandle(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
   if (IsSameObject(compiler::NullObject(), value)) {
     str(NULL_REG, dest, kObjectBytes);

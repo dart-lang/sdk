@@ -62,7 +62,7 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
 CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
                                              const Function& function,
                                              const char** error) {
-  ASSERT(function.IsZoneHandle());
+  DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   const auto& c_signature =
       FunctionType::ZoneHandle(zone, function.FfiCSignature());
   const auto native_function_signature =
@@ -632,7 +632,7 @@ class CallbackArgumentTranslator : public ValueObject {
 CallbackMarshaller* CallbackMarshaller::FromFunction(Zone* zone,
                                                      const Function& function,
                                                      const char** error) {
-  ASSERT(function.IsZoneHandle());
+  DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   const auto& c_signature =
       FunctionType::ZoneHandle(zone, function.FfiCSignature());
   const auto native_function_signature =

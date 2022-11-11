@@ -239,7 +239,7 @@ Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
 }
 
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {
-  ASSERT(value.IsNotTemporaryScopedHandle());
+  DEBUG_ASSERT(value.IsNotTemporaryScopedHandle());
   ConstantInstr* constant = new (Z) ConstantInstr(value);
   Push(constant);
   return Fragment(constant);
@@ -501,7 +501,7 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
   if (CompilerState::Current().should_clone_fields() && field.IsOriginal()) {
     return Field::ZoneHandle(zone, field.CloneFromOriginal());
   } else {
-    ASSERT(field.IsZoneHandle());
+    DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
     return field;
   }
 }

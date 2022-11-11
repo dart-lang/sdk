@@ -2867,6 +2867,11 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(WriteBarrierUpdateVisitor);
 };
 
+#if defined(DEBUG)
+bool Object::IsZoneHandle() const {
+  return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
+}
+
 bool Object::IsReadOnlyHandle() const {
   return Dart::IsReadOnlyHandle(reinterpret_cast<uword>(this));
 }
@@ -2874,6 +2879,7 @@ bool Object::IsReadOnlyHandle() const {
 bool Object::IsNotTemporaryScopedHandle() const {
   return (IsZoneHandle() || IsReadOnlyHandle());
 }
+#endif
 
 ObjectPtr Object::Clone(const Object& orig,
                         Heap::Space space,
@@ -20462,8 +20468,8 @@ AbstractTypePtr AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
   const intptr_t len = trail->length();
   ASSERT((len % 2) == 0);
   for (intptr_t i = 0; i < len; i += 2) {
-    ASSERT(trail->At(i).IsZoneHandle());
-    ASSERT(trail->At(i + 1).IsZoneHandle());
+    DEBUG_ASSERT(trail->At(i).IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(trail->At(i + 1).IsNotTemporaryScopedHandle());
     if (trail->At(i).ptr() == this->ptr()) {
       ASSERT(!trail->At(i + 1).IsNull());
       return trail->At(i + 1).ptr();

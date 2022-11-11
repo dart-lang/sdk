@@ -1971,7 +1971,7 @@ void Assembler::LoadObject(Register dst,
       !movable_referent) {
     movl(dst, Immediate(target::ToRawPointer(object)));
   } else {
-    ASSERT(IsNotTemporaryScopedHandle(object));
+    DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
     ASSERT(IsInOldSpace(object));
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0xB8 + dst);
@@ -1995,7 +1995,7 @@ void Assembler::PushObject(const Object& object) {
   if (target::CanEmbedAsRawPointerInGeneratedCode(object)) {
     pushl(Immediate(target::ToRawPointer(object)));
   } else {
-    ASSERT(IsNotTemporaryScopedHandle(object));
+    DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
     ASSERT(IsInOldSpace(object));
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0x68);
@@ -2008,7 +2008,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   if (target::CanEmbedAsRawPointerInGeneratedCode(object)) {
     cmpl(reg, Immediate(target::ToRawPointer(object)));
   } else {
-    ASSERT(IsNotTemporaryScopedHandle(object));
+    DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
     ASSERT(IsInOldSpace(object));
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     if (reg == EAX) {
@@ -2757,7 +2757,7 @@ void Assembler::CopyMemoryWords(Register src,
 }
 
 void Assembler::PushCodeObject() {
-  ASSERT(IsNotTemporaryScopedHandle(code_));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(code_));
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x68);
   buffer_.EmitObject(code_);

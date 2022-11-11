@@ -931,7 +931,7 @@ void FlowGraphCompiler::AddNullCheck(const InstructionSource& source,
 
 void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
                                                 Code::EntryKind entry_kind) {
-  ASSERT(function.IsZoneHandle());
+  DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
                                ? Code::kUncheckedEntry
                                : Code::kDefaultEntry;
@@ -941,7 +941,7 @@ void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
 }
 
 void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
-  ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
+  DEBUG_ASSERT(stub_code.IsNotTemporaryScopedHandle());
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kPcRelativeCall, Code::kDefaultEntry, assembler()->CodeSize(),
@@ -949,7 +949,7 @@ void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
 }
 
 void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
-  ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
+  DEBUG_ASSERT(stub_code.IsNotTemporaryScopedHandle());
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kPcRelativeTailCall, Code::kDefaultEntry, assembler()->CodeSize(),
@@ -958,7 +958,7 @@ void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
 
 void FlowGraphCompiler::AddPcRelativeTTSCallTypeTarget(
     const AbstractType& dst_type) {
-  ASSERT(dst_type.IsZoneHandle() || dst_type.IsReadOnlyHandle());
+  DEBUG_ASSERT(dst_type.IsNotTemporaryScopedHandle());
   ASSERT(!dst_type.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kPcRelativeTTSCall, Code::kDefaultEntry, assembler()->CodeSize(),
@@ -967,7 +967,7 @@ void FlowGraphCompiler::AddPcRelativeTTSCallTypeTarget(
 
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
                                             Code::EntryKind entry_kind) {
-  ASSERT(func.IsZoneHandle());
+  DEBUG_ASSERT(func.IsNotTemporaryScopedHandle());
   const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
                                ? Code::kUncheckedEntry
                                : Code::kDefaultEntry;
@@ -977,7 +977,7 @@ void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
 }
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
-  ASSERT(code.IsZoneHandle() || code.IsReadOnlyHandle());
+  DEBUG_ASSERT(code.IsNotTemporaryScopedHandle());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kCallViaCode, Code::kDefaultEntry, assembler()->CodeSize(), nullptr,
       &code, nullptr));

@@ -69,8 +69,8 @@ class InliningNode : public ZoneAllocated {
         children_head(NULL),
         children_tail(NULL),
         children_next(NULL) {
-    RELEASE_ASSERT(!function.IsNull());
-    RELEASE_ASSERT(function.IsNotTemporaryScopedHandle());
+    ASSERT(!function.IsNull());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   }
 
   void AppendChild(InliningNode* child) {

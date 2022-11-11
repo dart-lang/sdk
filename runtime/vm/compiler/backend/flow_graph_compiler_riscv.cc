@@ -216,7 +216,7 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
     intptr_t type_arguments_field_offset) {
   // No frame has been setup here.
   ASSERT(!__ constant_pool_allowed());
-  ASSERT(extracted_method.IsZoneHandle());
+  DEBUG_ASSERT(extracted_method.IsNotTemporaryScopedHandle());
 
   const Code& build_method_extractor =
       Code::ZoneHandle(extracted_method.IsGeneric()

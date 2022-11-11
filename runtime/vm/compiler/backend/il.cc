@@ -493,7 +493,7 @@ intptr_t Boxing::BoxCid(Representation rep) {
 
 #if defined(DEBUG)
 void Instruction::CheckField(const Field& field) const {
-  ASSERT(field.IsZoneHandle());
+  DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
   ASSERT(!Compiler::IsBackgroundCompilation() || !field.IsOriginal());
 }
 #endif  // DEBUG
@@ -5208,13 +5208,13 @@ bool CallTargets::HasSingleTarget() const {
 
 const Function& CallTargets::FirstTarget() const {
   ASSERT(length() != 0);
-  ASSERT(TargetAt(0)->target->IsZoneHandle());
+  DEBUG_ASSERT(TargetAt(0)->target->IsNotTemporaryScopedHandle());
   return *TargetAt(0)->target;
 }
 
 const Function& CallTargets::MostPopularTarget() const {
   ASSERT(length() != 0);
-  ASSERT(TargetAt(0)->target->IsZoneHandle());
+  DEBUG_ASSERT(TargetAt(0)->target->IsNotTemporaryScopedHandle());
   for (int i = 1; i < length(); i++) {
     ASSERT(TargetAt(i)->count <= TargetAt(0)->count);
   }
