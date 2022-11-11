@@ -1548,7 +1548,7 @@ CompileTimeErrorCode:
       0: the name of the member
   CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
     sharedName: CLASS_INSTANTIATION_ACCESS_TO_MEMBER
-    problemMessage: "The class '{0} doesn't have a constructor named '{1}."
+    problemMessage: "The class '{0}' doesn't have a constructor named '{1}'."
     correctionMessage: "Try invoking a different constructor, or defining a constructor named '{1}'."
     comment: |-
       Parameters:

@@ -383,7 +383,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER = CompileTimeErrorCode(
     'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    "The class '{0} doesn't have a constructor named '{1}.",
+    "The class '{0}' doesn't have a constructor named '{1}'.",
     correctionMessage:
         "Try invoking a different constructor, or defining a constructor named "
         "'{1}'.",
