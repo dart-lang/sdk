@@ -182,6 +182,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final JSTypeRep _typeRep;
 
   bool _superAllowed = true;
+  bool _optimizeNonVirtualFieldAccess = true;
 
   final _superHelpers = <String, js_ast.Method>{};
 
@@ -1986,7 +1987,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
       fn = _emitNativeFunctionBody(member);
     } else {
-      fn = _emitFunction(member.function, member.name.text);
+      fn = _withMethodDeclarationContext(
+          member, () => _emitFunction(member.function, member.name.text));
     }
 
     var method = js_ast.Method(_declareMemberName(member), fn,
@@ -3592,6 +3594,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _superAllowed = false;
     var result = action();
     _superAllowed = savedSuperAllowed;
+    return result;
+  }
+
+  /// Executes [action] in context of the current [member].
+  ///
+  /// Saves and restores important context information about the member
+  /// that can be used to generate code inside the body of the member.
+  T _withMethodDeclarationContext<T>(Procedure member, T Function() action) {
+    // Mixin applications require using 'super' in calls to members of
+    // the super class. Store this information to disable non-virtual
+    // super field access optimization when compiling the member body.
+    var savedOptimizeNonVirtualFieldAccess = _optimizeNonVirtualFieldAccess;
+    _optimizeNonVirtualFieldAccess =
+        member.stubKind != ProcedureStubKind.ConcreteMixinStub;
+    var result = action();
+    _optimizeNonVirtualFieldAccess = savedOptimizeNonVirtualFieldAccess;
     return result;
   }
 
@@ -5392,7 +5410,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// [jsTarget].[jsName], replacing `super` if it is not allowed in scope.
   js_ast.PropertyAccess _emitSuperTarget(Member member, {bool setter = false}) {
     var jsName = _emitMemberName(member.name.text, member: member);
-    if (member is Field && !_virtualFields.isVirtual(member)) {
+    // Optimize access to non-virtual fields, if allowed in the current context.
+    if (_optimizeNonVirtualFieldAccess &&
+        member is Field &&
+        !_virtualFields.isVirtual(member)) {
       return js_ast.PropertyAccess(js_ast.This(), jsName);
     }
     if (_superAllowed) return js_ast.PropertyAccess(js_ast.Super(), jsName);
