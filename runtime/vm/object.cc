@@ -25209,7 +25209,7 @@ LinkedHashSetPtr LinkedHashSet::New(intptr_t class_id,
                                     Heap::Space space) {
   ASSERT(class_id == kLinkedHashSetCid ||
          class_id == kImmutableLinkedHashSetCid);
-  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_set_class() !=
          Class::null());
   LinkedHashSet& result =
       LinkedHashSet::Handle(LinkedHashSet::NewUninitialized(class_id, space));
@@ -25236,7 +25236,7 @@ LinkedHashSetPtr LinkedHashSet::NewDefault(intptr_t class_id,
 
 LinkedHashSetPtr LinkedHashSet::NewUninitialized(intptr_t class_id,
                                                  Heap::Space space) {
-  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_set_class() !=
          Class::null());
   LinkedHashSet& result = LinkedHashSet::Handle();
   {
@@ -25262,7 +25262,7 @@ ImmutableLinkedHashSetPtr ImmutableLinkedHashSet::NewUninitialized(
     Heap::Space space) {
   ASSERT(IsolateGroup::Current()
              ->object_store()
-             ->immutable_linked_hash_map_class() != Class::null());
+             ->immutable_linked_hash_set_class() != Class::null());
   return static_cast<ImmutableLinkedHashSetPtr>(
       LinkedHashSet::NewUninitialized(kClassId, space));
 }
