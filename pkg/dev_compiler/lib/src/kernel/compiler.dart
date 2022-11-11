@@ -6113,8 +6113,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitOperationForJsBuiltIn(JsBuiltin builtin) {
     switch (builtin) {
       case JsBuiltin.dartClosureConstructor:
-        // TODO(48585) How to get constructor for a Dart Function?
-        return _emitTopLevelName(_coreTypes.functionClass);
+        // TODO(48585) Is this safe or will it conflict with functions that
+        // enter the program through JS Interop?
+        return js.call('Function');
       case JsBuiltin.dartObjectConstructor:
         return _emitTopLevelName(_coreTypes.objectClass);
       default:

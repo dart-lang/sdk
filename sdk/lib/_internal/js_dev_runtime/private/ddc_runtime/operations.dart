@@ -52,7 +52,14 @@ bind(obj, name, method) {
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
-  JS('', '#[#] = #', f, _runtimeType, getMethodType(getType(obj), name));
+  JS(
+      '',
+      '#[#] = #',
+      f,
+      JS_GET_FLAG('NEW_RUNTIME_TYPES')
+          ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
+          : _runtimeType,
+      getMethodType(getType(obj), name));
   return f;
 }
 

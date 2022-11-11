@@ -299,7 +299,18 @@ external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
 /// Returns the interceptor for [object].
 ///
 // TODO(nshahan) Replace calls at compile time?
-Object getInterceptor(object) => object;
+Object getInterceptor(obj) {
+  var classRef;
+  if (obj == null) {
+    classRef = JS_CLASS_REF(Null);
+  } else if (JS<String>('!', 'typeof #', obj) == 'function') {
+    var signature = JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+    // Dart functions are always tagged with a signature.
+    if (signature != null) classRef = JS_CLASS_REF(Function);
+  }
+  if (classRef == null) throw 'Unknown interceptor for object: ($obj)';
+  return JS<Object>('!', '#.prototype', classRef);
+}
 
 /// Returns the Rti object for the type for JavaScript arrays via JS-interop.
 ///
