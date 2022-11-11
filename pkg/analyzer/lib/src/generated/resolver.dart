@@ -1575,6 +1575,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _insertImplicitCallReference(
         insertGenericFunctionInstantiation(node, contextType: contextType),
         contextType: contextType);
+
+    var expression = node.expression;
+    var staticType = node.staticType;
+    if (staticType != null && expression is SimpleIdentifier) {
+      var simpleIdentifier = expression as SimpleIdentifier;
+      var element = simpleIdentifier.staticElement;
+      if (element is PromotableElement &&
+          !expression.typeOrThrow.isDartCoreNull &&
+          typeSystem.isNullable(element.type) &&
+          typeSystem.isNonNullable(staticType) &&
+          flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
+        errorReporter.reportErrorForNode(
+          HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
+          simpleIdentifier,
+          [simpleIdentifier.name],
+        );
+      }
+    }
   }
 
   @override

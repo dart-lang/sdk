@@ -19897,6 +19897,13 @@ HintCode:
     comment: |-
       No parameters.
     hasPublishedDocs: false
+  CAST_FROM_NULLABLE_ALWAYS_FAILS:
+    problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
+    correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the unassigned variable
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-

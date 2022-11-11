@@ -1279,6 +1279,8 @@ HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.CAST_FROM_NULL_ALWAYS_FAILS:
   status: needsEvaluation
+HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
+  status: needsEvaluation
 HintCode.DEAD_CODE:
   status: hasFix
 HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
