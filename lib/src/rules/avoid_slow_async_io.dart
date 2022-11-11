@@ -50,13 +50,13 @@ Future<Null> someFunction() async {
 
 ''';
 
-const List<String> _fileMethodNames = <String>[
-  'lastModified',
+const List<String> _dirMethodNames = <String>[
   'exists',
   'stat',
 ];
 
-const List<String> _dirMethodNames = <String>[
+const List<String> _fileMethodNames = <String>[
+  'lastModified',
   'exists',
   'stat',
 ];
@@ -69,12 +69,19 @@ const List<String> _fileSystemEntityMethodNames = <String>[
 ];
 
 class AvoidSlowAsyncIo extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_slow_async_io', "Use of an async 'dart:io' method.",
+      correctionMessage: 'Try using the synchronous version of the method.');
+
   AvoidSlowAsyncIo()
       : super(
             name: 'avoid_slow_async_io',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -102,17 +109,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkFileMethods(MethodInvocation node, DartType? type) {
-    if (type.extendsClass('File', 'dart.io')) {
-      if (_fileMethodNames.contains(node.methodName.name)) {
+  void _checkDirectoryMethods(MethodInvocation node, DartType? type) {
+    if (type.extendsClass('Directory', 'dart.io')) {
+      if (_dirMethodNames.contains(node.methodName.name)) {
         rule.reportLint(node);
       }
     }
   }
 
-  void _checkDirectoryMethods(MethodInvocation node, DartType? type) {
-    if (type.extendsClass('Directory', 'dart.io')) {
-      if (_dirMethodNames.contains(node.methodName.name)) {
+  void _checkFileMethods(MethodInvocation node, DartType? type) {
+    if (type.extendsClass('File', 'dart.io')) {
+      if (_fileMethodNames.contains(node.methodName.name)) {
         rule.reportLint(node);
       }
     }

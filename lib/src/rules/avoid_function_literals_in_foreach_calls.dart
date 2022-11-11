@@ -16,9 +16,9 @@ const _details = r'''
 **AVOID** using `forEach` with a function literal.
 
 The `for` loop enables a developer to be clear and explicit as to their intent.
-A return in the body of the `for` loop returns from the body of the function, 
-where as a return in the body of the `forEach` closure only returns a value 
-for that iteration of the `forEach`. The body of a `for` loop can contain 
+A return in the body of the `for` loop returns from the body of the function,
+where as a return in the body of the `forEach` closure only returns a value
+for that iteration of the `forEach`. The body of a `for` loop can contain
 `await`s, while the closure body of a `forEach` cannot.
 
 **BAD:**
@@ -60,7 +60,7 @@ bool _isNonNullableIterable(DartType? type) =>
 class AvoidFunctionLiteralInForeachMethod extends LintRule {
   static const LintCode code = LintCode(
       'avoid_function_literals_in_foreach_calls',
-      "Function literals should not be passed to 'forEach'.",
+      "Function literals shouldn't be passed to 'forEach'.",
       correctionMessage: "Try using a 'for' loop.");
 
   AvoidFunctionLiteralInForeachMethod()

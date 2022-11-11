@@ -31,12 +31,21 @@ condition && boolExpression
 ''';
 
 class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_bool_literals_in_conditional_expressions',
+      "Conditional expressions with a 'bool' literal can be simplified.",
+      correctionMessage:
+          "Try rewriting the expression to use either '&&' or '||'.");
+
   AvoidBoolLiteralsInConditionalExpressions()
       : super(
             name: 'avoid_bool_literals_in_conditional_expressions',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

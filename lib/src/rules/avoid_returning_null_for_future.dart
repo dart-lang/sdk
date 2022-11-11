@@ -20,12 +20,20 @@ developer simply forgot to put an `async` keyword on the function.
 ''';
 
 class AvoidReturningNullForFuture extends LintRule {
+  static const LintCode code = LintCode('avoid_returning_null_for_future',
+      "Don't return 'null' when the return type is 'Future'.",
+      correctionMessage:
+          "Try making the function 'async', or returning 'Future.value(null)'.");
+
   AvoidReturningNullForFuture()
       : super(
             name: 'avoid_returning_null_for_future',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

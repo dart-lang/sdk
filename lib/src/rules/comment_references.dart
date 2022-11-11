@@ -33,9 +33,9 @@ On the other hand, assuming `outOfScopeId` is out of scope:
 bool isOutOfRange(int value) { ... }
 ```
 
-Note that the square bracket comment format is designed to allow 
-comments to refer to declarations using a fairly natural format 
-but does not allow *arbitrary expressions*.  In particular, code 
+Note that the square bracket comment format is designed to allow
+comments to refer to declarations using a fairly natural format
+but does not allow *arbitrary expressions*.  In particular, code
 references within square brackets can consist of either
 
 - a single identifier where the identifier is any identifier in scope for the comment (see the spec for what is in scope in doc comments),
@@ -46,12 +46,19 @@ references within square brackets can consist of either
 ''';
 
 class CommentReferences extends LintRule {
+  static const LintCode code = LintCode(
+      'comment_references', "The referenced name isn't visible in scope.",
+      correctionMessage: 'Try adding an import for the referenced name.');
+
   CommentReferences()
       : super(
             name: 'comment_references',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

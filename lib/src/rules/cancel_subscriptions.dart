@@ -61,12 +61,20 @@ bool _isSubscription(DartType type) =>
     type.implementsInterface('StreamSubscription', 'dart.async');
 
 class CancelSubscriptions extends LintRule {
+  static const LintCode code = LintCode(
+      'cancel_subscriptions', "Uncancelled instance of 'StreamSubscription'.",
+      correctionMessage: "Try invoking 'cancel' in the function in which the "
+          "'StreamSubscription' was created.");
+
   CancelSubscriptions()
       : super(
             name: 'cancel_subscriptions',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

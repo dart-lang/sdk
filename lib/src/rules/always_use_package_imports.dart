@@ -49,12 +49,19 @@ import '../lib/baz.dart';
 ''';
 
 class AlwaysUsePackageImports extends LintRule {
+  static const LintCode code = LintCode('always_use_package_imports',
+      "Use 'package:' imports for files in the 'lib' directory.",
+      correctionMessage: "Try converting the URI to a 'package:' URI.");
+
   AlwaysUsePackageImports()
       : super(
             name: 'always_use_package_imports',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -46,12 +46,19 @@ while (condition) i += 1;
 ''';
 
 class AlwaysPutControlBodyOnNewLine extends LintRule {
+  static const LintCode code = LintCode('always_put_control_body_on_new_line',
+      'Statement should be on a separate line.',
+      correctionMessage: 'Try moving the statement to a new line.');
+
   AlwaysPutControlBodyOnNewLine()
       : super(
             name: 'always_put_control_body_on_new_line',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
