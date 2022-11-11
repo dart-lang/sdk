@@ -29,7 +29,7 @@ might change in ways that could break your code.
 **BAD:**
 ```dart
 // In 'road_runner'
-import 'package:acme/lib/src/internals.dart;
+import 'package:acme/src/internals.dart';
 ```
 
 ''';
