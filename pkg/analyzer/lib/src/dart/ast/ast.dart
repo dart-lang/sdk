@@ -13563,8 +13563,7 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
     SharedMatchContext context,
   ) {
     resolverVisitor.analyzeVariablePattern(
-        matchedType, context, this, declaredElement, type?.typeOrThrow,
-        isFinal: keyword?.keyword == Keyword.FINAL);
+        matchedType, context, this, declaredElement, type?.typeOrThrow);
   }
 
   @override

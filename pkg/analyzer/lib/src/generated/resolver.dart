@@ -1068,6 +1068,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       switchExhaustiveness!.isExhaustive;
 
   @override
+  bool isVariableFinal(PromotableElement element) {
+    return element.isFinal;
+  }
+
+  @override
   bool isVariablePattern(AstNode pattern) => pattern is VariablePattern;
 
   @override

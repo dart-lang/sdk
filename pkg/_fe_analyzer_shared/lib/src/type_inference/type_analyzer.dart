@@ -1064,12 +1064,12 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   Type analyzeVariablePattern(
-      Type matchedType,
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
-      Pattern node,
-      Variable? variable,
-      Type? declaredType,
-      {required bool isFinal}) {
+    Type matchedType,
+    MatchContext<Node, Expression, Pattern, Type, Variable> context,
+    Pattern node,
+    Variable? variable,
+    Type? declaredType,
+  ) {
     Type staticType =
         declaredType ?? variableTypeFromInitializerType(matchedType);
     Node? irrefutableContext = context.irrefutableContext;
@@ -1095,7 +1095,7 @@ mixin TypeAnalyzer<
         // TODO(paulberry): do we need to verify that all instances of a
         // variable are final or all are not final?
         flow?.initialize(variable, matchedType, context.getInitializer(node),
-            isFinal: context.isFinal || isFinal,
+            isFinal: context.isFinal || isVariableFinal(variable),
             isLate: context.isLate,
             isImplicitlyTyped: isImplicitlyTyped);
       }
@@ -1301,6 +1301,9 @@ mixin TypeAnalyzer<
   /// Will only be called if the switch statement or expression lacks a
   /// `default` clause.
   bool isSwitchExhaustive(Node node, Type expressionType);
+
+  /// Returns whether [node] is final.
+  bool isVariableFinal(Variable node);
 
   /// Queries whether [pattern] is a variable pattern.
   bool isVariablePattern(Node pattern);

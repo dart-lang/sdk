@@ -7792,6 +7792,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO: implement handleNoCollectionElement
     throw new UnimplementedError('TODO(scheglov)');
   }
+
+  @override
+  bool isVariableFinal(VariableDeclaration node) {
+    return node.isFinal;
+  }
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].
