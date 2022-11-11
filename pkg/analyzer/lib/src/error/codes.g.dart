@@ -383,7 +383,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER = CompileTimeErrorCode(
     'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    "The class '{0} doesn't have a constructor named '{1}.",
+    "The class '{0}' doesn't have a constructor named '{1}'.",
     correctionMessage:
         "Try invoking a different constructor, or defining a constructor named "
         "'{1}'.",
@@ -1168,6 +1168,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing all except one of the duplicated part directives.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the field
+  static const CompileTimeErrorCode DUPLICATE_RECORD_PATTERN_FIELD =
+      CompileTimeErrorCode(
+    'DUPLICATE_RECORD_PATTERN_FIELD',
+    "The field '{0}' is already matched in this pattern.",
+    correctionMessage: "Try removing the duplicate field.",
   );
 
   ///  Parameters:

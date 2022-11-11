@@ -5417,15 +5417,56 @@ class NullAssertPattern extends Pattern {
   @override
   Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression(
-        "Unimplemented NullAssertPattern.makeCondition");
+    // nullCheckCondition: `matchedExpressionVariable`!
+    Expression nullCheckExpression = inferenceVisitor.engine.forest
+        .createNullCheck(
+            fileOffset,
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, matchedExpressionVariable));
+
+    DartType typeWithoutNullabilityMarkers =
+        matchedExpressionVariable.type.toNonNull();
+
+    // intermediateVariable: `typeWithoutNullabilityMarkers` VAR =
+    //     `nullCheckExpression`;
+    //   ==> `typeWithoutNullabilityMarkers` VAR = `matchedExpressionVariable`!;
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(nullCheckExpression,
+            type: typeWithoutNullabilityMarkers);
+
+    Expression? patternCondition =
+        pattern.makeCondition(intermediateVariable, inferenceVisitor);
+    if (patternCondition == null) {
+      // TODO(cstefantsova): As an optimization of the generated code size and
+      // the number of runtime checks, the null check in this case can be
+      // removed if any variable is initialized via this pattern, and therefore
+      // will have the cast in its initializer expression.
+
+      // return: let `intermediateVariable` in true
+      //   ==> let `typeWithoutNullabilityMarkers` VAR =
+      //       `matchedExpressionVariable`! in
+      //           true
+      return inferenceVisitor.engine.forest.createLet(intermediateVariable,
+          inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, true));
+    } else {
+      // return: let `intermediateVariable` in `patternCondition`
+      //   ==> let `typeWithoutNullabilityMarkers` VAR =
+      //       `matchedExpressionVariable`! in
+      //           `patternCondition`
+      return inferenceVisitor.engine.forest
+          .createLet(intermediateVariable, patternCondition);
+    }
   }
 
   @override
   void createDeclaredVariableInitializers(Expression matchedExpression,
       DartType matchedType, InferenceVisitorBase inferenceVisitor) {
+    DartType matchedTypeWithoutNullabilityMarkers = matchedType.toNonNull();
     pattern.createDeclaredVariableInitializers(
-        matchedExpression, matchedType, inferenceVisitor);
+        inferenceVisitor.engine.forest
+            .createNullCheck(fileOffset, matchedExpression),
+        matchedTypeWithoutNullabilityMarkers,
+        inferenceVisitor);
   }
 
   @override

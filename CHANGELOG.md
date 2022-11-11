@@ -69,7 +69,6 @@
 - Deprecated `RangeError.checkValidIndex` in favor of `IndexError.check`.
 - Deprecated `IndexError` constructor in favor of `IndexError.withLength`
   constructor.
-- `ServerSocket` and `SecureServerSocket` implement `ServerSocketBase`.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [#24644]: https://github.com/dart-lang/sdk/issues/24644

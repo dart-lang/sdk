@@ -2653,6 +2653,18 @@ class _MiniAstErrors
   }
 
   @override
+  void duplicateRecordPatternField({
+    required String name,
+    required covariant RecordPatternField original,
+    required covariant RecordPatternField duplicate,
+  }) {
+    _recordError(
+      'duplicateRecordPatternField(name: $name, '
+      'original: ${original.errorId}, duplicate: ${duplicate.errorId})',
+    );
+  }
+
+  @override
   void inconsistentMatchVar(
       {required Node pattern,
       required Type type,

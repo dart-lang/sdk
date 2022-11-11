@@ -1845,6 +1845,25 @@ main() {
                 'requiredType: B<int>), true, block(), noop)'),
           ]);
         });
+        test('duplicate field name', () {
+          h.addMember('A<int>', 'foo', 'int');
+          h.run([
+            ifCase(
+              expr('A<int>'),
+              objectPattern(
+                requiredType: ObjectPatternRequiredType.type('A<int>'),
+                fields: [
+                  Var('a').pattern().recordField('foo')..errorId = 'ORIGINAL',
+                  Var('b').pattern().recordField('foo')..errorId = 'DUPLICATE',
+                ],
+              ),
+              [],
+            ),
+          ], expectedErrors: {
+            'duplicateRecordPatternField(name: foo, original: ORIGINAL, '
+                'duplicate: DUPLICATE)'
+          });
+        });
       });
 
       group('Irrefutable:', () {
@@ -2134,6 +2153,21 @@ main() {
                   'matchedType: X, requiredType: '
                   '({Object? a, Object? b})), true, block(), noop)'),
             ]);
+          });
+        });
+        test('duplicate field name', () {
+          h.run([
+            ifCase(
+              expr('({int a})'),
+              recordPattern([
+                Var('a').pattern().recordField('a')..errorId = 'ORIGINAL',
+                Var('b').pattern().recordField('a')..errorId = 'DUPLICATE',
+              ]),
+              [],
+            ),
+          ], expectedErrors: {
+            'duplicateRecordPatternField(name: a, original: ORIGINAL, '
+                'duplicate: DUPLICATE)'
           });
         });
       });

@@ -637,10 +637,35 @@ class SourceClassBuilder extends ClassBuilderImpl
         hierarchyBuilder.getNodeFromClass(cls);
     if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled && !isEnum) {
       bool hasEnumSuperinterface = false;
+      const List<String> restrictedNames = ["index", "hashCode", "=="];
+      Map<String, ClassBuilder> restrictedMembersInSuperclasses = {};
+      ClassBuilder? superclassDeclaringConcreteValues;
       List<Supertype> interfaces = classHierarchyNode.superclasses;
       for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
-        if (interfaces[i].classNode == enumClass) {
+        Class interfaceClass = interfaces[i].classNode;
+        if (interfaceClass == enumClass) {
           hasEnumSuperinterface = true;
+        }
+
+        if (!interfaceClass.isEnum &&
+            interfaceClass != objectClass &&
+            interfaceClass != underscoreEnumClass) {
+          ClassHierarchyNode superclassHierarchyNode =
+              hierarchyBuilder.getNodeFromClass(interfaceClass);
+          for (String restrictedMemberName in restrictedNames) {
+            // TODO(johnniwinther): Handle injected members.
+            Builder? member = superclassHierarchyNode.classBuilder.scope
+                .lookupLocalMember(restrictedMemberName, setter: false);
+            if (member is MemberBuilder && !member.isAbstract) {
+              restrictedMembersInSuperclasses[restrictedMemberName] ??=
+                  superclassHierarchyNode.classBuilder;
+            }
+          }
+          Builder? member = superclassHierarchyNode.classBuilder.scope
+              .lookupLocalMember("values", setter: false);
+          if (member is MemberBuilder && !member.isAbstract) {
+            superclassDeclaringConcreteValues ??= member.classBuilder;
+          }
         }
       }
       interfaces = classHierarchyNode.interfaces;
@@ -686,10 +711,18 @@ class SourceClassBuilder extends ClassBuilderImpl
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
+        if (superclassDeclaringConcreteValues != null) {
+          libraryBuilder.addProblem(
+              templateInheritedRestrictedMemberOfEnumImplementer.withArguments(
+                  "values", superclassDeclaringConcreteValues.name),
+              charOffset,
+              noLength,
+              fileUri);
+        }
 
         // Non-setter concrete instance members named `index` and hashCode and
         // operator == are restricted.
-        for (String restrictedMemberName in const ["index", "hashCode", "=="]) {
+        for (String restrictedMemberName in restrictedNames) {
           Builder? member =
               scope.lookupLocalMember(restrictedMemberName, setter: false);
           if (member is MemberBuilder && !member.isAbstract) {
@@ -698,6 +731,19 @@ class SourceClassBuilder extends ClassBuilderImpl
                     .withArguments(this.name, restrictedMemberName),
                 member.charOffset,
                 member.fullNameForErrors.length,
+                fileUri);
+          }
+
+          if (restrictedMembersInSuperclasses
+              .containsKey(restrictedMemberName)) {
+            ClassBuilder restrictedNameMemberProvider =
+                restrictedMembersInSuperclasses[restrictedMemberName]!;
+            libraryBuilder.addProblem(
+                templateInheritedRestrictedMemberOfEnumImplementer
+                    .withArguments(restrictedMemberName,
+                        restrictedNameMemberProvider.name),
+                charOffset,
+                noLength,
                 fileUri);
           }
         }

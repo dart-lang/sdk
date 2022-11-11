@@ -163,6 +163,8 @@ import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
+import 'duplicate_record_pattern_field_test.dart'
+    as duplicate_record_pattern_field;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'duplicate_variable_pattern_test.dart' as duplicate_variable_pattern;
 import 'enum_constant_same_name_as_enclosing_test.dart'
@@ -921,6 +923,7 @@ main() {
     duplicate_import.main();
     duplicate_named_argument.main();
     duplicate_part.main();
+    duplicate_record_pattern_field.main();
     duplicate_shown_name.main();
     duplicate_variable_pattern.main();
     enum_constant_same_name_as_enclosing.main();

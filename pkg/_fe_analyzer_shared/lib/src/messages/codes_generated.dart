@@ -3152,6 +3152,16 @@ Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumWithNameValues = messageEnumWithNameValues;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumWithNameValues = const MessageCode(
+    "EnumWithNameValues",
+    analyzerCodes: <String>["ENUM_WITH_NAME_VALUES"],
+    problemMessage:
+        r"""The name 'values' is not a valid name for an enum. Try using a different name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
     messageEqualityCannotBeEqualityOperand;
 
@@ -5694,6 +5704,35 @@ const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
     "InheritedMembersConflictCause2",
     severity: Severity.context,
     problemMessage: r"""This is the other inherited member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateInheritedRestrictedMemberOfEnumImplementer =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
+        withArguments:
+            _withArgumentsInheritedRestrictedMemberOfEnumImplementer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeInheritedRestrictedMemberOfEnumImplementer =
+    const Code<Message Function(String name, String name2)>(
+        "InheritedRestrictedMemberOfEnumImplementer",
+        analyzerCodes: <String>["ILLEGAL_CONCRETE_ENUM_MEMBER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInheritedRestrictedMemberOfEnumImplementer(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeInheritedRestrictedMemberOfEnumImplementer,
+      problemMessage:
+          """A concrete instance member named '${name}' can't be inherited from '${name2}' in a class that implements 'Enum'.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

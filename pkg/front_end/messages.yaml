@@ -5979,3 +5979,14 @@ NamedFieldClashesWithPositionalFieldInRecord:
   experiments: records
   script: |
     foo() => (0, $0: 0);
+
+EnumWithNameValues:
+  problemMessage: "The name 'values' is not a valid name for an enum. Try using a different name."
+  analyzerCode: ENUM_WITH_NAME_VALUES
+
+InheritedRestrictedMemberOfEnumImplementer:
+  problemMessage: "A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'."
+  analyzerCode: ILLEGAL_CONCRETE_ENUM_MEMBER
+  script: |
+    abstract class A { int get hashCode => 0; }
+    abstract class B extends A implements Enum {}

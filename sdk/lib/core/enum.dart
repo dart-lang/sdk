@@ -101,6 +101,16 @@ abstract class _Enum implements Enum {
   final int index;
   final String _name;
   const _Enum(this.index, this._name);
+
+  /// The result of [toString].
+  ///
+  /// Each enum class can override this method to provide the
+  /// string returned by toString, rather than overriding toString itself.
+  @Since("2.19")
+  String _enumToString();
+
+  @override
+  String toString() => _enumToString();
 }
 
 /// Access to the name of an enum value.

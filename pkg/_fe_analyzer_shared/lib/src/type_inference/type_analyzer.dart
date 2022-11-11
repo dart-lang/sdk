@@ -661,6 +661,8 @@ mixin TypeAnalyzer<
     required Type? requiredType,
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
+    _reportDuplicateRecordPatternFields(fields);
+
     requiredType ??= downwardInferObjectPatternRequiredType(
       matchedType: matchedType,
       pattern: node,
@@ -722,6 +724,8 @@ mixin TypeAnalyzer<
         dispatchField(fields[i], matchedType);
       }
     }
+
+    _reportDuplicateRecordPatternFields(fields);
 
     // Build the required type.
     int requiredTypePositionalCount = 0;
@@ -1457,6 +1461,28 @@ mixin TypeAnalyzer<
       return false;
     }
   }
+
+  /// Reports errors for duplicate named record fields.
+  void _reportDuplicateRecordPatternFields(
+    List<RecordPatternField<Node, Pattern>> fields,
+  ) {
+    Map<String, RecordPatternField<Node, Pattern>> nameToField = {};
+    for (RecordPatternField<Node, Pattern> field in fields) {
+      String? name = field.name;
+      if (name != null) {
+        RecordPatternField<Node, Pattern>? original = nameToField[name];
+        if (original != null) {
+          errors?.duplicateRecordPatternField(
+            name: name,
+            original: original,
+            duplicate: field,
+          );
+        } else {
+          nameToField[name] = field;
+        }
+      }
+    }
+  }
 }
 
 /// Interface used by the shared [TypeAnalyzer] logic to report error conditions
@@ -1484,6 +1510,13 @@ abstract class TypeAnalyzerErrors<
       required scrutineeType,
       required caseExpressionType,
       required bool nullSafetyEnabled});
+
+  /// Called for a pair of named fields have the same name.
+  void duplicateRecordPatternField({
+    required String name,
+    required RecordPatternField<Node, Pattern> original,
+    required RecordPatternField<Node, Pattern> duplicate,
+  });
 
   /// Called if a single variable is bound using two different types within the
   /// same pattern, or between two patterns in a set of case clauses that share

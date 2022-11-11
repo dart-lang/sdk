@@ -11,7 +11,7 @@ class E extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static const field dynamic a = #C1;

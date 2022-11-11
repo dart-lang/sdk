@@ -205,17 +205,15 @@ class AnalysisServer {
     });
   }
 
-  Future<void> shutdown({Duration timeout = const Duration(seconds: 5)}) async {
+  Future<void> shutdown({Duration? timeout}) async {
     // Request shutdown.
-    await _sendCommand('server.shutdown').then((value) {
+    final Future<void> future = _sendCommand('server.shutdown').then((Map<String, dynamic> value) {
       _shutdownResponseReceived = true;
-      return null;
-    }).timeout(timeout, onTimeout: () async {
-      log.stderr('The analysis server timed out while shutting down.');
-      await dispose();
-    }).then((value) async {
-      await dispose();
+      return;
     });
+    await (timeout != null ? future.timeout(timeout, onTimeout: () {
+      log.stderr('The analysis server timed out while shutting down.');
+    }) : future).whenComplete(dispose);
   }
 
   /// Send an `analysis.updateContent` request with the given [files].
@@ -233,12 +231,14 @@ class AnalysisServer {
       'params': params,
     });
 
-    _requestCompleters[id] = Completer();
+    final Completer<Map<String, dynamic>> completer = Completer();
+
+    _requestCompleters[id] = completer;
     _process!.stdin.writeln(message);
 
     log.trace('==> $message');
 
-    return _requestCompleters[id]!.future;
+    return completer.future;
   }
 
   void _handleServerResponse(String line) {

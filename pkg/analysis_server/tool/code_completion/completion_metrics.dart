@@ -1398,11 +1398,15 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   }
 
   @override
-  Future<void> removeOverlay(String filePath) async {
+  Future<void> removeOverlay(AnalysisContext context, String filePath) async {
     // If an overlay option is being used, remove the overlay applied
     // earlier.
     if (options.overlay != OverlayMode.none) {
       provider.removeOverlay(filePath);
+      context.changeFile(filePath);
+      await context.applyPendingFileChanges();
+      resolvedUnitResult = await context.currentSession
+          .getResolvedUnit(filePath) as ResolvedUnitResult;
     }
   }
 

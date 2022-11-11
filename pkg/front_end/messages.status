@@ -246,6 +246,7 @@ EnumNonConstConstructor/analyzerCode: Fail
 EnumNonConstConstructor/example: Fail
 EnumSupertypeOfNonAbstractClass/analyzerCode: Fail
 EnumSupertypeOfNonAbstractClass/example: Fail
+EnumWithNameValues/example: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script1: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script2: Fail
 EqualityCannotBeEqualityOperand/script1: Fail

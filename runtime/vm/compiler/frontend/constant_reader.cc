@@ -231,6 +231,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       const auto& list_class = Class::Handle(
           Z, H.isolate_group()->object_store()->immutable_array_class());
       ASSERT(!list_class.IsNull());
+      ASSERT(list_class.is_finalized());
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
           &reader, this, active_class_, /* finalize = */ true,
@@ -266,6 +267,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
           Z,
           H.isolate_group()->object_store()->immutable_linked_hash_map_class());
       ASSERT(!map_class.IsNull());
+      ASSERT(map_class.is_finalized());
 
       // Build types from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
@@ -360,6 +362,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
           Z,
           H.isolate_group()->object_store()->immutable_linked_hash_set_class());
       ASSERT(!set_class.IsNull());
+      ASSERT(set_class.is_finalized());
 
       // Build types from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(

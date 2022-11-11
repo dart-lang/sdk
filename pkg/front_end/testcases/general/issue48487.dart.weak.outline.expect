@@ -19,7 +19,7 @@ class T extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::T
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "T.${this.{core::_Enum::_name}{core::String}}";
   method test() → void
     ;

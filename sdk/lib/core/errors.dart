@@ -437,6 +437,7 @@ class IndexError extends ArgumentError implements RangeError {
   /// The [length] is the length of [indexable] at the time of the error.
   ///
   /// The message is used as part of the string representation of the error.
+  @Since("2.19")
   IndexError.withLength(int invalidValue, this.length,
       {this.indexable, String? name, String? message})
       : super.value(invalidValue, name, message ?? "Index out of range");
@@ -459,6 +460,7 @@ class IndexError extends ArgumentError implements RangeError {
   /// The [message], if provided, is included in the error string.
   ///
   /// Returns [index] if it is a valid index.
+  @Since("2.19")
   static int check(int index, int length,
       {Object? indexable, String? name, String? message}) {
     // Comparing with `0` as receiver produces better dart2js type inference.
