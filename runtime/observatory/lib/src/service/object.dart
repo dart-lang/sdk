@@ -2108,7 +2108,7 @@ class ServiceMap extends ServiceObject
     _map.clear();
     map.forEach((k, v) => _map[k] = v);
 
-    name = _map['name']?.toString();
+    name = _map['name'];
     vmName = (_map.containsKey('_vmName') ? _map['_vmName'] : name);
   }
 
@@ -2791,33 +2791,25 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeRef;
     case 'ReceivePort':
       return M.InstanceKind.receivePort;
-    case '_RecordType':
-      return M.InstanceKind.recordType;
-    case '_Record':
-      return M.InstanceKind.record;
-    case 'Finalizer':
-      return M.InstanceKind.finalizer;
-    case 'WeakReference':
-      return M.InstanceKind.weakReference;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);
   throw new ArgumentError(message);
 }
 
-class Guarded<T> implements M.Guarded<T> {
+class Guarded<T extends ServiceObject> implements M.Guarded<T> {
   bool get isValue => asValue != null;
   bool get isSentinel => asSentinel != null;
   final Sentinel? asSentinel;
   final T? asValue;
 
-  factory Guarded(dynamic obj) {
+  factory Guarded(ServiceObject obj) {
     if (obj is Sentinel) {
       return new Guarded.fromSentinel(obj);
     } else if (obj is T) {
       return new Guarded.fromValue(obj);
     }
-    throw new Exception('${obj.runtimeType} is neither Sentinel or $T');
+    throw new Exception('${obj.type} is neither Sentinel or $T');
   }
 
   Guarded.fromSentinel(this.asSentinel) : asValue = null;
@@ -2825,11 +2817,9 @@ class Guarded<T> implements M.Guarded<T> {
 }
 
 class BoundField implements M.BoundField {
-  final Field? decl;
-  // String|int
-  final dynamic name;
-  final Guarded<dynamic> value;
-  BoundField(this.decl, this.name, value) : value = new Guarded(value);
+  final Field decl;
+  final Guarded<Instance> value;
+  BoundField(this.decl, value) : value = new Guarded(value);
 }
 
 class NativeField implements M.NativeField {
@@ -2926,7 +2916,7 @@ class Instance extends HeapObject implements M.Instance {
   Instance._empty(ServiceObjectOwner? owner) : super._empty(owner);
 
   void _update(Map map, bool mapIsRef) {
-    // Extract full properties.
+    // Extract full properties.1
     _upgradeCollection(map, isolate);
     super._update(map, mapIsRef);
 
@@ -2935,7 +2925,7 @@ class Instance extends HeapObject implements M.Instance {
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunction = map['closureFunction'];
-    name = map['name']?.toString();
+    name = map['name'];
     length = map['length'];
     pattern = map['pattern'];
     typeClass = map['typeClass'];
@@ -2968,7 +2958,7 @@ class Instance extends HeapObject implements M.Instance {
     if (map['fields'] != null) {
       var fields = <BoundField>[];
       for (var f in map['fields']) {
-        fields.add(new BoundField(f['decl'], f['name'], f['value']));
+        fields.add(new BoundField(f['decl'], f['value']));
       }
       this.fields = fields;
     } else {

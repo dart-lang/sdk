@@ -1,10 +1,4 @@
 {
-  "org-dartlang-sdk:///lib/_http/http_impl.dart": {
-    "Dynamic access of 'address'.": 1,
-    "Dynamic access of 'port'.": 1,
-    "Dynamic invocation of 'listen'.": 1,
-    "Dynamic invocation of 'close'.": 1
-  },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
     "Dynamic access of 'length'.": 1
   },

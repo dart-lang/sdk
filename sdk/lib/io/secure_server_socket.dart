@@ -7,7 +7,8 @@ part of dart.io;
 /// A server socket, providing a stream of high-level [Socket]s.
 ///
 /// See [SecureSocket] for more info.
-class SecureServerSocket extends Stream<SecureSocket> {
+class SecureServerSocket extends Stream<SecureSocket>
+    implements ServerSocketBase<SecureSocket> {
   final RawSecureServerSocket _socket;
 
   SecureServerSocket._(this._socket);

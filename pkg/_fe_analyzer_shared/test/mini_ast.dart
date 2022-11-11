@@ -10,6 +10,8 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show EqualityInfo, FlowAnalysis, Operations;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -296,6 +298,11 @@ Pattern wildcard(
         {String? type, String? expectInferredType, bool isFinal = false}) =>
     _VariablePattern(type == null ? null : Type(type), null, expectInferredType,
         isFinal: isFinal, location: computeLocation());
+
+typedef SharedMatchContext
+    = shared.MatchContext<Node, Expression, Pattern, Type, Var>;
+
+typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
 
 mixin CaseHead implements CaseHeads, Node {
   @override
@@ -1140,10 +1147,10 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   String toString() => _debugString(needsKeywordOrType: true);
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context);
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  );
 
   CaseHead when(Expression guard) =>
       _GuardedCaseHead(this, guard, location: location);
@@ -1437,12 +1444,11 @@ class _CastPattern extends Pattern {
 
   @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    h.typeAnalyzer
-        .analyzeCastPattern(matchedType, typeInfos, context, _inner, _type);
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer.analyzeCastPattern(matchedType, context, _inner, _type);
     h.irBuilder.atom(_type.type, Kind.type, location: location);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -1782,12 +1788,11 @@ class _ConstantPattern extends Pattern {
   }
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    h.typeAnalyzer.analyzeConstantPattern(
-        matchedType, typeInfos, context, this, constant);
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer.analyzeConstantPattern(matchedType, context, this, constant);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
@@ -2450,12 +2455,12 @@ class _ListPattern extends Pattern {
   }
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     var requiredType = h.typeAnalyzer.analyzeListPattern(
-        matchedType, typeInfos, context, this,
+        matchedType, context, this,
         elementType: _elementType, elements: _elements);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -2565,12 +2570,11 @@ class _LogicalPattern extends Pattern {
   }
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    h.typeAnalyzer.analyzeLogicalPattern(
-        matchedType, typeInfos, context, this, _lhs, _rhs,
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer.analyzeLogicalPattern(matchedType, context, this, _lhs, _rhs,
         isAnd: isAnd);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(isAnd ? 'logicalAndPattern' : 'logicalOrPattern',
@@ -3063,11 +3067,8 @@ class _MiniAstTypeAnalyzer
 
   @override
   void dispatchPattern(
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context,
-      covariant Pattern node) {
-    return node.visit(_harness, matchedType, typeInfos, context);
+      Type matchedType, SharedMatchContext context, covariant Pattern node) {
+    return node.visit(_harness, matchedType, context);
   }
 
   @override
@@ -3369,12 +3370,12 @@ class _NullCheckOrAssertPattern extends Pattern {
   }
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     h.typeAnalyzer.analyzeNullCheckOrAssertPattern(
-        matchedType, typeInfos, context, this, _inner,
+        matchedType, context, this, _inner,
         isAssert: _isAssert);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(_isAssert ? 'nullAssertPattern' : 'nullCheckPattern',
@@ -3431,11 +3432,10 @@ class _ObjectPattern extends Pattern {
   void visit(
     Harness h,
     Type matchedType,
-    Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-    MatchContext<Node, Expression> context,
+    SharedMatchContext context,
   ) {
     var requiredType = h.typeAnalyzer.analyzeObjectPattern(
-        matchedType, typeInfos, context, this,
+        matchedType, context, this,
         requiredType: this.requiredType.type, fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -3565,12 +3565,10 @@ class _RecordPattern extends Pattern {
   void visit(
     Harness h,
     Type matchedType,
-    Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-    MatchContext<Node, Expression> context,
+    SharedMatchContext context,
   ) {
-    var requiredType = h.typeAnalyzer.analyzeRecordPattern(
-        matchedType, typeInfos, context, this,
-        fields: fields);
+    var requiredType = h.typeAnalyzer
+        .analyzeRecordPattern(matchedType, context, this, fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -3609,12 +3607,12 @@ class _RelationalPattern extends Pattern {
   }
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     h.typeAnalyzer.analyzeRelationalPattern(
-        matchedType, typeInfos, context, this, operator, operand);
+        matchedType, context, this, operator, operand);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
         'relationalPattern', [Kind.expression, Kind.type], Kind.pattern,
@@ -3934,12 +3932,12 @@ class _VariablePattern extends Pattern {
   }
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Pattern, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     var staticType = h.typeAnalyzer.analyzeVariablePattern(
-        matchedType, typeInfos, context, this, variable, declaredType,
+        matchedType, context, this, variable, declaredType,
         isFinal: isFinal);
     h.typeAnalyzer.handleVariablePattern(this,
         matchedType: matchedType, staticType: staticType);
