@@ -154,6 +154,12 @@ abstract class RecordTypeBuilder extends TypeBuilder {
             hasErrors = true;
             continue;
           }
+          if (forbiddenObjectMemberNames.contains(fieldName)) {
+            library.addProblem(messageObjectMemberNameUsedForRecordField,
+                field.charOffset, fieldName.length, fileUri);
+            hasErrors = true;
+            continue;
+          }
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
