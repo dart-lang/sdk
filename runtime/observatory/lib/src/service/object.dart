@@ -805,7 +805,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
           _buildIsolateList();
 
           // Eagerly load the isolate.
-          isolate.load().catchError((e, stack) {
+          isolate.load().then((_) {}, onError: (e, stack) {
             Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
           });
         } else {
@@ -823,7 +823,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
           _buildIsolateGroupList();
 
           // Eagerly load the isolate.
-          isolateGroup.load().catchError((e, stack) {
+          isolateGroup.load().then((_) {}, onError: (e, stack) {
             Logger.root
                 .info('Eagerly loading an isolate group failed: $e\n$stack');
           });
@@ -1062,9 +1062,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 
   // Reload all isolates.
   Future reloadIsolates() {
-    var reloads = <Future>[];
+    var reloads = <Future<void>>[];
     for (var isolate in isolates) {
-      var reload = isolate.reload().catchError((e) {
+      var reload = isolate.reload().then((_) {}, onError: (e) {
         Logger.root.info('Bulk reloading of isolates failed: $e');
       });
       reloads.add(reload);
