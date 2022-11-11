@@ -92,7 +92,7 @@ class StubCode : public AllStatic {
 
   static const Code& EntryAt(intptr_t index) { return *(entries_[index].code); }
   static void EntryAtPut(intptr_t index, Code* entry) {
-    ASSERT(entry->IsReadOnlyHandle());
+    DEBUG_ASSERT(entry->IsReadOnlyHandle());
     ASSERT(entries_[index].code == nullptr);
     entries_[index].code = entry;
   }

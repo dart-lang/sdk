@@ -1218,11 +1218,11 @@ class FlowGraphCompiler : public ValueObject {
           function(function_arg),
           code(code_arg),
           dst_type(dst_type) {
-      ASSERT(function == nullptr || function->IsZoneHandle());
-      ASSERT(code == nullptr || code->IsZoneHandle() ||
-             code->IsReadOnlyHandle());
-      ASSERT(dst_type == nullptr || dst_type->IsZoneHandle() ||
-             dst_type->IsReadOnlyHandle());
+      DEBUG_ASSERT(function == nullptr ||
+                   function->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(code == nullptr || code->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(dst_type == nullptr ||
+                   dst_type->IsNotTemporaryScopedHandle());
       ASSERT(code == nullptr || dst_type == nullptr);
     }
 

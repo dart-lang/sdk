@@ -43,7 +43,6 @@ import '../../messages.dart'
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 import '../../names.dart' show noSuchMethodName;
-import '../../scope.dart' show Scope;
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_procedure_builder.dart';
@@ -617,35 +616,9 @@ class ClassMembersNodeBuilder {
 
     Map<Name, Tuple> memberMap = {};
 
-    Scope scope = classBuilder.scope;
-
-    for (Builder builder in scope.localMembers) {
-      MemberBuilder memberBuilder = builder as MemberBuilder;
-      for (ClassMember classMember in memberBuilder.localMembers) {
-        if (classMember.isAbstract) {
-          hasInterfaces = true;
-        }
-        Tuple? tuple = memberMap[classMember.name];
-        if (tuple == null) {
-          memberMap[classMember.name] = new Tuple.declareMember(classMember);
-        } else {
-          tuple.declaredMember = classMember;
-        }
-      }
-      for (ClassMember classMember in memberBuilder.localSetters) {
-        if (classMember.isAbstract) {
-          hasInterfaces = true;
-        }
-        Tuple? tuple = memberMap[classMember.name];
-        if (tuple == null) {
-          memberMap[classMember.name] = new Tuple.declareSetter(classMember);
-        } else {
-          tuple.declaredSetter = classMember;
-        }
-      }
-    }
-
-    for (MemberBuilder memberBuilder in scope.localSetters) {
+    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    while (iterator.moveNext()) {
+      MemberBuilder memberBuilder = iterator.current as MemberBuilder;
       for (ClassMember classMember in memberBuilder.localMembers) {
         if (classMember.isAbstract) {
           hasInterfaces = true;
@@ -687,35 +660,12 @@ class ClassMembersNodeBuilder {
             usedAsClassFileUri: namedBuilder.fileUri)!;
       }
       if (mixin is ClassBuilder) {
-        scope = mixin.scope.computeMixinScope();
-
-        for (Builder builder in scope.localMembers) {
-          MemberBuilder memberBuilder = builder as MemberBuilder;
-          for (ClassMember classMember in memberBuilder.localMembers) {
-            if (classMember.isAbstract) {
-              hasInterfaces = true;
-            }
-            Tuple? tuple = memberMap[classMember.name];
-            if (tuple == null) {
-              memberMap[classMember.name] = new Tuple.mixInMember(classMember);
-            } else {
-              tuple.mixedInMember = classMember;
-            }
+        Iterator<Builder> iterator = mixin.fullMemberIterator;
+        while (iterator.moveNext()) {
+          MemberBuilder memberBuilder = iterator.current as MemberBuilder;
+          if (memberBuilder.isStatic) {
+            continue;
           }
-          for (ClassMember classMember in memberBuilder.localSetters) {
-            if (classMember.isAbstract) {
-              hasInterfaces = true;
-            }
-            Tuple? tuple = memberMap[classMember.name];
-            if (tuple == null) {
-              memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
-            } else {
-              tuple.mixedInSetter = classMember;
-            }
-          }
-        }
-
-        for (MemberBuilder memberBuilder in scope.localSetters) {
           for (ClassMember classMember in memberBuilder.localMembers) {
             if (classMember.isAbstract) {
               hasInterfaces = true;

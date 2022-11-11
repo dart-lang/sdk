@@ -615,39 +615,6 @@ class Scope extends MutableScope {
     });
     return nestingLevel;
   }
-
-  Scope computeMixinScope() {
-    Map<String, Builder> local = <String, Builder>{};
-    bool needsCopy = false;
-    for (MapEntry<String, Builder> entry in _local.entries) {
-      String name = entry.key;
-      Builder declaration = entry.value;
-      if (declaration.isStatic) {
-        needsCopy = true;
-      } else {
-        local[name] = declaration;
-      }
-    }
-    Map<String, MemberBuilder> setters = <String, MemberBuilder>{};
-    for (MapEntry<String, MemberBuilder> entry in _setters.entries) {
-      String name = entry.key;
-      MemberBuilder declaration = entry.value;
-      if (declaration.isStatic) {
-        needsCopy = true;
-      } else {
-        setters[name] = declaration;
-      }
-    }
-    return needsCopy
-        ? new Scope(
-            local: local,
-            setters: setters,
-            extensions: _extensions,
-            parent: _parent,
-            debugName: classNameOrDebugName,
-            isModifiable: isModifiable)
-        : this;
-  }
 }
 
 class ConstructorScope {
@@ -1186,7 +1153,10 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
 
   bool _include(Builder element) {
     if (parent != null && element.parent != parent) return false;
-    if (!includeDuplicates && element.isDuplicate) return false;
+    if (!includeDuplicates &&
+        (element.isDuplicate || element.isConflictingAugmentationMember)) {
+      return false;
+    }
     if (!includeAugmentations && element.isPatch) return false;
     return element is T;
   }
@@ -1223,7 +1193,10 @@ class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
 
   bool _include(Builder element) {
     if (parent != null && element.parent != parent) return false;
-    if (!includeDuplicates && element.isDuplicate) return false;
+    if (!includeDuplicates &&
+        (element.isDuplicate || element.isConflictingAugmentationMember)) {
+      return false;
+    }
     if (!includeAugmentations && element.isPatch) return false;
     return element is T;
   }
@@ -1554,6 +1527,17 @@ extension on Builder {
     } else {
       return false;
     }
+  }
+
+  bool get isConflictingAugmentationMember {
+    Builder self = this;
+    if (self is SourceMemberBuilder) {
+      return self.isConflictingAugmentationMember;
+    } else if (self is SourceClassBuilder) {
+      return self.isConflictingAugmentationMember;
+    }
+    // TODO(johnniwinther): Handle all cases here.
+    return false;
   }
 
   void set isConflictingAugmentationMember(bool value) {

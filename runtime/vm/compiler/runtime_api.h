@@ -147,9 +147,11 @@ bool IsBoolType(const AbstractType& type);
 // Returns true if [type] is the "_Smi" type.
 bool IsSmiType(const AbstractType& type);
 
+#if defined(DEBUG)
 // Returns true if the given handle is a zone handle or one of the global
 // cached handles.
 bool IsNotTemporaryScopedHandle(const Object& obj);
+#endif
 
 // Returns true if [obj] resides in old space.
 bool IsInOldSpace(const Object& obj);

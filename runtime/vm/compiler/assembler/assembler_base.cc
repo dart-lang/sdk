@@ -252,7 +252,7 @@ intptr_t AssemblerBuffer::CountPointerOffsets() const {
 void AssemblerBuffer::EmitObject(const Object& object) {
   // Since we are going to store the handle as part of the fixup information
   // the handle needs to be a zone handle.
-  ASSERT(IsNotTemporaryScopedHandle(object));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   EmitFixup(new PatchCodeWithHandle(pointer_offsets_, object));
   cursor_ += target::kWordSize;  // Reserve space for pointer.
@@ -346,7 +346,7 @@ void ObjectPoolBuilder::Reset() {
 intptr_t ObjectPoolBuilder::AddObject(
     const Object& obj,
     ObjectPoolBuilderEntry::Patchability patchable) {
-  ASSERT(IsNotTemporaryScopedHandle(obj));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(obj));
   return AddObject(ObjectPoolBuilderEntry(&obj, patchable));
 }
 
@@ -373,10 +373,10 @@ intptr_t ObjectPoolBuilder::AddImmediate128(simd128_value_t imm) {
 }
 
 intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
-  ASSERT((entry.type() != ObjectPoolBuilderEntry::kTaggedObject) ||
-         (IsNotTemporaryScopedHandle(*entry.obj_) &&
-          (entry.equivalence_ == NULL ||
-           IsNotTemporaryScopedHandle(*entry.equivalence_))));
+  DEBUG_ASSERT((entry.type() != ObjectPoolBuilderEntry::kTaggedObject) ||
+               (IsNotTemporaryScopedHandle(*entry.obj_) &&
+                (entry.equivalence_ == NULL ||
+                 IsNotTemporaryScopedHandle(*entry.equivalence_))));
 
   if (entry.type() == ObjectPoolBuilderEntry::kTaggedObject) {
     // If the owner of the object pool wrapper specified a specific zone we

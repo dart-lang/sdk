@@ -3200,7 +3200,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Object& value,
                                          MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
-  ASSERT(IsNotTemporaryScopedHandle(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
   Register value_reg;
   if (IsSameObject(compiler::NullObject(), value)) {
@@ -3279,7 +3279,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  ASSERT(IsNotTemporaryScopedHandle(object));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
 }

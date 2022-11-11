@@ -3650,12 +3650,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     Member? member = classMember?.getMember(engine.membersBuilder);
-    if (member == null && libraryBuilder.isPatch) {
-      // TODO(johnniwinther): Injected members are currently not included
-      // in the class hierarchy builder.
-      member ??=
-          classHierarchy.getInterfaceMember(class_, name, setter: setter);
-    }
     return TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
   }
 

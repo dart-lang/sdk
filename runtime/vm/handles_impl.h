@@ -104,6 +104,7 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return address;
 }
 
+#if defined(DEBUG)
 // Figure out the current zone using the current Thread and
 // check if the specified handle has been allocated in this zone.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
@@ -118,6 +119,7 @@ bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   ASSERT(handles != NULL);
   return handles->IsValidZoneHandle(handle);
 }
+#endif
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::

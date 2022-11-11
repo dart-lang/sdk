@@ -365,13 +365,11 @@ class Object {
   // Print the object on stdout for debugging.
   void Print() const;
 
-  bool IsZoneHandle() const {
-    return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
-  }
-
+#if defined(DEBUG)
+  bool IsZoneHandle() const;
   bool IsReadOnlyHandle() const;
-
   bool IsNotTemporaryScopedHandle() const;
+#endif
 
   static Object& Handle(Zone* zone, ObjectPtr ptr) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));

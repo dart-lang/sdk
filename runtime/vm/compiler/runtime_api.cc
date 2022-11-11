@@ -85,9 +85,11 @@ bool IsSmiType(const AbstractType& type) {
   return type.IsSmiType();
 }
 
+#if defined(DEBUG)
 bool IsNotTemporaryScopedHandle(const Object& obj) {
   return obj.IsNotTemporaryScopedHandle();
 }
+#endif
 
 #define DO(clazz)                                                              \
   bool Is##clazz##Handle(const Object& obj) { return obj.Is##clazz(); }
