@@ -240,7 +240,7 @@ CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
 
 Pattern objectPattern({
   required ObjectPatternRequiredType requiredType,
-  required List<shared.RecordPatternField<Node, Pattern>> fields,
+  required List<RecordPatternField> fields,
 }) {
   return _ObjectPattern(
     requiredType: requiredType,
@@ -249,7 +249,7 @@ Pattern objectPattern({
   );
 }
 
-Pattern recordPattern(List<SharedRecordPatternField> fields) =>
+Pattern recordPattern(List<RecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
 Pattern relationalPattern(
@@ -296,8 +296,6 @@ Pattern wildcard(
         {String? type, String? expectInferredType, bool isFinal = false}) =>
     _VariablePattern(type == null ? null : Type(type), null, expectInferredType,
         isFinal: isFinal, location: computeLocation());
-
-typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
 
 mixin CaseHead implements CaseHeads, Node {
   @override
@@ -1130,6 +1128,14 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder);
 
+  RecordPatternField recordField([String? name]) {
+    return RecordPatternField(
+      name: name,
+      pattern: this,
+      location: computeLocation(),
+    );
+  }
+
   @override
   String toString() => _debugString(needsKeywordOrType: true);
 
@@ -1175,10 +1181,20 @@ abstract class PromotableLValue extends LValue implements Promotable {
   PromotableLValue._({required super.location}) : super._();
 }
 
-/// TODO(scheglov) This node is used temporary to model 'node'.
-class RecordPatternField implements Node {
+/// A field in object and record patterns.
+class RecordPatternField extends Node
+    implements shared.RecordPatternField<Node, Pattern> {
+  final String? name;
+  final Pattern pattern;
+
+  RecordPatternField({
+    required this.name,
+    required this.pattern,
+    required super.location,
+  }) : super._();
+
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Node get node => this;
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -3216,7 +3232,7 @@ class _MiniAstTypeAnalyzer
   @override
   Type resolveObjectPatternPropertyGet({
     required Type receiverType,
-    required SharedRecordPatternField field,
+    required shared.RecordPatternField<Node, Pattern> field,
   }) {
     return _harness.getMember(receiverType, field.name!)._type;
   }
@@ -3390,7 +3406,7 @@ class _NullLiteral extends Expression {
 
 class _ObjectPattern extends Pattern {
   final ObjectPatternRequiredType requiredType;
-  final List<SharedRecordPatternField> fields;
+  final List<RecordPatternField> fields;
 
   _ObjectPattern({
     required this.requiredType,
@@ -3526,7 +3542,7 @@ class _PropertyElement {
 }
 
 class _RecordPattern extends Pattern {
-  final List<SharedRecordPatternField> fields;
+  final List<RecordPatternField> fields;
 
   _RecordPattern(this.fields, {required super.location}) : super._();
 

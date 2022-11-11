@@ -80,8 +80,7 @@ import 'a.dart';
 
   test_local_getterNullAwareAccess_interfaceType() async {
     await assertNoErrorsInCode(r'''
-main() {
-  int? x;
+f(int? x) {
   return x?.isEven;
 }
 ''');
@@ -131,8 +130,7 @@ class C {
   bool x() => true;
 }
 
-main() {
-  C? c;
+f(C? c) {
   return c?.x();
 }
 ''');

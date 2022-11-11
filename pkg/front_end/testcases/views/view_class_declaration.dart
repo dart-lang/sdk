@@ -5,3 +5,6 @@
 mixin Mixin {}
 view class Class1 {}
 view class Class2 = Object with Mixin;
+view class Class3<T> {}
+
+method(Class1 c1, Class3<int> c3) {}

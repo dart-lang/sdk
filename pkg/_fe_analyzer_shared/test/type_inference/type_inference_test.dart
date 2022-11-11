@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide RecordPatternField, NamedType, RecordType;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    as shared;
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
@@ -1838,11 +1836,7 @@ main() {
               objectPattern(
                 requiredType: ObjectPatternRequiredType.name('B'),
                 fields: [
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: 'foo',
-                    pattern: Var('foo').pattern(),
-                  ),
+                  Var('foo').pattern().recordField('foo'),
                 ],
               ),
               [],
@@ -1861,11 +1855,7 @@ main() {
               objectPattern(
                 requiredType: ObjectPatternRequiredType.type('num'),
                 fields: [
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: 'foo',
-                    pattern: Var('foo').pattern(),
-                  ),
+                  Var('foo').pattern().recordField('foo'),
                 ],
               ),
               expr('int').checkContext('num'),
@@ -1882,11 +1872,7 @@ main() {
               objectPattern(
                 requiredType: ObjectPatternRequiredType.type('int'),
                 fields: [
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: 'foo',
-                    pattern: Var('foo').pattern(),
-                  ),
+                  Var('foo').pattern().recordField('foo'),
                 ],
               )..errorId = 'PATTERN',
               expr('num').checkContext('int'),
@@ -1910,16 +1896,8 @@ main() {
               ifCase(
                 expr('dynamic').checkContext('?'),
                 recordPattern([
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: null,
-                    pattern: Var('a').pattern(type: 'int'),
-                  ),
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: null,
-                    pattern: Var('b').pattern(),
-                  ),
+                  Var('a').pattern(type: 'int').recordField(),
+                  Var('b').pattern().recordField(),
                 ]),
                 [],
               ).checkIr(
@@ -1943,16 +1921,8 @@ main() {
               h.run([
                 match(
                   recordPattern([
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: null,
-                      pattern: Var('a').pattern(type: 'int'),
-                    ),
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: null,
-                      pattern: Var('b').pattern(),
-                    ),
+                    Var('a').pattern(type: 'int').recordField(),
+                    Var('b').pattern().recordField(),
                   ]),
                   expr('(int, String)').checkContext('(int, ?)'),
                 ).checkIr(
@@ -1970,17 +1940,9 @@ main() {
               h.run([
                 (match(
                   recordPattern([
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: null,
-                      pattern: Var('a').pattern(type: 'int')
-                        ..errorId = 'VAR(a)',
-                    ),
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: null,
-                      pattern: Var('b').pattern(),
-                    ),
+                    (Var('a').pattern(type: 'int')..errorId = 'VAR(a)')
+                        .recordField(),
+                    Var('b').pattern().recordField(),
                   ])
                     ..errorId = 'PATTERN',
                   expr('(int,)').checkContext('(int, ?)'),
@@ -2005,16 +1967,8 @@ main() {
                   ifCase(
                     expr('(int,)').checkContext('?'),
                     recordPattern([
-                      shared.RecordPatternField(
-                        node: RecordPatternField(),
-                        name: null,
-                        pattern: Var('a').pattern(),
-                      ),
-                      shared.RecordPatternField(
-                        node: RecordPatternField(),
-                        name: null,
-                        pattern: Var('b').pattern(),
-                      ),
+                      Var('a').pattern().recordField(),
+                      Var('b').pattern().recordField(),
                     ]),
                     [],
                   ).checkIr('ifCase(expr((int)), recordPattern(varPattern(a, '
@@ -2029,11 +1983,7 @@ main() {
                   ifCase(
                     expr('(int, String)').checkContext('?'),
                     recordPattern([
-                      shared.RecordPatternField(
-                        node: RecordPatternField(),
-                        name: null,
-                        pattern: Var('a').pattern(),
-                      ),
+                      Var('a').pattern().recordField(),
                     ]),
                     [],
                   ).checkIr('ifCase(expr((int, String)), '
@@ -2051,16 +2001,8 @@ main() {
               ifCase(
                 expr('X').checkContext('?'),
                 recordPattern([
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: null,
-                    pattern: Var('a').pattern(type: 'int'),
-                  ),
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: null,
-                    pattern: Var('b').pattern(),
-                  ),
+                  Var('a').pattern(type: 'int').recordField(),
+                  Var('b').pattern().recordField(),
                 ]),
                 [],
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
@@ -2079,16 +2021,8 @@ main() {
               ifCase(
                 expr('dynamic').checkContext('?'),
                 recordPattern([
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: 'a',
-                    pattern: Var('a').pattern(type: 'int'),
-                  ),
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: 'b',
-                    pattern: Var('b').pattern(),
-                  ),
+                  Var('a').pattern(type: 'int').recordField('a'),
+                  Var('b').pattern().recordField('b'),
                 ]),
                 [],
               ).checkIr('ifCase(expr(dynamic), recordPattern(varPattern(a, '
@@ -2110,16 +2044,8 @@ main() {
               h.run([
                 match(
                   recordPattern([
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: 'a',
-                      pattern: Var('a').pattern(type: 'int'),
-                    ),
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: 'b',
-                      pattern: Var('b').pattern(),
-                    ),
+                    Var('a').pattern(type: 'int').recordField('a'),
+                    Var('b').pattern().recordField('b'),
                   ]),
                   expr('({int a, String b})').checkContext('({int a, ? b})'),
                 ).checkIr('match(expr(({int a, String b})), '
@@ -2136,17 +2062,9 @@ main() {
               h.run([
                 (match(
                   recordPattern([
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: 'a',
-                      pattern: Var('a').pattern(type: 'int')
-                        ..errorId = 'VAR(a)',
-                    ),
-                    shared.RecordPatternField(
-                      node: RecordPatternField(),
-                      name: 'b',
-                      pattern: Var('b').pattern(),
-                    ),
+                    (Var('a').pattern(type: 'int')..errorId = 'VAR(a)')
+                        .recordField('a'),
+                    Var('b').pattern().recordField('b'),
                   ])
                     ..errorId = 'PATTERN',
                   expr('({int a})').checkContext('({int a, ? b})'),
@@ -2171,16 +2089,8 @@ main() {
                   ifCase(
                     expr('({int a})').checkContext('?'),
                     recordPattern([
-                      shared.RecordPatternField(
-                        node: RecordPatternField(),
-                        name: 'a',
-                        pattern: Var('a').pattern(),
-                      ),
-                      shared.RecordPatternField(
-                        node: RecordPatternField(),
-                        name: 'b',
-                        pattern: Var('b').pattern(),
-                      ),
+                      Var('a').pattern().recordField('a'),
+                      Var('b').pattern().recordField('b'),
                     ]),
                     [],
                   ).checkIr('ifCase(expr(({int a})), '
@@ -2196,11 +2106,7 @@ main() {
                   ifCase(
                     expr('({int a, String b})').checkContext('?'),
                     recordPattern([
-                      shared.RecordPatternField(
-                        node: RecordPatternField(),
-                        name: 'a',
-                        pattern: Var('a').pattern(),
-                      ),
+                      Var('a').pattern().recordField('a'),
                     ]),
                     [],
                   ).checkIr('ifCase(expr(({int a, String b})), '
@@ -2218,23 +2124,15 @@ main() {
               ifCase(
                 expr('X').checkContext('?'),
                 recordPattern([
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: null,
-                    pattern: Var('a').pattern(type: 'int'),
-                  ),
-                  shared.RecordPatternField(
-                    node: RecordPatternField(),
-                    name: null,
-                    pattern: Var('b').pattern(),
-                  ),
+                  Var('a').pattern(type: 'int').recordField('a'),
+                  Var('b').pattern().recordField('b'),
                 ]),
                 [],
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
                   'matchedType: Object?, staticType: int), varPattern(b, '
                   'matchedType: Object?, staticType: Object?), '
                   'matchedType: X, requiredType: '
-                  '(Object?, Object?)), true, block(), noop)'),
+                  '({Object? a, Object? b})), true, block(), noop)'),
             ]);
           });
         });

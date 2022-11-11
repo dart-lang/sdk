@@ -12470,10 +12470,7 @@ class ViewType extends DartType {
           viewReference, typeArguments, declaredNullability);
 
   @override
-  Nullability get nullability {
-    return uniteNullabilities(
-        declaredNullability, view.representationType.nullability);
-  }
+  Nullability get nullability => declaredNullability;
 
   @override
   DartType get resolveTypeParameterType =>

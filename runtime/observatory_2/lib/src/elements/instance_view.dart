@@ -334,9 +334,12 @@ class InstanceViewElement extends CustomElement implements Renderable {
                     ..content = <Element>[
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = fields
-                            .map<Element>((f) => member(f.decl, f.value))
-                            .toList()
+                        ..children = fields.map<Element>((f) {
+                          final name = _instance.kind == M.InstanceKind.record
+                              ? f.name
+                              : f.decl;
+                          return member(name, f.value);
+                        }).toList()
                     ])
                   .element
             ]

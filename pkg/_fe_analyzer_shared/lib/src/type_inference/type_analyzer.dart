@@ -29,6 +29,12 @@ class NamedType<Type extends Object> {
   NamedType(this.name, this.type);
 }
 
+/// Information supplied by the client to [TypeAnalyzer.analyzeObjectPattern],
+/// [TypeAnalyzer.analyzeRecordPattern], or
+/// [TypeAnalyzer.analyzeRecordPatternSchema] about a single field in a record
+/// or object pattern.
+///
+/// The client is free to `implement` or `extend` this class.
 class RecordPatternField<Node extends Object, Pattern extends Object> {
   /// The client specific node from which this object was created.  It can be
   /// used for error reporting.
