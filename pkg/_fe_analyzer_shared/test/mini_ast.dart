@@ -294,10 +294,9 @@ Statement while_(Expression condition, List<Statement> body) {
       location: location);
 }
 
-Pattern wildcard(
-        {String? type, String? expectInferredType, bool isFinal = false}) =>
+Pattern wildcard({String? type, String? expectInferredType}) =>
     _VariablePattern(type == null ? null : Type(type), null, expectInferredType,
-        isFinal: isFinal, location: computeLocation());
+        location: computeLocation());
 
 typedef SharedMatchContext
     = shared.MatchContext<Node, Expression, Pattern, Type, Var>;
@@ -1252,11 +1251,12 @@ abstract class TryStatement extends Statement implements TryBuilder {
 /// analysis testing.
 class Var extends Node implements Promotable {
   final String name;
+  final bool isFinal;
 
   /// The type of the variable, or `null` if it is not yet known.
   Type? _type;
 
-  Var(this.name) : super._(location: computeLocation());
+  Var(this.name, {this.isFinal = false}) : super._(location: computeLocation());
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr =>
@@ -1278,11 +1278,10 @@ class Var extends Node implements Promotable {
     _type = value;
   }
 
-  Pattern pattern(
-          {String? type, String? expectInferredType, bool isFinal = false}) =>
+  Pattern pattern({String? type, String? expectInferredType}) =>
       new _VariablePattern(
           type == null ? null : Type(type), this, expectInferredType,
-          isFinal: isFinal, location: computeLocation());
+          location: computeLocation());
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3221,6 +3220,11 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  bool isVariableFinal(Var node) {
+    return node.isFinal;
+  }
+
+  @override
   bool isVariablePattern(Node pattern) => pattern is _VariablePattern;
 
   Type leastUpperBound(Type t1, Type t2) => _harness._operations._lub(t1, t2);
@@ -3925,10 +3929,8 @@ class _VariablePattern extends Pattern {
 
   final String? expectInferredType;
 
-  final bool isFinal;
-
   _VariablePattern(this.declaredType, this.variable, this.expectInferredType,
-      {this.isFinal = false, required super.location})
+      {required super.location})
       : super._();
 
   Type computeSchema(Harness h) =>
@@ -3949,8 +3951,7 @@ class _VariablePattern extends Pattern {
     SharedMatchContext context,
   ) {
     var staticType = h.typeAnalyzer.analyzeVariablePattern(
-        matchedType, context, this, variable, declaredType,
-        isFinal: isFinal);
+        matchedType, context, this, variable, declaredType);
     h.typeAnalyzer.handleVariablePattern(this,
         matchedType: matchedType, staticType: staticType);
   }

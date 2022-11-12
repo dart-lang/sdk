@@ -1195,6 +1195,18 @@ class Pass2Visitor : public ObjectVisitor,
     } else if (cid == kScriptCid) {
       writer_->WriteUnsigned(kNameData);
       ScrubAndWriteUtf8(static_cast<ScriptPtr>(obj)->untag()->url());
+    } else if (cid == kTypeArgumentsCid) {
+      // Handle scope so we do not change the root set.
+      // We are assuming that TypeArguments::PrintSubvectorName never allocates
+      // objects or zone handles.
+      HANDLESCOPE(thread());
+      const TypeArguments& args =
+          TypeArguments::Handle(static_cast<TypeArgumentsPtr>(obj));
+      TextBuffer buffer(128);
+      args.PrintSubvectorName(0, args.Length(), TypeArguments::kScrubbedName,
+                              &buffer);
+      writer_->WriteUnsigned(kNameData);
+      writer_->WriteUtf8(buffer.buffer());
     } else {
       writer_->WriteUnsigned(kNoData);
     }

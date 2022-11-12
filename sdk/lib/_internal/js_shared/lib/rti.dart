@@ -364,6 +364,13 @@ class Rti {
   static void _setCanonicalRecipe(Rti rti, String s) {
     rti._canonicalRecipe = s;
   }
+
+  /// Returns the canonical recipe for [rti] with the all legacy type markers
+  /// (* stars) erased.
+  static String getLegacyErasedRecipe(Rti rti) {
+    var s = _getCanonicalRecipe(rti);
+    return JS('String', '#.replace(/\\*/g, "")', s);
+  }
 }
 
 class _FunctionParameters {
@@ -658,7 +665,15 @@ Rti? closureFunctionType(Object? closure) {
     if (JS('bool', 'typeof # == "number"', signature)) {
       return getTypeFromTypesTable(_Utils.asInt(signature));
     }
-    return _Utils.asRti(JS('', '#[#]()', closure, signatureName));
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      // DDC attaches the evaluated Rti object as the signature because
+      // attaching a function that evaluates to the signature breaks the current
+      // const canonicalization for closures which assumes all properties of the
+      // closure object are already themselves canonicalized.
+      return _Utils.asRti(signature);
+    } else {
+      return _Utils.asRti(JS('', '#[#]()', closure, signatureName));
+    }
   }
   return null;
 }
@@ -820,7 +835,7 @@ Type createRuntimeType(Rti rti) {
     return _Type(rti);
   } else {
     String recipe = Rti._getCanonicalRecipe(rti);
-    String starErasedRecipe = JS('String', '#.replace(/\\*/g, "")', recipe);
+    String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
     if (starErasedRecipe == recipe) {
       return _Type(rti);
     }

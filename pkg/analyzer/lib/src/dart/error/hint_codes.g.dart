@@ -66,6 +66,17 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the unassigned variable
+  static const HintCode CAST_FROM_NULLABLE_ALWAYS_FAILS = HintCode(
+    'CAST_FROM_NULLABLE_ALWAYS_FAILS',
+    "This cast will always throw an exception because the nullable local "
+        "variable '{0}' is not assigned.",
+    correctionMessage:
+        "Try giving it an initializer expression, or ensure that it's assigned "
+        "on every execution path.",
+  );
+
   ///  No parameters.
   static const HintCode CAST_FROM_NULL_ALWAYS_FAILS = HintCode(
     'CAST_FROM_NULL_ALWAYS_FAILS',

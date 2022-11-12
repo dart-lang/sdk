@@ -361,11 +361,22 @@ m() {
     ]);
   }
 
-  test_as_nullable() async {
-    await assertNoErrorsInCode(r'''
-m() {
+  test_as_nullable_nonNullable() async {
+    await assertErrorsInCode(r'''
+void f() {
   num? x;
   x as int;
+}
+''', [
+      error(HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1),
+    ]);
+  }
+
+  test_as_nullable_nullable() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  num? x;
+  x as String?;
 }
 ''');
   }

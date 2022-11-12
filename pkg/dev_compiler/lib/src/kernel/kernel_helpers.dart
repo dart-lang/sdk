@@ -371,3 +371,12 @@ bool _isNativeMarkerAnnotation(Expression annotation) {
 
 bool _isDartInternal(Uri uri) =>
     uri.isScheme('dart') && uri.path == '_internal';
+
+/// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
+/// visited `DartType`.
+class TypeParameterTypeFinder extends RecursiveVisitor<void> {
+  final found = <TypeParameter>{};
+  @override
+  void visitTypeParameterType(TypeParameterType node) =>
+      found.add(node.parameter);
+}
