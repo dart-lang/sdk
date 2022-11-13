@@ -206,7 +206,7 @@ extension DartTypeExtension on DartType? {
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
 
-  /// Returns whether `this` is the same element as [interface], delcared in
+  /// Returns whether `this` is the same element as [interface], declared in
   /// [library].
   bool isSameAs(String? interface, String? library) {
     var self = this;

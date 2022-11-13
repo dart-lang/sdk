@@ -46,12 +46,20 @@ var buffer = StringBuffer()
 bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 
 class AvoidReturningThis extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_returning_this', "Don't return 'this' from a method.",
+      correctionMessage:
+          "Try changing the return type to 'void' and removing the return.");
+
   AvoidReturningThis()
       : super(
             name: 'avoid_returning_this',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

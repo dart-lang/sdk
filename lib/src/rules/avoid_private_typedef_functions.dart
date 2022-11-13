@@ -28,12 +28,19 @@ m(void Function() f);
 ''';
 
 class AvoidPrivateTypedefFunctions extends LintRule {
+  static const LintCode code = LintCode('avoid_private_typedef_functions',
+      'The typedef is unnecessary because it is only used in one place.',
+      correctionMessage: 'Try inlining the type or using it in other places.');
+
   AvoidPrivateTypedefFunctions()
       : super(
             name: 'avoid_private_typedef_functions',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

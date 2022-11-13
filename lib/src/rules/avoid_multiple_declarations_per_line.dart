@@ -27,12 +27,20 @@ String? baz;
 ''';
 
 class AvoidMultipleDeclarationsPerLine extends LintRule {
+  static const LintCode code = LintCode('avoid_multiple_declarations_per_line',
+      'Multiple variables declared on a single line.',
+      correctionMessage:
+          'Try splitting the variable declarations into multiple lines.');
+
   AvoidMultipleDeclarationsPerLine()
       : super(
             name: 'avoid_multiple_declarations_per_line',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
