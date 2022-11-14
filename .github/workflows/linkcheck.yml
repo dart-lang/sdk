@@ -1,0 +1,16 @@
+name: Check links
+
+on:
+  - pull_request_target
+
+permissions: read-all
+
+jobs:
+  check-links:
+    name: Check links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check links with linkcheck
+        uses: filiph/linkcheck@2.0.23
+        with:
+          arguments: -e -d https://dart-lang.github.io/linter/lints/index.html
