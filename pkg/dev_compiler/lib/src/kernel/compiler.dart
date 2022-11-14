@@ -1731,7 +1731,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var superCall = node.initializers.whereType<SuperInitializer>().firstOrNull;
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
     if (jsSuper != null) {
-      body.add(jsSuper..sourceInformation = _nodeStart(superCall!));
+      // TODO(50465) Fix incorrect assumption there should always be a super
+      // initializer here.
+      if (superCall != null) jsSuper.sourceInformation = _nodeStart(superCall);
+      body.add(jsSuper);
     }
 
     body.add(_emitFunctionScopedBody(fn));
