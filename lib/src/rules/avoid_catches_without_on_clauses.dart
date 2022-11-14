@@ -38,12 +38,21 @@ on Exception catch(e) {
 ''';
 
 class AvoidCatchesWithoutOnClauses extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_catches_without_on_clauses',
+      "Catch clause needs to use 'on' to specify the type of exception being "
+          'caught.',
+      correctionMessage: "Try adding an 'on' clause before the 'catch'.");
+
   AvoidCatchesWithoutOnClauses()
       : super(
             name: 'avoid_catches_without_on_clauses',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

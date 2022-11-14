@@ -29,6 +29,10 @@ var names = people.map((person) => person.name);
 ''';
 
 class AvoidTypesOnClosureParameters extends LintRule {
+  static const LintCode code = LintCode('avoid_types_on_closure_parameters',
+      'Unnecessary type annotation on a function expression parameter.',
+      correctionMessage: 'Try removing the type annotation.');
+
   AvoidTypesOnClosureParameters()
       : super(
             name: 'avoid_types_on_closure_parameters',
@@ -38,6 +42,9 @@ class AvoidTypesOnClosureParameters extends LintRule {
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

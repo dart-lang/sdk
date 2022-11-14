@@ -37,12 +37,23 @@ try {
 ''';
 
 class AvoidCatchingErrors extends LintRule {
+  static const LintCode classCode = LintCode(
+      'avoid_catching_errors', "The type 'Error' should not be caught.",
+      uniqueName: 'LintCode.avoid_catching_errors_class');
+
+  static const LintCode subclassCode = LintCode('avoid_catching_errors',
+      "The type '{0}' should not be caught because it is a subclass of 'Error'.",
+      uniqueName: 'LintCode.avoid_catching_errors_subclass');
+
   AvoidCatchingErrors()
       : super(
             name: 'avoid_catching_errors',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  List<LintCode> get lintCodes => [classCode, subclassCode];
 
   @override
   void registerNodeProcessors(
@@ -61,7 +72,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCatchClause(CatchClause node) {
     var exceptionType = node.exceptionType?.type;
     if (exceptionType.implementsInterface('Error', 'dart.core')) {
-      rule.reportLint(node);
+      if (exceptionType.isSameAs('Error', 'dart.core')) {
+        rule.reportLint(node, errorCode: AvoidCatchingErrors.classCode);
+      } else {
+        rule.reportLint(node,
+            errorCode: AvoidCatchingErrors.subclassCode,
+            arguments: [
+              exceptionType!.getDisplayString(withNullability: false)
+            ]);
+      }
     }
   }
 }

@@ -48,12 +48,21 @@ bool _isPrimitiveType(DartType type) =>
         type.isDartCoreNum);
 
 class AvoidReturningNull extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_returning_null',
+      "Don't return 'null' when the return type is 'bool', 'double', 'int', "
+          "or 'num'.",
+      correctionMessage: "Try returning a sentinel value other than 'null'.");
+
   AvoidReturningNull()
       : super(
             name: 'avoid_returning_null',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

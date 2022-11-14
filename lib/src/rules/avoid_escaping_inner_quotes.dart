@@ -25,12 +25,19 @@ var s = "It's not fun";
 ''';
 
 class AvoidEscapingInnerQuotes extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_escaping_inner_quotes', "Unnecessary escape of '{0}'.",
+      correctionMessage: "Try changing the outer quotes to '{1}'.");
+
   AvoidEscapingInnerQuotes()
       : super(
             name: 'avoid_escaping_inner_quotes',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -49,10 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (node.isRaw || node.isMultiline) return;
-
-    if (isChangeable(node.value, isSingleQuoted: node.isSingleQuoted)) {
-      rule.reportLint(node);
-    }
+    _check(node, node.value, node.isSingleQuoted);
   }
 
   @override
@@ -65,13 +69,16 @@ class _Visitor extends SimpleAstVisitor<void> {
         text.write(element.value);
       }
     }
+    _check(node, text.toString(), node.isSingleQuoted);
+  }
 
-    if (isChangeable(text.toString(), isSingleQuoted: node.isSingleQuoted)) {
+  void _check(AstNode node, String text, bool isSingleQuoted) {
+    if (_isChangeable(text, isSingleQuoted: isSingleQuoted)) {
       rule.reportLint(node);
     }
   }
 
-  bool isChangeable(String text, {required bool isSingleQuoted}) =>
+  bool _isChangeable(String text, {required bool isSingleQuoted}) =>
       text.contains(isSingleQuoted ? "'" : '"') &&
       !text.contains(isSingleQuoted ? '"' : "'");
 }

@@ -32,12 +32,19 @@ class BadTwo {
 ''';
 
 class AvoidUnusedConstructorParameters extends LintRule {
+  static const LintCode code = LintCode('avoid_unused_constructor_parameters',
+      "The parameter '{0}' is not used in the constructor.",
+      correctionMessage: 'Try using the parameter or removing it.');
+
   AvoidUnusedConstructorParameters()
       : super(
             name: 'avoid_unused_constructor_parameters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -48,11 +55,10 @@ class AvoidUnusedConstructorParameters extends LintRule {
 }
 
 class _ConstructorVisitor extends RecursiveAstVisitor {
-  final LintRule rule;
   final ConstructorDeclaration element;
   final Set<FormalParameter> unusedParameters;
 
-  _ConstructorVisitor(this.rule, this.element)
+  _ConstructorVisitor(this.element)
       : unusedParameters = element.parameters.parameters.where((p) {
           var element = p.declaredElement;
           return element != null &&
@@ -79,12 +85,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.redirectedConstructor != null) return;
     if (node.externalKeyword != null) return;
 
-    var constructorVisitor = _ConstructorVisitor(rule, node);
+    var constructorVisitor = _ConstructorVisitor(node);
     node.body.visitChildren(constructorVisitor);
     for (var i in node.initializers) {
       i.visitChildren(constructorVisitor);
     }
 
-    constructorVisitor.unusedParameters.forEach(rule.reportLint);
+    for (var parameter in constructorVisitor.unusedParameters) {
+      rule.reportLint(parameter, arguments: [parameter.name!.lexeme]);
+    }
   }
 }

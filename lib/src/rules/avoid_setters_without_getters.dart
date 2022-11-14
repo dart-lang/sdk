@@ -44,12 +44,20 @@ class Good {
 ''';
 
 class AvoidSettersWithoutGetters extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_setters_without_getters', 'Setter has no corresponding getter.',
+      correctionMessage:
+          'Try adding a corresponding getter or removing the setter.');
+
   AvoidSettersWithoutGetters()
       : super(
             name: 'avoid_setters_without_getters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

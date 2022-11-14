@@ -89,12 +89,20 @@ void main() {
 ''';
 
 class AvoidImplementingValueTypes extends LintRule {
+  static const LintCode code = LintCode('avoid_implementing_value_types',
+      "Classes that override '==' should not be implemented.",
+      correctionMessage:
+          "Try removing the class from the 'implements' clause.");
+
   AvoidImplementingValueTypes()
       : super(
             name: 'avoid_implementing_value_types',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

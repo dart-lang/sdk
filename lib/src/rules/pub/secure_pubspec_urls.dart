@@ -25,11 +25,15 @@ repository: http://github.com/dart-lang/example
 
 ```yaml
 git:
-  url: git://github.com/dart-lang/example/example.git 
+  url: git://github.com/dart-lang/example/example.git
 ```
 ''';
 
 class SecurePubspecUrls extends LintRule {
+  static const LintCode code = LintCode('secure_pubspec_urls',
+      "The '{0}' protocol shouldn't be used because it isn't secure.",
+      correctionMessage: "Try using a secure protocol, such as 'https'.");
+
   SecurePubspecUrls()
       : super(
             name: 'secure_pubspec_urls',
@@ -38,12 +42,10 @@ class SecurePubspecUrls extends LintRule {
             group: Group.pub);
 
   @override
-  PubspecVisitor getPubspecVisitor() => Visitor(this);
+  LintCode get lintCode => code;
 
   @override
-  LintCode get lintCode => const LintCode(
-      'secure_pubspec_urls', 'The url should only use secure protocols.',
-      correctionMessage: "Try using 'https'.");
+  PubspecVisitor getPubspecVisitor() => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {
@@ -51,25 +53,19 @@ class Visitor extends PubspecVisitor<void> {
 
   Visitor(this.rule);
 
-  _checkUrl(PSNode? node) {
-    if (node == null) return;
-    var text = node.text;
-    if (text != null) {
-      var uri = Uri.tryParse(text);
-      if (uri != null && (uri.isScheme('http') || uri.isScheme('git'))) {
-        rule.reportPubLint(node);
-      }
-    }
+  @override
+  void visitPackageDependencies(PSDependencyList dependencies) {
+    _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageIssueTracker(PSEntry issueTracker) {
-    _checkUrl(issueTracker.value);
+  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
+    _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageRepository(PSEntry repostory) {
-    _checkUrl(repostory.value);
+  void visitPackageDevDependencies(PSDependencyList dependencies) {
+    _visitDeps(dependencies);
   }
 
   @override
@@ -83,18 +79,24 @@ class Visitor extends PubspecVisitor<void> {
   }
 
   @override
-  void visitPackageDependencies(PSDependencyList dependencies) {
-    _visitDeps(dependencies);
+  void visitPackageIssueTracker(PSEntry issueTracker) {
+    _checkUrl(issueTracker.value);
   }
 
   @override
-  void visitPackageDevDependencies(PSDependencyList dependencies) {
-    _visitDeps(dependencies);
+  void visitPackageRepository(PSEntry repostory) {
+    _checkUrl(repostory.value);
   }
 
-  @override
-  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
-    _visitDeps(dependencies);
+  _checkUrl(PSNode? node) {
+    if (node == null) return;
+    var text = node.text;
+    if (text != null) {
+      var uri = Uri.tryParse(text);
+      if (uri != null && (uri.isScheme('http') || uri.isScheme('git'))) {
+        rule.reportPubLint(node, arguments: [uri.scheme]);
+      }
+    }
   }
 
   void _visitDeps(PSDependencyList dependencies) {

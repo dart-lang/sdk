@@ -75,12 +75,21 @@ bool _isImmutable(Element? element) =>
     element.library.name == _metaLibName;
 
 class AvoidOperatorEqualsOnMutableClasses extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_equals_and_hash_code_on_mutable_classes',
+      "The method '{0}' should not be overriden in classes not annotated with '@immutable'.",
+      correctionMessage:
+          "Try removing the override or annotating the class with '@immutable'.");
+
   AvoidOperatorEqualsOnMutableClasses()
       : super(
             name: 'avoid_equals_and_hash_code_on_mutable_classes',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -100,7 +109,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.name.type == TokenType.EQ_EQ || isHashCode(node)) {
       var classElement = _getClassForMethod(node);
       if (classElement != null && !_hasImmutableAnnotation(classElement)) {
-        rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+        rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata,
+            arguments: [node.name.lexeme]);
       }
     }
   }

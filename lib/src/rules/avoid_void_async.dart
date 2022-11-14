@@ -44,12 +44,19 @@ void main() async {
 ''';
 
 class AvoidVoidAsync extends LintRule {
+  static const LintCode code = LintCode('avoid_void_async',
+      "The return type should be '{0}' when nothing is returned from an '{1}' function.",
+      correctionMessage: 'Try changing the return type.');
+
   AvoidVoidAsync()
       : super(
             name: 'avoid_void_async',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -67,25 +74,31 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (_isAsync(node.declaredElement) &&
+    var arguments = _arguments(node.declaredElement);
+    if (arguments != null &&
         _isVoid(node.returnType) &&
         node.name.lexeme != 'main') {
-      rule.reportLintForToken(node.name);
+      rule.reportLintForToken(node.name, arguments: arguments);
     }
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (_isAsync(node.declaredElement) && _isVoid(node.returnType)) {
-      rule.reportLintForToken(node.name);
+    var arguments = _arguments(node.declaredElement);
+    if (arguments != null && _isVoid(node.returnType)) {
+      rule.reportLintForToken(node.name, arguments: arguments);
     }
   }
 
-  bool _isAsync(ExecutableElement? element) {
+  List<String>? _arguments(ExecutableElement? element) {
     if (element == null) {
-      return false;
+      return null;
+    } else if (element.isAsynchronous) {
+      return ['Future', 'async'];
+    } else if (element.isGenerator) {
+      return ['Stream', 'async*'];
     }
-    return element.isAsynchronous || element.isGenerator;
+    return null;
   }
 
   bool _isVoid(TypeAnnotation? typeAnnotation) =>

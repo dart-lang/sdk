@@ -39,12 +39,19 @@ Button(ButtonState.enabled);
 ''';
 
 class AvoidPositionalBooleanParameters extends LintRule {
+  static const LintCode code = LintCode('avoid_positional_boolean_parameters',
+      "'bool' parameters should be named parameters.",
+      correctionMessage: 'Try converting the parameter to a named parameter.');
+
   AvoidPositionalBooleanParameters()
       : super(
             name: 'avoid_positional_boolean_parameters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

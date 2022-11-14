@@ -10,8 +10,8 @@ import 'package:analyzer/dart/element/type.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _descPrefix = r'Avoid unsafe HTML APIs';
 const _desc = '$_descPrefix.';
+const _descPrefix = r'Avoid unsafe HTML APIs';
 
 const _details = r'''
 **AVOID**
@@ -33,19 +33,35 @@ var script = ScriptElement()..src = 'foo.js';
 ```
 ''';
 
-extension on DartType? {
-  /// Returns whether this type extends [className] from the dart:html library.
-  bool extendsDartHtmlClass(String className) =>
-      extendsClass(className, 'dart.dom.html');
-}
-
 class UnsafeHtml extends LintRule {
+  // static const LintCode attributeCode = LintCode(
+  //     'unsafe_html', "Assigning to the attribute '{0}' is unsafe.",
+  //     correctionMessage: 'Try finding a different way to implement the page.',
+  //     uniqueName: 'LintCode.unsafe_html_attribute');
+
+  // static const LintCode methodCode = LintCode(
+  //     'unsafe_html', "Invoking the method '{0}' is unsafe.",
+  //     correctionMessage: 'Try finding a different way to implement the page.',
+  //     uniqueName: 'LintCode.unsafe_html_method');
+
+  // static const LintCode constructorCode = LintCode(
+  //     'unsafe_html', "Invoking the constructor '{0}' is unsafe.",
+  //     correctionMessage: 'Try finding a different way to implement the page.',
+  //     uniqueName: 'LintCode.unsafe_html_constructor');
+
   UnsafeHtml()
       : super(
             name: 'unsafe_html',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  List<LintCode> get lintCodes => [
+        _Visitor.unsafeAttributeCode,
+        _Visitor.unsafeMethodCode,
+        _Visitor.unsafeConstructorCode
+      ];
 
   @override
   void registerNodeProcessors(
@@ -55,13 +71,6 @@ class UnsafeHtml extends LintRule {
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
-
-  @override
-  List<LintCode> get lintCodes => [
-        _Visitor.unsafeAttributeCode,
-        _Visitor.unsafeMethodCode,
-        _Visitor.unsafeConstructorCode
-      ];
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -69,6 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   // single-quotes to match the convention in the analyzer and linter packages.
   // This requires some coordination within Google, as various allow-lists are
   // keyed on the exact text of the LintCode message.
+  // Proposed replacements are commented out in `UnsafeHtml`.
   static const unsafeAttributeCode = SecurityLintCode(
     'unsafe_html',
     '$_descPrefix (assigning "{0}" attribute).',
@@ -104,33 +114,6 @@ class _Visitor extends SimpleAstVisitor<void> {
           leftPart.realTarget.staticType, leftPart.propertyName, node);
     } else if (leftPart is PrefixedIdentifier) {
       _checkAssignment(leftPart.prefix.staticType, leftPart.identifier, node);
-    }
-  }
-
-  void _checkAssignment(DartType? type, SimpleIdentifier property,
-      AssignmentExpression assignment) {
-    if (type == null) return;
-
-    // It is more efficient to check the setter's name before checking whether
-    // the target is an interesting type.
-    if (property.name == 'href') {
-      if (type.isDynamic || type.extendsDartHtmlClass('AnchorElement')) {
-        rule.reportLint(assignment,
-            arguments: ['href'], errorCode: unsafeAttributeCode);
-      }
-    } else if (property.name == 'src') {
-      if (type.isDynamic ||
-          type.extendsDartHtmlClass('EmbedElement') ||
-          type.extendsDartHtmlClass('IFrameElement') ||
-          type.extendsDartHtmlClass('ScriptElement')) {
-        rule.reportLint(assignment,
-            arguments: ['src'], errorCode: unsafeAttributeCode);
-      }
-    } else if (property.name == 'srcdoc') {
-      if (type.isDynamic || type.extendsDartHtmlClass('IFrameElement')) {
-        rule.reportLint(assignment,
-            arguments: ['srcdoc'], errorCode: unsafeAttributeCode);
-      }
     }
   }
 
@@ -188,4 +171,37 @@ class _Visitor extends SimpleAstVisitor<void> {
           arguments: ['open', 'Window'], errorCode: unsafeMethodCode);
     }
   }
+
+  void _checkAssignment(DartType? type, SimpleIdentifier property,
+      AssignmentExpression assignment) {
+    if (type == null) return;
+
+    // It is more efficient to check the setter's name before checking whether
+    // the target is an interesting type.
+    if (property.name == 'href') {
+      if (type.isDynamic || type.extendsDartHtmlClass('AnchorElement')) {
+        rule.reportLint(assignment,
+            arguments: ['href'], errorCode: unsafeAttributeCode);
+      }
+    } else if (property.name == 'src') {
+      if (type.isDynamic ||
+          type.extendsDartHtmlClass('EmbedElement') ||
+          type.extendsDartHtmlClass('IFrameElement') ||
+          type.extendsDartHtmlClass('ScriptElement')) {
+        rule.reportLint(assignment,
+            arguments: ['src'], errorCode: unsafeAttributeCode);
+      }
+    } else if (property.name == 'srcdoc') {
+      if (type.isDynamic || type.extendsDartHtmlClass('IFrameElement')) {
+        rule.reportLint(assignment,
+            arguments: ['srcdoc'], errorCode: unsafeAttributeCode);
+      }
+    }
+  }
+}
+
+extension on DartType? {
+  /// Returns whether this type extends [className] from the dart:html library.
+  bool extendsDartHtmlClass(String className) =>
+      extendsClass(className, 'dart.dom.html');
 }

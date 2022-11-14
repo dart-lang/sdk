@@ -52,6 +52,10 @@ void goodExpression(final int value) => print(value); // LINT
 ''';
 
 class AvoidFinalParameters extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_final_parameters', "Parameters should not be marked as 'final'.",
+      correctionMessage: "Try removing the keyword 'final'.");
+
   AvoidFinalParameters()
       : super(
             name: 'avoid_final_parameters',
@@ -61,6 +65,9 @@ class AvoidFinalParameters extends LintRule {
 
   @override
   List<String> get incompatibleRules => const ['prefer_final_parameters'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
