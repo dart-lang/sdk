@@ -77,17 +77,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (node.typeParameters != null) {
-      return;
-    }
+    if (node.typeParameters != null) return;
+    if (node.type is NamedType) return;
+
     _countAndReport(node.name);
   }
 
   void _countAndReport(Token identifier) {
     var name = identifier.lexeme;
-    if (!Identifier.isPrivateName(name)) {
-      return;
-    }
+    if (!Identifier.isPrivateName(name)) return;
+
     var visitor = _CountVisitor(name);
     for (var unit in context.allUnits) {
       unit.unit.accept(visitor);
