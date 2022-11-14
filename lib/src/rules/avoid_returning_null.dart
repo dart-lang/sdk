@@ -52,7 +52,7 @@ class AvoidReturningNull extends LintRule {
       'avoid_returning_null',
       "Don't return 'null' when the return type is 'bool', 'double', 'int', "
           "or 'num'.",
-      correctionMessage: "Try returning a sentinal value other than 'null'.");
+      correctionMessage: "Try returning a sentinel value other than 'null'.");
 
   AvoidReturningNull()
       : super(

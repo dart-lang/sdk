@@ -40,8 +40,8 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
       'avoid_field_initializers_in_const_classes',
       "Fields in 'const' classes should not have initializers.",
       correctionMessage:
-          'Try removing converting the field to a getter or initialize the '
-          'field in the constructors.');
+          'Try converting the field to a getter or initialize the field in the '
+          'constructors.');
 
   AvoidFieldInitializersInConstClasses()
       : super(
