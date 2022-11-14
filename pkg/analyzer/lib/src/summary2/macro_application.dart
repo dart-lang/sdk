@@ -58,7 +58,7 @@ class LibraryMacroApplier {
     libraryBuilder.element.accept(collector);
 
     for (final targetElement in collector.targets) {
-      final targetNode = _linker.elementNodes[targetElement];
+      final targetNode = _linker.elementNodes[targetElement as ElementImpl];
       // TODO(scheglov) support other declarations
       if (targetNode is ClassDeclaration) {
         await performance.runAsync(

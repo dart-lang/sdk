@@ -114,13 +114,14 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
               descriptor, suffixes[i], i + 1, head, tail,
               featureSet: featureSet);
         }
-        if (descriptor.failing != null) {
+        var descriptorFailing = descriptor.failing;
+        if (descriptorFailing != null) {
           test('${descriptor.name}_failingList', () {
-            Set<String> failing = Set.from(descriptor.failing!);
+            var failing = Set.of(descriptorFailing);
             if (includeEof) {
               failing.remove('eof');
             }
-            failing.removeAll(suffixes.map((TestSuffix suffix) => suffix.name));
+            failing.removeAll(suffixes.map((suffix) => suffix.name));
             expect(failing, isEmpty,
                 reason:
                     'There are tests marked as failing that are not being run');
