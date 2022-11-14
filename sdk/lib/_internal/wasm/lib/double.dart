@@ -49,13 +49,19 @@ class double {
     }
     return result;
   }
+
+  /// Wasm i64.trunc_sat_f64_s instruction
+  external int _toInt();
 }
 
 @pragma("wasm:entry-point")
-class _BoxedDouble implements double {
+class _BoxedDouble extends double {
   // A boxed double contains an unboxed double.
   @pragma("wasm:entry-point")
   double value = 0.0;
+
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory _BoxedDouble();
 
   static const int _mantissaBits = 52;
   static const int _exponentBits = 11;
@@ -69,7 +75,7 @@ class _BoxedDouble implements double {
 
   static int _doubleHashCode(double value) {
     const int maxInt = 0x7FFFFFFFFFFFFFFF;
-    int intValue = _toInt(value);
+    int intValue = value._toInt();
     if (intValue.toDouble() == value && intValue != maxInt) {
       return _BoxedInt._intHashCode(intValue);
     }
@@ -191,8 +197,8 @@ class _BoxedDouble implements double {
 
     // Add 0.5 to the absolute value of the number and truncate the result.
     final int shift = (_exponentBias + _mantissaBits - 1) - exponent;
-    final int adjust = _BoxedInt._shl(1, shift);
-    final int mask = _BoxedInt._shl(-2, shift);
+    final int adjust = (1)._shl(shift);
+    final int mask = (-2)._shl(shift);
     final int rounded = (bits + adjust) & mask;
     return intBitsToDouble(rounded);
   }
@@ -215,11 +221,8 @@ class _BoxedDouble implements double {
     if (!isFinite) {
       throw UnsupportedError("Infinity or NaN toInt");
     }
-    return _toInt(this);
+    return _toInt();
   }
-
-  /// Wasm i64.trunc_sat_f64_s instruction
-  external static int _toInt(double a);
 
   double toDouble() {
     return this;
@@ -386,7 +389,7 @@ class _BoxedDouble implements double {
             return GREATER;
           }
         }
-        return _toInt(this).compareTo(other);
+        return _toInt().compareTo(other);
       } else {
         return EQUAL;
       }

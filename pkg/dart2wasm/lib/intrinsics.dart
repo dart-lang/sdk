@@ -38,6 +38,11 @@ class Intrinsifier {
         '<=': (b) => b.i64_le_s(),
         '>': (b) => b.i64_gt_s(),
         '>=': (b) => b.i64_ge_s(),
+        '_div_s': (b) => b.i64_div_s(),
+        '_shl': (b) => b.i64_shl(),
+        '_shr_s': (b) => b.i64_shr_s(),
+        '_shr_u': (b) => b.i64_shr_u(),
+        '_lt_u': (b) => b.i64_lt_u(),
       }
     },
     doubleType: {
@@ -81,6 +86,9 @@ class Intrinsifier {
       'truncateToDouble': (b) {
         b.f64_trunc();
       },
+      '_toInt': (b) {
+        b.i64_trunc_sat_f64_s();
+      },
     },
   };
   static final Map<String, w.ValueType> unaryResultMap = {
@@ -88,6 +96,7 @@ class Intrinsifier {
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
     'truncateToDouble': w.NumType.f64,
+    '_toInt': w.NumType.i64,
   };
 
   Translator get translator => codeGen.translator;
@@ -100,7 +109,7 @@ class Intrinsifier {
   }
 
   static bool isComparison(String op) =>
-      op == '<' || op == '<=' || op == '>' || op == '>=';
+      op == '<' || op == '<=' || op == '>' || op == '>=' || op == '_lt_u';
 
   Intrinsifier(this.codeGen);
 
@@ -715,58 +724,6 @@ class Intrinsifier {
           codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
           b.struct_new(info.struct);
           return info.nonNullableType;
-        case "_div_s":
-          assert(cls == translator.boxedIntClass);
-          assert(node.arguments.positional.length == 2);
-          Expression first = node.arguments.positional[0];
-          Expression second = node.arguments.positional[1];
-          codeGen.wrap(first, w.NumType.i64);
-          codeGen.wrap(second, w.NumType.i64);
-          b.i64_div_s();
-          return w.NumType.i64;
-        case "_shl":
-          assert(cls == translator.boxedIntClass);
-          assert(node.arguments.positional.length == 2);
-          Expression first = node.arguments.positional[0];
-          Expression second = node.arguments.positional[1];
-          codeGen.wrap(first, w.NumType.i64);
-          codeGen.wrap(second, w.NumType.i64);
-          b.i64_shl();
-          return w.NumType.i64;
-        case "_shr_s":
-          assert(cls == translator.boxedIntClass);
-          assert(node.arguments.positional.length == 2);
-          Expression first = node.arguments.positional[0];
-          Expression second = node.arguments.positional[1];
-          codeGen.wrap(first, w.NumType.i64);
-          codeGen.wrap(second, w.NumType.i64);
-          b.i64_shr_s();
-          return w.NumType.i64;
-        case "_shr_u":
-          assert(cls == translator.boxedIntClass);
-          assert(node.arguments.positional.length == 2);
-          Expression first = node.arguments.positional[0];
-          Expression second = node.arguments.positional[1];
-          codeGen.wrap(first, w.NumType.i64);
-          codeGen.wrap(second, w.NumType.i64);
-          b.i64_shr_u();
-          return w.NumType.i64;
-        case "_lt_u":
-          assert(cls == translator.boxedIntClass);
-          assert(node.arguments.positional.length == 2);
-          Expression first = node.arguments.positional[0];
-          Expression second = node.arguments.positional[1];
-          codeGen.wrap(first, w.NumType.i64);
-          codeGen.wrap(second, w.NumType.i64);
-          b.i64_lt_u();
-          return w.NumType.i32; // bool
-        case "_toInt":
-          assert(cls == translator.boxedDoubleClass);
-          assert(node.arguments.positional.length == 1);
-          Expression arg = node.arguments.positional[0];
-          codeGen.wrap(arg, w.NumType.f64);
-          b.i64_trunc_sat_f64_s();
-          return w.NumType.i64;
       }
     }
 

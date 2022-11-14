@@ -197,15 +197,13 @@ class ClassInfoCollector {
         }
 
         // In the Wasm type hierarchy, Object, bool and num sit directly below
-        // the Top type. The implementation classes (_StringBase, _Type and the
-        // box classes) sit directly below the public classes they implement.
+        // the Top type. The implementation classes _StringBase and _Type sit
+        // directly below the public classes they implement.
         // All other classes sit below their superclass.
         ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
                 cls == translator.coreTypes.numClass
             ? topInfo
-            : cls == translator.stringBaseClass ||
-                    cls == translator.typeClass ||
-                    translator.boxedClasses.values.contains(cls)
+            : cls == translator.stringBaseClass || cls == translator.typeClass
                 ? translator.classInfo[cls.implementedTypes.single.classNode]!
                 : translator.classInfo[superclass]!;
 

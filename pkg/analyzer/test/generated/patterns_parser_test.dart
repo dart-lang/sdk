@@ -956,6 +956,32 @@ RecordPattern
 ''');
   }
 
+  test_constant_identifier_doublyPrefixed_builtin() {
+    _parse('''
+void f(x) {
+  const y = abstract.as.get; // verify that this works
+  switch (x) {
+    case abstract.as.get:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case abstract.as.get').pattern;
+    assertParsedNodeText(node, '''
+ConstantPattern
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: abstract
+      period: .
+      identifier: SimpleIdentifier
+        token: as
+    operator: .
+    propertyName: SimpleIdentifier
+      token: get
+''');
+  }
+
   test_constant_identifier_doublyPrefixed_insideCase() {
     _parse('''
 void f(x) {
@@ -1089,6 +1115,54 @@ PostfixPattern
 ''');
   }
 
+  test_constant_identifier_doublyPrefixed_pseudoKeyword() {
+    _parse('''
+void f(x) {
+  const y = show.hide.when; // verify that this works
+  switch (x) {
+    case show.hide.when:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case show.hide.when').pattern;
+    assertParsedNodeText(node, '''
+ConstantPattern
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: show
+      period: .
+      identifier: SimpleIdentifier
+        token: hide
+    operator: .
+    propertyName: SimpleIdentifier
+      token: when
+''');
+  }
+
+  test_constant_identifier_prefixed_builtin() {
+    _parse('''
+void f(x) {
+  const y = abstract.as; // verify that this works
+  switch (x) {
+    case abstract.as:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case abstract.as').pattern;
+    assertParsedNodeText(node, '''
+ConstantPattern
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: abstract
+    period: .
+    identifier: SimpleIdentifier
+      token: as
+''');
+  }
+
   test_constant_identifier_prefixed_insideCase() {
     _parse('''
 void f(x) {
@@ -1202,6 +1276,28 @@ PostfixPattern
 ''');
   }
 
+  test_constant_identifier_prefixed_pseudoKeyword() {
+    _parse('''
+void f(x) {
+  const y = show.hide; // verify that this works
+  switch (x) {
+    case show.hide:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case show.hide').pattern;
+    assertParsedNodeText(node, '''
+ConstantPattern
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: show
+    period: .
+    identifier: SimpleIdentifier
+      token: hide
+''');
+  }
+
   test_constant_identifier_prefixedWithUnderscore_insideCase() {
     // We need to make sure the `_` isn't misinterpreted as a wildcard pattern
     _parse('''
@@ -1221,6 +1317,24 @@ ConstantPattern
     period: .
     identifier: SimpleIdentifier
       token: b
+''');
+  }
+
+  test_constant_identifier_unprefixed_builtin() {
+    _parse('''
+void f(x) {
+  const y = abstract; // verify that this works
+  switch (x) {
+    case abstract:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case abstract').pattern;
+    assertParsedNodeText(node, '''
+ConstantPattern
+  expression: SimpleIdentifier
+    token: abstract
 ''');
   }
 
@@ -1319,6 +1433,24 @@ PostfixPattern
     expression: SimpleIdentifier
       token: y
   operator: ?
+''');
+  }
+
+  test_constant_identifier_unprefixed_pseudoKeyword() {
+    _parse('''
+void f(x) {
+  const y = show; // verify that this works
+  switch (x) {
+    case show:
+      break;
+  }
+}
+''');
+    var node = findNode.switchPatternCase('case show').pattern;
+    assertParsedNodeText(node, '''
+ConstantPattern
+  expression: SimpleIdentifier
+    token: show
 ''');
   }
 
