@@ -33,26 +33,26 @@ def _builder(name, category = None, **kwargs):
     dart.ci_sandbox_builder(name, category = category, **kwargs)
     _postponed_alt_console_entry(name, category)
 
-def _extra_builder(name, on_cq = False, location_regexp = None, **kwargs):
+def _extra_builder(name, on_cq = False, location_filters = None, **kwargs):
     """
     Creates a Dart builder that is only triggered by VM commits.
 
     Args:
         name: The builder name.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
-        location_regexp: Locations that trigger this builder.
+        location_filters: Locations that trigger this builder.
         **kwargs: Extra arguments are passed on to dart_ci_sandbox_builder.
     """
     triggered_by = ["dart-vm-gitiles-trigger-%s"]
-    if on_cq and not location_regexp:
+    if on_cq and not location_filters:
         # Don't add extra builders to the default CQ, trigger only on VM paths.
-        location_regexp = paths.to_location_regexp(paths.vm)
+        location_filters = paths.to_location_filters(paths.vm)
         on_cq = False
     _builder(
         name,
         triggered_by = triggered_by,
         on_cq = on_cq,
-        location_regexp = location_regexp,
+        location_filters = location_filters,
         **kwargs
     )
 

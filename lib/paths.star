@@ -65,8 +65,8 @@ _DART2WASM_PATHS = _CFE_PATHS + [
     "pkg/(dart2wasm|vm|wasm_builder|_js_interop_checks)/.+",
 ]
 
-def _to_location_regexp(paths):
-    return [".+/[+]/%s" % path for path in paths]
+def _to_location_filters(paths):
+    return [cq.location_filter(path_regexp = path) for path in paths]
 
 paths = struct(
     analyzer = _ANALYZER_PATHS,
@@ -81,5 +81,5 @@ paths = struct(
     vm = _VM_PATHS,
 
     # Utility functions
-    to_location_regexp = _to_location_regexp,
+    to_location_filters = _to_location_filters,
 )

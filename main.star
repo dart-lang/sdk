@@ -31,7 +31,7 @@ load(
 load("//lib/paths.star", "paths")
 load("//lib/priority.star", "priority")
 
-lucicfg.check_version("1.30.9")
+lucicfg.check_version("1.33.7")
 
 # Use LUCI Scheduler BBv2 names and add Scheduler realms configs.
 lucicfg.enable_experiment("crbug.com/1182002")
@@ -254,7 +254,7 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "front-end-nnbd-linux-release-x64",
     category = "cfe|nnbd|l",
-    location_regexp = paths.to_location_regexp(paths.cfe),
+    location_filters = paths.to_location_filters(paths.cfe),
 )
 cron.nightly_builder(
     "front-end-nnbd-mac-release-x64",
@@ -274,7 +274,7 @@ dart.ci_sandbox_builder(
     category = "cfe|fl",
     channels = ["try"],
     notifies = "frontend-team",
-    location_regexp = paths.to_location_regexp(paths.cfe_only),
+    location_filters = paths.to_location_filters(paths.cfe_only),
 )
 cron.weekly_builder(
     "frontend-weekly",
@@ -287,7 +287,7 @@ cron.nightly_builder(
     category = "d2w|d",
     channels = ["try"],
     properties = emscripten,
-    location_regexp = paths.to_location_regexp(paths.dart2wasm),
+    location_filters = paths.to_location_filters(paths.dart2wasm),
 )
 
 # flutter
@@ -382,25 +382,25 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "dart2js-strong-hostasserts-linux-ia32-d8",
     category = "dart2js|d8|ha",
-    location_regexp = paths.to_location_regexp(paths.dart2js),
+    location_filters = paths.to_location_filters(paths.dart2js),
     properties = no_android,
 )
 dart.ci_sandbox_builder(
     "dart2js-minified-strong-linux-x64-d8",
     category = "dart2js|d8|mi",
-    location_regexp = paths.to_location_regexp(paths.dart2js),
+    location_filters = paths.to_location_filters(paths.dart2js),
     properties = no_android,
 )
 dart.ci_sandbox_builder(
     "dart2js-unit-linux-x64-release",
     category = "dart2js|d8|u",
-    location_regexp = paths.to_location_regexp(paths.dart2js),
+    location_filters = paths.to_location_filters(paths.dart2js),
     properties = no_android,
 )
 dart.ci_sandbox_builder(
     "dart2js-strong-linux-x64-chrome",
     category = "dart2js|chrome|l",
-    location_regexp = paths.to_location_regexp(paths.dart2js),
+    location_filters = paths.to_location_filters(paths.dart2js),
     properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
@@ -423,7 +423,7 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "dart2js-nnbd-linux-x64-chrome",
     category = "dart2js|chrome|nn",
-    location_regexp = paths.to_location_regexp(paths.dart2js),
+    location_filters = paths.to_location_filters(paths.dart2js),
     properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
@@ -455,13 +455,13 @@ dart.ci_sandbox_builder(
     "analyzer-analysis-server-linux",
     category = "analyzer|as",
     channels = dart.channels,
-    location_regexp = paths.to_location_regexp(paths.analyzer),
+    location_filters = paths.to_location_filters(paths.analyzer),
 )
 dart.ci_sandbox_builder(
     "analyzer-linux-release",
     category = "analyzer|l",
     channels = dart.channels,
-    location_regexp = paths.to_location_regexp(paths.analyzer),
+    location_filters = paths.to_location_filters(paths.analyzer),
 )
 dart.ci_sandbox_builder(
     "analyzer-mac-release",
@@ -560,14 +560,14 @@ cron.nightly_builder(
 dart.ci_sandbox_builder(
     "ddc-linux-release-chrome",
     category = "ddc|l",
-    location_regexp = paths.to_location_regexp(paths.ddc),
+    location_filters = paths.to_location_filters(paths.ddc),
     properties = chrome,
 )
 dart.ci_sandbox_builder(
     "ddc-nnbd-linux-release-chrome",
     category = "ddc|nn",
     channels = ["try"],
-    location_regexp = paths.to_location_regexp(paths.ddc),
+    location_filters = paths.to_location_filters(paths.ddc),
     properties = chrome,
 )
 dart.ci_sandbox_builder(

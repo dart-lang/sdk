@@ -85,7 +85,7 @@ def _try_builder(
         experiment_percentage = None,
         experiments = None,
         goma = None,
-        location_regexp = None,
+        location_filters = None,
         properties = None,
         on_cq = False):
     """Creates a Dart tryjob.
@@ -99,11 +99,11 @@ def _try_builder(
         experiment_percentage: What experiment percentage to use.
         experiments: Experiments to run on this builder, with percentages.
         goma: Whether to use goma or not.
-        location_regexp: Locations that trigger this tryjob.
+        location_filters: Locations that trigger this tryjob.
         properties: Extra properties to set for builds.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
     """
-    if on_cq and location_regexp:
+    if on_cq and location_filters:
         fail("Can't be on the default CQ and conditionally on the CQ")
     dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
@@ -124,12 +124,12 @@ def _try_builder(
         service_account = accounts.try_builder,
     )
     includable_only = (not on_cq and not experiment_percentage and
-                       not location_regexp)
+                       not location_filters)
     luci.cq_tryjob_verifier(
         builder = builder,
         cq_group = "sdk",
         experiment_percentage = experiment_percentage,
-        location_regexp = location_regexp,
+        location_filters = location_filters,
         includable_only = includable_only,
     )
     luci.list_view_entry(list_view = "cq", builder = builder)
@@ -159,7 +159,7 @@ def _builder(
         triggering_policy = None,
         on_cq = False,
         experiment_percentage = None,
-        location_regexp = None):
+        location_filters = None):
     """
     Creates a Dart builder on all the specified channels.
 
@@ -188,7 +188,7 @@ def _builder(
         triggering_policy: The triggering policy used by this builder.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
         experiment_percentage: What experiment percentage to use.
-        location_regexp: Locations that trigger this builder.
+        location_filters: Locations that trigger this builder.
     """
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
@@ -215,7 +215,7 @@ def _builder(
                 experiment_percentage = experiment_percentage,
                 experiments = experiments,
                 goma = goma,
-                location_regexp = location_regexp,
+                location_filters = location_filters,
             )
         else:
             builder_properties = _with_goma(
