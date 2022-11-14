@@ -144,6 +144,17 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractSealedClass = messageAbstractSealedClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractSealedClass = const MessageCode(
+    "AbstractSealedClass",
+    index: 132,
+    problemMessage:
+        r"""A class can't be declared both 'sealed' and 'abstract'.""",
+    correctionMessage: r"""Try removing the 'abstract' or 'sealed' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

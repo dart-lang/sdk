@@ -700,6 +700,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ABSTRACT_ENUM,
   ParserErrorCode.ABSTRACT_EXTERNAL_FIELD,
   ParserErrorCode.ABSTRACT_LATE_FIELD,
+  ParserErrorCode.ABSTRACT_SEALED_CLASS,
   ParserErrorCode.ABSTRACT_STATIC_FIELD,
   ParserErrorCode.ABSTRACT_STATIC_METHOD,
   ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION,

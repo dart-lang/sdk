@@ -2138,6 +2138,8 @@ ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsEvaluation
 ParserErrorCode.ABSTRACT_LATE_FIELD:
   status: needsEvaluation
+ParserErrorCode.ABSTRACT_SEALED_CLASS:
+  status: needsEvaluation
 ParserErrorCode.ABSTRACT_STATIC_FIELD:
   status: needsEvaluation
 ParserErrorCode.ABSTRACT_STATIC_METHOD:

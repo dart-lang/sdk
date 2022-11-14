@@ -545,11 +545,17 @@ class Parser {
         optional('class', next.next!)) {
       macroToken = next;
       next = next.next!;
-    } else if (next.isIdentifier &&
-        next.lexeme == 'sealed' &&
-        optional('class', next.next!)) {
+    } else if (next.isIdentifier && next.lexeme == 'sealed') {
       sealedToken = next;
-      next = next.next!;
+      if (optional('class', next.next!)) {
+        next = next.next!;
+      } else if (optional('abstract', next.next!) &&
+          optional('class', next.next!.next!)) {
+        // Defer error handling of sealed abstract to
+        // [parseClassOrNamedMixinApplication] after the abstract is parsed.
+        start = next;
+        next = next.next!.next!;
+      }
     }
     if (next.isTopLevelKeyword) {
       return parseTopLevelKeywordDeclaration(
@@ -2457,6 +2463,9 @@ class Parser {
     Token token = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
+    if (abstractToken != null && sealedToken != null) {
+      reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
+    }
     if (optional('=', token.next!)) {
       listener.beginNamedMixinApplication(
           begin, abstractToken, macroToken, viewToken, augmentToken, name);
