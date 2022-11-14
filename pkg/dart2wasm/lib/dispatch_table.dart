@@ -223,6 +223,16 @@ class DispatchTable {
   SelectorInfo selectorForTarget(Reference target) {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
+    ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
+    int selectorId = isGetter
+        ? metadata.getterSelectorId
+        : metadata.methodOrSetterSelectorId;
+    return selectorInfo[selectorId]!;
+  }
+
+  SelectorInfo _createSelectorForTarget(Reference target) {
+    Member member = target.asMember;
+    bool isGetter = target.isGetter || target.isTearOffReference;
     bool isSetter = target.isSetter;
     ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
@@ -295,7 +305,7 @@ class DispatchTable {
       }
 
       SelectorInfo addMember(Reference reference) {
-        SelectorInfo selector = selectorForTarget(reference);
+        SelectorInfo selector = _createSelectorForTarget(reference);
         if (reference.asMember.isAbstract) {
           selector.targets[info.classId] ??= reference;
         } else {
