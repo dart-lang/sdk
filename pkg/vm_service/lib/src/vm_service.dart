@@ -2691,6 +2691,10 @@ class InstanceKind {
   /// be PlainInstance.
   static const String kMap = 'Map';
 
+  /// An instance of the built-in VM Set implementation. User-defined Sets will
+  /// be PlainInstance.
+  static const String kSet = 'Set';
+
   /// Vector instance kinds.
   static const String kFloat32x4 = 'Float32x4';
   static const String kFloat64x2 = 'Float64x2';

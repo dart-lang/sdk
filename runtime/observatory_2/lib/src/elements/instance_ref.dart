@@ -169,6 +169,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
         ];
       case M.InstanceKind.list:
       case M.InstanceKind.map:
+      case M.InstanceKind.set:
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -217,6 +218,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
         return true;
       case M.InstanceKind.list:
       case M.InstanceKind.map:
+      case M.InstanceKind.set:
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -292,6 +294,14 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 anyRef(_isolate, association.key, _objects, queue: _r.queue),
                 new SpanElement()..text = ' ] : ',
                 anyRef(_isolate, association.value, _objects, queue: _r.queue)
+              ])
+            .toList()
+          ..addAll(_createShowMoreButton());
+      case M.InstanceKind.set:
+        return _loadedInstance.elements
+            .map<Element>((element) => new DivElement()
+              ..children = <Element>[
+                anyRef(_isolate, element, _objects, queue: _r.queue)
               ])
             .toList()
           ..addAll(_createShowMoreButton());

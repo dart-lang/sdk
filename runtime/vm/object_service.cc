@@ -1455,7 +1455,7 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 void LinkedHashSet::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "PlainInstance");
+  jsobj.AddProperty("kind", "Set");
   jsobj.AddProperty("length", Length());
   if (ref) {
     return;

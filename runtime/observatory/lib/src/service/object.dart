@@ -152,6 +152,7 @@ abstract class ServiceObject implements M.ObjectRef {
   bool get isInt => false;
   bool get isList => false;
   bool get isMap => false;
+  bool get isSet => false;
   bool get isTypedData => false;
   bool get isRegExp => false;
   bool get isMirrorReference => false;
@@ -2737,6 +2738,8 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.list;
     case 'Map':
       return M.InstanceKind.map;
+    case 'Set':
+      return M.InstanceKind.set;
     case 'Float32x4':
       return M.InstanceKind.float32x4;
     case 'Float64x2':
@@ -2890,6 +2893,7 @@ class Instance extends HeapObject implements M.Instance {
   bool get isInt => kind == M.InstanceKind.int;
   bool get isList => kind == M.InstanceKind.list;
   bool get isMap => kind == M.InstanceKind.map;
+  bool get isSet => kind == M.InstanceKind.set;
   bool get isTypedData => M.isTypedData(kind);
   bool get isSimdValue => M.isSimdValue(kind);
   bool get isRegExp => kind == M.InstanceKind.regExp;

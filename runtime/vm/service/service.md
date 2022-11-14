@@ -962,7 +962,7 @@ If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
 
 The _offset_ and _count_ parameters are used to request subranges of
-Instance objects with the kinds: String, List, Map, Uint8ClampedList,
+Instance objects with the kinds: String, List, Map, Set, Uint8ClampedList,
 Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
 Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
@@ -2698,6 +2698,7 @@ class @Instance extends @Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -2828,6 +2829,7 @@ class Instance extends Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -2874,6 +2876,7 @@ class Instance extends Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -2929,10 +2932,11 @@ class Instance extends Object {
   // The fields of this Instance.
   BoundField[] fields [optional];
 
-  // The elements of a List instance.
+  // The elements of a List or Set instance.
   //
   // Provided for instance kinds:
   //   List
+  //   Set
   (@Instance|Sentinel)[] elements [optional];
 
   // The elements of a Map instance.
@@ -3095,6 +3099,10 @@ enum InstanceKind {
   // An instance of the built-in VM Map implementation. User-defined
   // Maps will be PlainInstance.
   Map,
+
+  // An instance of the built-in VM Set implementation. User-defined
+  // Sets will be PlainInstance.
+  Set,
 
   // Vector instance kinds.
   Float32x4,
@@ -4396,5 +4404,6 @@ version | comments
 3.59 | Added `abstract` property to `@Function` and `Function`.
 3.60 | Added `gcType` property to `Event`.
 3.61 | Added `isolateGroupId` property to `@Isolate` and `Isolate`.
+3.62 | Added `Set` to `InstanceKind`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

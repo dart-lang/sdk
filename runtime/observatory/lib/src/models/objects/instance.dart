@@ -31,6 +31,10 @@ enum InstanceKind {
   /// Maps will be PlainInstance.
   map,
 
+  /// An instance of the built-in VM Set implementation. User-defined
+  /// Sets will be PlainInstance.
+  set,
+
   /// Vector instance kinds.
   float32x4,
 
