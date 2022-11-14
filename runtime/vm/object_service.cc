@@ -26,17 +26,6 @@ static void AddNameProperties(JSONObject* jsobj,
   }
 }
 
-static inline void AddValuePropertyToBoundField(const JSONObject& field,
-                                                const Object& value) {
-  if (value.IsBool() || value.IsSmi() || value.IsMint() || value.IsDouble()) {
-    // If the value is a bool, int, or double, we directly add the value to the
-    // response instead of adding an @Instance.
-    field.AddPropertyNoEscape("value", value.ToCString());
-  } else {
-    field.AddProperty("value", value);
-  }
-}
-
 void Object::AddCommonObjectProperties(JSONObject* jsobj,
                                        const char* protocol_type,
                                        bool ref) const {
@@ -1668,7 +1657,7 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
         jsfield.AddProperty("name", name.ToCString());
       }
       value = FieldAt(index);
-      AddValuePropertyToBoundField(jsfield, value);
+      jsfield.AddProperty("value", value);
     }
   }
 }

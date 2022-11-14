@@ -668,8 +668,9 @@ var tests = <IsolateTest>[
     expect(fields.length, 4);
     // TODO(derekx): Include field names in this test once they are accessible
     // through package:vm_service.
-    Set<num> fieldValues = Set.from(fields.map((f) => f.value as num));
-    expect(fieldValues.containsAll([1, 2, 3.0, 4.0]), true);
+    Set<String> fieldValues =
+        Set.from(fields.map((f) => f.value.valueAsString));
+    expect(fieldValues.containsAll(['1', '2', '3.0', '4.0']), true);
   },
 
   // library.
