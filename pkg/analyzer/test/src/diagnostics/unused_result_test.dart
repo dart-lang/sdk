@@ -619,6 +619,42 @@ void main() {
     ]);
   }
 
+  test_import_hide() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+
+bool bar() => true;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' hide foo;
+
+bool f() {
+  return bar();
+}
+''');
+  }
+
+  test_import_show() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' show foo;
+
+bool f() {
+  return foo();
+}
+''');
+  }
+
   test_method_result_assertInitializer() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
