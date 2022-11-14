@@ -22,7 +22,6 @@ class SelectorInfo {
 
   final int id;
   final int callCount;
-  final bool tornOff;
   final ParameterInfo paramInfo;
   int returnCount;
 
@@ -45,8 +44,8 @@ class SelectorInfo {
 
   int get sortWeight => classIds.length * 10 + callCount;
 
-  SelectorInfo(this.translator, this.id, this.callCount, this.tornOff,
-      this.paramInfo, this.returnCount);
+  SelectorInfo(this.translator, this.id, this.callCount, this.paramInfo,
+      this.returnCount);
 
   /// Compute the signature for the functions implementing members targeted by
   /// this selector.
@@ -224,6 +223,16 @@ class DispatchTable {
   SelectorInfo selectorForTarget(Reference target) {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
+    ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
+    int selectorId = isGetter
+        ? metadata.getterSelectorId
+        : metadata.methodOrSetterSelectorId;
+    return selectorInfo[selectorId]!;
+  }
+
+  SelectorInfo _createSelectorForTarget(Reference target) {
+    Member member = target.asMember;
+    bool isGetter = target.isGetter || target.isTearOffReference;
     bool isSetter = target.isSetter;
     ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
@@ -244,13 +253,8 @@ class DispatchTable {
 
     final selector = selectorInfo.putIfAbsent(
         selectorId,
-        () => SelectorInfo(
-            translator,
-            selectorId,
-            selectorMetadata[selectorId].callCount,
-            selectorMetadata[selectorId].tornOff,
-            paramInfo,
-            returnCount));
+        () => SelectorInfo(translator, selectorId,
+            selectorMetadata[selectorId].callCount, paramInfo, returnCount));
     selector.paramInfo.merge(paramInfo);
     selector.returnCount = max(selector.returnCount, returnCount);
     selector.calledDynamically |= calledDynamically;
@@ -301,7 +305,7 @@ class DispatchTable {
       }
 
       SelectorInfo addMember(Reference reference) {
-        SelectorInfo selector = selectorForTarget(reference);
+        SelectorInfo selector = _createSelectorForTarget(reference);
         if (reference.asMember.isAbstract) {
           selector.targets[info.classId] ??= reference;
         } else {
@@ -319,7 +323,7 @@ class DispatchTable {
             if (member.hasSetter) addMember(member.setterReference!);
           } else if (member is Procedure) {
             SelectorInfo method = addMember(member.reference);
-            if (method.tornOff &&
+            if (selectorMetadata[method.id].tornOff &&
                 procedureAttributeMetadata[member]!.hasTearOffUses) {
               addMember(member.tearOffReference);
             }
