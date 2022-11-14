@@ -1737,22 +1737,31 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
-    flowAnalysis.ifStatement_conditionBegin();
-    DartType expectedType = const UnknownType();
-    ExpressionInferenceResult conditionResult =
-        inferExpression(node.expression, expectedType, isVoidAllowed: true);
-    Expression condition =
-        ensureAssignableResult(expectedType, conditionResult).expression;
-
-    dispatchPattern(
-        conditionResult.inferredType,
-        new SharedMatchContext(
-            isFinal: false, topPattern: node.pattern, typeInfos: {}),
-        node.pattern);
-
+    DartType scrutineeType = analyzeIfCaseStatement(node, node.expression,
+        node.pattern, node.guard, node.then, node.otherwise);
+    // Stack: (Expression scrutinee, Expression guard, Statement ifTrue,
+    //         Statement ifFalse)
+    Statement? otherwise = node.otherwise;
+    Node? rewrite = popRewrite();
+    if (!identical(node.otherwise, rewrite)) {
+      otherwise = node.otherwise = (rewrite as Statement)..parent = node;
+    }
+    Statement then = node.then;
+    rewrite = popRewrite();
+    if (!identical(then, rewrite)) {
+      then = node.then = (rewrite as Statement)..parent = node;
+    }
+    rewrite = popRewrite();
+    if (!identical(node.guard, rewrite)) {
+      node.guard = (rewrite as Expression)..parent = node;
+    }
+    rewrite = popRewrite();
+    if (!identical(node.expression, rewrite)) {
+      node.expression = (rewrite as Expression)..parent = node;
+    }
     VariableDeclaration matchedExpressionVariable = engine.forest
-        .createVariableDeclarationForValue(condition,
-            type: conditionResult.inferredType);
+        .createVariableDeclarationForValue(node.expression,
+            type: scrutineeType);
     Expression? matchCondition =
         node.pattern.makeCondition(matchedExpressionVariable, this);
     node.pattern.createDeclaredVariableInitializers(
@@ -1760,31 +1769,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             .createVariableGet(node.fileOffset, matchedExpressionVariable),
         matchedExpressionVariable.type,
         this);
-
-    flowAnalysis.ifStatement_thenBegin(condition, node);
-    for (VariableDeclaration variable in node.pattern.declaredVariables) {
-      flowAnalysis.declare(variable, true);
-    }
-    StatementInferenceResult thenResult = inferStatement(node.then);
-    Statement then;
-    if (thenResult.hasChanged) {
-      then = thenResult.statement;
-    } else {
-      then = node.then;
-    }
-
-    Statement? otherwise;
-    if (node.otherwise != null) {
-      flowAnalysis.ifStatement_elseBegin();
-      StatementInferenceResult otherwiseResult =
-          inferStatement(node.otherwise!);
-      if (otherwiseResult.hasChanged) {
-        otherwise = otherwiseResult.statement;
-      } else {
-        otherwise = node.otherwise!;
-      }
-    }
-    flowAnalysis.ifStatement_end(node.otherwise != null);
 
     List<Statement> replacementStatements = [matchedExpressionVariable];
     if (matchCondition == null) {
@@ -7420,7 +7404,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType get boolType => throw new UnimplementedError('TODO(paulberry)');
+  DartType get boolType => coreTypes.boolRawType(libraryBuilder.nonNullable);
 
   @override
   ExpressionTypeAnalysisResult<DartType> dispatchExpression(
@@ -7544,7 +7528,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleNoStatement(Statement node) {
-    throw new UnimplementedError('TODO(paulberry)');
+    // Stack: ()
+    pushRewrite(null);
+    // Stack: (Statement)
   }
 
   @override
@@ -7591,7 +7577,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void setVariableType(VariableDeclaration variable, DartType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    variable.type = type;
   }
 
   @override
@@ -7599,7 +7585,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   DartType variableTypeFromInitializerType(DartType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    // TODO(paulberry): make a test verifying that we don't need to pass
+    // `forSyntheticVariable: true` (and possibly a language issue)
+    return inferDeclarationType(type);
   }
 
   @override
@@ -7620,8 +7608,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    DartType inferredType =
-        inferDeclarationType(matchedType, forSyntheticVariable: true);
+    DartType inferredType = analyzeVariablePattern(
+        matchedType, context, binder, binder.variable, binder.type);
     instrumentation?.record(uriForInstrumentation, binder.variable.fileOffset,
         'type', new InstrumentationValueForType(inferredType));
     if (binder.type == null) {

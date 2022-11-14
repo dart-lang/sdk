@@ -360,12 +360,14 @@ mixin TypeAnalyzer<
   /// the expression, [pattern] for the pattern to match, [ifTrue] for the
   /// "then" branch, and [ifFalse] for the "else" branch (if present).
   ///
+  /// Returns the static type of [expression].
+  ///
   /// Stack effect: pushes (Expression scrutinee, Pattern, Expression guard,
   /// Statement ifTrue, Statement ifFalse).  If there is no `else` clause, the
   /// representation for `ifFalse` will be pushed by [handleNoStatement].  If
   /// there is no guard, the representation for `guard` will be pushed by
   /// [handleNoGuard].
-  void analyzeIfCaseStatement(
+  Type analyzeIfCaseStatement(
       Statement node,
       Expression expression,
       Pattern pattern,
@@ -391,6 +393,7 @@ mixin TypeAnalyzer<
     // Stack: (Expression, Pattern, Guard)
     flow?.ifStatement_thenBegin(null, node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
+    return initializerType;
   }
 
   /// Analyzes a collection element of the form `if (condition) ifTrue` or
@@ -1061,6 +1064,8 @@ mixin TypeAnalyzer<
   ///
   /// If this is a wildcard pattern (it doesn't bind any variable), [variable]
   /// should be `null`.
+  ///
+  /// Returns the static type of the variable (possibly inferred).
   ///
   /// Stack effect: none.
   Type analyzeVariablePattern(

@@ -1505,7 +1505,8 @@ class _CheckAssigned extends Statement {
 
   @override
   void visit(Harness h) {
-    expect(h.flow.isAssigned(variable), expectedAssignedState);
+    expect(h.flow.isAssigned(variable), expectedAssignedState,
+        reason: 'at $location');
     h.irBuilder.atom('null', Kind.statement, location: location);
   }
 }
