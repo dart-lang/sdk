@@ -9304,7 +9304,7 @@ class Parser {
     // TODO(paulberry): Make sure OTHER_IDENTIFIER is handled
     // TODO(paulberry): Technically `dynamic` is valid for
     // `typeIdentifier`--file an issue
-    if (isValidNonRecordTypeReference(next)) {
+    if (next.isIdentifier) {
       Token beforeFirstIdentifier = token;
       Token firstIdentifier = token = next;
       next = token.next!;
@@ -9313,7 +9313,7 @@ class Parser {
       if (optional('.', next)) {
         dot = token = next;
         next = token.next!;
-        if (isValidNonRecordTypeReference(next)) {
+        if (next.isIdentifier) {
           secondIdentifier = token = next;
           // TODO(paulberry): grammar specifies
           // `typeIdentifier | qualifiedName`, but that permits `a.b.c`,
