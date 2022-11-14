@@ -4,11 +4,32 @@
 
 part of "core_patch.dart";
 
+@patch
+class int {
+  /// Wasm i64.div_s instruction
+  external int _div_s(int divisor);
+
+  /// Wasm i64.lt_u instruction
+  external bool _lt_u(int other);
+
+  /// Wasm i64.shr_s instruction
+  external int _shr_s(int shift);
+
+  /// Wasm i64.shr_u instruction
+  external int _shr_u(int shift);
+
+  /// Wasm i64.shl instruction
+  external int _shl(int shift);
+}
+
 @pragma("wasm:entry-point")
-class _BoxedInt implements int {
+class _BoxedInt extends int {
   // A boxed int contains an unboxed int.
   @pragma("wasm:entry-point")
   int value = 0;
+
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory _BoxedInt();
 
   external num operator +(num other);
   external num operator -(num other);
@@ -50,11 +71,8 @@ class _BoxedInt implements int {
       throw IntegerDivisionByZeroException();
     }
 
-    return _div_s(a, b);
+    return a._div_s(b);
   }
-
-  /// Wasm i64.div_s instruction
-  external static int _div_s(int a, int b);
 
   num remainder(num other) => other is int
       ? this - (this ~/ other) * other
@@ -68,8 +86,8 @@ class _BoxedInt implements int {
 
   int operator >>(int shift) {
     // Unsigned comparison to check for large and negative shifts
-    if (_lt_u(shift, 64)) {
-      return _shr_s(this, shift);
+    if (shift._lt_u(64)) {
+      return this._shr_s(shift);
     }
 
     if (shift < 0) {
@@ -77,13 +95,13 @@ class _BoxedInt implements int {
     }
 
     // shift >= 64, 0 or -1 depending on sign: `this >= 0 ? 0 : -1`
-    return _shr_s(this, 63);
+    return this._shr_s(63);
   }
 
   int operator >>>(int shift) {
     // Unsigned comparison to check for large and negative shifts
-    if (_lt_u(shift, 64)) {
-      return _shr_u(this, shift);
+    if (shift._lt_u(64)) {
+      return this._shr_u(shift);
     }
 
     if (shift < 0) {
@@ -96,8 +114,8 @@ class _BoxedInt implements int {
 
   int operator <<(int shift) {
     // Unsigned comparison to check for large and negative shifts
-    if (_lt_u(shift, 64)) {
-      return _shl(this, shift);
+    if (shift._lt_u(64)) {
+      return this._shl(shift);
     }
 
     if (shift < 0) {
@@ -107,18 +125,6 @@ class _BoxedInt implements int {
     // shift >= 64
     return 0;
   }
-
-  /// Wasm i64.lt_u instruction
-  external static bool _lt_u(int a, int b);
-
-  /// Wasm i64.shr_s instruction
-  external static int _shr_s(int a, int b);
-
-  /// Wasm i64.shr_u instruction
-  external static int _shr_u(int a, int b);
-
-  /// Wasm i64.shl instruction
-  external static int _shl(int a, int b);
 
   external bool operator <(num other);
   external bool operator >(num other);
@@ -193,7 +199,7 @@ class _BoxedInt implements int {
       } else {
         // If abs(other) > MAX_EXACT_INT_TO_DOUBLE, then other has an integer
         // value (no bits below the decimal point).
-        other = _BoxedDouble._toInt(other);
+        other = other._toInt();
       }
     }
     if (this < other) {

@@ -5,10 +5,13 @@
 part of "core_patch.dart";
 
 @pragma("wasm:entry-point")
-class _BoxedBool implements bool {
+class _BoxedBool extends bool {
   // A boxed bool contains an unboxed bool.
   @pragma("wasm:entry-point")
   bool value = false;
+
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory _BoxedBool();
 
   @override
   bool operator ==(Object other) {
