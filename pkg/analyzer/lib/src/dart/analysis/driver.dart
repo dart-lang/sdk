@@ -167,7 +167,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The mapping from the files for which analysis was requested using
   /// [getResolvedLibrary] to the [Completer]s to report the result.
   final _requestedLibraries =
-      <LibraryFileKind, List<Completer<ResolvedLibraryResult>>>{};
+      <LibraryFileKind, List<Completer<SomeResolvedLibraryResult>>>{};
 
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
@@ -246,6 +246,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// If testing data is being retained, a pointer to the object that is
   /// retaining the testing data.  Otherwise `null`.
   final TestingData? testingData;
+
+  bool _disposed = false;
 
   /// Create a new instance of [AnalysisDriver].
   ///
@@ -487,6 +489,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// were previously accessed are considered to be known and affected).
   Future<List<String>> applyPendingFileChanges() {
     if (_pendingFileChanges.isNotEmpty) {
+      if (_disposed) throw DisposedAnalysisContextResult();
       var completer = Completer<List<String>>();
       _pendingFileChangesCompleters.add(completer);
       return completer.future;
@@ -591,7 +594,43 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   @override
   Future<void> dispose2() async {
     final completer = Completer<void>();
+    _disposed = true;
     _disposeRequests.add(completer);
+
+    // Complete all waiting completers.
+    for (var completerList in _requestedLibraries.values) {
+      for (var completer in completerList) {
+        completer.complete(DisposedAnalysisContextResult());
+      }
+    }
+    _requestedLibraries.clear();
+
+    for (var completerList in _requestedFiles.values) {
+      for (var completer in completerList) {
+        completer.complete(DisposedAnalysisContextResult());
+      }
+    }
+    _requestedFiles.clear();
+
+    for (var completerList in _unitElementRequestedFiles.values) {
+      for (var completer in completerList) {
+        completer.complete(DisposedAnalysisContextResult());
+      }
+    }
+    _unitElementRequestedFiles.clear();
+
+    for (var completerList in _errorsRequestedFiles.values) {
+      for (var completer in completerList) {
+        completer.complete(DisposedAnalysisContextResult());
+      }
+    }
+    _errorsRequestedFiles.clear();
+
+    for (var completer in _pendingFileChangesCompleters) {
+      completer.completeError(DisposedAnalysisContextResult());
+    }
+    _pendingFileChangesCompleters.clear();
+
     _scheduler.notify(this);
     return completer.future;
   }
@@ -625,6 +664,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (!_fsState.hasUri(path)) {
       return Future.value(
         NotPathOfUriResult(),
+      );
+    }
+
+    if (_disposed) {
+      return Future.value(
+        DisposedAnalysisContextResult(),
       );
     }
 
@@ -819,12 +864,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return NotPathOfUriResult();
     }
 
+    if (_disposed) {
+      return Future.value(
+        DisposedAnalysisContextResult(),
+      );
+    }
+
     final file = _fsState.getFileForPath(path);
     final kind = file.kind;
     if (kind is LibraryFileKind) {
-      final completer = Completer<ResolvedLibraryResult>();
+      final completer = Completer<SomeResolvedLibraryResult>();
       _requestedLibraries
-          .putIfAbsent(kind, () => <Completer<ResolvedLibraryResult>>[])
+          .putIfAbsent(kind, () => <Completer<SomeResolvedLibraryResult>>[])
           .add(completer);
       _scheduler.notify(this);
       return completer.future;
@@ -904,6 +955,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
+    if (_disposed) {
+      return Future.value(
+        DisposedAnalysisContextResult(),
+      );
+    }
+
     // Schedule analysis.
     var completer = Completer<SomeResolvedUnitResult>();
     _requestedFiles
@@ -925,6 +982,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (!_fsState.hasUri(path)) {
       return Future.value(
         NotPathOfUriResult(),
+      );
+    }
+
+    if (_disposed) {
+      return Future.value(
+        DisposedAnalysisContextResult(),
       );
     }
 
