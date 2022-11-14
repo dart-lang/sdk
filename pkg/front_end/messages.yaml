@@ -788,6 +788,16 @@ AbstractLateField:
   script:
     - "abstract class C {abstract late var f;}"
 
+AbstractSealedClass:
+  index: 132
+  problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
+  correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
+  experiments: sealed-class
+  script:
+    - "sealed abstract class C {}"
+    - "abstract sealed class C {}"
+
 ClassInClass:
   index: 53
   problemMessage: "Classes can't be declared inside other classes."

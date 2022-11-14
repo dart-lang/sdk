@@ -15,6 +15,26 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends ParserDiagnosticsTest {
+  void test_class_abstract_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+abstract sealed class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 9, 6),
+    ]);
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  abstractKeyword: abstract
+  sealedKeyword: sealed
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_augment() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {}
@@ -286,6 +306,26 @@ sealed class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  sealedKeyword: sealed
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_class_sealed_abstract() {
+    var parseResult = parseStringWithErrors(r'''
+sealed abstract class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 0, 6),
+    ]);
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  abstractKeyword: abstract
   sealedKeyword: sealed
   classKeyword: class
   name: A

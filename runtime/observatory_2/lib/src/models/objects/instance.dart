@@ -31,6 +31,10 @@ enum InstanceKind {
   /// Maps will be PlainInstance.
   map,
 
+  /// An instance of the built-in VM Set implementation. User-defined
+  /// Sets will be PlainInstance.
+  set,
+
   /// Vector instance kinds.
   float32x4,
 
@@ -126,6 +130,18 @@ enum InstanceKind {
 
   /// An instance of the Dart class RawReceivePort
   receivePort,
+
+  /// An instance of Record.
+  record,
+
+  /// An instance of RecordType
+  recordType,
+
+  /// An instance of Finalizer
+  finalizer,
+
+  /// An instance of WeakReference
+  weakReference,
 }
 
 bool isTypedData(InstanceKind kind) {
@@ -454,7 +470,8 @@ abstract class Instance extends Object implements InstanceRef {
 
 abstract class BoundField {
   FieldRef get decl;
-  Guarded<InstanceRef> get value;
+  dynamic get name;
+  Guarded<dynamic> get value;
 }
 
 abstract class NativeField {

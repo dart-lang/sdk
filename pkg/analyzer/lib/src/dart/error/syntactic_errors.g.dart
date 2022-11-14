@@ -146,6 +146,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST,
   ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA,
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
+  ParserErrorCode.ABSTRACT_SEALED_CLASS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -173,6 +174,12 @@ class ParserErrorCode extends ErrorCode {
     'ABSTRACT_LATE_FIELD',
     "Abstract fields cannot be late.",
     correctionMessage: "Try removing the 'abstract' or 'late' keyword.",
+  );
+
+  static const ParserErrorCode ABSTRACT_SEALED_CLASS = ParserErrorCode(
+    'ABSTRACT_SEALED_CLASS',
+    "A class can't be declared both 'sealed' and 'abstract'.",
+    correctionMessage: "Try removing the 'abstract' or 'sealed' keyword.",
   );
 
   static const ParserErrorCode ABSTRACT_STATIC_FIELD = ParserErrorCode(

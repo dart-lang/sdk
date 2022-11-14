@@ -26,17 +26,6 @@ static void AddNameProperties(JSONObject* jsobj,
   }
 }
 
-static inline void AddValuePropertyToBoundField(const JSONObject& field,
-                                                const Object& value) {
-  if (value.IsBool() || value.IsSmi() || value.IsMint() || value.IsDouble()) {
-    // If the value is a bool, int, or double, we directly add the value to the
-    // response instead of adding an @Instance.
-    field.AddPropertyNoEscape("value", value.ToCString());
-  } else {
-    field.AddProperty("value", value);
-  }
-}
-
 void Object::AddCommonObjectProperties(JSONObject* jsobj,
                                        const char* protocol_type,
                                        bool ref) const {
@@ -1128,7 +1117,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
 
   Array& field_array = Array::Handle();
   Field& field = Field::Handle();
-  Instance& field_value = Instance::Handle();
+  Object& field_value = Object::Handle();
   {
     JSONArray jsarr(jsobj, "fields");
     for (intptr_t i = classes.length() - 1; i >= 0; i--) {
@@ -1137,7 +1126,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
         for (intptr_t j = 0; j < field_array.Length(); j++) {
           field ^= field_array.At(j);
           if (!field.is_static()) {
-            field_value ^= GetField(field);
+            field_value = GetField(field);
             JSONObject jsfield(&jsarr);
             jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
@@ -1466,7 +1455,7 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 void LinkedHashSet::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "PlainInstance");
+  jsobj.AddProperty("kind", "Set");
   jsobj.AddProperty("length", Length());
   if (ref) {
     return;
@@ -1668,7 +1657,7 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
         jsfield.AddProperty("name", name.ToCString());
       }
       value = FieldAt(index);
-      AddValuePropertyToBoundField(jsfield, value);
+      jsfield.AddProperty("value", value);
     }
   }
 }

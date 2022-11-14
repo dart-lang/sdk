@@ -1540,7 +1540,11 @@ class SourceClassBuilder extends ClassBuilderImpl
           procedure.isInstanceMember &&
           !procedure.isAbstract &&
           _isPrivateNameInThisLibrary(procedure.name)) {
-        unpromotablePrivateFieldNames.add(procedure.name.text);
+        ProcedureStubKind procedureStubKind = procedure.stubKind;
+        if (procedureStubKind == ProcedureStubKind.Regular ||
+            procedureStubKind == ProcedureStubKind.NoSuchMethodForwarder) {
+          unpromotablePrivateFieldNames.add(procedure.name.text);
+        }
       }
     }
   }

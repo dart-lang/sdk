@@ -55,6 +55,9 @@ getList() => [3, 2, 1];
 getMap() => {"x": 3, "y": 4, "z": 5};
 
 @pragma("vm:entry-point")
+getSet() => {6, 7, 8};
+
+@pragma("vm:entry-point")
 getUint8List() => uint8List;
 
 @pragma("vm:entry-point")
@@ -441,6 +444,38 @@ var tests = <IsolateTest>[
     expect(result.associations, isEmpty);
   },
 
+  // A built-in Set.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Call eval to get a Dart set.
+    final evalResult = await service
+        .invoke(isolateId, isolate.rootLib!.id!, 'getSet', []) as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, InstanceKind.kSet);
+    expect(result.json!['_vmType'], equals('LinkedHashSet'));
+    expect(result.id, startsWith('objects/'));
+    expect(result.valueAsString, isNull);
+    expect(result.classRef!.name, equals('_InternalLinkedHashSet'));
+    expect(result.size, isPositive);
+    expect(result.fields, isEmpty);
+    expect(result.length, equals(3));
+    expect(result.offset, isNull);
+    expect(result.count, isNull);
+    final elements = result.elements!;
+    expect(elements.length, equals(3));
+    expect(elements[0] is InstanceRef, true);
+    expect(elements[0].kind, InstanceKind.kInt);
+    expect(elements[0].valueAsString, equals('6'));
+    expect(elements[1] is InstanceRef, true);
+    expect(elements[1].kind, InstanceKind.kInt);
+    expect(elements[1].valueAsString, equals('7'));
+    expect(elements[2] is InstanceRef, true);
+    expect(elements[2].kind, InstanceKind.kInt);
+    expect(elements[2].valueAsString, equals('8'));
+  },
+
   // Uint8List.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
@@ -668,8 +703,9 @@ var tests = <IsolateTest>[
     expect(fields.length, 4);
     // TODO(derekx): Include field names in this test once they are accessible
     // through package:vm_service.
-    Set<num> fieldValues = Set.from(fields.map((f) => f.value as num));
-    expect(fieldValues.containsAll([1, 2, 3.0, 4.0]), true);
+    Set<String> fieldValues =
+        Set.from(fields.map((f) => f.value.valueAsString));
+    expect(fieldValues.containsAll(['1', '2', '3.0', '4.0']), true);
   },
 
   // library.
