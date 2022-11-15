@@ -41,6 +41,7 @@ import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'add_super_parameter_test.dart' as add_super_parameter;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
 import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
@@ -275,6 +276,7 @@ void main() {
     add_return_type.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    add_super_parameter.main();
     add_switch_case_break.main();
     add_trailing_comma.main();
     add_type_annotation.main();
