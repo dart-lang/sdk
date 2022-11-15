@@ -15,7 +15,8 @@ import "ast.dart"
         Procedure,
         ProcedureKind,
         Reference,
-        Typedef;
+        Typedef,
+        View;
 
 class ReferenceFromIndex {
   Map<Library, IndexedLibrary> _indexedLibraries =
@@ -84,6 +85,7 @@ class IndexedLibrary extends IndexedContainer {
   final Map<String, IndexedClass> _indexedClasses =
       new Map<String, IndexedClass>();
   final Map<String, Extension> _extensions = new Map<String, Extension>();
+  final Map<String, View> _views = new Map<String, View>();
   @override
   final Library library;
 
@@ -109,6 +111,11 @@ class IndexedLibrary extends IndexedContainer {
         assert(_extensions[extension.name] == null);
         _extensions[extension.name] = extension;
       }
+    }
+    for (int i = 0; i < library.views.length; i++) {
+      View view = library.views[i];
+      assert(_views[view.name] == null);
+      _views[view.name] = view;
     }
     _addProcedures(library.procedures);
     _addFields(library.fields);
@@ -137,6 +144,7 @@ class IndexedLibrary extends IndexedContainer {
   Class? lookupClass(String name) => _classes[name];
   IndexedClass? lookupIndexedClass(String name) => _indexedClasses[name];
   Extension? lookupExtension(String name) => _extensions[name];
+  View? lookupView(String name) => _views[name];
 }
 
 class IndexedClass extends IndexedContainer {

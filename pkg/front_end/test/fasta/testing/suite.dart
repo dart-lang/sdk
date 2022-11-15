@@ -1492,7 +1492,11 @@ class FuzzCompiles
         print("Skipping $uri -- couldn't find builder for it.");
         continue;
       }
-      Uint8List orgData = fs.data[uri] as Uint8List;
+      Uint8List? orgData = fs.data[uri];
+      if (orgData == null) {
+        print("Skipping $uri -- couldn't find source for it.");
+        continue;
+      }
       FuzzAstVisitorSorter fuzzAstVisitorSorter;
       try {
         fuzzAstVisitorSorter =

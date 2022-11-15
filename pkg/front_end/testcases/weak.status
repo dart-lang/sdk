@@ -17,8 +17,9 @@ general/issue48765: semiFuzzFailureOnForceRebuildBodies # private class
 general/mixin_from_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/multiple_class_patches/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444
+general/sealed_class_declaration: SemiFuzzFailure # "sealed" experimental feature.
 general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-general/view_class_declaration: SemiFuzzFailure # "view" doesn't appear to get into the reordering.
+general/view_class_declaration: SemiFuzzFailure # "view" doesn't appear to get into the reordering (experimental feature).
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
 inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
 inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
