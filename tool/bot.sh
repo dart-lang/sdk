@@ -91,6 +91,7 @@ else
   echo ""
 
   # Run tests.
-  dart --disable-analytics \
+  dart --enable-asserts \
+    --disable-analytics \
     test/all.dart
 fi
