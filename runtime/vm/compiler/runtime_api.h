@@ -659,12 +659,12 @@ class ImmutableLinkedHashBase : public LinkedHashBase {
   static word data_offset();
 };
 
-class LinkedHashMap : public LinkedHashBase {
+class Map : public LinkedHashBase {
  public:
   FINAL_CLASS();
 };
 
-class LinkedHashSet : public LinkedHashBase {
+class Set : public LinkedHashBase {
  public:
   FINAL_CLASS();
 };

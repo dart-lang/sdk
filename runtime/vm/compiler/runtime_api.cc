@@ -451,10 +451,10 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return Closure::InstanceSize();
     case kTypedDataBaseCid:
       return TypedDataBase::InstanceSize();
-    case kLinkedHashMapCid:
-      return LinkedHashMap::InstanceSize();
-    case kLinkedHashSetCid:
-      return LinkedHashSet::InstanceSize();
+    case kMapCid:
+      return Map::InstanceSize();
+    case kSetCid:
+      return Set::InstanceSize();
     case kUnhandledExceptionCid:
       return UnhandledException::InstanceSize();
     case kWeakPropertyCid:

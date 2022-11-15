@@ -54,7 +54,7 @@ class ParsedFunction;
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
   V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
   V(Finalizer, UntaggedFinalizer, type_arguments, TypeArguments, FINAL)        \
-  V(FinalizerBase, UntaggedFinalizerBase, all_entries, LinkedHashSet, VAR)     \
+  V(FinalizerBase, UntaggedFinalizerBase, all_entries, Set, VAR)               \
   V(FinalizerBase, UntaggedFinalizerBase, detachments, Dynamic, VAR)           \
   V(FinalizerBase, UntaggedFinalizer, entries_collected, FinalizerEntry, VAR)  \
   V(FinalizerEntry, UntaggedFinalizerEntry, value, Dynamic, VAR)               \

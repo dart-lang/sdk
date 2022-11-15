@@ -283,6 +283,8 @@ class ObjectPointerVisitor;
   V(_ClosureCall, "_Closure.call")                                             \
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
+  V(_ConstMap, "_ConstMap")                                                    \
+  V(_ConstSet, "_ConstSet")                                                    \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
@@ -326,8 +328,6 @@ class ObjectPointerVisitor;
   V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
   V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
-  V(_ImmutableLinkedHashMap, "_InternalImmutableLinkedHashMap")                \
-  V(_ImmutableLinkedHashSet, "_InternalImmutableLinkedHashSet")                \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \
@@ -350,12 +350,11 @@ class ObjectPointerVisitor;
   V(_LibraryDependencyMirror, "_LibraryDependencyMirror")                      \
   V(_LibraryMirror, "_LibraryMirror")                                          \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
-  V(_LinkedHashMap, "_InternalLinkedHashMap")                                  \
-  V(_LinkedHashSet, "_InternalLinkedHashSet")                                  \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
   V(_ListFilledFactory, "_List.filled")                                        \
   V(_ListGenerateFactory, "_List.generate")                                    \
+  V(_Map, "_Map")                                                              \
   V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
@@ -367,6 +366,7 @@ class ObjectPointerVisitor;
   V(_RecordType, "_RecordType")                                                \
   V(_RegExp, "_RegExp")                                                        \
   V(_SendPortImpl, "_SendPortImpl")                                            \
+  V(_Set, "_Set")                                                              \
   V(_Smi, "_Smi")                                                              \
   V(_SourceLocation, "_SourceLocation")                                        \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \

@@ -2180,23 +2180,20 @@ class CapabilityMessageDeserializationCluster
   }
 };
 
-class LinkedHashMapMessageSerializationCluster
-    : public MessageSerializationCluster {
+class MapMessageSerializationCluster : public MessageSerializationCluster {
  public:
-  LinkedHashMapMessageSerializationCluster(Zone* zone,
-                                           bool is_canonical,
-                                           intptr_t cid)
-      : MessageSerializationCluster("LinkedHashMap",
+  MapMessageSerializationCluster(Zone* zone, bool is_canonical, intptr_t cid)
+      : MessageSerializationCluster("Map",
                                     is_canonical
                                         ? MessagePhase::kCanonicalInstances
                                         : MessagePhase::kNonCanonicalInstances,
                                     cid,
                                     is_canonical),
         objects_(zone, 0) {}
-  ~LinkedHashMapMessageSerializationCluster() {}
+  ~MapMessageSerializationCluster() {}
 
   void Trace(MessageSerializer* s, Object* object) {
-    LinkedHashMap* map = static_cast<LinkedHashMap*>(object);
+    Map* map = static_cast<Map*>(object);
     objects_.Add(map);
 
     // Compensation for bogus type prefix optimization.
@@ -2216,7 +2213,7 @@ class LinkedHashMapMessageSerializationCluster
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashMap* map = objects_[i];
+      Map* map = objects_[i];
       s->AssignRef(map);
     }
   }
@@ -2224,7 +2221,7 @@ class LinkedHashMapMessageSerializationCluster
   void WriteEdges(MessageSerializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashMap* map = objects_[i];
+      Map* map = objects_[i];
       s->WriteRef(map->untag()->type_arguments());
       s->WriteRef(map->untag()->data());
       s->WriteRef(map->untag()->used_data());
@@ -2232,27 +2229,25 @@ class LinkedHashMapMessageSerializationCluster
   }
 
  private:
-  GrowableArray<LinkedHashMap*> objects_;
+  GrowableArray<Map*> objects_;
 };
 
-class LinkedHashMapMessageDeserializationCluster
-    : public MessageDeserializationCluster {
+class MapMessageDeserializationCluster : public MessageDeserializationCluster {
  public:
-  LinkedHashMapMessageDeserializationCluster(bool is_canonical, intptr_t cid)
-      : MessageDeserializationCluster("LinkedHashMap", is_canonical),
-        cid_(cid) {}
-  ~LinkedHashMapMessageDeserializationCluster() {}
+  MapMessageDeserializationCluster(bool is_canonical, intptr_t cid)
+      : MessageDeserializationCluster("Map", is_canonical), cid_(cid) {}
+  ~MapMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashMap::NewUninitialized(cid_));
+      d->AssignRef(Map::NewUninitialized(cid_));
     }
   }
 
   void ReadEdges(MessageDeserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      LinkedHashMapPtr map = static_cast<LinkedHashMapPtr>(d->Ref(id));
+      MapPtr map = static_cast<MapPtr>(d->Ref(id));
       map->untag()->set_hash_mask(Smi::New(0));
       map->untag()->set_type_arguments(
           static_cast<TypeArgumentsPtr>(d->ReadRef()));
@@ -2264,14 +2259,14 @@ class LinkedHashMapMessageDeserializationCluster
 
   ObjectPtr PostLoad(MessageDeserializer* d) {
     if (!is_canonical()) {
-      ASSERT(cid_ == kLinkedHashMapCid);
+      ASSERT(cid_ == kMapCid);
       return PostLoadLinkedHash(d);
     }
 
-    ASSERT(cid_ == kImmutableLinkedHashMapCid);
+    ASSERT(cid_ == kConstMapCid);
     SafepointMutexLocker ml(
         d->isolate_group()->constant_canonicalization_mutex());
-    LinkedHashMap& instance = LinkedHashMap::Handle(d->zone());
+    Map& instance = Map::Handle(d->zone());
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       instance ^= d->Ref(i);
       instance ^= instance.CanonicalizeLocked(d->thread());
@@ -2284,23 +2279,20 @@ class LinkedHashMapMessageDeserializationCluster
   const intptr_t cid_;
 };
 
-class LinkedHashSetMessageSerializationCluster
-    : public MessageSerializationCluster {
+class SetMessageSerializationCluster : public MessageSerializationCluster {
  public:
-  LinkedHashSetMessageSerializationCluster(Zone* zone,
-                                           bool is_canonical,
-                                           intptr_t cid)
-      : MessageSerializationCluster("LinkedHashSet",
+  SetMessageSerializationCluster(Zone* zone, bool is_canonical, intptr_t cid)
+      : MessageSerializationCluster("Set",
                                     is_canonical
                                         ? MessagePhase::kCanonicalInstances
                                         : MessagePhase::kNonCanonicalInstances,
                                     cid,
                                     is_canonical),
         objects_(zone, 0) {}
-  ~LinkedHashSetMessageSerializationCluster() {}
+  ~SetMessageSerializationCluster() {}
 
   void Trace(MessageSerializer* s, Object* object) {
-    LinkedHashSet* set = static_cast<LinkedHashSet*>(object);
+    Set* set = static_cast<Set*>(object);
     objects_.Add(set);
 
     // Compensation for bogus type prefix optimization.
@@ -2320,7 +2312,7 @@ class LinkedHashSetMessageSerializationCluster
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashSet* set = objects_[i];
+      Set* set = objects_[i];
       s->AssignRef(set);
     }
   }
@@ -2328,7 +2320,7 @@ class LinkedHashSetMessageSerializationCluster
   void WriteEdges(MessageSerializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashSet* set = objects_[i];
+      Set* set = objects_[i];
       s->WriteRef(set->untag()->type_arguments());
       s->WriteRef(set->untag()->data());
       s->WriteRef(set->untag()->used_data());
@@ -2336,27 +2328,25 @@ class LinkedHashSetMessageSerializationCluster
   }
 
  private:
-  GrowableArray<LinkedHashSet*> objects_;
+  GrowableArray<Set*> objects_;
 };
 
-class LinkedHashSetMessageDeserializationCluster
-    : public MessageDeserializationCluster {
+class SetMessageDeserializationCluster : public MessageDeserializationCluster {
  public:
-  LinkedHashSetMessageDeserializationCluster(bool is_canonical, intptr_t cid)
-      : MessageDeserializationCluster("LinkedHashSet", is_canonical),
-        cid_(cid) {}
-  ~LinkedHashSetMessageDeserializationCluster() {}
+  SetMessageDeserializationCluster(bool is_canonical, intptr_t cid)
+      : MessageDeserializationCluster("Set", is_canonical), cid_(cid) {}
+  ~SetMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashSet::NewUninitialized(cid_));
+      d->AssignRef(Set::NewUninitialized(cid_));
     }
   }
 
   void ReadEdges(MessageDeserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      LinkedHashSetPtr map = static_cast<LinkedHashSetPtr>(d->Ref(id));
+      SetPtr map = static_cast<SetPtr>(d->Ref(id));
       map->untag()->set_hash_mask(Smi::New(0));
       map->untag()->set_type_arguments(
           static_cast<TypeArgumentsPtr>(d->ReadRef()));
@@ -2368,14 +2358,14 @@ class LinkedHashSetMessageDeserializationCluster
 
   ObjectPtr PostLoad(MessageDeserializer* d) {
     if (!is_canonical()) {
-      ASSERT(cid_ == kLinkedHashSetCid);
+      ASSERT(cid_ == kSetCid);
       return PostLoadLinkedHash(d);
     }
 
-    ASSERT(cid_ == kImmutableLinkedHashSetCid);
+    ASSERT(cid_ == kConstSetCid);
     SafepointMutexLocker ml(
         d->isolate_group()->constant_canonicalization_mutex());
-    LinkedHashSet& instance = LinkedHashSet::Handle(d->zone());
+    Set& instance = Set::Handle(d->zone());
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       instance ^= d->Ref(i);
       instance ^= instance.CanonicalizeLocked(d->thread());
@@ -3175,14 +3165,12 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       return new (Z) CapabilityMessageSerializationCluster(Z);
     case kTransferableTypedDataCid:
       return new (Z) TransferableTypedDataMessageSerializationCluster();
-    case kLinkedHashMapCid:
-    case kImmutableLinkedHashMapCid:
-      return new (Z)
-          LinkedHashMapMessageSerializationCluster(Z, is_canonical, cid);
-    case kLinkedHashSetCid:
-    case kImmutableLinkedHashSetCid:
-      return new (Z)
-          LinkedHashSetMessageSerializationCluster(Z, is_canonical, cid);
+    case kMapCid:
+    case kConstMapCid:
+      return new (Z) MapMessageSerializationCluster(Z, is_canonical, cid);
+    case kSetCid:
+    case kConstSetCid:
+      return new (Z) SetMessageSerializationCluster(Z, is_canonical, cid);
     case kArrayCid:
     case kImmutableArrayCid:
       return new (Z) ArrayMessageSerializationCluster(Z, is_canonical, cid);
@@ -3261,14 +3249,12 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
     case kTransferableTypedDataCid:
       ASSERT(!is_canonical);
       return new (Z) TransferableTypedDataMessageDeserializationCluster();
-    case kLinkedHashMapCid:
-    case kImmutableLinkedHashMapCid:
-      return new (Z)
-          LinkedHashMapMessageDeserializationCluster(is_canonical, cid);
-    case kLinkedHashSetCid:
-    case kImmutableLinkedHashSetCid:
-      return new (Z)
-          LinkedHashSetMessageDeserializationCluster(is_canonical, cid);
+    case kMapCid:
+    case kConstMapCid:
+      return new (Z) MapMessageDeserializationCluster(is_canonical, cid);
+    case kSetCid:
+    case kConstSetCid:
+      return new (Z) SetMessageDeserializationCluster(is_canonical, cid);
     case kArrayCid:
     case kImmutableArrayCid:
       return new (Z) ArrayMessageDeserializationCluster(is_canonical, cid);

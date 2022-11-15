@@ -264,8 +264,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
     }
     case kMapConstant: {
       const auto& map_class = Class::Handle(
-          Z,
-          H.isolate_group()->object_store()->immutable_linked_hash_map_class());
+          Z, H.isolate_group()->object_store()->const_map_impl_class());
       ASSERT(!map_class.IsNull());
       ASSERT(map_class.is_finalized());
 
@@ -287,9 +286,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments = type.arguments();
 
       // Fill map with constant elements.
-      const auto& map = LinkedHashMap::Handle(
-          Z, ImmutableLinkedHashMap::NewUninitialized(Heap::kOld));
-      ASSERT_EQUAL(map.GetClassId(), kImmutableLinkedHashMapCid);
+      const auto& map = Map::Handle(Z, ConstMap::NewUninitialized(Heap::kOld));
+      ASSERT_EQUAL(map.GetClassId(), kConstMapCid);
       map.SetTypeArguments(type_arguments);
       const intptr_t length = reader.ReadUInt();
       const intptr_t used_data = (length << 1);
@@ -359,8 +357,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
     }
     case kSetConstant: {
       const auto& set_class = Class::Handle(
-          Z,
-          H.isolate_group()->object_store()->immutable_linked_hash_set_class());
+          Z, H.isolate_group()->object_store()->const_set_impl_class());
       ASSERT(!set_class.IsNull());
       ASSERT(set_class.is_finalized());
 
@@ -380,9 +377,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments = type.arguments();
 
       // Fill set with constant elements.
-      const auto& set = LinkedHashSet::Handle(
-          Z, ImmutableLinkedHashSet::NewUninitialized(Heap::kOld));
-      ASSERT_EQUAL(set.GetClassId(), kImmutableLinkedHashSetCid);
+      const auto& set = Set::Handle(Z, ConstSet::NewUninitialized(Heap::kOld));
+      ASSERT_EQUAL(set.GetClassId(), kConstSetCid);
       set.SetTypeArguments(type_arguments);
       const intptr_t length = reader.ReadUInt();
       const intptr_t used_data = length;

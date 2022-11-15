@@ -31,13 +31,9 @@ class FilterExpression extends SetExpression {
           } else if (pattern == 'List') {
             return ['_List', '_GrowableList', '_ImmutableList'];
           } else if (pattern == 'Map') {
-            return [
-              '_HashMap',
-              '_CompactLinkedHashSet',
-              '_CompactImmutableLinkedHashSet',
-              '_InternalLinkedHashMap',
-              '_InternalImmutableLinkedHashMap'
-            ];
+            return ['_HashMap', '_Map', '_ConstMap'];
+          } else if (pattern == 'Set') {
+            return ['_HashSet', '_Set', '_ConstSet'];
           }
           return [pattern];
         })

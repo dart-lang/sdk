@@ -108,8 +108,12 @@ class BaseTextBuffer;
   static constexpr bool ContainsCompressedPointers() {                         \
     return UntaggedObjectType::kContainsCompressedPointers;                    \
   }                                                                            \
-  object##Ptr ptr() const { return static_cast<object##Ptr>(ptr_); }           \
-  bool Is##object() const { return true; }                                     \
+  object##Ptr ptr() const {                                                    \
+    return static_cast<object##Ptr>(ptr_);                                     \
+  }                                                                            \
+  bool Is##object() const {                                                    \
+    return true;                                                               \
+  }                                                                            \
   DART_NOINLINE static object& Handle() {                                      \
     return static_cast<object&>(                                               \
         HandleImpl(Thread::Current()->zone(), object::null(), kClassId));      \
@@ -184,11 +188,13 @@ class BaseTextBuffer;
  private: /* NOLINT */                                                         \
   /* Initialize the handle based on the ptr in the presence of null. */        \
   static void initializeHandle(object* obj, ObjectPtr ptr) {                   \
-    obj->SetPtr(ptr, kClassId);                                                \
+    obj->setPtr(ptr, kClassId);                                                \
   }                                                                            \
   /* Disallow allocation, copy constructors and override super assignment. */  \
  public: /* NOLINT */                                                          \
-  void operator delete(void* pointer) { UNREACHABLE(); }                       \
+  void operator delete(void* pointer) {                                        \
+    UNREACHABLE();                                                             \
+  }                                                                            \
                                                                                \
  private: /* NOLINT */                                                         \
   void* operator new(size_t size);                                             \
@@ -639,13 +645,13 @@ class Object {
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
-  inline void SetPtr(ObjectPtr value, intptr_t default_cid);
+  inline void setPtr(ObjectPtr value, intptr_t default_cid);
   void CheckHandle() const;
   DART_NOINLINE static Object& HandleImpl(Zone* zone,
                                           ObjectPtr ptr,
                                           intptr_t default_cid) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
-    obj->SetPtr(ptr, default_cid);
+    obj->setPtr(ptr, default_cid);
     return *obj;
   }
   DART_NOINLINE static Object& ZoneHandleImpl(Zone* zone,
@@ -653,12 +659,12 @@ class Object {
                                               intptr_t default_cid) {
     Object* obj =
         reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
-    obj->SetPtr(ptr, default_cid);
+    obj->setPtr(ptr, default_cid);
     return *obj;
   }
   DART_NOINLINE static Object* ReadOnlyHandleImpl(intptr_t cid) {
     Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
-    obj->SetPtr(Object::null(), cid);
+    obj->setPtr(Object::null(), cid);
     return obj;
   }
 
@@ -822,7 +828,7 @@ class Object {
 
   /* Initialize the handle based on the ptr in the presence of null. */
   static void initializeHandle(Object* obj, ObjectPtr ptr) {
-    obj->SetPtr(ptr, kObjectCid);
+    obj->setPtr(ptr, kObjectCid);
   }
 
   static cpp_vtable builtin_vtables_[kNumPredefinedCids];
@@ -11360,20 +11366,19 @@ class LinkedHashBase : public Instance {
   }
 
   static const LinkedHashBase& Cast(const Object& obj) {
-    ASSERT(obj.IsLinkedHashMap() || obj.IsLinkedHashSet());
+    ASSERT(obj.IsMap() || obj.IsSet());
     return static_cast<const LinkedHashBase&>(obj);
   }
 
   bool IsImmutable() const {
-    return GetClassId() == kImmutableLinkedHashMapCid ||
-           GetClassId() == kImmutableLinkedHashSetCid;
+    return GetClassId() == kConstMapCid || GetClassId() == kConstSetCid;
   }
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
     return untag()->type_arguments();
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
-    const intptr_t num_type_args = IsLinkedHashMap() ? 2 : 1;
+    const intptr_t num_type_args = IsMap() ? 2 : 1;
     ASSERT(value.IsNull() ||
            ((value.Length() >= num_type_args) &&
             value.IsInstantiated() /*&& value.IsCanonical()*/));
@@ -11412,7 +11417,7 @@ class LinkedHashBase : public Instance {
     if (untag()->deleted_keys() == Object::null()) return 0;
 
     intptr_t used = Smi::Value(untag()->used_data());
-    if (IsLinkedHashMap()) {
+    if (IsMap()) {
       used >>= 1;
     }
     const intptr_t deleted = Smi::Value(untag()->deleted_keys());
@@ -11455,25 +11460,26 @@ class ImmutableLinkedHashBase : public AllStatic {
 };
 
 // Corresponds to
+// - _Map in dart:collection
 // - "new Map()",
 // - non-const map literals, and
 // - the default constructor of LinkedHashMap in dart:collection.
-class LinkedHashMap : public LinkedHashBase {
+class Map : public LinkedHashBase {
  public:
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedLinkedHashMap));
+    return RoundedAllocationSize(sizeof(UntaggedMap));
   }
 
   // Allocates a map with some default capacity, just like "new Map()".
-  static LinkedHashMapPtr NewDefault(intptr_t class_id = kLinkedHashMapCid,
-                                     Heap::Space space = Heap::kNew);
-  static LinkedHashMapPtr New(intptr_t class_id,
-                              const Array& data,
-                              const TypedData& index,
-                              intptr_t hash_mask,
-                              intptr_t used_data,
-                              intptr_t deleted_keys,
-                              Heap::Space space = Heap::kNew);
+  static MapPtr NewDefault(intptr_t class_id = kMapCid,
+                           Heap::Space space = Heap::kNew);
+  static MapPtr New(intptr_t class_id,
+                    const Array& data,
+                    const TypedData& index,
+                    intptr_t hash_mask,
+                    intptr_t used_data,
+                    intptr_t deleted_keys,
+                    Heap::Space space = Heap::kNew);
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11482,7 +11488,7 @@ class LinkedHashMap : public LinkedHashBase {
   //    MoveNext returns false will result in crashes.
   class Iterator : public ValueObject {
    public:
-    explicit Iterator(const LinkedHashMap& map)
+    explicit Iterator(const Map& map)
         : data_(Array::Handle(map.data())),
           scratch_(Object::Handle()),
           offset_(-2),
@@ -11514,32 +11520,34 @@ class LinkedHashMap : public LinkedHashBase {
   };
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, LinkedHashBase);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Map, LinkedHashBase);
 
   // Allocate a map, but leave all fields set to null.
   // Used during deserialization (since map might contain itself as key/value).
-  static LinkedHashMapPtr NewUninitialized(intptr_t class_id,
-                                           Heap::Space space = Heap::kNew);
+  static MapPtr NewUninitialized(intptr_t class_id,
+                                 Heap::Space space = Heap::kNew);
 
   friend class Class;
-  friend class ImmutableLinkedHashMap;
-  friend class LinkedHashMapDeserializationCluster;
+  friend class ConstMap;
+  friend class MapDeserializationCluster;
 };
 
-class ImmutableLinkedHashMap : public AllStatic {
+// Corresponds to
+// - _ConstMap in dart:collection
+// - const map literals
+class ConstMap : public AllStatic {
  public:
   static constexpr bool ContainsCompressedPointers() {
-    return LinkedHashMap::ContainsCompressedPointers();
+    return Map::ContainsCompressedPointers();
   }
 
-  static ImmutableLinkedHashMapPtr NewDefault(Heap::Space space = Heap::kNew);
+  static ConstMapPtr NewDefault(Heap::Space space = Heap::kNew);
 
-  static ImmutableLinkedHashMapPtr NewUninitialized(
-      Heap::Space space = Heap::kNew);
+  static ConstMapPtr NewUninitialized(Heap::Space space = Heap::kNew);
 
-  static const ClassId kClassId = kImmutableLinkedHashMapCid;
+  static const ClassId kClassId = kConstMapCid;
 
-  static intptr_t InstanceSize() { return LinkedHashMap::InstanceSize(); }
+  static intptr_t InstanceSize() { return Map::InstanceSize(); }
 
  private:
   static intptr_t NextFieldOffset() {
@@ -11547,29 +11555,34 @@ class ImmutableLinkedHashMap : public AllStatic {
     return -kWordSize;
   }
 
-  static ImmutableLinkedHashMapPtr raw(const LinkedHashMap& map) {
-    return static_cast<ImmutableLinkedHashMapPtr>(map.ptr());
+  static ConstMapPtr raw(const Map& map) {
+    return static_cast<ConstMapPtr>(map.ptr());
   }
 
   friend class Class;
 };
 
-class LinkedHashSet : public LinkedHashBase {
+// Corresponds to
+// - _Set in dart:collection,
+// - "new Set()",
+// - non-const set literals, and
+// - the default constructor of LinkedHashSet in dart:collection.
+class Set : public LinkedHashBase {
  public:
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedLinkedHashSet));
+    return RoundedAllocationSize(sizeof(UntaggedSet));
   }
 
   // Allocates a set with some default capacity, just like "new Set()".
-  static LinkedHashSetPtr NewDefault(intptr_t class_id = kLinkedHashSetCid,
-                                     Heap::Space space = Heap::kNew);
-  static LinkedHashSetPtr New(intptr_t class_id,
-                              const Array& data,
-                              const TypedData& index,
-                              intptr_t hash_mask,
-                              intptr_t used_data,
-                              intptr_t deleted_keys,
-                              Heap::Space space = Heap::kNew);
+  static SetPtr NewDefault(intptr_t class_id = kSetCid,
+                           Heap::Space space = Heap::kNew);
+  static SetPtr New(intptr_t class_id,
+                    const Array& data,
+                    const TypedData& index,
+                    intptr_t hash_mask,
+                    intptr_t used_data,
+                    intptr_t deleted_keys,
+                    Heap::Space space = Heap::kNew);
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11578,7 +11591,7 @@ class LinkedHashSet : public LinkedHashBase {
   //    MoveNext returns false will result in crashes.
   class Iterator : public ValueObject {
    public:
-    explicit Iterator(const LinkedHashSet& set)
+    explicit Iterator(const Set& set)
         : data_(Array::Handle(set.data())),
           scratch_(Object::Handle()),
           offset_(-1),
@@ -11608,32 +11621,34 @@ class LinkedHashSet : public LinkedHashBase {
   };
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet, LinkedHashBase);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Set, LinkedHashBase);
 
   // Allocate a set, but leave all fields set to null.
   // Used during deserialization (since set might contain itself as key/value).
-  static LinkedHashSetPtr NewUninitialized(intptr_t class_id,
-                                           Heap::Space space = Heap::kNew);
+  static SetPtr NewUninitialized(intptr_t class_id,
+                                 Heap::Space space = Heap::kNew);
 
   friend class Class;
-  friend class ImmutableLinkedHashSet;
-  friend class LinkedHashSetDeserializationCluster;
+  friend class ConstSet;
+  friend class SetDeserializationCluster;
 };
 
-class ImmutableLinkedHashSet : public AllStatic {
+// Corresponds to
+// - _ConstSet in dart:collection
+// - const set literals
+class ConstSet : public AllStatic {
  public:
   static constexpr bool ContainsCompressedPointers() {
-    return LinkedHashSet::ContainsCompressedPointers();
+    return Set::ContainsCompressedPointers();
   }
 
-  static ImmutableLinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
+  static ConstSetPtr NewDefault(Heap::Space space = Heap::kNew);
 
-  static ImmutableLinkedHashSetPtr NewUninitialized(
-      Heap::Space space = Heap::kNew);
+  static ConstSetPtr NewUninitialized(Heap::Space space = Heap::kNew);
 
-  static const ClassId kClassId = kImmutableLinkedHashSetCid;
+  static const ClassId kClassId = kConstSetCid;
 
-  static intptr_t InstanceSize() { return LinkedHashSet::InstanceSize(); }
+  static intptr_t InstanceSize() { return Set::InstanceSize(); }
 
  private:
   static intptr_t NextFieldOffset() {
@@ -11641,8 +11656,8 @@ class ImmutableLinkedHashSet : public AllStatic {
     return -kWordSize;
   }
 
-  static ImmutableLinkedHashSetPtr raw(const LinkedHashSet& map) {
-    return static_cast<ImmutableLinkedHashSetPtr>(map.ptr());
+  static ConstSetPtr raw(const Set& map) {
+    return static_cast<ConstSetPtr>(map.ptr());
   }
 
   friend class Class;
@@ -12374,8 +12389,8 @@ class FinalizerBase : public Instance {
     return OFFSET_OF(UntaggedFinalizerBase, detachments_);
   }
 
-  LinkedHashSetPtr all_entries() const { return untag()->all_entries(); }
-  void set_all_entries(const LinkedHashSet& value) const {
+  SetPtr all_entries() const { return untag()->all_entries(); }
+  void set_all_entries(const Set& value) const {
     untag()->set_all_entries(value.ptr());
   }
   static intptr_t all_entries_offset() {
@@ -12555,7 +12570,7 @@ ClassPtr Object::clazz() const {
 }
 
 DART_FORCE_INLINE
-void Object::SetPtr(ObjectPtr value, intptr_t default_cid) {
+void Object::setPtr(ObjectPtr value, intptr_t default_cid) {
   ptr_ = value;
   intptr_t cid = value->GetClassIdMayBeSmi();
   // Free-list elements cannot be wrapped in a handle.

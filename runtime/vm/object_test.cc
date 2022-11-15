@@ -5173,7 +5173,7 @@ static void NativeFinalizer_TwoEntriesCrossGen(
   isolate_finalizers.Add(weak1);
   thread->isolate()->set_finalizers(isolate_finalizers);
 
-  const auto& all_entries = LinkedHashSet::Handle(LinkedHashSet::NewDefault());
+  const auto& all_entries = Set::Handle(Set::NewDefault());
   finalizer.set_all_entries(all_entries);
   const auto& all_entries_data = Array::Handle(all_entries.data());
   THR_Print("entry1 space: %s\n", spaces[1] == Heap::kNew ? "new" : "old");
@@ -6209,24 +6209,23 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"List\",\"length\":0}",
         buffer);
   }
-  // LinkedHashMap reference
+  // Map reference
   {
     JSONStream js;
-    const LinkedHashMap& array =
-        LinkedHashMap::Handle(LinkedHashMap::NewDefault());
+    const Map& array = Map::Handle(Map::NewDefault());
     array.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
     ASSERT(strlen(json_str) < kBufferSize);
     ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
-    ElideJSONSubstring("_InternalLinkedHashMap@", buffer, buffer);
+    ElideJSONSubstring("_Map@", buffer, buffer);
     StripTokenPositions(buffer);
     ElideJSONSubstring("_TypeParameter@", buffer, buffer);
     EXPECT_SUBSTRING(
-        "{\"type\":\"@Instance\",\"_vmType\":\"LinkedHashMap\",\"class\":{"
+        "{\"type\":\"@Instance\",\"_vmType\":\"Map\",\"class\":{"
         "\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
-        "InternalLinkedHashMap\",\"_vmName\":\"\",\"location\":{\"type\":"
+        "Map\",\"_vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"\",\"uri\":\"dart:collection-patch\\/"
         "compact_hash.dart\",\"_kind\":\"kernel\"}"
@@ -6613,7 +6612,7 @@ TEST_CASE(HashCode_Type_Int) {
                                         /*check_identity=*/false));
 }
 
-TEST_CASE(LinkedHashMap_iteration) {
+TEST_CASE(Map_iteration) {
   const char* kScript =
       "makeMap() {\n"
       "  var map = {'x': 3, 'y': 4, 'z': 5, 'w': 6};\n"
@@ -6629,12 +6628,12 @@ TEST_CASE(LinkedHashMap_iteration) {
   TransitionNativeToVM transition(thread);
   Instance& dart_map = Instance::Handle();
   dart_map ^= Api::UnwrapHandle(h_result);
-  ASSERT(dart_map.IsLinkedHashMap());
-  const LinkedHashMap& cc_map = LinkedHashMap::Cast(dart_map);
+  ASSERT(dart_map.IsMap());
+  const Map& cc_map = Map::Cast(dart_map);
 
   EXPECT_EQ(2, cc_map.Length());
 
-  LinkedHashMap::Iterator iterator(cc_map);
+  Map::Iterator iterator(cc_map);
   Object& object = Object::Handle();
 
   EXPECT(iterator.MoveNext());
@@ -6746,11 +6745,10 @@ static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
 }
 
 // Copies elements from data.
-static LinkedHashMapPtr ConstructImmutableMap(
-    const Array& input_data,
-    intptr_t used_data,
-    const TypeArguments& type_arguments) {
-  auto& map = LinkedHashMap::Handle(ImmutableLinkedHashMap::NewUninitialized());
+static MapPtr ConstructImmutableMap(const Array& input_data,
+                                    intptr_t used_data,
+                                    const TypeArguments& type_arguments) {
+  auto& map = Map::Handle(ConstMap::NewUninitialized());
 
   const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
@@ -6767,7 +6765,7 @@ static LinkedHashMapPtr ConstructImmutableMap(
 }
 
 // Constructs an immutable hashmap from a mutable one in this test.
-TEST_CASE(ImmutableLinkedHashMap_vm) {
+TEST_CASE(ConstMap_vm) {
   const char* kScript = R"(
 enum ExperimentalFlag {
   alternativeInvalidationStrategy,
@@ -6847,16 +6845,16 @@ bool? lookupNull(Map map) => map[null];
 
   {
     TransitionNativeToVM transition(thread);
-    const auto& non_const_map = LinkedHashMap::Cast(
-        Object::Handle(Api::UnwrapHandle(non_const_result)));
+    const auto& non_const_map =
+        Map::Cast(Object::Handle(Api::UnwrapHandle(non_const_result)));
     const auto& non_const_type_args =
         TypeArguments::Handle(non_const_map.GetTypeArguments());
     const auto& non_const_data = Array::Handle(non_const_map.data());
-    const auto& const_map = LinkedHashMap::Handle(ConstructImmutableMap(
+    const auto& const_map = Map::Handle(ConstructImmutableMap(
         non_const_data, Smi::Value(non_const_map.used_data()),
         non_const_type_args));
-    ASSERT(non_const_map.GetClassId() == kLinkedHashMapCid);
-    ASSERT(const_map.GetClassId() == kImmutableLinkedHashMapCid);
+    ASSERT(non_const_map.GetClassId() == kMapCid);
+    ASSERT(const_map.GetClassId() == kConstMapCid);
     ASSERT(!non_const_map.IsCanonical());
     ASSERT(const_map.IsCanonical());
 
@@ -6877,10 +6875,10 @@ bool? lookupNull(Map map) => map[null];
     TransitionNativeToVM transition(thread);
     const auto& non_const_object =
         Object::Handle(Api::UnwrapHandle(non_const_result));
-    const auto& non_const_map = LinkedHashMap::Cast(non_const_object);
+    const auto& non_const_map = Map::Cast(non_const_object);
     const auto& const_object =
         Object::Handle(Api::UnwrapHandle(const_argument));
-    const auto& const_map = LinkedHashMap::Cast(const_object);
+    const auto& const_map = Map::Cast(const_object);
 
     EXPECT(non_const_map.GetClassId() != const_map.GetClassId());
 
@@ -6891,7 +6889,7 @@ bool? lookupNull(Map map) => map[null];
 }
 
 static bool IsLinkedHashBase(const Object& object) {
-  return object.IsLinkedHashMap() || object.IsLinkedHashSet();
+  return object.IsMap() || object.IsSet();
 }
 
 // Checks that the non-constant and constant HashMap and HashSets are equal.
@@ -6915,7 +6913,7 @@ static void HashBaseNonConstEqualsConst(const char* script,
   const auto& non_const_object =
       Object::Handle(Api::UnwrapHandle(non_const_result));
   const auto& const_object = Object::Handle(Api::UnwrapHandle(const_result));
-  non_const_object.IsLinkedHashMap();
+  non_const_object.IsMap();
   EXPECT(IsLinkedHashBase(non_const_object));
   if (!IsLinkedHashBase(non_const_object)) return;
   const auto& non_const_value = LinkedHashBase::Cast(non_const_object);
@@ -6932,17 +6930,15 @@ static void HashBaseNonConstEqualsConst(const char* script,
 
 static void HashMapNonConstEqualsConst(const char* script,
                                        bool check_data = true) {
-  HashBaseNonConstEqualsConst<LinkedHashMap, kLinkedHashMapCid,
-                              kImmutableLinkedHashMapCid>(script, check_data);
+  HashBaseNonConstEqualsConst<Map, kMapCid, kConstMapCid>(script, check_data);
 }
 
 static void HashSetNonConstEqualsConst(const char* script,
                                        bool check_data = true) {
-  HashBaseNonConstEqualsConst<LinkedHashSet, kLinkedHashSetCid,
-                              kImmutableLinkedHashSetCid>(script, check_data);
+  HashBaseNonConstEqualsConst<Set, kSetCid, kConstSetCid>(script, check_data);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_small) {
+TEST_CASE(ConstMap_small) {
   const char* kScript = R"(
 constValue() => const {1: 42, 'foo': 499, 2: 'bar'};
 
@@ -6955,7 +6951,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_null) {
+TEST_CASE(ConstMap_null) {
   const char* kScript = R"(
 constValue() => const {1: 42, 'foo': 499, null: 'bar'};
 
@@ -6968,7 +6964,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_larger) {
+TEST_CASE(ConstMap_larger) {
   const char* kScript = R"(
 enum ExperimentalFlag {
   alternativeInvalidationStrategy,
@@ -7038,7 +7034,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_nested) {
+TEST_CASE(ConstMap_nested) {
   const char* kScript = R"(
 enum Abi {
   wordSize64,
@@ -7100,7 +7096,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript, false);
 }
 
-TEST_CASE(LinkedHashSet_iteration) {
+TEST_CASE(Set_iteration) {
   const char* kScript = R"(
 makeSet() {
   var set = {'x', 'y', 'z', 'w'};
@@ -7117,12 +7113,12 @@ makeSet() {
   TransitionNativeToVM transition(thread);
   Instance& dart_set = Instance::Handle();
   dart_set ^= Api::UnwrapHandle(h_result);
-  ASSERT(dart_set.IsLinkedHashSet());
-  const LinkedHashSet& cc_set = LinkedHashSet::Cast(dart_set);
+  ASSERT(dart_set.IsSet());
+  const Set& cc_set = Set::Cast(dart_set);
 
   EXPECT_EQ(2, cc_set.Length());
 
-  LinkedHashSet::Iterator iterator(cc_set);
+  Set::Iterator iterator(cc_set);
   Object& object = Object::Handle();
 
   EXPECT(iterator.MoveNext());
@@ -7137,11 +7133,10 @@ makeSet() {
 }
 
 // Copies elements from data.
-static LinkedHashSetPtr ConstructImmutableSet(
-    const Array& input_data,
-    intptr_t used_data,
-    const TypeArguments& type_arguments) {
-  auto& set = LinkedHashSet::Handle(ImmutableLinkedHashSet::NewUninitialized());
+static SetPtr ConstructImmutableSet(const Array& input_data,
+                                    intptr_t used_data,
+                                    const TypeArguments& type_arguments) {
+  auto& set = Set::Handle(ConstSet::NewUninitialized());
 
   const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
@@ -7157,7 +7152,7 @@ static LinkedHashSetPtr ConstructImmutableSet(
   return set.ptr();
 }
 
-TEST_CASE(ImmutableLinkedHashSet_vm) {
+TEST_CASE(ConstSet_vm) {
   const char* kScript = R"(
 makeNonConstSet() {
   return {1, 2, 3, 5, 8, 13};
@@ -7177,17 +7172,17 @@ bool containsFive(Set set) => set.contains(5);
     TransitionNativeToVM transition(thread);
     const auto& non_const_object =
         Object::Handle(Api::UnwrapHandle(non_const_result));
-    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
-    ASSERT(non_const_set.GetClassId() == kLinkedHashSetCid);
+    const auto& non_const_set = Set::Cast(non_const_object);
+    ASSERT(non_const_set.GetClassId() == kSetCid);
     ASSERT(!non_const_set.IsCanonical());
 
     const auto& non_const_data = Array::Handle(non_const_set.data());
     const auto& non_const_type_args =
         TypeArguments::Handle(non_const_set.GetTypeArguments());
-    const auto& const_set = LinkedHashSet::Handle(ConstructImmutableSet(
+    const auto& const_set = Set::Handle(ConstructImmutableSet(
         non_const_data, Smi::Value(non_const_set.used_data()),
         non_const_type_args));
-    ASSERT(const_set.GetClassId() == kImmutableLinkedHashSetCid);
+    ASSERT(const_set.GetClassId() == kConstSetCid);
     ASSERT(const_set.IsCanonical());
 
     const_argument = Api::NewHandle(thread, const_set.ptr());
@@ -7202,10 +7197,10 @@ bool containsFive(Set set) => set.contains(5);
     TransitionNativeToVM transition(thread);
     const auto& non_const_object =
         Object::Handle(Api::UnwrapHandle(non_const_result));
-    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
+    const auto& non_const_set = Set::Cast(non_const_object);
     const auto& const_object =
         Object::Handle(Api::UnwrapHandle(const_argument));
-    const auto& const_set = LinkedHashSet::Cast(const_object);
+    const auto& const_set = Set::Cast(const_object);
 
     EXPECT(non_const_set.GetClassId() != const_set.GetClassId());
 
@@ -7215,7 +7210,7 @@ bool containsFive(Set set) => set.contains(5);
   }
 }
 
-TEST_CASE(ImmutableLinkedHashSet_small) {
+TEST_CASE(ConstSet_small) {
   const char* kScript = R"(
 constValue() => const {1, 2, 3, 5, 8, 13};
 
@@ -7228,7 +7223,7 @@ void init() {
   HashSetNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashSet_larger) {
+TEST_CASE(ConstSet_larger) {
   const char* kScript = R"(
 const Set<String> tokensThatMayFollowTypeArg = {
   '(',

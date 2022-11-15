@@ -324,10 +324,10 @@ var tests = <IsolateTest>[
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
@@ -366,10 +366,10 @@ var tests = <IsolateTest>[
     final result =
         await service.getObject(isolateId, objectId, count: 2) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
@@ -402,10 +402,10 @@ var tests = <IsolateTest>[
     final result = await service.getObject(isolateId, objectId,
         offset: 2, count: 2) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
@@ -432,10 +432,10 @@ var tests = <IsolateTest>[
     final result = await service.getObject(isolateId, objectId,
         offset: 100, count: 2) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
@@ -454,10 +454,10 @@ var tests = <IsolateTest>[
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kSet);
-    expect(result.json!['_vmType'], equals('LinkedHashSet'));
+    expect(result.json!['_vmType'], equals('Set'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashSet'));
+    expect(result.classRef!.name, equals('_Set'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));

@@ -2422,7 +2422,7 @@ static void PrintRetainingPath(Thread* thread,
   String& name = String::Handle();
   Class& element_class = Class::Handle();
   Array& element_field_map = Array::Handle();
-  LinkedHashMap& map = LinkedHashMap::Handle();
+  Map& map = Map::Handle();
   Array& map_data = Array::Handle();
   Field& field = Field::Handle();
   WeakProperty& wp = WeakProperty::Handle();
@@ -2445,13 +2445,13 @@ static void PrintRetainingPath(Thread* thread,
         AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
                                               Record::Cast(element),
                                               slot_offset.Value());
-      } else if (element.IsLinkedHashMap()) {
-        map = static_cast<LinkedHashMapPtr>(path.At(i * 2));
+      } else if (element.IsMap()) {
+        map = static_cast<MapPtr>(path.At(i * 2));
         map_data = map.data();
         intptr_t element_index =
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
-        LinkedHashMap::Iterator iterator(map);
+        Map::Iterator iterator(map);
         while (iterator.MoveNext()) {
           if (iterator.CurrentKey() == map_data.At(element_index) ||
               iterator.CurrentValue() == map_data.At(element_index)) {
