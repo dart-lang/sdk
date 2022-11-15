@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements;
+import '../../common/metrics.dart';
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
@@ -935,6 +936,17 @@ class CommonMasks with AbstractValueDomain {
     sink.writeCached<TypeMask>(
         value, (TypeMask value) => value.writeToDataSink(sink));
   }
+
+  @override
+  Metrics get metrics => _metrics;
+  final _metrics = _CommonMaskMetrics();
+
+  @override
+  void finalizeMetrics() {
+    _metrics.intersectionCacheTop.add(_intersectionCache.length);
+    _metrics.intersectionCacheTotal
+        .add(_intersectionCache.values.fold(0, (p, e) => p + e.length));
+  }
 }
 
 /// Convert the given TypeMask to a compact string format.
@@ -984,4 +996,19 @@ String formatType(DartTypes dartTypes, TypeMask type) {
     return '$baseType=$value';
   }
   return '$type'; // Fall back on toString if not supported here.
+}
+
+class _CommonMaskMetrics implements Metrics {
+  final intersectionCacheTop = CountMetric('count.intersectionCacheTop');
+  final intersectionCacheTotal = CountMetric('count.intersectionCacheTotal');
+
+  @override
+  String get namespace => 'CommonMasks';
+
+  @override
+  Iterable<Metric> get primary => const [];
+
+  @override
+  Iterable<Metric> get secondary =>
+      [intersectionCacheTop, intersectionCacheTotal];
 }

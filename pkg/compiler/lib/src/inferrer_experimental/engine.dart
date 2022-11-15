@@ -72,7 +72,8 @@ class InferrerEngine {
 
   final WorkQueue _workQueue = WorkQueue();
 
-  final _InferrerEngineMetrics metrics = _InferrerEngineMetrics();
+  late final _InferrerEngineMetrics metrics =
+      _InferrerEngineMetrics(closedWorld.abstractValueDomain.metrics);
 
   final Set<MemberEntity> _analyzedElements = {};
 
@@ -1147,8 +1148,8 @@ class _InferrerEngineMetrics extends MetricsBase {
   final exceededMaxChangeCount = CountMetric('count.exceededMaxChange');
   final overallRefineCount = CountMetric('count.overallRefines');
 
-  _InferrerEngineMetrics() {
-    primary = [time];
+  _InferrerEngineMetrics(Metrics subMetrics) {
+    primary = [time, ...subMetrics.primary];
     secondary = [
       analyze,
       refine1,
@@ -1157,7 +1158,8 @@ class _InferrerEngineMetrics extends MetricsBase {
       elementsInGraph,
       allTypesCount,
       exceededMaxChangeCount,
-      overallRefineCount
+      overallRefineCount,
+      ...subMetrics.secondary,
     ];
   }
 }
