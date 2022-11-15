@@ -1576,13 +1576,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForAmbiguousImport(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element is MultiplyDefinedElementImpl) {
-      String name = element.displayName;
-      List<Element> conflictingMembers = element.conflictingElements;
+      var conflictingMembers = element.conflictingElements;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
       errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-          node, [name, libraryNames.quotedAndCommaSeparatedWithAnd]);
+          node, [node.name, libraryNames.quotedAndCommaSeparatedWithAnd]);
     }
   }
 
