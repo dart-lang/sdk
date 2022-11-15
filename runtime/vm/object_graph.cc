@@ -946,7 +946,7 @@ class Pass1Visitor : public ObjectVisitor,
     const auto cid = obj->GetClassId();
 
     if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
-      obj->untag()->VisitPointersPrecise(isolate_group(), this);
+      obj->untag()->VisitPointersPrecise(this);
     } else {
       for (auto& slot : *object_slots_->ObjectSlotsFor(cid)) {
         if (slot.is_compressed_pointer) {
@@ -1070,7 +1070,6 @@ class Pass2Visitor : public ObjectVisitor,
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         HandleVisitor(Thread::Current()),
-        isolate_group_(thread()->isolate_group()),
         writer_(writer),
         object_slots_(object_slots) {}
 
@@ -1213,9 +1212,9 @@ class Pass2Visitor : public ObjectVisitor,
 
     if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
       DoCount();
-      obj->untag()->VisitPointersPrecise(isolate_group_, this);
+      obj->untag()->VisitPointersPrecise(this);
       DoWrite();
-      obj->untag()->VisitPointersPrecise(isolate_group_, this);
+      obj->untag()->VisitPointersPrecise(this);
     } else {
       auto slots = object_slots_->ObjectSlotsFor(cid);
       DoCount();

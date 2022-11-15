@@ -374,8 +374,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
-                                          ObjectPointerVisitor* visitor) {
+void UntaggedObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if ((class_id != kInstanceCid) && (class_id < kNumPredefinedCids)) {
     VisitPointersPredefined(visitor, class_id);
