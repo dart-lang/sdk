@@ -84,7 +84,10 @@ class SsaSimplifyInterceptors extends HBaseVisitor<bool>
     // possible that all uses can be rewritten to use different constants.
 
     HInstruction constant = tryComputeConstantInterceptor(
-        invoke.inputs[1], interceptor.interceptedClasses);
+        // ignore: avoid_dynamic_calls
+        invoke.inputs[1],
+        // ignore: avoid_dynamic_calls
+        interceptor.interceptedClasses);
     if (constant != null) {
       invoke.changeUse(interceptor, constant);
     }

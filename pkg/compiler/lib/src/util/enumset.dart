@@ -73,6 +73,7 @@ abstract class EnumSet<E> {
 
   /// Returns `true` if [enumValue] is in this set.
   bool contains(E enumValue) {
+    // ignore: avoid_dynamic_calls
     return (value & (1 << (enumValue as dynamic).index)) != 0;
   }
 
@@ -144,6 +145,7 @@ class _EnumSet<E> extends EnumSet<E> {
   @override
   bool add(E enumValue) {
     int before = _value;
+    // ignore: avoid_dynamic_calls
     _value |= 1 << (enumValue as dynamic).index;
     return _value != before;
   }
@@ -156,6 +158,7 @@ class _EnumSet<E> extends EnumSet<E> {
   @override
   bool remove(E enumValue) {
     int before = _value;
+    // ignore: avoid_dynamic_calls
     _value &= ~(1 << (enumValue as dynamic).index);
     return _value != before;
   }
@@ -184,6 +187,7 @@ class _ConstEnumSet<E> extends EnumSet<E> {
     int value = 0;
     void add(E enumValue) {
       if (enumValue != null) {
+        // ignore: avoid_dynamic_calls
         value |= 1 << (enumValue as dynamic).index;
       }
     }

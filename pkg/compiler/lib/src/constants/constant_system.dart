@@ -307,6 +307,7 @@ class BitAndOperation extends BinaryBitOperation {
   BigInt foldInts(BigInt left, BigInt right) => left & right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left & right;
 }
 
@@ -320,6 +321,7 @@ class BitOrOperation extends BinaryBitOperation {
   BigInt foldInts(BigInt left, BigInt right) => left | right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left | right;
 }
 
@@ -333,6 +335,7 @@ class BitXorOperation extends BinaryBitOperation {
   BigInt foldInts(BigInt left, BigInt right) => left ^ right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left ^ right;
 }
 
@@ -351,6 +354,7 @@ class ShiftLeftOperation extends BinaryBitOperation {
   }
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left << right;
 }
 
@@ -384,6 +388,7 @@ class ShiftRightOperation extends BinaryBitOperation {
   }
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left >> right;
 }
 
@@ -498,6 +503,7 @@ class SubtractOperation extends ArithmeticNumOperation {
   num foldNums(num left, num right) => left - right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left - right;
 }
 
@@ -514,6 +520,7 @@ class MultiplyOperation extends ArithmeticNumOperation {
   num foldNums(num left, num right) => left * right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left * right;
 }
 
@@ -533,6 +540,7 @@ class ModuloOperation extends ArithmeticNumOperation {
   num foldNums(num left, num right) => left % right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left % right;
 }
 
@@ -552,6 +560,7 @@ class RemainderOperation extends ArithmeticNumOperation {
   num foldNums(num left, num right) => left.remainder(right);
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left.remainder(right);
 }
 
@@ -575,6 +584,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
   }
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left ~/ right;
 
   @override
@@ -597,6 +607,7 @@ class DivideOperation extends ArithmeticNumOperation {
   bool isDivide() => true;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left / right;
 }
 
@@ -631,6 +642,7 @@ class AddOperation implements BinaryOperation {
   }
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left + right;
 }
 
@@ -669,6 +681,7 @@ class LessOperation extends RelationalNumOperation {
   bool foldNums(num left, num right) => left < right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left < right;
 }
 
@@ -685,6 +698,7 @@ class LessEqualOperation extends RelationalNumOperation {
   bool foldNums(num left, num right) => left <= right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left <= right;
 }
 
@@ -701,6 +715,7 @@ class GreaterOperation extends RelationalNumOperation {
   bool foldNums(num left, num right) => left > right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left > right;
 }
 
@@ -717,6 +732,7 @@ class GreaterEqualOperation extends RelationalNumOperation {
   bool foldNums(num left, num right) => left >= right;
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left >= right;
 }
 
@@ -823,6 +839,7 @@ class CodeUnitAtOperation implements BinaryOperation {
   }
 
   @override
+  // ignore: avoid_dynamic_calls
   apply(left, right) => left.codeUnitAt(right);
 }
 

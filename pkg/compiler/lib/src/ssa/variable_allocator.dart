@@ -225,6 +225,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   HInstruction checkedInstructionOrNonGenerateAtUseSite(HCheck check) {
     dynamic checked = check.checkedInput;
     while (checked is HCheck) {
+      // ignore: avoid_dynamic_calls
       HInstruction next = checked.checkedInput;
       if (generateAtUseSite.contains(next)) break;
       checked = next;

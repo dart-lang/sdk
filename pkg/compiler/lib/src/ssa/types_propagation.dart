@@ -35,7 +35,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     implements OptimizationPhase {
   final Map<int, HInstruction> workmap = {};
   final List<int> worklist = [];
-  final Map<HInstruction, Function> pendingOptimizations = {};
+  final Map<HInstruction, void Function()> pendingOptimizations = {};
 
   final GlobalTypeInferenceResults results;
   final CommonElements commonElements;

@@ -83,4 +83,4 @@ Future<void> _showLayout(String file) async {
   });
 }
 
-dynamic _libOf(e) => e is LibraryInfo || e == null ? e : _libOf(e.parent);
+dynamic _libOf(Info? e) => e is LibraryInfo || e == null ? e : _libOf(e.parent);
