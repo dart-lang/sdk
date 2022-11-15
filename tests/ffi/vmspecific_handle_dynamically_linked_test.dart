@@ -13,11 +13,12 @@ import 'dylib_utils.dart';
 void main() {
   doDynamicLinking();
   testHandle();
+  testNativeAPIs();
 }
 
 void doDynamicLinking() {
   Expect.isTrue(NativeApi.majorVersion == 2);
-  Expect.isTrue(NativeApi.minorVersion >= 0);
+  Expect.isTrue(NativeApi.minorVersion >= 1);
   final initializeApi = testLibrary.lookupFunction<
       IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");
@@ -30,6 +31,13 @@ void testHandle() {
   final result = passObjectToC(s);
   print("result = $result");
   Expect.isTrue(identical(s, result));
+}
+
+void testNativeAPIs() {
+  // No need to expect here, `lookupFunction` throws an argument error if lookup fails.
+  testLibrary.lookupFunction<
+      Bool Function(Handle),
+      bool Function(Object)>("Dart_IsNull_DL");
 }
 
 class SomeClass {
