@@ -343,7 +343,7 @@ class _WasmTransformer extends Transformer {
     //     bool isFirst = true;
     //     #controller.add(null);
     //     return #controller.stream.asyncMap((value) async {
-    //       if (first) {
+    //       if (isFirst) {
     //         #body();
     //         return null;
     //       }
@@ -352,12 +352,12 @@ class _WasmTransformer extends Transformer {
     //       }
     //       return value;
     //     }).where((value) {
-    //       if (first) {
-    //         first = false;
+    //       if (isFirst) {
+    //         isFirst = false;
     //         return false;
     //       }
-    //       bool keep = even;
-    //       even = !even;
+    //       bool keep = isEven;
+    //       isEven = !isEven;
     //       return keep;
     //     }).cast<T>();
     //   }
