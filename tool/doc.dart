@@ -197,11 +197,12 @@ Future<void> generateDocs(String? dir,
   var fixStatusMap = await fetchFixStatusMap();
 
   // Generate rule files.
-  for (var l in rules) {
-    var fixStatus = fixStatusMap[l.name] ?? 'unregistered';
-    RuleHtmlGenerator(l, fixStatus).generate(outDir);
+  for (var rule in rules) {
+    var fixStatus = getFixStatus(rule, fixStatusMap);
+    RuleHtmlGenerator(rule, fixStatus).generate(outDir);
     if (enableMarkdown) {
-      RuleMarkdownGenerator(l).generate(filePath: outDir, fixStatus: fixStatus);
+      RuleMarkdownGenerator(rule)
+          .generate(filePath: outDir, fixStatus: fixStatus);
     }
   }
 
@@ -243,6 +244,17 @@ String getBadges(String rule, [String? fixStatus]) {
         '<!--suppress HtmlUnknownTarget --><img alt="has-fix" src="has-fix.svg"></a>');
   }
   return sb.toString();
+}
+
+String getFixStatus(LintRule rule, Map<String, String> fixStatusMap) {
+  var fallback = 'unregistered';
+  for (var code in rule.lintCodes) {
+    var status = fixStatusMap[code.uniqueName.substring(9)];
+    if (status == null) continue;
+    if (status == 'hasFix') return status;
+    fallback = status;
+  }
+  return fallback;
 }
 
 void printUsage(ArgParser parser, [String? error]) {
