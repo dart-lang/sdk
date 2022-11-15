@@ -128,6 +128,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       this._environment,
       KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
+      Set<MemberEntity> liveAbstractMembers,
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);
@@ -165,7 +166,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       IndexedClass newClass = JClass(newLibrary as JLibrary, oldClass.name,
           isAbstract: oldClass.isAbstract);
       JClassEnv newEnv = env.convert(_elementMap, liveMemberUsage,
-          (ir.Library library) => libraryMap[library]!);
+          liveAbstractMembers, (ir.Library library) => libraryMap[library]!);
       classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
       assert(newClass.classIndex == oldClass.classIndex);
       libraries.getEnv(newLibrary).registerClass(newClass.name, newEnv);
@@ -176,7 +177,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         memberIndex++) {
       IndexedMember oldMember = _elementMap.members.getEntity(memberIndex)!;
       MemberUsage? memberUsage = liveMemberUsage[oldMember];
-      if (memberUsage == null) {
+      if (memberUsage == null && !liveAbstractMembers.contains(oldMember)) {
         members.skipIndex(oldMember.memberIndex);
         continue;
       }
@@ -199,7 +200,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else if (oldMember is ConstructorEntity) {
         final constructor = oldMember as IndexedConstructor;
         ParameterStructure parameterStructure =
-            annotations.hasNoElision(constructor)
+            annotations.hasNoElision(constructor) || memberUsage == null
                 ? constructor.parameterStructure
                 : memberUsage.invokedParameters!;
         if (constructor.isFactoryConstructor) {
@@ -231,7 +232,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else {
         final function = oldMember as IndexedFunction;
         ParameterStructure parameterStructure =
-            annotations.hasNoElision(function)
+            annotations.hasNoElision(function) ||
+                    memberUsage == null ||
+                    function.isAbstract
                 ? function.parameterStructure
                 : memberUsage.invokedParameters!;
         newMember = JMethod(newLibrary, newClass, memberName,

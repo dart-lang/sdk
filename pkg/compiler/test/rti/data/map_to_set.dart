@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 /*prod.class: global#Map:deps=[Class],needsArgs*/
-/*spec.class: global#Map:deps=[Class],explicit=[Map,Map<Object?,Object?>],needsArgs,test*/
+/*spec.class: global#Map:deps=[Class],explicit=[Map,Map.K,Map.V,Map<Map.K,Map.V>,Map<Object?,Object?>,void Function(Map.K,Map.V)],needsArgs,test*/
 
 /*prod.class: global#LinkedHashMap:deps=[Map],implicit=[LinkedHashMap.K],needsArgs*/
 /*spec.class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs,test*/

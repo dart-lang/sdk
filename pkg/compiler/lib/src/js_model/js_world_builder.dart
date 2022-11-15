@@ -111,6 +111,8 @@ class JClosedWorldBuilder {
 
     Set<MemberEntity> liveInstanceMembers =
         map.toBackendMemberSet(closedWorld.liveInstanceMembers);
+    Set<MemberEntity> liveAbstractInstanceMembers =
+        map.toBackendMemberSet(closedWorld.liveAbstractInstanceMembers);
 
     Map<ClassEntity, Set<ClassEntity>> mixinUses =
         map.toBackendClassMap(closedWorld.mixinUses, map.toBackendClassSet);
@@ -226,6 +228,7 @@ class JClosedWorldBuilder {
         // represent the synthesized call methods for static and instance method
         // closurizations.
         liveInstanceMembers /*..addAll(callMethods)*/,
+        liveAbstractInstanceMembers,
         assignedInstanceMembers,
         processedMembers,
         extractTypeArgumentsInterfacesNewRti,

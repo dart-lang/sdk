@@ -88,6 +88,8 @@ class JClosedWorld implements World {
 
   final Set<MemberEntity> liveInstanceMembers;
 
+  final Set<MemberEntity> liveAbstractInstanceMembers;
+
   /// Members that are written either directly or through a setter selector.
   final Set<MemberEntity> assignedInstanceMembers;
 
@@ -125,6 +127,7 @@ class JClosedWorld implements World {
       this.implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,
+      this.liveAbstractInstanceMembers,
       this.assignedInstanceMembers,
       this.processedMembers,
       this.extractTypeArgumentsInterfacesNewRti,
@@ -171,6 +174,8 @@ class JClosedWorld implements World {
     Set<ClassEntity> extractTypeArgumentsInterfacesNewRti =
         source.readClasses().toSet();
     Set<MemberEntity> liveInstanceMembers = source.readMembers().toSet();
+    Set<MemberEntity> liveAbstractInstanceMembers =
+        source.readMembers().toSet();
     Set<MemberEntity> assignedInstanceMembers = source.readMembers().toSet();
     Set<MemberEntity> processedMembers = source.readMembers().toSet();
     Map<ClassEntity, Set<ClassEntity>> mixinUses =
@@ -204,6 +209,7 @@ class JClosedWorld implements World {
         implementedClasses,
         liveNativeClasses,
         liveInstanceMembers,
+        liveAbstractInstanceMembers,
         assignedInstanceMembers,
         processedMembers,
         extractTypeArgumentsInterfacesNewRti,
@@ -232,6 +238,7 @@ class JClosedWorld implements World {
     sink.writeClasses(liveNativeClasses);
     sink.writeClasses(extractTypeArgumentsInterfacesNewRti);
     sink.writeMembers(liveInstanceMembers);
+    sink.writeMembers(liveAbstractInstanceMembers);
     sink.writeMembers(assignedInstanceMembers);
     sink.writeMembers(processedMembers);
     sink.writeClassMap(

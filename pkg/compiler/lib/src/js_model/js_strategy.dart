@@ -184,6 +184,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
         _compiler.environment,
         strategy.elementMap,
         closedWorld.liveMemberUsage,
+        closedWorld.liveAbstractInstanceMembers,
         closedWorld.annotationsData);
     ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
         _compiler.reporter, _elementMap, closedWorld.annotationsData);
