@@ -123,7 +123,7 @@ class B extends p.A {} // 2
 class A {}
 ''');
     ClassElement elementA = findElement.class_('A');
-    final elementObject = elementA.supertype!.element2;
+    final elementObject = elementA.supertype!.element;
     assertThat(elementObject).isExtendedAt('A {}', true, length: 0);
   }
 
@@ -1119,8 +1119,8 @@ class A {
   int get f => 0;
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    ClassElement element = findElement.class_('A');
+    assertThat(element.getField('f')!).isWrittenAt('f = 42', true);
   }
 
   test_isReferencedBy_FieldElement_class_synthetic_hasGetterSetter() async {
@@ -1131,8 +1131,8 @@ class A {
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    ClassElement element = findElement.class_('A');
+    assertThat(element.getField('f')!).isWrittenAt('f = 42', true);
   }
 
   test_isReferencedBy_FieldElement_class_synthetic_hasSetter() async {
@@ -1142,8 +1142,8 @@ class A {
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    ClassElement element = findElement.class_('A');
+    assertThat(element.getField('f')!).isWrittenAt('f = 42', true);
   }
 
   test_isReferencedBy_FieldElement_enum() async {

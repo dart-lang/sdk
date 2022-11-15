@@ -1629,6 +1629,39 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jalr(temp1);
     }
 
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      ASSERT(temp1 != CallingConventions::kReturnReg);
+      ASSERT(temp2 != CallingConventions::kReturnReg);
+      compiler::Label not_error;
+      __ LoadFromOffset(
+          temp1,
+          compiler::Address(CallingConventions::kReturnReg,
+                            compiler::target::LocalHandle::ptr_offset()));
+      __ BranchIfSmi(temp1, &not_error);
+      __ LoadClassId(temp1, temp1);
+      __ RangeCheck(temp1, temp2, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
+
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      ASSERT(CallingConventions::ArgumentRegisters[0] ==
+             CallingConventions::kReturnReg);
+      __ lx(temp1,
+            compiler::Address(
+                THR, compiler::target::Thread::
+                         call_native_through_safepoint_entry_point_offset()));
+      __ lx(target, compiler::Address(
+                        THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ jalr(temp1);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ ebreak();
+#endif
+
+      __ Bind(&not_error);
+    }
+
     // Refresh pinned registers values (inc. write barrier mask and null
     // object).
     __ RestorePinnedRegisters();
@@ -3249,8 +3282,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(function, compiler->parsed_function().function());
-    intptr_t threshold =
-        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    const intptr_t configured_optimization_counter_threshold =
+        compiler->thread()->isolate_group()->optimization_counter_threshold();
+    const int32_t threshold =
+        configured_optimization_counter_threshold * (loop_depth() + 1);
     __ LoadFieldFromOffset(TMP, function, Function::usage_counter_offset(),
                            compiler::kFourBytes);
     __ addi(TMP, TMP, 1);
@@ -5110,6 +5145,78 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiTag(result_div);
     __ SmiTag(result_mod);
   }
+}
+
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+#if XLEN == 32
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_temp(0, Location::RequiresRegister());
+#else
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+#endif
+  summary->set_in(0, Location::WritableRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out(0).reg();
+  Register value = locs()->in(0).reg();
+
+#if XLEN == 32
+  Register value_hi = locs()->temp(0).reg();
+
+  if (smi_) {
+    __ SmiUntag(value);
+    __ srai(value_hi, value, XLEN - 1);  // SignFill
+  } else {
+    __ LoadFieldFromOffset(value_hi, value,
+                           Mint::value_offset() + compiler::target::kWordSize);
+    __ LoadFieldFromOffset(value, value, Mint::value_offset());
+  }
+  Register value_lo = value;
+
+  __ LoadImmediate(TMP, 0x2d51);
+  // (value_hi:value_lo) * (0:TMP) =
+  //   value_lo * TMP + (value_hi * TMP) * 2^32 =
+  //   lo32(value_lo * TMP) +
+  //     (hi32(value_lo * TMP) + lo32(value_hi * TMP) * 2^32 +
+  //     hi32(value_hi * TMP) * 2^64
+  __ mulhu(TMP2, value_lo, TMP);
+  __ mul(result, value_lo, TMP);  // (TMP2:result) = lo32 * 0x2d51
+  __ mulhu(value_lo, value_hi, TMP);
+  __ mul(TMP, value_hi, TMP);  // (value_lo:TMP) = hi32 * 0x2d51
+  __ add(TMP, TMP, TMP2);
+  //  (0:value_lo:TMP:result) is 128-bit product
+  __ xor_(result, value_lo, result);
+  __ xor_(result, TMP, result);
+#else
+  if (smi_) {
+    __ SmiUntag(value);
+  } else {
+    __ LoadFieldFromOffset(value, value, Mint::value_offset());
+  }
+
+  __ LoadImmediate(TMP, 0x2d51);
+  __ mul(result, TMP, value);
+  __ mulhu(TMP, TMP, value);
+  __ xor_(result, result, TMP);
+  __ srai(TMP, result, 32);
+  __ xor_(result, result, TMP);
+#endif
+
+  __ AndImmediate(result, result, 0x3fffffff);
+  __ SmiTag(result);
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {

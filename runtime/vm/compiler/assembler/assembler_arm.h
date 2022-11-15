@@ -1007,6 +1007,13 @@ class Assembler : public AssemblerBase {
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
 
+  void RangeCheck(Register value,
+                  Register temp,
+                  intptr_t low,
+                  intptr_t high,
+                  RangeCheckCondition condition,
+                  Label* target) override;
+
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
@@ -1637,27 +1644,6 @@ class Assembler : public AssemblerBase {
   void BailoutIfInvalidBranchOffset(int32_t offset);
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int32_t DecodeTstOffset(int32_t inst);
-
-  enum BarrierFilterMode {
-    // Filter falls through into the barrier update code. Target label
-    // is a "after-store" label.
-    kJumpToNoUpdate,
-
-    // Filter falls through to the "after-store" code. Target label
-    // is barrier update code label.
-    kJumpToBarrier,
-
-    // Filter falls through into the conditional barrier update code and does
-    // not jump. Target label is unused. The barrier should run if the NE
-    // condition is set.
-    kNoJump
-  };
-
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Condition, Register)>

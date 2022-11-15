@@ -108,6 +108,7 @@ class Heap {
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   void NotifyIdle(int64_t deadline);
+  void NotifyDestroyed();
 
   Dart_PerformanceMode mode() const { return mode_; }
   Dart_PerformanceMode SetMode(Dart_PerformanceMode mode);
@@ -389,6 +390,7 @@ class Heap {
   friend class ProgramReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
+  friend class GCMarker;              // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages
   friend class Serializer;            // VisitObjectsImagePages
   friend class HeapTestHelper;

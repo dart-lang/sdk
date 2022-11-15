@@ -542,6 +542,10 @@ class KernelTarget extends TargetImplementation {
           ?.enterPhase(BenchmarkPhases.outline_addNoSuchMethodForwarders);
       loader.addNoSuchMethodForwarders(sortedSourceClassBuilders);
 
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
+      loader.computeFieldPromotability(sortedSourceClassBuilders);
+
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sortedSourceClassBuilders);
 
@@ -1708,24 +1712,11 @@ class KernelTarget extends TargetImplementation {
     assert(library.importUri.isScheme("dart"));
     List<Uri>? patches = uriTranslator.getDartPatches(library.importUri.path);
     if (patches != null) {
-      SourceLibraryBuilder? first;
       for (Uri patch in patches) {
-        if (first == null) {
-          first = library.loader.read(patch, -1,
-              fileUri: patch,
-              origin: library,
-              accessor: library) as SourceLibraryBuilder;
-        } else {
-          // If there's more than one patch file, it's interpreted as a part of
-          // the patch library.
-          SourceLibraryBuilder part = library.loader.read(patch, -1,
-              origin: library,
-              fileUri: patch,
-              accessor: library) as SourceLibraryBuilder;
-          first.parts.add(part);
-          first.partOffsets.add(-1);
-          part.partOfUri = first.importUri;
-        }
+        library.loader.read(patch, -1,
+            fileUri: patch,
+            origin: library,
+            accessor: library) as SourceLibraryBuilder;
       }
     }
   }

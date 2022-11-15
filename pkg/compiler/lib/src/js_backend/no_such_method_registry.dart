@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common.dart';
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
 import '../inferrer/types.dart' show GlobalTypeInferenceResults;
+import '../kernel/kelements.dart' show KFunction;
 import '../kernel/no_such_method_resolver.dart';
 import '../serialization/serialization.dart';
-import 'no_such_method_registry_interfaces.dart' as interfaces;
 
 /// [NoSuchMethodRegistry] and [NoSuchMethodData] categorizes `noSuchMethod`
 /// implementations.
@@ -126,7 +124,7 @@ class NoSuchMethodRegistry {
     if (_commonElements.isDefaultNoSuchMethodImplementation(element)) {
       _defaultImpls.add(element);
       return NsmCategory.DEFAULT;
-    } else if (_resolver.hasForwardingSyntax(element)) {
+    } else if (_resolver.hasForwardingSyntax(element as KFunction)) {
       _forwardingSyntaxImpls.add(element);
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
@@ -170,7 +168,7 @@ class NoSuchMethodRegistry {
 ///
 /// Post inference collected category `D` methods are into subcategories `D1`
 /// and `D2`.
-class NoSuchMethodData implements interfaces.NoSuchMethodData {
+class NoSuchMethodData {
   /// Tag used for identifying serialized [NoSuchMethodData] objects in a
   /// debugging data stream.
   static const String tag = 'no-such-method-data';
@@ -267,7 +265,6 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
   /// category D, as described above.
-  @override
   bool isComplex(FunctionEntity element) {
     assert(element.name == Identifiers.noSuchMethod_);
     return _otherImpls.contains(element);

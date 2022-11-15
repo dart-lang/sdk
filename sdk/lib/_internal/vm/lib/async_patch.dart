@@ -10,9 +10,9 @@
 import "dart:_internal" show VMLibraryHooks, patch, unsafeCast;
 
 /// These are the additional parts of this patch library:
-// part "deferred_load_patch.dart";
-// part "schedule_microtask_patch.dart";
-// part "timer_patch.dart";
+part "deferred_load_patch.dart";
+part "schedule_microtask_patch.dart";
+part "timer_patch.dart";
 
 // Equivalent of calling FATAL from C++ code.
 @pragma("vm:external-name", "DartAsync_fatal")

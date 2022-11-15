@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @pragma("wasm:entry-point")
 class _BoxedInt implements int {
@@ -19,7 +19,7 @@ class _BoxedInt implements int {
   }
 
   int operator ~/(num other) => other is int
-      ? this ~/ other
+      ? _truncDiv(this.value, other)
       : _BoxedDouble._truncDiv(toDouble(), unsafeCast<double>(other));
 
   num operator %(num other) => other is int
@@ -37,6 +37,24 @@ class _BoxedInt implements int {
     }
     return rem;
   }
+
+  static int _truncDiv(int a, int b) {
+    // Division special case: overflow in I64.
+    // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
+    const int MIN_INT = -9223372036854775808;
+    if (a == MIN_INT && b == -1) {
+      return MIN_INT;
+    }
+
+    if (b == 0) {
+      throw IntegerDivisionByZeroException();
+    }
+
+    return _div_s(a, b);
+  }
+
+  /// Wasm i64.div_s instruction
+  external static int _div_s(int a, int b);
 
   num remainder(num other) => other is int
       ? this - (this ~/ other) * other
@@ -125,7 +143,7 @@ class _BoxedInt implements int {
       } else {
         // If abs(other) > MAX_EXACT_INT_TO_DOUBLE, then other has an integer
         // value (no bits below the decimal point).
-        other = other.toInt();
+        other = _BoxedDouble._toInt(other);
       }
     }
     if (this < other) {
@@ -411,8 +429,16 @@ class _BoxedInt implements int {
     return _binaryGcd(x, y, false);
   }
 
-  int get hashCode => this;
-  int get _identityHashCode => this;
+  int get hashCode => _intHashCode(this);
+  int get _identityHashCode => _intHashCode(this);
+
+  static int _intHashCode(int value) {
+    const int magic = 0x2D51;
+    int lower = (value & 0xFFFFFFFF) * magic;
+    int upper = (value >>> 32) * magic;
+    int upper_accum = upper + (lower >>> 32);
+    return (lower ^ upper_accum ^ (upper_accum >>> 32)) & 0x3FFFFFFF;
+  }
 
   external int operator ~();
   external int get bitLength;

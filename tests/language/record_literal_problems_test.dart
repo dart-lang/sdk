@@ -11,7 +11,4 @@ main() {
   // [cfe] Record literal with one field requires a trailing comma.
 
   var r2 = const ();
-  //              ^
-  // [analyzer] SYNTACTIC_ERROR.RECORD_LITERAL_EMPTY
-  // [cfe] Record literal can't be empty.
 }

@@ -664,7 +664,8 @@ class Forest {
         isInitializingFormal: isInitializingFormal,
         isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
-        hasDeclaredInitializer: initializer != null);
+        hasDeclaredInitializer: initializer != null)
+      ..fileOffset = fileOffset;
   }
 
   VariableDeclarationImpl createVariableDeclarationForValue(
@@ -805,6 +806,20 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
+  VariableGet createVariableGet(int fileOffset, VariableDeclaration variable) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new VariableGetImpl(variable, forNullGuardedAccess: false)
+      ..fileOffset = fileOffset;
+  }
+
+  VariableSet createVariableSet(
+      int fileOffset, VariableDeclaration variable, Expression value) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new VariableSet(variable, value)..fileOffset = fileOffset;
+  }
+
   EqualsExpression createEquals(
       int fileOffset, Expression left, Expression right,
       {required bool isNot}) {
@@ -814,6 +829,21 @@ class Forest {
     assert(isNot != null);
     return new EqualsExpression(left, right, isNot: isNot)
       ..fileOffset = fileOffset;
+  }
+
+  EqualsCall createEqualsCall(int fileOffset, Expression left, Expression right,
+      FunctionType functionType, Procedure interfaceTarget) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new EqualsCall(left, right,
+        functionType: functionType, interfaceTarget: interfaceTarget)
+      ..fileOffset = fileOffset;
+  }
+
+  EqualsNull createEqualsNull(int fileOffset, Expression expression) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new EqualsNull(expression)..fileOffset = fileOffset;
   }
 
   BinaryExpression createBinary(

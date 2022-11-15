@@ -372,7 +372,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
     final type = exp.constructorName.type.typeOrThrow as InterfaceType;
-    expect(type.element2, elementB);
+    expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(elementA.typeParameters[0]
           .instantiate(nullabilitySuffix: NullabilitySuffix.star))
@@ -4113,67 +4113,6 @@ main() {
 
 @reflectiveTest
 class StrongModeTypePropagationTest extends PubPackageResolutionTest {
-  test_foreachInference_dynamic_disabled() async {
-    await resolveTestCode(r'''
-main() {
-  var list = <int>[];
-  for (dynamic v in list) {
-    v; // marker
-  }
-}''');
-    assertTypeDynamic(findElement.localVar('v').type);
-    assertTypeDynamic(findNode.simple('v; // marker'));
-  }
-
-  test_foreachInference_reusedVar_disabled() async {
-    await resolveTestCode(r'''
-main() {
-  var list = <int>[];
-  var v;
-  for (v in list) {
-    v; // marker
-  }
-}''');
-    assertTypeDynamic(findNode.simple('v in'));
-    assertTypeDynamic(findNode.simple('v; // marker'));
-  }
-
-  test_foreachInference_var() async {
-    await resolveTestCode(r'''
-main() {
-  var list = <int>[];
-  for (var v in list) {
-    v; // marker
-  }
-}''');
-    assertType(findElement.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
-  }
-
-  test_foreachInference_var_iterable() async {
-    await resolveTestCode(r'''
-main() {
-  Iterable<int> list = <int>[];
-  for (var v in list) {
-    v; // marker
-  }
-}''');
-    assertType(findElement.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
-  }
-
-  test_foreachInference_var_stream() async {
-    await resolveTestCode(r'''
-main() async {
-  Stream<int> stream = null;
-  await for (var v in stream) {
-    v; // marker
-  }
-}''');
-    assertType(findElement.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
-  }
-
   test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
     await assertNoErrorsInCode(r'''
 typedef bool F<E>(E argument);

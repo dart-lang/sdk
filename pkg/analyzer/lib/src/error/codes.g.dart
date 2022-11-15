@@ -164,7 +164,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL_NO_SETTER =
       CompileTimeErrorCode(
     'ASSIGNMENT_TO_FINAL_NO_SETTER',
-    "There isn’t a setter named '{0}' in class '{1}'.",
+    "There isn't a setter named '{0}' in class '{1}'.",
     correctionMessage:
         "Try correcting the name to reference an existing setter, or declare "
         "the setter.",
@@ -1170,6 +1170,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the variable
+  static const CompileTimeErrorCode DUPLICATE_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'DUPLICATE_VARIABLE_PATTERN',
+    "The variable '{0}' is already defined in this pattern.",
+    correctionMessage: "Try renaming the variable.",
+  );
+
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
@@ -1236,6 +1245,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Two keys in a constant map literal can't be equal.",
     correctionMessage: "Change or remove the duplicate key.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the number of provided type arguments
+  static const CompileTimeErrorCode EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
+    'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
+    "List patterns require one type argument or none, but {0} found.",
+    correctionMessage: "Try adjusting the number of type arguments.",
   );
 
   ///  Parameters:
@@ -2714,6 +2732,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
   );
 
+  static const CompileTimeErrorCode MISSING_EXTRACTOR_PATTERN_GETTER_NAME =
+      CompileTimeErrorCode(
+    'MISSING_EXTRACTOR_PATTERN_GETTER_NAME',
+    "The getter name is not specified explicitly, and the pattern is not a "
+        "variable.",
+    correctionMessage:
+        "Try specifying the getter name explicitly, or using a variable "
+        "pattern.",
+  );
+
   ///  Parameters:
   ///  0: the name of the parameter
   static const CompileTimeErrorCode MISSING_REQUIRED_ARGUMENT =
@@ -2723,6 +2751,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "argument.",
     correctionMessage: "Try adding the required argument.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the variable pattern
+  static const CompileTimeErrorCode MISSING_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'MISSING_VARIABLE_PATTERN',
+    "Variable pattern '{0}' is missing in this branch of the logical-or "
+        "pattern.",
+    correctionMessage: "Try declaring this variable pattern in the branch.",
   );
 
   ///  Parameters:
@@ -3324,12 +3362,47 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the expected number of required arguments
   ///  1: the actual number of positional arguments given
-  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS =
-      CompileTimeErrorCode(
+  ///  2: name of the function or method
+  static const CompileTimeErrorCode
+      NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL = CompileTimeErrorCode(
     'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "{0} positional argument(s) expected, but {1} found.",
+    "{0} positional arguments expected by '{2}', but {1} found.",
     correctionMessage: "Try adding the missing arguments.",
     hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
+  );
+
+  ///  Parameters:
+  ///  0: name of the function or method
+  static const CompileTimeErrorCode
+      NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR = CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "1 positional argument expected by '{0}', but 0 found.",
+    correctionMessage: "Try adding the missing argument.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
+  );
+
+  ///  Parameters:
+  ///  0: the expected number of required arguments
+  ///  1: the actual number of positional arguments given
+  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL =
+      CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "{0} positional arguments expected, but {1} found.",
+    correctionMessage: "Try adding the missing arguments.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR =
+      CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "1 positional argument expected, but 0 found.",
+    correctionMessage: "Try adding the missing argument.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
   );
 
   ///  Parameters:
@@ -3876,6 +3949,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "local variable so that it doesn't hide a name from an enclosing "
         "scope.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode
+      RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL =
+      CompileTimeErrorCode(
+    'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
+    "The return type of operators used in relational patterns must be "
+        "assignable to 'bool'.",
+    correctionMessage:
+        "Try updating the operator declaration to return 'bool'.",
   );
 
   ///  No parameters.
@@ -4751,7 +4834,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode USE_OF_NATIVE_EXTENSION =
       CompileTimeErrorCode(
     'USE_OF_NATIVE_EXTENSION',
-    "Dart native extensions are deprecated and aren’t available in Dart 2.15.",
+    "Dart native extensions are deprecated and aren't available in Dart 2.15.",
     correctionMessage: "Try using dart:ffi for C interop.",
     hasPublishedDocs: true,
   );
@@ -5201,40 +5284,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
-  );
-
-  ///  7.1 Instance Methods: It is a static warning if an instance method
-  ///  <i>m1</i> overrides an instance member <i>m2</i>, the signature of
-  ///  <i>m2</i> explicitly specifies a default value for a formal parameter
-  ///  <i>p</i> and the signature of <i>m1</i> specifies a different default value
-  ///  for <i>p</i>.
-  ///
-  ///  Parameters:
-  ///  0: the name of the super class
-  ///  1: the name of the super method
-  ///  2: the name of the overriding method
-  static const StaticWarningCode
-      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = StaticWarningCode(
-    'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
-    "Parameters can't override default values, this method overrides '{0}.{1}' "
-        "where '{2}' has a different value.",
-    correctionMessage: "Try using the same default value in both methods.",
-  );
-
-  ///  7.1 Instance Methods: It is a static warning if an instance method
-  ///  <i>m1</i> overrides an instance member <i>m2</i>, the signature of
-  ///  <i>m2</i> explicitly specifies a default value for a formal parameter
-  ///  <i>p</i> and the signature of <i>m1</i> specifies a different default value
-  ///  for <i>p</i>.
-  ///  Parameters:
-  ///  0: the name of the super class
-  ///  1: the name of the super method
-  static const StaticWarningCode
-      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL = StaticWarningCode(
-    'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL',
-    "Parameters can't override default values, this method overrides '{0}.{1}' "
-        "where this positional parameter has a different value.",
-    correctionMessage: "Try using the same default value in both methods.",
   );
 
   ///  Parameters:

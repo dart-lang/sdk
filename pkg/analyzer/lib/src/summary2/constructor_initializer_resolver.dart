@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
@@ -20,15 +19,15 @@ class ConstructorInitializerResolver {
     for (var unitElement in _libraryElement.units) {
       var interfaceElements = [
         ...unitElement.classes,
-        ...unitElement.enums2,
-        ...unitElement.mixins2,
+        ...unitElement.enums,
+        ...unitElement.mixins,
       ];
       for (var interfaceElement in interfaceElements) {
         for (var constructorElement in interfaceElement.constructors) {
           _constructor(
-            unitElement as CompilationUnitElementImpl,
-            interfaceElement as AbstractClassElementImpl,
-            constructorElement as ConstructorElementImpl,
+            unitElement,
+            interfaceElement,
+            constructorElement,
           );
         }
       }
@@ -63,7 +62,7 @@ class ConstructorInitializerResolver {
       element.redirectedConstructor = node.redirectedConstructor?.staticElement;
     } else {
       for (var initializer in node.initializers) {
-        if (initializer is RedirectingConstructorInvocation) {
+        if (initializer is RedirectingConstructorInvocationImpl) {
           element.redirectedConstructor = initializer.staticElement;
         }
       }

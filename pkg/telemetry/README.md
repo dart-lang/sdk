@@ -47,5 +47,5 @@ main() {
 }
 ```
 
-Crash reports will only be sent if the cooresponding [Analytics] object is
+Crash reports will only be sent if the corresponding [Analytics] object is
 configured to send analytics.

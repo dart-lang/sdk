@@ -125,6 +125,7 @@ cmp
 cnn
 coded
 codepath
+coincidences
 collisions
 columns
 commented
@@ -428,6 +429,7 @@ misses
 misspelled
 mistake
 mistakes
+mixups
 mmethod
 mod
 modelled
@@ -509,6 +511,7 @@ prematurely
 prerequisite
 press
 pretends
+preventing
 printouts
 processes
 processors
@@ -564,6 +567,7 @@ risky
 rk
 row
 rows
+rr
 ruin
 runtimes
 rv

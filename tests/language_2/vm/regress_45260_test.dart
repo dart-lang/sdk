@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--optimization-counter-threshold=5 --deterministic
+// VMOptions=--optimization-counter-threshold=20 --deterministic
 
 import 'package:expect/expect.dart';
 

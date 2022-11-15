@@ -23,7 +23,11 @@ class UnknownInferredType extends TypeImpl {
   UnknownInferredType._();
 
   @override
-  Element? get element2 => null;
+  Element? get element => null;
+
+  @Deprecated('Use element instead')
+  @override
+  Element? get element2 => element;
 
   @override
   int get hashCode => 1;

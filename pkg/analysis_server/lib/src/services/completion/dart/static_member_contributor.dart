@@ -19,14 +19,14 @@ class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<void> computeSuggestions() async {
     var library = request.libraryElement;
-    bool isVisible(Element element) => element.isAccessibleIn2(library);
+    bool isVisible(Element element) => element.isAccessibleIn(library);
     var targetId = request.target.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       var element = targetId.staticElement;
       if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
-          element = aliasedType.element2;
+          element = aliasedType.element;
         }
       }
       if (element is InterfaceElement) {

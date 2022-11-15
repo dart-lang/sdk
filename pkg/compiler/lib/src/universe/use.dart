@@ -22,7 +22,7 @@ import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
-import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
+import '../js_model/closure.dart' show JContextField;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
@@ -356,7 +356,7 @@ class StaticUse {
             "Static get element $element must be a top-level "
             "or static field or getter."));
     assert(
-        element.isField || element.isGetter,
+        element is FieldEntity || element.isGetter,
         failedAt(element,
             "Static get element $element must be a field or a getter."));
     return StaticUse.internal(element, StaticUseKind.STATIC_GET,
@@ -373,7 +373,7 @@ class StaticUse {
             "Static set element $element "
             "must be a top-level or static method."));
     assert(
-        (element.isField && element.isAssignable) || element.isSetter,
+        (element is FieldEntity && element.isAssignable) || element.isSetter,
         failedAt(element,
             "Static set element $element must be a field or a setter."));
     return StaticUse.internal(element, StaticUseKind.STATIC_SET,
@@ -389,8 +389,6 @@ class StaticUse {
             element,
             "Static init element $element must be a top-level "
             "or static method."));
-    assert(element.isField,
-        failedAt(element, "Static init element $element must be a field."));
     return StaticUse.internal(element, StaticUseKind.FIELD_INIT);
   }
 
@@ -420,7 +418,7 @@ class StaticUse {
         failedAt(
             element, "Super get element $element must be an instance method."));
     assert(
-        element.isField || element.isGetter,
+        element is FieldEntity || element.isGetter,
         failedAt(element,
             "Super get element $element must be a field or a getter."));
     return StaticUse.internal(element, StaticUseKind.SUPER_GET);
@@ -432,8 +430,6 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(
             element, "Super set element $element must be an instance method."));
-    assert(element.isField,
-        failedAt(element, "Super set element $element must be a field."));
     return StaticUse.internal(element, StaticUseKind.SUPER_FIELD_SET);
   }
 
@@ -521,7 +517,7 @@ class StaticUse {
         failedAt(element,
             "Direct get element $element must be an instance member."));
     assert(
-        element.isField || element.isGetter,
+        element is FieldEntity || element.isGetter,
         failedAt(element,
             "Direct get element $element must be a field or a getter."));
     return StaticUse.internal(element, StaticUseKind.STATIC_GET);
@@ -533,18 +529,12 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(element,
             "Direct set element $element must be an instance member."));
-    assert(element.isField,
-        failedAt(element, "Direct set element $element must be a field."));
     return StaticUse.internal(element, StaticUseKind.STATIC_SET);
   }
 
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
       ConstructorEntity element, CallStructure callStructure) {
-    assert(
-        element.isConstructor,
-        failedAt(element,
-            "Constructor invocation element $element must be a constructor."));
     assert(
         (callStructure as dynamic) != null, // TODO(48820): remove when sound
         failedAt(
@@ -565,12 +555,6 @@ class StaticUse {
     assert(
         (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
-    assert(
-        element.isConstructor,
-        failedAt(
-            element,
-            "Typed constructor invocation element $element "
-            "must be a constructor."));
     return StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
@@ -587,12 +571,6 @@ class StaticUse {
     assert(
         (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
-    assert(
-        element.isConstructor,
-        failedAt(
-            element,
-            "Const constructor invocation element $element "
-            "must be a constructor."));
     return StaticUse.internal(element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
@@ -622,7 +600,7 @@ class StaticUse {
   /// Read access of an instance field or boxed field [element].
   factory StaticUse.fieldGet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JRecordFieldInterface,
+        element.isInstanceMember || element is JContextField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_GET);
@@ -631,7 +609,7 @@ class StaticUse {
   /// Write access of an instance field or boxed field [element].
   factory StaticUse.fieldSet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JRecordFieldInterface,
+        element.isInstanceMember || element is JContextField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_SET);

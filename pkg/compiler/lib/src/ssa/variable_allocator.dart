@@ -5,7 +5,7 @@
 // @dart = 2.10
 
 import '../common.dart';
-import '../js_backend/namer.dart' show ModularNamer;
+import '../js_backend/namer_interfaces.dart' show ModularNamer;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 
@@ -157,7 +157,7 @@ class LiveEnvironment {
 /// Builds the live intervals of each instruction. The algorithm visits
 /// the graph post-dominator tree to find the last uses of an
 /// instruction, and computes the liveIns of each basic block.
-class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
+class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
 
@@ -555,7 +555,7 @@ class VariableNamer {
 /// instruction, it frees the names of the inputs that die at that
 /// instruction, and allocates a name to the instruction. For each phi,
 /// it adds a copy to the CopyHandler of the corresponding predecessor.
-class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
+class SsaVariableAllocator extends HBaseVisitor<void> with CodegenPhase {
   final ModularNamer _namer;
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;

@@ -15,16 +15,14 @@ import '../constants/values.dart'
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/util.dart';
-import '../kernel/element_map_interfaces.dart'
-    show KernelToElementMapForDeferredLoading;
+import '../kernel/element_map.dart';
 import '../kernel/kelements.dart' show KLocalFunction;
-import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
+import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact;
 
 // TODO(48820): delete typedef after the migration is complete.
 typedef Compiler = CompilerDeferredLoadingFacade;
-typedef KernelToElementMap = KernelToElementMapForDeferredLoading;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].
@@ -313,7 +311,9 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
       infoBuilder
           .addTypeDependencies(elementEnvironment.getFunctionType(element));
     }
-    if (element.isStatic || element.isTopLevel || element.isConstructor) {
+    if (element.isStatic ||
+        element.isTopLevel ||
+        element is ConstructorEntity) {
       infoBuilder.addMember(element);
       infoBuilder.addDirectMemberDependencies(element);
     }
@@ -405,6 +405,14 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
   void visitInterfaceType(InterfaceType type, Null argument) {
     visitIterable(type.typeArguments);
     _infoBuilder.addClassType(type.element, import: _import);
+  }
+
+  @override
+  void visitRecordType(RecordType type, Null argument) {
+    visitIterable(type.fields);
+    // TODO(49718): Deferred loading could track record types to ensure that the
+    // shape predicate attached to the Rti for a shape (instanceof SomeClass)
+    // has access to the shape class.
   }
 
   @override
@@ -544,7 +552,10 @@ class ConstantCollector extends ir.RecursiveVisitor {
 
   @override
   void visitTypeLiteral(ir.TypeLiteral node) {
-    if (node.type is! ir.TypeParameterType) add(node);
+    // Type literals may be [ir.TypeParameterType] or contain TypeParameterType
+    // variables nested within (e.g. in a generic type literals). As such,
+    // we can't assume that all type literals are constnat.
+    add(node, requireConstant: false);
   }
 
   @override

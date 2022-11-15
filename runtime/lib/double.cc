@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "lib/integers.h"
+
 #include "vm/bootstrap_natives.h"
 
 #include <math.h>  // NOLINT
@@ -76,7 +78,7 @@ DEFINE_NATIVE_ENTRY(Double_hashCode, 0, 1) {
       (val <= kMaxInt64RepresentableAsDouble)) {
     int64_t ival = static_cast<int64_t>(val);
     if (static_cast<double>(ival) == val) {
-      return Integer::New(ival);
+      return Integer::New(Multiply64Hash(ival));
     }
   }
 

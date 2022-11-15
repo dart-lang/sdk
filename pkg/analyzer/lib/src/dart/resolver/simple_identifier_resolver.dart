@@ -43,8 +43,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     _reportDeprecatedExportUse(node);
 
-    _resolve1(node, contextType: contextType);
-    _resolve2(node, contextType: contextType);
+    var propertyResult = _resolve1(node, contextType: contextType);
+    _resolve2(node, propertyResult, contextType: contextType);
   }
 
   /// Return the type that should be recorded for a node that resolved to the given accessor.
@@ -119,34 +119,35 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
   }
 
-  void _resolve1(SimpleIdentifierImpl node, {required DartType? contextType}) {
+  PropertyElementResolverResult? _resolve1(SimpleIdentifierImpl node,
+      {required DartType? contextType}) {
     _currentAlreadyResolved = false;
 
     //
     // Synthetic identifiers have been already reported during parsing.
     //
     if (node.isSynthetic) {
-      return;
+      return null;
     }
 
     //
     // Ignore nodes that should have been resolved before getting here.
     //
     if (node.inDeclarationContext()) {
-      return;
+      return null;
     }
     if (node.staticElement is LocalVariableElement ||
         node.staticElement is ParameterElement) {
-      return;
+      return null;
     }
     var parent = node.parent;
     if (parent is FieldFormalParameter) {
-      return;
+      return null;
     } else if (parent is ConstructorFieldInitializer &&
         parent.fieldName == node) {
-      return;
+      return null;
     } else if (parent is Annotation && parent.constructorName == node) {
-      return;
+      return null;
     }
 
     //
@@ -178,7 +179,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       _inferenceHelper.recordStaticType(node, staticType,
           contextType: contextType);
       _currentAlreadyResolved = true;
-      return;
+      return null;
     }
 
     final recordField = result.recordField;
@@ -186,7 +187,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       _inferenceHelper.recordStaticType(node, recordField.type,
           contextType: contextType);
       _currentAlreadyResolved = true;
-      return;
+      return null;
     }
 
     var element = hasRead ? result.readElement : result.writeElement;
@@ -223,9 +224,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
       }
     }
     node.staticElement = element;
+    return result;
   }
 
-  void _resolve2(SimpleIdentifierImpl node, {required DartType? contextType}) {
+  void _resolve2(
+      SimpleIdentifierImpl node, PropertyElementResolverResult? propertyResult,
+      {required DartType? contextType}) {
     if (_currentAlreadyResolved) {
       return;
     }
@@ -252,7 +256,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (element is MethodElement) {
       staticType = element.type;
     } else if (element is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(element);
+      staticType = propertyResult?.getType ?? _getTypeOfProperty(element);
     } else if (element is ExecutableElement) {
       staticType = element.type;
     } else if (element is TypeParameterElement) {

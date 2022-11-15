@@ -58,7 +58,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['element'] = node.declaredElement;
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
-      properties['element'] = node.element2;
+      properties['element'] = node.element;
     } else if (node is FieldDeclaration) {
       properties['static keyword'] = node.staticKeyword;
     } else if (node is FormalParameter) {
@@ -85,14 +85,14 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is GenericFunctionType) {
       properties['type'] = node.type;
     } else if (node is ImportDirective) {
-      properties['element'] = node.element2;
+      properties['element'] = node.element;
     } else if (node is IndexExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
     } else if (node is InstanceCreationExpression) {
       properties['static type'] = node.staticType;
     } else if (node is LibraryDirective) {
-      properties['element'] = node.element2;
+      properties['element'] = node.element;
     } else if (node is MethodDeclaration) {
       properties['declaredElement'] = node.declaredElement;
       properties['external keyword'] = node.externalKeyword;
@@ -103,9 +103,9 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static invoke type'] = node.staticInvokeType;
       properties['static type'] = node.staticType;
     } else if (node is PartDirective) {
-      properties['element'] = node.element2;
+      properties['element'] = node.element;
     } else if (node is PartOfDirective) {
-      properties['element'] = node.element2;
+      properties['element'] = node.element;
     } else if (node is PostfixExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;

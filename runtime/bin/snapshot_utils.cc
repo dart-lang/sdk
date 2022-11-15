@@ -29,9 +29,7 @@ namespace bin {
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
 static const int64_t kAppSnapshotPageSize = 16 * KB;
 
-static const char kMachOAppSnapshotSegmentName[] DART_UNUSED = "__CUSTOM";
-static const char kMachOAppSnapshotSectionName[] DART_UNUSED =
-    "__dart_app_snap";
+static const char kMachOAppSnapshotNoteName[] DART_UNUSED = "__dart_app_snap";
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
@@ -246,104 +244,58 @@ static AppSnapshot* TryReadAppSnapshotElf(
 #if defined(DART_TARGET_OS_MACOS)
 AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
     const char* container_path) {
+  // Ensure file is actually MachO-formatted.
+  if (!IsMachOFormattedBinary(container_path)) {
+    Syslog::PrintErr("Expected a Mach-O binary.\n");
+    return nullptr;
+  }
+
   File* file = File::Open(NULL, container_path, File::kRead);
   if (file == nullptr) {
     return nullptr;
   }
   RefCntReleaseScope<File> rs(file);
 
-  // Ensure file is actually MachO-formatted.
-  if (!IsMachOFormattedBinary(container_path)) {
+  // Read in the Mach-O header. Note that the 64-bit header is the same layout
+  // as the 32-bit header, just with an extra field for alignment, so we can
+  // safely load a 32-bit header to get all the information we need.
+  mach_o::mach_header header;
+  file->ReadFully(&header, sizeof(header));
+
+  if (header.magic == mach_o::MH_CIGAM || header.magic == mach_o::MH_CIGAM_64) {
     Syslog::PrintErr(
-        "Attempted load target was not formatted as expected: "
-        "expected Mach-O binary.\n");
+        "Expected a host endian header but found a byte-swapped header.\n");
     return nullptr;
   }
 
-  // Parse the first 4bytes and extract the magic number.
-  uint32_t magic;
-  file->SetPosition(0);
-  file->ReadFully(&magic, sizeof(uint32_t));
-
-  const bool is64Bit =
-      magic == mach_o::MH_MAGIC_64 || magic == mach_o::MH_CIGAM_64;
-  const bool isByteSwapped =
-      magic == mach_o::MH_CIGAM || magic == mach_o::MH_CIGAM_64;
-
-  if (isByteSwapped) {
-    Syslog::PrintErr(
-        "Dart snapshot contained an unexpected binary file layout. "
-        "Expected non-byte swapped header but found a byte-swapped header.\n");
-    return nullptr;
+  if (header.magic == mach_o::MH_MAGIC_64) {
+    // Set the file position as if we had read a 64-bit header.
+    file->SetPosition(sizeof(mach_o::mach_header_64));
   }
 
-  file->SetPosition(0);
+  // Now we search through the load commands to find our snapshot note, which
+  // has a data_owner field of kMachOAppSnapshotNoteName.
+  for (uint32_t i = 0; i < header.ncmds; ++i) {
+    mach_o::load_command command;
+    file->ReadFully(&command, sizeof(mach_o::load_command));
 
-  // Read in the Mach-O header, which will contain information about all of the
-  // segments in the binary.
-  //
-  // From the header we determine where our special segment is located. This
-  // segment must be named according to the convention captured by
-  // kMachOAppSnapshotSegmentType and kMachOAppSnapshotSegmentName.
-  if (!is64Bit) {
-    Syslog::PrintErr(
-        "Dart snapshot compiled with 32bit architecture. "
-        "Currently only 64bit architectures are supported.\n");
-    return nullptr;
-  } else {
-    mach_o::mach_header_64 header;
-    file->ReadFully(&header, sizeof(header));
-
-    for (uint32_t i = 0; i < header.ncmds; ++i) {
-      mach_o::load_command command;
-      file->ReadFully(&command, sizeof(mach_o::load_command));
-
-      file->SetPosition(file->Position() - sizeof(command));
-      if (command.cmd != mach_o::LC_SEGMENT &&
-          command.cmd != mach_o::LC_SEGMENT_64) {
-        file->SetPosition(file->Position() + command.cmdsize);
-        continue;
-      }
-
-      mach_o::segment_command_64 segment;
-      file->ReadFully(&segment, sizeof(segment));
-
-      for (uint32_t j = 0; j < segment.nsects; ++j) {
-        mach_o::section_64 section;
-        file->ReadFully(&section, sizeof(section));
-
-        if (segment.cmd == mach_o::LC_SEGMENT_64 &&
-            strcmp(section.segname, kMachOAppSnapshotSegmentName) == 0 &&
-            strcmp(section.sectname, kMachOAppSnapshotSectionName) == 0) {
-          // We have to do the loading "by-hand" because we need to set the
-          // snapshot length to a specific length instead of the "rest of the
-          // file", which is the assumption that TryReadAppSnapshotElf makes.
-          const char* error = nullptr;
-          const uint8_t* vm_data_buffer = nullptr;
-          const uint8_t* vm_instructions_buffer = nullptr;
-          const uint8_t* isolate_data_buffer = nullptr;
-          const uint8_t* isolate_instructions_buffer = nullptr;
-
-          std::unique_ptr<uint8_t[]> snapshot(new uint8_t[section.size]);
-          file->SetPosition(section.offset);
-          file->ReadFully(snapshot.get(), sizeof(uint8_t) * section.size);
-
-          Dart_LoadedElf* handle = Dart_LoadELF_Memory(
-              snapshot.get(), section.size, &error, &vm_data_buffer,
-              &vm_instructions_buffer, &isolate_data_buffer,
-              &isolate_instructions_buffer);
-
-          if (handle == nullptr) {
-            Syslog::PrintErr("Loading failed: %s\n", error);
-            return nullptr;
-          }
-
-          return new ElfAppSnapshot(handle, vm_data_buffer,
-                                    vm_instructions_buffer, isolate_data_buffer,
-                                    isolate_instructions_buffer);
-        }
-      }
+    file->SetPosition(file->Position() - sizeof(command));
+    if (command.cmd != mach_o::LC_NOTE) {
+      file->SetPosition(file->Position() + command.cmdsize);
+      continue;
     }
+
+    mach_o::note_command note;
+    file->ReadFully(&note, sizeof(note));
+
+    if (strcmp(note.data_owner, kMachOAppSnapshotNoteName) != 0) {
+      file->SetPosition(file->Position() + command.cmdsize);
+      continue;
+    }
+
+    // A note with the correct name was found, so we assume that the
+    // file contents for that note contains an ELF snapshot.
+    return TryReadAppSnapshotElf(container_path, note.offset);
   }
 
   return nullptr;
@@ -549,18 +501,29 @@ bool Snapshot::IsMachOFormattedBinary(const char* filename) {
   }
   RefCntReleaseScope<File> rs(file);
 
-  // Ensure the file is long enough to even contain the magic bytes.
-  if (file->Length() < 4) {
+  const uint64_t size = file->Length();
+  // Parse the first 4 bytes and check the magic numbers.
+  uint32_t magic;
+  if (size < sizeof(magic)) {
+    // The file isn't long enough to contain the magic bytes.
     return false;
   }
-
-  // Parse the first 4bytes and check the magic numbers.
-  uint32_t magic;
   file->SetPosition(0);
-  file->Read(&magic, sizeof(uint32_t));
+  file->ReadFully(&magic, sizeof(magic));
 
-  return magic == mach_o::MH_MAGIC_64 || magic == mach_o::MH_CIGAM_64 ||
-         magic == mach_o::MH_MAGIC || magic == mach_o::MH_CIGAM;
+  // Depending on the magic numbers, check that the size of the file is
+  // large enough for either a 32-bit or 64-bit header.
+  switch (magic) {
+    case mach_o::MH_MAGIC:
+    case mach_o::MH_CIGAM:
+      return size >= sizeof(mach_o::mach_header);
+    case mach_o::MH_MAGIC_64:
+    case mach_o::MH_CIGAM_64:
+      return size >= sizeof(mach_o::mach_header_64);
+    default:
+      // Not a Mach-O formatted file.
+      return false;
+  }
 }
 #endif  // defined(DART_TARGET_OS_MACOS)
 

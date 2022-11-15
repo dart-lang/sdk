@@ -130,7 +130,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('AugmentationImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -461,7 +461,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -744,7 +744,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -818,7 +818,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryAugmentationDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -827,7 +827,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -856,6 +856,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ListPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('requiredType', node.requiredType);
     });
   }
 
@@ -924,6 +925,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
+      // Types of the node and its expression must be the same.
+      if (node.expression.staticType != node.staticType) {
+        final nodeType = node.staticType;
+        final expressionType = node.expression.staticType;
+        fail(
+          'Must be the same:\n'
+          'nodeType: $nodeType\n'
+          'expressionType: $expressionType',
+        );
+      }
     });
   }
 
@@ -977,7 +988,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -986,7 +997,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartOfDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -1075,6 +1086,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RecordPatternField');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('fieldElement', node.fieldElement);
     });
   }
 
@@ -1138,6 +1150,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RelationalPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
     });
   }
 
@@ -1410,14 +1423,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           element as VariablePatternElementImpl;
           _sink.write(_indent);
           _sink.write('declaredElement: ');
-          _writeIf(element.hasImplicitType, 'hasImplicitType ');
-          _writeIf(element.isFinal, 'isFinal ');
-          _sink.writeln('${element.name}@${element.nameOffset}');
-          _withIndent(() {
-            _writeType('type', element.type);
-          });
+          if (node.name.offset == element.nameOffset) {
+            _writeIf(element.hasImplicitType, 'hasImplicitType ');
+            _writeIf(element.isFinal, 'isFinal ');
+            _sink.writeln('${element.name}@${element.nameOffset}');
+            _withIndent(() {
+              _writeType('type', element.type);
+            });
+          } else {
+            _sink.writeln('${element.name}@${element.nameOffset}');
+          }
         }
       }
+    });
+  }
+
+  @override
+  void visitWhenClause(WhenClause node) {
+    _writeln('WhenClause');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1493,6 +1518,25 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         expect(begin.previous, lastEnd);
       }
       lastEnd = _entityEndToken(entity);
+    }
+  }
+
+  /// Check that the actual parent of [child] is [parent].
+  void _checkParentOfChild(AstNode parent, AstNode child) {
+    final actualParent = child.parent;
+    if (actualParent == null) {
+      fail('''
+No parent.
+Child: (${child.runtimeType}) $child
+Expected parent: (${parent.runtimeType}) $parent
+''');
+    } else if (actualParent != parent) {
+      fail('''
+Wrong parent.
+Child: (${child.runtimeType}) $child
+Actual parent: (${actualParent.runtimeType}) $actualParent
+Expected parent: (${parent.runtimeType}) $parent
+''');
     }
   }
 
@@ -1727,6 +1771,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (value is Token) {
         _writeToken(entity.name, value);
       } else if (value is AstNode) {
+        _checkParentOfChild(node, value);
         if (value is ArgumentList && skipArgumentList) {
         } else {
           _writeNode(entity.name, value);
@@ -1734,7 +1779,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       } else if (value is List<Token>) {
         _writeTokenList(entity.name, value);
       } else if (value is List<AstNode>) {
-        _writeNodeList(entity.name, value);
+        _writeNodeList(node, entity.name, value);
       } else {
         throw UnimplementedError('(${value.runtimeType}) $value');
       }
@@ -1749,11 +1794,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  void _writeNodeList(String name, List<AstNode> nodeList) {
+  void _writeNodeList(AstNode parent, String name, List<AstNode> nodeList) {
     if (nodeList.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var node in nodeList) {
+          _checkParentOfChild(parent, node);
           _sink.write(_indent);
           node.accept(this);
         }

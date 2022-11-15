@@ -33,7 +33,7 @@ class InstanceMemberInferrer {
     typeSystem = unit.library.typeSystem as TypeSystemImpl;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.classes);
-    _inferClasses(unit.mixins2);
+    _inferClasses(unit.mixins);
   }
 
   /// Return `true` if the elements corresponding to the [elements] have the
@@ -276,8 +276,7 @@ class InstanceMemberInferrer {
         // combined member signature of said setter in the direct
         // superinterfaces, if this type is the same as the return type of the
         // combined member signature of said getter in the direct
-        // superinterfaces. If the types are not the same then inference
-        // fails with an error.
+        // superinterfaces.
         if (!field.isFinal) {
           var getterType = combinedGetterType();
           var setterType = combinedSetterType();
@@ -286,11 +285,6 @@ class InstanceMemberInferrer {
             var type = getterType;
             type = typeSystem.nonNullifyLegacy(type);
             _setFieldType(field, type);
-          } else {
-            field.typeInferenceError = TopLevelInferenceError(
-              kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
-              arguments: const <String>[],
-            );
           }
           return;
         }
@@ -333,16 +327,16 @@ class InstanceMemberInferrer {
         currentInterfaceElement = classElement;
         for (var field in classElement.fields) {
           _inferAccessorOrField(
-            field: field as FieldElementImpl,
+            field: field,
           );
         }
         for (var accessor in classElement.accessors) {
           _inferAccessorOrField(
-            accessor: accessor as PropertyAccessorElementImpl,
+            accessor: accessor,
           );
         }
         for (var method in classElement.methods) {
-          _inferExecutable(method as MethodElementImpl);
+          _inferExecutable(method);
         }
         //
         // Infer initializing formal parameter types. This must happen after
@@ -504,7 +498,7 @@ class InstanceMemberInferrer {
   /// interface [type].
   void _inferType(InterfaceType? type) {
     if (type != null) {
-      _inferClass(type.element2);
+      _inferClass(type.element);
     }
   }
 

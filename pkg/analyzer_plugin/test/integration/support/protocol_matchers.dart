@@ -533,41 +533,6 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'VALID_STRING_ESCAPE'
 ]);
 
-/// KytheEntry
-///
-/// {
-///   "source": KytheVName
-///   "kind": optional String
-///   "target": optional KytheVName
-///   "fact": String
-///   "value": optional List<int>
-/// }
-final Matcher isKytheEntry = LazyMatcher(() => MatchesJsonObject('KytheEntry', {
-      'source': isKytheVName,
-      'fact': isString
-    }, optionalFields: {
-      'kind': isString,
-      'target': isKytheVName,
-      'value': isListOf(isInt)
-    }));
-
-/// KytheVName
-///
-/// {
-///   "signature": String
-///   "corpus": String
-///   "root": String
-///   "path": String
-///   "language": String
-/// }
-final Matcher isKytheVName = LazyMatcher(() => MatchesJsonObject('KytheVName', {
-      'signature': isString,
-      'corpus': isString,
-      'root': isString,
-      'path': isString,
-      'language': isString
-    }));
-
 /// LinkedEditGroup
 ///
 /// {
@@ -1321,24 +1286,6 @@ final Matcher isInlineMethodFeedback = LazyMatcher(() => MatchesJsonObject(
 /// }
 final Matcher isInlineMethodOptions = LazyMatcher(() => MatchesJsonObject(
     'inlineMethod options', {'deleteSource': isBool, 'inlineAll': isBool}));
-
-/// kythe.getKytheEntries params
-///
-/// {
-///   "file": FilePath
-/// }
-final Matcher isKytheGetKytheEntriesParams = LazyMatcher(() =>
-    MatchesJsonObject('kythe.getKytheEntries params', {'file': isFilePath}));
-
-/// kythe.getKytheEntries result
-///
-/// {
-///   "entries": List<KytheEntry>
-///   "files": List<FilePath>
-/// }
-final Matcher isKytheGetKytheEntriesResult = LazyMatcher(() =>
-    MatchesJsonObject('kythe.getKytheEntries result',
-        {'entries': isListOf(isKytheEntry), 'files': isListOf(isFilePath)}));
 
 /// moveFile feedback
 final Matcher isMoveFileFeedback = isNull;

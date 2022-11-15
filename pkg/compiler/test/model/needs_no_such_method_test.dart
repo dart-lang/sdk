@@ -12,7 +12,7 @@ import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../helpers/type_test_helper.dart';
 
 void main() {

@@ -248,7 +248,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
             // re-join it using the resource provider to get the right separator
             // for the platform.
             var examplePath = resourceProvider.pathContext
-                .joinAll('${_examplesApiPath!}/$pathSnippet'.split('/'));
+                .joinAll([_examplesApiPath!, ...pathSnippet.split('/')]);
             var start = token.offset + startIndex;
             var end = token.offset + endIndex;
             computer._addRegion(
@@ -366,7 +366,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       if (token != null && token.keyword == Keyword.VAR) {
         var inferredType = node.declaredElement?.type;
         if (inferredType is InterfaceType) {
-          computer._addRegionForToken(token, inferredType.element2);
+          computer._addRegionForToken(token, inferredType.element);
         }
       }
     }
@@ -390,7 +390,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element2;
+    var exportElement = node.element;
     if (exportElement != null) {
       Element? libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -419,7 +419,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element2;
+    var importElement = node.element;
     if (importElement != null) {
       Element? libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -437,7 +437,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForNode(node.name2, node.element2);
+    computer._addRegionForNode(node.name2, node.element);
   }
 
   @override
@@ -448,7 +448,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    final element = node.element2;
+    final element = node.element;
     if (element is PartElement) {
       final uri = element.uri;
       if (uri is DirectiveUriWithUnit) {
@@ -471,7 +471,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    computer._addRegionForNode(node.libraryName ?? node.uri, node.element2);
+    computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
     super.visitPartOfDirective(node);
   }
 
@@ -567,13 +567,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         return null;
       }
 
-      var firstElement = firstType.element2;
+      var firstElement = firstType.element;
       for (var i = 1; i < variables.length; i++) {
         final type = variables[i].declaredElement?.type;
         if (type is! InterfaceType) {
           return null;
         }
-        if (type.element2 != firstElement) {
+        if (type.element != firstElement) {
           return null;
         }
       }
@@ -624,7 +624,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       var examplesFolder = parent.getChildAssumingFolder('examples');
       if (examplesFolder.exists &&
           examplesFolder.getChildAssumingFolder('api').exists) {
-        return parent.path;
+        return resourceProvider.pathContext.absolute(parent.path);
       }
       parent = parent.parent;
     }

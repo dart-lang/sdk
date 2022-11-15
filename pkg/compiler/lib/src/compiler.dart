@@ -21,7 +21,14 @@ import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'compiler_interfaces.dart'
-    show CompilerDeferredLoadingFacade, CompilerDiagnosticsFacade;
+    show
+        CompilerDeferredLoadingFacade,
+        CompilerDiagnosticsFacade,
+        CompilerDumpInfoFacade,
+        CompilerEmitterFacade,
+        CompilerInferrerFacade,
+        CompilerKernelStrategyFacade,
+        CompilerTypeInferenceFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
@@ -33,20 +40,21 @@ import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
 import 'inferrer/abstract_value_strategy.dart';
-import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
+import 'inferrer/computable.dart' show ComputableAbstractValueStrategy;
 import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
+import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'inferrer_experimental/trivial.dart' as experimentalInferrer
     show TrivialAbstractValueStrategy;
 import 'inferrer_experimental/types.dart' as experimentalInferrer
-    show GlobalTypeInferenceTask;
+    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
     show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'ir/modular.dart';
-import 'js_backend/backend.dart' show CodegenInputs;
+import 'js_backend/codegen_inputs.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
@@ -67,12 +75,19 @@ import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
-import 'world.dart' show JClosedWorld;
+import 'compiler_migrated.dart';
 
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
 /// the sources.
 class Compiler
-    implements CompilerDiagnosticsFacade, CompilerDeferredLoadingFacade {
+    implements
+        CompilerDiagnosticsFacade,
+        CompilerDeferredLoadingFacade,
+        CompilerDumpInfoFacade,
+        CompilerEmitterFacade,
+        CompilerInferrerFacade,
+        CompilerKernelStrategyFacade,
+        CompilerTypeInferenceFacade {
   @override
   final Measurer measurer;
   final api.CompilerInput provider;
@@ -80,6 +95,7 @@ class Compiler
 
   @override
   KernelFrontendStrategy frontendStrategy;
+  @override
   JsBackendStrategy backendStrategy;
   /*late*/ DiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
@@ -130,10 +146,13 @@ class Compiler
   GenericTask selfTask;
 
   GenericTask enqueueTask;
+  @override
   DeferredLoadTask deferredLoadTask;
+  @override
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
 
+  @override
   Progress progress = const Progress();
 
   static const int PHASE_SCANNING = 0;
@@ -174,6 +193,10 @@ class Compiler
           WrappedAbstractValueStrategy(abstractValueStrategy);
     } else if (options.experimentalPowersets) {
       abstractValueStrategy = PowersetStrategy(abstractValueStrategy);
+    }
+    if (options.debugGlobalInference) {
+      abstractValueStrategy =
+          ComputableAbstractValueStrategy(abstractValueStrategy);
     }
 
     CompilerTask kernelFrontEndTask;
@@ -234,6 +257,7 @@ class Compiler
 
   CodegenWorld codegenWorldForTesting;
 
+  @override
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
@@ -485,8 +509,8 @@ class Compiler
   bool get shouldStopAfterModularAnalysis =>
       compilationFailed || options.writeModularAnalysisUri != null;
 
-  GlobalTypeInferenceResults performExperimentalGlobalTypeInference(
-      JClosedWorld closedWorld) {
+  experimentalInferrer.GlobalTypeInferenceResults
+      performExperimentalGlobalTypeInference(JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Performing experimental global type inference');
     GlobalLocalsMap globalLocalsMap =
@@ -573,16 +597,16 @@ class Compiler
         globalTypeInferenceResultsData);
   }
 
-  Future<DataAndIndices<JsClosedWorld>> produceClosedWorld(
+  Future<DataAndIndices<JClosedWorld>> produceClosedWorld(
       load_kernel.Output output, ModuleData moduleData) async {
     ir.Component component = output.component;
-    DataAndIndices<JsClosedWorld> closedWorldAndIndices;
+    DataAndIndices<JClosedWorld> closedWorldAndIndices;
     if (options.readClosedWorldUri == null) {
       Uri rootLibraryUri = output.rootLibraryUri;
       Iterable<Uri> libraries = output.libraries;
-      JsClosedWorld closedWorld =
+      JClosedWorld closedWorld =
           computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
-      closedWorldAndIndices = DataAndIndices<JsClosedWorld>(closedWorld, null);
+      closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
       if (options.writeClosedWorldUri != null) {
         serializationTask.serializeComponent(
             closedWorld.elementMap.programEnv.mainComponent);
@@ -608,15 +632,15 @@ class Compiler
       options.writeClosedWorldUri != null;
 
   bool shouldStopAfterClosedWorld(
-          DataAndIndices<JsClosedWorld> closedWorldAndIndices) =>
+          DataAndIndices<JClosedWorld> closedWorldAndIndices) =>
       closedWorldAndIndices == null ||
       closedWorldAndIndices.data == null ||
       shouldStopAfterClosedWorldFromFlags;
 
   Future<DataAndIndices<GlobalTypeInferenceResults>>
       produceGlobalTypeInferenceResults(
-          DataAndIndices<JsClosedWorld> closedWorldAndIndices) async {
-    JsClosedWorld closedWorld = closedWorldAndIndices.data;
+          DataAndIndices<JClosedWorld> closedWorldAndIndices) async {
+    JClosedWorld closedWorld = closedWorldAndIndices.data;
     DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
     if (options.readDataUri == null) {
       if (options.experimentalInferrer) {
@@ -702,7 +726,7 @@ class Compiler
     if (shouldStopAfterModularAnalysis) return;
 
     // Compute closed world.
-    DataAndIndices<JsClosedWorld> closedWorldAndIndices =
+    DataAndIndices<JClosedWorld> closedWorldAndIndices =
         await produceClosedWorld(output, moduleData);
     if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
 
@@ -1055,18 +1079,6 @@ class _TimingData {
   final double percent;
 
   _TimingData(this.description, this.milliseconds, this.percent);
-}
-
-/// Interface for showing progress during compilation.
-class Progress {
-  const Progress();
-
-  /// Starts a new phase for which to show progress.
-  void startPhase() {}
-
-  /// Shows progress of the current phase if needed. The shown message is
-  /// computed as '$prefix$count$suffix'.
-  void showProgress(String prefix, int count, String suffix) {}
 }
 
 /// Progress implementations that prints progress to the [DiagnosticReporter]

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_js_helper' show patch;
+import 'dart:_internal' show patch;
 import 'dart:_native_typed_data';
 import "dart:_internal" show UnmodifiableListBase;
 
@@ -194,7 +194,8 @@ class Float64x2 {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteBufferView.
-class _UnmodifiableByteBufferView implements ByteBuffer {
+class _UnmodifiableByteBufferView
+    implements ByteBuffer, UnmodifiableByteBufferView {
   final ByteBuffer _data;
 
   _UnmodifiableByteBufferView(ByteBuffer data) : _data = data;
@@ -257,7 +258,7 @@ class _UnmodifiableByteBufferView implements ByteBuffer {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteDataView.
-class _UnmodifiableByteDataView implements ByteData {
+class _UnmodifiableByteDataView implements ByteData, UnmodifiableByteDataView {
   final ByteData _data;
 
   _UnmodifiableByteDataView(ByteData data) : _data = data;

@@ -510,7 +510,7 @@ class ComplexTypeInfo implements TypeInfo {
   bool? gftHasReturnType;
 
   /// If the type is a record type.
-  bool recordType = false;
+  bool isRecordType = false;
 
   /// If this is a generalized function type with a record type included in the
   /// return type. E.g. `(int, int) Function(bool) Function(int)`.
@@ -526,8 +526,15 @@ class ComplexTypeInfo implements TypeInfo {
     assert(typeArguments != null);
   }
 
-  ComplexTypeInfo._nonNullable(this.start, this.typeArguments, this.end,
-      this.typeVariableStarters, this.gftHasReturnType, this.recovered);
+  ComplexTypeInfo._nonNullable(
+      this.start,
+      this.typeArguments,
+      this.end,
+      this.typeVariableStarters,
+      this.gftHasReturnType,
+      this.isRecordType,
+      this.gftReturnTypeHasRecordType,
+      this.recovered);
 
   @override
   TypeInfo get asNonNullable {
@@ -539,6 +546,8 @@ class ComplexTypeInfo implements TypeInfo {
             beforeQuestionMark,
             typeVariableStarters,
             gftHasReturnType,
+            isRecordType,
+            gftReturnTypeHasRecordType,
             recovered);
   }
 
@@ -590,8 +599,12 @@ class ComplexTypeInfo implements TypeInfo {
       // Push the non-existing return type first. The loop below will
       // generate the full type.
       noType.parseType(token, parser);
-    } else if (recordType || gftReturnTypeHasRecordType) {
-      token = parser.parseRecordType(start, token);
+    } else if (isRecordType) {
+      token = parser.parseRecordType(start, token,
+          /* isQuestionMarkPartOfType = */ beforeQuestionMark != null);
+    } else if (gftReturnTypeHasRecordType) {
+      token = parser.parseRecordType(
+          start, token, /* isQuestionMarkPartOfType = */ true);
     } else {
       Token typeRefOrPrefix = token.next!;
       if (optional('void', typeRefOrPrefix)) {
@@ -722,25 +735,49 @@ class ComplexTypeInfo implements TypeInfo {
         // * `(` e.g. method definition like `(int, int) x() {}`.
         // * `,` e.g. non-last parameter like `void x((int, int) y, int z) {}`.
         // * `)` e.g. last parameter like `void x((int, int) y) {}`.
-        if (!isOneOfOrEof(
-            afterIdentifier, const [";", "=", "<", "(", ",", ")"])) {
-          if (getOrSet && isOneOfOrEof(afterIdentifier, const ["=>", "{"])) {
+        // * `in` e.g. `for ((int, int) x in list) {}`.
+        // * `}` e.g. `x({(int, int) x}) {}`.
+        // * `:` e.g. `x({(int, int) x: (42, 42)}) {}`.
+        // * `]` e.g. `x([(int, int) x = (42, 42)]) {}`.
+        if (!isOneOfOrEof(afterIdentifier,
+            const [";", "=", "<", "(", ",", ")", "in", "}", ":", "]"])) {
+          if (getOrSet &&
+              isOneOfOrEof(
+                  afterIdentifier, const ["=>", "{", "async", "sync"])) {
             // With a getter/setter in the mix we can accept more stuff, e.g.
-            // these would be fine:
+            // these would be "fine":
             // * `=>`: e.g. `(int, int) get x => (42, 42);`.
             // * `{`: e.g. `(int, int) get x { }`.
-            // TODO(jensj): A setter would need parenthesis so technically
-            // couldn't look like this, but I don't think any other valid thing
-            // could either. Should we handle that specifically?
+            // * `async`: e.g. `(int, int) get x async {}`.
+            // * `sync`: e.g. `(int, int) get x sync* {}`.
+            // Not all of this is valid (e.g. a setter can't be async, sync has
+            // to be followed by *, return type of async has to be Future etc),
+            // but for disambiguation we'll assume it's enough, and we'd rather
+            // have an error saying "return time has to be Future" than "I don't
+            // know what these parenthesis mean".
+          } else if (optional("operator", next) &&
+              afterIdentifier.isUserDefinableOperator) {
+            // E.g.
+            // `(int, int) operator [](int foo) {}`
           } else {
             // This could for instance be `(int x, int y) async {`.
             return noType;
           }
         }
+      } else if ((optional("this", next) || optional("super", next)) &&
+          optional(".", next.next!)) {
+        // E.g.
+        // * C(({int n, String s}) this.x);
+        // * C((int, int) super.x);
       } else {
-        // Is it e.g. List<(int, int)> or Map<(int, int), (String, String)>?
-        // or List<List<(int, int)>> or List<List<List<(int, int)>>>.
-        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>>"])) {
+        // Is it e.g.
+        // * List<(int, int)>
+        // * Map<(int, int), (String, String)>?
+        // * List<List<(int, int)>>
+        // * List<List<List<(int, int)>>>
+        // * typedef F2<T extends List<(int, int)>>= T Function();
+        // * typedef F3<T extends List<List<(int, int)>>>= T Function();
+        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>=", ">>>", ">>>="])) {
           return noType;
         }
       }
@@ -757,7 +794,7 @@ class ComplexTypeInfo implements TypeInfo {
       token = token.next!;
     }
 
-    recordType = true;
+    isRecordType = true;
 
     assert(end != null);
     return this;

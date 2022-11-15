@@ -81,6 +81,19 @@ void f() {
       error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 5),
     ]);
   }
+
+  test_topLevel() async {
+    await assertErrorsInCode('''
+class C<P extends num> {
+  factory C(Iterable<P> p) => C._();
+  C._();
+}
+
+var c = C([]);
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 78, 1),
+    ]);
+  }
 }
 
 @reflectiveTest

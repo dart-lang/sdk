@@ -592,7 +592,7 @@ class GlobalType extends _WithMutability<ValueType> {
 
 /// A type for a struct field or an array element.
 ///
-/// It consists of a type and a mutability.
+/// It consists of a value type and a mutability.
 class FieldType extends _WithMutability<StorageType> {
   FieldType(super.type, {super.mutable = true});
 

@@ -334,15 +334,15 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
       var record = const (1);
     }
 
-RecordLiteralEmpty:
-  problemMessage: "Record literal can't be empty."
-  correctionMessage: "Try adding elements or use 'Record.empty()' instead."
-  analyzerCode: ParserErrorCode.RECORD_LITERAL_EMPTY
+RecordLiteralZeroFieldsWithTrailingComma:
+  problemMessage: "Record literal without fields can't have a trailing comma."
+  correctionMessage: "Try removing the trailing comma."
+  analyzerCode: ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA
   index: 128
   experiments: records
   script: >
     main() {
-      var record = const ();
+      var record = (,);
     }
 
 EmptyRecordTypeNamedFieldsList:
@@ -356,11 +356,22 @@ EmptyRecordTypeNamedFieldsList:
       (int, int, {/*missing*/}) record = (1, 2,);
     }
 
+RecordTypeZeroFieldsButTrailingComma:
+  problemMessage: "Record type without fields can't have a trailing comma."
+  correctionMessage: "Try removing the trailing comma."
+  analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA
+  index: 130
+  experiments: records
+  script: >
+    main() {
+      (,) record = ();
+    }
+
 RecordTypeOnePositionalFieldNoTrailingComma:
   problemMessage: "Record type with one entry requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
-  index: 130
+  index: 131
   experiments: records
   script: >
     main() {
@@ -5196,6 +5207,35 @@ JsInteropEnclosingClassJSAnnotationContext:
   problemMessage: "This is the enclosing class."
   severity: CONTEXT
 
+JsInteropExportClassNotMarkedExportable:
+  problemMessage: "Class '#name' does not have a `@JSExport` on it or any of its members."
+  correctionMessage: "Use the `@JSExport` annotation on this class."
+
+JsInteropExportDartInterfaceHasNonEmptyJSExportValue:
+  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored."
+  correctionMessage: "Remove the value in the annotation."
+  severity: WARNING
+
+JsInteropExportDisallowedMember:
+  problemMessage: "Member '#name' is not a concrete instance member, and therefore can't be exported."
+  correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
+
+JsInteropExportInvalidInteropTypeArgument:
+  problemMessage: "Type argument '#type' needs to be a non-JS interop type."
+  correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
+
+JsInteropExportInvalidTypeArgument:
+  problemMessage: "Type argument '#type' needs to be an interface type."
+  correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
+
+JsInteropExportMemberCollision:
+  problemMessage: "The following class members collide with the same export '#name': #string."
+  correctionMessage: "Either remove the conflicting members or use a different export name."
+
+JsInteropExportNoExportableMembers:
+  problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
+  correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
+
 JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
@@ -5231,24 +5271,24 @@ JsInteropOperatorsNotSupported:
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
-JsInteropStaticInteropMockExternalExtensionMemberConflict:
-  problemMessage: "External extension member with name '#name' is defined in the following extensions and none are more specific: #string."
-  correctionMessage: "Try using the `@JS` annotation to rename conflicting members."
+JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
+  problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
+  correctionMessage: "Try using a Dart extension member if you need type parameters instead."
 
-JsInteropStaticInteropMockMemberNotSubtype:
-  problemMessage: "Dart class member '#name.#name2' with type '#type' is not a subtype of `@staticInterop` external extension member '#name3.#name4' with type '#type2'."
-  correctionMessage: "Change '#name.#name2' to be a subtype of '#name3.#name4'."
+JsInteropStaticInteropGenerativeConstructor:
+  problemMessage: "`@staticInterop` classes should not contain any generative constructors."
+  correctionMessage: "Use factory constructors instead."
 
-JsInteropStaticInteropMockMissingOverride:
-  problemMessage: "`@staticInterop` class '#name' has external extension member '#name2', but Dart class '#name3' does not have an overriding instance member."
-  correctionMessage: "Add a Dart instance member in '#name3' that overrides '#name.#name2'."
+JsInteropStaticInteropMockMissingGetterOrSetter:
+  problemMessage: "Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3."
+  correctionMessage: "Declare an exportable #string2 that implements one of these extension members."
 
-JsInteropStaticInteropMockNotDartInterfaceType:
-  problemMessage: "Second type argument '#type' is not a Dart interface type."
-  correctionMessage: "Use a Dart class instead."
+JsInteropStaticInteropMockMissingImplements:
+  problemMessage: "Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string."
+  correctionMessage: "Declare an exportable member that implements one of these extension members."
 
 JsInteropStaticInteropMockNotStaticInteropType:
-  problemMessage: "First type argument '#type' is not a `@staticInterop` type."
+  problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
 
 JsInteropStaticInteropWithInstanceMembers:
@@ -5904,3 +5944,13 @@ IndexOutOfBoundInRecordIndexGet:
 
 NameNotFoundInRecordNameGet:
   problemMessage: "Field name #string isn't found in records of type #type."
+
+ObjectMemberNameUsedForRecordField:
+  problemMessage: "Record field names can't be the same as a member from 'Object'."
+
+RecordFieldsCantBePrivate:
+  problemMessage: "Record field names can't be private."
+  analyzerCode: INVALID_FIELD_NAME
+  experiments: records
+  script: |
+    foo() => (_bar: 1);

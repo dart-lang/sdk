@@ -493,8 +493,6 @@ abstract class AstVisitor<R> {
 
   R? visitGenericTypeAlias(GenericTypeAlias node);
 
-  R? visitHideClause(HideClause node);
-
   R? visitHideCombinator(HideCombinator node);
 
   R? visitIfElement(IfElement node);
@@ -614,11 +612,7 @@ abstract class AstVisitor<R> {
 
   R? visitSetOrMapLiteral(SetOrMapLiteral node);
 
-  R? visitShowClause(ShowClause node);
-
   R? visitShowCombinator(ShowCombinator node);
-
-  R? visitShowHideElement(ShowHideElement node);
 
   R? visitSimpleFormalParameter(SimpleFormalParameter node);
 
@@ -696,6 +690,10 @@ abstract class AugmentationImportDirective implements UriBasedDirective {
   /// The token representing the 'augment' keyword.
   Token get augmentKeyword;
 
+  @override
+  AugmentationImportElement? get element;
+
+  @Deprecated('Use element instead')
   @override
   AugmentationImportElement? get element2;
 
@@ -920,6 +918,11 @@ abstract class CatchClause implements AstNode {
 
   /// Return the parameter whose value will be the exception that was thrown, or
   /// `null` if there is no 'catch' keyword.
+  CatchClauseParameter? get exceptionParameter;
+
+  /// Return the parameter whose value will be the exception that was thrown, or
+  /// `null` if there is no 'catch' keyword.
+  @Deprecated('Use exceptionParameter instead')
   CatchClauseParameter? get exceptionParameter2;
 
   /// Return the type of exceptions caught by this catch clause, or `null` if
@@ -938,6 +941,11 @@ abstract class CatchClause implements AstNode {
 
   /// Return the parameter whose value will be the stack trace associated with
   /// the exception, or `null` if there is no stack trace parameter.
+  CatchClauseParameter? get stackTraceParameter;
+
+  /// Return the parameter whose value will be the stack trace associated with
+  /// the exception, or `null` if there is no stack trace parameter.
+  @Deprecated('Use stackTraceParameter instead')
   CatchClauseParameter? get stackTraceParameter2;
 }
 
@@ -1754,6 +1762,11 @@ abstract class DefaultFormalParameter implements FormalParameter {
 abstract class Directive implements AnnotatedNode {
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
+  Element? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @Deprecated('Use element instead')
   Element? get element2;
 }
 
@@ -1939,6 +1952,12 @@ abstract class ExportDirective implements NamespaceDirective {
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
   @override
+  LibraryExportElement? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @Deprecated('Use element instead')
+  @override
   LibraryExportElement? get element2;
 
   /// The token representing the 'export' keyword.
@@ -2076,10 +2095,6 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
   /// Return the token representing the 'extension' keyword.
   Token get extensionKeyword;
 
-  /// Return the hide clause, or `null` if the extension does not have a hide
-  /// clause.
-  HideClause? get hideClause;
-
   /// Return the left curly bracket.
   Token get leftBracket;
 
@@ -2100,10 +2115,6 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 
   /// Return the right curly bracket.
   Token get rightBracket;
-
-  /// Return the show clause, or `null` if the extension does not have a show
-  /// clause.
-  ShowClause? get showClause;
 
   /// Return the token representing the 'type' keyword.
   Token? get typeKeyword;
@@ -2173,12 +2184,8 @@ abstract class ExtractorPattern implements DartPattern {
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the type arguments associated with this pattern, or `null` if no
-  /// type arguments were declared.
-  TypeArgumentList? get typeArguments;
-
   /// The name of the type of object from which values will be extracted.
-  Identifier get typeName;
+  NamedType get type;
 }
 
 /// The declaration of one or more fields of the same type.
@@ -2895,20 +2902,6 @@ abstract class GenericTypeAlias implements TypeAlias {
   TypeParameterList? get typeParameters;
 }
 
-/// The "hide" clause in an extension declaration.
-///
-///    hideClause ::=
-///        'hide' [TypeName] (',' [TypeName])*
-///
-///  Clients may not extend, implement or mix-in this class.
-abstract class HideClause implements AstNode {
-  /// Return the list of the elements that are being shown.
-  NodeList<ShowHideClauseElement> get elements;
-
-  /// Return the token representing the 'hide' keyword.
-  Token get hideKeyword;
-}
-
 /// A combinator that restricts the names being imported to those that are not
 /// in a given list.
 ///
@@ -3089,6 +3082,12 @@ abstract class ImportDirective implements NamespaceDirective {
 
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
+  @override
+  LibraryImportElement? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @Deprecated('Use element instead')
   @override
   LibraryImportElement? get element2;
 
@@ -3437,6 +3436,10 @@ abstract class ListLiteral implements TypedLiteral {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ListPattern implements DartPattern {
+  /// The required type, specified by [typeArguments] or inferred from the
+  /// matched value type; or `null` if the node is not resolved yet.
+  DartType? requiredType;
+
   /// Return the elements in this pattern.
   NodeList<DartPattern> get elements;
 
@@ -3801,7 +3804,7 @@ abstract class NamedExpression implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamedType implements TypeAnnotation, ShowHideClauseElement {
+abstract class NamedType implements TypeAnnotation {
   /// Return `true` if this type is a deferred type.
   ///
   /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
@@ -4022,6 +4025,10 @@ abstract class ParenthesizedPattern implements DartPattern {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PartDirective implements UriBasedDirective {
+  @override
+  PartElement? get element;
+
+  @Deprecated('Use element instead')
   @override
   PartElement? get element2;
 
@@ -4302,6 +4309,10 @@ abstract class RecordPattern implements DartPattern {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordPatternField implements AstNode {
+  /// The element referenced explicitly by [fieldName], or implicitly by the
+  /// variable pattern inside [pattern].
+  Element? get fieldElement;
+
   /// The name of the field, or `null` if the field is a positional field.
   RecordPatternFieldName? get fieldName;
 
@@ -4436,6 +4447,9 @@ abstract class RedirectingConstructorInvocation
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RelationalPattern implements DartPattern {
+  /// The element of the [operator] for the matched type.
+  MethodElement? get element;
+
   /// Return the expression used to compute the operand.
   Expression get operand;
 
@@ -4547,20 +4561,6 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   Token get rightBracket;
 }
 
-/// The "show" clause in an extension declaration.
-///
-///    showClause ::=
-///        'show' [TypeName] (',' [TypeName])*
-///
-///  Clients may not extend, implement or mix-in this class.
-abstract class ShowClause implements AstNode {
-  /// Return the list of the elements that are being shown.
-  NodeList<ShowHideClauseElement> get elements;
-
-  /// Return the token representing the 'show' keyword.
-  Token get showKeyword;
-}
-
 /// A combinator that restricts the names being imported to those in a given list.
 ///
 ///    showCombinator ::=
@@ -4571,29 +4571,6 @@ abstract class ShowCombinator implements Combinator {
   /// Return the list of names from the library that are made visible by this
   /// combinator.
   NodeList<SimpleIdentifier> get shownNames;
-}
-
-/// A node that can appear in the show or hide clauses.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ShowHideClauseElement implements AstNode {}
-
-/// A potentially non-type element of a show or a hide clause.
-///
-///    showHideElement ::=
-///        'get' [SimpleIdentifier] |
-///        'set' [SimpleIdentifier] |
-///        'operator' [SimpleIdentifier] |
-///        [SimpleIdentifier]
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ShowHideElement implements AstNode, ShowHideClauseElement {
-  /// Return the 'get', 'set', or 'operator' modifier that appears before the
-  /// name, or `null` if there is no modifier.
-  Token? get modifier;
-
-  /// Return the name of the member the element refers to.
-  SimpleIdentifier get name;
 }
 
 /// A simple formal parameter.

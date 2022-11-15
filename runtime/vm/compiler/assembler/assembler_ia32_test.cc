@@ -5007,6 +5007,81 @@ IMMEDIATE_TEST(AddrImmEAXByte,
                Address(ESP, 0),
                __ popl(EAX))
 
+static void RangeCheck(Assembler* assembler, Register value, Register temp) {
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ movl(return_reg, Immediate(0));
+  __ ret();
+  __ Bind(&in_range);
+  __ movl(return_reg, Immediate(1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckNoTemp, assembler) {
+  const Register value = CallingConventions::kFirstNonArgumentRegister;
+  const Register temp = kNoRegister;
+  __ movl(value, compiler::Address(ESP, 4));
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckNoTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTemp, assembler) {
+  const Register value = CallingConventions::kFirstNonArgumentRegister;
+  const Register temp = CallingConventions::kSecondNonArgumentRegister;
+  __ movl(value, compiler::Address(ESP, 4));
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTempReturnValue, assembler) {
+  const Register value = CallingConventions::kFirstNonArgumentRegister;
+  const Register temp = CallingConventions::kSecondNonArgumentRegister;
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ movl(value, compiler::Address(ESP, 4));
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ Bind(&in_range);
+  __ movl(return_reg, value);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(kErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(kUnwindErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(kFunctionCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(kMintCid, result);
+}
+
 }  // namespace compiler
 }  // namespace dart
 

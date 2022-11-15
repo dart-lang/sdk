@@ -31,9 +31,16 @@ class InterfaceTypeEnvironment {
 /// Helper class for building runtime types.
 class Types {
   final Translator translator;
-  late final typeClassInfo = translator.classInfo[translator.typeClass]!;
+
+  /// Class info for `_Type`
+  late final ClassInfo typeClassInfo =
+      translator.classInfo[translator.typeClass]!;
+
+  /// Wasm value type of `List<_Type>`
   late final w.ValueType typeListExpectedType = classAndFieldToType(
       translator.interfaceTypeClass, FieldIndex.interfaceTypeTypeArguments);
+
+  /// Wasm value type of `List<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
       translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
 
@@ -74,6 +81,7 @@ class Types {
   Iterable<Class> _getConcreteSubtypes(Class cls) =>
       translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
 
+  /// Wasm value type for non-nullable `_Type` values
   w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
 
   InterfaceType get namedParameterType =>
@@ -114,7 +122,9 @@ class Types {
       for (InterfaceType subtype in subtypes) {
         interfaceTypeEnvironment._add(subtype);
         List<DartType>? typeArguments = translator.hierarchy
-            .getTypeArgumentsAsInstanceOf(subtype, superclass);
+            .getTypeArgumentsAsInstanceOf(subtype, superclass)
+            ?.map(normalize)
+            .toList();
         ClassInfo subclassInfo = translator.classInfo[subtype.classNode]!;
         Map<int, List<DartType>> substitutionMap =
             subtypeMap[subclassInfo.classId] ??= {};
@@ -126,8 +136,8 @@ class Types {
 
   List<List<int>> _buildTypeRulesSupers() {
     List<List<int>> typeRulesSupers = [];
-    for (int i = 0; i < translator.classInfoCollector.nextClassId; i++) {
-      List<int>? superclassIds = typeRules[i]?.keys.toList();
+    for (int classId = 0; classId < translator.classes.length; classId++) {
+      List<int>? superclassIds = typeRules[classId]?.keys.toList();
       if (superclassIds == null) {
         typeRulesSupers.add(const []);
       } else {
@@ -140,12 +150,12 @@ class Types {
 
   List<List<List<DartType>>> _buildTypeRulesSubstitutions() {
     List<List<List<DartType>>> typeRulesSubstitutions = [];
-    for (int i = 0; i < translator.classInfoCollector.nextClassId; i++) {
-      List<int> supers = typeRulesSupers[i];
+    for (int classId = 0; classId < translator.classes.length; classId++) {
+      List<int> supers = typeRulesSupers[classId];
       typeRulesSubstitutions.add(supers.isEmpty ? const [] : []);
       for (int j = 0; j < supers.length; j++) {
         int superId = supers[j];
-        typeRulesSubstitutions.last.add(typeRules[i]![superId]!);
+        typeRulesSubstitutions.last.add(typeRules[classId]![superId]!);
       }
     }
     return typeRulesSubstitutions;
@@ -296,6 +306,7 @@ class Types {
     throw "Unexpected DartType: $type";
   }
 
+  /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
   void _makeTypeList(CodeGenerator codeGen, List<DartType> types) {
     w.ValueType listType = codeGen.makeListFromExpressions(
         types.map((t) => TypeLiteral(t)).toList(), typeType);
@@ -306,36 +317,73 @@ class Types {
       CodeGenerator codeGen, ClassInfo info, InterfaceType type) {
     w.Instructions b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-    encodeNullability(b, type);
+    b.i32_const(encodedNullability(type));
     b.i64_const(typeInfo.classId);
     _makeTypeList(codeGen, type.typeArguments);
   }
 
+  DartType _normalizeFutureOrType(FutureOrType type) {
+    final s = normalize(type.typeArgument);
+
+    // `coreTypes.isTope` and `coreTypes.isObject` take into account the
+    // normalization rules of `futureOr`.
+    if (coreTypes.isTop(type) || coreTypes.isObject(type)) {
+      return s;
+    } else if (s is NeverType) {
+      return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
+          const [const NeverType.nonNullable()]);
+    } else if (s is NullType) {
+      return InterfaceType(coreTypes.futureClass, Nullability.nullable,
+          const [const NullType()]);
+    }
+
+    // The type is normalized, and remains a `FutureOr` so now we normalize its
+    // nullability.
+    final declaredNullability = s.nullability == Nullability.nullable
+        ? Nullability.nonNullable
+        : type.declaredNullability;
+    return FutureOrType(s, declaredNullability);
+  }
+
+  /// Normalizes a Dart type. Many rules are already applied for us, but some we
+  /// have to apply manually, particularly to [FutureOr].
+  DartType normalize(DartType type) {
+    if (type is InterfaceType) {
+      return InterfaceType(type.classNode, type.nullability,
+          type.typeArguments.map(normalize).toList());
+    } else if (type is FunctionType) {
+      return FunctionType(type.positionalParameters.map(normalize).toList(),
+          normalize(type.returnType), type.nullability,
+          namedParameters: type.namedParameters
+              .map((namedType) => NamedType(
+                  namedType.name, normalize(namedType.type),
+                  isRequired: namedType.isRequired))
+              .toList(),
+          typeParameters: type.typeParameters
+              .map((typeParameter) => TypeParameter(
+                  typeParameter.name,
+                  normalize(typeParameter.bound),
+                  normalize(typeParameter.defaultType)))
+              .toList(),
+          requiredParameterCount: type.requiredParameterCount);
+    } else if (type is FutureOrType) {
+      return _normalizeFutureOrType(type);
+    } else {
+      return type;
+    }
+  }
+
   void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
     w.Instructions b = codeGen.b;
-    w.DefinedFunction function = codeGen.function;
-
-    // We canonicalize `FutureOr<T?>` to `FutureOr<T?>?`. However, we have to
-    // take special care to handle the case where we have
-    // undetermined nullability. To handle this, we emit the type argument, and
-    // read back its nullability at runtime.
-    if (type.nullability == Nullability.undetermined) {
-      w.ValueType typeArgumentType = makeType(codeGen, type.typeArgument);
-      w.Local typeArgumentTemporary = codeGen.addLocal(typeArgumentType);
-      b.local_tee(typeArgumentTemporary);
-      b.struct_get(typeClassInfo.struct, FieldIndex.typeIsNullable);
-      b.local_get(typeArgumentTemporary);
-      translator.convertType(function, typeArgumentType, nonNullableTypeType);
-    } else {
-      encodeNullability(b, type);
-      makeType(codeGen, type.typeArgument);
-    }
+    b.i32_const(encodedNullability(type));
+    makeType(codeGen, type.typeArgument);
+    codeGen.call(translator.createNormalizedFutureOrType.reference);
   }
 
   void _makeFunctionType(
       CodeGenerator codeGen, ClassInfo info, FunctionType type) {
     w.Instructions b = codeGen.b;
-    encodeNullability(b, type);
+    b.i32_const(encodedNullability(type));
     makeType(codeGen, type.returnType);
     if (type.positionalParameters.every(_isTypeConstant)) {
       translator.constants.instantiateConstant(
@@ -382,6 +430,8 @@ class Types {
   /// TODO(joshualitt): Refactor this logic to remove the dependency on
   /// CodeGenerator.
   w.ValueType makeType(CodeGenerator codeGen, DartType type) {
+    // Always ensure type is normalized before making a type.
+    type = normalize(type);
     w.Instructions b = codeGen.b;
     if (_isTypeConstant(type)) {
       translator.constants.instantiateConstant(
@@ -401,20 +451,24 @@ class Types {
       }
       return nonNullableTypeType;
     }
+
     ClassInfo info = translator.classInfo[classForType(type)]!;
+    if (type is FutureOrType) {
+      _makeFutureOrType(codeGen, type);
+      return info.nonNullableType;
+    }
+
     translator.functions.allocateClass(info.classId);
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     if (type is InterfaceType) {
       _makeInterfaceType(codeGen, info, type);
-    } else if (type is FutureOrType) {
-      _makeFutureOrType(codeGen, type);
     } else if (type is FunctionType) {
       if (isGenericFunction(type)) {
         // TODO(joshualitt): Implement generic function types and share most of
         // the logic with _makeFunctionType.
         print("Not implemented: RTI ${type}");
-        encodeNullability(b, type);
+        b.i32_const(encodedNullability(type));
       } else {
         _makeFunctionType(codeGen, info, type);
       }
@@ -460,7 +514,7 @@ class Types {
       if (isPotentiallyNullable) {
         b.br(resultLabel!);
         b.end(); // nullLabel
-        encodeNullability(b, type);
+        b.i32_const(encodedNullability(type));
         b.end(); // resultLabel
       }
     }
@@ -515,15 +569,6 @@ class Types {
     _endPotentiallyNullableBlock();
   }
 
-  /// Returns true if a given type is nullable, and false otherwise. This
-  /// function should not be used on [DartType]s with undetermined nullability.
-  bool isNullable(DartType type) {
-    Nullability nullability = type.nullability;
-    assert(nullability == Nullability.nullable ||
-        nullability == Nullability.nonNullable);
-    return nullability == Nullability.nullable ? true : false;
-  }
-
-  void encodeNullability(w.Instructions b, DartType type) =>
-      b.i32_const(isNullable(type) ? 1 : 0);
+  int encodedNullability(DartType type) =>
+      type.declaredNullability == Nullability.nullable ? 1 : 0;
 }

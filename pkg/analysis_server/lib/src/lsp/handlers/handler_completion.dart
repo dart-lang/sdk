@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -478,8 +479,10 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           completeFunctionCalls: completeFunctionCalls,
           resolutionData: resolutionInfo,
           // Exclude docs if we will be providing them via
-          // `completionItem/resolve`.
-          includeDocs: resolutionInfo == null,
+          // `completionItem/resolve`, otherwise use users preference.
+          includeDocumentation: resolutionInfo != null
+              ? DocumentationPreference.none
+              : server.clientConfiguration.global.preferredDocumentation,
         );
       }
 
@@ -576,27 +579,32 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final completionItems = suggestions.suggestions
         .where((item) =>
             fuzzyMatcher.score(item.displayText ?? item.completion) > 0)
-        .map(
-          (item) => toCompletionItem(
-            capabilities,
-            lineInfo,
-            item,
-            replacementRange: replacementRange,
-            insertionRange: insertionRange,
-            commitCharactersEnabled: false,
-            completeFunctionCalls: false,
-            // Add on any completion-kind-specific resolution data that will be
-            // used during resolve() calls to provide additional information.
-            resolutionData: item.kind == CompletionSuggestionKind.PACKAGE_NAME
-                ? PubPackageCompletionItemResolutionInfo(
-                    // The completion for package names may contain a trailing
-                    // ': ' for convenience, so if it's there, trim it off.
-                    packageName: item.completion.split(':').first,
-                  )
-                : null,
-          ),
-        )
-        .toList();
+        .map((item) {
+      final resolutionInfo = item.kind == CompletionSuggestionKind.PACKAGE_NAME
+          ? PubPackageCompletionItemResolutionInfo(
+              // The completion for package names may contain a trailing
+              // ': ' for convenience, so if it's there, trim it off.
+              packageName: item.completion.split(':').first,
+            )
+          : null;
+      return toCompletionItem(
+        capabilities,
+        lineInfo,
+        item,
+        replacementRange: replacementRange,
+        insertionRange: insertionRange,
+        commitCharactersEnabled: false,
+        completeFunctionCalls: false,
+        // Exclude docs if we could provide them via
+        // `completionItem/resolve`, otherwise use users preference.
+        includeDocumentation: resolutionInfo != null
+            ? DocumentationPreference.none
+            : server.clientConfiguration.global.preferredDocumentation,
+        // Add on any completion-kind-specific resolution data that will be
+        // used during resolve() calls to provide additional information.
+        resolutionData: resolutionInfo,
+      );
+    }).toList();
     return success(
       _CompletionResults.unranked(completionItems, isIncomplete: false),
     );
@@ -649,6 +657,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           item,
           replacementRange: replacementRange,
           insertionRange: insertionRange,
+          includeDocumentation:
+              server.clientConfiguration.global.preferredDocumentation,
           // Plugins cannot currently contribute commit characters and we should
           // not assume that the Dart ones would be correct for all of their
           // completions.

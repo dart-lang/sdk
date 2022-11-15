@@ -827,6 +827,23 @@ class FfiNative<T> {
   const FfiNative(this.nativeName, {this.isLeaf: false});
 }
 
+class Native<T> {
+  final String? symbol;
+  final String? asset;
+  final bool isLeaf;
+
+  const Native({
+    this.asset,
+    this.isLeaf: false,
+    this.symbol,
+  });
+}
+
+class Asset {
+  final String asset;
+  const Asset(this.asset);
+}
+
 class Abi {
   static const androidArm = _androidArm;
   static const androidArm64 = _androidArm64;

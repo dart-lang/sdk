@@ -8,206 +8,130 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BinaryPattern_LogicalAnd_ResolutionTest);
-    defineReflectiveTests(BinaryPattern_LogicalOr_ResolutionTest);
+    defineReflectiveTests(BinaryPatternResolutionTest);
   });
 }
 
 @reflectiveTest
-class BinaryPattern_LogicalAnd_ResolutionTest extends PatternsResolutionTest {
-  test_inside_ifStatement_case() async {
+class BinaryPatternResolutionTest extends PatternsResolutionTest {
+  test_logicalAnd_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
-  if (x case int? _ & double? _) {}
+  if (x case int _ & double _) {}
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
-      question: ?
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: _
   operator: &
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: double
-      question: ?
+        staticElement: dart:core::@class::double
+        staticType: null
+      type: double
     name: _
 ''');
   }
 
-  test_inside_logicalAnd_left() async {
+  test_logicalAnd_switchCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ & Object? _:
+    case int _ & double _:
       break;
   }
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: int
-        question: ?
-      name: _
-    operator: &
-    rightOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: double
-        question: ?
-      name: _
+  leftOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
+    name: _
   operator: &
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
-        token: Object
-      question: ?
+        token: double
+        staticElement: dart:core::@class::double
+        staticType: null
+      type: double
     name: _
 ''');
   }
 
-  test_inside_logicalOr_left() async {
+  test_logicalOr_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
-  switch (x) {
-    case int? _ & double? _ | Object? _:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: int
-        question: ?
-      name: _
-    operator: &
-    rightOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: double
-        question: ?
-      name: _
-  operator: |
-  rightOperand: VariablePattern
-    type: NamedType
-      name: SimpleIdentifier
-        token: Object
-      question: ?
-    name: _
-''');
-  }
-
-  test_inside_logicalOr_right() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case int? _ | double? _ & Object? _:
-      break;
-  }
-}
-''');
-    final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
-BinaryPattern
-  leftOperand: VariablePattern
-    type: NamedType
-      name: SimpleIdentifier
-        token: int
-      question: ?
-    name: _
-  operator: |
-  rightOperand: BinaryPattern
-    leftOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: double
-        question: ?
-      name: _
-    operator: &
-    rightOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: Object
-        question: ?
-      name: _
-''');
-  }
-}
-
-@reflectiveTest
-class BinaryPattern_LogicalOr_ResolutionTest extends PatternsResolutionTest {
-  test_inside_ifStatement_case() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  if (x case int? _ | double? _) {}
+  if (x case int _ | double _) {}
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
-      question: ?
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: _
   operator: |
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: double
-      question: ?
+        staticElement: dart:core::@class::double
+        staticType: null
+      type: double
     name: _
 ''');
   }
 
-  test_inside_logicalOr_left() async {
+  test_logicalOr_switchCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
-    case int? _ | double? _ | Object? _:
+    case int _ | double _:
       break;
   }
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: BinaryPattern
-    leftOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: int
-        question: ?
-      name: _
-    operator: |
-    rightOperand: VariablePattern
-      type: NamedType
-        name: SimpleIdentifier
-          token: double
-        question: ?
-      name: _
+  leftOperand: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
+    name: _
   operator: |
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
-        token: Object
-      question: ?
+        token: double
+        staticElement: dart:core::@class::double
+        staticType: null
+      type: double
     name: _
 ''');
   }

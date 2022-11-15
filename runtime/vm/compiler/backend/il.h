@@ -458,6 +458,7 @@ struct InstrAttrs {
   M(AllocateObject, _)                                                         \
   M(AllocateClosure, _)                                                        \
   M(AllocateRecord, _)                                                         \
+  M(AllocateSmallRecord, _)                                                    \
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
@@ -469,6 +470,7 @@ struct InstrAttrs {
   M(CloneContext, _)                                                           \
   M(BinarySmiOp, kNoGC)                                                        \
   M(BinaryInt32Op, kNoGC)                                                      \
+  M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
   M(UnaryDoubleOp, kNoGC)                                                      \
   M(CheckStackOverflow, _)                                                     \
@@ -6981,24 +6983,105 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 };
 
 // Allocates and null initializes a record object.
-class AllocateRecordInstr : public TemplateAllocation<0> {
+class AllocateRecordInstr : public TemplateAllocation<1> {
  public:
+  enum { kFieldNamesPos = 0 };
   AllocateRecordInstr(const InstructionSource& source,
                       intptr_t num_fields,
-                      const Array& field_names,
+                      Value* field_names,
                       intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id),
-        num_fields_(num_fields),
-        field_names_(field_names) {
-    ASSERT(field_names.IsNotTemporaryScopedHandle());
-    ASSERT(field_names.IsCanonical());
+      : TemplateAllocation(source, deopt_id), num_fields_(num_fields) {
+    SetInputAt(kFieldNamesPos, field_names);
   }
 
   DECLARE_INSTRUCTION(AllocateRecord)
   virtual CompileType ComputeType() const;
 
   intptr_t num_fields() const { return num_fields_; }
-  const Array& field_names() const { return field_names_; }
+  Value* field_names() const { return InputAt(kFieldNamesPos); }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kFieldNamesPos:
+        return &Slot::Record_field_names();
+      default:
+        return TemplateAllocation::SlotForInput(pos);
+    }
+  }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    return Heap::IsAllocatableInNewSpace(
+        compiler::target::Record::InstanceSize(num_fields_));
+  }
+
+#define FIELD_LIST(F) F(const intptr_t, num_fields_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
+                                          TemplateAllocation,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateRecordInstr);
+};
+
+// Allocates and initializes fields of a small record object
+// (with 2 or 3 fields).
+class AllocateSmallRecordInstr : public TemplateAllocation<4> {
+ public:
+  AllocateSmallRecordInstr(const InstructionSource& source,
+                           intptr_t num_fields,  // 2 or 3.
+                           Value* field_names,   // Optional.
+                           Value* value0,
+                           Value* value1,
+                           Value* value2,  // Optional.
+                           intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id),
+        num_fields_(num_fields),
+        has_named_fields_(field_names != nullptr) {
+    ASSERT(num_fields == 2 || num_fields == 3);
+    ASSERT((num_fields > 2) == (value2 != nullptr));
+    if (has_named_fields_) {
+      SetInputAt(0, field_names);
+      SetInputAt(1, value0);
+      SetInputAt(2, value1);
+      if (num_fields > 2) {
+        SetInputAt(3, value2);
+      }
+    } else {
+      SetInputAt(0, value0);
+      SetInputAt(1, value1);
+      if (num_fields > 2) {
+        SetInputAt(2, value2);
+      }
+    }
+  }
+
+  DECLARE_INSTRUCTION(AllocateSmallRecord)
+  virtual CompileType ComputeType() const;
+
+  intptr_t num_fields() const { return num_fields_; }
+  bool has_named_fields() const { return has_named_fields_; }
+
+  virtual intptr_t InputCount() const {
+    return (has_named_fields_ ? 1 : 0) + num_fields_;
+  }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    if (has_named_fields_) {
+      if (pos == 0) {
+        return &Slot::Record_field_names();
+      } else {
+        return &Slot::GetRecordFieldSlot(
+            Thread::Current(), compiler::target::Record::field_offset(pos - 1));
+      }
+    } else {
+      return &Slot::GetRecordFieldSlot(
+          Thread::Current(), compiler::target::Record::field_offset(pos));
+    }
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -7009,15 +7092,15 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
 
 #define FIELD_LIST(F)                                                          \
   F(const intptr_t, num_fields_)                                               \
-  F(const Array&, field_names_)
+  F(const bool, has_named_fields_)
 
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateSmallRecordInstr,
                                           TemplateAllocation,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(AllocateRecordInstr);
+  DISALLOW_COPY_AND_ASSIGN(AllocateSmallRecordInstr);
 };
 
 // This instruction captures the state of the object which had its allocation
@@ -8366,6 +8449,53 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
+};
+
+class HashIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  HashIntegerOpInstr(Value* value, bool smi, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), smi_(smi) {
+    SetInputAt(0, value);
+  }
+
+  static HashIntegerOpInstr* Create(Value* value, bool smi, intptr_t deopt_id) {
+    return new HashIntegerOpInstr(value, smi, deopt_id);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return GetDeoptId();
+  }
+
+  virtual Representation representation() const { return kTagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kTagged;
+  }
+
+  DECLARE_INSTRUCTION(HashIntegerOp)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual CompileType ComputeType() const { return CompileType::Smi(); }
+
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+
+#define FIELD_LIST(F) F(const bool, smi_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(HashIntegerOpInstr,
+                                          TemplateDefinition,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(HashIntegerOpInstr);
 };
 
 class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {

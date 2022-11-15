@@ -327,11 +327,17 @@ ActivationFrame::ActivationFrame(const Closure& async_activation,
 }
 
 bool Debugger::NeedsIsolateEvents() {
+  ASSERT(isolate_ == Isolate::Current());
   return !Isolate::IsSystemIsolate(isolate_) &&
          Service::isolate_stream.enabled();
 }
 
 bool Debugger::NeedsDebugEvents() {
+  if (Isolate::Current() == nullptr) {
+    // E.g., NoActiveIsolateScope.
+    return false;
+  }
+  ASSERT(isolate_ == Isolate::Current());
   ASSERT(!Isolate::IsSystemIsolate(isolate_));
   return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }
@@ -481,6 +487,7 @@ static bool IsImplicitFunction(const Function& func) {
     case UntaggedFunction::kNoSuchMethodDispatcher:
     case UntaggedFunction::kInvokeFieldDispatcher:
     case UntaggedFunction::kIrregexpFunction:
+    case UntaggedFunction::kRecordFieldGetter:
       return true;
     default:
       if (func.token_pos() == func.end_token_pos()) {
@@ -824,7 +831,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       const auto variable_index = VariableIndex(var_info.index());
       obj = GetStackVar(variable_index);
       if (obj.IsClosure()) {
-        ASSERT(function().name() == Symbols::Call().ptr());
+        ASSERT(function().name() == Symbols::call().ptr());
         ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
         ctx_ = Closure::Cast(obj).context();

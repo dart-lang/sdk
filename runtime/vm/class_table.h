@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_CLASS_TABLE_H_
 #define RUNTIME_VM_CLASS_TABLE_H_
 
+#include <limits>
 #include <memory>
 #include <tuple>
 #include <utility>
@@ -148,7 +149,7 @@ class ClassTableAllocator : public ValueObject {
 //
 // Each column is a continous array of a the given type. All columns have
 // the same number of used elements (|num_cids()|) and the same capacity.
-template <typename... Columns>
+template <typename CidType, typename... Columns>
 class CidIndexedTable {
  public:
   explicit CidIndexedTable(ClassTableAllocator* allocator)
@@ -169,17 +170,19 @@ class CidIndexedTable {
         },
         columns_);
     capacity_ = new_capacity;
-    num_cids_ = new_num_cids;
+    SetNumCids(new_num_cids);
   }
 
   void AllocateIndex(intptr_t index, bool* did_grow) {
     *did_grow = EnsureCapacity(index);
-    num_cids_ = Utils::Maximum(num_cids_, index + 1);
+    SetNumCids(Utils::Maximum(num_cids_, index + 1));
   }
 
   intptr_t AddRow(bool* did_grow) {
     *did_grow = EnsureCapacity(num_cids_);
-    return num_cids_++;
+    intptr_t id = num_cids_;
+    SetNumCids(num_cids_ + 1);
+    return id;
   }
 
   void ShrinkTo(intptr_t new_num_cids) {
@@ -267,6 +270,13 @@ class CidIndexedTable {
 
     AcqRelAtomic<T*> ptr = {nullptr};
   };
+
+  void SetNumCids(intptr_t new_num_cids) {
+    if (new_num_cids > std::numeric_limits<CidType>::max()) {
+      FATAL("Too many classes");
+    }
+    num_cids_ = new_num_cids;
+  }
 
   bool EnsureCapacity(intptr_t index) {
     if (index >= capacity_) {
@@ -538,9 +548,15 @@ class ClassTable : public MallocAllocated {
   };
 
 #if !defined(PRODUCT)
-  CidIndexedTable<ClassPtr, uint32_t, UnboxedFieldBitmap, uint8_t> classes_;
+  CidIndexedTable<ClassIdTagType,
+                  ClassPtr,
+                  uint32_t,
+                  UnboxedFieldBitmap,
+                  uint8_t>
+      classes_;
 #else
-  CidIndexedTable<ClassPtr, uint32_t, UnboxedFieldBitmap> classes_;
+  CidIndexedTable<ClassIdTagType, ClassPtr, uint32_t, UnboxedFieldBitmap>
+      classes_;
 #endif
 
 #ifndef PRODUCT
@@ -551,7 +567,7 @@ class ClassTable : public MallocAllocated {
   };
 #endif  // !PRODUCT
 
-  CidIndexedTable<ClassPtr> top_level_classes_;
+  CidIndexedTable<classid_t, ClassPtr> top_level_classes_;
 };
 
 }  // namespace dart

@@ -40,8 +40,6 @@ class ForResolver {
   }
 
   void resolveStatement(ForStatementImpl node) {
-    _resolver.checkUnreachableNode(node);
-
     var forLoopParts = node.forLoopParts;
     void visitBody() {
       node.body.accept(_resolver);

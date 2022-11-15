@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // Much of this patch file is similar to the VM `string_patch.dart`. It may make
 // sense to share some of the code when the patching mechanism supports patching
@@ -125,12 +125,18 @@ abstract class _StringBase implements String {
   static String createFromCharCodes(
       Iterable<int> charCodes, int start, int? end, int? limit) {
     // TODO(srdjan): Also skip copying of wide typed arrays.
-    if (charCodes is Uint8List) {
-      final actualEnd =
-          RangeError.checkValidRange(start, end, charCodes.length);
-      return _createOneByteString(charCodes, start, actualEnd - start);
-    } else if (charCodes is! Uint16List) {
-      return _createStringFromIterable(charCodes, start, end);
+    final ccid = ClassID.getID(charCodes);
+    if (ccid != ClassID.cidFixedLengthList &&
+        ccid != ClassID.cidListBase &&
+        ccid != ClassID.cidGrowableList &&
+        ccid != ClassID.cidImmutableList) {
+      if (charCodes is Uint8List) {
+        final actualEnd =
+            RangeError.checkValidRange(start, end, charCodes.length);
+        return _createOneByteString(charCodes, start, actualEnd - start);
+      } else if (charCodes is! Uint16List) {
+        return _createStringFromIterable(charCodes, start, end);
+      }
     }
     final int codeCount = charCodes.length;
     final actualEnd = RangeError.checkValidRange(start, end, codeCount);
@@ -172,11 +178,8 @@ abstract class _StringBase implements String {
     if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
       final endVal = RangeError.checkValidRange(start, end, length);
-      final Uint16List charCodeList = Uint16List(endVal - start);
-      int i = 0;
-      for (final char in charCodes.take(endVal).skip(start)) {
-        charCodeList[i++] = char;
-      }
+      final charCodeList =
+          List<int>.from(charCodes.take(endVal).skip(start), growable: false);
       return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
     }
     // Don't know length of iterable, so iterate and see if all the values

@@ -123,7 +123,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           continue;
         }
         // check the element being renamed is accessible
-        if (!element.isAccessibleIn2(reference.libraryElement)) {
+        if (!element.isAccessibleIn(reference.libraryElement)) {
           continue;
         }
         // add edit
@@ -225,7 +225,7 @@ class _BaseClassMemberValidator {
     required Set<InterfaceElement> subClasses,
   }) async {
     var superClasses =
-        interfaceElement.allSupertypes.map((e) => e.element2).toSet();
+        interfaceElement.allSupertypes.map((e) => e.element).toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {

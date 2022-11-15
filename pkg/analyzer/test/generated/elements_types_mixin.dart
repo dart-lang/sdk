@@ -33,17 +33,17 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType get doubleNone {
-    var element = typeProvider.doubleType.element2;
+    var element = typeProvider.doubleType.element;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get doubleQuestion {
-    var element = typeProvider.doubleType.element2;
+    var element = typeProvider.doubleType.element;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get doubleStar {
-    var element = typeProvider.doubleType.element2;
+    var element = typeProvider.doubleType.element;
     return interfaceTypeStar(element);
   }
 
@@ -52,32 +52,32 @@ mixin ElementsTypesMixin {
   DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
   InterfaceType get functionNone {
-    var element = typeProvider.functionType.element2;
+    var element = typeProvider.functionType.element;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get functionQuestion {
-    var element = typeProvider.functionType.element2;
+    var element = typeProvider.functionType.element;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get functionStar {
-    var element = typeProvider.functionType.element2;
+    var element = typeProvider.functionType.element;
     return interfaceTypeStar(element);
   }
 
   InterfaceType get intNone {
-    var element = typeProvider.intType.element2;
+    var element = typeProvider.intType.element;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get intQuestion {
-    var element = typeProvider.intType.element2;
+    var element = typeProvider.intType.element;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get intStar {
-    var element = typeProvider.intType.element2;
+    var element = typeProvider.intType.element;
     return interfaceTypeStar(element);
   }
 
@@ -88,47 +88,47 @@ mixin ElementsTypesMixin {
   NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
 
   InterfaceTypeImpl get nullNone {
-    var element = typeProvider.nullType.element2;
+    var element = typeProvider.nullType.element;
     return interfaceTypeNone(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullQuestion {
-    var element = typeProvider.nullType.element2;
+    var element = typeProvider.nullType.element;
     return interfaceTypeQuestion(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullStar {
-    var element = typeProvider.nullType.element2;
+    var element = typeProvider.nullType.element;
     return interfaceTypeStar(element) as InterfaceTypeImpl;
   }
 
   InterfaceType get numNone {
-    var element = typeProvider.numType.element2;
+    var element = typeProvider.numType.element;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get numQuestion {
-    var element = typeProvider.numType.element2;
+    var element = typeProvider.numType.element;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get numStar {
-    var element = typeProvider.numType.element2;
+    var element = typeProvider.numType.element;
     return interfaceTypeStar(element);
   }
 
   InterfaceType get objectNone {
-    var element = typeProvider.objectType.element2;
+    var element = typeProvider.objectType.element;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get objectQuestion {
-    var element = typeProvider.objectType.element2;
+    var element = typeProvider.objectType.element;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get objectStar {
-    var element = typeProvider.objectType.element2;
+    var element = typeProvider.objectType.element;
     return interfaceTypeStar(element);
   }
 
@@ -138,17 +138,17 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType get stringNone {
-    var element = typeProvider.stringType.element2;
+    var element = typeProvider.stringType.element;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get stringQuestion {
-    var element = typeProvider.stringType.element2;
+    var element = typeProvider.stringType.element;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get stringStar {
-    var element = typeProvider.stringType.element2;
+    var element = typeProvider.stringType.element;
     return interfaceTypeStar(element);
   }
 
@@ -165,7 +165,7 @@ mixin ElementsTypesMixin {
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
-    List<MethodElement> methods = const [],
+    List<MethodElementImpl> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
     element.enclosingElement = testLibrary.definingCompilationUnit;
@@ -438,7 +438,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  MethodElement method(
+  MethodElementImpl method(
     String name,
     DartType returnType, {
     bool isStatic = false,
@@ -463,7 +463,7 @@ mixin ElementsTypesMixin {
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;
-    element.constructors = const <ConstructorElement>[];
+    element.constructors = const <ConstructorElementImpl>[];
     return element;
   }
 
@@ -520,7 +520,7 @@ mixin ElementsTypesMixin {
     required DartType promotedBound,
   }) {
     return TypeParameterTypeImpl(
-      element2: element,
+      element: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -664,7 +664,7 @@ mixin ElementsTypesMixin {
     DartType? promotedBound,
   }) {
     return TypeParameterTypeImpl(
-      element2: element,
+      element: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );

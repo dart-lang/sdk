@@ -117,6 +117,11 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
   }
 
   @override
+  void visitRecordType(RecordType type, StringBuffer sb) {
+    throw UnimplementedError();
+  }
+
+  @override
   void visitFutureOrType(FutureOrType type, StringBuffer sb) {
     sb.write('FutureOr<');
     visit(type.typeArgument, sb);

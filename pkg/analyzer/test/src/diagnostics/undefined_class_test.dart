@@ -208,6 +208,33 @@ f() { new C(); }
     ]);
   }
 
+  test_Record() async {
+    await assertNoErrorsInCode('''
+void f(Record r) {}
+''');
+  }
+
+  test_Record_language218() async {
+    await assertErrorsInCode('''
+// @dart = 2.18
+void f(Record r) {}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 23, 6),
+    ]);
+  }
+
+  test_Record_language218_exported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+export 'dart:core' show Record;
+''');
+
+    await assertNoErrorsInCode('''
+// @dart = 2.18
+import 'a.dart';
+void f(Record r) {}
+''');
+  }
+
   test_variableDeclaration() async {
     await assertErrorsInCode('''
 f() { C c; }

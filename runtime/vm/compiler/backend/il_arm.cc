@@ -1501,31 +1501,49 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    env());
 
     // Update information in the thread object and enter a safepoint.
-    if (CanExecuteGeneratedCodeInSafepoint()) {
-      __ LoadImmediate(temp1, compiler::target::Thread::exit_through_ffi());
-      __ TransitionGeneratedToNative(branch, FPREG, temp1, saved_fp_or_sp,
-                                     /*enter_safepoint=*/true);
+    // Outline state transition. In AOT, for code size. In JIT, because we
+    // cannot trust that code will be executable.
+    __ ldr(temp1,
+           compiler::Address(
+               THR, compiler::target::Thread::
+                        call_native_through_safepoint_entry_point_offset()));
 
-      __ blx(branch);
+    // Calls R8 in a safepoint and clobbers R4 and NOTFP.
+    ASSERT(branch == R8);
+    static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
+                  "NOTFP should be a reserved register");
+    __ blx(temp1);
 
-      // Update information in the thread object and leave the safepoint.
-      __ TransitionNativeToGenerated(saved_fp_or_sp, temp1,
-                                     /*leave_safepoint=*/true);
-    } else {
-      // We cannot trust that this code will be executable within a safepoint.
-      // Therefore we delegate the responsibility of entering/exiting the
-      // safepoint to a stub which in the VM isolate's heap, which will never
-      // lose execute permission.
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      compiler::Label not_error;
+      ASSERT(temp1 != CallingConventions::kReturnReg);
+      ASSERT(saved_fp_or_sp != CallingConventions::kReturnReg);
+      __ ldr(temp1,
+             compiler::Address(CallingConventions::kReturnReg,
+                               compiler::target::LocalHandle::ptr_offset()));
+      __ BranchIfSmi(temp1, &not_error);
+      __ LoadClassId(temp1, temp1);
+      __ RangeCheck(temp1, saved_fp_or_sp, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
+
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      ASSERT(CallingConventions::ArgumentRegisters[0] ==
+             CallingConventions::kReturnReg);
       __ ldr(temp1,
              compiler::Address(
                  THR, compiler::target::Thread::
                           call_native_through_safepoint_entry_point_offset()));
-
-      // Calls R8 in a safepoint and clobbers R4 and NOTFP.
-      ASSERT(branch == R8);
-      static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
-                    "NOTFP should be a reserved register");
+      __ ldr(branch, compiler::Address(
+                         THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
       __ blx(temp1);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ bkpt(0);
+#endif
+
+      __ Bind(&not_error);
     }
 
     // Restore the global object pool after returning from runtime (old space is
@@ -3282,8 +3300,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(function, compiler->parsed_function().function());
-    intptr_t threshold =
-        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    const intptr_t configured_optimization_counter_threshold =
+        compiler->thread()->isolate_group()->optimization_counter_threshold();
+    const int32_t threshold =
+        configured_optimization_counter_threshold * (loop_depth() + 1);
     __ ldr(count,
            compiler::FieldAddress(
                function, compiler::target::Function::usage_counter_offset()));
@@ -5843,6 +5863,50 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ sub(result_mod, result_mod, compiler::Operand(right), LT);
   __ add(result_mod, result_mod, compiler::Operand(right), GE);
   __ Bind(&done);
+}
+
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::WritableRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  Register temp = locs()->temp(0).reg();
+
+  if (smi_) {
+    __ SmiUntag(value);
+    __ SignFill(temp, value);
+  } else {
+    __ LoadFieldFromOffset(temp, value,
+                           Mint::value_offset() + compiler::target::kWordSize);
+    __ LoadFieldFromOffset(value, value, Mint::value_offset());
+  }
+
+  Register value_lo = value;
+  Register value_hi = temp;
+  __ LoadImmediate(TMP, compiler::Immediate(0x2d51));
+  __ umull(result, value_lo, value_lo, TMP);  // (lo:result) = lo32 * 0x2d51
+  __ umull(TMP, value_hi, value_hi, TMP);     // (hi:TMP) = hi32 * 0x2d51
+  __ add(TMP, TMP, compiler::Operand(value_lo));
+  //  (0:hi:TMP:result) is 128-bit product
+  __ eor(result, value_hi, compiler::Operand(result));
+  __ eor(result, TMP, compiler::Operand(result));
+
+  __ AndImmediate(result, result, 0x3fffffff);
+  __ SmiTag(result);
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {

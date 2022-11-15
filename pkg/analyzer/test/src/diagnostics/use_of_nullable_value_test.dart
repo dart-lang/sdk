@@ -1514,7 +1514,7 @@ m() {
   if(x || false) {}
 }
 ''', [
-      error(HintCode.DEAD_CODE, 33, 5),
+      error(HintCode.DEAD_CODE, 30, 8),
     ]);
   }
 

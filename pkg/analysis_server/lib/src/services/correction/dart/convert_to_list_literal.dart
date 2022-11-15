@@ -41,7 +41,7 @@ class ConvertToListLiteral extends CorrectionProducer {
     var type = creation.staticType;
     if (node.offset > creation.argumentList.offset ||
         type is! InterfaceType ||
-        type.element2 != typeProvider.listElement ||
+        type.element != typeProvider.listElement ||
         creation.constructorName.name != null ||
         creation.argumentList.arguments.isNotEmpty) {
       return;

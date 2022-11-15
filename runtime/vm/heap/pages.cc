@@ -936,12 +936,8 @@ void PageSpace::CollectGarbage(Thread* thread, bool compact, bool finalize) {
   ASSERT(!Thread::Current()->force_growth());
 
   if (!finalize) {
-#if defined(TARGET_ARCH_IA32)
-    return;  // Barrier not implemented.
-#else
     if (!enable_concurrent_mark()) return;  // Disabled.
     if (FLAG_marker_tasks == 0) return;     // Disabled.
-#endif
   }
 
   GcSafepointOperationScope safepoint_scope(thread);
@@ -1498,11 +1494,7 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
   intptr_t threshold =
       after.CombinedUsedInWords() + (kPageSizeInWords * growth_in_pages);
 
-#if defined(TARGET_ARCH_IA32)
-  bool concurrent_mark = false;
-#else
   bool concurrent_mark = FLAG_concurrent_mark && (FLAG_marker_tasks != 0);
-#endif
   if (concurrent_mark) {
     soft_gc_threshold_in_words_ = threshold;
     hard_gc_threshold_in_words_ = kIntptrMax / kWordSize;

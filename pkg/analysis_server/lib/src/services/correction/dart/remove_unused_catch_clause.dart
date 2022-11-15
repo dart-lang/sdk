@@ -39,7 +39,7 @@ class RemoveUnusedCatchClause extends CorrectionProducer {
       return;
     }
 
-    if (catchClause.exceptionParameter2 == exceptionParameter) {
+    if (catchClause.exceptionParameter == exceptionParameter) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(catchKeyword, catchClause.body));
       });

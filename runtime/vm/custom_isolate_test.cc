@@ -25,56 +25,59 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                         bool* auto_setup_scope);
 
 static const char* kCustomIsolateScriptChars =
-    "import 'dart:isolate';\n"
-    "\n"
-    "final RawReceivePort mainPort = new RawReceivePort();\n"
-    "final SendPort mainSendPort = mainPort.sendPort;\n"
-    "\n"
-    "echo(arg) native \"native_echo\";\n"
-    "\n"
-    "class CustomIsolateImpl implements CustomIsolate {\n"
-    "  CustomIsolateImpl(String entry) : _entry = entry{\n"
-    "    echo('Constructing isolate');\n"
-    "  }\n"
-    "\n"
-    "  SendPort spawn() {\n"
-    "    return _start(_entry);\n"
-    "  }\n"
-    "\n"
-    "  static SendPort _start(entry)\n"
-    "      native \"CustomIsolateImpl_start\";\n"
-    "\n"
-    "  String _entry;\n"
-    "}\n"
-    "\n"
-    "abstract class CustomIsolate {\n"
-    "  factory CustomIsolate(String entry) = CustomIsolateImpl;\n"
-    "\n"
-    "  SendPort spawn();\n"
-    "}\n"
-    "\n"
-    "isolateMain() {\n"
-    "   echo('Running isolateMain');\n"
-    "   mainPort.handler = (message) {\n"
-    "     var data = message[0];\n"
-    "     var replyTo = message[1];\n"
-    "     echo('Received: $data');\n"
-    "     replyTo.send(data + 1);\n"
-    "     mainPort.close();\n"
-    "   };\n"
-    "}\n"
-    "\n"
-    "main() {\n"
-    "  var isolate = new CustomIsolate(\"isolateMain\");\n"
-    "  var receivePort = new RawReceivePort();\n"
-    "  SendPort port = isolate.spawn();\n"
-    "  port.send([42, receivePort.sendPort]);\n"
-    "  receivePort.handler = (message) {\n"
-    "    receivePort.close();\n"
-    "    echo('Received: $message');\n"
-    "  };\n"
-    "  return 'success';\n"
-    "}\n";
+    R"(
+    import 'dart:isolate';
+
+    final RawReceivePort mainPort = new RawReceivePort();
+    final SendPort mainSendPort = mainPort.sendPort;
+
+    @pragma('vm:external-name', 'native_echo')
+    external void echo(arg);
+
+    class CustomIsolateImpl implements CustomIsolate {
+      CustomIsolateImpl(String entry) : _entry = entry {
+        echo('Constructing isolate');
+      }
+
+      SendPort spawn() {
+        return _start(_entry);
+      }
+
+      @pragma('vm:external-name', 'CustomIsolateImpl_start')
+      external static SendPort _start(entry);
+
+      String _entry;
+    }
+
+    abstract class CustomIsolate {
+      factory CustomIsolate(String entry) = CustomIsolateImpl;
+
+      SendPort spawn();
+    }
+
+    isolateMain() {
+       echo('Running isolateMain');
+       mainPort.handler = (message) {
+         var data = message[0];
+         var replyTo = message[1];
+         echo('Received: $data');
+         replyTo.send(data + 1);
+         mainPort.close();
+       };
+    }
+
+    main() {
+      var isolate = new CustomIsolate("isolateMain");
+      var receivePort = new RawReceivePort();
+      SendPort port = isolate.spawn();
+      port.send([42, receivePort.sendPort]);
+      receivePort.handler = (message) {
+        receivePort.close();
+        echo('Received: $message');
+      };
+      return 'success';
+    }
+  )";
 
 // An entry in our event queue.
 class Event {

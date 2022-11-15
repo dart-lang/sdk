@@ -33,7 +33,7 @@ class DecoratedClassHierarchy {
   DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
     type = _getInterfaceType(type);
     var typeType = type.type as InterfaceType;
-    var class_ = typeType.element2;
+    var class_ = typeType.element;
     if (class_ == superclass) return type;
     var result = getDecoratedSupertype(class_, superclass!);
     if (result.typeArguments.isNotEmpty && type.typeArguments.isNotEmpty) {
@@ -84,10 +84,10 @@ class DecoratedClassHierarchy {
         var supertype = decoratedSupertype.type as InterfaceType;
         // Compute a type substitution to determine how [class_] relates to
         // this specific [superclass].
-        Map<TypeParameterElement, DecoratedType?> substitution = {};
+        Map<TypeParameterElement, DecoratedType> substitution = {};
         for (int i = 0; i < supertype.typeArguments.length; i++) {
-          substitution[supertype.element2.typeParameters[i]] =
-              decoratedSupertype.typeArguments[i];
+          substitution[supertype.element.typeParameters[i]] =
+              decoratedSupertype.typeArguments[i]!;
         }
         // Apply that substitution to the relation between [superclass] and
         // each of its transitive superclasses, to determine the relation
@@ -114,8 +114,8 @@ class DecoratedClassHierarchy {
 
     if (typeType is TypeParameterType) {
       final innerType = _getInterfaceType(
-          _variables!.decoratedTypeParameterBound(typeType.element2)!);
-      return type.substitute({typeType.element2: innerType});
+          _variables!.decoratedTypeParameterBound(typeType.element)!);
+      return type.substitute({typeType.element: innerType});
     }
 
     throw ArgumentError('$type is an unexpected type');

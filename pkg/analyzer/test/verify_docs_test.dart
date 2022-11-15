@@ -103,7 +103,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+void assertNoErrorsInCode(String s) {}
+void test(String s, void Function() f) {}
+void group(String s, void Function() f) {}
 ''';
     provider.setOverlay(snippetPath,
         content: '''

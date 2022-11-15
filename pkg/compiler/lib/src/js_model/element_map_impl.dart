@@ -38,9 +38,8 @@ import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
-import '../kernel/element_map_interfaces.dart';
-import '../kernel/element_map_migrated.dart';
-import '../kernel/env_interfaces.dart';
+import '../kernel/element_map.dart';
+import '../kernel/env.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -51,15 +50,12 @@ import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 
 import 'closure.dart';
-import 'closure_migrated.dart' as closureMigrated;
 import 'elements.dart';
 import 'element_map.dart';
-import 'element_map_interfaces.dart' as interfaces show JsKernelToElementMap;
 import 'env.dart';
 import 'locals.dart';
 
-class JsKernelToElementMap
-    implements interfaces.JsKernelToElementMap, JsToElementMap, IrToElementMap {
+class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
   /// debugging data stream.
   static const String tag = 'js-kernel-to-element-map';
@@ -130,7 +126,7 @@ class JsKernelToElementMap
   JsKernelToElementMap(
       this.reporter,
       this._environment,
-      KernelToElementMapForJsModel _elementMap,
+      KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       AnnotationsData annotations)
       : this.options = _elementMap.options {
@@ -194,13 +190,13 @@ class JsKernelToElementMap
           : null;
       IndexedMember newMember;
       Name memberName = oldMember.memberName;
-      if (oldMember.isField) {
-        final field = oldMember as IndexedField;
+      if (oldMember is IndexedField) {
+        final field = oldMember;
         newMember = JField(newLibrary, newClass, memberName,
             isStatic: field.isStatic,
             isAssignable: field.isAssignable,
             isConst: field.isConst);
-      } else if (oldMember.isConstructor) {
+      } else if (oldMember is ConstructorEntity) {
         final constructor = oldMember as IndexedConstructor;
         ParameterStructure parameterStructure =
             annotations.hasNoElision(constructor)
@@ -250,9 +246,9 @@ class JsKernelToElementMap
           "Member index mismatch: "
           "Old member $oldMember has index ${oldMember.memberIndex} "
           "whereas new member $newMember has index ${newMember.memberIndex}");
-      if (newMember.isField) {
-        fieldMap[data.node as ir.Field] = newMember as IndexedField;
-      } else if (newMember.isConstructor) {
+      if (newMember is IndexedField) {
+        fieldMap[data.node as ir.Field] = newMember;
+      } else if (newMember is ConstructorEntity) {
         constructorMap[data.node] = newMember as IndexedConstructor;
       } else {
         methodMap[data.node as ir.Procedure] = newMember as IndexedFunction;
@@ -366,8 +362,7 @@ class JsKernelToElementMap
       if (env.cls != null) {
         classMap[env.cls!] = cls;
       }
-      if (cls is! closureMigrated.JRecord &&
-          cls is! closureMigrated.JClosureClass) {
+      if (cls is! JContext && cls is! JClosureClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);
       }
@@ -383,9 +378,9 @@ class JsKernelToElementMap
         case MemberKind.regular:
         case MemberKind.constructor:
           final node = data.definition.node as ir.Member;
-          if (member.isField) {
-            fieldMap[node as ir.Field] = member as IndexedField;
-          } else if (member.isConstructor) {
+          if (member is IndexedField) {
+            fieldMap[node as ir.Field] = member;
+          } else if (member is ConstructorEntity) {
             constructorMap[node] = member as IndexedConstructor;
           } else {
             methodMap[node as ir.Procedure] = member as IndexedFunction;
@@ -1730,16 +1725,16 @@ class JsKernelToElementMap
     _injectedClassMembers[cls]?.forEach(f);
   }
 
-  JRecordField _constructRecordFieldEntry(
+  JContextField _constructContextFieldEntry(
       InterfaceType? memberThisType,
       ir.VariableDeclaration variable,
       BoxLocal boxLocal,
       Map<Name, MemberEntity> memberMap) {
-    JRecordField boxedField =
-        JRecordField(variable.name!, boxLocal, isConst: variable.isConst);
+    JContextField boxedField =
+        JContextField(variable.name!, boxLocal, isConst: variable.isConst);
     members.register(
         boxedField,
-        closureMigrated.ClosureFieldData(
+        ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(variable),
                 MemberKind.closureField, variable),
             memberThisType));
@@ -1748,36 +1743,35 @@ class JsKernelToElementMap
     return boxedField;
   }
 
-  /// Make a container controlling access to records, that is, variables that
+  /// Make a container controlling access to contexts, that is, variables that
   /// are accessed in different scopes. This function creates the container
   /// and returns a map of locals to the corresponding records created.
   @override
-  Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
+  Map<ir.VariableDeclaration, JContextField> makeContextContainer(
       KernelScopeInfo info, MemberEntity member) {
-    Map<ir.VariableDeclaration, JRecordField> boxedFields = {};
+    Map<ir.VariableDeclaration, JContextField> boxedFields = {};
     if (info.boxedVariables.isNotEmpty) {
       NodeBox box = info.capturedVariablesAccessor!;
 
       Map<Name, IndexedMember> memberMap = {};
-      closureMigrated.JRecord container =
-          closureMigrated.JRecord(member.library, box.name);
+      JContext container = JContext(member.library, box.name);
       BoxLocal boxLocal = BoxLocal(container);
       InterfaceType thisType =
           types.interfaceType(container, const <DartType>[]);
       InterfaceType supertype = commonElements.objectType;
-      JClassData containerData = closureMigrated.RecordClassData(
-          RecordContainerDefinition(getMemberDefinition(member).location),
+      JClassData containerData = ContextClassData(
+          ContextContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
           getOrderedTypeSet(supertype.element as IndexedClass)
               .extendClass(types, thisType));
-      classes.register(container, containerData, RecordEnv(memberMap));
+      classes.register(container, containerData, ContextEnv(memberMap));
 
       InterfaceType? memberThisType = member.enclosingClass != null
           ? elementEnvironment.getThisType(member.enclosingClass!)
           : null;
       for (ir.VariableDeclaration variable in info.boxedVariables) {
-        boxedFields[variable] = _constructRecordFieldEntry(
+        boxedFields[variable] = _constructContextFieldEntry(
             memberThisType, variable, boxLocal, memberMap);
       }
     }
@@ -1810,7 +1804,7 @@ class JsKernelToElementMap
       MemberEntity member,
       ir.FunctionNode node,
       JLibrary enclosingLibrary,
-      Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
+      Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
       KernelScopeInfo info,
       InterfaceType supertype,
       {required bool createSignatureMethod}) {
@@ -1829,18 +1823,17 @@ class JsKernelToElementMap
     SourceSpan location = computeSourceSpanFromTreeNode(node);
     Map<Name, IndexedMember> memberMap = {};
 
-    JClass classEntity = closureMigrated.JClosureClass(enclosingLibrary, name);
+    JClass classEntity = JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     InterfaceType thisType =
         types.interfaceType(classEntity, const <DartType>[]);
-    closureMigrated.ClosureClassData closureData =
-        closureMigrated.ClosureClassData(
-            ClosureClassDefinition(location),
-            thisType,
-            supertype,
-            getOrderedTypeSet(supertype.element as IndexedClass)
-                .extendClass(types, thisType));
+    ClosureClassData closureData = ClosureClassData(
+        ClosureClassDefinition(location),
+        thisType,
+        supertype,
+        getOrderedTypeSet(supertype.element as IndexedClass)
+            .extendClass(types, thisType));
     classes.register(classEntity, closureData, ClosureClassEnv(memberMap));
 
     Local? closureEntity;
@@ -1849,8 +1842,7 @@ class JsKernelToElementMap
       final parent = node.parent as ir.FunctionDeclaration;
       closureEntityNode = parent.variable;
     } else if (node.parent is ir.FunctionExpression) {
-      closureEntity = closureMigrated.AnonymousClosureLocal(
-          classEntity as closureMigrated.JClosureClass);
+      closureEntity = AnonymousClosureLocal(classEntity as JClosureClass);
     }
 
     IndexedFunction callMethod = JClosureCallMethod(classEntity,
@@ -1873,14 +1865,14 @@ class JsKernelToElementMap
     JsClosureClassInfo closureClassInfo = JsClosureClassInfo.fromScopeInfo(
         classEntity,
         node,
-        <ir.VariableDeclaration, JRecordField>{},
+        <ir.VariableDeclaration, JContextField>{},
         info,
         member.enclosingClass,
         closureEntity,
         closureEntityNode,
         info.hasThisLocal ? ThisLocal(member.enclosingClass!) : null);
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
-        recordFieldsVisibleInScope, memberMap);
+        contextFieldsVisibleInScope, memberMap);
 
     if (createSignatureMethod) {
       _constructSignatureMethod(closureClassInfo, memberMap, node,
@@ -1891,7 +1883,7 @@ class JsKernelToElementMap
 
     members.register<IndexedFunction, FunctionData>(
         callMethod,
-        closureMigrated.ClosureFunctionData(
+        ClosureFunctionData(
             ClosureMemberDefinition(
                 location, MemberKind.closureCall, node.parent!),
             memberThisType,
@@ -1908,7 +1900,7 @@ class JsKernelToElementMap
       MemberEntity member,
       InterfaceType? memberThisType,
       KernelScopeInfo info,
-      Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
+      Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
       Map<Name, MemberEntity> memberMap) {
     // TODO(efortuna): Limit field number usage to when we need to distinguish
     // between two variables with the same name from different scopes.
@@ -1922,14 +1914,14 @@ class JsKernelToElementMap
 
     for (ir.Node variable in info.freeVariables) {
       if (variable is ir.VariableDeclaration) {
-        if (recordFieldsVisibleInScope.containsKey(variable)) {
+        if (contextFieldsVisibleInScope.containsKey(variable)) {
           bool constructedField = _constructClosureFieldForRecord(
               variable,
               closureClassInfo,
               memberThisType,
               memberMap,
               variable,
-              recordFieldsVisibleInScope,
+              contextFieldsVisibleInScope,
               fieldNumber);
           if (constructedField) fieldNumber++;
         }
@@ -1956,7 +1948,7 @@ class JsKernelToElementMap
       // Make a corresponding field entity in this closure class for the
       // free variables in the KernelScopeInfo.freeVariable.
       if (variable is ir.VariableDeclaration) {
-        if (!recordFieldsVisibleInScope.containsKey(variable)) {
+        if (!contextFieldsVisibleInScope.containsKey(variable)) {
           closureClassInfo.registerFieldForVariable(
               variable,
               _constructClosureField(
@@ -1998,11 +1990,11 @@ class JsKernelToElementMap
     }
   }
 
-  /// Records point to one or more local variables declared in another scope
+  /// Contexts point to one or more local variables declared in another scope
   /// that are captured in a scope. Access to those variables goes entirely
-  /// through the record container, so we only create a field for the *record*
+  /// through the context container, so we only create a field for the *context*
   /// holding [capturedLocal] and not the individual local variables accessed
-  /// through the record. Records, by definition, are not mutable (though the
+  /// through the context. Contexts, by definition, are not mutable (though the
   /// locals they contain may be). Returns `true` if we constructed a new field
   /// in the closure class.
   bool _constructClosureFieldForRecord(
@@ -2011,31 +2003,31 @@ class JsKernelToElementMap
       InterfaceType? memberThisType,
       Map<Name, MemberEntity> memberMap,
       ir.TreeNode sourceNode,
-      Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
+      Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
       int fieldNumber) {
-    JRecordField recordField = recordFieldsVisibleInScope[capturedLocal]!;
+    JContextField contextField = contextFieldsVisibleInScope[capturedLocal]!;
 
     // Don't construct a new field if the box that holds this local already has
     // a field in the closure class.
-    if (closureClassInfo.hasFieldForLocal(recordField.box)) {
+    if (closureClassInfo.hasFieldForLocal(contextField.box)) {
       closureClassInfo.registerFieldForBoxedVariable(
-          capturedLocal, recordField);
+          capturedLocal, contextField);
       return false;
     }
 
     final closureField = JClosureField(
-        '_box_$fieldNumber', closureClassInfo, recordField.box.name,
+        '_box_$fieldNumber', closureClassInfo, contextField.box.name,
         isConst: true, isAssignable: false);
 
     members.register<IndexedField, JFieldData>(
         closureField,
-        closureMigrated.ClosureFieldData(
+        ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField, sourceNode),
             memberThisType));
     memberMap[closureField.memberName] = closureField;
-    closureClassInfo.registerFieldForLocal(recordField.box, closureField);
-    closureClassInfo.registerFieldForBoxedVariable(capturedLocal, recordField);
+    closureClassInfo.registerFieldForLocal(contextField.box, closureField);
+    closureClassInfo.registerFieldForBoxedVariable(capturedLocal, contextField);
     return true;
   }
 
@@ -2075,7 +2067,7 @@ class JsKernelToElementMap
 
     members.register<IndexedField, JFieldData>(
         closureField,
-        closureMigrated.ClosureFieldData(
+        ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField, sourceNode),
             memberThisType));
@@ -2486,8 +2478,8 @@ class JsElementEnvironment extends ElementEnvironment
   void forEachInstanceField(
       ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
     forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
-      if (member.isField && member.isInstanceMember) {
-        f(declarer, member as FieldEntity);
+      if (member is FieldEntity && member.isInstanceMember) {
+        f(declarer, member);
       }
     });
   }
@@ -2499,9 +2491,9 @@ class JsElementEnvironment extends ElementEnvironment
     // potentially O(n^2) scan of the superclasses.
     forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
       if (declarer != cls) return;
-      if (!member.isField) return;
+      if (member is! FieldEntity) return;
       if (!member.isInstanceMember) return;
-      f(member as FieldEntity);
+      f(member);
     });
   }
 }

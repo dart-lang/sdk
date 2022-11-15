@@ -531,12 +531,24 @@ analyzer:
     // Ensure initial analysis completely finished before we continue.
     await initialAnalysis;
 
-    // Enable showTodos and update the file to ensure TODOs now come through.
-    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    // Capture any diagnostic updates. We might get multiple, because during
+    // a reanalyze, all diagnostics are flushed (to empty) and then analysis
+    // occurs.
+    List<Diagnostic>? latestDiagnostics;
+    notificationsFromServer
+        .where((notification) =>
+            notification.method == Method.textDocument_publishDiagnostics)
+        .map((notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>))
+        .where((diagnostics) => diagnostics.uri == mainFileUri)
+        .listen((diagnostics) {
+      latestDiagnostics = diagnostics.diagnostics;
+    });
+
+    final nextAnalysis = waitForAnalysisComplete();
     await updateConfig({'showTodos': true});
-    await replaceFile(222, mainFileUri, contents);
-    final updatedDiagnostics = await secondDiagnosticsUpdate;
-    expect(updatedDiagnostics, hasLength(1));
+    await nextAnalysis;
+    expect(latestDiagnostics, hasLength(1));
   }
 
   Future<void> test_todos_specific() async {

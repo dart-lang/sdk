@@ -1271,6 +1271,15 @@ DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 
 /**
+ * Notifies the VM that the embedder expects the application's working set has
+ * recently shrunk significantly and is not expected to rise in the near future.
+ * The VM may spend O(heap-size) time performing clean up work.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_NotifyDestroyed(void);
+
+/**
  * Notifies the VM that the system is running low on memory.
  *
  * Does not require a current isolate. Only valid after calling Dart_Initialize.

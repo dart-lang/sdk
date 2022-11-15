@@ -175,6 +175,10 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateAllocateTypedDataArrayStub(Assembler* assembler,
                                                  intptr_t cid);
 
+  static void GenerateAllocateSmallRecordStub(Assembler* assembler,
+                                              intptr_t num_fields,
+                                              bool has_named_fields);
+
   static void GenerateSharedStubGeneric(
       Assembler* assembler,
       bool save_fpu_registers,

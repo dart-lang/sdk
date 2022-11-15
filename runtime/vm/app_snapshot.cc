@@ -1828,7 +1828,6 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
       KernelProgramInfoPtr info = objects_[i];
       AutoTraceObject(info);
       WriteFromTo(info);
-      s->Write<uint32_t>(info->untag()->kernel_binary_version_);
     }
   }
 
@@ -1857,7 +1856,6 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(info, kKernelProgramInfoCid,
                                      KernelProgramInfo::InstanceSize());
       d.ReadFromTo(info);
-      info->untag()->kernel_binary_version_ = d.Read<uint32_t>();
     }
   }
 
@@ -4124,7 +4122,7 @@ class TypeSerializationCluster
     }
 #endif
     WriteFromTo(type);
-    s->WriteUnsigned(type->untag()->flags_);
+    s->WriteUnsigned(type->untag()->flags());
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4153,7 +4151,7 @@ class TypeDeserializationCluster
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->flags_ = d.ReadUnsigned();
+      type->untag()->set_flags(d.ReadUnsigned());
     }
   }
 
@@ -4235,8 +4233,8 @@ class FunctionTypeSerializationCluster
   void WriteFunctionType(Serializer* s, FunctionTypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    ASSERT(Utils::IsUint(8, type->untag()->flags_));
-    s->Write<uint8_t>(type->untag()->flags_);
+    ASSERT(Utils::IsUint(8, type->untag()->flags()));
+    s->Write<uint8_t>(type->untag()->flags());
     s->Write<uint32_t>(type->untag()->packed_parameter_counts_);
     s->Write<uint16_t>(type->untag()->packed_type_parameter_counts_);
   }
@@ -4267,7 +4265,7 @@ class FunctionTypeDeserializationCluster
       Deserializer::InitializeHeader(
           type, kFunctionTypeCid, FunctionType::InstanceSize(), mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->flags_ = d.Read<uint8_t>();
+      type->untag()->set_flags(d.Read<uint8_t>());
       type->untag()->packed_parameter_counts_ = d.Read<uint32_t>();
       type->untag()->packed_type_parameter_counts_ = d.Read<uint16_t>();
     }
@@ -4351,8 +4349,8 @@ class RecordTypeSerializationCluster
   void WriteRecordType(Serializer* s, RecordTypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    ASSERT(Utils::IsUint(8, type->untag()->flags_));
-    s->Write<uint8_t>(type->untag()->flags_);
+    ASSERT(Utils::IsUint(8, type->untag()->flags()));
+    s->Write<uint8_t>(type->untag()->flags());
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4380,7 +4378,7 @@ class RecordTypeDeserializationCluster
       Deserializer::InitializeHeader(
           type, kRecordTypeCid, RecordType::InstanceSize(), mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->flags_ = d.Read<uint8_t>();
+      type->untag()->set_flags(d.Read<uint8_t>());
     }
   }
 
@@ -4556,8 +4554,8 @@ class TypeParameterSerializationCluster
     s->Write<int32_t>(type->untag()->parameterized_class_id_);
     s->Write<uint8_t>(type->untag()->base_);
     s->Write<uint8_t>(type->untag()->index_);
-    ASSERT(Utils::IsUint(8, type->untag()->flags_));
-    s->Write<uint8_t>(type->untag()->flags_);
+    ASSERT(Utils::IsUint(8, type->untag()->flags()));
+    s->Write<uint8_t>(type->untag()->flags());
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4590,7 +4588,7 @@ class TypeParameterDeserializationCluster
       type->untag()->parameterized_class_id_ = d.Read<int32_t>();
       type->untag()->base_ = d.Read<uint8_t>();
       type->untag()->index_ = d.Read<uint8_t>();
-      type->untag()->flags_ = d.Read<uint8_t>();
+      type->untag()->set_flags(d.Read<uint8_t>());
     }
   }
 
@@ -5929,12 +5927,12 @@ class VMSerializationRoots : public SerializationRoots {
                      "[]");
     s->AddBaseObject(Bool::True().ptr(), "bool", "true");
     s->AddBaseObject(Bool::False().ptr(), "bool", "false");
-    ASSERT(Object::extractor_parameter_types().ptr() != Object::null());
-    s->AddBaseObject(Object::extractor_parameter_types().ptr(), "Array",
-                     "<extractor parameter types>");
-    ASSERT(Object::extractor_parameter_names().ptr() != Object::null());
-    s->AddBaseObject(Object::extractor_parameter_names().ptr(), "Array",
-                     "<extractor parameter names>");
+    ASSERT(Object::synthetic_getter_parameter_types().ptr() != Object::null());
+    s->AddBaseObject(Object::synthetic_getter_parameter_types().ptr(), "Array",
+                     "<synthetic getter parameter types>");
+    ASSERT(Object::synthetic_getter_parameter_names().ptr() != Object::null());
+    s->AddBaseObject(Object::synthetic_getter_parameter_names().ptr(), "Array",
+                     "<synthetic getter parameter names>");
     s->AddBaseObject(Object::empty_context_scope().ptr(), "ContextScope",
                      "<empty>");
     s->AddBaseObject(Object::empty_object_pool().ptr(), "ObjectPool",
@@ -6050,10 +6048,10 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::empty_type_arguments().ptr());
     d->AddBaseObject(Bool::True().ptr());
     d->AddBaseObject(Bool::False().ptr());
-    ASSERT(Object::extractor_parameter_types().ptr() != Object::null());
-    d->AddBaseObject(Object::extractor_parameter_types().ptr());
-    ASSERT(Object::extractor_parameter_names().ptr() != Object::null());
-    d->AddBaseObject(Object::extractor_parameter_names().ptr());
+    ASSERT(Object::synthetic_getter_parameter_types().ptr() != Object::null());
+    d->AddBaseObject(Object::synthetic_getter_parameter_types().ptr());
+    ASSERT(Object::synthetic_getter_parameter_names().ptr() != Object::null());
+    d->AddBaseObject(Object::synthetic_getter_parameter_names().ptr());
     d->AddBaseObject(Object::empty_context_scope().ptr());
     d->AddBaseObject(Object::empty_object_pool().ptr());
     d->AddBaseObject(Object::empty_compressed_stackmaps().ptr());

@@ -226,13 +226,13 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     }
     if (member.enclosingClass != null) {
       if (elementEnvironment.isEnumClass(member.enclosingClass)) {
-        if (member.isConstructor ||
+        if (member is ConstructorEntity ||
             member.isInstanceMember ||
             member.name == 'values') {
           return;
         }
       }
-      if (member.isConstructor &&
+      if (member is ConstructorEntity &&
           elementEnvironment.isMixinApplication(member.enclosingClass)) {
         return;
       }

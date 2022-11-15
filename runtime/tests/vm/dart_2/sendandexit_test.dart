@@ -32,21 +32,25 @@ class NativeWrapperClass extends NativeFieldWrapperClass1 {}
 
 verifyCantSendNative() async {
   final receivePort = ReceivePort();
+  final unsendable = NativeWrapperClass();
   Expect.throws(
-      () => Isolate.exit(receivePort.sendPort, NativeWrapperClass()),
-      (e) => e.toString().startsWith('Invalid argument: '
-          '"Illegal argument in isolate message : '
-          '(object extends NativeWrapper'));
+      () => Isolate.exit(receivePort.sendPort, unsendable),
+      (e) =>
+          e is ArgumentError &&
+          e.invalidValue == unsendable &&
+          e.toString().contains("NativeWrapper"));
   receivePort.close();
 }
 
 verifyCantSendReceivePort() async {
-  final receivePort = ReceivePort();
+  final receivePort = RawReceivePort();
+  final unsendable = receivePort;
   Expect.throws(
-      () => Isolate.exit(receivePort.sendPort, receivePort),
-      (e) => e.toString().startsWith(
-          'Invalid argument: "Illegal argument in isolate message : '
-          '(object is a ReceivePort)\"'));
+      () => Isolate.exit(receivePort.sendPort, unsendable),
+      (e) =>
+          e is ArgumentError &&
+          e.invalidValue == unsendable &&
+          e.toString().contains("ReceivePort"));
   receivePort.close();
 }
 

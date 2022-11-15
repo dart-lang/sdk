@@ -10,7 +10,6 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'element_text.dart';
 import 'elements_base.dart';
 import 'macros_environment.dart';
 
@@ -113,9 +112,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -144,8 +142,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_getter_withoutPrefix_namedConstructor() async {
@@ -177,9 +174,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -208,8 +204,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_getter_withPrefix() async {
@@ -241,9 +236,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -280,8 +274,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_getter_withPrefix_namedConstructor() async {
@@ -313,9 +306,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -352,8 +344,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withoutPrefix() async {
@@ -383,9 +374,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -417,8 +407,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withoutPrefix_namedConstructor() async {
@@ -448,9 +437,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -490,8 +478,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withPrefix() async {
@@ -520,9 +507,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -562,8 +548,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withPrefix_namedConstructor() async {
@@ -592,9 +577,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -639,8 +623,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_arguments_error() async {
@@ -1806,7 +1789,7 @@ class A {}
     }
 
     if (expected != null) {
-      final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+      final partUri = library.parts.single.uri as DirectiveUriWithUnit;
       final x = partUri.unit.topLevelVariables.single;
       expect(x.name, 'x');
       x as ConstTopLevelVariableElementImpl;
@@ -1869,7 +1852,7 @@ $declarationCode
       library.definingCompilationUnit.getClass('A'),
     );
 
-    final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+    final partUri = library.parts.single.uri as DirectiveUriWithUnit;
     final x = partUri.unit.topLevelVariables.single;
     expect(x.name, 'x');
     x as ConstTopLevelVariableElementImpl;

@@ -6974,6 +6974,155 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
         problemMessage: r"""This is the enclosing class.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropExportClassNotMarkedExportable =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Class '#name' does not have a `@JSExport` on it or any of its members.""",
+        correctionMessageTemplate:
+            r"""Use the `@JSExport` annotation on this class.""",
+        withArguments: _withArgumentsJsInteropExportClassNotMarkedExportable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportClassNotMarkedExportable =
+    const Code<Message Function(String name)>(
+  "JsInteropExportClassNotMarkedExportable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportClassNotMarkedExportable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportClassNotMarkedExportable,
+      problemMessage:
+          """Class '${name}' does not have a `@JSExport` on it or any of its members.""",
+      correctionMessage: """Use the `@JSExport` annotation on this class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored.""",
+        correctionMessageTemplate: r"""Remove the value in the annotation.""",
+        withArguments:
+            _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
+    const Code<Message Function(String name)>(
+        "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
+      problemMessage:
+          """The value in the `@JSExport` annotation on the class or mixin '${name}' will be ignored.""",
+      correctionMessage: """Remove the value in the annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropExportDisallowedMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' is not a concrete instance member, and therefore can't be exported.""",
+    correctionMessageTemplate:
+        r"""Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
+    withArguments: _withArgumentsJsInteropExportDisallowedMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeJsInteropExportDisallowedMember =
+    const Code<Message Function(String name)>(
+  "JsInteropExportDisallowedMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportDisallowedMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportDisallowedMember,
+      problemMessage:
+          """Member '${name}' is not a concrete instance member, and therefore can't be exported.""",
+      correctionMessage: """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateJsInteropExportMemberCollision = const Template<
+        Message Function(String name, String string)>(
+    problemMessageTemplate:
+        r"""The following class members collide with the same export '#name': #string.""",
+    correctionMessageTemplate:
+        r"""Either remove the conflicting members or use a different export name.""",
+    withArguments: _withArgumentsJsInteropExportMemberCollision);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeJsInteropExportMemberCollision =
+    const Code<Message Function(String name, String string)>(
+  "JsInteropExportMemberCollision",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportMemberCollision(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropExportMemberCollision,
+      problemMessage:
+          """The following class members collide with the same export '${name}': ${string}.""",
+      correctionMessage: """Either remove the conflicting members or use a different export name.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropExportNoExportableMembers = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Class '#name' has no exportable members in the class or the inheritance chain.""",
+    correctionMessageTemplate:
+        r"""Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
+    withArguments: _withArgumentsJsInteropExportNoExportableMembers);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportNoExportableMembers =
+    const Code<Message Function(String name)>(
+  "JsInteropExportNoExportableMembers",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportNoExportableMembers(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportNoExportableMembers,
+      problemMessage:
+          """Class '${name}' has no exportable members in the class or the inheritance chain.""",
+      correctionMessage: """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalExtensionMemberOnTypeInvalid =
     messageJsInteropExternalExtensionMemberOnTypeInvalid;
 
@@ -7122,73 +7271,115 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateJsInteropStaticInteropMockExternalExtensionMemberConflict =
-    const Template<Message Function(String name, String string)>(
-        problemMessageTemplate:
-            r"""External extension member with name '#name' is defined in the following extensions and none are more specific: #string.""",
-        correctionMessageTemplate:
-            r"""Try using the `@JS` annotation to rename conflicting members.""",
-        withArguments:
-            _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict);
+const Code<Null>
+    codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeJsInteropStaticInteropMockExternalExtensionMemberConflict =
-    const Code<Message Function(String name, String string)>(
-  "JsInteropStaticInteropMockExternalExtensionMemberConflict",
-);
+const MessageCode
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    const MessageCode(
+        "JsInteropStaticInteropExternalExtensionMembersWithTypeParameters",
+        problemMessage:
+            r"""`@staticInterop` classes cannot have external extension members with type parameters.""",
+        correctionMessage:
+            r"""Try using a Dart extension member if you need type parameters instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict(
-    String name, String string) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(
-      codeJsInteropStaticInteropMockExternalExtensionMemberConflict,
-      problemMessage:
-          """External extension member with name '${name}' is defined in the following extensions and none are more specific: ${string}.""",
-      correctionMessage: """Try using the `@JS` annotation to rename conflicting members.""",
-      arguments: {'name': name, 'string': string});
-}
+const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
+    messageJsInteropStaticInteropGenerativeConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropGenerativeConstructor =
+    const MessageCode("JsInteropStaticInteropGenerativeConstructor",
+        problemMessage:
+            r"""`@staticInterop` classes should not contain any generative constructors.""",
+        correctionMessage: r"""Use factory constructors instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-    Message Function(
-        String name,
-        String name2,
-        String
-            name3)> templateJsInteropStaticInteropMockMissingOverride = const Template<
-        Message Function(
-            String name, String name2, String name3)>(
-    problemMessageTemplate:
-        r"""`@staticInterop` class '#name' has external extension member '#name2', but Dart class '#name3' does not have an overriding instance member.""",
-    correctionMessageTemplate:
-        r"""Add a Dart instance member in '#name3' that overrides '#name.#name2'.""",
-    withArguments: _withArgumentsJsInteropStaticInteropMockMissingOverride);
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>
+    templateJsInteropStaticInteropMockMissingGetterOrSetter = const Template<
+            Message Function(
+                String name,
+                String string,
+                String string2,
+                String name2,
+                String
+                    string3)>(
+        problemMessageTemplate:
+            r"""Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3.""",
+        correctionMessageTemplate:
+            r"""Declare an exportable #string2 that implements one of these extension members.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2, String name3)>
-    codeJsInteropStaticInteropMockMissingOverride =
-    const Code<Message Function(String name, String name2, String name3)>(
-  "JsInteropStaticInteropMockMissingOverride",
+const Code<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>
+    codeJsInteropStaticInteropMockMissingGetterOrSetter = const Code<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>(
+  "JsInteropStaticInteropMockMissingGetterOrSetter",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockMissingOverride(
-    String name, String name2, String name3) {
+Message _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter(
+    String name, String string, String string2, String name2, String string3) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string3.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropStaticInteropMockMissingGetterOrSetter,
+      problemMessage:
+          """Dart class '${name}' has a ${string}, but does not have a ${string2} to implement any of the following extension member(s) with export name '${name2}': ${string3}.""",
+      correctionMessage:
+          """Declare an exportable ${string2} that implements one of these extension members.""",
+      arguments: {
+        'name': name,
+        'string': string,
+        'string2': string2,
+        'name2': name2,
+        'string3': string3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateJsInteropStaticInteropMockMissingImplements =
+    const Template<Message Function(String name, String name2, String string)>(
+        problemMessageTemplate:
+            r"""Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string.""",
+        correctionMessageTemplate:
+            r"""Declare an exportable member that implements one of these extension members.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockMissingImplements);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeJsInteropStaticInteropMockMissingImplements =
+    const Code<Message Function(String name, String name2, String string)>(
+  "JsInteropStaticInteropMockMissingImplements",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockMissingImplements(
+    String name, String name2, String string) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
-  return new Message(codeJsInteropStaticInteropMockMissingOverride,
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropStaticInteropMockMissingImplements,
       problemMessage:
-          """`@staticInterop` class '${name}' has external extension member '${name2}', but Dart class '${name3}' does not have an overriding instance member.""",
-      correctionMessage: """Add a Dart instance member in '${name3}' that overrides '${name}.${name2}'.""",
-      arguments: {'name': name, 'name2': name2, 'name3': name3});
+          """Dart class '${name}' does not have any members that implement any of the following extension member(s) with export name '${name2}': ${string}.""",
+      correctionMessage: """Declare an exportable member that implements one of these extension members.""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9178,6 +9369,16 @@ const MessageCode messageObjectImplements = const MessageCode(
     problemMessage: r"""The class 'Object' can't implement anything.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectMemberNameUsedForRecordField =
+    messageObjectMemberNameUsedForRecordField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectMemberNameUsedForRecordField = const MessageCode(
+    "ObjectMemberNameUsedForRecordField",
+    problemMessage:
+        r"""Record field names can't be the same as a member from 'Object'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectMixesIn = messageObjectMixesIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9962,15 +10163,14 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     problemMessage: r"""An optional named parameter can't start with '_'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeRecordLiteralEmpty = messageRecordLiteralEmpty;
+const Code<Null> codeRecordFieldsCantBePrivate =
+    messageRecordFieldsCantBePrivate;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordLiteralEmpty = const MessageCode(
-    "RecordLiteralEmpty",
-    index: 128,
-    problemMessage: r"""Record literal can't be empty.""",
-    correctionMessage:
-        r"""Try adding elements or use 'Record.empty()' instead.""");
+const MessageCode messageRecordFieldsCantBePrivate = const MessageCode(
+    "RecordFieldsCantBePrivate",
+    analyzerCodes: <String>["INVALID_FIELD_NAME"],
+    problemMessage: r"""Record field names can't be private.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordLiteralOnePositionalFieldNoTrailingComma =
@@ -9985,16 +10185,40 @@ const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
         correctionMessage: r"""Try adding a trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordLiteralZeroFieldsWithTrailingComma =
+    messageRecordLiteralZeroFieldsWithTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordLiteralZeroFieldsWithTrailingComma =
+    const MessageCode("RecordLiteralZeroFieldsWithTrailingComma",
+        index: 128,
+        problemMessage:
+            r"""Record literal without fields can't have a trailing comma.""",
+        correctionMessage: r"""Try removing the trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordTypeOnePositionalFieldNoTrailingComma =
     messageRecordTypeOnePositionalFieldNoTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
     const MessageCode("RecordTypeOnePositionalFieldNoTrailingComma",
-        index: 130,
+        index: 131,
         problemMessage:
             r"""Record type with one entry requires a trailing comma.""",
         correctionMessage: r"""Try adding a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordTypeZeroFieldsButTrailingComma =
+    messageRecordTypeZeroFieldsButTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
+    const MessageCode("RecordTypeZeroFieldsButTrailingComma",
+        index: 130,
+        problemMessage:
+            r"""Record type without fields can't have a trailing comma.""",
+        correctionMessage: r"""Try removing the trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectingConstructorWithAnotherInitializer =

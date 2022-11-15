@@ -315,10 +315,13 @@ library /*isNonNullableByDefault*/;
 //   C.this();
 //     ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:40:6: Error: Expected an identifier, but got ')'.
-// Try inserting an identifier before ')'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:40:5: Error: The 'records' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
 //   C.();
-//      ^
+//     ^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
+// // @dart=2.16
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:40:5: Error: Expected an identifier, but got '('.
 // Try inserting an identifier before '('.

@@ -14,8 +14,8 @@ import "dart:async" show Future, Zone;
 import "dart:isolate" show SendPort;
 
 /// These are the additional parts of this patch library:
-// part "profiler.dart"
-// part "timeline.dart"
+part "profiler.dart";
+part "timeline.dart";
 
 @patch
 @pragma("vm:external-name", "Developer_debugger")

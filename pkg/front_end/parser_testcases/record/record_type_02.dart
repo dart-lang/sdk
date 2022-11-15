@@ -6,5 +6,5 @@ void errors() {
 void ok() {
   (int, ) record1 = (1, );
   ({int ok}) record2 = (ok: 1);
-  () record3 = Record.empty;
+  () record3 = ();
 }

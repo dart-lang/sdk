@@ -75,6 +75,36 @@ f(A a) {
     await assertNoFix();
   }
 
+  Future<void> test_recordType_from() async {
+    await resolveTestCode(r'''
+f() {
+  (String, String) v = ('a', 'b').$0;
+  print(v);
+}
+''');
+    await assertHasFix(r'''
+f() {
+  String v = ('a', 'b').$0;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_recordType_to() async {
+    await resolveTestCode('''
+f() {
+  String v = ('a', 'b');
+  print(v);
+}
+''');
+    await assertHasFix('''
+f() {
+  (String, String) v = ('a', 'b');
+  print(v);
+}
+''');
+  }
+
   Future<void> test_simple() async {
     await resolveTestCode('''
 f() {

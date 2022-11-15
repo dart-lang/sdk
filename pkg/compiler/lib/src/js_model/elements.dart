@@ -11,7 +11,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
-import 'closure_migrated.dart';
+import 'closure.dart';
 
 const String jsElementPrefix = 'j:';
 
@@ -53,7 +53,7 @@ class JLibrary extends IndexedLibrary {
 }
 
 /// Enum used for identifying [JClass] subclasses in serialization.
-enum JClassKind { node, closure, record }
+enum JClassKind { node, closure, context }
 
 class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   /// Tag used for identifying serialized [JClass] objects in a
@@ -83,8 +83,8 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
         return JClass(library, name, isAbstract: isAbstract);
       case JClassKind.closure:
         return JClosureClass.readFromDataSource(source);
-      case JClassKind.record:
-        return JRecord.readFromDataSource(source);
+      case JClassKind.context:
+        return JContext.readFromDataSource(source);
     }
   }
 
@@ -118,7 +118,7 @@ enum JMemberKind {
   closureCallMethod,
   generatorBody,
   signatureMethod,
-  recordField,
+  contextField,
 }
 
 abstract class JMember extends IndexedMember {
@@ -159,8 +159,8 @@ abstract class JMember extends IndexedMember {
         return JGeneratorBody.readFromDataSource(source);
       case JMemberKind.signatureMethod:
         return JSignatureMethod.readFromDataSource(source);
-      case JMemberKind.recordField:
-        return JRecordField.readFromDataSource(source);
+      case JMemberKind.contextField:
+        return JContextField.readFromDataSource(source);
     }
   }
 
@@ -190,12 +190,6 @@ abstract class JMember extends IndexedMember {
 
   @override
   bool get isFunction => false;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isConstructor => false;
 
   @override
   bool get isInstanceMember => enclosingClass != null && !_isStatic;
@@ -240,9 +234,6 @@ abstract class JConstructor extends JFunction
       : super(enclosingClass.library, enclosingClass, name, parameterStructure,
             AsyncMarker.SYNC,
             isExternal: isExternal);
-
-  @override
-  bool get isConstructor => true;
 
   @override
   bool get isInstanceMember => false;
@@ -682,9 +673,6 @@ class JField extends JMember implements FieldEntity, IndexedField {
     sink.writeBool(isConst);
     sink.end(tag);
   }
-
-  @override
-  bool get isField => true;
 
   @override
   String get _kind => 'field';

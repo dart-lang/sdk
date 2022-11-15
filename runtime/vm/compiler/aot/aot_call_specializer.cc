@@ -966,7 +966,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   // Ignore callsites like f.call() for now. Those need to be handled
   // specially if f is a closure.
-  if (call->function_name().ptr() == Symbols::Call().ptr()) {
+  if (call->function_name().ptr() == Symbols::call().ptr()) {
     return false;
   }
 
@@ -1017,7 +1017,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   }
 
   InstanceCallInstr* invoke_call = new (Z) InstanceCallInstr(
-      call->source(), Symbols::Call(), Token::kILLEGAL,
+      call->source(), Symbols::call(), Token::kILLEGAL,
       std::move(call_arguments), call->type_args_len(), call->argument_names(),
       /*checked_argument_count=*/1,
       thread()->compiler_state().GetNextDeoptId());

@@ -919,7 +919,11 @@ severity: $severity
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
-      Uri importUri = libraryBuilder.importUri;
+
+      /// We use the [importUri] of the created [Library] and not the
+      /// [importUri] of the [LibraryBuilder] since it might be a patch library
+      /// which is not directly part of the output.
+      Uri importUri = libraryBuilder.library.importUri;
       if (libraryBuilder.isPatch) {
         // For patch files we create a "fake" import uri.
         // We cannot use the import uri from the patched library because
@@ -1168,7 +1172,8 @@ severity: $severity
       {
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_parser);
-        Parser parser = new Parser(new ForwardingListener());
+        Parser parser = new Parser(new ForwardingListener(),
+            allowPatterns: target.globalFeatures.patterns.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1255,7 +1260,8 @@ severity: $severity
 
     return listener.parseSingleExpression(
         new Parser(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe),
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+            allowPatterns: target.globalFeatures.patterns.isEnabled),
         token,
         parameters);
   }
@@ -2266,6 +2272,21 @@ severity: $severity
     ticker.logMs("Added noSuchMethod forwarders");
   }
 
+  /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] based on all the
+  /// classes in [sourceClasses].
+  void computeFieldPromotability(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+      if (!libraryBuilder.isInferenceUpdate2Enabled) continue;
+      Set<String> unpromotablePrivateFieldNames =
+          libraryBuilder.unpromotablePrivateFieldNames ??= {};
+      if (libraryBuilder.loader == this && !builder.isPatch) {
+        builder.addUnpromotablePrivateFieldNames(unpromotablePrivateFieldNames);
+      }
+    }
+    ticker.logMs("Computed unpromotable private field names");
+  }
+
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (!builder.isPatch) {
@@ -2756,6 +2777,8 @@ class int extends num {}
 class num {}
 
 class Function {}
+
+class Record {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an

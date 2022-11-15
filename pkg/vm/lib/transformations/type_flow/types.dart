@@ -70,6 +70,8 @@ abstract class TypesBuilder {
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
 
+  late final Type recordType = ConeType(getTFClass(coreTypes.recordClass));
+
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
   /// [canBeNull] can be set to false to further constrain the resulting
@@ -88,7 +90,7 @@ abstract class TypesBuilder {
       result = const AnyType();
     } else if (type is RecordType) {
       // TODO(dartbug.com/49719): support inference of record types
-      result = const AnyType();
+      result = recordType;
     } else if (type is FutureOrType) {
       // TODO(alexmarkov): support FutureOr types
       result = const AnyType();
@@ -575,7 +577,7 @@ class SetType extends Type {
           return type.intersection(other, typeHierarchy);
         }
       }
-      return EmptyType();
+      return const EmptyType();
     } else if (other is ConeType) {
       return typeHierarchy
           .specializeTypeCone(other.cls, allowWideCone: true)
@@ -818,7 +820,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   bool get isRaw => typeArgs == null && constant == null;
 
   @override
-  Class getConcreteClass(TypeHierarchy typeHierarchy) => cls.classNode;
+  Class? getConcreteClass(TypeHierarchy typeHierarchy) =>
+      filterArtificialNode(cls.classNode);
 
   @override
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class other) =>
@@ -989,7 +992,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         return this;
       }
       if (!identical(this.cls, other.cls)) {
-        return EmptyType();
+        return const EmptyType();
       }
       if (typeArgs == null && constant == null) {
         return other;
@@ -1177,8 +1180,8 @@ class RuntimeType extends Type {
       throw "ERROR: RuntimeType does not support specialize.";
 
   @override
-  Class getConcreteClass(TypeHierarchy typeHierarchy) =>
-      throw "ERROR: ConcreteClass does not support getConcreteClass.";
+  Class? getConcreteClass(TypeHierarchy typeHierarchy) =>
+      throw "ERROR: RuntimeType does not support getConcreteClass.";
 
   bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy,
       RuntimeType runtimeType, SubtypeTestKind kind) {

@@ -6,7 +6,9 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -18,6 +20,23 @@ class RemoveDeadCode extends CorrectionProducer {
   @override
   // Not predictably the correct action.
   bool get canBeAppliedToFile => false;
+
+  @override
+  AstNode? get coveredNode {
+    var node = super.coveredNode;
+    if (node is BinaryExpression) {
+      var problemMessage = diagnostic?.problemMessage;
+      if (problemMessage != null) {
+        var operatorOffset = node.operator.offset;
+        var rightOperand = node.rightOperand;
+        if (problemMessage.offset == operatorOffset &&
+            problemMessage.length == rightOperand.end - operatorOffset) {
+          return rightOperand;
+        }
+      }
+    }
+    return node;
+  }
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_DEAD_CODE;
@@ -56,8 +75,15 @@ class RemoveDeadCode extends CorrectionProducer {
         });
       }
     } else if (coveredNode is Statement) {
-      var rangeToRemove =
-          utils.getLinesRangeStatements(<Statement>[coveredNode]);
+      if (coveredNode is EmptyStatement) {
+        return;
+      }
+      if (coveredNode is DoStatement &&
+          await _computeDoStatement(builder, coveredNode)) {
+        return;
+      }
+
+      var rangeToRemove = utils.getLinesRangeStatements([coveredNode]);
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(rangeToRemove);
       });
@@ -69,5 +95,70 @@ class RemoveDeadCode extends CorrectionProducer {
         builder.addDeletion(range.endEnd(previous, coveredNode));
       });
     }
+  }
+
+  /// Return `true` if the fix is processed.
+  Future<bool> _computeDoStatement(
+      ChangeBuilder builder, DoStatement statement) async {
+    if (statement.hasBreakStatement) {
+      // TODO(asashour) consider modifying the do statement to a label
+      // https://github.com/dart-lang/sdk/issues/49091#issuecomment-1135489675
+      return true;
+    }
+
+    var problemMessage = diagnostic?.problemMessage;
+    if (problemMessage != null) {
+      var problemOffset = problemMessage.offset;
+      var problemLength = problemMessage.length;
+      var doKeyword = statement.doKeyword;
+      var whileKeyword = statement.whileKeyword;
+
+      Future<void> deleteNoBrackets() async {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(range.startStart(doKeyword, doKeyword.next!));
+          _deleteLineRange(
+              builder, range.startEnd(whileKeyword, statement.semicolon));
+        });
+      }
+
+      Future<void> deleteBrackets(Block block) async {
+        await builder.addDartFileEdit(file, (builder) {
+          _deleteLineRange(
+              builder, range.startEnd(doKeyword, block.leftBracket));
+          _deleteLineRange(
+              builder, range.startEnd(block.rightBracket, statement.semicolon));
+        });
+      }
+
+      if (problemOffset == doKeyword.offset) {
+        if (problemLength == doKeyword.length) {
+          await deleteNoBrackets();
+          return true;
+        } else {
+          var body = statement.body;
+          if (body is Block &&
+              problemLength == body.leftBracket.end - problemOffset) {
+            await deleteBrackets(body);
+            return true;
+          }
+        }
+      } else if (problemOffset + problemLength == statement.semicolon.end) {
+        if (problemOffset == whileKeyword.offset) {
+          await deleteNoBrackets();
+          return true;
+        } else {
+          var body = statement.body;
+          if (body is Block && problemOffset == body.rightBracket.offset) {
+            await deleteBrackets(body);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  void _deleteLineRange(DartFileEditBuilder builder, SourceRange sourceRange) {
+    builder.addDeletion(utils.getLinesRange(sourceRange));
   }
 }

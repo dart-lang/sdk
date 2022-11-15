@@ -138,7 +138,7 @@ class _MockSdkElementsBuilder {
     _deprecatedElement = deprecatedElement = _class(name: 'Deprecated');
     deprecatedElement.supertype = objectType;
 
-    deprecatedElement.fields = <FieldElement>[
+    deprecatedElement.fields = [
       _field('message', stringType, isFinal: true),
     ];
 
@@ -167,11 +167,11 @@ class _MockSdkElementsBuilder {
     );
     doubleElement.supertype = numType;
 
-    FieldElement staticConstDoubleField(String name) {
+    FieldElementImpl staticConstDoubleField(String name) {
       return _field(name, doubleType, isStatic: true, isConst: true);
     }
 
-    doubleElement.fields = <FieldElement>[
+    doubleElement.fields = <FieldElementImpl>[
       staticConstDoubleField('nan'),
       staticConstDoubleField('infinity'),
       staticConstDoubleField('negativeInfinity'),
@@ -886,7 +886,7 @@ class _MockSdkElementsBuilder {
       lineInfo: LineInfo([0]),
     );
 
-    asyncUnit.classes = <ClassElement>[
+    asyncUnit.classes = <ClassElementImpl>[
       completerElement,
       futureElement,
       futureOrElement,
@@ -915,7 +915,7 @@ class _MockSdkElementsBuilder {
       lineInfo: LineInfo([0]),
     );
 
-    coreUnit.classes = <ClassElement>[
+    coreUnit.classes = <ClassElementImpl>[
       boolElement,
       comparableElement,
       deprecatedElement,
@@ -939,7 +939,7 @@ class _MockSdkElementsBuilder {
       typeElement,
     ];
 
-    coreUnit.functions = <FunctionElement>[
+    coreUnit.functions = <FunctionElementImpl>[
       _function('identical', boolType, parameters: [
         _requiredParameter('a', objectType),
         _requiredParameter('b', objectType),
@@ -964,12 +964,12 @@ class _MockSdkElementsBuilder {
       _interfaceType(proxyElement),
     );
 
-    coreUnit.accessors = <PropertyAccessorElement>[
+    coreUnit.accessors = <PropertyAccessorElementImpl>[
       deprecatedVariable.getter!,
       overrideVariable.getter!,
       proxyVariable.getter!,
     ];
-    coreUnit.topLevelVariables = <TopLevelVariableElement>[
+    coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
       deprecatedVariable,
       overrideVariable,
       proxyVariable,
@@ -995,13 +995,13 @@ class _MockSdkElementsBuilder {
   }) {
     var element = ClassElementImpl(name, 0);
     element.typeParameters = typeParameters;
-    element.constructors = <ConstructorElement>[
+    element.constructors = <ConstructorElementImpl>[
       _constructor(),
     ];
     return element;
   }
 
-  ConstructorElement _constructor({
+  ConstructorElementImpl _constructor({
     String name = '',
     bool isConst = false,
     bool isFactory = false,
@@ -1014,7 +1014,7 @@ class _MockSdkElementsBuilder {
     return element;
   }
 
-  FieldElement _field(
+  FieldElementImpl _field(
     String name,
     DartType type, {
     bool isConst = false,
@@ -1024,7 +1024,7 @@ class _MockSdkElementsBuilder {
     return ElementFactory.fieldElement(name, isStatic, isFinal, isConst, type);
   }
 
-  FunctionElement _function(
+  FunctionElementImpl _function(
     String name,
     DartType returnType, {
     List<TypeParameterElement> typeFormals = const [],
@@ -1049,7 +1049,7 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  PropertyAccessorElement _getter(
+  PropertyAccessorElementImpl _getter(
     String name,
     DartType type, {
     bool isStatic = false,
@@ -1075,13 +1075,13 @@ class _MockSdkElementsBuilder {
     List<DartType> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
-      element2: element,
+      element: element,
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  MethodElement _method(
+  MethodElementImpl _method(
     String name,
     DartType returnType, {
     List<TypeParameterElement> typeFormals = const [],
@@ -1128,16 +1128,19 @@ class _MockSdkElementsBuilder {
   /// Set the [accessors] and the corresponding fields for the [classElement].
   void _setAccessors(
     ClassElementImpl classElement,
-    List<PropertyAccessorElement> accessors,
+    List<PropertyAccessorElementImpl> accessors,
   ) {
     classElement.accessors = accessors;
     classElement.fields = accessors
         .map((accessor) => accessor.variable)
-        .cast<FieldElement>()
+        .cast<FieldElementImpl>()
         .toList();
   }
 
-  TopLevelVariableElement _topLevelVariableConst(String name, DartType type) {
+  TopLevelVariableElementImpl _topLevelVariableConst(
+    String name,
+    DartType type,
+  ) {
     final variable = ConstTopLevelVariableElementImpl(name, -1)
       ..isConst = true
       ..type = type;
@@ -1151,7 +1154,7 @@ class _MockSdkElementsBuilder {
 
   TypeParameterType _typeParameterType(TypeParameterElement element) {
     return TypeParameterTypeImpl(
-      element2: element,
+      element: element,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }

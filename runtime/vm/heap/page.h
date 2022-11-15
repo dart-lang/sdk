@@ -104,17 +104,15 @@ class Page {
 
   void WriteProtect(bool read_only);
 
-  static intptr_t OldObjectStartOffset() {
-    return Utils::RoundUp(sizeof(Page) - kOldObjectAlignmentOffset,
-                          kObjectStartAlignment) +
-           kOldObjectAlignmentOffset;
+  constexpr static intptr_t OldObjectStartOffset() {
+    return Utils::RoundUp(sizeof(Page), kObjectStartAlignment,
+                          kOldObjectAlignmentOffset);
   }
-  static intptr_t NewObjectStartOffset() {
+  constexpr static intptr_t NewObjectStartOffset() {
     // Note weaker alignment because the bool/null offset tricks don't apply to
     // new-space.
-    return Utils::RoundUp(sizeof(Page) - kNewObjectAlignmentOffset,
-                          kObjectAlignment) +
-           kNewObjectAlignmentOffset;
+    return Utils::RoundUp(sizeof(Page), kObjectAlignment,
+                          kNewObjectAlignmentOffset);
   }
 
   // Warning: This does not work for objects on image pages because image pages

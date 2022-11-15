@@ -7,11 +7,12 @@ import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart' show DartType;
 import '../../ir/class_relation.dart';
+import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/selector.dart';
 import '../../universe/world_builder.dart';
 import '../../universe/use.dart';
-import '../../world_interfaces.dart';
+import '../../world.dart';
 import '../abstract_value_domain.dart';
 import '../abstract_value_strategy.dart';
 import 'powerset_bits.dart';
@@ -53,7 +54,7 @@ PowersetValue? wrapOrNull(AbstractValue? abstractValue, int powersetBits) {
       : PowersetValue(abstractValue, powersetBits);
 }
 
-class PowersetDomain implements AbstractValueDomain {
+class PowersetDomain with AbstractValueDomain {
   final AbstractValueDomain _abstractValueDomain;
   final PowersetBitsDomain _powersetBitsDomain;
 

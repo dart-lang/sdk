@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
+final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<ExecutableElement>>();
 
 class InheritanceOverrideVerifier {
@@ -104,6 +104,13 @@ class InheritanceOverrideVerifier {
 
       verifier._verifyMustBeOverridden();
     }
+  }
+
+  /// Returns [Element] members that are in the interface of the
+  /// given class with `@mustBeOverridden`, but don't have implementations.
+  static List<ExecutableElement> missingMustBeOverridden(
+      ClassDeclaration node) {
+    return _missingMustBeOverridden[node.name] ?? const [];
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
@@ -355,17 +362,6 @@ class _ClassVerifier {
         errorReporter: reporter,
         errorNode: node,
       );
-
-      if (!_isNonNullableByDefault &&
-          superMember is MethodElement &&
-          member is MethodElement &&
-          methodParameterNodes != null) {
-        _checkForOptionalParametersDifferentDefaultValues(
-          superMember,
-          member,
-          methodParameterNodes,
-        );
-      }
     }
 
     if (mixinIndex == -1) {
@@ -380,7 +376,7 @@ class _ClassVerifier {
   /// corresponding instance members in each of [directSuperInterfaces].
   void _checkDeclaredMembers(AstNode node, InterfaceType type,
       {required int mixinIndex}) {
-    var libraryUri = type.element2.library.source.uri;
+    var libraryUri = type.element.library.source.uri;
     for (var method in type.methods) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
@@ -407,7 +403,7 @@ class _ClassVerifier {
       return false;
     }
 
-    final typeElement = type.element2;
+    final typeElement = type.element;
 
     final classElement = this.classElement;
     if (typeElement is ClassElement &&
@@ -488,7 +484,7 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element2;
+    var interfaceElement = type.element;
     if (interfaceElement is EnumElement) {
       return false;
     }
@@ -502,98 +498,6 @@ class _ClassVerifier {
       namedType,
     );
     return true;
-  }
-
-  void _checkForOptionalParametersDifferentDefaultValues(
-    MethodElement baseExecutable,
-    MethodElement derivedExecutable,
-    List<FormalParameter> derivedParameterNodes,
-  ) {
-    var derivedIsAbstract = derivedExecutable.isAbstract;
-    var derivedOptionalNodes = <FormalParameter>[];
-    var derivedOptionalElements = <ParameterElementImpl>[];
-    var derivedParameterElements = derivedExecutable.parameters;
-    for (var i = 0; i < derivedParameterElements.length; i++) {
-      var parameterElement =
-          derivedParameterElements[i] as ParameterElementImpl;
-      if (parameterElement.isOptional) {
-        derivedOptionalNodes.add(derivedParameterNodes[i]);
-        derivedOptionalElements.add(parameterElement);
-      }
-    }
-
-    var baseOptionalElements = <ParameterElementImpl>[];
-    var baseParameterElements = baseExecutable.parameters;
-    for (var i = 0; i < baseParameterElements.length; ++i) {
-      var baseParameter = baseParameterElements[i];
-      if (baseParameter.isOptional) {
-        baseOptionalElements
-            .add(baseParameter.declaration as ParameterElementImpl);
-      }
-    }
-
-    // Stop if no optional parameters.
-    if (baseOptionalElements.isEmpty || derivedOptionalElements.isEmpty) {
-      return;
-    }
-
-    if (derivedOptionalElements[0].isNamed) {
-      for (int i = 0; i < derivedOptionalElements.length; i++) {
-        var derivedElement = derivedOptionalElements[i];
-        if (_isNonNullableByDefault &&
-            derivedIsAbstract &&
-            !derivedElement.hasDefaultValue) {
-          continue;
-        }
-        var name = derivedElement.name;
-        for (var j = 0; j < baseOptionalElements.length; j++) {
-          var baseParameter = baseOptionalElements[j];
-          if (name == baseParameter.name && baseParameter.hasDefaultValue) {
-            var baseValue = baseParameter.computeConstantValue();
-            var derivedResult = derivedElement.evaluationResult!;
-            if (!_constantValuesEqual(derivedResult.value, baseValue)) {
-              reporter.reportErrorForNode(
-                StaticWarningCode
-                    .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-                derivedOptionalNodes[i],
-                [
-                  baseExecutable.enclosingElement.displayName,
-                  baseExecutable.displayName,
-                  name
-                ],
-              );
-            }
-          }
-        }
-      }
-    } else {
-      for (var i = 0;
-          i < derivedOptionalElements.length && i < baseOptionalElements.length;
-          i++) {
-        var derivedElement = derivedOptionalElements[i];
-        if (_isNonNullableByDefault &&
-            derivedIsAbstract &&
-            !derivedElement.hasDefaultValue) {
-          continue;
-        }
-        var baseElement = baseOptionalElements[i];
-        if (baseElement.hasDefaultValue) {
-          var baseValue = baseElement.computeConstantValue();
-          var derivedResult = derivedElement.evaluationResult!;
-          if (!_constantValuesEqual(derivedResult.value, baseValue)) {
-            reporter.reportErrorForNode(
-              StaticWarningCode
-                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-              derivedOptionalNodes[i],
-              [
-                baseExecutable.enclosingElement.displayName,
-                baseExecutable.displayName
-              ],
-            );
-          }
-        }
-      }
-    }
   }
 
   /// Check that [classElement] is not a superinterface to itself.
@@ -648,26 +552,26 @@ class _ClassVerifier {
     // n-case
     final supertype = element.supertype;
     if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element2, path)) {
+        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
       return true;
     }
 
     for (InterfaceType type in element.mixins) {
-      if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
     }
 
     if (element is MixinElement) {
       for (InterfaceType type in element.superclassConstraints) {
-        if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
+        if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
           return true;
         }
       }
     }
 
     for (InterfaceType type in element.interfaces) {
-      if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
     }
@@ -761,20 +665,20 @@ class _ClassVerifier {
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
   ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
-    if (element.supertype?.element2 == classElement) {
+    if (element.supertype?.element == classElement) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
     if (element is MixinElement) {
       for (InterfaceType type in element.superclassConstraints) {
-        if (type.element2 == classElement) {
+        if (type.element == classElement) {
           return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
         }
       }
     }
 
     for (InterfaceType type in element.mixins) {
-      if (type.element2 == classElement) {
+      if (type.element == classElement) {
         return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
       }
     }
@@ -868,8 +772,8 @@ class _ClassVerifier {
     _missingOverrides[classNameToken] = elements;
 
     var descriptions = <String>[];
-    for (ExecutableElement element in elements) {
-      String prefix = '';
+    for (var element in elements) {
+      var prefix = '';
       if (element is PropertyAccessorElement) {
         if (element.isGetter) {
           prefix = 'getter ';
@@ -956,7 +860,7 @@ class _ClassVerifier {
         !noSuchMethodDeclaration.isAbstract) {
       return;
     }
-    final notOverriddenNames = <String>{};
+    final notOverridden = <ExecutableElement>[];
     for (var supertype in classElement.allSupertypes) {
       // TODO(srawlins): This looping may be expensive. Since the vast majority
       // of classes will have zero elements annotated with `@mustBeOverridden`,
@@ -973,7 +877,7 @@ class _ClassVerifier {
         if (method.hasMustBeOverridden) {
           var methodDeclaration = classElement.getMethod(method.name);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
-            notOverriddenNames.add(method.name);
+            notOverridden.add(method.declaration);
           }
         }
       }
@@ -995,16 +899,17 @@ class _ClassVerifier {
             continue;
           }
           if (accessorDeclaration == null || accessorDeclaration.isAbstract) {
-            notOverriddenNames.add(accessor.name);
+            notOverridden.add(accessor);
           }
         }
       }
     }
-    if (notOverriddenNames.isEmpty) {
+    if (notOverridden.isEmpty) {
       return;
     }
 
-    final namesForError = notOverriddenNames.toList();
+    _missingMustBeOverridden[classNameToken] = notOverridden.toList();
+    final namesForError = notOverridden.map((e) => e.name).toSet().toList();
 
     if (namesForError.length == 1) {
       reporter.reportErrorForToken(
@@ -1029,13 +934,5 @@ class _ClassVerifier {
         ],
       );
     }
-  }
-
-  static bool _constantValuesEqual(DartObject? x, DartObject? y) {
-    // If either constant value couldn't be computed due to an error, the
-    // corresponding DartObject will be `null`.  Since an error has already been
-    // reported, there's no need to report another.
-    if (x == null || y == null) return true;
-    return x == y;
   }
 }

@@ -324,6 +324,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// yet been made.
   vm.VmServiceInterface? vmService;
 
+  /// The root of the Dart SDK containing the VM running the debug adapter.
+  late final String dartSdkRoot;
+
+  /// Mappings of file paths to 'org-dartlang-sdk:///' URIs used for translating
+  /// URIs/paths between the DAP client and the VM.
+  ///
+  /// Keys are the base file paths and the values are the base URIs. Neither
+  /// value should contain trailing slashes.
+  final orgDartlangSdkMappings = <String, Uri>{};
+
   /// The DDS instance that was started and that [vmService] is connected to.
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
@@ -399,6 +409,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// VM Service disconnects.
   bool isTerminating = false;
 
+  /// Whether or not the current termination is happening because the user
+  /// chose to detach from an attached process.
+  ///
+  /// This affects the message a user sees when the adapter shuts down ('exited'
+  /// vs 'detached').
+  bool isDetaching = false;
+
   /// Whether isolates that pause in the PauseExit state should be automatically
   /// resumed after any in-process log events have completed.
   ///
@@ -438,6 +455,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     Function? onError,
   }) : super(channel, onError: onError) {
     channel.closed.then((_) => shutdown());
+
+    final vmPath = Platform.resolvedExecutable;
+    dartSdkRoot = path.dirname(path.dirname(vmPath));
+    orgDartlangSdkMappings[dartSdkRoot] = Uri.parse('org-dartlang-sdk:///sdk');
 
     _isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
@@ -955,6 +976,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     return shortError ?? rawError;
   }
 
+  /// Handles a detach request, removing breakpoints and unpausing paused
+  /// isolates.
+  Future<void> handleDetach() async {
+    isDetaching = true;
+    await preventBreakingAndResume();
+  }
+
   /// Sends a [TerminatedEvent] if one has not already been sent.
   ///
   /// Waits for any in-progress output events to complete first.
@@ -967,10 +995,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     isTerminating = true;
     _hasSentTerminatedEvent = true;
+
     // Always add a leading newline since the last written text might not have
     // had one. Send directly via sendEvent and not sendOutput to ensure no
     // async since we're about to terminate.
-    sendEvent(OutputEventBody(output: '\nExited$exitSuffix.'));
+    final reason = isDetaching ? 'Detached' : 'Exited';
+    sendEvent(OutputEventBody(output: '\n$reason$exitSuffix.'));
     sendEvent(TerminatedEventBody());
   }
 
@@ -1276,8 +1306,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// debugee if required.
   @nonVirtual
   Future<void> shutdown() async {
-    await _waitForPendingOutputEvents();
     await shutdownDebugee();
+    await _waitForPendingOutputEvents();
+    handleSessionTerminate();
 
     // Delay the shutdown slightly to allow any pending responses (such as the
     // terminate response) to be sent.
@@ -1291,6 +1322,50 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       Duration(milliseconds: 500),
       () => super.shutdown(),
     );
+  }
+
+  /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+  /// to a local file path based on the current SDK.
+  String? convertOrgDartlangSdkToPath(Uri uri) {
+    // org-dartlang-sdk URIs can be in multiple forms:
+    //
+    //   - org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+    //   - org-dartlang-sdk:///runtime/lib/convert_patch.dart
+    //
+    // We currently only handle the sdk folder, as we don't know which runtime
+    // is being used (this code is shared) and do not want to map to the wrong
+    // sources.
+    for (final mapping in orgDartlangSdkMappings.entries) {
+      final mapPath = mapping.key;
+      final mapUri = mapping.value;
+      if (uri.isScheme(mapUri.scheme) && uri.path.startsWith(mapUri.path)) {
+        return path.joinAll([
+          mapPath,
+          ...uri.pathSegments.skip(mapUri.pathSegments.length),
+        ]);
+      }
+    }
+
+    return null;
+  }
+
+  /// Converts a file path inside the current SDK root into a URI in the form
+  /// org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
+  Uri? convertPathToOrgDartlangSdk(String input) {
+    for (final mapping in orgDartlangSdkMappings.entries) {
+      final mapPath = mapping.key;
+      final mapUri = mapping.value;
+      if (path.isWithin(mapPath, input)) {
+        final relative = path.relative(input, from: mapPath);
+        return Uri(
+          scheme: mapUri.scheme,
+          host: '',
+          pathSegments: [...mapUri.pathSegments, ...path.split(relative)],
+        );
+      }
+    }
+
+    return null;
   }
 
   /// [sourceRequest] is called by the client to request source code for a given
@@ -1619,8 +1694,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         ]);
       }
     } else if (vmData is vm.ObjRef) {
-      final object =
-          await _isolateManager.getObject(storedData.thread.isolate, vmData);
+      final object = await _isolateManager.getObject(
+        storedData.thread.isolate,
+        vmData,
+        offset: childStart,
+        count: childCount,
+      );
 
       if (object is vm.Sentinel) {
         variables.add(Variable(
@@ -1889,6 +1968,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       allowTruncatedValue: false,
       includeQuotesAroundString: false,
     )
+        // TODO: Fix this static error.
+        // ignore: body_might_complete_normally_catch_error
         .catchError((e) {
       // Fetching strings from the server may throw if they have been
       // collected since (for example if a Hot Restart occurs while

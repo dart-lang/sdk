@@ -221,12 +221,8 @@ class ContextRootTest with ResourceProviderMixin {
 
   void _addGlob(ContextRootImpl root, String posixPattern) {
     var pathContext = root.resourceProvider.pathContext;
-    var pattern = posix.joinAll([
-      ...pathContext.split(root.root.path),
-      ...posix.split(posixPattern),
-    ]);
-    var glob = Glob(pattern, context: pathContext);
-    root.excludedGlobs.add(glob);
+    var glob = Glob(posixPattern, context: pathContext);
+    root.excludedGlobs.add(LocatedGlob(root.root, glob));
   }
 
   void _assertAnalyzedFiles(ContextRoot root, List<String> posixPathList) {

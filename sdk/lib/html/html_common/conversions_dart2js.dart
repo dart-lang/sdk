@@ -113,8 +113,10 @@ class _StructuredCloneDart2Js extends _StructuredClone {
   newJsMap() => JS('var', '{}');
   putIntoMap(map, key, value) => JS('void', '#[#] = #', map, key, value);
   newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
-  cloneNotRequired(e) =>
-      (e is NativeByteBuffer || e is NativeTypedData || e is MessagePort);
+  cloneNotRequired(e) => (e is NativeByteBuffer ||
+      e is NativeTypedData ||
+      e is MessagePort ||
+      e is SharedArrayBuffer);
 }
 
 class _AcceptStructuredCloneDart2Js extends _AcceptStructuredClone {

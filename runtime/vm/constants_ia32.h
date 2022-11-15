@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #include "vm/constants_base.h"
 
@@ -101,7 +102,7 @@ const Register kStackTraceObjectReg = EDX;
 
 // ABI for write barrier stub.
 const Register kWriteBarrierObjectReg = EDX;
-const Register kWriteBarrierValueReg = kNoRegister;
+const Register kWriteBarrierValueReg = EBX;
 const Register kWriteBarrierSlotReg = EDI;
 
 // Common ABI for shared slow path stubs.
@@ -252,6 +253,17 @@ struct AllocateRecordABI {
   static const Register kTemp2Reg = EDI;
 };
 
+// ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
+// AllocateRecord3, AllocateRecord3Named).
+struct AllocateSmallRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFieldNamesReg = EBX;
+  static const Register kValue0Reg = ECX;
+  static const Register kValue1Reg = EDX;
+  static const Register kValue2Reg = kNoRegister;
+  static const Register kTempReg = EDI;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
@@ -352,11 +364,16 @@ const RegList kAllCpuRegistersList = 0xFF;
 const RegList kAllFpuRegistersList = (1 << kNumberOfFpuRegisters) - 1;
 
 const intptr_t kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << THR);
+constexpr intptr_t kNumberOfReservedCpuRegisters =
+    Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 // No reason to prefer certain registers on IA32.
 constexpr int kRegisterAllocationBias = 0;
+constexpr int kStoreBufferWrapperSize = 11;
 
 const RegList kAbiPreservedCpuRegs = (1 << EDI) | (1 << ESI) | (1 << EBX);
 

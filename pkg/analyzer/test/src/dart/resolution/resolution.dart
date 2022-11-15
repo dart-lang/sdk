@@ -48,7 +48,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   InterfaceType get doubleType => typeProvider.doubleType;
 
   Element get dynamicElement =>
-      (typeProvider.dynamicType as DynamicTypeImpl).element2;
+      (typeProvider.dynamicType as DynamicTypeImpl).element;
 
   FeatureSet get featureSet => result.libraryElement.featureSet;
 
@@ -73,7 +73,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ClassElement get numElement => typeProvider.numElement;
 
   ClassElement get objectElement =>
-      typeProvider.objectType.element2 as ClassElement;
+      typeProvider.objectType.element as ClassElement;
 
   InterfaceType get objectType => typeProvider.objectType;
 
@@ -276,37 +276,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertErrorsInResult(List<ExpectedError> expectedErrors) {
     assertErrorsInResolvedUnit(result, expectedErrors);
-  }
-
-  void assertExtensionOverride(
-    ExtensionOverride node, {
-    required Object element,
-    required String extendedType,
-    required List<String> typeArgumentTypes,
-  }) {
-    assertElement(node, element);
-    assertType(node.extendedType, extendedType);
-    assertElementTypes(node.typeArgumentTypes, typeArgumentTypes);
-  }
-
-  void assertFieldFormalParameter(
-    FieldFormalParameter node, {
-    required FieldFormalParameterElement element,
-  }) {
-    assertElement(node.declaredElement, element);
-  }
-
-  void assertFunctionExpressionInvocation(
-    FunctionExpressionInvocation node, {
-    required ExecutableElement? element,
-    required List<String> typeArgumentTypes,
-    required String invokeType,
-    required String type,
-  }) {
-    assertElement(node, element);
-    assertTypeArgumentTypes(node, typeArgumentTypes);
-    assertInvokeType(node, invokeType);
-    assertType(node, type);
   }
 
   void assertHasTestErrors() {

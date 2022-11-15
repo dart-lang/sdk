@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 const int _maxAscii = 0x7f;
 const int _maxLatin1 = 0xff;
@@ -10,6 +10,7 @@ const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
 @patch
+@pragma("vm:entry-point")
 class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
@@ -235,10 +236,7 @@ abstract class _StringBase implements String {
     var s = _OneByteString._allocate(len);
 
     // Special case for native Uint8 typed arrays.
-    final int cid = ClassID.getID(charCodes);
-    if (cid == ClassID.cidUint8ArrayView ||
-        cid == ClassID.cidUint8Array ||
-        cid == ClassID.cidExternalUint8Array) {
+    if (charCodes is Uint8List) {
       Uint8List bytes = unsafeCast<Uint8List>(charCodes);
       copyRangeFromUint8ListToOneByteString(bytes, s, start, 0, len);
       return s;

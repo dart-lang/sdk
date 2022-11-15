@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as p;
 
+import 'utils.dart';
+
 // Copied from package:io
 Future<void> copyPath(String from, String to) async {
   await Directory(to).create(recursive: true);
@@ -23,6 +25,8 @@ Future<void> copyPath(String from, String to) async {
 }
 
 Future<void> main() async {
+  ensureRunFromSdkBinDart();
+
   final exePath = Platform.resolvedExecutable;
   final sdkDir = p.dirname(p.dirname(exePath));
   // Try to run the VM located on a path with % encoded characters. The VM

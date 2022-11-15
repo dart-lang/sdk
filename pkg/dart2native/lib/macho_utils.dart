@@ -6,11 +6,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-// Note that these two values MUST match the ones in
-// runtime/bin/snapshot_utils.cc, which looks specifically for the snapshot in
-// this segment and section.
-const String snapshotSegmentName = "__CUSTOM";
-const String snapshotSectionName = "__dart_app_snap";
+// Note that these values MUST match the arguments to -add_empty_section in
+// runtime/BUILD.gn.
+const String reservedSegmentName = "__CUSTOM";
+const String reservedSectionName = "__space_for_note";
+
+// Note that this value MUST match runtime/bin/snapshot_utils.cc, which looks
+// specifically for the snapshot in this note.
+const String snapshotNoteName = "__dart_app_snap";
 
 /// The page size for aligning segments in MachO files. X64 MacOS uses 4k pages,
 /// and ARM64 MacOS uses 16k pages, so we use 16k here.

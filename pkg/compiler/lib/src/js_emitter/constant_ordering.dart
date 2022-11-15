@@ -7,6 +7,7 @@ library dart2js.js_emitter.constant_ordering;
 import '../constants/values.dart';
 import '../elements/entities.dart' show ClassEntity, FieldEntity, MemberEntity;
 import '../elements/types.dart';
+import '../universe/record_shape.dart';
 import 'sorter.dart' show Sorter;
 
 /// A canonical but arbitrary ordering of constants. The ordering is 'stable'
@@ -45,6 +46,8 @@ class _ConstantOrdering
     return 0;
   }
 
+  static int compareStrings(String a, String b) => a.compareTo(b);
+
   int compareClasses(ClassEntity a, ClassEntity b) {
     int r = a.name.compareTo(b.name);
     if (r != 0) return r;
@@ -59,6 +62,12 @@ class _ConstantOrdering
 
   int compareDartTypes(DartType a, DartType b) {
     return _dartTypeOrdering.compare(a, b);
+  }
+
+  int compareRecordShapes(RecordShape a, RecordShape b) {
+    int r = a.positionalFieldCount.compareTo(b.positionalFieldCount);
+    if (r != 0) return r;
+    return compareLists(compareStrings, a.fieldNames, b.fieldNames);
   }
 
   @override
@@ -228,6 +237,8 @@ class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
   int visitLegacyType(LegacyType type, _) => 10;
   @override
   int visitNullableType(NullableType type, _) => 11;
+  @override
+  int visitRecordType(RecordType type, _) => 12;
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
@@ -325,6 +336,13 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     int r = _constantOrdering.compareClasses(type.element, other.element);
     if (r != 0) return r;
     return _compareTypeArguments(type.typeArguments, other.typeArguments);
+  }
+
+  @override
+  int visitRecordType(covariant RecordType type, covariant RecordType other) {
+    int r = _constantOrdering.compareRecordShapes(type.shape, other.shape);
+    if (r != 0) return r;
+    return _compareTypeArguments(type.fields, other.fields);
   }
 
   @override

@@ -32,7 +32,7 @@ Element? getElementOfNode(AstNode? node) {
   if (node is SimpleIdentifier && element is PrefixElement) {
     var parent = node.parent;
     if (parent is ImportDirective) {
-      element = parent.element2;
+      element = parent.element;
     } else {
       element = _getImportElementInfo(node);
     }

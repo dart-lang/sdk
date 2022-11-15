@@ -37,7 +37,7 @@ class InstantiatedClass {
   /// Return the [InstantiatedClass] that corresponds to the [type] - with the
   /// same element and type arguments, ignoring its nullability suffix.
   factory InstantiatedClass.of(InterfaceType type) {
-    return InstantiatedClass(type.element2, type.typeArguments);
+    return InstantiatedClass(type.element, type.typeArguments);
   }
 
   @override
@@ -133,7 +133,7 @@ class InstantiatedClass {
 
   InterfaceTypeImpl withNullability(NullabilitySuffix nullability) {
     return InterfaceTypeImpl(
-      element2: element,
+      element: element,
       typeArguments: arguments,
       nullabilitySuffix: nullability,
     );
@@ -197,10 +197,10 @@ class InterfaceLeastUpperBoundHelper {
       return type1.withNullability(nullability);
     }
 
-    if (type1.element2 == type2.element2) {
+    if (type1.element == type2.element) {
       var args1 = type1.typeArguments;
       var args2 = type2.typeArguments;
-      var params = type1.element2.typeParameters;
+      var params = type1.element.typeParameters;
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
@@ -233,7 +233,7 @@ class InterfaceLeastUpperBoundHelper {
       }
 
       return InterfaceTypeImpl(
-        element2: type1.element2,
+        element: type1.element,
         typeArguments: args,
         nullabilitySuffix: nullability,
       );
@@ -362,7 +362,7 @@ class InterfaceLeastUpperBoundHelper {
       if (element is MixinElement) {
         for (InterfaceType interface in element.superclassConstraints) {
           var pathLength = _computeLongestInheritancePathToObject(
-              interface.element2, visitedElements);
+              interface.element, visitedElements);
           longestPath = max(longestPath, 1 + pathLength);
         }
       }
@@ -371,7 +371,7 @@ class InterfaceLeastUpperBoundHelper {
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.interfaces) {
         var pathLength = _computeLongestInheritancePathToObject(
-            interface.element2, visitedElements);
+            interface.element, visitedElements);
         longestPath = max(longestPath, 1 + pathLength);
       }
 
@@ -385,14 +385,14 @@ class InterfaceLeastUpperBoundHelper {
       }
 
       var superLength = _computeLongestInheritancePathToObject(
-          supertype.element2, visitedElements);
+          supertype.element, visitedElements);
 
       var mixins = element.mixins;
       for (var i = 0; i < mixins.length; i++) {
         // class _X&S&M extends S implements M {}
         // So, we choose the maximum length from S and M.
         var mixinLength = _computeLongestInheritancePathToObject(
-          mixins[i].element2,
+          mixins[i].element,
           visitedElements,
         );
         superLength = max(superLength, mixinLength);
@@ -459,7 +459,7 @@ class LeastUpperBoundHelper {
   LeastUpperBoundHelper(this._typeSystem);
 
   InterfaceType get _interfaceTypeFunctionNone {
-    return _typeSystem.typeProvider.functionType.element2.instantiate(
+    return _typeSystem.typeProvider.functionType.element.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -658,7 +658,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
       var bound = _typeParameterBound(T1);
-      var closure = _typeSystem.greatestClosure(bound, [T1.element2]);
+      var closure = _typeSystem.greatestClosure(bound, [T1.element]);
       return getLeastUpperBound(closure, T2);
     }
 
@@ -677,7 +677,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
       var bound = _typeParameterBound(T2);
-      var closure = _typeSystem.greatestClosure(bound, [T2.element2]);
+      var closure = _typeSystem.greatestClosure(bound, [T2.element]);
       return getLeastUpperBound(T1, closure);
     }
 
@@ -968,7 +968,7 @@ class LeastUpperBoundHelper {
 
   /// Return the promoted or declared bound of the type parameter.
   DartType _typeParameterBound(TypeParameterTypeImpl type) {
-    var bound = type.promotedBound ?? type.element2.bound;
+    var bound = type.promotedBound ?? type.element.bound;
     if (bound != null) {
       return bound;
     }

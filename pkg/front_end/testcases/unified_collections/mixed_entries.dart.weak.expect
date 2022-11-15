@@ -10,14 +10,6 @@ library /*isNonNullableByDefault*/;
 // var error5 = {if (b) for (var a in list) a else 0: 1};
 //                      ^
 //
-// pkg/front_end/testcases/unified_collections/mixed_entries.dart:41:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
-// var error8 = {if (b) 0: 1 else for (var i = 0; i < list.length; i++) list[i]};
-//                                ^
-//
-// pkg/front_end/testcases/unified_collections/mixed_entries.dart:42:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
-// var error9 = {if (b) for (var i = 0; i < list.length; i++) list[i] else 0: 1};
-//                      ^
-//
 // pkg/front_end/testcases/unified_collections/mixed_entries.dart:35:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 // var error6 = {
 //              ^
@@ -25,6 +17,14 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/unified_collections/mixed_entries.dart:38:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 // var error7 = {
 //              ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:41:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error8 = {if (b) 0: 1 else for (var i = 0; i < list.length; i++) list[i]};
+//                                ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:42:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error9 = {if (b) for (var i = 0; i < list.length; i++) list[i] else 0: 1};
+//                      ^
 //
 // pkg/front_end/testcases/unified_collections/mixed_entries.dart:43:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 // var error10 = {

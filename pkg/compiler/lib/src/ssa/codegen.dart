@@ -13,7 +13,7 @@ import '../common.dart';
 import '../common/elements.dart' show JCommonElements;
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../common/codegen.dart' show CodegenRegistry;
+import '../common/codegen_interfaces.dart' show CodegenRegistry;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -24,25 +24,26 @@ import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/backend.dart' show CodegenInputs;
+import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/namer.dart' show ModularNamer;
+import '../js_backend/namer_interfaces.dart' show ModularNamer;
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoding, indexTypeVariable;
+import '../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../js_backend/runtime_types_new_migrated.dart'
+    show RecipeEncoding, indexTypeVariable;
 import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_backend/type_reference.dart' show TypeReference;
-import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
+import '../js_emitter/interfaces.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart';
 import '../native/behavior.dart';
 import '../options.dart';
-import '../tracer.dart';
+import '../tracer_interfaces.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
-import '../world.dart' show JClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';
 import 'variable_allocator.dart';
@@ -98,7 +99,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       ModularNamer namer,
       ModularEmitter emitter) {
     js.Expression code;
-    if (member.isField) {
+    if (member is FieldEntity) {
       code = generateLazyInitializer(
           member, graph, codegen, closedWorld, registry, namer, emitter);
     } else {
@@ -499,7 +500,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // inside expressions.
   bool _safeInInitializer(js.Expression node) => true;
 
-  visitGraph(HGraph graph) {
+  void visitGraph(HGraph graph) {
     preGenerateMethod(graph);
     currentGraph = graph;
     visitSubGraph(SubGraph(graph.entry, graph.exit));
@@ -2074,7 +2075,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void registerGetter(HInvokeDynamic node) {
     if (node.element != null &&
-        (node.element.isGetter || node.element.isField)) {
+        (node.element.isGetter || node.element is FieldEntity)) {
       // This is a dynamic read which we have found to have a single target but
       // for some reason haven't inlined. We are _still_ accessing the target
       // dynamically but we don't need to enqueue more than target for this to
@@ -2173,7 +2174,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           node.sourceInformation));
     } else {
       StaticUse staticUse;
-      if (element.isConstructor) {
+      if (element is ConstructorEntity) {
         CallStructure callStructure =
             CallStructure.unnamed(arguments.length, node.typeArguments.length);
         staticUse = StaticUse.constructorInvoke(element, callStructure);
@@ -2202,13 +2203,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Selector selector = node.selector;
     bool useAliasedSuper = canUseAliasedSuperMember(superElement, selector);
     if (selector.isGetter) {
-      if (superElement.isField || superElement.isGetter) {
+      if (superElement is FieldEntity || superElement.isGetter) {
         _registry.registerStaticUse(StaticUse.superGet(superElement));
       } else {
         _registry.registerStaticUse(StaticUse.superTearOff(node.element));
       }
     } else if (selector.isSetter) {
-      if (superElement.isField) {
+      if (superElement is FieldEntity) {
         _registry.registerStaticUse(StaticUse.superFieldSet(superElement));
       } else {
         assert(superElement.isSetter);
@@ -2224,7 +2225,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    if (superElement.isField) {
+    if (superElement is FieldEntity) {
       // TODO(sra): We can lower these in the simplifier.
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
       use(node.getDartReceiver(_closedWorld));
@@ -2380,8 +2381,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         var arguments =
             visitArguments(inputs, start: target.isInstanceMember ? 1 : 0);
-        template =
-            target.isConstructor ? 'new #.$targetName(#)' : '#.$targetName(#)';
+        template = target is ConstructorEntity
+            ? 'new #.$targetName(#)'
+            : '#.$targetName(#)';
         templateInputs = [receiverExpression, arguments];
       }
       js.Expression expression = js.js
@@ -2392,7 +2394,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (_nativeData.isJsInteropMember(target)) {
-      if (target.isStatic || target.isTopLevel || target.isConstructor) {
+      if (target.isStatic || target.isTopLevel || target is ConstructorEntity) {
         String path = _nativeData.getFixedBackendMethodPath(target);
         js.Expression pathExpression =
             js.js.uncachedExpressionTemplate(path).instantiate([]);
@@ -2840,7 +2842,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   @override
   void visitStatic(HStatic node) {
     MemberEntity element = node.element;
-    assert(element.isFunction || element.isField);
+    assert(element.isFunction || element is FieldEntity);
     if (element.isFunction) {
       push(_emitter
           .staticClosureAccess(element)

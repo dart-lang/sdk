@@ -14,10 +14,10 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
-import '../world.dart' show JClosedWorld;
 
-import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'interfaces.dart' show CodeEmitterTask;
 import 'model.dart';
 import 'interfaces.dart' as interfaces;
 
@@ -38,6 +38,7 @@ class NativeEmitter implements interfaces.NativeEmitter {
   Map<ClassEntity, List<ClassEntity>> directSubtypes = {};
 
   // Caches the methods that have a native body.
+  @override
   Set<FunctionEntity> nativeMethods = {};
 
   // Type metadata redirections, where the key is the class type data being
@@ -313,6 +314,7 @@ class NativeEmitter implements interfaces.NativeEmitter {
     });
   }
 
+  @override
   List<jsAst.Statement> generateParameterStubStatements(
       FunctionEntity member,
       bool isInterceptedMethod,

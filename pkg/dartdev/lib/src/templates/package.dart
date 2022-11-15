@@ -56,7 +56,7 @@ final String _pubspec = '''
 name: __projectName__
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
-# homepage: https://www.example.com
+# repository: https://github.com/my_org/my_repo
 
 environment:
   ${common.sdkConstraint}

@@ -46,6 +46,8 @@ class ObjectPointerVisitor;
                                 LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL,       \
                                 LAZY_FFI)                                      \
   LAZY_CORE(Class, list_class)                                                 \
+  LAZY_CORE(Class, map_class)                                                  \
+  LAZY_CORE(Class, set_class)                                                  \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
   LAZY_CORE(Field, enum_index_field)                                           \
@@ -60,6 +62,9 @@ class ObjectPointerVisitor;
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
   LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
   LAZY_ASYNC(Type, nullable_future_null_type)                                  \
+  LAZY_ISOLATE(Class, send_port_class)                                         \
+  LAZY_ISOLATE(Class, capability_class)                                        \
+  LAZY_ISOLATE(Class, transferable_class)                                      \
   LAZY_ISOLATE(Function, lookup_port_handler)                                  \
   LAZY_ISOLATE(Function, lookup_open_ports)                                    \
   LAZY_ISOLATE(Function, handle_message_function)                              \
@@ -75,6 +80,7 @@ class ObjectPointerVisitor;
   RW(Type, function_type)                                                      \
   RW(Type, type_type)                                                          \
   RW(Class, closure_class)                                                     \
+  RW(Class, record_class)                                                      \
   RW(Type, number_type)                                                        \
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
@@ -236,6 +242,10 @@ class ObjectPointerVisitor;
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
   RW(Code, allocate_record_stub)                                               \
+  RW(Code, allocate_record2_stub)                                              \
+  RW(Code, allocate_record2_named_stub)                                        \
+  RW(Code, allocate_record3_stub)                                              \
+  RW(Code, allocate_record3_named_stub)                                        \
   RW(Code, allocate_unhandled_exception_stub)                                  \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
@@ -328,6 +338,10 @@ class ObjectPointerVisitor;
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
   DO(allocate_record_stub, AllocateRecord)                                     \
+  DO(allocate_record2_stub, AllocateRecord2)                                   \
+  DO(allocate_record2_named_stub, AllocateRecord2Named)                        \
+  DO(allocate_record3_stub, AllocateRecord3)                                   \
+  DO(allocate_record3_named_stub, AllocateRecord3Named)                        \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
   DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \

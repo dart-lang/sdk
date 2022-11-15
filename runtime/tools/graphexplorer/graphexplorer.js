@@ -44,6 +44,8 @@ function Graph() {
   this.predecessors_ = null;
   this.predecessorName_ = null;
   this.retainedSize_ = null;
+  this.ownedSize_ = null;
+  this.successorsOwnedSize_ = null;
   this.dom_ = null;
   this.domHead_ = null;
   this.domNext_ = null;
@@ -58,10 +60,6 @@ function Graph() {
   this.ancestor_ = null;
   this.label_ = null;
   this.bucket_ = null;
-
-  // Recycled memory.
-  this.mark_ = null;
-  this.stack_ = null;
 }
 
 // Load a graph in V8 heap profile format from parsed JSON `data`.
@@ -321,13 +319,11 @@ Graph.prototype.compute = function(rewriteForOwners) {
   }
   this.computePreorder(1);
   this.computeDominators();
+  this.computeOwnedSizes();
   this.computeRetainedSizes();
   this.linkDominatorChildren();
   this.sortDominatorChildren();
   this.mergeDominatorSiblings(1);
-
-  this.mark_ = new Uint8Array(this.N_ + 1);
-  this.stack_ = new Uint32Array(this.E_);
 };
 
 Graph.prototype.computePredecessors = function() {
@@ -344,10 +340,10 @@ Graph.prototype.computePredecessors = function() {
 
   const predecessorCount = new Uint32Array(N + 1);
   for (let i = 1; i <= N; i++) {
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
-    for (let successorIndex = firstSuccessorIndex;
-       successorIndex < lastSuccessorIndex;
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
+    for (let successorIndex = startSuccessorIndex;
+       successorIndex < limitSuccessorIndex;
        successorIndex++) {
       let successor = successors[successorIndex];
       if (successor == 0) continue;  // Omitted object.
@@ -363,10 +359,10 @@ Graph.prototype.computePredecessors = function() {
   firstPredecessor[N + 1] = nextPredecessorIndex;
 
   for (let i = 1; i <= N; i++) {
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
-    for (let successorIndex = firstSuccessorIndex;
-       successorIndex < lastSuccessorIndex;
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
+    for (let successorIndex = startSuccessorIndex;
+       successorIndex < limitSuccessorIndex;
        successorIndex++) {
       let successor = successors[successorIndex];
       if (successor == 0) continue;  // Omitted object.
@@ -428,10 +424,10 @@ Graph.prototype.rewriteEdgesForOwners = function() {
       continue;
     }
 
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
-    for (let successorIndex = firstSuccessorIndex;
-         successorIndex < lastSuccessorIndex;
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
+    for (let successorIndex = startSuccessorIndex;
+         successorIndex < limitSuccessorIndex;
          successorIndex++) {
       let edge = this.strings_[this.successorName_[successorIndex]];
       if (edge == ownerEdgeName) {
@@ -449,11 +445,11 @@ Graph.prototype.rewriteEdgesForOwners = function() {
   const newSuccessorName = new Uint32Array(E);
   let newSuccessorIndex = 0;
   for (let i = 1; i <= N; i++) {
-    let firstSuccessorIndex = firstSuccessor[i];
-    let lastSuccessorIndex = firstSuccessor[i + 1];
+    let startSuccessorIndex = firstSuccessor[i];
+    let limitSuccessorIndex = firstSuccessor[i + 1];
     firstSuccessor[i] = newSuccessorIndex;
-    for (let successorIndex = firstSuccessorIndex;
-         successorIndex < lastSuccessorIndex;
+    for (let successorIndex = startSuccessorIndex;
+         successorIndex < limitSuccessorIndex;
          successorIndex++) {
       let successor = successors[successorIndex];
       let name = successorName[successorIndex];
@@ -479,14 +475,14 @@ Graph.prototype.rewriteEdgesForOwners = function() {
       continue;
     }
 
-    let firstPredecessorIndex = firstPredecessor[i];
-    let lastPredecessorIndex = firstPredecessor[i + 1];
-    for (let predecessorIndex = firstPredecessorIndex;
-         predecessorIndex < lastPredecessorIndex;
+    let startPredecessorIndex = firstPredecessor[i];
+    let limitPredecessorIndex = firstPredecessor[i + 1];
+    for (let predecessorIndex = startPredecessorIndex;
+         predecessorIndex < limitPredecessorIndex;
          predecessorIndex++) {
       predecessors[predecessorIndex] = 0;
     }
-    predecessors[firstPredecessorIndex] = owner;
+    predecessors[startPredecessorIndex] = owner;
 
     let nextSuccessorIndex = firstSuccessor[owner + 1] - owneeCount[owner];
     newSuccessors[nextSuccessorIndex] = i;
@@ -589,15 +585,17 @@ Graph.prototype.computeDominators = function() {
   const bucket = new Array(N + 1);
   const parent = this.parent_;
   const dom = new Uint32Array(N + 1);
+  const stackNode = new Uint32Array(N + 1);
+  const stackState = new Uint8Array(N + 1);
 
   for (let i = Nconnected; i > 1; i--) {
     let w = vertex[i];
 
     // Lengauer and Tarjan Step 2.
-    let firstPredecessorIndex = firstPredecessor[w];
-    let lastPredecessorIndex = firstPredecessor[w + 1];
-    for (let predecessorIndex = firstPredecessorIndex;
-         predecessorIndex < lastPredecessorIndex;
+    let startPredecessorIndex = firstPredecessor[w];
+    let limitPredecessorIndex = firstPredecessor[w + 1];
+    for (let predecessorIndex = startPredecessorIndex;
+         predecessorIndex < limitPredecessorIndex;
          predecessorIndex++) {
       let v = predecessors[predecessorIndex];
 
@@ -607,7 +605,7 @@ Graph.prototype.computeDominators = function() {
         continue;
       }
 
-      let u = this.forestEval(v);
+      let u = this.forestEval(v, stackNode, stackState);
       if (semi[u] < semi[w]) {
         semi[w] = semi[u]
       }
@@ -629,7 +627,7 @@ Graph.prototype.computeDominators = function() {
     if (b != null) {
       for (let j = 0; j < b.length; j++) {
         let v = b[j];
-        let u = this.forestEval(v);
+        let u = this.forestEval(v, stackNode, stackState);
         dom[v] = semi[u] < semi[v] ? u : parent[w];
       }
     }
@@ -653,30 +651,113 @@ Graph.prototype.computeDominators = function() {
   this.dom_ = dom;
 };
 
-Graph.prototype.forestCompress = function(v) {
-  const ancestor = this.ancestor_;
-  if (ancestor[ancestor[v]] != 0) {
-    this.forestCompress(ancestor[v]);
-    const semi = this.semi_;
-    const label = this.label_;
-    if (semi[label[ancestor[v]]] < semi[label[v]]) {
-      label[v] = label[ancestor[v]];
-    }
-    ancestor[v] = ancestor[ancestor[v]];
-  }
-};
-
-Graph.prototype.forestEval = function(v) {
+Graph.prototype.forestEval = function(v, stackNode, stackState) {
   if (this.ancestor_[v] == 0) {
     return v;
   } else {
-    this.forestCompress(v);
-    return this.label_[v];
+    const ancestor = this.ancestor_;
+    const semi = this.semi_;
+    const label = this.label_;
+    {
+      // Inlined 'compress' with an explicit stack to prevent JS stack
+      // overflow.
+      let top = 0;
+      stackNode[top] = v;
+      stackState[top] = 0;
+      while (top >= 0) {
+        let v = stackNode[top];
+        let state = stackState[top];
+        if (state == 0) {
+          if (ancestor[ancestor[v]] != 0) {
+            stackState[top] = 1;
+            // Recurse with ancestor[v]
+            top++;
+            stackNode[top] = ancestor[v];
+            stackState[top] = 0;
+          } else {
+            top--;
+          }
+        } else {
+          if (semi[label[ancestor[v]]] < semi[label[v]]) {
+            label[v] = label[ancestor[v]];
+          }
+          ancestor[v] = ancestor[ancestor[v]];
+          top--;
+        }
+      }
+    }
+
+    if (semi[label[ancestor[v]]] >= semi[label[v]]) {
+      return label[v];
+    } else {
+      return label[ancestor[v]];
+    }
   }
 };
 
 Graph.prototype.forestLink = function(v, w) {
   this.ancestor_[w] = v;
+};
+
+Graph.prototype.computeOwnedSizes = function() {
+  console.log("Computing in-degree(1) groups...");
+
+  const N = this.N_;
+  const E = this.E_;
+  const Nconnected = this.Nconnected_;
+  const shallowSize = this.shallowSize_;
+  const vertex = this.vertex_;
+  const successors = this.successors_;
+  const firstSuccessor = this.firstSuccessor_;
+  const predecessors = this.predecessors_;
+  const firstPredecessor = this.firstPredecessor_;
+  const SENTINEL = 0;
+  const ROOT = vertex[1];
+  const ownedSize = new Uint32Array(N + 1);
+  const successorsOwnedSize = new Uint32Array(E + 1);
+
+  for (let i = 0; i <= N; i++) {
+    ownedSize[i] = shallowSize[i];
+  }
+
+  for (let i = Nconnected; i > 1; i--) {
+    const w = vertex[i];
+
+    let onlyPred = SENTINEL;
+    const startPred = firstPredecessor[w];
+    const limitPred = firstPredecessor[w + 1];
+    for (let predIndex = startPred; predIndex < limitPred; predIndex++) {
+      const v = predecessors[predIndex];
+      if (v == w) {
+        // Ignore self-predecessor.
+      } else if (onlyPred == SENTINEL) {
+        onlyPred = v;
+      } else if (onlyPred == v) {
+        // Repeated predecessor.
+      } else {
+        // Multiple predecessors.
+        onlyPred = SENTINEL;
+        break;
+      }
+    }
+
+    if ((onlyPred != SENTINEL) && (onlyPred != ROOT)) {
+      let size = ownedSize[w];
+      ownedSize[w] = 0;
+      ownedSize[onlyPred] += size;
+
+      const startSucc = firstSuccessor[onlyPred];
+      const limitSucc = firstSuccessor[onlyPred + 1];
+      for (let succIndex = startSucc; succIndex < limitSucc; succIndex++) {
+        if (successors[succIndex] == w) {
+          successorsOwnedSize[succIndex] = size;
+        }
+      }
+    }
+  }
+
+  this.ownedSize_ = ownedSize;
+  this.successorsOwnedSize_ = successorsOwnedSize;
 };
 
 Graph.prototype.computeRetainedSizes = function() {
@@ -897,22 +978,23 @@ function removeDuplicates(array) {
 
 Graph.prototype.successorsOfDo = function(v, action) {
   let cls = this.class_[v];
-  let firstSuccessorIndex = this.firstSuccessor_[v];
-  let lastSuccessorIndex = this.firstSuccessor_[v + 1];
-  for (let successorIndex = firstSuccessorIndex;
-     successorIndex < lastSuccessorIndex;
+  let startSuccessorIndex = this.firstSuccessor_[v];
+  let limitSuccessorIndex = this.firstSuccessor_[v + 1];
+  for (let successorIndex = startSuccessorIndex;
+     successorIndex < limitSuccessorIndex;
      successorIndex++) {
     let successor = this.successors_[successorIndex];
     let edgeName = this.strings_[this.successorName_[successorIndex]];
-    action(successor, cls + "::" + edgeName);
+    let edgeOwnedSize = this.successorsOwnedSize_[successorIndex];
+    action(successor, cls + "::" + edgeName, edgeOwnedSize);
   }
 }
 
 Graph.prototype.predecessorsOfDo = function(v, action) {
-  let firstPredecessorIndex = this.firstPredecessor_[v];
-  let lastPredecessorIndex = this.firstPredecessor_[v + 1];
-  for (let predecessorIndex = firstPredecessorIndex;
-     predecessorIndex < lastPredecessorIndex;
+  let startPredecessorIndex = this.firstPredecessor_[v];
+  let limitPredecessorIndex = this.firstPredecessor_[v + 1];
+  for (let predecessorIndex = startPredecessorIndex;
+     predecessorIndex < limitPredecessorIndex;
      predecessorIndex++) {
     let predecessor = this.predecessors_[predecessorIndex];
     let cls = this.class_[predecessor];
@@ -959,68 +1041,12 @@ Graph.prototype.shallowSizeOfSet = function(nodes) {
   return sum;
 };
 
-Graph.prototype.retainedSizeOfSet = function(nodes) {
-  const N = this.N_;
-  const E = this.E_;
-  const mark = this.mark_;
-  const stack = this.stack_;
-
-  for (let i = 1; i <= N; i++) {
-    mark[i] = 0;
-  }
-
-  for (let i = 0; i < nodes.length; i++) {
-    let v = nodes[i];
-    mark[v] = 1;
-  }
-
-  let scan = 0;
-  let top = 0;
-  stack[top++] = 1;
-
-  while (scan < top) {
-    let v = stack[scan++];
-    let firstSuccessorIndex = this.firstSuccessor_[v];
-    let lastSuccessorIndex = this.firstSuccessor_[v + 1];
-    for (let successorIndex = firstSuccessorIndex;
-       successorIndex < lastSuccessorIndex;
-       successorIndex++) {
-      let successor = this.successors_[successorIndex];
-      if (mark[successor] == 0) {
-        mark[successor] = 1;
-        stack[top++] = successor;
-      }
-    }
-  }
-
-
-  for (let i = 0; i < nodes.length; i++) {
-    let v = nodes[i];
-    mark[v] = 0;
-  }
-  for (let i = 0; i < nodes.length; i++) {
-    let v = nodes[i];
-    if (mark[v] == 0) {
-      mark[v] = 1;
-      stack[top++] = v;
-    }
-  }
-
+Graph.prototype.ownedSizeOfSet = function(nodes) {
+  const ownedSize = this.ownedSize_;
   let sum = 0;
-  while (scan < top) {
-    let v = stack[scan++];
-    sum += this.shallowSize_[v];
-    let firstSuccessorIndex = this.firstSuccessor_[v];
-    let lastSuccessorIndex = this.firstSuccessor_[v + 1];
-    for (let successorIndex = firstSuccessorIndex;
-       successorIndex < lastSuccessorIndex;
-       successorIndex++) {
-      let successor = this.successors_[successorIndex];
-      if (mark[successor] == 0) {
-        mark[successor] = 1;
-        stack[top++] = successor;
-      }
-    }
+  for (let i = 0; i < nodes.length; i++) {
+    let v = nodes[i];
+    sum += ownedSize[v];
   }
   return sum;
 };
@@ -1470,7 +1496,7 @@ function Group(edge, cls) {
   this.edge = edge;
   this.cls = cls;
   this.shallowSize = 0;
-  this.retainedSize = 0;
+  this.ownedSize = 0;
   this.nodes = new Array();
 }
 
@@ -1502,7 +1528,7 @@ function asGroupsByClass(labeledNodes) {
   for (let i = 0; i < groups.length; i++) {
     let group = groups[i];
     group.shallowSize = graph.shallowSizeOfSet(group.nodes);
-    group.retainedSize = graph.retainedSizeOfSet(group.nodes);
+    group.ownedSize = graph.ownedSizeOfSet(group.nodes);
     group.name = group.nodes.length + " instances of " + group.cls;
   }
   return groups;
@@ -1558,11 +1584,9 @@ function Table(title, labeledNodes, byEdges) {
   let shallowPercent = document.createElement("span");
   shallowPercent.className = "sizePercentCell"
 
-  let retainedSize = document.createElement("span");
-  retainedSize.onclick = function() { self.sortByRetainedSize(); };
-  retainedSize.className = "sizeCell actionCell";
-  retainedSize.textContent = "Retained Size";
-  retainedSize.title = "Sort by retained size";
+  this.retainedSize = document.createElement("span");
+  this.retainedSize.onclick = function() { self.sortByRetainedSize(); };
+  this.retainedSize.className = "sizeCell actionCell";
 
   let retainedPercent = document.createElement("span");
   retainedPercent.className = "sizePercentCell";
@@ -1575,7 +1599,7 @@ function Table(title, labeledNodes, byEdges) {
   header.appendChild(cls);
   header.appendChild(shallowSize);
   header.appendChild(shallowPercent);
-  header.appendChild(retainedSize);
+  header.appendChild(this.retainedSize);
   header.appendChild(retainedPercent);
 
   this.listDiv = document.createElement("div");
@@ -1639,10 +1663,10 @@ Table.prototype.sortByRetainedSize = function() {
     return graph.retainedSizeOf(b.node) - graph.retainedSizeOf(a.node);
   });
   this.groupsByEdge.sort(function (a, b) {
-    return b.retainedSize - a.retainedSize;
+    return b.ownedSize - a.ownedSize;
   });
   this.groupsByClass.sort(function (a, b) {
-    return b.retainedSize - a.retainedSize;
+    return b.ownedSize - a.ownedSize;
   });
   this.refreshRows();
 };
@@ -1658,6 +1682,8 @@ Table.prototype.refreshRows = function() {
   if (this.grouping == 0) {
     let labeledNodes = this.labeledNodes;
     this.nom.textContent = this.title + " (" + labeledNodes.length + " objects)";
+    this.retainedSize.textContent = "Retained Size";
+    this.retainedSize.title = "Sort by retained size";
 
     for (let i = 0; i < labeledNodes.length; i++) {
       if (i > MAX_TABLE_ROWS) {
@@ -1669,6 +1695,8 @@ Table.prototype.refreshRows = function() {
   } else if (this.grouping == 1) {
     let groups = this.groupsByClass;
     this.nom.textContent = this.title + " (" + groups.length + " classes)";
+    this.retainedSize.textContent = "Owned Size";
+    this.retainedSize.title = "Sort by owned size";
 
     for (let i = 0; i < groups.length; i++) {
       if (i > MAX_TABLE_ROWS) {
@@ -1681,6 +1709,8 @@ Table.prototype.refreshRows = function() {
   } else {
     let groups = this.groupsByEdge;
     this.nom.textContent = this.title + " (" + groups.length + " edges)";
+    this.retainedSize.textContent = "Owned Size";
+    this.retainedSize.title = "Sort by owned size";
 
     for (let i = 0; i < groups.length; i++) {
       if (i > MAX_TABLE_ROWS) {
@@ -1772,13 +1802,13 @@ function createGroupRow(g) {
   shallowPercent.className = "sizePercentCell";
   shallowPercent.textContent = prettyPercent(g.shallowSize / graph.getTotalSize());
 
-  let retainedSize = document.createElement("span");
-  retainedSize.className = "sizeCell";
-  retainedSize.textContent = g.retainedSize;
+  let ownedSize = document.createElement("span");
+  ownedSize.className = "sizeCell";
+  ownedSize.textContent = g.ownedSize;
 
-  let retainedPercent = document.createElement("span");
-  retainedPercent.className = "sizePercentCell";
-  retainedPercent.textContent = prettyPercent(g.retainedSize / graph.getTotalSize());
+  let ownedPercent = document.createElement("span");
+  ownedPercent.className = "sizePercentCell";
+  ownedPercent.textContent = prettyPercent(g.ownedSize / graph.getTotalSize());
 
   let row = document.createElement("div");
   row.style["display"] = "flex";
@@ -1789,8 +1819,8 @@ function createGroupRow(g) {
   row.appendChild(cls);
   row.appendChild(shallowSize);
   row.appendChild(shallowPercent);
-  row.appendChild(retainedSize);
-  row.appendChild(retainedPercent);
+  row.appendChild(ownedSize);
+  row.appendChild(ownedPercent);
   return row;
 }
 
@@ -1813,7 +1843,7 @@ function showTables(nodes) {
   for (let i = 0; i < nodes.length; i++) {
     let n = nodes[i];
     labeledNodes.push(new LabeledNode(n, "-"));
-    graph.successorsOfDo(n, function (child, edgeName) {
+    graph.successorsOfDo(n, function (child, edgeName, edgeOwnedSize) {
       let e = successors.get(child);
       if (e) {
         e.addName(edgeName);
@@ -1828,6 +1858,7 @@ function showTables(nodes) {
         successorEdges.set(edgeName, g);
       }
       g.add(child, edgeName, cls);
+      g.ownedSize += edgeOwnedSize;
     });
     graph.predecessorsOfDo(n, function (parent, edgeName) {
       let e = predecessors.get(parent);
@@ -1847,16 +1878,12 @@ function showTables(nodes) {
     });
   }
 
-  // Computing retained sizes here O((C + E) * N) where
-  //   N is the number of objects
-  //   C is the number of classes
-  //   E is the number of edges
   successors = mapValuesToArray(successors);
   for (let i = 0; i < successorEdgeGroups.length; i++) {
     let group = successorEdgeGroups[i];
     group.nodes = removeDuplicates(group.nodes);
     group.shallowSize = graph.shallowSizeOfSet(group.nodes);
-    group.retainedSize = graph.retainedSizeOfSet(group.nodes);
+    // group.ownedSize is the flow through the edges
     group.name = group.nodes.length + " targets of " + group.edge;
   }
   predecessors = mapValuesToArray(predecessors);
@@ -1864,7 +1891,7 @@ function showTables(nodes) {
     let group = predecessorEdgeGroups[i];
     group.nodes = removeDuplicates(group.nodes);
     group.shallowSize = graph.shallowSizeOfSet(group.nodes);
-    group.retainedSize = graph.retainedSizeOfSet(group.nodes);
+    group.ownedSize = graph.ownedSizeOfSet(group.nodes);
     group.name = group.nodes.length + " sources of " + group.edge;
   }
 

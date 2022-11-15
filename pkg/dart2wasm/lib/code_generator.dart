@@ -53,9 +53,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.Local? preciseThisLocal;
   w.Local? returnValueLocal;
   final Map<TypeParameter, w.Local> typeLocals = {};
-  final List<TryBlockFinalizer> finalizers = [];
+
+  /// Finalizers to run on `return`.
+  final List<TryBlockFinalizer> returnFinalizers = [];
+
+  /// Finalizers to run on a `break`. `breakFinalizers[L].last` (which should
+  /// always be present) is the `br` target for the label `L` that will run the
+  /// finalizers, or break out of the loop.
+  final Map<LabeledStatement, List<w.Label>> breakFinalizers = {};
+
   final List<w.Label> tryLabels = [];
-  final Map<LabeledStatement, w.Label> labels = {};
+
   final Map<SwitchCase, w.Label> switchLabels = {};
 
   /// Maps a switch statement to the information used when doing a backward
@@ -117,7 +125,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType defaultExpression(Expression node, w.ValueType expectedType) {
-    unimplemented(node, node.runtimeType, [expectedType]);
+    unimplemented(
+        node, node.runtimeType, [if (expectedType != voidMarker) expectedType]);
     return expectedType;
   }
 
@@ -726,15 +735,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   void visitLabeledStatement(LabeledStatement node) {
     w.Label label = b.block();
-    labels[node] = label;
+    breakFinalizers[node] = <w.Label>[label];
     visitStatement(node.body);
-    labels.remove(node);
+    breakFinalizers.remove(node);
     b.end();
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    b.br(labels[node.target]!);
+    b.br(breakFinalizers[node.target]!.last);
   }
 
   @override
@@ -752,17 +761,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       local = addLocal(type);
       locals[node] = local;
     }
-    if (node.initializer != null) {
+
+    // Handle variable initialization. Nullable variables have an implicit
+    // initializer.
+    if (node.initializer != null ||
+        node.type.nullability == Nullability.nullable) {
+      Expression initializer =
+          node.initializer ?? ConstantExpression(NullConstant());
       if (capture != null) {
         w.ValueType expectedType = capture.written ? capture.type : local!.type;
         b.local_get(capture.context.currentLocal);
-        wrap(node.initializer!, expectedType);
+        wrap(initializer, expectedType);
         if (!capture.written) {
           b.local_tee(local!);
         }
         b.struct_set(capture.context.struct, capture.fieldIndex);
       } else {
-        wrap(node.initializer!, local!.type);
+        wrap(initializer, local!.type);
         b.local_set(local);
       }
     } else if (local != null && !local.type.defaultable) {
@@ -867,30 +882,64 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitTryFinally(TryFinally node) {
-    // We lower a [TryFinally] to three nested blocks, and we emit the finalizer
-    // up to three times. Once in a catch, to handle the case where the try
+    // We lower a [TryFinally] to a number of nested blocks, depending on how
+    // many different code paths we have that run the finally block.
+    //
+    // We emit the finalizer once in a catch, to handle the case where the try
     // throws. Once outside of the catch, to handle the case where the try does
-    // not throw. Finally, if there is a return within the try block, then we
-    // emit the finalizer one more time along with logic to continue walking up
-    // the stack.
+    // not throw. If there is a return within the try block, then we emit the
+    // finalizer one more time along with logic to continue walking up the
+    // stack.
+    //
+    // A `break L` can run more than one finalizer, and each of those
+    // finalizers will need to be run in a different `try` block. So for each
+    // wrapping label we generate a block to run the finalizer on `break` and
+    // then branch to the right Wasm block to either run the next finalizer or
+    // break.
+
+    // The block for the try-finally statement. Used as `br` target in normal
+    // execution after the finalizer (no throws, returns, or breaks).
     w.Label tryFinallyBlock = b.block();
-    w.Label finalizerBlock = b.block();
-    finalizers.add(TryBlockFinalizer(finalizerBlock));
+
+    // Create one block for each wrapping label
+    for (final labelBlocks in breakFinalizers.values) {
+      labelBlocks.add(b.block());
+    }
+
+    // Continuation of this block runs the finalizer and returns (or jumps to
+    // the next finalizer block). Used as `br` target on `return`.
+    w.Label returnFinalizerBlock = b.block();
+    returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
+
     w.Label tryBlock = b.try_();
     visitStatement(node.body);
-    bool mustHandleReturn = finalizers.removeLast().mustHandleReturn;
-    b.br(tryBlock);
+    final bool mustHandleReturn =
+        returnFinalizers.removeLast().mustHandleReturn;
     b.catch_(translator.exceptionTag);
+
+    // `break` statements in the current finalizer and the rest will not run
+    // the current finalizer, update the `break` targets
+    final removedBreakTargets = <LabeledStatement, w.Label>{};
+    for (final breakFinalizerEntry in breakFinalizers.entries) {
+      removedBreakTargets[breakFinalizerEntry.key] =
+          breakFinalizerEntry.value.removeLast();
+    }
+
+    // Run finalizer on exception
     visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
     b.end(); // end tryBlock.
+
+    // Run finalizer on normal execution (no breaks, throws, or returns)
     visitStatement(node.finalizer);
     b.br(tryFinallyBlock);
-    b.end(); // end finalizerBlock.
+    b.end(); // end returnFinalizerBlock.
+
+    // Run finalizer on `return`
     if (mustHandleReturn) {
       visitStatement(node.finalizer);
-      if (finalizers.isNotEmpty) {
-        b.br(finalizers.last.label);
+      if (returnFinalizers.isNotEmpty) {
+        b.br(returnFinalizers.last.label);
       } else {
         if (returnValueLocal != null) {
           b.local_get(returnValueLocal!);
@@ -899,7 +948,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         _returnFromFunction();
       }
     }
-    b.end(); // end tryFinallyBlock.
+
+    // Generate finalizers for `break`s in the `try` block
+    for (final removedBreakTargetEntry in removedBreakTargets.entries) {
+      b.end();
+      visitStatement(node.finalizer);
+      b.br(breakFinalizers[removedBreakTargetEntry.key]!.last);
+    }
+
+    // Terminate `tryFinallyBlock`
+    b.end();
   }
 
   @override
@@ -1077,8 +1135,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // as the stack unwinds. When we get to the top of the finalizer stack, we
     // will handle the return using [returnValueLocal] if this function returns
     // a value.
-    if (finalizers.isNotEmpty) {
-      for (TryBlockFinalizer finalizer in finalizers) {
+    if (returnFinalizers.isNotEmpty) {
+      for (TryBlockFinalizer finalizer in returnFinalizers) {
         finalizer.mustHandleReturn = true;
       }
       if (returnType != voidMarker) {
@@ -1088,7 +1146,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         returnValueLocal ??= addLocal(returnType.withNullability(true));
         b.local_set(returnValueLocal!);
       }
-      b.br(finalizers.last.label);
+      b.br(returnFinalizers.last.label);
     } else {
       _returnFromFunction();
     }
@@ -1102,19 +1160,25 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       wrap(node.expression, voidMarker);
       return;
     }
+
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
             e is L ||
             e is NullLiteral ||
-            e is ConstantExpression &&
-                (e.constant is C || e.constant is NullConstant));
+            (e is ConstantExpression &&
+                (e.constant is C || e.constant is NullConstant)));
 
     // Identify kind of switch. One of `nullableType` or `nonNullableType` will
     // be the type for Wasm local that holds the switch value.
-    w.ValueType nullableType;
-    w.ValueType nonNullableType;
-    void Function() compare;
-    if (check<BoolLiteral, BoolConstant>()) {
+    late final w.ValueType nullableType;
+    late final w.ValueType nonNullableType;
+    late final void Function() compare;
+    if (node.cases.every((c) => c.expressions.isEmpty && c.isDefault)) {
+      // default-only switch
+      nonNullableType = w.RefType.eq(nullable: false);
+      nullableType = w.RefType.eq(nullable: true);
+      compare = () => throw "Comparison in default-only switch";
+    } else if (check<BoolLiteral, BoolConstant>()) {
       // bool switch
       nonNullableType = w.NumType.i32;
       nullableType =
@@ -1391,14 +1455,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       switch (target.name.text) {
         case "toString":
           late w.Label done;
-          w.ValueType resultType = _virtualCall(node, target, (signature) {
+          w.ValueType resultType =
+              _virtualCall(node, target, _VirtualCallKind.Call, (signature) {
             done = b.block(const [], signature.outputs);
             w.Label nullString = b.block();
             wrap(node.receiver, translator.topInfo.nullableType);
             b.br_on_null(nullString);
           }, (_) {
             _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-          }, getter: false, setter: false);
+          });
           b.br(done);
           b.end();
           wrap(StringLiteral("null"), resultType);
@@ -1418,10 +1483,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
       return call(singleTarget.reference);
     }
-    return _virtualCall(node, target,
+    return _virtualCall(node, target, _VirtualCallKind.Call,
         (signature) => wrap(node.receiver, signature.inputs.first), (_) {
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-    }, getter: false, setter: false);
+    });
   }
 
   @override
@@ -1490,8 +1555,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         right();
         call(singleTarget.reference);
       } else {
-        _virtualCall(node, node.interfaceTarget, left, right,
-            getter: false, setter: false);
+        _virtualCall(
+          node,
+          node.interfaceTarget,
+          _VirtualCallKind.Call,
+          left,
+          right,
+        );
       }
       if (leftNullable || rightNullable) {
         b.br(done!);
@@ -1521,12 +1591,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType _virtualCall(
       TreeNode node,
       Member interfaceTarget,
+      _VirtualCallKind kind,
       void pushReceiver(w.FunctionType signature),
-      void pushArguments(w.FunctionType signature),
-      {required bool getter,
-      required bool setter}) {
+      void pushArguments(w.FunctionType signature)) {
     SelectorInfo selector = translator.dispatchTable.selectorForTarget(
-        interfaceTarget.referenceAs(getter: getter, setter: setter));
+        interfaceTarget.referenceAs(
+            getter: kind.isGetter, setter: kind.isSetter));
     assert(selector.name == interfaceTarget.name.text);
 
     pushReceiver(selector.signature);
@@ -1558,8 +1628,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (options.polymorphicSpecialization) {
       _polymorphicSpecialization(selector, receiverVar);
     } else {
-      String access = getter ? "get" : (setter ? "set" : "call");
-      b.comment("Instance $access of '${selector.name}'");
+      b.comment("Instance $kind of '${selector.name}'");
       b.local_get(receiverVar);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       if (offset != 0) {
@@ -1777,12 +1846,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Member target = node.interfaceTarget;
     if (node.kind == InstanceAccessKind.Object) {
       late w.Label doneLabel;
-      w.ValueType resultType = _virtualCall(node, target, (signature) {
+      w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Get, (signature) {
         doneLabel = b.block(const [], signature.outputs);
         w.Label nullLabel = b.block();
         wrap(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
-      }, (_) {}, getter: true, setter: false);
+      }, (_) {});
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -1806,9 +1876,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return _directGet(singleTarget, node.receiver,
           () => intrinsifier.generateInstanceGetterIntrinsic(node));
     } else {
-      return _virtualCall(node, target,
-          (signature) => wrap(node.receiver, signature.inputs.first), (_) {},
-          getter: true, setter: false);
+      return _virtualCall(node, target, _VirtualCallKind.Get,
+          (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
     }
   }
 
@@ -1846,11 +1915,52 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
+  w.ValueType visitFunctionTearOff(
+          FunctionTearOff node, w.ValueType expectedType) =>
+      wrap(node.receiver, expectedType);
+
+  @override
   w.ValueType visitInstanceTearOff(
       InstanceTearOff node, w.ValueType expectedType) {
-    return _virtualCall(node, node.interfaceTarget,
-        (signature) => wrap(node.receiver, signature.inputs.first), (_) {},
-        getter: true, setter: false);
+    Member target = node.interfaceTarget;
+
+    if (node.kind == InstanceAccessKind.Object) {
+      late w.Label doneLabel;
+      w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Get, (signature) {
+        doneLabel = b.block(const [], signature.outputs);
+        w.Label nullLabel = b.block();
+        wrap(node.receiver, translator.topInfo.nullableType);
+        b.br_on_null(nullLabel);
+        translator.convertType(
+            function, translator.topInfo.nullableType, signature.inputs[0]);
+      }, (_) {});
+      b.br(doneLabel);
+      b.end(); // nullLabel
+      switch (target.name.text) {
+        case "toString":
+          wrap(
+              ConstantExpression(
+                  StaticTearOffConstant(translator.nullToString)),
+              resultType);
+          break;
+        case "noSuchMethod":
+          wrap(
+              ConstantExpression(
+                  StaticTearOffConstant(translator.nullNoSuchMethod)),
+              resultType);
+          break;
+        default:
+          unimplemented(
+              node, "Nullable tear-off of ${target.name.text}", [resultType]);
+          break;
+      }
+      b.end(); // doneLabel
+      return resultType;
+    }
+
+    return _virtualCall(node, target, _VirtualCallKind.Get,
+        (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
   }
 
   @override
@@ -1862,7 +1972,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return _directSet(singleTarget, node.receiver, node.value,
           preserved: preserved);
     } else {
-      _virtualCall(node, node.interfaceTarget,
+      _virtualCall(node, node.interfaceTarget, _VirtualCallKind.Set,
           (signature) => wrap(node.receiver, signature.inputs.first),
           (signature) {
         w.ValueType paramType = signature.inputs.last;
@@ -1871,7 +1981,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           temp = addLocal(paramType);
           b.local_tee(temp!);
         }
-      }, getter: false, setter: true);
+      });
       if (preserved) {
         b.local_get(temp!);
         return temp!.type;
@@ -2042,10 +2152,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Call entry point in vtable
     int vtableIndex =
         representation.fieldIndexForSignature(posArgCount, argNames);
+    w.FunctionType functionType =
+        (representation.vtableStruct.fields[vtableIndex].type as w.RefType)
+            .heapType as w.FunctionType;
     b.local_get(temp);
     b.struct_get(struct, FieldIndex.closureVtable);
     b.struct_get(representation.vtableStruct, vtableIndex);
-    b.call_ref();
+    b.call_ref(functionType);
     return translator.topInfo.nullableType;
   }
 
@@ -2062,6 +2175,45 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.comment("Local call of ${decl.variable.name}");
     b.call(lambda.function);
     return translator.outputOrVoid(lambda.function.type.outputs);
+  }
+
+  @override
+  w.ValueType visitInstantiation(Instantiation node, w.ValueType expectedType) {
+    DartType type = dartTypeOf(node.expression);
+    if (type is FunctionType) {
+      int typeCount = type.typeParameters.length;
+      int posArgCount = type.positionalParameters.length;
+      List<String> argNames = type.namedParameters.map((a) => a.name).toList();
+      ClosureRepresentation representation = translator.closureLayouter
+          .getClosureRepresentation(typeCount, posArgCount, argNames)!;
+
+      // Operand closure
+      w.RefType closureType =
+          w.RefType.def(representation.closureStruct, nullable: false);
+      w.Local closureTemp = addLocal(closureType);
+      wrap(node.expression, closureType);
+      b.local_tee(closureTemp);
+
+      // Type arguments
+      for (DartType typeArg in node.typeArguments) {
+        types.makeType(this, typeArg);
+      }
+
+      // Instantiation function
+      b.local_get(closureTemp);
+      b.struct_get(representation.closureStruct, FieldIndex.closureVtable);
+      b.struct_get(
+          representation.vtableStruct, FieldIndex.vtableInstantiationFunction);
+
+      // Call instantiation function
+      b.call_ref(representation.instantiationFunctionType);
+      return representation.instantiationFunctionType.outputs.single;
+    } else {
+      // Only other alternative is `NeverType`.
+      assert(type is NeverType);
+      b.unreachable();
+      return voidMarker;
+    }
   }
 
   @override
@@ -2189,11 +2341,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
-  w.ValueType visitInstantiation(Instantiation node, w.ValueType expectedType) {
-    throw "Not supported: Generic function instantiation at ${node.location}";
-  }
-
-  @override
   w.ValueType visitConstantExpression(
       ConstantExpression node, w.ValueType expectedType) {
     translator.constants
@@ -2239,9 +2386,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         isGrowable: true);
   }
 
-  /// Takes a List class, a type argument, a function which will be called for
-  /// each item in the list with the expected type of the element, and a list
-  /// length, and creates a Dart List on the stack.
+  /// Allocate a Dart `List` with element type [typeArg], length [length] and
+  /// push the list to the stack.
+  ///
+  /// [generateItem] will be called [length] times to initialize list elements.
+  ///
+  /// Concrete type of the list will be `_GrowableList` if [isGrowable] is
+  /// true, `_List` otherwise.
   w.ValueType makeList(DartType typeArg, int length,
       void Function(w.ValueType, int) generateItem,
       {bool isGrowable = false}) {
@@ -2380,6 +2531,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return operand.type;
   }
 
+  /// Pushes the `_Type` object for a function or class type parameter to the
+  /// stack and returns the value type of the object.
   w.ValueType instantiateTypeParameter(TypeParameter parameter) {
     w.ValueType resultType;
     if (parameter.parent is FunctionNode) {
@@ -2411,7 +2564,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 }
 
 class TryBlockFinalizer {
+  /// `br` target to run the finalizer
   final w.Label label;
+
+  /// Whether the last finalizer in the chain should return. When this is
+  /// `false` the block won't be used, as the block is for running finalizers
+  /// when returning.
   bool mustHandleReturn = false;
 
   TryBlockFinalizer(this.label);
@@ -2443,4 +2601,25 @@ class SwitchBackwardJumpInfo {
 
   SwitchBackwardJumpInfo(this.switchValueLocal, this.loopLabel)
       : defaultLoopLabel = null;
+}
+
+enum _VirtualCallKind {
+  Get,
+  Set,
+  Call;
+
+  String toString() {
+    switch (this) {
+      case _VirtualCallKind.Get:
+        return "get";
+      case _VirtualCallKind.Set:
+        return "set";
+      case _VirtualCallKind.Call:
+        return "call";
+    }
+  }
+
+  bool get isGetter => this == _VirtualCallKind.Get;
+
+  bool get isSetter => this == _VirtualCallKind.Set;
 }

@@ -139,8 +139,8 @@ Component transformComponent(
   final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis)
     ..analyzeComponent(component, typeFlowAnalysis, tableSelectorAssigner);
 
-  new AnnotateKernel(component, typeFlowAnalysis, treeShaker.fieldMorpher,
-          tableSelectorAssigner, unboxingInfo)
+  new AnnotateKernel(component, typeFlowAnalysis, hierarchy,
+          treeShaker.fieldMorpher, tableSelectorAssigner, unboxingInfo)
       .visitComponent(component);
 
   transformsStopWatch.stop();
@@ -225,18 +225,16 @@ class MoveFieldInitializers {
       c.initializers.last is RedirectingInitializer;
 }
 
-// Pass which removes all annotations except @ExternalName and @pragma
-// on variables, members, classes and libraries.
+// Pass which removes all annotations except @pragma on variables, members,
+// classes and libraries.
 // May also keep @TagNumber which is used by protobuf handler.
 class CleanupAnnotations extends RecursiveVisitor {
-  final Class externalNameClass;
   final Class pragmaClass;
   final ProtobufHandler? protobufHandler;
 
   CleanupAnnotations(
       CoreTypes coreTypes, LibraryIndex index, this.protobufHandler)
-      : externalNameClass = index.getClass('dart:_internal', 'ExternalName'),
-        pragmaClass = coreTypes.pragmaClass;
+      : pragmaClass = coreTypes.pragmaClass;
 
   @override
   defaultNode(Node node) {
@@ -262,8 +260,7 @@ class CleanupAnnotations extends RecursiveVisitor {
       final constant = annotation.constant;
       if (constant is InstanceConstant) {
         final cls = constant.classNode;
-        return (cls == externalNameClass) ||
-            (cls == pragmaClass) ||
+        return (cls == pragmaClass) ||
             (protobufHandler != null &&
                 protobufHandler!.usesAnnotationClass(cls));
       }
@@ -300,6 +297,7 @@ class TFADevirtualization extends Devirtualization {
 /// Annotates kernel AST with metadata using results of type flow analysis.
 class AnnotateKernel extends RecursiveVisitor {
   final TypeFlowAnalysis _typeFlowAnalysis;
+  final ClassHierarchy hierarchy;
   final FieldMorpher fieldMorpher;
   final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
@@ -312,8 +310,8 @@ class AnnotateKernel extends RecursiveVisitor {
   final Class _intClass;
   late final Constant _nullConstant = NullConstant();
 
-  AnnotateKernel(Component component, this._typeFlowAnalysis, this.fieldMorpher,
-      this._tableSelectorAssigner, this._unboxingInfo)
+  AnnotateKernel(Component component, this._typeFlowAnalysis, this.hierarchy,
+      this.fieldMorpher, this._tableSelectorAssigner, this._unboxingInfo)
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag]
                 as DirectCallMetadataRepository,
@@ -429,9 +427,7 @@ class AnnotateKernel extends RecursiveVisitor {
         // here), then the receiver cannot be _Smi. This heuristic covers most
         // cases, so we skip these to avoid showering the AST with annotations.
         if (interfaceTarget == null ||
-            _typeFlowAnalysis.hierarchyCache.hierarchy.isSubtypeOf(
-                _typeFlowAnalysis.hierarchyCache.coreTypes.intClass,
-                interfaceTarget.enclosingClass!)) {
+            hierarchy.isSubtypeOf(_intClass, interfaceTarget.enclosingClass!)) {
           markReceiverNotInt = true;
         }
       }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -88,6 +90,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// The container to add newly created elements that should be put into the
   /// enclosing element.
   ElementHolder _elementHolder;
+
+  _PatternContext? _patternContext;
 
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
@@ -161,7 +165,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    final element = node.element2;
+    final element = node.element;
     if (element is AugmentationImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -169,6 +173,26 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withElementWalker(null, () {
       super.visitAugmentationImportDirective(node);
     });
+  }
+
+  @override
+  void visitBinaryPattern(covariant BinaryPatternImpl node) {
+    final isOr = node.operator.type == TokenType.BAR;
+    final binder = _patternContext!.binder;
+    if (isOr) {
+      binder.startAlternatives();
+      binder.startAlternative(node.leftOperand);
+    }
+    node.leftOperand.accept(this);
+    if (isOr) {
+      binder.finishAlternative();
+      binder.startAlternative(node.rightOperand);
+    }
+    node.rightOperand.accept(this);
+    if (isOr) {
+      binder.finishAlternative();
+      binder.finishAlternatives();
+    }
   }
 
   @override
@@ -186,12 +210,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    _withPatternContext(() {
+      super.visitCaseClause(node);
+    });
+  }
+
+  @override
   void visitCatchClause(covariant CatchClauseImpl node) {
     var exceptionTypeNode = node.exceptionType;
     exceptionTypeNode?.accept(this);
 
     _withNameScope(() {
-      var exceptionNode = node.exceptionParameter2;
+      var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
         var element = LocalVariableElementImpl(
           exceptionNode.name.lexeme,
@@ -218,7 +249,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         );
       }
 
-      var stackTraceNode = node.stackTraceParameter2;
+      var stackTraceNode = node.stackTraceParameter;
       if (stackTraceNode != null) {
         var element = LocalVariableElementImpl(
           stackTraceNode.name.lexeme,
@@ -455,7 +486,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is LibraryExportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -780,7 +811,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is LibraryImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -841,7 +872,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    final element = node.element2;
+    final element = node.element;
     if (element is LibraryOrAugmentationElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -854,7 +885,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     ++_libraryDirectiveIndex;
-    var element = node.element2;
+    var element = node.element;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -937,7 +968,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is PartElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -1104,6 +1135,48 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSwitchStatement(SwitchStatement node) {
+    node.expression.accept(this);
+
+    void visitGroup(List<SwitchMember> members) {
+      _withPatternContext(() {
+        final patternContext = _patternContext!;
+        var startedAlternatives = false;
+        for (final member in members) {
+          if (member is SwitchPatternCaseImpl) {
+            if (!startedAlternatives) {
+              patternContext.binder.startAlternatives();
+              startedAlternatives = true;
+            }
+            patternContext.binder.startAlternative(member.pattern);
+          }
+          member.accept(this);
+          if (member is SwitchPatternCaseImpl) {
+            patternContext.binder.finishAlternative();
+          }
+        }
+        if (startedAlternatives) {
+          patternContext.binder.finishAlternatives();
+        }
+        members.last.statements.accept(this);
+      });
+    }
+
+    var group = <SwitchMember>[];
+    for (final member in node.members) {
+      group.add(member);
+      if (member.statements.isNotEmpty) {
+        visitGroup(group);
+        group = <SwitchMember>[];
+      }
+    }
+
+    if (group.isNotEmpty) {
+      visitGroup(group);
+    }
+  }
+
+  @override
   void visitTypeParameter(TypeParameter node) {
     var element = node.declaredElement as TypeParameterElementImpl;
 
@@ -1182,15 +1255,23 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitVariablePattern(covariant VariablePatternImpl node) {
     node.type?.accept(this);
 
-    if (node.name.lexeme != '_') {
-      final element = VariablePatternElementImpl(
-        node.name.lexeme,
-        node.name.offset,
-      );
+    final name = node.name.lexeme;
+    if (name != '_') {
+      final patternContext = _patternContext!;
+      var element = patternContext.variables[name];
+      if (element == null) {
+        element = VariablePatternElementImpl(
+          name,
+          node.name.offset,
+        );
+        patternContext.variables[name] = element;
+        _elementHolder.enclose(element);
+        _define(element);
+        element.isFinal = node.keyword?.keyword == Keyword.FINAL;
+        element.hasImplicitType = node.type == null;
+      }
       node.declaredElement = element;
-      _elementHolder.enclose(element);
-      element.isFinal = node.keyword?.keyword == Keyword.FINAL;
-      element.hasImplicitType = node.type == null;
+      patternContext.binder.add(node, element);
     }
   }
 
@@ -1378,7 +1459,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      final element = type.element2;
+      final element = type.element;
       if (element is EnumElement || element is MixinElement && asClass) {
         _errorReporter.reportErrorForNode(errorCode, namedType);
         return;
@@ -1476,6 +1557,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Run [f] with a new pattern variable binder.
+  void _withPatternContext(void Function() f) {
+    final saved = _patternContext;
+    try {
+      final patternContext = _PatternContext(this);
+      _patternContext = patternContext;
+      f();
+      patternContext.binder.finish();
+    } finally {
+      _patternContext = saved;
+    }
+  }
+
   /// We always build local elements for [VariableDeclarationStatement]s and
   /// [FunctionDeclarationStatement]s in blocks, because invalid code might try
   /// to use forward references.
@@ -1498,5 +1592,57 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (int i = 0; i < nodeCount; i++) {
       (nodes[i] as AnnotationImpl).elementAnnotation = annotations[i];
     }
+  }
+}
+
+class _PatternContext
+    implements
+        VariableBindingCallbacks<DartPatternImpl, VariablePatternElementImpl,
+            DartType>,
+        VariableBinderErrors<DartPatternImpl, VariablePatternElementImpl> {
+  final ResolutionVisitor visitor;
+  final Map<String, VariablePatternElementImpl> variables = {};
+  late final VariableBinder<DartPatternImpl, VariablePatternElementImpl,
+      DartType> binder = VariableBinder(this);
+
+  _PatternContext(this.visitor);
+
+  @override
+  VariableBinderErrors<DartPatternImpl, VariablePatternElementImpl>
+      get errors => this;
+
+  @override
+  void assertInErrorRecovery() {
+    // TODO: implement assertInErrorRecovery
+    throw UnimplementedError();
+  }
+
+  @override
+  void matchVarOverlap({
+    required DartPatternImpl pattern,
+    required DartPatternImpl previousPattern,
+  }) {
+    pattern as VariablePatternImpl;
+    visitor._errorReporter.reportError(
+      DiagnosticFactory().duplicateDefinitionForNodes(
+        visitor._errorReporter.source,
+        CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+        pattern,
+        previousPattern,
+        [pattern.name.lexeme],
+      ),
+    );
+  }
+
+  @override
+  void missingMatchVar(
+    DartPatternImpl alternative,
+    VariablePatternElementImpl variable,
+  ) {
+    visitor._errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+      alternative,
+      [variable.name],
+    );
   }
 }

@@ -134,7 +134,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     String suffix =
         type.nullabilitySuffix == NullabilitySuffix.question ? '?' : '';
     if (type is InterfaceType) {
-      var name = elementToCode(type.element2);
+      var name = elementToCode(type.element);
       var typeArguments = type.typeArguments;
       if (typeArguments.isEmpty) {
         return '$name$suffix';

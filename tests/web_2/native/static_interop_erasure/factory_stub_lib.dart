@@ -14,7 +14,7 @@ import 'factory_stub_test.dart';
 @JS('NativeClass')
 @staticInterop
 class StaticNativeClassCopy {
-  external StaticNativeClassCopy();
+  external factory StaticNativeClassCopy();
   factory StaticNativeClassCopy.nestedFactory() {
     StaticNativeClass.nestedFactory();
     return StaticNativeClassCopy();

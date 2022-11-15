@@ -688,13 +688,11 @@ class UntaggedObject {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
-#if !defined(TARGET_ARCH_IA32)
         if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
           // Instruction pages may be non-writable. Defer marking.
           thread->DeferredMarkingStackAddObject(value);
           return;
         }
-#endif
         if (value->untag()->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
@@ -722,13 +720,11 @@ class UntaggedObject {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
-#if !defined(TARGET_ARCH_IA32)
         if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
           // Instruction pages may be non-writable. Defer marking.
           thread->DeferredMarkingStackAddObject(value);
           return;
         }
-#endif
         if (value->untag()->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
@@ -1172,7 +1168,9 @@ class UntaggedFunction : public UntaggedObject {
   /* (i.e., those checks omitted by the caller for interface calls). */        \
   V(DynamicInvocationForwarder)                                                \
   /* A `dart:ffi` call or callback trampoline. */                              \
-  V(FfiTrampoline)
+  V(FfiTrampoline)                                                             \
+  /* getter for a record field */                                              \
+  V(RecordFieldGetter)
 
   enum Kind {
 #define KIND_DEFN(Name) k##Name,
@@ -1695,8 +1693,6 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, classes_cache)
   COMPRESSED_POINTER_FIELD(ObjectPtr, retained_kernel_blob)
   VISIT_TO(retained_kernel_blob)
-
-  uint32_t kernel_binary_version_;
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     return reinterpret_cast<CompressedObjectPtr*>(&constants_table_);
@@ -2611,9 +2607,14 @@ class UntaggedAbstractType : public UntaggedInstance {
   // Accessed from generated code.
   std::atomic<uword> type_test_stub_entry_point_;
   // Accessed from generated code.
-  uint32_t flags_;
+  std::atomic<uint32_t> flags_;
   COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
   VISIT_FROM(type_test_stub)
+
+  uint32_t flags() const { return flags_.load(std::memory_order_relaxed); }
+  void set_flags(uint32_t value) {
+    flags_.store(value, std::memory_order_relaxed);
+  }
 
  public:
   enum TypeState {
@@ -2623,13 +2624,13 @@ class UntaggedAbstractType : public UntaggedInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
-  using NullabilityBits = BitField<decltype(flags_), uint8_t, 0, 2>;
+  using NullabilityBits = BitField<uint32_t, uint8_t, 0, 2>;
   static constexpr intptr_t kNullabilityMask = NullabilityBits::mask();
 
   static constexpr intptr_t kTypeStateShift = NullabilityBits::kNextBit;
   static constexpr intptr_t kTypeStateBits = 2;
   using TypeStateBits =
-      BitField<decltype(flags_), uint8_t, kTypeStateShift, kTypeStateBits>;
+      BitField<uint32_t, uint8_t, kTypeStateShift, kTypeStateBits>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
@@ -2641,7 +2642,7 @@ class UntaggedAbstractType : public UntaggedInstance {
 class UntaggedType : public UntaggedAbstractType {
  public:
   static constexpr intptr_t kTypeClassIdShift = TypeStateBits::kNextBit;
-  using TypeClassIdBits = BitField<decltype(flags_),
+  using TypeClassIdBits = BitField<uint32_t,
                                    ClassIdTagType,
                                    kTypeClassIdShift,
                                    sizeof(ClassIdTagType) * kBitsPerByte>;
@@ -2656,10 +2657,10 @@ class UntaggedType : public UntaggedAbstractType {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   ClassIdTagType type_class_id() const {
-    return TypeClassIdBits::decode(flags_);
+    return TypeClassIdBits::decode(flags());
   }
   void set_type_class_id(ClassIdTagType value) {
-    flags_ = TypeClassIdBits::update(value, flags_);
+    set_flags(TypeClassIdBits::update(value, flags()));
   }
 
   friend class compiler::target::UntaggedType;

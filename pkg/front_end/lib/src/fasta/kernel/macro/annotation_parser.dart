@@ -489,7 +489,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     _unexpected();
   }
 
@@ -807,7 +807,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     _unexpected();
   }
 
@@ -986,7 +986,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     _unsupported();
   }
 
@@ -1580,11 +1580,6 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    _unsupported();
-  }
-
-  @override
   void handleCatchBlock(Token? onKeyword, Token? catchKeyword, Token? comma) {
     _unsupported();
   }
@@ -2003,7 +1998,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     _unknown();
   }
 

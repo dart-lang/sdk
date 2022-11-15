@@ -183,8 +183,8 @@ class FindElement extends _FindElementBase {
     findInExecutables(unitElement.functions);
 
     findInClasses(unitElement.classes);
-    findInClasses(unitElement.enums2);
-    findInClasses(unitElement.mixins2);
+    findInClasses(unitElement.enums);
+    findInClasses(unitElement.mixins);
 
     for (var extension_ in unitElement.extensions) {
       findInExecutables(extension_.accessors);
@@ -216,7 +216,7 @@ class FindElement extends _FindElementBase {
   CompilationUnitElement part(String targetUri) {
     CompilationUnitElement? result;
 
-    for (final partElement in libraryElement.parts2) {
+    for (final partElement in libraryElement.parts) {
       final uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
         final unitElement = uri.unit;
@@ -288,7 +288,7 @@ class FindElement extends _FindElementBase {
       findInClass(class_);
     }
 
-    for (var enum_ in unitElement.enums2) {
+    for (var enum_ in unitElement.enums) {
       findInClass(enum_);
     }
 
@@ -296,7 +296,7 @@ class FindElement extends _FindElementBase {
       findIn(extension_.typeParameters);
     }
 
-    for (var mixin in unitElement.mixins2) {
+    for (var mixin in unitElement.mixins) {
       findInClass(mixin);
     }
 
@@ -348,7 +348,7 @@ abstract class _FindElementBase {
         return class_;
       }
     }
-    for (var mixin in unitElement.mixins2) {
+    for (var mixin in unitElement.mixins) {
       if (mixin.name == name) {
         return mixin;
       }
@@ -378,7 +378,7 @@ abstract class _FindElementBase {
       }
     }
 
-    for (var enum_ in unitElement.enums2) {
+    for (var enum_ in unitElement.enums) {
       if (of == null || enum_.name == of) {
         findIn(enum_.constructors);
       }
@@ -391,7 +391,7 @@ abstract class _FindElementBase {
   }
 
   EnumElement enum_(String name) {
-    for (var enum_ in unitElement.enums2) {
+    for (var enum_ in unitElement.enums) {
       if (enum_.name == name) {
         return enum_;
       }
@@ -433,7 +433,7 @@ abstract class _FindElementBase {
   }
 
   MixinElement mixin(String name) {
-    for (var mixin in unitElement.mixins2) {
+    for (var mixin in unitElement.mixins) {
       if (mixin.name == name) {
         return mixin;
       }
@@ -525,8 +525,8 @@ abstract class _FindElementBase {
 
     var classes = [
       ...unitElement.classes,
-      ...unitElement.enums2,
-      ...unitElement.mixins2,
+      ...unitElement.enums,
+      ...unitElement.mixins,
     ];
 
     var results = [

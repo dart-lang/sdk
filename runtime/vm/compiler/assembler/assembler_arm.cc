@@ -894,7 +894,7 @@ void Assembler::EmitMultiVSMemOp(Condition cond,
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
                      B26 | B11 | B9 | am | (load ? L : 0) |
                      ArmEncode::Rn(base) |
-                     ((static_cast<int32_t>(start) & 0x1) ? D : 0) |
+                     ((static_cast<int32_t>(start) & 0x1) != 0 ? D : 0) |
                      ((static_cast<int32_t>(start) >> 1) << 12) | count;
   Emit(encoding);
 }
@@ -914,7 +914,7 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
   int32_t encoding =
       (static_cast<int32_t>(cond) << kConditionShift) | B27 | B26 | B11 | B9 |
       B8 | am | (load ? L : 0) | ArmEncode::Rn(base) |
-      ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
+      ((static_cast<int32_t>(start) & 0x10) != 0 ? D : 0) |
       ((static_cast<int32_t>(start) & 0xf) << 12) | (count << 1) | notArmv5te;
   Emit(encoding);
 }
@@ -1704,38 +1704,6 @@ void Assembler::CompareObject(Register rn, const Object& object) {
   }
 }
 
-// Preserves object and value registers.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* label,
-                                      CanBeSmi value_can_be_smi,
-                                      BarrierFilterMode how_to_jump) {
-  COMPILE_ASSERT((target::ObjectAlignment::kNewObjectAlignmentOffset ==
-                  target::kWordSize) &&
-                 (target::ObjectAlignment::kOldObjectAlignmentOffset == 0));
-  // For the value we are only interested in the new/old bit and the tag bit.
-  // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-  if (value_can_be_smi == kValueCanBeSmi) {
-    and_(
-        IP, value,
-        Operand(value, LSL, target::ObjectAlignment::kObjectAlignmentLog2 - 1));
-    // And the result with the negated space bit of the object.
-    bic(IP, IP, Operand(object));
-  } else {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
-    bic(IP, value, Operand(object));
-  }
-  tst(IP, Operand(target::ObjectAlignment::kNewObjectAlignmentOffset));
-  if (how_to_jump != kNoJump) {
-    b(label, how_to_jump == kJumpToNoUpdate ? EQ : NE);
-  }
-}
-
 Register UseRegister(Register reg, RegList* used) {
   ASSERT(reg != THR);
   ASSERT(reg != SP);
@@ -1782,7 +1750,7 @@ void Assembler::StoreIntoObject(Register object,
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
-    BranchIfSmi(value, &done);
+    BranchIfSmi(value, &done, kNearJump);
   }
   const bool preserve_lr = lr_state().LRContainsReturnAddress();
   if (preserve_lr) {
@@ -1853,7 +1821,7 @@ void Assembler::StoreIntoArray(Register object,
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
-    BranchIfSmi(value, &done);
+    BranchIfSmi(value, &done, kNearJump);
   }
   const bool preserve_lr = lr_state().LRContainsReturnAddress();
   if (preserve_lr) {
@@ -1915,13 +1883,14 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  ldrb(TMP, FieldAddress(value, target::Object::tags_offset()));
+  tst(TMP, Operand(1 << target::UntaggedObject::kNewBit));
+  b(&done, ZERO);
   ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
   tst(TMP, Operand(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   b(&done, ZERO);
-
-  Stop("Store buffer update is required");
+  Stop("Write barrier is required");
   Bind(&done);
 #endif  // defined(DEBUG)
   // No store buffer update.
@@ -1998,16 +1967,6 @@ void Assembler::InitializeFieldsNoBarrier(Register object,
   strd(value_even, value_odd, begin, -2 * target::kWordSize, LS);
   b(&init_loop, CC);
   str(value_even, Address(begin, -2 * target::kWordSize), HI);
-#if defined(DEBUG)
-  Label done;
-  StoreIntoObjectFilter(object, value_even, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  StoreIntoObjectFilter(object, value_odd, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  Stop("Store buffer update is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
 }
 
 void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
@@ -2026,16 +1985,6 @@ void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
     str(value_even, Address(base, current_offset));
     current_offset += target::kWordSize;
   }
-#if defined(DEBUG)
-  Label done;
-  StoreIntoObjectFilter(object, value_even, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  StoreIntoObjectFilter(object, value_odd, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  Stop("Store buffer update is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
 }
 
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
@@ -3837,6 +3786,19 @@ void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
   strb(tmp, Address(addr, 2));
   Lsr(tmp, src, Operand(24));
   strb(tmp, Address(addr, 3));
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? LS : HI;
+  Register to_check = temp != kNoRegister ? temp : value;
+  AddImmediate(to_check, value, -low);
+  CompareImmediate(to_check, high - low);
+  b(target, cc);
 }
 
 }  // namespace compiler

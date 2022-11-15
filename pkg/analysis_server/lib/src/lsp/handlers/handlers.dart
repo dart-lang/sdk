@@ -72,11 +72,40 @@ mixin Handler<P, R> {
     }
   }
 
+  /// Attempts to get a [ResolvedLibraryResult] for the library the includes the
+  /// file at [path] or an error.
+  ///
+  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to
+  /// not be analyzed but analysis roots are currently being discovered, will
+  /// wait for discovery to complete and then try again (once) to get a result.
+  Future<ErrorOr<ResolvedLibraryResult>> requireResolvedLibrary(
+    String path, {
+    bool waitForInProgressContextRebuilds = true,
+  }) async {
+    final result = await server.getResolvedLibrary(path);
+    if (result == null) {
+      // Handle retry if allowed.
+      if (waitForInProgressContextRebuilds) {
+        await server.analysisContextsRebuilt;
+        return requireResolvedLibrary(path,
+            waitForInProgressContextRebuilds: false);
+      }
+
+      // If the file was being analyzed and we got a null result, that usually
+      // indicates a parser or analysis failure, so provide a more specific
+      // message.
+      return server.isAnalyzed(path)
+          ? analysisFailedError(path)
+          : fileNotAnalyzedError(path);
+    }
+    return success(result);
+  }
+
   /// Attempts to get a [ResolvedUnitResult] for [path] or an error.
   ///
-  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to not be
-  /// analyzed but analysis roots are currently being discovered, will wait for
-  /// discovery to complete and then try again (once) to get a result.
+  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to
+  /// not be analyzed but analysis roots are currently being discovered, will
+  /// wait for discovery to complete and then try again (once) to get a result.
   Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(
     String path, {
     bool waitForInProgressContextRebuilds = true,

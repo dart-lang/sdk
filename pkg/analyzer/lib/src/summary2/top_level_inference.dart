@@ -43,9 +43,9 @@ class ConstantInitializersResolver {
       for (var unit in _library.units) {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_resolveInterfaceFields);
-        unit.enums2.forEach(_resolveInterfaceFields);
+        unit.enums.forEach(_resolveInterfaceFields);
         unit.extensions.forEach(_resolveExtensionFields);
-        unit.mixins2.forEach(_resolveInterfaceFields);
+        unit.mixins.forEach(_resolveInterfaceFields);
 
         _scope = unit.enclosingElement.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
@@ -97,6 +97,11 @@ class ConstantInitializersResolver {
       var astResolver = AstResolver(linker, _unitElement, _scope);
       astResolver.resolveExpression(() => variable.initializer!,
           contextType: contextType);
+      var errors = astResolver.errors;
+      if (errors.isNotEmpty) {
+        assert(errors.length == 1, 'Unexpected errors: $errors');
+        element.typeInferenceError = errors.first;
+      }
     }
 
     if (element is ConstVariableElement) {
@@ -179,8 +184,8 @@ class _ConstructorInferenceNode extends _InferenceNode {
       var superType = classElement.supertype;
       if (superType != null) {
         var index = classElement.constructors.indexOf(_constructor);
-        var superConstructors = superType.element2.constructors
-            .where((element) => element.isAccessibleIn2(classElement.library))
+        var superConstructors = superType.element.constructors
+            .where((element) => element.isAccessibleIn(classElement.library))
             .toList();
         if (index < superConstructors.length) {
           _baseConstructor = _BaseConstructor(
@@ -348,13 +353,13 @@ class _InitializerInference {
   void createNodes() {
     for (var builder in _linker.builders.values) {
       for (var unit in builder.element.units) {
-        _unitElement = unit as CompilationUnitElementImpl;
+        _unitElement = unit;
         unit.classes.forEach(_addClassConstructorFieldFormals);
         unit.classes.forEach(_addClassElementFields);
-        unit.enums2.forEach(_addClassConstructorFieldFormals);
-        unit.enums2.forEach(_addClassElementFields);
+        unit.enums.forEach(_addClassConstructorFieldFormals);
+        unit.enums.forEach(_addClassElementFields);
         unit.extensions.forEach(_addExtensionElementFields);
-        unit.mixins2.forEach(_addClassElementFields);
+        unit.mixins.forEach(_addClassElementFields);
 
         _scope = unit.enclosingElement.scope;
         for (var element in unit.topLevelVariables) {
@@ -533,5 +538,10 @@ class _VariableInferenceNode extends _InferenceNode {
         enclosingClassElement: enclosingClassElement);
     astResolver.resolveExpression(() => _node.initializer!,
         buildElements: forDependencies);
+    var errors = astResolver.errors;
+    if (errors.isNotEmpty) {
+      assert(errors.length == 1, 'Unexpected errors: $errors');
+      _element.typeInferenceError = errors.first;
+    }
   }
 }

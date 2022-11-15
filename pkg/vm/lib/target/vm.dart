@@ -399,6 +399,7 @@ class VmTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('runtime/tests/vm/dart') ||
+      importer.path.contains('tests/standalone/io') ||
       importer.path.contains('test-lib') ||
       importer.path.contains('tests/ffi');
 
@@ -453,13 +454,9 @@ class VmTarget extends Target {
   }
 
   @override
-  Class concreteRecordLiteralClass(CoreTypes coreTypes) {
+  Class concreteRecordClass(CoreTypes coreTypes) {
     return _record ??= coreTypes.index.getClass('dart:core', '_Record');
   }
-
-  @override
-  Class concreteConstRecordLiteralClass(CoreTypes coreTypes) =>
-      concreteRecordLiteralClass(coreTypes);
 
   @override
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) {

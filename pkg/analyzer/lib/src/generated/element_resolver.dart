@@ -192,7 +192,7 @@ class ElementResolver {
   }
 
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element2;
+    var exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson) Figure out whether the element can ever be
@@ -244,7 +244,7 @@ class ElementResolver {
         }
       }
     }
-    var importElement = node.element2;
+    var importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid
       var library = importElement.importedLibrary;
@@ -361,7 +361,7 @@ class ElementResolver {
     var superName = name?.name;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     element = _resolver.toLegacyElement(element);
-    if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
+    if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
@@ -505,7 +505,7 @@ class ElementResolver {
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
-          return aliasedType.element2;
+          return aliasedType.element;
         }
       }
     }

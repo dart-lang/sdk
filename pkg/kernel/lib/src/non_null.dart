@@ -119,6 +119,17 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   }
 
   @override
+  DartType? visitViewType(ViewType node) {
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
+    if (node.declaredNullability == Nullability.nonNullable) {
+      return null;
+    }
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
   DartType? visitInvalidType(InvalidType node) => null;
 
   @override

@@ -15,6 +15,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExitDetectorParsedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
+    defineReflectiveTests(ExitDetectorResolvedStatementTest_Language218);
     defineReflectiveTests(ExitDetectorForCodeAsUiTest);
   });
 }
@@ -926,13 +927,19 @@ void f() { // ref
   }
 }
 
+@reflectiveTest
+class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
+    with ExitDetectorResolvedStatementTestCases {}
+
+@reflectiveTest
+class ExitDetectorResolvedStatementTest_Language218
+    extends PubPackageResolutionTest
+    with WithLanguage218Mixin, ExitDetectorResolvedStatementTestCases {}
+
 /// Tests for the [ExitDetector] that require that the AST be resolved.
 ///
 /// See [ExitDetectorParsedStatementTest] for tests that do not require the AST to be resolved.
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
-@reflectiveTest
-class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest {
+mixin ExitDetectorResolvedStatementTestCases on PubPackageResolutionTest {
   test_forStatement_implicitTrue_breakWithLabel() async {
     await _assertNthStatementDoesNotExit(r'''
 void f() {

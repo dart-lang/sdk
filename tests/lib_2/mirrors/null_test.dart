@@ -4,13 +4,13 @@
 
 // @dart = 2.9
 
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=90
 
 import "dart:mirrors";
 import "package:expect/expect.dart";
 
 void main() {
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     test();
   }
 }

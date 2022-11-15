@@ -69,7 +69,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 import '../common/elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_emitter/code_emitter_task.dart' show Emitter;
+import '../js_emitter/interfaces.dart' show Emitter;
 import '../js_model/type_recipe.dart'
     show
         TypeRecipe,
@@ -79,8 +79,8 @@ import '../js_model/type_recipe.dart'
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
-import 'namer.dart';
-import 'runtime_types_new.dart' show RecipeEncoder;
+import 'namer_migrated.dart' as namer;
+import 'runtime_types_new_interfaces.dart' show RecipeEncoder;
 
 /// Run the minifier for 'type$' property names even in non-minified mode,
 /// making a name from minified name and the readable name. Usage:
@@ -616,7 +616,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
       throw StateError('Unexpected recipe: $recipe');
     }
     String result = _fragments.join('_');
-    if (Namer.startsWithIdentifierCharacter(result)) return result;
+    if (namer.startsWithIdentifierCharacter(result)) return result;
     return 'z' + result;
   }
 
@@ -625,7 +625,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   }
 
   void _identifier(String text) {
-    _add(Namer.replaceNonIdentifierCharacters(text));
+    _add(namer.replaceNonIdentifierCharacters(text));
   }
 
   bool _comma(bool needsComma) {
@@ -783,6 +783,24 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     for (DartType argument in arguments) {
       needsComma = _comma(needsComma);
       _visit(argument, type);
+    }
+  }
+
+  @override
+  void visitRecordType(covariant RecordType type, _) {
+    if (_dagCheck(type)) return;
+    final shape = type.shape;
+    // e.g. `(int, {String foo})` -> "Record_2_int_and_String_foo"
+    _identifier('Record');
+    final fieldCount = shape.fieldCount;
+    _add('$fieldCount');
+    bool needsComma = false;
+    for (int i = 0; i < fieldCount; i++) {
+      needsComma = _comma(needsComma);
+      _visit(type.fields[i], type);
+      if (i >= shape.positionalFieldCount) {
+        _identifier(shape.fieldNames[i - shape.positionalFieldCount]);
+      }
     }
   }
 

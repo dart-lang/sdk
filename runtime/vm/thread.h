@@ -171,6 +171,7 @@ class Thread;
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
   V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
   V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)                 \
+  V(ArrayPtr, empty_array_, Object::empty_array().ptr(), nullptr)              \
   V(TypePtr, dynamic_type_, Type::dynamic_type().ptr(), nullptr)
 
 // List of VM-global objects/addresses cached in each Thread object.
@@ -446,10 +447,10 @@ class Thread : public ThreadState {
   enum {
     // Always true in generated state.
     kDidNotExit = 0,
-    // The VM did exit the generated state through FFI.
+    // The VM exited the generated state through FFI.
     // This can be true in both native and VM state.
     kExitThroughFfi = 1,
-    // The VM exited the generated state through FFI.
+    // The VM exited the generated state through a runtime call.
     // This can be true in both native and VM state.
     kExitThroughRuntimeCall = 2,
   };
@@ -701,7 +702,6 @@ class Thread : public ThreadState {
   CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
-#if !defined(TARGET_ARCH_IA32)
   static intptr_t write_barrier_wrappers_thread_offset(Register reg) {
     ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
     intptr_t index = 0;
@@ -726,7 +726,6 @@ class Thread : public ThreadState {
     UNREACHABLE();
     return 0;
   }
-#endif
 
 #define DEFINE_OFFSET_METHOD(name)                                             \
   static intptr_t name##_entry_point_offset() {                                \
@@ -1195,9 +1194,7 @@ class Thread : public ThreadState {
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-#if !defined(TARGET_ARCH_IA32)
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
-#endif
 
 #define DECLARE_MEMBERS(name) uword name##_entry_point_ = 0;
   CACHED_FUNCTION_ENTRY_POINTS_LIST(DECLARE_MEMBERS)

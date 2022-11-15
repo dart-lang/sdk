@@ -815,6 +815,8 @@ class LibraryHelper {
     // * kParts
     // * kTypedefs
     // * kClasses
+    // * kExtensions
+    // * kViews
     // * kToplevelField
     // * kToplevelProcedures
     // * kSourceReferences
@@ -831,8 +833,8 @@ class LibraryHelper {
     kUnsupported = 1 << 4,
   };
 
-  explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
-      : helper_(helper), binary_version_(binary_version), next_read_(kFlags) {}
+  explicit LibraryHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kFlags) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -864,7 +866,6 @@ class LibraryHelper {
 
  private:
   KernelReaderHelper* helper_;
-  uint32_t binary_version_;
   intptr_t next_read_;
 
   DISALLOW_COPY_AND_ASSIGN(LibraryHelper);
@@ -1302,7 +1303,7 @@ class KernelReaderHelper {
   String& SourceTableUriFor(intptr_t index);
   const String& GetSourceFor(intptr_t index);
   TypedDataPtr GetLineStartsFor(intptr_t index);
-  String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
+  String& SourceTableImportUriFor(intptr_t index);
   ExternalTypedDataPtr GetConstantCoverageFor(intptr_t index);
 
   Zone* zone_;
@@ -1546,6 +1547,7 @@ class TypeTranslator {
   void BuildRecordType();
   void BuildTypeParameterType();
   void BuildIntersectionType();
+  void BuildViewType();
 
   class TypeParameterScope {
    public:

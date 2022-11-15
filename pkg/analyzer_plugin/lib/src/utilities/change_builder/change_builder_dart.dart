@@ -401,7 +401,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     write(prefix);
 
     if (isGetter) {
-      writeln('// TODO: implement ${element.displayName}');
+      writeln('// TODO: implement $memberName');
       write(prefix);
     }
 
@@ -1093,7 +1093,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
       } else if (expectedType is InterfaceType) {
-        var className = expectedType.element2.name;
+        var className = expectedType.element.name;
         _addAll(excluded, res, _getCamelWordCombinations(className));
       }
     }
@@ -1108,7 +1108,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartType? _getVisibleType(DartType? type,
       {ExecutableElement? methodBeingCopied}) {
     if (type is InterfaceType) {
-      var element = type.element2;
+      var element = type.element;
       if (element.isPrivate &&
           !dartFileEditBuilder._isDefinedLocally(element)) {
         return null;
@@ -1117,7 +1117,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
-      var element = type.element2;
+      var element = type.element;
       var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
@@ -1260,7 +1260,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     if (type is InterfaceType) {
       _writeTypeElementArguments(
-        element: type.element2,
+        element: type.element,
         typeArguments: type.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
@@ -1275,7 +1275,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is TypeParameterType) {
-      write(type.element2.name);
+      write(type.element.name);
       _writeTypeNullability(type);
       return true;
     }
@@ -1508,8 +1508,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  String importLibrary(Uri uri) {
-    return _importLibrary(uri).uriText;
+  String importLibrary(Uri uri, {String? prefix}) {
+    return _importLibrary(uri, prefix: prefix).uriText;
   }
 
   @override

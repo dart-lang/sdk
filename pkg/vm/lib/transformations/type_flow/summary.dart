@@ -298,7 +298,7 @@ class Call extends Statement {
 
   Member? _monomorphicTarget;
 
-  Member? get monomorphicTarget => _monomorphicTarget;
+  Member? get monomorphicTarget => filterArtificialNode(_monomorphicTarget);
 
   bool get isMonomorphic => (_flags & kMonomorphic) != 0;
 

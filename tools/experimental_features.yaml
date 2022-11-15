@@ -21,7 +21,7 @@
 # e.g. if adding a new flag that doesn't happen to be lexicographically last.
 #
 # kernel:
-#   pkg/front_end/tool/fasta generate-experimental-flags
+#   dart pkg/front_end/tool/fasta.dart generate-experimental-flags
 #
 # vm:
 #   dart tools/generate_experimental_flags.dart
@@ -130,12 +130,13 @@ features:
 
   records:
     help: "Records"
+    experimentalReleaseVersion: '2.19.0'
 
   patterns:
     help: "Patterns"
 
-  unnamed-libraries:
-    help: "Unnamed libraries"
+  views:
+    help: "Views"
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -295,3 +296,10 @@ features:
       void main() {
         test([1, 2, 3]);
       }
+
+  unnamed-libraries:
+    help: "Unnamed libraries"
+    enabledIn: '2.19.0'
+    validation: |
+      library;
+      void main() => print('feature enabled');

@@ -144,8 +144,7 @@ abstract class SecureSocket implements Socket {
       bool onBadCertificate(X509Certificate certificate)?,
       void keyLog(String line)?,
       @Since("2.6") List<String>? supportedProtocols}) {
-    return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
-        .then<RawSecureSocket>((detachedRaw) {
+    return socket._detachRaw().then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
           subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           host: host,
@@ -182,8 +181,7 @@ abstract class SecureSocket implements Socket {
       bool requestClientCertificate = false,
       bool requireClientCertificate = false,
       List<String>? supportedProtocols}) {
-    return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
-        .then<RawSecureSocket>((detachedRaw) {
+    return socket._detachRaw().then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secureServer(detachedRaw[0] as RawSocket, context,
           subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           bufferedData: bufferedData,
@@ -480,6 +478,13 @@ class _FilterStatus {
   _FilterStatus();
 }
 
+// Interface used by [RawSecureServerSocket] and [_RawSecureSocket] that exposes
+// members of [_NativeSocket].
+abstract class _RawSocketBase {
+  bool get _closedReadEventSent;
+  void set _owner(owner);
+}
+
 class _RawSecureSocket extends Stream<RawSocketEvent>
     implements RawSecureSocket {
   // Status states
@@ -630,8 +635,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
       // If we are upgrading a socket that is already closed for read,
       // report an error as if we received readClosed during the handshake.
-      dynamic s = _socket; // Cast to dynamic to avoid warning.
-      if (s._socket.closedReadEventSent) {
+      if ((_socket as _RawSocketBase)._closedReadEventSent) {
         _eventDispatcher(RawSocketEvent.readClosed);
       }
       _socketSubscription
@@ -686,7 +690,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   int get remotePort => _socket.remotePort;
 
   void set _owner(owner) {
-    (_socket as dynamic)._owner = owner;
+    (_socket as _RawSocketBase)._owner = owner;
   }
 
   int available() {
@@ -1344,7 +1348,7 @@ abstract class _SecureFilter {
   void init();
   X509Certificate? get peerCertificate;
   int processBuffer(int bufferIndex);
-  void registerBadCertificateCallback(Function callback);
+  void registerBadCertificateCallback(bool Function(X509Certificate) callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
   void registerKeyLogPort(SendPort port);
 

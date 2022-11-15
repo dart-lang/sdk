@@ -868,6 +868,7 @@ extension DapTestClientExtension on DapTestClient {
     int threadId, {
     required String expectedName,
     required String expectedDisplayString,
+    int? expectedIndexedItems,
     required String expectedVariables,
     int? start,
     int? count,
@@ -887,8 +888,9 @@ extension DapTestClientExtension on DapTestClient {
     final expectedVariable = variables.variables
         .singleWhere((variable) => variable.name == expectedName);
 
-    // Check the display string.
+    // Check basic variable values.
     expect(expectedVariable.value, equals(expectedDisplayString));
+    expect(expectedVariable.indexedVariables, equals(expectedIndexedItems));
 
     // Check the child fields.
     return expectVariables(

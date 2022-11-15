@@ -56,14 +56,14 @@ class Constants {
   bool currentlyCreating = false;
 
   Constants(this.translator) {
-    initEmptyString();
-    initEmptyTypeList();
+    _initEmptyString();
+    _initEmptyTypeList();
   }
 
   w.Module get m => translator.m;
   bool get stringDataSegments => translator.options.stringDataSegments;
 
-  void initEmptyString() {
+  void _initEmptyString() {
     ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
     translator.functions.allocateClass(info.classId);
     w.ArrayType arrayType =
@@ -76,14 +76,14 @@ class Constants {
     ib.i32_const(initialIdentityHash);
     ib.array_new_fixed(arrayType, 0);
     ib.struct_new(info.struct);
-    ib.end();
+    ib.end(); // end of global initializer expression
 
     Constant emptyStringConstant = StringConstant("");
     constantInfo[emptyStringConstant] =
         ConstantInfo(emptyStringConstant, emptyString, null);
   }
 
-  void initEmptyTypeList() {
+  void _initEmptyTypeList() {
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
     translator.functions.allocateClass(info.classId);
     w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
@@ -99,7 +99,7 @@ class Constants {
     ib.i64_const(0);
     ib.array_new_fixed(arrayType, 0);
     ib.struct_new(info.struct);
-    ib.end();
+    ib.end(); // end of global initializer expression
 
     Constant emptyTypeListConstant = ListConstant(
         InterfaceType(translator.typeClass, Nullability.nonNullable), const []);
@@ -694,6 +694,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       }
 
       void makeVtable() {
+        if (representation.isGeneric) {
+          b.ref_func(representation.instantiationFunction);
+        }
         for (int posArgCount = 0;
             posArgCount <= positionalCount;
             posArgCount++) {
@@ -726,7 +729,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      types.encodeNullability(b, type);
+      b.i32_const(types.encodedNullability(type));
       b.i64_const(typeInfo.classId);
       constants.instantiateConstant(
           function, b, typeArgs, typeListExpectedType);
@@ -741,7 +744,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     return createConstant(constant, info.nonNullableType, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      types.encodeNullability(b, type);
+      b.i32_const(types.encodedNullability(type));
       constants.instantiateConstant(
           function, b, typeArgument, types.nonNullableTypeType);
       b.struct_new(info.struct);
@@ -765,7 +768,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     return createConstant(constant, info.nonNullableType, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      types.encodeNullability(b, type);
+      b.i32_const(types.encodedNullability(type));
       constants.instantiateConstant(
           function, b, returnTypeConstant, types.nonNullableTypeType);
       constants.instantiateConstant(function, b, positionalParametersConstant,
@@ -780,7 +783,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
-    DartType type = constant.type;
+    DartType type = types.normalize(constant.type);
 
     ClassInfo info = translator.classInfo[types.classForType(type)]!;
     translator.functions.allocateClass(info.classId);
@@ -795,7 +798,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         return createConstant(constant, info.nonNullableType, (function, b) {
           b.i32_const(info.classId);
           b.i32_const(initialIdentityHash);
-          types.encodeNullability(b, type);
+          b.i32_const(types.encodedNullability(type));
           b.struct_new(info.struct);
         });
       } else {
@@ -809,13 +812,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-
-        // A type parameter's type nullability is undetermined when it's
-        // syntactically not declared nullable and the bound of the type
-        // parameter is nullable. Because we are encoding the declared
-        // nullability, we only declare a type parameter to be nullable if it is
-        // explicitly declared to be nullabe.
-        b.i32_const(type.declaredNullability == Nullability.nullable ? 1 : 0);
+        b.i32_const(types.encodedNullability(type));
         b.i64_const(environmentIndex);
         b.struct_new(info.struct);
       });
@@ -827,7 +824,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-        types.encodeNullability(b, type);
+        b.i32_const(types.encodedNullability(type));
         b.struct_new(info.struct);
       });
     }

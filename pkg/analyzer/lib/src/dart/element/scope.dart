@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -125,11 +126,11 @@ class LibraryOrAugmentationScope extends EnclosedScope {
 
   void _addUnitElements(CompilationUnitElement compilationUnit) {
     compilationUnit.accessors.forEach(_addPropertyAccessor);
-    compilationUnit.enums2.forEach(_addGetter);
+    compilationUnit.enums.forEach(_addGetter);
     compilationUnit.extensions.forEach(_addExtension);
     compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
-    compilationUnit.mixins2.forEach(_addGetter);
+    compilationUnit.mixins.forEach(_addGetter);
     compilationUnit.classes.forEach(_addGetter);
   }
 }
@@ -164,8 +165,12 @@ class PrefixScope implements Scope {
             final reference = exportedReference.reference;
             if (combinators.allows(reference.name)) {
               final element = elementFactory.elementOfReference(reference)!;
-              _add(element,
-                  _isFromDeprecatedExport(importedLibrary, exportedReference));
+              if (_shouldAdd(importedLibrary, element)) {
+                _add(
+                  element,
+                  _isFromDeprecatedExport(importedLibrary, exportedReference),
+                );
+              }
             }
           }
           if (import.prefix is DeferredImportElementPrefix) {
@@ -256,6 +261,22 @@ class PrefixScope implements Scope {
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );
+  }
+
+  bool _shouldAdd(LibraryElementImpl importedLibrary, Element element) {
+    // It is an error for the identifier `Record`, denoting the `Record` class
+    // from `dart:core`, where that import scope name is only imported from
+    // platform libraries, to appear in a library whose language version is
+    // less than `v`; assuming that `v` is the language version in which
+    // records are released.
+    if (!_container.featureSet.isEnabled(Feature.records)) {
+      if (importedLibrary.isInSdk &&
+          element is ClassElementImpl &&
+          element.isDartCoreRecord) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static void _addElement(

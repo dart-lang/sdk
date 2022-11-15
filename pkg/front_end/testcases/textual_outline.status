@@ -112,6 +112,7 @@ general/records_opt_out: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
+general/view_class_declaration: FormatterCrash
 late_lowering/later: FormatterCrash
 macros/augment_class: FormatterCrash
 macros/augment_concrete: FormatterCrash
@@ -144,13 +145,22 @@ rasta/issue_000046: FormatterCrash
 rasta/issue_000047: FormatterCrash
 rasta/malformed_const_constructor: FormatterCrash
 rasta/mandatory_parameter_initializer: FormatterCrash
+records/access_through_type_variable: FormatterCrash
+records/const_local_access: FormatterCrash
 records/const_record_literal: FormatterCrash
+records/duplicated_name_errors: FormatterCrash
+records/issue50132: FormatterCrash
+records/issue50133: FormatterCrash
+records/null_shorting: FormatterCrash
+records/private_field_names: FormatterCrash
 records/record_literal_errors: FormatterCrash
 records/record_type: FormatterCrash
 records/record_type_errors: FormatterCrash
 records/record_type_unsupported: FormatterCrash
+records/restricted_object_member_names: FormatterCrash
 records/simple_inference: FormatterCrash
 records/structurally_constant: FormatterCrash
+records/type_record: FormatterCrash
 regress/ambiguous_builder_01: FormatterCrash
 regress/issue_29942: FormatterCrash
 regress/issue_29944: FormatterCrash
@@ -186,3 +196,4 @@ variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash
 variance/mixin_type_parameter_modifier: FormatterCrash
 variance/unconstrained_inference: FormatterCrash
+views/view_class_declaration: FormatterCrash

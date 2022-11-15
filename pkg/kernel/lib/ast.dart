@@ -358,6 +358,7 @@ class Library extends NamedNode
   List<Typedef> _typedefs;
   List<Class> _classes;
   List<Extension> _extensions;
+  List<View> _views;
   List<Procedure> _procedures;
   List<Field> _fields;
 
@@ -369,6 +370,7 @@ class Library extends NamedNode
       List<Typedef>? typedefs,
       List<Class>? classes,
       List<Extension>? extensions,
+      List<View>? views,
       List<Procedure>? procedures,
       List<Field>? fields,
       required this.fileUri,
@@ -381,6 +383,7 @@ class Library extends NamedNode
         this._typedefs = typedefs ?? <Typedef>[],
         this._classes = classes ?? <Class>[],
         this._extensions = extensions ?? <Extension>[],
+        this._views = views ?? <View>[],
         this._procedures = procedures ?? <Procedure>[],
         this._fields = fields ?? <Field>[],
         super(reference) {
@@ -418,6 +421,15 @@ class Library extends NamedNode
   /// Used for adding extensions when reading the dill file.
   void set extensionsInternal(List<Extension> extensions) {
     _extensions = extensions;
+  }
+
+  List<View> get views => _views;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding views when reading the dill file.
+  void set viewsInternal(List<View> views) {
+    _views = views;
   }
 
   List<Procedure> get procedures => _procedures;
@@ -478,6 +490,11 @@ class Library extends NamedNode
     extensions.add(extension);
   }
 
+  void addView(View view) {
+    view.parent = this;
+    views.add(view);
+  }
+
   void addField(Field field) {
     field.parent = this;
     fields.add(field);
@@ -516,6 +533,9 @@ class Library extends NamedNode
     for (int i = 0; i < extensions.length; ++i) {
       extensions[i].bindCanonicalNames(canonicalName);
     }
+    for (int i = 0; i < views.length; ++i) {
+      views[i].bindCanonicalNames(canonicalName);
+    }
   }
 
   /// This is an advanced feature. Use of this method should be coordinated
@@ -547,6 +567,10 @@ class Library extends NamedNode
       Extension extension = extensions[i];
       extension._relinkNode();
     }
+    for (int i = 0; i < views.length; ++i) {
+      View view = views[i];
+      view._relinkNode();
+    }
   }
 
   void addDependency(LibraryDependency node) {
@@ -571,6 +595,7 @@ class Library extends NamedNode
     visitList(typedefs, v);
     visitList(classes, v);
     visitList(extensions, v);
+    visitList(views, v);
     visitList(procedures, v);
     visitList(fields, v);
   }
@@ -583,6 +608,7 @@ class Library extends NamedNode
     v.transformList(typedefs, this);
     v.transformList(classes, this);
     v.transformList(extensions, this);
+    v.transformList(views, this);
     v.transformList(procedures, this);
     v.transformList(fields, this);
   }
@@ -595,6 +621,7 @@ class Library extends NamedNode
     v.transformTypedefList(typedefs, this);
     v.transformClassList(classes, this);
     v.transformExtensionList(extensions, this);
+    v.transformViewList(views, this);
     v.transformProcedureList(procedures, this);
     v.transformFieldList(fields, this);
   }
@@ -1613,6 +1640,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   void visitChildren(Visitor v) {
+    visitList(annotations, v);
     visitList(typeParameters, v);
     onType.accept(v);
     if (showHideClause != null) {
@@ -1905,6 +1933,200 @@ class ExtensionTypeShowHideClause {
       }
     }
     return null;
+  }
+}
+
+/// Declaration of a view.
+///
+/// The members are converted into top-level procedures and only accessible
+/// by reference in the [View] node.
+class View extends NamedNode implements Annotatable, FileUriNode {
+  /// Name of the view.
+  String name;
+
+  /// The URI of the source file this class was loaded from.
+  @override
+  Uri fileUri;
+
+  /// Type parameters declared on the extension.
+  final List<TypeParameter> typeParameters;
+
+  /// The type in the underlying representation of the view declaration.
+  ///
+  /// For instance A in the view B:
+  ///
+  ///   class A {}
+  ///   view class B(A it) {}
+  ///
+  late DartType representationType;
+
+  /// The members declared by the view.
+  ///
+  /// The members are converted into top-level members and only accessible
+  /// by reference through [ViewMemberDescriptor].
+  List<ViewMemberDescriptor> members;
+
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  int flags = 0;
+
+  @override
+  void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(node);
+    node.parent = this;
+  }
+
+  View(
+      {required this.name,
+      List<TypeParameter>? typeParameters,
+      DartType? representationType,
+      List<ViewMemberDescriptor>? members,
+      required this.fileUri,
+      Reference? reference})
+      // ignore: unnecessary_null_comparison
+      : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.members = members ?? <ViewMemberDescriptor>[],
+        super(reference) {
+    setParents(this.typeParameters, this);
+    if (representationType != null) {
+      this.representationType = representationType;
+    }
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChild(name).bindTo(reference);
+  }
+
+  Library get enclosingLibrary => parent as Library;
+
+  @override
+  R accept<R>(TreeVisitor<R> v) => v.visitView(this);
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitView(this, arg);
+
+  R acceptReference<R>(Visitor<R> v) => v.visitViewReference(this);
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+    visitList(typeParameters, v);
+    representationType.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+    v.transformList(typeParameters, this);
+    // ignore: unnecessary_null_comparison
+    if (representationType != null) {
+      representationType = v.visitDartType(representationType);
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+    v.transformTypeParameterList(typeParameters, this);
+    // ignore: unnecessary_null_comparison
+    if (representationType != null) {
+      representationType =
+          v.visitDartType(representationType, cannotRemoveSentinel);
+    }
+  }
+
+  @override
+  Location? _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
+
+  @override
+  String toString() {
+    return "View(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeViewName(reference);
+  }
+}
+
+enum ViewMemberKind {
+  Constructor,
+  Factory,
+  Field,
+  Method,
+  Getter,
+  Setter,
+  Operator,
+  TearOff,
+}
+
+/// Information about an member declaration in a view.
+class ViewMemberDescriptor {
+  static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
+
+  /// The name of the extension member.
+  ///
+  /// The name of the generated top-level member is mangled to ensure
+  /// uniqueness. This name is used to lookup an extension method in the
+  /// extension itself.
+  Name name;
+
+  /// [ViewMemberKind] kind of the original member.
+  ///
+  /// A view method is converted into a regular top-level method. For
+  /// instance:
+  ///
+  ///     class A {
+  ///       var foo;
+  ///     }
+  ///     extension B on A {
+  ///       get bar => this.foo;
+  ///     }
+  ///
+  /// will be converted into
+  ///
+  ///     class A {}
+  ///     B|get#bar(A #this) => #this.foo;
+  ///
+  /// where `B|get#bar` is the synthesized name of the top-level method and
+  /// `#this` is the synthesized parameter that holds represents `this`.
+  ///
+  ViewMemberKind kind;
+
+  int flags = 0;
+
+  /// Reference to the top-level member created for the extension method.
+  final Reference member;
+
+  ViewMemberDescriptor(
+      {required this.name,
+      required this.kind,
+      bool isStatic = false,
+      required this.member}) {
+    this.isStatic = isStatic;
+  }
+
+  /// Return `true` if the extension method was declared as `static`.
+  bool get isStatic => flags & FlagStatic != 0;
+
+  void set isStatic(bool value) {
+    flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
+  }
+
+  @override
+  String toString() {
+    return 'ViewMemberDescriptor($name,$kind,'
+        '${member.toStringInternal()},isStatic=${isStatic})';
   }
 }
 
@@ -3942,11 +4164,7 @@ abstract class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .rawType(superclass, context.nonNullable);
     }
-    DartType type = getStaticType(context);
-    while (type is TypeParameterType) {
-      TypeParameterType typeParameterType = type;
-      type = typeParameterType.bound;
-    }
+    DartType type = getStaticType(context).resolveTypeParameterType;
     if (type is NullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
@@ -4222,10 +4440,8 @@ class RecordIndexGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    DartType receiverType = receiver.getStaticType(context);
-    assert(
-        receiverType is RecordType && index < receiverType.positional.length);
-    return (receiverType as RecordType).positional[index];
+    assert(index < receiverType.positional.length);
+    return receiverType.positional[index];
   }
 
   @override
@@ -4242,11 +4458,13 @@ class RecordIndexGet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    receiver = v.transform(receiver);
+    receiver = v.transform(receiver)..parent = this;
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
 
   @override
   String toString() {
@@ -4275,12 +4493,8 @@ class RecordNameGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    DartType receiverType = receiver.getStaticType(context);
-    assert(receiverType is RecordType);
-
-    RecordType recordType = receiverType as RecordType;
     DartType? result;
-    for (NamedType namedType in recordType.named) {
+    for (NamedType namedType in receiverType.named) {
       if (namedType.name == name) {
         result = namedType.type;
         break;
@@ -4305,11 +4519,13 @@ class RecordNameGet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    receiver = v.transform(receiver);
+    receiver = v.transform(receiver)..parent = this;
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
 
   @override
   String toString() {
@@ -9617,24 +9833,42 @@ class LabeledStatement extends Statement {
 
 /// Breaks out of an enclosing [LabeledStatement].
 ///
-/// Both `break` and loop `continue` statements are translated into this node.
+/// Both `break` and `continue` statements are translated into this node.
 ///
-/// For example, the following loop with a `continue` will be desugared:
+/// Example `break` desugaring:
 ///
-///     while(x) {
-///       if (y) continue;
-///       BODY'
+///     while (x) {
+///       if (y) break;
+///       BODY
 ///     }
 ///
 ///     ==>
 ///
-///     while(x) {
+///     L: while (x) {
+///       if (y) break L;
+///       BODY
+///     }
+///
+/// Example `continue` desugaring:
+///
+///     while (x) {
+///       if (y) continue;
+///       BODY
+///     }
+///
+///     ==>
+///
+///     while (x) {
 ///       L: {
 ///         if (y) break L;
-///         BODY'
+///         BODY
 ///       }
 ///     }
-//
+///
+/// Note: Compiler-generated [LabeledStatement]s for [WhileStatement]s and
+/// [ForStatement]s are only generated when needed. If there isn't a `break` or
+/// `continue` in a loop, the kernel for the loop won't have a generated
+/// [LabeledStatement].
 class BreakStatement extends Statement {
   LabeledStatement target;
 
@@ -10003,7 +10237,8 @@ class ForInStatement extends Statement {
   /// This is called by `StaticTypeContext.getForInElementType` if the element
   /// type of this for-in statement is not already cached in [context].
   DartType getElementTypeInternal(StaticTypeContext context) {
-    DartType iterableType = iterable.getStaticType(context);
+    DartType iterableType =
+        iterable.getStaticType(context).resolveTypeParameterType;
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
     while (iterableType is TypeParameterType) {
@@ -11302,6 +11537,9 @@ abstract class DartType extends Node {
         nullability == Nullability.undetermined;
   }
 
+  /// Returns the non-type parameter type bound of this type.
+  DartType get resolveTypeParameterType;
+
   bool equals(Object other, Assumptions? assumptions);
 
   /// Returns a textual representation of the this type.
@@ -11337,6 +11575,9 @@ class InvalidType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -11389,6 +11630,9 @@ class DynamicType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -11429,6 +11673,9 @@ class VoidType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -11485,6 +11732,9 @@ class NeverType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   int get hashCode {
@@ -11545,6 +11795,9 @@ class NullType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -11594,6 +11847,9 @@ class InterfaceType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -11697,6 +11953,9 @@ class FunctionType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -11900,6 +12159,9 @@ class TypedefType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
+  DartType get resolveTypeParameterType => unalias.resolveTypeParameterType;
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
 
   @override
@@ -12008,6 +12270,9 @@ class FutureOrType extends DartType {
   }
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -12083,6 +12348,9 @@ class ExtensionType extends DartType {
     return uniteNullabilities(
         declaredNullability, extension.onType.nullability);
   }
+
+  @override
+  DartType get resolveTypeParameterType => onType.resolveTypeParameterType;
 
   static List<DartType> _defaultTypeArguments(Extension extensionNode) {
     if (extensionNode.typeParameters.length == 0) {
@@ -12167,6 +12435,133 @@ class ExtensionType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExtensionName(extensionReference);
+    printer.writeTypeArguments(typeArguments);
+    printer.write(nullabilityToString(declaredNullability));
+  }
+}
+
+class ViewType extends DartType {
+  final Reference viewReference;
+
+  @override
+  final Nullability declaredNullability;
+
+  final List<DartType> typeArguments;
+
+  DartType? _representationType;
+
+  ViewType(View view, Nullability declaredNullability,
+      [List<DartType>? typeArguments])
+      : this.byReference(view.reference, declaredNullability,
+            typeArguments ?? _defaultTypeArguments(view));
+
+  ViewType.byReference(
+      this.viewReference, this.declaredNullability, this.typeArguments,
+      [this._representationType])
+      // ignore: unnecessary_null_comparison
+      : assert(declaredNullability != null);
+
+  View get view => viewReference.asView;
+
+  DartType get representationType =>
+      _representationType ??= _computeRepresentationType(
+          viewReference, typeArguments, declaredNullability);
+
+  @override
+  Nullability get nullability {
+    return uniteNullabilities(
+        declaredNullability, view.representationType.nullability);
+  }
+
+  @override
+  DartType get resolveTypeParameterType =>
+      representationType.resolveTypeParameterType;
+
+  static List<DartType> _defaultTypeArguments(View view) {
+    if (view.typeParameters.length == 0) {
+      // Avoid allocating a list in this very common case.
+      return const <DartType>[];
+    } else {
+      return new List<DartType>.filled(
+          view.typeParameters.length, const DynamicType());
+    }
+  }
+
+  static DartType _computeRepresentationType(Reference viewReference,
+      List<DartType> typeArguments, Nullability declaredNullability) {
+    View view = viewReference.asView;
+    if (view.typeParameters.isEmpty) {
+      return view.representationType;
+    } else {
+      assert(view.typeParameters.length == typeArguments.length);
+      return Substitution.fromPairs(view.typeParameters, typeArguments)
+          .substituteType(view.representationType)
+          .withDeclaredNullability(uniteNullabilities(
+              declaredNullability, view.representationType.nullability));
+    }
+  }
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    return v.visitViewType(this);
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitViewType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    view.acceptReference(v);
+    visitList(typeArguments, v);
+  }
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    if (other is ViewType) {
+      if (nullability != other.nullability) return false;
+      if (viewReference != other.viewReference) return false;
+      if (typeArguments.length != other.typeArguments.length) return false;
+      for (int i = 0; i < typeArguments.length; ++i) {
+        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0x3fffffff & viewReference.hashCode;
+    for (int i = 0; i < typeArguments.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
+    }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
+
+  @override
+  ViewType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new ViewType.byReference(
+            viewReference, declaredNullability, typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "ViewType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeViewName(viewReference);
     printer.writeTypeArguments(typeArguments);
     printer.write(nullabilityToString(declaredNullability));
   }
@@ -12318,6 +12713,9 @@ class IntersectionType extends DartType {
         "leftNullability = ${leftNullability}, "
         "rightNullability = ${rightNullability}.");
   }
+
+  @override
+  DartType get resolveTypeParameterType => right.resolveTypeParameterType;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitIntersectionType(this);
@@ -12609,6 +13007,9 @@ class TypeParameterType extends DartType {
             : Nullability.legacy;
 
   @override
+  DartType get resolveTypeParameterType => bound.resolveTypeParameterType;
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
 
   @override
@@ -12754,6 +13155,9 @@ class RecordType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) {
     return v.visitRecordType(this);
   }
@@ -12778,6 +13182,8 @@ class RecordType extends DartType {
       return true;
     } else if (other is RecordType) {
       if (nullability != other.nullability) return false;
+      if (positional.length != other.positional.length) return false;
+      if (named.length != other.named.length) return false;
       for (int index = 0; index < positional.length; index++) {
         if (!positional[index].equals(other.positional[index], assumptions)) {
           return false;
@@ -15040,6 +15446,10 @@ final List<Typedef> emptyListOfTypedef =
 final List<Extension> emptyListOfExtension =
     List.filled(0, dummyExtension, growable: false);
 
+/// Almost const <View>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<View> emptyListOfView = List.filled(0, dummyView, growable: false);
+
 /// Almost const <Field>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Field> emptyListOfField =
@@ -15074,6 +15484,11 @@ final List<Class> emptyListOfClass =
 /// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
     List.filled(0, dummyExtensionMemberDescriptor, growable: false);
+
+/// Almost const <ViewMemberDescriptor>[], but not const in an attempt to
+/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<ViewMemberDescriptor> emptyListOfViewMemberDescriptor =
+    List.filled(0, dummyViewMemberDescriptor, growable: false);
 
 /// Almost const <Constructor>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -15189,6 +15604,21 @@ final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
         name: dummyName,
         kind: ExtensionMemberKind.Getter,
         member: dummyReference);
+
+/// Non-nullable [View] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final View dummyView = new View(name: '', fileUri: dummyUri);
+
+/// Non-nullable [ViewMemberDescriptor] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final ViewMemberDescriptor dummyViewMemberDescriptor = new ViewMemberDescriptor(
+    name: dummyName, kind: ViewMemberKind.Getter, member: dummyReference);
 
 /// Non-nullable [Member] dummy value.
 ///

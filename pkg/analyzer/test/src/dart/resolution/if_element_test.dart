@@ -13,20 +13,34 @@ main() {
 }
 
 @reflectiveTest
-class IfElementTest extends PubPackageResolutionTest {
-  test_condition_rewrite() async {
+class IfElementTest extends PatternsResolutionTest {
+  test_rewrite_expression() async {
     await assertNoErrorsInCode(r'''
-void f(bool Function() b) {
-  <int>[if ( b() ) 0];
+void f(bool Function() a) {
+  <int>[if (a()) 0];
 }
 ''');
 
-    assertFunctionExpressionInvocation(
-      findNode.functionExpressionInvocation('b()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'bool Function()',
-      type: 'bool',
-    );
+    final node = findNode.ifElement('if');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: bool Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: bool Function()
+    staticType: bool
+  rightParenthesis: )
+  thenElement: IntegerLiteral
+    literal: 0
+    staticType: int
+''');
   }
 }

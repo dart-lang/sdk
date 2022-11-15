@@ -47,7 +47,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    final exportElement = node.element2;
+    final exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid.
       LibraryElement? library = exportElement.exportedLibrary;
@@ -62,7 +62,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    final importElement = node.element2;
+    final importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a non-existent file.
@@ -160,17 +160,13 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
         var lhsResult = _getConstantBooleanValue(lhsCondition);
         if (lhsResult != null) {
           var value = lhsResult.value?.toBoolValue();
-          if (value == true && isBarBar) {
-            // Report error on "else" block: true || !e!
-            _errorReporter.reportErrorForNode(
-                HintCode.DEAD_CODE, node.rightOperand);
-            // Only visit the LHS:
-            lhsCondition.accept(this);
-            return;
-          } else if (value == false && isAmpAmp) {
-            // Report error on "if" block: false && !e!
-            _errorReporter.reportErrorForNode(
-                HintCode.DEAD_CODE, node.rightOperand);
+          // Report error on "else" block: true || !e!
+          // or on "if" block: false && !e!
+          if (value == true && isBarBar || value == false && isAmpAmp) {
+            var offset = node.operator.offset;
+            var length = node.rightOperand.end - offset;
+            _errorReporter.reportErrorForOffset(
+                HintCode.DEAD_CODE, offset, length);
             // Only visit the LHS:
             lhsCondition.accept(this);
             return;
@@ -496,6 +492,7 @@ class NullSafetyDeadCodeVerifier {
         // because this causes nuisance warnings for redundant `!= null`
         // asserts.
       } else {
+        var offset = firstDeadNode.offset;
         // We know that [node] is the first dead node, or contains it.
         // So, technically the code code interval ends at the end of [node].
         // But we trim it to the last statement for presentation purposes.
@@ -518,11 +515,43 @@ class NullSafetyDeadCodeVerifier {
           if (node is SwitchMember && node.statements.isNotEmpty) {
             node = node.statements.last;
           }
+        } else if (parent is BinaryExpression && node == parent.rightOperand) {
+          offset = parent.operator.offset;
+        }
+        if (parent is DoStatement) {
+          var doOffset = parent.doKeyword.offset;
+          var doEnd = parent.doKeyword.end;
+          var whileOffset = parent.whileKeyword.offset;
+          var whileEnd = parent.semicolon.end;
+          var body = parent.body;
+          if (body is Block) {
+            doEnd = body.leftBracket.end;
+            whileOffset = body.rightBracket.offset;
+          }
+          _errorReporter.reportErrorForOffset(
+              HintCode.DEAD_CODE, doOffset, doEnd - doOffset);
+          _errorReporter.reportErrorForOffset(
+              HintCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
+          offset = parent.semicolon.next!.offset;
+          if (parent.hasBreakStatement) {
+            offset = node.end;
+          }
+        } else if (parent is ForParts) {
+          node = parent.updaters.last;
+        } else if (parent is ForStatement) {
+          _reportForUpdaters(parent);
+        } else if (parent is Block) {
+          var grandParent = parent.parent;
+          if (grandParent is ForStatement) {
+            _reportForUpdaters(grandParent);
+          }
         }
 
-        var offset = firstDeadNode.offset;
         var length = node.end - offset;
-        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+        if (length > 0) {
+          _errorReporter.reportErrorForOffset(
+              HintCode.DEAD_CODE, offset, length);
+        }
       }
 
       _firstDeadNode = null;
@@ -594,6 +623,34 @@ class NullSafetyDeadCodeVerifier {
     }
     return false;
   }
+
+  void _reportForUpdaters(ForStatement node) {
+    var forParts = node.forLoopParts;
+    if (forParts is ForParts) {
+      var updaters = forParts.updaters;
+      var beginToken = updaters.beginToken;
+      var endToken = updaters.endToken;
+      if (beginToken != null && endToken != null) {
+        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE,
+            beginToken.offset, endToken.end - beginToken.offset);
+      }
+    }
+  }
+}
+
+/// A visitor that finds a [BreakStatement] for a specified [DoStatement].
+class _BreakDoStatementVisitor extends RecursiveAstVisitor<void> {
+  bool hasBreakStatement = false;
+  final DoStatement doStatement;
+
+  _BreakDoStatementVisitor(this.doStatement);
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    if (node.target == doStatement) {
+      hasBreakStatement = true;
+    }
+  }
 }
 
 class _CatchClausesVerifier {
@@ -629,7 +686,7 @@ class _CatchClausesVerifier {
       return;
     }
 
-    // An on-catch clause was found; verify that the exception type is not a
+    // An on-catch clause was found; verify that the exception type is not a
     // subtype of a previous on-catch exception type.
     for (var type in _visitedTypes) {
       if (_typeSystem.isSubtypeOf(currentType, type)) {
@@ -690,5 +747,13 @@ class _LabelTracker {
         yield labels[i];
       }
     }
+  }
+}
+
+extension DoStatementExtension on DoStatement {
+  bool get hasBreakStatement {
+    var visitor = _BreakDoStatementVisitor(this);
+    body.visitChildren(visitor);
+    return visitor.hasBreakStatement;
   }
 }

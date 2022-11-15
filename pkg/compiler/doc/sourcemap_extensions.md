@@ -14,15 +14,15 @@ share between dart2js and the deobfuscation tools:
 
 ```
 {
-  version: 3,
-  file: “main.dart.js”,
-  sources: ["a.dart", "b.dart"],
-  names: ["ClassA", "methodFoo"],
-  mappings: "AAAA,E;;ABCDE;"
-  x_org_dartlang_dart2js: {
-    minified_names: {...},
-    frames: [...]
-  }
+  version: 3,
+  file: “main.dart.js”,
+  sources: ["a.dart", "b.dart"],
+  names: ["ClassA", "methodFoo"],
+  mappings: "AAAA,E;;ABCDE;"
+  x_org_dartlang_dart2js: {
+    minified_names: {...},
+    frames: [...]
+  }
 }
 ```
 

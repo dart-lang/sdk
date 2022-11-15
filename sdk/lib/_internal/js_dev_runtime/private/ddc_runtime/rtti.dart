@@ -89,7 +89,11 @@ getReifiedType(obj) {
     case "object":
       if (obj == null) return JS('', '#', Null);
       if (_jsInstanceOf(obj, Object)) {
-        return JS('', '#.constructor', obj);
+        if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+          return rti.instanceType(obj);
+        } else {
+          return JS('', '#.constructor', obj);
+        }
       }
       var result = JS('', '#[#]', obj, _extensionType);
       if (result == null) return typeRep<LegacyJavaScriptObject>();

@@ -16,8 +16,9 @@ main() {
 
   // No formal parameter named b.
   np.foo(b: 25);
-  //    ^^^^^^^
+  //     ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //    ^^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER

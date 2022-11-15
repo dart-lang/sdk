@@ -8,6 +8,7 @@
 
 #include "compiler/method_recognizer.h"
 #include "include/dart_api.h"
+#include "lib/integers.h"
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
@@ -1221,14 +1222,14 @@ void Object::Init(IsolateGroup* isolate_group) {
   *out_of_memory_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
 
-  // Allocate the parameter arrays for method extractor types and names.
-  *extractor_parameter_types_ = Array::New(1, Heap::kOld);
-  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
-  *extractor_parameter_names_ = Array::New(1, Heap::kOld);
-  // Fill in extractor_parameter_names_ later, after symbols are initialized
-  // (in Object::FinalizeVMIsolate). extractor_parameter_names_ object
-  // needs to be created earlier as VM isolate snapshot reader references it
-  // before Object::FinalizeVMIsolate.
+  // Allocate the parameter types and names for synthetic getters.
+  *synthetic_getter_parameter_types_ = Array::New(1, Heap::kOld);
+  synthetic_getter_parameter_types_->SetAt(0, Object::dynamic_type());
+  *synthetic_getter_parameter_names_ = Array::New(1, Heap::kOld);
+  // Fill in synthetic_getter_parameter_names_ later, after symbols are
+  // initialized (in Object::FinalizeVMIsolate).
+  // synthetic_getter_parameter_names_ object needs to be created earlier as
+  // VM isolate snapshot reader references it before Object::FinalizeVMIsolate.
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
@@ -1301,10 +1302,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(out_of_memory_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
-  ASSERT(!extractor_parameter_types_->IsSmi());
-  ASSERT(extractor_parameter_types_->IsArray());
-  ASSERT(!extractor_parameter_names_->IsSmi());
-  ASSERT(extractor_parameter_names_->IsArray());
+  ASSERT(!synthetic_getter_parameter_types_->IsSmi());
+  ASSERT(synthetic_getter_parameter_types_->IsArray());
+  ASSERT(!synthetic_getter_parameter_names_->IsSmi());
+  ASSERT(synthetic_getter_parameter_names_->IsArray());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {
@@ -1430,9 +1431,9 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
 
-  // Finish initialization of extractor_parameter_names_ which was
+  // Finish initialization of synthetic_getter_parameter_names_ which was
   // Started in Object::InitOnce()
-  extractor_parameter_names_->SetAt(0, Symbols::This());
+  synthetic_getter_parameter_names_->SetAt(0, Symbols::This());
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
@@ -2240,6 +2241,14 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_function_type(type);
+
+    // Abstract class that represents the Dart class Record.
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
+    RegisterClass(cls, Symbols::Record(), core_lib);
+    pending_classes.Add(cls);
+    object_store->set_record_class(cls);
 
     cls = Class::New<Number, RTN::Number>(isolate_group);
     RegisterClass(cls, Symbols::Number(), core_lib);
@@ -3879,9 +3888,10 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   const intptr_t kNumParameters = 1;
   signature.set_num_fixed_parameters(kNumParameters);
   signature.SetNumOptionalParameters(0, false);
-  signature.set_parameter_types(Object::extractor_parameter_types());
+  signature.set_parameter_types(Object::synthetic_getter_parameter_types());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  extractor.set_positional_parameter_names(Object::extractor_parameter_names());
+  extractor.set_positional_parameter_names(
+      Object::synthetic_getter_parameter_names());
 #endif
   signature.set_result_type(Object::dynamic_type());
 
@@ -3919,6 +3929,62 @@ FunctionPtr Function::GetMethodExtractor(const String& getter_name) const {
     }
   }
   ASSERT(result.kind() == UntaggedFunction::kMethodExtractor);
+  return result.ptr();
+}
+
+// Record field getters are used to access fields of arbitrary
+// record instances dynamically.
+FunctionPtr Class::CreateRecordFieldGetter(const String& getter_name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(IsRecordClass());
+  ASSERT(Field::IsGetterName(getter_name));
+  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
+  const Function& getter = Function::Handle(
+      zone,
+      Function::New(signature,
+                    String::Handle(zone, Symbols::New(thread, getter_name)),
+                    UntaggedFunction::kRecordFieldGetter,
+                    false,  // Not static.
+                    false,  // Not const.
+                    false,  // Not abstract.
+                    false,  // Not external.
+                    false,  // Not native.
+                    *this, TokenPosition::kMinSource));
+
+  // Initialize signature: receiver is a single fixed parameter.
+  const intptr_t kNumParameters = 1;
+  signature.set_num_fixed_parameters(kNumParameters);
+  signature.SetNumOptionalParameters(0, false);
+  signature.set_parameter_types(Object::synthetic_getter_parameter_types());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  getter.set_positional_parameter_names(
+      Object::synthetic_getter_parameter_names());
+#endif
+  signature.set_result_type(Object::dynamic_type());
+
+  getter.set_is_debuggable(false);
+  getter.set_is_visible(false);
+
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  getter.SetSignature(signature);
+
+  AddFunction(getter);
+
+  return getter.ptr();
+}
+
+FunctionPtr Class::GetRecordFieldGetter(const String& getter_name) const {
+  ASSERT(IsRecordClass());
+  ASSERT(Field::IsGetterName(getter_name));
+  Thread* thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  Function& result = Function::Handle(thread->zone(),
+                                      LookupDynamicFunctionUnsafe(getter_name));
+  if (result.IsNull()) {
+    result = CreateRecordFieldGetter(getter_name);
+  }
+  ASSERT(result.kind() == UntaggedFunction::kRecordFieldGetter);
   return result.ptr();
 }
 
@@ -4765,17 +4831,15 @@ bool Class::InjectCIDFields() const {
 #define ADD_SET_FIELD(clazz) {"cid" #clazz, k##clazz##Cid},
       CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
-#define ADD_SET_FIELD(clazz) {"cid" #clazz "View", kTypedData##clazz##ViewCid},
+#undef CLASS_LIST_WITH_NULL
+#define ADD_SET_FIELD(clazz)                                                   \
+  {"cid" #clazz, kTypedData##clazz##Cid},                                      \
+      {"cid" #clazz "View", kTypedData##clazz##ViewCid},                       \
+      {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},                  \
+      {"cidUnmodifiable" #clazz "View",                                        \
+       kUnmodifiableTypedData##clazz##ViewCid},
           CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
-#define ADD_SET_FIELD(clazz) {"cid" #clazz, kTypedData##clazz##Cid},
-              CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
-#undef ADD_SET_FIELD
-#define ADD_SET_FIELD(clazz)                                                   \
-  {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},
-                  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
-#undef ADD_SET_FIELD
-#undef CLASS_LIST_WITH_NULL
       // Used in const hashing to determine whether we're dealing with a
       // user-defined const. See lib/_internal/vm/lib/compact_hash.dart.
       {"numPredefinedCids", kNumPredefinedCids},
@@ -6896,6 +6960,19 @@ bool TypeArguments::CanShareFunctionTypeArguments(
     }
   }
   return true;
+}
+
+TypeArgumentsPtr TypeArguments::TruncatedTo(intptr_t length) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const TypeArguments& result =
+      TypeArguments::Handle(zone, TypeArguments::New(length));
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < length; i++) {
+    type = TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  return result.Canonicalize(thread);
 }
 
 bool TypeArguments::IsFinalized() const {
@@ -9996,6 +10073,9 @@ static void FunctionPrintNameHelper(const Function& fun,
       printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
     } else {
       printer->AddString(fun.NameCString(params.name_visibility));
+      if (params.disambiguate_names) {
+        printer->Printf("@<%" Pd ">", fun.token_pos().Pos());
+      }
     }
     return;
   }
@@ -10336,7 +10416,7 @@ bool Function::HasDynamicCallers(Zone* zone) const {
   // Issue(dartbug.com/42719):
   // Right now the metadata of _Closure.call says there are no dynamic callers -
   // even though there can be. To be conservative we return true.
-  if ((name() == Symbols::GetCall().ptr() || name() == Symbols::Call().ptr()) &&
+  if ((name() == Symbols::GetCall().ptr() || name() == Symbols::call().ptr()) &&
       Class::IsClosureClass(Owner())) {
     return true;
   }
@@ -10448,6 +10528,9 @@ const char* Function::ToCString() const {
       break;
     case UntaggedFunction::kFfiTrampoline:
       buffer.AddString(" ffi-trampoline-function");
+      break;
+    case UntaggedFunction::kRecordFieldGetter:
+      buffer.AddString(" record-field-getter");
       break;
     default:
       UNREACHABLE();
@@ -14357,8 +14440,7 @@ KernelProgramInfoPtr KernelProgramInfo::New(
     const Array& scripts,
     const Array& libraries_cache,
     const Array& classes_cache,
-    const Object& retained_kernel_blob,
-    const uint32_t binary_version) {
+    const Object& retained_kernel_blob) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.untag()->set_string_offsets(string_offsets.ptr());
@@ -14371,7 +14453,6 @@ KernelProgramInfoPtr KernelProgramInfo::New(
   info.untag()->set_libraries_cache(libraries_cache.ptr());
   info.untag()->set_classes_cache(classes_cache.ptr());
   info.untag()->set_retained_kernel_blob(retained_kernel_blob.ptr());
-  info.set_kernel_binary_version(binary_version);
   return info.ptr();
 }
 
@@ -14391,10 +14472,6 @@ void KernelProgramInfo::set_scripts(const Array& scripts) const {
 
 void KernelProgramInfo::set_constants(const Array& constants) const {
   untag()->set_constants(constants.ptr());
-}
-
-void KernelProgramInfo::set_kernel_binary_version(uint32_t version) const {
-  StoreNonPointer(&untag()->kernel_binary_version_, version);
 }
 
 void KernelProgramInfo::set_constants_table(
@@ -17354,10 +17431,8 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
                                      Code::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
+    result.set_state_bits(0);
     result.set_pointer_offsets_length(pointer_offsets_length);
-    result.set_is_optimized(false);
-    result.set_is_force_optimized(false);
-    result.set_is_alive(false);
 #if defined(INCLUDE_IL_PRINTER)
     result.set_comments(Comments::New(0));
 #endif
@@ -17474,8 +17549,8 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
       ASSERT(object->IsOld());
       // N.B. The pointer is embedded in the Instructions object, but visited
       // through the Code object.
-      code.ptr()->untag()->StorePointerUnaligned(
-          reinterpret_cast<ObjectPtr*>(addr), object->ptr(), thread);
+      code.StorePointerUnaligned(reinterpret_cast<ObjectPtr*>(addr),
+                                 object->ptr(), thread);
     }
 
     // Write protect instructions and, if supported by OS, use dual mapping
@@ -19988,7 +20063,7 @@ bool Instance::IsCallable(Function* function) const {
   // Try to resolve a "call" method.
   Zone* zone = Thread::Current()->zone();
   Function& call_function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, cls, Symbols::Call(),
+      zone, Resolver::ResolveDynamicAnyArgs(zone, cls, Symbols::call(),
                                             /*allow_add=*/false));
   if (call_function.IsNull()) {
     return false;
@@ -20106,24 +20181,36 @@ const char* Instance::ToCString() const {
 }
 
 classid_t AbstractType::type_class_id() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return kIllegalCid;
 }
 
 ClassPtr AbstractType::type_class() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return Class::null();
 }
 
 TypeArgumentsPtr AbstractType::arguments() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 void AbstractType::set_arguments(const TypeArguments& value) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
 }
@@ -20243,6 +20330,9 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
 bool AbstractType::IsInstantiated(Genericity genericity,
                                   intptr_t num_free_fun_type_params,
                                   TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20261,24 +20351,27 @@ void AbstractType::SetIsBeingFinalized() const {
 }
 
 void AbstractType::set_flags(uint32_t value) const {
-  StoreNonPointer(&untag()->flags_, value);
+  untag()->set_flags(value);
 }
 
 void AbstractType::set_type_state(UntaggedAbstractType::TypeState value) const {
   ASSERT(!IsCanonical());
   set_flags(
-      UntaggedAbstractType::TypeStateBits::update(value, untag()->flags_));
+      UntaggedAbstractType::TypeStateBits::update(value, untag()->flags()));
 }
 
 void AbstractType::set_nullability(Nullability value) const {
   ASSERT(!IsCanonical());
   set_flags(UntaggedAbstractType::NullabilityBits::update(
-      static_cast<uint8_t>(value), untag()->flags_));
+      static_cast<uint8_t>(value), untag()->flags()));
 }
 
 bool AbstractType::IsEquivalent(const Instance& other,
                                 TypeEquality kind,
                                 TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20314,6 +20407,9 @@ bool AbstractType::IsNullabilityEquivalent(Thread* thread,
 }
 
 bool AbstractType::IsRecursive(TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20321,6 +20417,9 @@ bool AbstractType::IsRecursive(TrailPtr trail) const {
 
 bool AbstractType::RequireConstCanonicalTypeErasure(Zone* zone,
                                                     TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -20332,6 +20431,9 @@ AbstractTypePtr AbstractType::InstantiateFrom(
     intptr_t num_free_fun_type_params,
     Heap::Space space,
     TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -20339,12 +20441,18 @@ AbstractTypePtr AbstractType::InstantiateFrom(
 
 AbstractTypePtr AbstractType::Canonicalize(Thread* thread,
                                            TrailPtr trail) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 void AbstractType::EnumerateURIs(URIs* uris) const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
 }
@@ -20501,76 +20609,11 @@ StringPtr AbstractType::ScrubbedName() const {
 
 void AbstractType::PrintName(NameVisibility name_visibility,
                              BaseTextBuffer* printer) const {
-  if (IsTypeRef()) {
-    // Cycles via base class type arguments are not a problem (not printed).
-    const AbstractType& ref_type =
-        AbstractType::Handle(TypeRef::Cast(*this).type());
-    ref_type.PrintName(name_visibility, printer);
-    return;
-  }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Class& cls = Class::Handle(zone);
-  if (IsTypeParameter()) {
-    const TypeParameter& type_param = TypeParameter::Cast(*this);
-    // Type parameter names are meaningless after canonicalization.
-    printer->AddString(type_param.CanonicalNameCString());
-    printer->AddString(NullabilitySuffix(name_visibility));
-    return;
-  }
-  if (IsFunctionType()) {
-    const char* suffix = NullabilitySuffix(name_visibility);
-    if (suffix[0] != '\0') {
-      printer->AddString("(");
-    }
-    FunctionType::Cast(*this).Print(name_visibility, printer);
-    if (suffix[0] != '\0') {
-      printer->AddString(")");
-      printer->AddString(suffix);
-    }
-    return;
-  }
-  if (IsRecordType()) {
-    RecordType::Cast(*this).Print(name_visibility, printer);
-    return;
-  }
-  const TypeArguments& args = TypeArguments::Handle(zone, arguments());
-  const intptr_t num_args = args.IsNull() ? 0 : args.Length();
-  intptr_t first_type_param_index;
-  intptr_t num_type_params = num_args;  // Number of type parameters to print.
-  cls = type_class();
-  if (cls.is_declaration_loaded()) {
-    // Do not print the full vector, but only the declared type parameters.
-    num_type_params = cls.NumTypeParameters();
-  }
-  printer->AddString(cls.NameCString(name_visibility));
-  if (num_type_params > num_args) {
-    first_type_param_index = 0;
-    if (!IsFinalized() || IsBeingFinalized()) {
-      // TODO(regis): Check if this is dead code.
-      num_type_params = num_args;
-    } else {
-      ASSERT(num_args == 0);  // Type is raw.
-    }
-  } else {
-    // The actual type argument vector can be longer than necessary, because
-    // of type optimizations.
-    if (IsFinalized() && cls.is_type_finalized()) {
-      first_type_param_index = cls.NumTypeArguments() - num_type_params;
-    } else {
-      first_type_param_index = num_args - num_type_params;
-    }
-  }
-  if (num_type_params == 0) {
-    // Do nothing.
-  } else {
-    args.PrintSubvectorName(first_type_param_index, num_type_params,
-                            name_visibility, printer);
-  }
-  printer->AddString(NullabilitySuffix(name_visibility));
-  // The name is only used for type checking and debugging purposes.
-  // Unless profiling data shows otherwise, it is not worth caching the name in
-  // the type.
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
+  // AbstractType is an abstract class.
+  UNREACHABLE();
 }
 
 StringPtr AbstractType::ClassName() const {
@@ -20679,12 +20722,58 @@ bool AbstractType::IsDartClosureType() const {
 }
 
 bool AbstractType::IsDartRecordType() const {
-  // TODO(dartbug.com/49719): should check for Record, not _Record class.
-  return HasTypeClass() && type_class_id() == kRecordCid;
+  if (!HasTypeClass()) return false;
+  const auto cid = type_class_id();
+  return ((cid == kRecordCid) ||
+          (cid == Class::Handle(
+                      IsolateGroup::Current()->object_store()->record_class())
+                      .id()));
 }
 
 bool AbstractType::IsFfiPointerType() const {
   return HasTypeClass() && type_class_id() == kPointerCid;
+}
+
+bool AbstractType::IsTypeClassAllowedBySpawnUri() const {
+  if (!HasTypeClass()) return false;
+
+  intptr_t cid = type_class_id();
+
+  if (cid == kBoolCid) return true;
+  if (cid == kDynamicCid) return true;
+  if (cid == kInstanceCid) return true;  // Object.
+  if (cid == kNeverCid) return true;
+  if (cid == kNullCid) return true;
+  if (cid == kVoidCid) return true;
+
+  // These are not constant CID checks because kDoubleCid refers to _Double
+  // not double, etc.
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
+  Type& candidate_type = Type::Handle();
+  candidate_type = object_store->int_type();
+  if (cid == candidate_type.type_class_id()) return true;
+  candidate_type = object_store->double_type();
+  if (cid == candidate_type.type_class_id()) return true;
+  candidate_type = object_store->number_type();
+  if (cid == candidate_type.type_class_id()) return true;
+  candidate_type = object_store->string_type();
+  if (cid == candidate_type.type_class_id()) return true;
+
+  Class& candidate_cls = Class::Handle();
+  candidate_cls = object_store->list_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->map_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->set_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->capability_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->send_port_class();
+  if (cid == candidate_cls.id()) return true;
+  candidate_cls = object_store->transferable_class();
+  if (cid == candidate_cls.id()) return true;
+
+  return false;
 }
 
 AbstractTypePtr AbstractType::UnwrapFutureOr() const {
@@ -20902,18 +20991,19 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
 }
 
 uword AbstractType::Hash() const {
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
   return 0;
 }
 
 const char* AbstractType::ToCString() const {
-  if (IsNull()) {
-    return "AbstractType: null";
-  }
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return "AbstractType";
+  // All subclasses should implement this appropriately, so the only value that
+  // should reach this implementation should be the null value.
+  ASSERT(IsNull());
+  return "AbstractType: null";
 }
 
 void AbstractType::SetTypeTestingStub(const Code& stub) const {
@@ -21589,6 +21679,49 @@ void Type::EnumerateURIs(URIs* uris) const {
   type_args.EnumerateURIs(uris);
 }
 
+void Type::PrintName(NameVisibility name_visibility,
+                     BaseTextBuffer* printer) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const TypeArguments& args = TypeArguments::Handle(zone, arguments());
+  const intptr_t num_args = args.IsNull() ? 0 : args.Length();
+  intptr_t first_type_param_index;
+  intptr_t num_type_params = num_args;  // Number of type parameters to print.
+  const Class& cls = Class::Handle(zone, type_class());
+  if (cls.is_declaration_loaded()) {
+    // Do not print the full vector, but only the declared type parameters.
+    num_type_params = cls.NumTypeParameters();
+  }
+  printer->AddString(cls.NameCString(name_visibility));
+  if (num_type_params > num_args) {
+    first_type_param_index = 0;
+    if (!IsFinalized() || IsBeingFinalized()) {
+      // TODO(regis): Check if this is dead code.
+      num_type_params = num_args;
+    } else {
+      ASSERT(num_args == 0);  // Type is raw.
+    }
+  } else {
+    // The actual type argument vector can be longer than necessary, because
+    // of type optimizations.
+    if (IsFinalized() && cls.is_type_finalized()) {
+      first_type_param_index = cls.NumTypeArguments() - num_type_params;
+    } else {
+      first_type_param_index = num_args - num_type_params;
+    }
+  }
+  if (num_type_params == 0) {
+    // Do nothing.
+  } else {
+    args.PrintSubvectorName(first_type_param_index, num_type_params,
+                            name_visibility, printer);
+  }
+  printer->AddString(NullabilitySuffix(name_visibility));
+  // The name is only used for type checking and debugging purposes.
+  // Unless profiling data shows otherwise, it is not worth caching the name in
+  // the type.
+}
+
 uword Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = type_class_id();
@@ -21953,6 +22086,19 @@ void FunctionType::EnumerateURIs(URIs* uris) const {
   type.EnumerateURIs(uris);
 }
 
+void FunctionType::PrintName(NameVisibility name_visibility,
+                             BaseTextBuffer* printer) const {
+  const char* suffix = NullabilitySuffix(name_visibility);
+  if (suffix[0] != '\0') {
+    printer->AddString("(");
+  }
+  FunctionType::Cast(*this).Print(name_visibility, printer);
+  if (suffix[0] != '\0') {
+    printer->AddString(")");
+    printer->AddString(suffix);
+  }
+}
+
 bool TypeRef::RequireConstCanonicalTypeErasure(Zone* zone,
                                                TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
@@ -22075,6 +22221,14 @@ void TypeRef::EnumerateURIs(URIs* uris) const {
   const String& uri = String::Handle(zone, library.url());
   AddURI(uris, name, uri);
   // Break cycle by not printing type arguments.
+}
+
+void TypeRef::PrintName(NameVisibility name_visibility,
+                        BaseTextBuffer* printer) const {
+  // Cycles via base class type arguments are not a problem (not printed).
+  const AbstractType& ref_type =
+      AbstractType::Handle(TypeRef::Cast(*this).type());
+  ref_type.PrintName(name_visibility, printer);
 }
 
 uword TypeRef::Hash() const {
@@ -22456,6 +22610,14 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
 }
 #endif  // DEBUG
 
+void TypeParameter::PrintName(NameVisibility name_visibility,
+                              BaseTextBuffer* printer) const {
+  const TypeParameter& type_param = TypeParameter::Cast(*this);
+  // Type parameter names are meaningless after canonicalization.
+  printer->AddString(type_param.CanonicalNameCString());
+  printer->AddString(NullabilitySuffix(name_visibility));
+}
+
 uword TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized() || IsBeingFinalized());  // Bound may not be finalized.
   uint32_t result = parameterized_class_id();
@@ -22644,6 +22806,10 @@ int Integer::CompareWith(const Integer& other) const {
   // Integer is an abstract class.
   UNREACHABLE();
   return 0;
+}
+
+uint32_t Integer::CanonicalizeHash() const {
+  return Multiply64Hash(AsInt64Value());
 }
 
 IntegerPtr Integer::AsValidInteger() const {
@@ -26921,13 +27087,13 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
       return EntryPointPragma::kAlways;
       break;
     }
-    if (pragma->ptr() == Symbols::Get().ptr()) {
+    if (pragma->ptr() == Symbols::get().ptr()) {
       return EntryPointPragma::kGetterOnly;
     }
-    if (pragma->ptr() == Symbols::Set().ptr()) {
+    if (pragma->ptr() == Symbols::set().ptr()) {
       return EntryPointPragma::kSetterOnly;
     }
-    if (pragma->ptr() == Symbols::Call().ptr()) {
+    if (pragma->ptr() == Symbols::call().ptr()) {
       return EntryPointPragma::kCallOnly;
     }
   }
@@ -27111,7 +27277,7 @@ void RecordType::SetFieldTypeAt(intptr_t index,
 }
 
 void RecordType::set_field_types(const Array& value) const {
-  ASSERT(!value.IsNull() && (value.Length() > 0));
+  ASSERT(!value.IsNull());
   untag()->set_field_types(value.ptr());
 }
 
@@ -27438,6 +27604,11 @@ void RecordType::EnumerateURIs(URIs* uris) const {
   }
 }
 
+void RecordType::PrintName(NameVisibility name_visibility,
+                           BaseTextBuffer* printer) const {
+  RecordType::Cast(*this).Print(name_visibility, printer);
+}
+
 AbstractTypePtr RecordType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
@@ -27652,6 +27823,38 @@ RecordTypePtr Record::GetRecordType() const {
   type = RecordType::New(field_types, field_names, Nullability::kNonNullable);
   type = ClassFinalizer::FinalizeType(type);
   return RecordType::Cast(type).ptr();
+}
+
+intptr_t Record::GetPositionalFieldIndexFromFieldName(
+    const String& field_name) {
+  if (field_name.IsOneByteString() && field_name.Length() >= 1 &&
+      field_name.CharAt(0) == '$') {
+    int64_t value = 0;
+    const char* cstr = field_name.ToCString();
+    if (OS::StringToInt64(cstr + 1 /* skip '$' */, &value)) {
+      if (value >= 0 && value < kMaxElements) {
+        return static_cast<intptr_t>(value);
+      }
+    }
+  }
+  return -1;
+}
+
+intptr_t Record::GetFieldIndexByName(const String& field_name) const {
+  ASSERT(field_name.IsSymbol());
+  const intptr_t field_index =
+      Record::GetPositionalFieldIndexFromFieldName(field_name);
+  if ((field_index >= 0) && (field_index < NumPositionalFields())) {
+    return field_index;
+  } else {
+    const Array& field_names = Array::Handle(this->field_names());
+    for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
+      if (field_names.At(i) == field_name.ptr()) {
+        return NumPositionalFields() + i;
+      }
+    }
+  }
+  return -1;
 }
 
 }  // namespace dart

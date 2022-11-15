@@ -299,7 +299,7 @@ class Variables {
     var type = decoratedType.type!;
     if (type.isVoid || type.isDynamic) return type;
     if (type is NeverType) {
-      if (decoratedType.node!.isNullable) {
+      if (decoratedType.node.isNullable) {
         return (_typeProvider.nullType as TypeImpl)
             .withNullability(NullabilitySuffix.none);
       } else {
@@ -309,7 +309,7 @@ class Variables {
       return (_typeProvider.nullType as TypeImpl)
           .withNullability(NullabilitySuffix.none);
     }
-    var nullabilitySuffix = decoratedType.node!.isNullable
+    var nullabilitySuffix = decoratedType.node.isNullable
         ? NullabilitySuffix.question
         : NullabilitySuffix.none;
     if (type is FunctionType) {
@@ -341,7 +341,7 @@ class Variables {
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
-        element2: type.element2,
+        element: type.element,
         typeArguments: [
           for (var arg in decoratedType.typeArguments) toFinalType(arg!)
         ],
@@ -349,7 +349,7 @@ class Variables {
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
-        element2: type.element2,
+        element: type.element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -422,7 +422,7 @@ class Variables {
     var result = <InterfaceElement, DecoratedType>{};
     for (var decoratedSupertype
         in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {
-      var class_ = (decoratedSupertype.type as InterfaceType).element2;
+      var class_ = (decoratedSupertype.type as InterfaceType).element;
       result[class_] = decoratedSupertype;
     }
     return result;

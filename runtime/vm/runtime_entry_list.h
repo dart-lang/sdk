@@ -19,6 +19,7 @@ namespace dart {
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateRecord)                                                            \
+  V(AllocateSmallRecord)                                                       \
   V(AllocateSuspendState)                                                      \
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \
@@ -107,6 +108,7 @@ namespace dart {
   V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
   V(void, ExitHandleScope, Thread*)                                            \
   V(LocalHandle*, AllocateHandle, ApiLocalScope*)                              \
+  V(void, PropagateError, Dart_Handle)                                         \
   V(void, MsanUnpoison, void*, size_t)                                         \
   V(void, MsanUnpoisonParam, size_t)                                           \
   V(void, TsanLoadAcquire, void*)                                              \

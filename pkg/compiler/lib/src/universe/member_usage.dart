@@ -7,7 +7,7 @@ import 'dart:math' as Math;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
+import '../js_model/closure.dart' show JContextField;
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'call_structure.dart';
@@ -58,13 +58,13 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
         if (original.isEmpty) return emptySet;
         return original.clone();
       }
-      if (member.isTopLevel || member.isStatic || member.isConstructor) {
+      if (member.isTopLevel || member.isStatic || member is ConstructorEntity) {
         // TODO(johnniwinther): Track super constructor invocations?
         return EnumSet.fromValues([Access.staticAccess]);
       } else if (member.isInstanceMember) {
         return EnumSet.fromValues(Access.values);
       } else {
-        assert(member is JRecordFieldInterface, "Unexpected member: $member");
+        assert(member is JContextField, "Unexpected member: $member");
         return EnumSet();
       }
     }
@@ -110,7 +110,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
             potentialReads: emptySet,
             potentialWrites: createPotentialWrites(),
             potentialInvokes: emptySet);
-      } else if (member.isConstructor) {
+      } else if (member is ConstructorEntity) {
         return MethodUsage(member,
             potentialReads: emptySet,
             potentialInvokes: createPotentialInvokes());

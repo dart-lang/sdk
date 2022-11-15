@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show patch;
-
 import "dart:_internal"
     show
         allocateOneByteString,
@@ -22,7 +20,6 @@ import "dart:_internal"
         POWERS_OF_TEN,
         SubListIterable,
         UnmodifiableListMixin,
-        has63BitSmis,
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,
@@ -51,10 +48,27 @@ import 'dart:convert' show Encoding, utf8;
 
 import 'dart:math' show Random;
 
-import "dart:typed_data"
-    show Endian, Uint8List, Int64List, Uint16List, Uint32List;
+import "dart:typed_data" show Uint8List, Uint16List;
 
 import 'dart:wasm';
+
+part "bool.dart";
+part "date_patch.dart";
+part "double.dart";
+part "errors_patch.dart";
+part "function.dart";
+part "growable_list.dart";
+part "identical_patch.dart";
+part "int.dart";
+part "list.dart";
+part "object_patch.dart";
+part "regexp_patch.dart";
+part "stack_trace_patch.dart";
+part "stopwatch_patch.dart";
+part "string_buffer_patch.dart";
+part "string_patch.dart";
+part "type.dart";
+part "uri_patch.dart";
 
 typedef _Smi = int; // For compatibility with VM patch files
 

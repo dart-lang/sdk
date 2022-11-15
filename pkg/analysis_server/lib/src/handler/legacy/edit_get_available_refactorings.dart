@@ -59,16 +59,16 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
       var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
       var element = server.getElementOfNode(node);
       if (element != null) {
+        final refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER
         if (element is ExecutableElement) {
           if (ConvertMethodToGetterRefactoring(
-                  searchEngine, resolvedUnit.session, element)
+                  refactoringWorkspace, resolvedUnit.session, element)
               .isAvailable()) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
           }
         }
         // try RENAME
-        final refactoringWorkspace = server.refactoringWorkspace;
         var renameRefactoring = RenameRefactoring.create(
             refactoringWorkspace, resolvedUnit, element);
         if (renameRefactoring != null) {

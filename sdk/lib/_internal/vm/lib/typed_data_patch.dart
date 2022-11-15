@@ -2176,6 +2176,7 @@ class Int8List {
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _Int8List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
@@ -4626,6 +4627,7 @@ class _Float64ArrayView extends _TypedListView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _Float32x4ArrayView extends _TypedListView
     with _Float32x4ListMixin
     implements Float32x4List {
@@ -4665,6 +4667,7 @@ class _Float32x4ArrayView extends _TypedListView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _Int32x4ArrayView extends _TypedListView
     with _Int32x4ListMixin
     implements Int32x4List {
@@ -4704,6 +4707,7 @@ class _Int32x4ArrayView extends _TypedListView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _Float64x2ArrayView extends _TypedListView
     with _Float64x2ListMixin
     implements Float64x2List {
@@ -5249,6 +5253,7 @@ abstract class UnmodifiableFloat64ListView implements Float64List {
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableInt8ArrayView extends _Int8ArrayView
     implements UnmodifiableInt8ListView {
   @pragma("vm:recognized", "other")
@@ -5265,6 +5270,7 @@ class _UnmodifiableInt8ArrayView extends _Int8ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
     implements UnmodifiableUint8ListView {
   @pragma("vm:recognized", "other")
@@ -5281,6 +5287,7 @@ class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
     implements UnmodifiableUint8ClampedListView {
   @pragma("vm:recognized", "other")
@@ -5297,6 +5304,7 @@ class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableInt16ArrayView extends _Int16ArrayView
     implements UnmodifiableInt16ListView {
   @pragma("vm:recognized", "other")
@@ -5313,6 +5321,7 @@ class _UnmodifiableInt16ArrayView extends _Int16ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
     implements UnmodifiableUint16ListView {
   @pragma("vm:recognized", "other")
@@ -5329,6 +5338,7 @@ class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableInt32ArrayView extends _Int32ArrayView
     implements UnmodifiableInt32ListView {
   @pragma("vm:recognized", "other")
@@ -5345,6 +5355,7 @@ class _UnmodifiableInt32ArrayView extends _Int32ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
     implements UnmodifiableUint32ListView {
   @pragma("vm:recognized", "other")
@@ -5361,6 +5372,7 @@ class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableInt64ArrayView extends _Int64ArrayView
     implements UnmodifiableInt64ListView {
   @pragma("vm:recognized", "other")
@@ -5377,6 +5389,7 @@ class _UnmodifiableInt64ArrayView extends _Int64ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
     implements UnmodifiableUint64ListView {
   @pragma("vm:recognized", "other")
@@ -5393,6 +5406,7 @@ class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
     implements UnmodifiableFloat32ListView {
   @pragma("vm:recognized", "other")
@@ -5409,6 +5423,7 @@ class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
     implements UnmodifiableFloat64ListView {
   @pragma("vm:recognized", "other")
@@ -5425,6 +5440,7 @@ class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
     implements UnmodifiableFloat32x4ListView {
   @pragma("vm:recognized", "other")
@@ -5441,6 +5457,7 @@ class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
     implements UnmodifiableInt32x4ListView {
   @pragma("vm:recognized", "other")
@@ -5457,6 +5474,7 @@ class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
     implements UnmodifiableFloat64x2ListView {
   @pragma("vm:recognized", "other")
@@ -5473,6 +5491,7 @@ class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
 }
 
 @pragma("vm:entry-point")
+@pragma("wasm:entry-point")
 class _UnmodifiableByteDataView extends _ByteDataView
     implements UnmodifiableByteDataView {
   @pragma("vm:recognized", "other")
@@ -5531,7 +5550,8 @@ class _UnmodifiableByteDataView extends _ByteDataView
 
 class _UnmodifiableByteBufferView extends _ByteBuffer
     implements UnmodifiableByteBufferView {
-  _UnmodifiableByteBufferView(_ByteBuffer data) : super(data._data);
+  _UnmodifiableByteBufferView(ByteBuffer data)
+      : super(unsafeCast<_ByteBuffer>(data)._data);
 
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) =>
       new UnmodifiableUint8ListView(super.asUint8List(offsetInBytes, length));

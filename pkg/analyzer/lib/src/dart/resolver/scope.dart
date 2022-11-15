@@ -185,7 +185,7 @@ class NamespaceBuilder {
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
       definedNames['dynamic'] = DynamicElementImpl.instance;
-      definedNames['Never'] = NeverTypeImpl.instance.element2;
+      definedNames['Never'] = NeverTypeImpl.instance.element;
     }
 
     return Namespace(definedNames);
@@ -211,7 +211,7 @@ class NamespaceBuilder {
     for (ClassElement element in compilationUnit.classes) {
       _addIfPublic(definedNames, element);
     }
-    for (final element in compilationUnit.enums2) {
+    for (final element in compilationUnit.enums) {
       _addIfPublic(definedNames, element);
     }
     for (ExtensionElement element in compilationUnit.extensions) {
@@ -220,7 +220,7 @@ class NamespaceBuilder {
     for (FunctionElement element in compilationUnit.functions) {
       _addIfPublic(definedNames, element);
     }
-    for (final element in compilationUnit.mixins2) {
+    for (final element in compilationUnit.mixins) {
       _addIfPublic(definedNames, element);
     }
     for (TypeAliasElement element in compilationUnit.typeAliases) {

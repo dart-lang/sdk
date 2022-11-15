@@ -4,7 +4,6 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,7 +41,7 @@ class DocumentationValidator {
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Has code in the example section that needs to be skipped (because it's
-    // part of the explanitory text not part of the example), but there's
+    // part of the explanatory text not part of the example), but there's
     // currently no way to do that.
     'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
     // Produces two diagnostics when it should only produce one. We could get
@@ -327,7 +326,6 @@ class DocumentationValidator {
 class VerifyDiagnosticsTest {
   @TestTimeout(Timeout.factor(4))
   test_diagnostics() async {
-    Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     //
     // Validate that the input to the generator is correct.
     //
@@ -336,20 +334,21 @@ class VerifyDiagnosticsTest {
     //
     // Validate that the generator has been run.
     //
-    if (pathContext.style != Style.windows) {
-      String actualContent = PhysicalResourceProvider.INSTANCE
-          .getFile(computeOutputPath())
-          .readAsStringSync();
+    String actualContent = PhysicalResourceProvider.INSTANCE
+        .getFile(computeOutputPath())
+        .readAsStringSync();
+    // Normalize Windows line endings to Unix line endings so that the
+    // comparison doesn't fail on Windows.
+    actualContent = actualContent.replaceAll('\r\n', '\n');
 
-      StringBuffer sink = StringBuffer();
-      DocumentationGenerator generator = DocumentationGenerator();
-      generator.writeDocumentation(sink);
-      String expectedContent = sink.toString();
+    StringBuffer sink = StringBuffer();
+    DocumentationGenerator generator = DocumentationGenerator();
+    generator.writeDocumentation(sink);
+    String expectedContent = sink.toString();
 
-      if (actualContent != expectedContent) {
-        fail('The diagnostic documentation needs to be regenerated.\n'
-            'Please run tool/diagnostics/generate.dart.');
-      }
+    if (actualContent != expectedContent) {
+      fail('The diagnostic documentation needs to be regenerated.\n'
+          'Please run tool/diagnostics/generate.dart.');
     }
   }
 

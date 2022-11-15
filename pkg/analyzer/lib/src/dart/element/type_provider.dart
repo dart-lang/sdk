@@ -80,7 +80,7 @@ const Set<String> _nonSubtypableDartTypedDataClassNames = {
 abstract class TypeProviderBase implements TypeProvider {
   @override
   bool isObjectGetter(String id) {
-    var element = objectType.element2.getGetter(id);
+    var element = objectType.element.getGetter(id);
     return element != null && !element.isStatic;
   }
 
@@ -91,7 +91,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   bool isObjectMethod(String id) {
-    var element = objectType.element2.getMethod(id);
+    var element = objectType.element.getMethod(id);
     return element != null && !element.isStatic;
   }
 }
@@ -241,7 +241,7 @@ class TypeProviderImpl extends TypeProviderBase {
       var element = enumElement;
       if (element != null) {
         _enumType = InterfaceTypeImpl(
-          element2: element,
+          element: element,
           typeArguments: const [],
           nullabilitySuffix: _nullabilitySuffix,
         );
@@ -258,7 +258,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get futureDynamicType {
     return _futureDynamicType ??= InterfaceTypeImpl(
-      element2: futureElement,
+      element: futureElement,
       typeArguments: [dynamicType],
       nullabilitySuffix: _nullabilitySuffix,
     );
@@ -272,7 +272,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get futureNullType {
     return _futureNullType ??= InterfaceTypeImpl(
-      element2: futureElement,
+      element: futureElement,
       typeArguments: [nullType],
       nullabilitySuffix: _nullabilitySuffix,
     );
@@ -286,7 +286,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get futureOrNullType {
     return _futureOrNullType ??= InterfaceTypeImpl(
-      element2: futureOrElement,
+      element: futureOrElement,
       typeArguments: [nullType],
       nullabilitySuffix: _nullabilitySuffix,
     );
@@ -309,7 +309,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get iterableDynamicType {
     return _iterableDynamicType ??= InterfaceTypeImpl(
-      element2: iterableElement,
+      element: iterableElement,
       typeArguments: [dynamicType],
       nullabilitySuffix: _nullabilitySuffix,
     );
@@ -323,7 +323,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get iterableObjectType {
     return _iterableObjectType ??= InterfaceTypeImpl(
-      element2: iterableElement,
+      element: iterableElement,
       typeArguments: [objectType],
       nullabilitySuffix: _nullabilitySuffix,
     );
@@ -342,7 +342,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get mapObjectObjectType {
     return _mapObjectObjectType ??= InterfaceTypeImpl(
-      element2: mapElement,
+      element: mapElement,
       typeArguments: [objectType, objectType],
       nullabilitySuffix: _nullabilitySuffix,
     );
@@ -419,7 +419,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get streamDynamicType {
     return _streamDynamicType ??= InterfaceTypeImpl(
-      element2: streamElement,
+      element: streamElement,
       typeArguments: [dynamicType],
       nullabilitySuffix: _nullabilitySuffix,
     );
@@ -553,14 +553,14 @@ class TypeProviderImpl extends TypeProviderBase {
     if (typeParameters.isNotEmpty) {
       typeArguments = typeParameters.map((e) {
         return TypeParameterTypeImpl(
-          element2: e,
+          element: e,
           nullabilitySuffix: _nullabilitySuffix,
         );
       }).toList(growable: false);
     }
 
     return InterfaceTypeImpl(
-      element2: element,
+      element: element,
       typeArguments: typeArguments,
       nullabilitySuffix: _nullabilitySuffix,
     );

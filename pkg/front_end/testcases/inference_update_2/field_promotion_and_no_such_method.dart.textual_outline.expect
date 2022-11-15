@@ -1,0 +1,28 @@
+import 'field_promotion_and_no_such_method_lib.dart' as otherLib;
+
+abstract class C {
+  final int? _f1;
+  final int? _f2;
+  C(int? i)
+      : _f1 = i,
+        _f2 = i;
+}
+
+abstract class D {
+  final int? _f1;
+  D(int? i) : _f1 = i;
+}
+
+class E implements D {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class F implements otherLib.C {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+void acceptsInt(int x) {}
+void testConflictsWithNoSuchMethodForwarder(C c) {}
+void testNoConflictWithNoSuchMethodForwarderForDifferentLib(C c) {}

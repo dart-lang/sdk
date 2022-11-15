@@ -27,17 +27,7 @@
   Additionally, a type test of the form `v is Never` (where `v` is a local
   variable) no longer promotes `v` to type `Never`.
 
-- **Breaking change** [#49878][]: Calling `ResourceHandle.toFile()`,
-  `ResourceHandle.toSocket()`, `ResourceHandle.toRawSocket()` or
-  `ResourceHandle.toRawDatagramSocket()`, more than once now throws a
-  `StateError`.
-
-  The previous behavior would allow multiple Dart objects to refer to the same
-  file descriptor, which would produce errors when one object was closed or
-  garbage collected.
-
 [#49635]: https://github.com/dart-lang/sdk/issues/49635
-[#49878]: https://github.com/dart-lang/sdk/issues/49878
 
 - **Breaking Change** [#49687][]: Don't delegate inaccessible private names to
   `noSuchMethod`. If a concrete class implements an interface containing a
@@ -54,15 +44,31 @@
 [#49687]: https://github.com/dart-lang/sdk/issues/49687
 [#2020]: https://github.com/dart-lang/language/issues/2020
 
+- Add support for **unnamed libraries**. Dart language 2.19 allows a library
+  directive to be written without a name (`library;`). A library directive can
+  be used for library-level annotations (such as `@deprecated`) and for
+  library-level documentation comments, and with this new feature, you don't
+  have to provide a unique name for each library directive. Instead, a name can
+  simply be omitted.
+
 ### Libraries
 
 #### `dart:convert`
 
 - **Breaking change** [#34233][]: The previously deprecated API
-  [`DEFAULT_BUFFER_SIZE`][] in [`JsonUtf8Encoder`] has been removed.
+  [`DEFAULT_BUFFER_SIZE`][] in `JsonUtf8Encoder` has been removed.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
+
+#### `dart:core`
+
+- Deprecated `FallThroughError`. Has not been thrown since Dart 2.0
+  (see [#49529]).
+- Added `copyWith` extension method on `DateTime` (see [#24644]).
+
+[#49529]: https://github.com/dart-lang/sdk/issues/49529
+[#24644]: https://github.com/dart-lang/sdk/issues/24644
 
 #### `dart:developer`
 
@@ -93,6 +99,16 @@
 - **Breaking change** [#49647](https://github.com/dart-lang/sdk/issues/49647):
   `File.create` now takes new optional `exclusive` `bool` parameter, and
   when it is `true` the operation will fail if target file already exists.
+- **Breaking change** [#49878][]: Calling `ResourceHandle.toFile()`,
+  `ResourceHandle.toSocket()`, `ResourceHandle.toRawSocket()` or
+  `ResourceHandle.toRawDatagramSocket()`, more than once now throws a
+  `StateError`.
+
+  The previous behavior would allow multiple Dart objects to refer to the same
+  file descriptor, which would produce errors when one object was closed or
+  garbage collected.
+
+[#49878]: https://github.com/dart-lang/sdk/issues/49878
 
 #### `dart:isolate`
 
@@ -108,19 +124,40 @@
 [`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
 [`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
 
+### Other libraries
+
+#### `package:js`
+
+- **Breaking changes to the preview feature `@staticInterop`**:
+  - Classes with this annotation are now disallowed from using `external`
+  generative constructors. Use `external factory`s for these classes instead,
+  and the behavior should be identical. See [#48730][] for more details.
+  - Classes with this annotation's external extension members are now disallowed
+  from using type parameters e.g. `external void method<T>(T t)`. Use a
+  non-`external` extension method for type parameters instead. See [#49350][]
+  for more details.
+
+[#48730]: https://github.com/dart-lang/sdk/issues/48730
+[#49350]: https://github.com/dart-lang/sdk/issues/49350
+
 ### Tools
 
 #### Analyzer
 
-- added static enforcement of new `mustBeOverridden` annotation
-- added quick fixes for diagnostics:
+- add static enforcement of new `mustBeOverridden` annotation
+- add quick fixes for diagnostics:
   `abstract_field_initializer`,
   `ambiguous_extension_member_access`,
+  `argument_type_not_assignable`,
   `assert_in_redirecting_constructor`,
+  `combinators_ordering`,
   `default_value_on_required_parameter`,
   `initializing_formal_for_non_existent_field`,
+  `missing_default_value_for_parameter_positional`,
   `super_formal_parameter_without_associated_named`,
-- added new Hint: `cast_from_null_always_fails`
+  `undefined_identifier`
+- add new hints: `cast_from_null_always_fails`, `duplicate_export`
+- remove hint: `invalid_override_different_default_values`
 
 #### Linter
 
@@ -156,14 +193,53 @@ Updated the Linter to `1.28.0`, which includes changes that
 
 #### Pub
 
+- Treats packages with sdk constraint lower bound `>=2.12.0` or more and upper
+  bound `<3.0.0` as compatible with `<4.0.0`.
+- Introduces content-hashes in pubspec.lock, to protect against corrupted
+  package repositories.
+
+  These will show up in the lock file on the first run of `dart pub get`.
+
+  See https://dart.dev/go/content-hashes for more details.
 - Remove remaining support for `.packages` files. The flag
   `--legacy-packages-file` is no longer supported.
-- Support a new field `funding` in pubspec.yaml.
+- The client will now default to the `pub.dev` repository instead of `pub.dartlang.org`.
+  This will cause a change in pubspec.lock.
+- Support a new field [`funding`](https://dart.dev/tools/pub/pubspec#funding) in pubspec.yaml.
+- Validate the CRC32c checksum of downloaded archives and retry on failure.
+- `dart pub add foo:<constraint>` with an existing dependency will now update
+  the constraint rather than fail.
+- Update `dart pub publish` to allow `dependency_overrides` in pubspec.yaml.
+  They will still cause a publication warning.
+  Note that only `dependency_overrides` from the root package effect resolution.
+- Update `dart pub publish` to require a working resolution.
+  If publishing a breaking release of mutually dependent packages use `dependency_overrides`
+  to obtain a resolution.
+- `dart pub publish` will now give a warning if `dart analyze` reports any diagnostics.
+- `dart pub get` now fails gracefully when run from inside the pub-cache.
+- `dart pub publish` now shows the file sizes of large files in your package to
+  prevent accidental publication of large unrelated files.
+- Fix a bug in `dart pub upgrade --major-versions` where packages not requiring
+  major updates would be held back unless needed.
 
 #### dart2js
 
 - **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
   dart2js no longer supports HTTP URIs as inputs.
+
+## 2.18.4 - 2022-11-02
+
+This is a patch release that fixes crashes during hot reload
+(issue [flutter/flutter#113540][]).
+
+[flutter/flutter#113540]: https://github.com/flutter/flutter/issues/113540
+
+## 2.18.3 - 2022-10-19
+
+This is a patch release that fixes a regression in code coverage computation
+(issue [#49887][]).
+
+[#49887]: https://github.com/dart-lang/sdk/issues/49887
 
 ## 2.18.2 - 2022-09-28
 
@@ -176,9 +252,15 @@ This is a patch release that:
 
 #### `dart:core`
 
-- The `Uri` class will parse a backslash in the path or the authority separator
-  of a URI as a forward slash. This affects the `Uri` constructor's `path`
-  parameter, and the `Uri.parse` method.
+- **Security advisory** [CVE-2022-3095](https://github.com/dart-lang/sdk/security/advisories/GHSA-m9pm-2598-57rj):
+  There is a auth bypass vulnerability in Dart SDK, specifically `dart:uri` core
+  library, used to parse and validate URLs. This library is vulnerable to the
+  backslash-trick wherein backslash is not recognized as equivalent to forward
+  slash in URLs.
+
+  The `Uri` class has been changed to parse a backslash in the path or the
+  authority separator of a URI as a forward slash. This affects the `Uri`
+  constructor's `path` parameter, and the `Uri.parse` method.
   This change was made to not diverge as much from the browser `URL` behavior.
   The Dart `Uri` class is still not an implementation of the same standard
   as the browser's `URL` implementation.

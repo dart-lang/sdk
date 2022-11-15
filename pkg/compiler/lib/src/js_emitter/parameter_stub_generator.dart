@@ -13,21 +13,20 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer_interfaces.dart' show Namer;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
-import 'code_emitter_task.dart' show Emitter;
-import 'native_emitter.dart';
+import 'interfaces.dart' show Emitter, NativeEmitter;
 
 class ParameterStubGenerator {
   static final Set<Selector> emptySelectorSet = {};

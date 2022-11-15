@@ -93,7 +93,7 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
 
   @override
   DecoratedType _getTypeParameterTypeBound(DecoratedType type) {
-    return bounds[(type.type as TypeParameterType).element2] ??
+    return bounds[(type.type as TypeParameterType).element] ??
         (throw StateError('Unknown bound for $type'));
   }
 }
@@ -282,7 +282,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// (receiver) for a method, getter, or setter invocation.
   DecoratedType getOrComputeElementType(AstNode node, Element element,
       {DecoratedType? targetType, Expression? targetExpression}) {
-    Map<TypeParameterElement, DecoratedType?>? substitution;
+    Map<TypeParameterElement, DecoratedType>? substitution;
     Element? baseElement = element.declaration;
     if (targetType != null) {
       var enclosingElement = baseElement!.enclosingElement;
@@ -538,12 +538,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           notEqual: notEqual);
 
       void buildNullConditionInfo(NullLiteral nullLiteral,
-          Expression otherOperand, NullabilityNode? otherNode) {
+          Expression otherOperand, DecoratedType otherType) {
         assert(nullLiteral != otherOperand);
         // TODO(paulberry): only set falseChecksNonNull in unconditional
         // control flow
         // TODO(paulberry): figure out what the rules for isPure should be.
         bool isPure = otherOperand is SimpleIdentifier;
+        var otherNode = otherType.node;
+        var otherTypeType = otherType.type;
+        if (otherTypeType is TypeParameterType) {
+          var boundNullability =
+              DecoratedTypeParameterBounds.current!.get(otherTypeType.element);
+          if (boundNullability != null) {
+            otherNode =
+                NullabilityNode.forLUB(otherNode, boundNullability.node);
+          }
+        }
         var conditionInfo = _ConditionInfo(node,
             isPure: isPure,
             postDominatingIntent: _isReferenceInScope(otherOperand),
@@ -553,9 +563,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
 
       if (rightOperand is NullLiteral) {
-        buildNullConditionInfo(rightOperand, leftOperand, leftType.node);
+        buildNullConditionInfo(rightOperand, leftOperand, leftType);
       } else if (leftOperand is NullLiteral) {
-        buildNullConditionInfo(leftOperand, rightOperand, rightType.node);
+        buildNullConditionInfo(leftOperand, rightOperand, rightType);
       }
 
       return _makeNonNullableBoolType(node);
@@ -648,8 +658,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitCatchClause(CatchClause node) {
     _flowAnalysis!.tryCatchStatement_catchBegin(
-        node.exceptionParameter2?.declaredElement,
-        node.stackTraceParameter2?.declaredElement);
+        node.exceptionParameter?.declaredElement,
+        node.stackTraceParameter?.declaredElement);
     _dispatch(node.exceptionType);
     // The catch clause may not execute, so create a new scope for
     // post-dominators.
@@ -716,7 +726,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.withClause);
     var classElement = node.declaredElement!;
     var supertype = classElement.supertype!;
-    var superElement = supertype.element2;
+    var superElement = supertype.element;
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
       var superConstructorElement =
@@ -770,7 +780,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         thenType = _dispatch(node.thenExpression);
         if (trueGuard != null) {
           thenType = thenType!.withNode(
-              _nullabilityNodeForGLB(node, thenType!.node!, trueGuard));
+              _nullabilityNodeForGLB(node, thenType!.node, trueGuard));
         }
       } finally {
         if (trueGuard != null) {
@@ -785,7 +795,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         elseType = _dispatch(node.elseExpression);
         if (falseGuard != null) {
           elseType = elseType!.withNode(
-              _nullabilityNodeForGLB(node, elseType!.node!, falseGuard));
+              _nullabilityNodeForGLB(node, elseType!.node, falseGuard));
         }
       } finally {
         if (falseGuard != null) {
@@ -863,7 +873,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           // default value doesn't mean the parameter has to be nullable.
         } else {
           _graph.makeNullable(
-              getOrComputeElementType(node, declaredElement).node!,
+              getOrComputeElementType(node, declaredElement).node,
               OptionalFormalParameterOrigin(source, node));
         }
       }
@@ -1262,7 +1272,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.staticType!.isDartCoreList &&
         callee.name == '' &&
         node.argumentList.arguments.length == 1) {
-      _graph.connect(_graph.always, decoratedTypeArguments[0].node!,
+      _graph.connect(_graph.always, decoratedTypeArguments[0].node,
           ListLengthConstructorOrigin(source, node));
     }
 
@@ -1374,7 +1384,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _variables
               .decoratedElementType(node.declaredElement!.declaration)
               .returnType!
-              .node!,
+              .node,
           BuiltValueNullableOrigin(source, node));
     }
     _handleExecutableDeclaration(node, node.declaredElement!, node.metadata,
@@ -1563,7 +1573,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var target = NullabilityNodeTarget.text('null literal').withCodeRef(node);
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, node.staticType, _graph, target);
-    _graph.makeNullable(decoratedType.node!, LiteralOrigin(source, node));
+    _graph.makeNullable(decoratedType.node, LiteralOrigin(source, node));
     return decoratedType;
   }
 
@@ -1703,7 +1713,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var implicitNullType = DecoratedType.forImplicitType(
           typeProvider, typeProvider.nullType, _graph, target);
       var origin = ImplicitNullReturnOrigin(source, node);
-      _graph.makeNullable(implicitNullType.node!, origin);
+      _graph.makeNullable(implicitNullType.node, origin);
       _checkAssignment(origin, FixReasonTarget.root,
           source:
               isAsync ? _futureOf(implicitNullType, node) : implicitNullType,
@@ -1805,7 +1815,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           node.inGetterContext() &&
           !_lateHintedLocals.contains(staticElement) &&
           !_flowAnalysis!.isAssigned(staticElement)) {
-        _graph.makeNullable(type.node!, UninitializedReadOrigin(source, node));
+        _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
       }
       result = type;
     } else if (staticElement is FunctionElement ||
@@ -2055,7 +2065,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               _variables.getLateHint(source, node) == null &&
               !(declaredElement is FieldElement && !declaredElement.isStatic)) {
             _graph.makeNullable(
-                type.node!, ImplicitNullInitializerOrigin(source, node));
+                type.node, ImplicitNullInitializerOrigin(source, node));
           }
         } else {
           _handleAssignment(initializer, destinationType: type);
@@ -2209,32 +2219,32 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var rightType = right.type;
     if (leftType is TypeParameterType && leftType != type) {
       // We are "unwrapping" a type parameter type to its bound.
-      final typeParam = leftType.element2;
+      final typeParam = leftType.element;
       return _decorateUpperOrLowerBound(
           astNode,
           type,
           left.substitute(
-              {typeParam: _variables.decoratedTypeParameterBound(typeParam)}),
+              {typeParam: _variables.decoratedTypeParameterBound(typeParam)!}),
           right,
           isLUB,
           node: node);
     }
     if (rightType is TypeParameterType && rightType != type) {
       // We are "unwrapping" a type parameter type to its bound.
-      final typeParam = rightType.element2;
+      final typeParam = rightType.element;
       return _decorateUpperOrLowerBound(
           astNode,
           type,
           left,
           right.substitute(
-              {typeParam: _variables.decoratedTypeParameterBound(typeParam)}),
+              {typeParam: _variables.decoratedTypeParameterBound(typeParam)!}),
           isLUB,
           node: node);
     }
 
     node ??= isLUB
         ? NullabilityNode.forLUB(left.node, right.node)
-        : _nullabilityNodeForGLB(astNode, left.node!, right.node!);
+        : _nullabilityNodeForGLB(astNode, left.node, right.node);
 
     if (type!.isDynamic || type.isVoid) {
       return DecoratedType(type, node);
@@ -2257,14 +2267,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           List<DecoratedType?> rightTypeArguments;
           if (isLUB) {
             leftTypeArguments = _decoratedClassHierarchy!
-                .asInstanceOf(left, type.element2)
+                .asInstanceOf(left, type.element)
                 .typeArguments;
             rightTypeArguments = _decoratedClassHierarchy!
-                .asInstanceOf(right, type.element2)
+                .asInstanceOf(right, type.element)
                 .typeArguments;
           } else {
-            if (leftType.element2 != type.element2 ||
-                rightType.element2 != type.element2) {
+            if (leftType.element != type.element ||
+                rightType.element != type.element) {
               _unimplemented(astNode, 'GLB with substitution');
             }
             leftTypeArguments = left.typeArguments;
@@ -2350,8 +2360,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         return DecoratedType(type, node);
       }
 
-      assert(leftType.element2 == type.element2 &&
-          rightType.element2 == type.element2);
+      assert(leftType.element == type.element &&
+          rightType.element == type.element);
       return DecoratedType(type, node);
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
@@ -2438,7 +2448,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // TODO(paulberry): once we've wired up flow analysis, return promoted
     // bounds if applicable.
     return _variables
-        .decoratedTypeParameterBound((type.type as TypeParameterType).element2);
+        .decoratedTypeParameterBound((type.type as TypeParameterType).element);
   }
 
   /// Creates the necessary constraint(s) for an assignment of the given
@@ -2551,7 +2561,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis!.ifNullExpression_end();
         // a ??= b is only nullable if both a and b are nullable.
         sourceType = destinationType!.withNode(_nullabilityNodeForGLB(
-            questionAssignNode, sourceType.node!, destinationType.node!));
+            questionAssignNode, sourceType.node, destinationType.node));
         _variables.recordDecoratedExpressionType(
             questionAssignNode, sourceType);
       }
@@ -2979,8 +2989,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       setType =
           _variables.decoratedElementType(setter).positionalParameters!.single;
     }
-    Map<TypeParameterElement, DecoratedType?> getterSubstitution = const {};
-    Map<TypeParameterElement, DecoratedType?> setterSubstitution = const {};
+    Map<TypeParameterElement, DecoratedType> getterSubstitution = const {};
+    Map<TypeParameterElement, DecoratedType> setterSubstitution = const {};
     if (class_ != null) {
       var getterClass = getter.enclosingElement as ClassElement;
       if (!identical(class_, getterClass)) {
@@ -3113,7 +3123,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Any parameters not supplied must be optional.
     for (var entry in calleeType.namedParameters!.entries) {
       if (suppliedNamedParameters.contains(entry.key)) continue;
-      entry.value.node!.recordNamedParameterNotSupplied(
+      entry.value.node.recordNamedParameterNotSupplied(
           _guards, _graph, NamedParameterNotSuppliedOrigin(source, node));
     }
     return calleeType.returnType;
@@ -3126,8 +3136,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (targetElement is ParameterElement &&
           targetElement.enclosingElement == _currentExecutable &&
           !_currentExecutable!.name.startsWith('_')) {
-        _graph.makeNullable(
-            _variables.decoratedElementType(targetElement).node!,
+        _graph.makeNullable(_variables.decoratedElementType(targetElement).node,
             NullAwareAccessOrigin(source, node));
       }
     }
@@ -3271,7 +3280,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   void _handleUninitializedFields(AstNode node, Set<FieldElement?> fields) {
     for (var field in fields) {
-      _graph.makeNullable(_variables.decoratedElementType(field!).node!,
+      _graph.makeNullable(_variables.decoratedElementType(field!).node,
           FieldNotInitializedOrigin(source, node));
     }
   }
@@ -3338,9 +3347,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _linkDecoratedTypes(DecoratedType x, DecoratedType? y, EdgeOrigin origin,
       {bool isUnion = true}) {
     if (isUnion) {
-      _graph.union(x.node!, y!.node!, origin);
+      _graph.union(x.node, y!.node, origin);
     } else {
-      _graph.connect(x.node, y!.node!, origin, hard: true);
+      _graph.connect(x.node, y!.node, origin, hard: true);
     }
     _linkDecoratedTypeParameters(x, y, origin, isUnion: isUnion);
     for (int i = 0;
@@ -3396,7 +3405,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.dynamicType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node!, AlwaysNullableTypeOrigin(source, astNode, false));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, false));
     return decoratedType;
   }
 
@@ -3405,7 +3414,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.voidType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node!, AlwaysNullableTypeOrigin(source, astNode, true));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, true));
     return decoratedType;
   }
 
@@ -3575,7 +3584,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     if (dartType is InterfaceType &&
-        dartType.element2 == typeProvider.futureOrElement) {
+        dartType.element == typeProvider.futureOrElement) {
       var typeArguments = type.typeArguments;
       if (typeArguments.length == 1) {
         // Wrapping FutureOr<T?1>?2 should produce Future<T?3>, where either 1
@@ -3807,7 +3816,7 @@ mixin _AssignmentChecker {
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
       var rewrittenSource = _decoratedClassHierarchy!
-          .asInstanceOf(source, destinationType.element2);
+          .asInstanceOf(source, destinationType.element);
       assert(rewrittenSource.typeArguments.length ==
           destination.typeArguments.length);
       for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
@@ -3875,7 +3884,7 @@ mixin _AssignmentChecker {
         sourceType.isDartCoreObject ||
         sourceType.isVoid) {
       if (destinationType is InterfaceType) {
-        for (final param in destinationType.element2.typeParameters) {
+        for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,
               'downcast to type parameters with bounds not supported');
         }
@@ -3926,7 +3935,7 @@ mixin _AssignmentChecker {
     } else if (destinationType is InterfaceType) {
       if (sourceType is InterfaceType) {
         final target = _decoratedClassHierarchy!
-            .asInstanceOf(destination, sourceType.element2);
+            .asInstanceOf(destination, sourceType.element);
         for (var i = 0; i < source.typeArguments.length; ++i) {
           _checkDowncast(origin,
               source: source.typeArguments[i]!,
@@ -4018,7 +4027,7 @@ extension on DartType? {
     final self = this;
     if (self is TypeParameterType &&
         self.nullabilitySuffix == NullabilitySuffix.star) {
-      return self.element2.bound.explicitBound;
+      return self.element.bound.explicitBound;
     }
     return self;
   }

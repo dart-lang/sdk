@@ -360,6 +360,8 @@ const word UntaggedObject::kCardRememberedBit =
 
 const word UntaggedObject::kCanonicalBit = dart::UntaggedObject::kCanonicalBit;
 
+const word UntaggedObject::kNewBit = dart::UntaggedObject::kNewBit;
+
 const word UntaggedObject::kOldAndNotRememberedBit =
     dart::UntaggedObject::kOldAndNotRememberedBit;
 

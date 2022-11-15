@@ -527,6 +527,12 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
   ConcreteType addAllocatedClass(Class c) => rta.addAllocatedClass(c);
 
   @override
+  Field getRecordPositionalField(int pos) => throw 'Unsupported operation';
+
+  @override
+  Field getRecordNamedField(String name) => throw 'Unsupported operation';
+
+  @override
   void recordMemberCalledViaInterfaceSelector(Member target) =>
       throw 'Unsupported operation';
 

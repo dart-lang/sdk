@@ -26,12 +26,12 @@ class ConvertToOnType extends CorrectionProducer {
         var rightParenthesis = catchClause.rightParenthesis;
         if (catchKeyword != null &&
             catchClause.exceptionType == null &&
-            catchClause.exceptionParameter2 == exceptionParameter &&
+            catchClause.exceptionParameter == exceptionParameter &&
             rightParenthesis != null) {
           var exceptionTypeName = exceptionParameter.name;
           fixArguments.add(exceptionTypeName);
           await builder.addDartFileEdit(file, (builder) {
-            var stackTraceParameter = catchClause.stackTraceParameter2;
+            var stackTraceParameter = catchClause.stackTraceParameter;
             if (stackTraceParameter != null) {
               builder.addSimpleReplacement(
                 range.startStart(catchKeyword, stackTraceParameter),

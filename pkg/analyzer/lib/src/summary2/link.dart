@@ -121,6 +121,7 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     _buildEnumChildren();
+    _computeFieldPromotability();
 
     await performance.runAsync(
       'executeMacroDeclarationsPhase',
@@ -142,6 +143,12 @@ class Linker {
   void _collectMixinSuperInvokedNames() {
     for (var library in builders.values) {
       library.collectMixinSuperInvokedNames();
+    }
+  }
+
+  void _computeFieldPromotability() {
+    for (var library in builders.values) {
+      library.computeFieldPromotability();
     }
   }
 

@@ -4,10 +4,6 @@ parser/record/record_literal_04:9:21: Record literal with one field requires a t
   var r5 = const (42);
                     ^
 
-parser/record/record_literal_04:12:19: Record literal can't be empty.
-  var r6 = const ();
-                  ^
-
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
@@ -121,7 +117,6 @@ beginCompilationUnit(void)
             beginVariableInitializer(=)
               beginConstLiteral(()
                 beginParenthesizedExpressionOrRecordLiteral(()
-                  handleRecoverableError(RecordLiteralEmpty, ), ))
                 endRecordLiteral((, 0, const)
               endConstLiteral(;)
             endVariableInitializer(=)

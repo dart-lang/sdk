@@ -206,11 +206,13 @@ export 'lib2.dart' show C;
 library lib;
 class N {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 library L;
 export 'lib.dart';
 export 'lib.dart';
-''');
+''', [
+      error(HintCode.DUPLICATE_EXPORT, 37, 10),
+    ]);
   }
 
   test_ambiguousImport_dart_implicitHide() async {
@@ -716,6 +718,20 @@ f(x, y) async* {
 
   test_breakWithoutLabelInSwitch() async {
     await assertNoErrorsInCode(r'''
+class A {
+  void m(int i) {
+    switch (i) {
+      case 0:
+        break;
+    }
+  }
+}
+''');
+  }
+
+  test_breakWithoutLabelInSwitch_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
 class A {
   void m(int i) {
     switch (i) {
@@ -2277,8 +2293,37 @@ f(E e) {
 ''');
   }
 
+  test_missingEnumConstantInSwitch_all_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+enum E { A, B, C }
+
+f(E e) {
+  switch (e) {
+    case E.A: break;
+    case E.B: break;
+    case E.C: break;
+  }
+}
+''');
+  }
+
   test_missingEnumConstantInSwitch_default() async {
     await assertNoErrorsInCode(r'''
+enum E { A, B, C }
+
+f(E e) {
+  switch (e) {
+    case E.B: break;
+    default: break;
+  }
+}
+''');
+  }
+
+  test_missingEnumConstantInSwitch_default_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
 enum E { A, B, C }
 
 f(E e) {
@@ -2580,7 +2625,7 @@ class A {
   const A.b2(bool p) : v = true || p;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 170, 1),
+      error(HintCode.DEAD_CODE, 167, 4),
     ]);
   }
 

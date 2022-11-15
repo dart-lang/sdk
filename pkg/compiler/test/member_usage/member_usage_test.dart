@@ -88,7 +88,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
     MemberUsage memberUsage =
         resolutionWorldBuilder.memberUsageForTesting[member];
     if (memberUsage != null) {
-      if (member.isField && memberUsage.hasInit) {
+      if (member is FieldEntity && memberUsage.hasInit) {
         features.add(Tags.init);
       }
       if (memberUsage.hasRead) {

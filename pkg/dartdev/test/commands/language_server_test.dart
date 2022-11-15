@@ -11,6 +11,8 @@ import 'package:test/test.dart';
 import '../utils.dart' as utils;
 
 void main() {
+  utils.ensureRunFromSdkBinDart();
+
   group(
     'language-server',
     defineLanguageServerTests,

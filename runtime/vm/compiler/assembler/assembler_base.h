@@ -852,6 +852,24 @@ class AssemblerBase : public StackResource {
   // unchecked entry point (incl. prologue/frame setup, etc.).
   intptr_t UncheckedEntryOffset() const { return unchecked_entry_offset_; }
 
+  enum RangeCheckCondition {
+    kIfNotInRange = 0,
+    kIfInRange = 1,
+  };
+
+  // Jumps to [target] if [condition] is satisfied.
+  //
+  // [low] and [high] are inclusive.
+  // If [temp] is kNoRegister, then [value] is overwritten.
+  // Note: Using a valid [temp] register generates an additional
+  //       instruction on x64/ia32.
+  virtual void RangeCheck(Register value,
+                          Register temp,
+                          intptr_t low,
+                          intptr_t high,
+                          RangeCheckCondition condition,
+                          Label* target) = 0;
+
  protected:
   AssemblerBuffer buffer_;  // Contains position independent code.
   int32_t prologue_offset_;

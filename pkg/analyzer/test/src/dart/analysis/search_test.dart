@@ -607,7 +607,7 @@ Random v2;
     var v1 = findElement.topVar('v1');
     var v2 = findElement.topVar('v2');
     final v1Type = v1.type as InterfaceType;
-    var randomElement = v1Type.element2 as ClassElement;
+    var randomElement = v1Type.element as ClassElement;
     var expected = [
       _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
       _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
@@ -1400,9 +1400,9 @@ part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
     CompilationUnitElement unitElementA =
-        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
+        (element.parts[0].uri as DirectiveUriWithUnit).unit;
     CompilationUnitElement unitElementB =
-        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
+        (element.parts[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -1438,9 +1438,9 @@ part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
     CompilationUnitElement unitElementA =
-        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
+        (element.parts[0].uri as DirectiveUriWithUnit).unit;
     CompilationUnitElement unitElementB =
-        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
+        (element.parts[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -2234,7 +2234,7 @@ main() {
   V(); // nq
 }
 ''');
-    final importElement = findNode.import('show V').element2!;
+    final importElement = findNode.import('show V').element!;
     CompilationUnitElement impUnit =
         importElement.importedLibrary!.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];

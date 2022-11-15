@@ -393,8 +393,8 @@ class FeatureComputer {
           }
         }
       } else if (node is CatchClause) {
-        if (node.exceptionParameter2?.declaredElement == variable ||
-            node.stackTraceParameter2?.declaredElement == variable) {
+        if (node.exceptionParameter?.declaredElement == variable ||
+            node.stackTraceParameter?.declaredElement == variable) {
           return distance;
         }
       }
@@ -472,11 +472,11 @@ class FeatureComputer {
       return -1;
     }
     var minDepth =
-        _inheritanceDistance(subclass.supertype?.element2, superclass, visited);
+        _inheritanceDistance(subclass.supertype?.element, superclass, visited);
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {
-        var depth = _inheritanceDistance(type.element2, superclass, visited);
+        var depth = _inheritanceDistance(type.element, superclass, visited);
         if (minDepth < 0 || (depth >= 0 && depth < minDepth)) {
           minDepth = depth;
         }

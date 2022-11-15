@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/double_literal_inside_case.dart:7:10: Error: Case expression '1.0' does not have a primitive operator '=='.
+//     case 1.0:
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  #L1:
+  switch(x) {
+    #L2:
+    case #C1:
+      {
+        break #L1;
+      }
+  }
+}
+
+constants  {
+  #C1 = 1.0
+}

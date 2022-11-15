@@ -1434,44 +1434,6 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #endif
 }
 
-// Destroys the value register.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* label,
-                                      CanBeSmi can_be_smi,
-                                      BarrierFilterMode how_to_jump) {
-  COMPILE_ASSERT((target::ObjectAlignment::kNewObjectAlignmentOffset ==
-                  target::kWordSize) &&
-                 (target::ObjectAlignment::kOldObjectAlignmentOffset == 0));
-
-  if (can_be_smi == kValueIsNotSmi) {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
-    // Write-barrier triggers if the value is in the new space (has bit set) and
-    // the object is in the old space (has bit cleared).
-    // To check that we could compute value & ~object and skip the write barrier
-    // if the bit is not set. However we can't destroy the object.
-    // However to preserve the object we compute negated expression
-    // ~value | object instead and skip the write barrier if the bit is set.
-    notl(value);
-    orl(value, object);
-    testl(value, Immediate(target::ObjectAlignment::kNewObjectAlignmentOffset));
-  } else {
-    ASSERT(kHeapObjectTag == 1);
-    // Detect value being ...1001 and object being ...0001.
-    andl(value, Immediate(0xf));
-    leal(value, Address(value, object, TIMES_2, 0x15));
-    testl(value, Immediate(0x1f));
-  }
-  Condition condition = how_to_jump == kJumpToNoUpdate ? NOT_ZERO : ZERO;
-  JumpDistance distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
-  j(condition, label, distance);
-}
-
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
@@ -1515,8 +1477,7 @@ void Assembler::StoreBarrier(Register object,
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
-    testq(value, Immediate(kSmiTagMask));
-    j(ZERO, &done, kNearJump);
+    BranchIfSmi(value, &done, kNearJump);
   }
   movb(ByteRegisterOf(TMP),
        FieldAddress(object, target::Object::tags_offset()));
@@ -1582,8 +1543,7 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
-    testq(value, Immediate(kSmiTagMask));
-    j(ZERO, &done, kNearJump);
+    BranchIfSmi(value, &done, kNearJump);
   }
   movb(ByteRegisterOf(TMP),
        FieldAddress(object, target::Object::tags_offset()));
@@ -1621,16 +1581,15 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  pushq(value);
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  testb(FieldAddress(value, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kNewBit));
+  j(ZERO, &done, Assembler::kNearJump);
   testb(FieldAddress(object, target::Object::tags_offset()),
         Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
-
-  Stop("Store buffer update is required");
+  Stop("Write barrier is required");
   Bind(&done);
-  popq(value);
 #endif  // defined(DEBUG)
   // No store buffer update.
 }
@@ -1651,16 +1610,15 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  pushq(value);
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  testb(FieldAddress(value, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kNewBit));
+  j(ZERO, &done, Assembler::kNearJump);
   testb(FieldAddress(object, target::Object::tags_offset()),
         Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
-
-  Stop("Store buffer update is required");
+  Stop("Write barrier is required");
   Bind(&done);
-  popq(value);
 #endif  // defined(DEBUG)
   // No store buffer update.
 }
@@ -2674,6 +2632,23 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
     return FieldAddress(array, index, ToScaleFactor(index_scale, index_unboxed),
                         target::Instance::DataOffsetFor(cid));
   }
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? BELOW_EQUAL : ABOVE;
+  Register to_check = value;
+  if (temp != kNoRegister) {
+    movq(temp, value);
+    to_check = temp;
+  }
+  subq(to_check, Immediate(low));
+  cmpq(to_check, Immediate(high - low));
+  j(cc, target);
 }
 
 }  // namespace compiler

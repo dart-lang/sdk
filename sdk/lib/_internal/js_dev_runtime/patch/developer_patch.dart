@@ -4,8 +4,9 @@
 
 // Patch file for dart:developer library.
 
-import 'dart:_js_helper' show patch, ForceInline, ReifyFunctionTypes;
+import 'dart:_js_helper' show ForceInline, ReifyFunctionTypes;
 import 'dart:_foreign_helper' show JS, JSExportName;
+import 'dart:_internal' show patch;
 import 'dart:_runtime' as dart;
 import 'dart:async';
 import 'dart:convert' show json;

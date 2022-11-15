@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of 'core_patch.dart';
+
 external Never _throwObjectWithStackTrace(Object error, StackTrace stacktrace);
 
 @patch
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return 'Instance of ${object._runtimeType}';
+    return "Instance of '${object._runtimeType}'";
   }
 
   @patch
@@ -105,6 +107,11 @@ class NoSuchMethodError {
         _namedArguments = namedArguments,
         _existingArgumentNames = existingArgumentNames;
 
+  @pragma("wasm:entry-point")
+  static Never _throwWithInvocation(Object? receiver, Invocation invocation) {
+    throw NoSuchMethodError.withInvocation(receiver, invocation);
+  }
+
   @patch
   String toString() {
     StringBuffer sb = StringBuffer('');
@@ -163,5 +170,35 @@ class _DuplicatedFieldInitializerError extends Error {
 class StateError {
   static _throwNew(String msg) {
     throw new StateError(msg);
+  }
+}
+
+// Implementations needed to implement the `_stackTrace` member added
+// in the @patch class of [Error].
+
+@patch
+class OutOfMemoryError {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('OutOfMemoryError._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('OutOfMemoryError._stackTrace');
+  }
+}
+
+@patch
+class StackOverflowError {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('StackOverflowError._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('StackOverflowError._stackTrace');
+  }
+}
+
+@patch
+class IntegerDivisionByZeroException {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('IntegerDivisionByZeroException._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('IntegerDivisionByZeroException._stackTrace');
   }
 }

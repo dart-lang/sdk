@@ -9,16 +9,17 @@ library tracer;
 import 'package:kernel/text/indentation.dart' show Indentation;
 
 import '../compiler_api.dart' as api;
+import 'js_model/js_world.dart' show JClosedWorld;
 import 'options.dart' show CompilerOptions;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/tracer.dart' show HTracer;
-import 'world.dart' show JClosedWorld;
+import 'tracer_interfaces.dart' as interfaces;
 
 String TRACE_FILTER_PATTERN_FOR_TEST;
 
 /// Dumps the intermediate representation after each phase in a format
 /// readable by IR Hydra.
-class Tracer extends TracerUtil {
+class Tracer extends TracerUtil implements interfaces.Tracer {
   final JClosedWorld closedWorld;
   bool traceActive = false;
   @override
@@ -50,6 +51,7 @@ class Tracer extends TracerUtil {
     });
   }
 
+  @override
   void traceGraph(String name, var irObject) {
     if (!traceActive) return;
     if (irObject is ssa.HGraph) {
@@ -57,11 +59,13 @@ class Tracer extends TracerUtil {
     }
   }
 
+  @override
   void traceJavaScriptText(String name, String Function() getText) {
     if (!traceActive) return;
     HTracer(output, closedWorld).traceJavaScriptText(name, getText());
   }
 
+  @override
   void close() {
     if (output != null) {
       output.close();

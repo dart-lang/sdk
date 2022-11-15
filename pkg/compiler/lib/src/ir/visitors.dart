@@ -9,6 +9,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
+import '../universe/record_shape.dart';
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
@@ -163,6 +164,22 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     ClassEntity cls = elementMap.getClass(node.classNode);
     return _convertNullability(
         _dartTypes.interfaceType(cls, visitTypes(node.typeArguments)), node);
+  }
+
+  @override
+  DartType visitRecordType(ir.RecordType node) {
+    final positional = node.positional;
+    final named = node.named;
+    final shape = RecordShape(
+        positional.length,
+        named.isEmpty
+            ? const []
+            : named.map((n) => n.name).toList(growable: false));
+    List<DartType> fields = [
+      for (final type in positional) visitType(type),
+      for (final namedType in named) visitType(namedType.type)
+    ].toList(growable: false);
+    return _convertNullability(_dartTypes.recordType(shape, fields), node);
   }
 
   @override

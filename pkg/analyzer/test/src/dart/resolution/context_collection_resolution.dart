@@ -331,11 +331,9 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
   List<String> get experiments => [
-        EnableString.enhanced_enums,
+        EnableString.inference_update_2,
         EnableString.macros,
-        EnableString.named_arguments_anywhere,
         EnableString.records,
-        EnableString.super_parameters,
       ];
 
   @override
@@ -419,7 +417,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   Future<File> writeSdkSummary() async {
     final file = getFile('/home/summaries/sdk.sum');
-    final bytes = await buildSdkSummary2(
+    final bytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );
@@ -538,6 +536,11 @@ class PubspecYamlFileDependency {
     required this.name,
     this.version = 'any',
   });
+}
+
+mixin WithLanguage218Mixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.18';
 }
 
 mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {

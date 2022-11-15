@@ -2598,10 +2598,30 @@ import 'aaa.dart';
     );
   }
 
+  Future<void> test_withPrefix() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''',
+      uriList: ['aaa.dart'],
+      prefix: 'aaa',
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart' as aaa;
+''',
+    );
+  }
+
   Future<void> _assertImportLibrary({
     required String initialCode,
     required List<String> uriList,
     required String expectedCode,
+    String? prefix,
   }) async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
@@ -2609,7 +2629,7 @@ import 'aaa.dart';
     await builder.addDartFileEdit(path, (builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
-        builder.importLibrary(uri);
+        builder.importLibrary(uri, prefix: prefix);
       }
     });
 
@@ -3165,7 +3185,7 @@ class B extends A {
     {
       var unitResult = (await resolveFile(path)).unit;
       if (targetMixinName != null) {
-        targetElement = unitResult.declaredElement!.mixins2
+        targetElement = unitResult.declaredElement!.mixins
             .firstWhere((e) => e.name == targetMixinName);
       } else {
         targetElement = unitResult.declaredElement!.classes

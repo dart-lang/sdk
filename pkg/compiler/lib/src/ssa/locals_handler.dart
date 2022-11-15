@@ -15,9 +15,9 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_model/closure.dart' show JRecordField, JClosureField;
+import '../js_model/closure.dart' show JContextField, JClosureField;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
-import '../world_interfaces.dart' show JClosedWorld;
 
 import 'builder.dart';
 import 'nodes.dart';
@@ -384,7 +384,7 @@ class LocalsHandler {
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      if (redirect is JRecordField) {
+      if (redirect is JContextField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
@@ -452,7 +452,7 @@ class LocalsHandler {
       FieldEntity redirect = redirectionMapping[local];
       assert(redirect != null);
       BoxLocal localBox;
-      if (redirect is JRecordField) {
+      if (redirect is JContextField) {
         localBox = redirect.box;
       }
       assert(localBox != null);

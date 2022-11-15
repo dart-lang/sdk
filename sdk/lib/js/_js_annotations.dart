@@ -25,3 +25,8 @@ class _StaticInterop {
 const _Anonymous anonymous = _Anonymous();
 
 const _StaticInterop staticInterop = _StaticInterop();
+
+class JSExport {
+  final String name;
+  const JSExport([this.name = '']);
+}

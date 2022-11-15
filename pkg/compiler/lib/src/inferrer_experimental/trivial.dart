@@ -7,11 +7,12 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
+import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
-import '../world_interfaces.dart';
+import '../world.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/abstract_value_strategy.dart';
 
@@ -22,7 +23,7 @@ class TrivialAbstractValue implements AbstractValue {
   String toString() => '?';
 }
 
-class TrivialAbstractValueDomain implements AbstractValueDomain {
+class TrivialAbstractValueDomain with AbstractValueDomain {
   const TrivialAbstractValueDomain();
 
   @override
@@ -32,7 +33,8 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValue get dynamicType => const TrivialAbstractValue();
 
   @override
-  void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue value) {}
+  void writeAbstractValueToDataSink(
+      DataSinkWriter sink, AbstractValue? value) {}
 
   @override
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source) =>

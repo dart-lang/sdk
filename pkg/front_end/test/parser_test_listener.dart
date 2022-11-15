@@ -176,10 +176,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     indent--;
+    seen(caseKeyword);
+    seen(when);
     seen(colon);
-    doPrint('endCaseExpression(' '$colon)');
+    doPrint('endCaseExpression(' '$caseKeyword, ' '$when, ' '$colon)');
   }
 
   @override
@@ -211,16 +213,18 @@ class ParserTestListener implements Listener {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
+    seen(viewToken);
     seen(augmentToken);
     seen(name);
     doPrint('beginClassDeclaration('
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
+        '$viewToken, '
         '$augmentToken, '
         '$name)');
     indent++;
@@ -1051,16 +1055,18 @@ class ParserTestListener implements Listener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
+    seen(viewToken);
     seen(augmentToken);
     seen(name);
     doPrint('beginNamedMixinApplication('
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
+        '$viewToken, '
         '$augmentToken, '
         '$name)');
     indent++;
@@ -1941,13 +1947,6 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    seen(caseKeyword);
-    seen(colon);
-    doPrint('handleCaseMatch(' '$caseKeyword, ' '$colon)');
-  }
-
-  @override
   void beginCatchClause(Token token) {
     seen(token);
     doPrint('beginCatchClause(' '$token)');
@@ -2652,10 +2651,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     seen(token);
     seen(case_);
-    doPrint('handleParenthesizedCondition(' '$token, ' '$case_)');
+    seen(when);
+    doPrint('handleParenthesizedCondition(' '$token, ' '$case_, ' '$when)');
   }
 
   @override

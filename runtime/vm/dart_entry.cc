@@ -275,7 +275,7 @@ ObjectPtr DartEntry::InvokeCallable(Thread* thread,
     auto& instance =
         Instance::CheckedHandle(zone, arguments.At(args_desc.FirstArgIndex()));
     // For closures, use the name of the closure, not 'call'.
-    const String* target_name = &Symbols::Call();
+    const String* target_name = &Symbols::call();
     if (instance.IsClosure()) {
       auto const& function =
           Function::Handle(zone, Closure::Cast(instance).function());

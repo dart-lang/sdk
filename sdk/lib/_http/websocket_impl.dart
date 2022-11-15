@@ -1284,30 +1284,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   String get _serviceTypePath => 'io/websockets';
   String get _serviceTypeName => 'WebSocket';
 
-  Map<String, dynamic> _toJSON(bool ref) {
-    var name = '${_socket.address.host}:${_socket.port}';
-    var r = <String, dynamic>{
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': name,
-      'user_name': name,
-    };
-    if (ref) {
-      return r;
-    }
-    try {
-      r['socket'] = (_socket as dynamic)._toJSON(true);
-    } catch (_) {
-      r['socket'] = {
-        'id': _servicePath,
-        'type': '@Socket',
-        'name': 'UserSocket',
-        'user_name': 'UserSocket',
-      };
-    }
-    return r;
-  }
-
   static bool _isReservedStatusCode(int? code) {
     return code != null &&
         (code < WebSocketStatus.normalClosure ||

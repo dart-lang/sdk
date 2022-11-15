@@ -13,26 +13,22 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
-import '../universe/class_hierarchy.dart';
-import '../world.dart';
-import 'namer.dart';
+import 'namer.dart' show StringBackedName;
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
 import 'runtime_types_new_interfaces.dart' as interfaces;
+import 'runtime_types_new_migrated.dart';
 
-class RecipeEncoding {
-  final jsAst.Literal recipe;
-  final Set<TypeVariableType> typeVariables;
-
-  const RecipeEncoding(this.recipe, this.typeVariables);
-}
+export 'runtime_types_new_migrated.dart';
 
 abstract class RecipeEncoder implements interfaces.RecipeEncoder {
   /// Returns a [RecipeEncoding] representing the given [recipe] to be
   /// evaluated against a type environment with shape [structure].
-  RecipeEncoding encodeRecipe(ModularEmitter emitter,
+  @override
+  RecipeEncoding encodeRecipe(covariant ModularEmitter emitter,
       TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
 
   @override
@@ -293,6 +289,23 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   @override
+  void visitRecordType(RecordType type, _) {
+    _emitCode(Recipe.startRecord);
+    // Partial shape tag. The full shape is this plus the number of fields.
+    _emitStringUnescaped(type.shape.fieldNames.join(Recipe.separatorString));
+    _emitCode(Recipe.startFunctionArguments);
+    bool first = true;
+    for (DartType field in type.fields) {
+      if (!first) {
+        _emitCode(Recipe.separator);
+      }
+      visit(field, _);
+      first = false;
+    }
+    _emitCode(Recipe.endFunctionArguments);
+  }
+
+  @override
   void visitFunctionType(FunctionType type, _) {
     if (type.typeVariables.isNotEmpty) {
       // Enter generic function scope.
@@ -397,52 +410,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     visit(type.typeArgument, _);
     _emitCode(Recipe.wrapFutureOr);
   }
-}
-
-bool mustCheckAllSubtypes(JClosedWorld world, ClassEntity cls) =>
-    world.isUsedAsMixin(cls) ||
-    world.extractTypeArgumentsInterfacesNewRti.contains(cls);
-
-int indexTypeVariable(
-    JClosedWorld world,
-    RuntimeTypesSubstitutions rtiSubstitutions,
-    FullTypeEnvironmentStructure environment,
-    TypeVariableType type,
-    {bool metadata = false}) {
-  int i = environment.bindings.indexOf(type);
-  if (i >= 0) {
-    // Indices are 1-based since '0' encodes using the entire type for the
-    // singleton structure.
-    return i + 1;
-  }
-
-  TypeVariableEntity element = type.element;
-  ClassEntity cls = element.typeDeclaration;
-
-  if (metadata) {
-    if (identical(environment.classType.element, cls)) {
-      // Indexed class type variables come after the bound function type
-      // variables.
-      return 1 + environment.bindings.length + element.index;
-    }
-  }
-
-  // TODO(sra): We might be in a context where the class type variable has an
-  // index, even though in the general case it is not at a specific index.
-
-  ClassHierarchy classHierarchy = world.classHierarchy;
-  var test = mustCheckAllSubtypes(world, cls)
-      ? classHierarchy.anyStrictSubtypeOf
-      : classHierarchy.anyStrictSubclassOf;
-  if (test(cls, (ClassEntity subclass) {
-    return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
-  })) {
-    return null;
-  }
-
-  // Indexed class type variables come after the bound function type
-  // variables.
-  return 1 + environment.bindings.length + element.index;
 }
 
 class _RulesetEntry {

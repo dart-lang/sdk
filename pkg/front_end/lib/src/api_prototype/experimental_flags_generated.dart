@@ -229,7 +229,7 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag unnamedLibraries = const ExperimentalFlag(
       name: 'unnamed-libraries',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       enabledVersion: const Version(2, 19),
       experimentEnabledVersion: const Version(2, 19),
@@ -245,6 +245,14 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 19),
+      experimentEnabledVersion: const Version(2, 19),
+      experimentReleasedVersion: const Version(2, 19));
+
+  static const ExperimentalFlag views = const ExperimentalFlag(
+      name: 'views',
       isEnabledByDefault: false,
       isExpired: false,
       enabledVersion: const Version(2, 19),
@@ -397,6 +405,10 @@ class GlobalFeatures {
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
+
+  GlobalFeature? _views;
+  GlobalFeature get views =>
+      _views ??= _computeGlobalFeature(ExperimentalFlag.views);
 }
 
 /// Interface for accessing the state of experimental features within a
@@ -541,6 +553,10 @@ class LibraryFeatures {
   LibraryFeature get variance =>
       _variance ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.variance, canonicalUri, libraryVersion);
+
+  LibraryFeature? _views;
+  LibraryFeature get views => _views ??= globalFeatures._computeLibraryFeature(
+      ExperimentalFlag.views, canonicalUri, libraryVersion);
 }
 
 ExperimentalFlag? parseExperimentalFlag(String flag) {
@@ -595,6 +611,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.valueClass;
     case "variance":
       return ExperimentalFlag.variance;
+    case "views":
+      return ExperimentalFlag.views;
   }
   return null;
 }
@@ -642,187 +660,187 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
   ExperimentalFlag.valueClass: ExperimentalFlag.valueClass.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
+  ExperimentalFlag.views: ExperimentalFlag.views.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
-    const AllowedExperimentalFlags(
-        sdkDefaultExperiments: {},
-        sdkLibraryExperiments: {},
-        packageExperiments: {
-      "async": {
-        ExperimentalFlag.nonNullable,
-      },
-      "boolean_selector": {
-        ExperimentalFlag.nonNullable,
-      },
-      "characters": {
-        ExperimentalFlag.nonNullable,
-      },
-      "clock": {
-        ExperimentalFlag.nonNullable,
-      },
-      "collection": {
-        ExperimentalFlag.nonNullable,
-      },
-      "connectivity": {
-        ExperimentalFlag.nonNullable,
-      },
-      "connectivity_platform_interface": {
-        ExperimentalFlag.nonNullable,
-      },
-      "convert": {
-        ExperimentalFlag.nonNullable,
-      },
-      "crypto": {
-        ExperimentalFlag.nonNullable,
-      },
-      "csslib": {
-        ExperimentalFlag.nonNullable,
-      },
-      "dart_internal": {
-        ExperimentalFlag.nonNullable,
-      },
-      "device_info": {
-        ExperimentalFlag.nonNullable,
-      },
-      "device_info_platform_interface": {
-        ExperimentalFlag.nonNullable,
-      },
-      "fake_async": {
-        ExperimentalFlag.nonNullable,
-      },
-      "file": {
-        ExperimentalFlag.nonNullable,
-      },
-      "fixnum": {
-        ExperimentalFlag.nonNullable,
-      },
-      "flutter": {
-        ExperimentalFlag.nonNullable,
-      },
-      "flutter_driver": {
-        ExperimentalFlag.nonNullable,
-      },
-      "flutter_test": {
-        ExperimentalFlag.nonNullable,
-      },
-      "flutter_goldens": {
-        ExperimentalFlag.nonNullable,
-      },
-      "flutter_goldens_client": {
-        ExperimentalFlag.nonNullable,
-      },
-      "http": {
-        ExperimentalFlag.nonNullable,
-      },
-      "http_parser": {
-        ExperimentalFlag.nonNullable,
-      },
-      "intl": {
-        ExperimentalFlag.nonNullable,
-      },
-      "js": {
-        ExperimentalFlag.nonNullable,
-      },
-      "logging": {
-        ExperimentalFlag.nonNullable,
-      },
-      "matcher": {
-        ExperimentalFlag.nonNullable,
-      },
-      "meta": {
-        ExperimentalFlag.nonNullable,
-      },
-      "native_stack_traces": {
-        ExperimentalFlag.nonNullable,
-      },
-      "observatory": {
-        ExperimentalFlag.nonNullable,
-      },
-      "observatory_test_package": {
-        ExperimentalFlag.nonNullable,
-      },
-      "path": {
-        ExperimentalFlag.nonNullable,
-      },
-      "pedantic": {
-        ExperimentalFlag.nonNullable,
-      },
-      "platform": {
-        ExperimentalFlag.nonNullable,
-      },
-      "plugin_platform_interface": {
-        ExperimentalFlag.nonNullable,
-      },
-      "pool": {
-        ExperimentalFlag.nonNullable,
-      },
-      "process": {
-        ExperimentalFlag.nonNullable,
-      },
-      "pub_semver": {
-        ExperimentalFlag.nonNullable,
-      },
-      "sky_engine": {
-        ExperimentalFlag.nonNullable,
-      },
-      "source_maps": {
-        ExperimentalFlag.nonNullable,
-      },
-      "source_map_stack_trace": {
-        ExperimentalFlag.nonNullable,
-      },
-      "source_span": {
-        ExperimentalFlag.nonNullable,
-      },
-      "stack_trace": {
-        ExperimentalFlag.nonNullable,
-      },
-      "stream_channel": {
-        ExperimentalFlag.nonNullable,
-      },
-      "string_scanner": {
-        ExperimentalFlag.nonNullable,
-      },
-      "term_glyph": {
-        ExperimentalFlag.nonNullable,
-      },
-      "test": {
-        ExperimentalFlag.nonNullable,
-      },
-      "test_api": {
-        ExperimentalFlag.nonNullable,
-      },
-      "test_core": {
-        ExperimentalFlag.nonNullable,
-      },
-      "typed_data": {
-        ExperimentalFlag.nonNullable,
-      },
-      "url_launcher": {
-        ExperimentalFlag.nonNullable,
-      },
-      "url_launcher_linux": {
-        ExperimentalFlag.nonNullable,
-      },
-      "url_launcher_macos": {
-        ExperimentalFlag.nonNullable,
-      },
-      "url_launcher_platform_interface": {
-        ExperimentalFlag.nonNullable,
-      },
-      "url_launcher_windows": {
-        ExperimentalFlag.nonNullable,
-      },
-      "vector_math": {
-        ExperimentalFlag.nonNullable,
-      },
-      "video_player": {
-        ExperimentalFlag.nonNullable,
-      },
-      "video_player_platform_interface": {
-        ExperimentalFlag.nonNullable,
-      },
-      "video_player_web": {
-        ExperimentalFlag.nonNullable,
-      },
-    });
+    const AllowedExperimentalFlags(sdkDefaultExperiments: {
+  ExperimentalFlag.records,
+}, sdkLibraryExperiments: {}, packageExperiments: {
+  "async": {
+    ExperimentalFlag.nonNullable,
+  },
+  "boolean_selector": {
+    ExperimentalFlag.nonNullable,
+  },
+  "characters": {
+    ExperimentalFlag.nonNullable,
+  },
+  "clock": {
+    ExperimentalFlag.nonNullable,
+  },
+  "collection": {
+    ExperimentalFlag.nonNullable,
+  },
+  "connectivity": {
+    ExperimentalFlag.nonNullable,
+  },
+  "connectivity_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
+  "convert": {
+    ExperimentalFlag.nonNullable,
+  },
+  "crypto": {
+    ExperimentalFlag.nonNullable,
+  },
+  "csslib": {
+    ExperimentalFlag.nonNullable,
+  },
+  "dart_internal": {
+    ExperimentalFlag.nonNullable,
+  },
+  "device_info": {
+    ExperimentalFlag.nonNullable,
+  },
+  "device_info_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
+  "fake_async": {
+    ExperimentalFlag.nonNullable,
+  },
+  "file": {
+    ExperimentalFlag.nonNullable,
+  },
+  "fixnum": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_driver": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_test": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_goldens": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_goldens_client": {
+    ExperimentalFlag.nonNullable,
+  },
+  "http": {
+    ExperimentalFlag.nonNullable,
+  },
+  "http_parser": {
+    ExperimentalFlag.nonNullable,
+  },
+  "intl": {
+    ExperimentalFlag.nonNullable,
+  },
+  "js": {
+    ExperimentalFlag.nonNullable,
+  },
+  "logging": {
+    ExperimentalFlag.nonNullable,
+  },
+  "matcher": {
+    ExperimentalFlag.nonNullable,
+  },
+  "meta": {
+    ExperimentalFlag.nonNullable,
+  },
+  "native_stack_traces": {
+    ExperimentalFlag.nonNullable,
+  },
+  "observatory": {
+    ExperimentalFlag.nonNullable,
+  },
+  "observatory_test_package": {
+    ExperimentalFlag.nonNullable,
+  },
+  "path": {
+    ExperimentalFlag.nonNullable,
+  },
+  "pedantic": {
+    ExperimentalFlag.nonNullable,
+  },
+  "platform": {
+    ExperimentalFlag.nonNullable,
+  },
+  "plugin_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
+  "pool": {
+    ExperimentalFlag.nonNullable,
+  },
+  "process": {
+    ExperimentalFlag.nonNullable,
+  },
+  "pub_semver": {
+    ExperimentalFlag.nonNullable,
+  },
+  "sky_engine": {
+    ExperimentalFlag.nonNullable,
+  },
+  "source_maps": {
+    ExperimentalFlag.nonNullable,
+  },
+  "source_map_stack_trace": {
+    ExperimentalFlag.nonNullable,
+  },
+  "source_span": {
+    ExperimentalFlag.nonNullable,
+  },
+  "stack_trace": {
+    ExperimentalFlag.nonNullable,
+  },
+  "stream_channel": {
+    ExperimentalFlag.nonNullable,
+  },
+  "string_scanner": {
+    ExperimentalFlag.nonNullable,
+  },
+  "term_glyph": {
+    ExperimentalFlag.nonNullable,
+  },
+  "test": {
+    ExperimentalFlag.nonNullable,
+  },
+  "test_api": {
+    ExperimentalFlag.nonNullable,
+  },
+  "test_core": {
+    ExperimentalFlag.nonNullable,
+  },
+  "typed_data": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_linux": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_macos": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_windows": {
+    ExperimentalFlag.nonNullable,
+  },
+  "vector_math": {
+    ExperimentalFlag.nonNullable,
+  },
+  "video_player": {
+    ExperimentalFlag.nonNullable,
+  },
+  "video_player_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
+  "video_player_web": {
+    ExperimentalFlag.nonNullable,
+  },
+});

@@ -25,9 +25,9 @@ class VarianceBuilder {
     for (var builder in _linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations) {
-          if (node is FunctionTypeAlias) {
+          if (node is FunctionTypeAliasImpl) {
             _pending.add(node);
-          } else if (node is GenericTypeAlias) {
+          } else if (node is GenericTypeAliasImpl) {
             _pending.add(node);
           }
         }
@@ -37,17 +37,17 @@ class VarianceBuilder {
     for (var builder in _linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations) {
-          if (node is ClassTypeAlias) {
+          if (node is ClassTypeAliasImpl) {
             _typeParameters(node.typeParameters);
-          } else if (node is ClassDeclaration) {
+          } else if (node is ClassDeclarationImpl) {
             _typeParameters(node.typeParameters);
-          } else if (node is EnumDeclaration) {
+          } else if (node is EnumDeclarationImpl) {
             _typeParameters(node.typeParameters);
-          } else if (node is FunctionTypeAlias) {
+          } else if (node is FunctionTypeAliasImpl) {
             _functionTypeAlias(node);
-          } else if (node is GenericTypeAlias) {
+          } else if (node is GenericTypeAliasImpl) {
             _genericTypeAlias(node);
-          } else if (node is MixinDeclaration) {
+          } else if (node is MixinDeclarationImpl) {
             _typeParameters(node.typeParameters);
           }
         }
@@ -57,13 +57,13 @@ class VarianceBuilder {
 
   Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
-      if (type.element2 == variable) {
+      if (type.element == variable) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
-      var element = type.element2;
+      var element = type.element;
       var arguments = type.arguments;
       if (element is InterfaceElement) {
         var result = Variance.unrelated;

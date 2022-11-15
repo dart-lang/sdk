@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  if(!(#t1 == null)) {
+    dynamic y = #t1;
+    {}
+  }
+  final dynamic #t2 = x;
+  if(!(#t2 == null) && #t2 is core::int) {
+    core::int y = #t2{core::int};
+    {}
+  }
+}
+static method test2(core::num x) → dynamic {
+  final core::num #t3 = x;
+  if(!(#t3 == null)) {
+    core::num y = #t3;
+    {}
+  }
+  final core::num #t4 = x;
+  if(!(#t4 == null) && #t4 is core::int) {
+    core::int y = #t4 as{ForNonNullableByDefault} core::int;
+    {}
+  }
+  final core::num #t5 = x;
+  if(!(#t5 == null) && #t5 is core::String) {
+    core::String y = #t5 as{ForNonNullableByDefault} core::String;
+    {}
+  }
+}

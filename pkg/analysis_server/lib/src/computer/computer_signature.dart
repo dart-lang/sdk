@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,8 +18,14 @@ class DartUnitSignatureComputer {
   final AstNode? _node;
   late ArgumentList _argumentList;
   final bool _isNonNullableByDefault;
-  DartUnitSignatureComputer(this._dartdocInfo, CompilationUnit unit, int offset)
-      : _node = NodeLocator(offset).searchWithin(unit),
+  final DocumentationPreference documentationPreference;
+
+  DartUnitSignatureComputer(
+    this._dartdocInfo,
+    CompilationUnit unit,
+    int offset, {
+    this.documentationPreference = DocumentationPreference.full,
+  })  : _node = NodeLocator(offset).searchWithin(unit),
         _isNonNullableByDefault = unit.isNonNullableByDefault;
 
   /// The [ArgumentList] node located by [compute].
@@ -59,9 +65,8 @@ class DartUnitSignatureComputer {
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
     return AnalysisGetSignatureResult(name, parameters,
-        dartdoc: DartUnitHoverComputer.computeDocumentation(
-                _dartdocInfo, execElement)
-            ?.full);
+        dartdoc: DartUnitHoverComputer.computePreferredDocumentation(
+            _dartdocInfo, execElement, documentationPreference));
   }
 
   ParameterInfo _convertParam(ParameterElement param) {

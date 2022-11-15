@@ -57,6 +57,9 @@ class UnknownType extends DartType {
   Nullability get nullability => Nullability.undetermined;
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -144,6 +147,14 @@ class _IsKnownVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (!typeArgument.accept(this)) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
     for (DartType typeArgument in node.typeArguments) {
       if (!typeArgument.accept(this)) return false;
     }

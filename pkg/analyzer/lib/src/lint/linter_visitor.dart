@@ -450,12 +450,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitHideClause(HideClause node) {
-    _runSubscriptions(node, registry._forHideClause);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitHideCombinator(HideCombinator node) {
     _runSubscriptions(node, registry._forHideCombinator);
     node.visitChildren(this);
@@ -809,20 +803,8 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitShowClause(ShowClause node) {
-    _runSubscriptions(node, registry._forShowClause);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitShowCombinator(ShowCombinator node) {
     _runSubscriptions(node, registry._forShowCombinator);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitShowHideElement(ShowHideElement node) {
-    _runSubscriptions(node, registry._forShowHideElement);
     node.visitChildren(this);
   }
 
@@ -1127,7 +1109,6 @@ class NodeLintRegistry {
       _forFunctionTypedFormalParameter = [];
   final List<_Subscription<GenericFunctionType>> _forGenericFunctionType = [];
   final List<_Subscription<GenericTypeAlias>> _forGenericTypeAlias = [];
-  final List<_Subscription<HideClause>> _forHideClause = [];
   final List<_Subscription<HideCombinator>> _forHideCombinator = [];
   final List<_Subscription<IfElement>> _forIfElement = [];
   final List<_Subscription<IfStatement>> _forIfStatement = [];
@@ -1199,9 +1180,7 @@ class NodeLintRegistry {
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
   final List<_Subscription<ScriptTag>> _forScriptTag = [];
   final List<_Subscription<SetOrMapLiteral>> _forSetOrMapLiteral = [];
-  final List<_Subscription<ShowClause>> _forShowClause = [];
   final List<_Subscription<ShowCombinator>> _forShowCombinator = [];
-  final List<_Subscription<ShowHideElement>> _forShowHideElement = [];
   final List<_Subscription<SimpleFormalParameter>> _forSimpleFormalParameter =
       [];
   final List<_Subscription<SimpleIdentifier>> _forSimpleIdentifier = [];
@@ -1564,10 +1543,6 @@ class NodeLintRegistry {
     _forGenericTypeAlias.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addHideClause(LintRule linter, AstVisitor visitor) {
-    _forHideClause.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
   void addHideCombinator(LintRule linter, AstVisitor visitor) {
     _forHideCombinator.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1812,16 +1787,8 @@ class NodeLintRegistry {
     _forSetOrMapLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addShowClause(LintRule linter, AstVisitor visitor) {
-    _forShowClause.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
   void addShowCombinator(LintRule linter, AstVisitor visitor) {
     _forShowCombinator.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addShowHideElement(LintRule linter, AstVisitor visitor) {
-    _forShowHideElement.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addSimpleFormalParameter(LintRule linter, AstVisitor visitor) {

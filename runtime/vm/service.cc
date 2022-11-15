@@ -2268,6 +2268,24 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
   return NULL;
 }
 
+static inline void AddParentFieldToResponseBasedOnRecord(
+    Array* field_names_handle,
+    String* name_handle,
+    const JSONObject& jsresponse,
+    const Record& record,
+    const intptr_t field_slot_offset) {
+  const intptr_t num_positional_fields = record.NumPositionalFields();
+  *field_names_handle = record.field_names();
+  const intptr_t field_index =
+      (field_slot_offset - Record::field_offset(0)) / Record::kBytesPerElement;
+  if (field_index < num_positional_fields) {
+    jsresponse.AddProperty("parentField", field_index);
+  } else {
+    *name_handle ^= field_names_handle->At(field_index - num_positional_fields);
+    jsresponse.AddProperty("parentField", name_handle->ToCString());
+  }
+}
+
 static void PrintInboundReferences(Thread* thread,
                                    Object* target,
                                    intptr_t limit,
@@ -2282,6 +2300,8 @@ static void PrintInboundReferences(Thread* thread,
     JSONArray elements(&jsobj, "references");
     Object& source = Object::Handle();
     Smi& slot_offset = Smi::Handle();
+    Array& field_names = Array::Handle();
+    String& name = String::Handle();
     Class& source_class = Class::Handle();
     Field& field = Field::Handle();
     Array& parent_field_map = Array::Handle();
@@ -2297,6 +2317,10 @@ static void PrintInboundReferences(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+      } else if (source.IsRecord()) {
+        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
+                                              Record::Cast(source),
+                                              slot_offset.Value());
       } else {
         if (source.IsInstance()) {
           source_class = source.clazz();
@@ -2394,13 +2418,14 @@ static void PrintRetainingPath(Thread* thread,
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
   Smi& slot_offset = Smi::Handle();
+  Array& field_names = Array::Handle();
+  String& name = String::Handle();
   Class& element_class = Class::Handle();
   Array& element_field_map = Array::Handle();
   LinkedHashMap& map = LinkedHashMap::Handle();
   Array& map_data = Array::Handle();
   Field& field = Field::Handle();
   WeakProperty& wp = WeakProperty::Handle();
-  String& name = String::Handle();
   limit = Utils::Minimum(limit, length);
   OffsetsTable offsets_table(thread->zone());
   for (intptr_t i = 0; i < limit; ++i) {
@@ -2416,6 +2441,10 @@ static void PrintRetainingPath(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+      } else if (element.IsRecord()) {
+        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
+                                              Record::Cast(element),
+                                              slot_offset.Value());
       } else if (element.IsLinkedHashMap()) {
         map = static_cast<LinkedHashMapPtr>(path.At(i * 2));
         map_data = map.data();
@@ -4904,7 +4933,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       JSONArray persistent_handles(&obj, "persistentHandles");
       api_state->RunWithLockedPersistentHandles(
           [&](PersistentHandles& handles) {
-            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+            PersistentHandleVisitor<PersistentHandle> visitor(
                 thread, &persistent_handles);
             handles.Visit(&visitor);
           });

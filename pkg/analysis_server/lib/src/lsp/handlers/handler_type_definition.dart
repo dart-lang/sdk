@@ -84,9 +84,9 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
         analyzer.Element? element;
         if (type is InterfaceType) {
-          element = type.element2;
+          element = type.element;
         } else if (type is TypeParameterType) {
-          element = type.element2;
+          element = type.element;
         }
         if (element is! analyzer.ElementImpl) {
           return success(_emptyResult);

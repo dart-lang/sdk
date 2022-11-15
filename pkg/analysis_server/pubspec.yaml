@@ -32,5 +32,4 @@ dev_dependencies:
   lints: any
   logging: any
   matcher: any
-  string_scanner: any
   test_reflective_loader: any

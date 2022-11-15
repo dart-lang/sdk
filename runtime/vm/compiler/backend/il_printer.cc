@@ -1048,6 +1048,14 @@ void CheckClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
+void HashIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  if (smi_) {
+    f->AddString("smi ");
+  }
+
+  value()->PrintTo(f);
+}
+
 void CheckClassInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
   PrintCidsHelper(f, cids_, FlowGraphPrinter::kPrintAll);

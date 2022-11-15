@@ -94,7 +94,12 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
   ErrorOr<Hover?> _getHover(ResolvedUnitResult unit, int offset) {
     final compilationUnit = unit.unit;
     final computer = DartUnitHoverComputer(
-        server.getDartdocDirectiveInfoFor(unit), compilationUnit, offset);
+      server.getDartdocDirectiveInfoFor(unit),
+      compilationUnit,
+      offset,
+      documentationPreference:
+          server.clientConfiguration.global.preferredDocumentation,
+    );
     final hover = computer.compute();
     return success(toHover(unit.lineInfo, hover));
   }

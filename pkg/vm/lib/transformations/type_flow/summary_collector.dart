@@ -1155,11 +1155,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     //  - nullable (including Null)
     //  - a type parameter (it can be instantiated with Null)
     //  - legacy Never
+    //  - a FutureOr of the above
     final nullability = type.nullability;
     return _environment.isTop(type) ||
         nullability == Nullability.nullable ||
         type is TypeParameterType ||
-        (type is NeverType && nullability == Nullability.legacy);
+        (type is NeverType && nullability == Nullability.legacy) ||
+        (type is FutureOrType &&
+            _canBeNullAfterSuccessfulIsCheck(type.typeArgument));
   }
 
   TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
@@ -1619,30 +1622,42 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitRecordLiteral(RecordLiteral node) {
-    for (var expr in node.positional) {
-      _visit(expr);
+    final Type receiver = _typesBuilder.recordType;
+    for (int i = 0; i < node.positional.length; ++i) {
+      final Field f = _entryPointsListener.getRecordPositionalField(i);
+      final TypeExpr value = _visit(node.positional[i]);
+      final args = Args<TypeExpr>([receiver, value]);
+      _makeCall(node,
+          DirectSelector(f, callKind: CallKind.SetFieldInConstructor), args);
     }
     for (var expr in node.named) {
-      _visit(expr.value);
+      final Field f = _entryPointsListener.getRecordNamedField(expr.name);
+      final TypeExpr value = _visit(expr.value);
+      final args = Args<TypeExpr>([receiver, value]);
+      _makeCall(node,
+          DirectSelector(f, callKind: CallKind.SetFieldInConstructor), args);
     }
-    Class? concreteClass =
-        target.concreteRecordLiteralClass(_environment.coreTypes);
-    if (concreteClass != null) {
-      return _entryPointsListener.addAllocatedClass(concreteClass);
-    }
-    return _staticType(node);
+    callSites.remove(node);
+    return receiver;
   }
 
   @override
   TypeExpr visitRecordIndexGet(RecordIndexGet node) {
-    _visit(node.receiver);
-    return _staticType(node);
+    final receiver = _visit(node.receiver);
+    final Field field =
+        _entryPointsListener.getRecordPositionalField(node.index);
+    final args = Args<TypeExpr>([receiver]);
+    return _makeCall(
+        node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
   }
 
   @override
   TypeExpr visitRecordNameGet(RecordNameGet node) {
-    _visit(node.receiver);
-    return _staticType(node);
+    final receiver = _visit(node.receiver);
+    final Field field = _entryPointsListener.getRecordNamedField(node.name);
+    final args = Args<TypeExpr>([receiver]);
+    return _makeCall(
+        node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
   }
 
   @override
@@ -2591,20 +2606,19 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   @override
   Type visitRecordConstant(RecordConstant constant) {
-    for (var value in constant.positional) {
-      typeFor(value);
+    final epl = summaryCollector._entryPointsListener;
+    final Type receiver = summaryCollector._typesBuilder.recordType;
+    for (int i = 0; i < constant.positional.length; ++i) {
+      final Field f = epl.getRecordPositionalField(i);
+      final Type value = typeFor(constant.positional[i]);
+      epl.addFieldUsedInConstant(f, receiver, value);
     }
-    for (var value in constant.named.values) {
-      typeFor(value);
-    }
-    Class? concreteClass = summaryCollector.target
-        .concreteConstRecordLiteralClass(
-            summaryCollector._environment.coreTypes);
-    if (concreteClass != null) {
-      return summaryCollector._entryPointsListener
-          .addAllocatedClass(concreteClass);
-    }
-    return _getStaticType(constant);
+    constant.named.forEach((String fieldName, Constant fieldValue) {
+      final Field f = epl.getRecordNamedField(fieldName);
+      final Type value = typeFor(fieldValue);
+      epl.addFieldUsedInConstant(f, receiver, value);
+    });
+    return receiver;
   }
 
   @override

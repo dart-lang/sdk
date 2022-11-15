@@ -30,7 +30,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void exportDirective(ExportDirective node) {
-    _checkForDeprecated(node.element2?.exportedLibrary, node);
+    _checkForDeprecated(node.element?.exportedLibrary, node);
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -42,7 +42,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void importDirective(ImportDirective node) {
-    _checkForDeprecated(node.element2?.importedLibrary, node);
+    _checkForDeprecated(node.element?.importedLibrary, node);
   }
 
   void indexExpression(IndexExpression node) {
@@ -176,7 +176,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     } else if (node is MethodInvocation &&
         displayName == FunctionElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
-      var invokeClass = invokeType.element2;
+      var invokeClass = invokeType.element;
       displayName = "${invokeClass.name}.${element.displayName}";
     }
     var message = _deprecatedMessage(element);

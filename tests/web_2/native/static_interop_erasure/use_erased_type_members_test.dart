@@ -56,8 +56,7 @@ extension InterfaceExtension on Interface {
 @JS('NativeClass')
 @staticInterop
 class StaticJSClass extends Parent implements Interface {
-  external StaticJSClass();
-  external StaticJSClass.namedConstructor();
+  external factory StaticJSClass();
   external factory StaticJSClass.externalFactory();
   factory StaticJSClass.redirectingFactory() = StaticJSClass;
 
@@ -110,7 +109,6 @@ void main() {
   NativeClass();
   // Invoke constructors and ensure they're typed correctly.
   StaticJSClass staticJs = StaticJSClass();
-  staticJs = StaticJSClass.namedConstructor();
   staticJs = StaticJSClass.externalFactory();
   staticJs = StaticJSClass.redirectingFactory();
 

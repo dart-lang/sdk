@@ -30,9 +30,10 @@ class TestParser extends Parser {
   StringBuffer sb = new StringBuffer();
   final bool trace;
 
-  TestParser(Listener listener, this.trace)
+  TestParser(Listener listener, this.trace, {required bool allowPatterns})
       : super(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+            allowPatterns: allowPatterns);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
@@ -165,15 +166,16 @@ class TestParser extends Parser {
 
   @override
   Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
-      Token? macroToken, DirectiveContext? directiveState) {
+      Token? macroToken, Token? viewToken, DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
         '$start, '
         '$keyword, '
         '$macroToken, '
+        '$viewToken, '
         '$directiveState)');
     indent++;
     var result = super.parseTopLevelKeywordDeclaration(
-        start, keyword, macroToken, directiveState);
+        start, keyword, macroToken, viewToken, directiveState);
     indent--;
     return result;
   }
@@ -437,10 +439,12 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseRecordType(final Token start, Token token) {
-    doPrint('parseRecordType(' '$start, ' '$token)');
+  Token parseRecordType(
+      final Token start, Token token, bool isQuestionMarkPartOfType) {
+    doPrint(
+        'parseRecordType(' '$start, ' '$token, ' '$isQuestionMarkPartOfType)');
     indent++;
-    var result = super.parseRecordType(start, token);
+    var result = super.parseRecordType(start, token, isQuestionMarkPartOfType);
     indent--;
     return result;
   }
@@ -626,16 +630,21 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassOrNamedMixinApplication(Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token classKeyword) {
+  Token parseClassOrNamedMixinApplication(
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? augmentToken,
+      Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
         '$macroToken, '
+        '$viewToken, '
         '$augmentToken, '
         '$classKeyword)');
     indent++;
     var result = super.parseClassOrNamedMixinApplication(
-        abstractToken, macroToken, augmentToken, classKeyword);
+        abstractToken, macroToken, viewToken, augmentToken, classKeyword);
     indent--;
     return result;
   }

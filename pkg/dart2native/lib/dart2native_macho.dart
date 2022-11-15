@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:math';
 
 import './macho.dart';
-import './macho_utils.dart';
 
 // Simplifies casting so we get null values back instead of exceptions.
 T? cast<T>(x) => x is T ? x : null;
@@ -66,60 +65,69 @@ class _MacOSVersion {
 // compatible with MachO executables.
 Future writeAppendedMachOExecutable(
     String dartaotruntimePath, String payloadPath, String outputPath) async {
-  File originalExecutableFile = File(dartaotruntimePath);
+  final aotRuntimeFile = File(dartaotruntimePath);
 
-  MachOFile machOFile = MachOFile.fromFile(originalExecutableFile);
-  final oldLinkEditSegmentFileOffset = machOFile.linkEditSegment?.fileOffset;
-  if (oldLinkEditSegmentFileOffset == null) {
+  final aotRuntimeHeaders = MachOFile.fromFile(aotRuntimeFile);
+  final oldLinkEdit = aotRuntimeHeaders.linkEditSegment;
+  if (oldLinkEdit == null) {
     throw FormatException("__LINKEDIT segment not found");
   }
 
-  // Insert the new segment that contains our snapshot data.
-  File newSegmentFile = File(payloadPath);
-
   // Get the length of the contents of the section to be added.
-  final payloadLength = newSegmentFile.lengthSync();
-  // We only need the original offset of the __LINKEDIT segment from the
-  // original headers, which we've already retrieved. Thus, use the new
-  // MachOFile from inserting the snapshot segment from here on.
-  machOFile = machOFile.insertSegmentLoadCommand(
-      payloadLength, snapshotSegmentName, snapshotSectionName);
+  final snapshotFile = File(payloadPath);
+  final payloadLength = snapshotFile.lengthSync();
 
-  // Write out the new executable, with the same contents except the new header.
-  File outputFile = File(outputPath);
-  RandomAccessFile stream = await outputFile.open(mode: FileMode.write);
+  // Add the header information for where the snapshot will live, and retrieve
+  // the needed parts back out of the new headers.
+  final outputHeaders =
+      aotRuntimeHeaders.adjustHeaderForSnapshot(payloadLength);
+  final snapshotNote = outputHeaders.snapshotNote!;
+  final newLinkEdit = outputHeaders.linkEditSegment!;
 
-  // Write the MachO header.
-  machOFile.writeSync(stream);
-  final int headerBytesWritten = stream.positionSync();
+  final output = await File(outputPath).open(mode: FileMode.write);
 
-  RandomAccessFile newSegmentFileStream = await newSegmentFile.open();
-  RandomAccessFile originalFileStream = await originalExecutableFile.open();
-  await originalFileStream.setPosition(headerBytesWritten);
+  void addPadding(int start, int end) {
+    assert(end >= start);
+    output.writeFromSync(List.filled(end - start, 0));
+  }
 
-  // Write the unchanged data from the original file up to the __LINKEDIT
-  // segment contents, so we can insert the snapshot there.
-  await pipeStream(originalFileStream, stream,
-      numToWrite: oldLinkEditSegmentFileOffset - headerBytesWritten);
+  // First, write the new headers.
+  outputHeaders.writeSync(output);
+  // If the newer headers are smaller, add appropriate padding to fit.
+  //
+  // TODO(49783): Once linker flags are in place in g3, this check should always
+  // succeed and should be removed.
+  if (outputHeaders.size <= aotRuntimeHeaders.size) {
+    addPadding(outputHeaders.size, aotRuntimeHeaders.size);
+  }
+  // TODO(49783): Once linker flags are in place in g3, this should always be
+  // aotRuntimeHeaders.size, but for now allow for the possibility of
+  // overwriting part of the original contents with the header as before.
+  final originalStart = max(aotRuntimeHeaders.size, outputHeaders.size);
 
-  void addPadding(int size) => stream.writeFromSync(List.filled(size, 0));
+  // Now write the original contents from the header to the __LINKEDIT segment
+  // contents.
+  final aotRuntimeStream = await aotRuntimeFile.open();
+  await aotRuntimeStream.setPosition(originalStart);
+  await pipeStream(aotRuntimeStream, output,
+      numToWrite: oldLinkEdit.fileOffset - originalStart);
 
-  final snapshotSegment = machOFile.snapshotSegment!;
+  // Now insert the snapshot contents at this position in the file.
   // There may be additional padding needed between the old __LINKEDIT file
   // offset and the start of the new snapshot.
-  addPadding(snapshotSegment.fileOffset - oldLinkEditSegmentFileOffset);
-
-  // Write the inserted section data, ensuring that the data is padded to the
-  // segment size.
-  await pipeStream(newSegmentFileStream, stream);
-  addPadding(align(payloadLength, segmentAlignment) - payloadLength);
+  addPadding(oldLinkEdit.fileOffset, snapshotNote.fileOffset);
+  final snapshotStream = await snapshotFile.open();
+  await pipeStream(snapshotStream, output);
+  // Now add appropriate padding after the snapshot to reach the expected offset
+  // of the __LINKEDIT segment in the new file.
+  final snapshotEnd = snapshotNote.fileOffset + snapshotNote.fileSize;
+  addPadding(snapshotEnd, newLinkEdit.fileOffset);
 
   // Copy the rest of the file from the original to the new one.
-  await pipeStream(originalFileStream, stream);
+  await pipeStream(aotRuntimeStream, output);
+  await output.close();
 
-  await stream.close();
-
-  if (machOFile.hasCodeSignature) {
+  if (outputHeaders.hasCodeSignature) {
     if (!Platform.isMacOS) {
       throw 'Cannot sign MachO binary on non-macOS platform';
     }

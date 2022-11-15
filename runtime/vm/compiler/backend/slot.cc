@@ -372,7 +372,11 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
-  if (field.needs_load_guard()) {
+  const bool needs_load_guard = field.needs_load_guard();
+  const bool is_unboxed = field.is_unboxed();
+  ASSERT(!(needs_load_guard && is_unboxed));
+
+  if (needs_load_guard) {
     // Should be kept in sync with LoadStaticFieldInstr::ComputeType.
     type = Type::DynamicType();
     nullable_cid = kDynamicCid;
@@ -380,10 +384,14 @@ const Slot& Slot::Get(const Field& field,
     used_guarded_state = false;
   }
 
-  const bool is_unboxed = field.is_unboxed();
   if (is_unboxed) {
+    // The decision to unbox is made based on static types (or TFA annotations).
+    // It is therefore not part of the dynamically initialized & updated guarded
+    // state.
+    used_guarded_state = false;
     is_nullable = false;
-    switch (field_guard_state.guarded_cid()) {
+    nullable_cid = field_guard_state.guarded_cid();
+    switch (nullable_cid) {
       case kDoubleCid:
         rep = kUnboxedDouble;
         break;

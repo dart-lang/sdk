@@ -22,10 +22,10 @@ static field dynamic h = #C8;
 constants  {
   #C1 = 1
   #C2 = 2
-const (#C1, #C2)
-const ({a:#C1, b:#C2})
-const (#C1, {b:#C2})
-const ({a:#C3, b:#C4})
-const (#C3, {b:#C5})
-const (#C6, #C3)
+  #C3 = (#C1, #C2)
+  #C4 = ({a:#C1, b:#C2})
+  #C5 = (#C1, {b:#C2})
+  #C6 = ({a:#C3, b:#C4})
+  #C7 = (#C3, {b:#C5})
+  #C8 = (#C6, #C3)
 }

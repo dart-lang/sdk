@@ -807,7 +807,7 @@ bool Class::RequiresInstanceMorphing(ClassTable* class_table,
     }
     if (!field.is_unboxed() && replacement_field.is_unboxed()) {
       // No actual morphing is required in this case but we need to mark
-      // the field unboxed.
+      // the field boxed.
       replacement.MarkFieldBoxedDuringReload(class_table, replacement_field);
     }
     if (field.needs_load_guard()) {

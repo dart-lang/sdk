@@ -67,9 +67,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     listener?.beginClassDeclaration(
-        begin, abstractToken, macroToken, augmentToken, name);
+        begin, abstractToken, macroToken, viewToken, augmentToken, name);
   }
 
   @override
@@ -390,9 +390,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
     listener?.beginNamedMixinApplication(
-        begin, abstractToken, macroToken, augmentToken, name);
+        begin, abstractToken, macroToken, viewToken, augmentToken, name);
   }
 
   @override
@@ -577,8 +577,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
-    listener?.endCaseExpression(colon);
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
+    listener?.endCaseExpression(caseKeyword, when, colon);
   }
 
   @override
@@ -1292,11 +1292,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    listener?.handleCaseMatch(caseKeyword, colon);
-  }
-
-  @override
   void handleCatchBlock(Token? onKeyword, Token? catchKeyword, Token? comma) {
     listener?.handleCatchBlock(onKeyword, catchKeyword, comma);
   }
@@ -1772,8 +1767,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, Token? case_) {
-    listener?.handleParenthesizedCondition(token, case_);
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
+    listener?.handleParenthesizedCondition(token, case_, when);
   }
 
   @override

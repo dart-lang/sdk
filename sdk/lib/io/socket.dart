@@ -773,6 +773,8 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   external static Future<ConnectionTask<Socket>> _startConnect(host, int port,
       {sourceAddress, int sourcePort = 0});
 
+  Future<List<Object?>> _detachRaw();
+
   /// Destroys the socket in both directions.
   ///
   /// Calling [destroy] will make the send a close event on the stream

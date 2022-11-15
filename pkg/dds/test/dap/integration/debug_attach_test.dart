@@ -145,10 +145,18 @@ main() {
       final breakpointLine = lineWith(testFile, breakpointMarker);
       await dap.client.setBreakpoint(testFile, breakpointLine);
 
+      // Expect that termination is reported as 'Detached' when we explicitly
+      // requested a detach.
+      expect(dap.client.outputEvents.map((output) => output.output.trim()),
+          emits('Detached.'));
+
       // Detach using terminateRequest. Despite the name, terminateRequest is
       // the request for a graceful detach (and disconnectRequest is the
       // forceful shutdown).
-      await dap.client.terminate();
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.terminate(),
+      ]);
 
       // Expect the process terminates (and hasn't got stuck on the breakpoint
       // or exception).

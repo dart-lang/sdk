@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
@@ -20,6 +19,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/field_promotability.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -204,11 +204,11 @@ class LibraryBuilder {
   void collectMixinSuperInvokedNames() {
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations) {
-        if (declaration is ast.MixinDeclaration) {
+        if (declaration is ast.MixinDeclarationImpl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.members) {
-            if (executable is ast.MethodDeclaration) {
+            if (executable is ast.MethodDeclarationImpl) {
               executable.body.accept(collector);
             }
           }
@@ -217,6 +217,15 @@ class LibraryBuilder {
         }
       }
     }
+  }
+
+  /// Computes which fields in this library are promotable.
+  void computeFieldPromotability() {
+    if (!element.featureSet.isEnabled(Feature.inference_update_2)) {
+      return;
+    }
+
+    FieldPromotability(this).perform();
   }
 
   void declare(String name, Reference reference) {
@@ -354,7 +363,7 @@ class LibraryBuilder {
     var unitReference = reference.getChild('@unit').getChild('$unitUri');
     _bindReference(unitReference, unitElement);
 
-    element.parts2.add(
+    element.parts.add(
       PartElementImpl(
         uri: DirectiveUriWithUnitImpl(
           relativeUriString: '_macro_types.dart',
@@ -759,7 +768,7 @@ class LibraryBuilder {
     var nameOffset = -1;
     var nameLength = 0;
     for (final directive in libraryUnitNode.directives) {
-      if (directive is ast.LibraryDirective) {
+      if (directive is ast.LibraryDirectiveImpl) {
         final nameIdentifier = directive.name2;
         if (nameIdentifier != null) {
           name = nameIdentifier.components.map((e) => e.name).join('.');
@@ -879,7 +888,7 @@ class LibraryBuilder {
       );
     }
 
-    libraryElement.parts2 = parts;
+    libraryElement.parts = parts;
 
     final builder = LibraryBuilder._(
       linker: linker,

@@ -31448,7 +31448,9 @@ class TypeHierarchyItem implements ToJsonable {
   });
   static TypeHierarchyItem fromJson(Map<String, Object?> json) {
     final dataJson = json['data'];
-    final data = dataJson;
+    final data = dataJson != null
+        ? TypeHierarchyItemInfo.fromJson(dataJson as Map<String, Object?>)
+        : null;
     final detailJson = json['detail'];
     final detail = detailJson as String?;
     final kindJson = json['kind'];
@@ -31482,7 +31484,7 @@ class TypeHierarchyItem implements ToJsonable {
   /// supertypes or subtypes requests. It could also be used to identify the
   /// type hierarchy in the server, helping improve the performance on resolving
   /// supertypes and subtypes.
-  final LSPAny data;
+  final TypeHierarchyItemInfo? data;
 
   /// More detail for this item, e.g. the signature of a function.
   final String? detail;
@@ -31511,7 +31513,7 @@ class TypeHierarchyItem implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
-      result['data'] = data;
+      result['data'] = data?.toJson();
     }
     if (detail != null) {
       result['detail'] = detail;
@@ -31529,6 +31531,10 @@ class TypeHierarchyItem implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      if (!_canParseTypeHierarchyItemInfo(obj, reporter, 'data',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       if (!_canParseString(obj, reporter, 'detail',
           allowsUndefined: true, allowsNull: false)) {
         return false;
@@ -41973,6 +41979,32 @@ bool _canParseTypeHierarchyItem(
     if ((!nullCheck || value != null) &&
         !TypeHierarchyItem.canParse(value, reporter)) {
       reporter.reportError('must be of type TypeHierarchyItem');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseTypeHierarchyItemInfo(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !TypeHierarchyItemInfo.canParse(value, reporter)) {
+      reporter.reportError('must be of type TypeHierarchyItemInfo');
       return false;
     }
   } finally {

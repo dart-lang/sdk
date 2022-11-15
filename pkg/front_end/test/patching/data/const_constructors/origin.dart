@@ -7,9 +7,9 @@
 
 /*class: PatchedClass:
  kernel-members=[
-   PatchedClass.,
-   _field
- ]
+  PatchedClass.,
+  _field],
+ scope=[_field]
 */
 class PatchedClass {
   external const PatchedClass({int field});

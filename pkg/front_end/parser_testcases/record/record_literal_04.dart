@@ -8,7 +8,7 @@ void foo() {
   // Error: Const makes it a record (I guess), but there's no trailing comma.
   var r5 = const (42);
 
-  // Error: A record needs at least one element.
+  // OK: A record can have 0 elements.
   var r6 = const ();
 }
 

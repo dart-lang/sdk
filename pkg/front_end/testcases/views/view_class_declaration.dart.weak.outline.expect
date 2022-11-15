@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+}
+class Class2 = core::Object with self::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::Class2
+    : super core::Object::•()
+    ;
+}

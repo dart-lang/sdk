@@ -7,9 +7,11 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -21,6 +23,20 @@ void main() {
 
 @reflectiveTest
 class ParameterNameInlayHintTest extends _AbstractInlayHintTest {
+  Future<void> test_location() async {
+    final code = TestCode.parse('''
+void f(int /*[0*/a/*0]*/) {}
+void g() {
+  f(1);
+}
+''');
+    final hints = await _fetchHints(code.code);
+    final location = hints.single.labelParts.single.location!;
+
+    expect(location.uri, mainFileUri);
+    expect(location.range, code.range.range);
+  }
+
   Future<void> test_named() async {
     final content = '''
 void f({required int? a, int? b}) {
@@ -201,6 +217,35 @@ void f() {
 }
 ''';
     await _testHints(content, expected);
+  }
+
+  Future<void> test_location_local() async {
+    final code = TestCode.parse('''
+class /*[0*/A/*0]*/ {}
+final a1 = A();
+''');
+    final hints = await _fetchHints(code.code);
+    final location = hints.single.labelParts.single.location!;
+
+    expect(location.uri, mainFileUri);
+    expect(location.range, code.range.range);
+  }
+
+  Future<void> test_location_sdk() async {
+    final code = TestCode.parse('''
+final a1 = '';
+''');
+    final hints = await _fetchHints(code.code);
+    final location = hints.single.labelParts.single.location!;
+
+    expect(location.uri, Uri.file(convertPath('/sdk/lib/core/core.dart')));
+    // Check range looks like sensible values.
+    expect(location.range.start.line, greaterThanOrEqualTo(1));
+    expect(location.range.start.character,
+        greaterThanOrEqualTo('abstract class '.length));
+    expect(location.range.end.line, location.range.start.line);
+    expect(location.range.end.character,
+        location.range.start.character + 'String'.length);
   }
 
   Future<void> test_method_parameters() async {
@@ -417,16 +462,19 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
     return buffer.toString();
   }
 
-  Future<void> _testHints(
-      String content, String expectedContentWithHints) async {
+  Future<List<InlayHint>> _fetchHints(String content) async {
     await initialize();
-
     await openFile(mainFileUri, content);
     final hints = await getInlayHints(
       mainFileUri,
       rangeOfWholeContent(content),
     );
+    return hints;
+  }
 
+  Future<void> _testHints(
+      String content, String expectedContentWithHints) async {
+    final hints = await _fetchHints(content);
     final actualContentWithHints = substituteHints(content, hints);
     expect(actualContentWithHints, expectedContentWithHints);
   }
@@ -458,11 +506,17 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
 }
 
 extension _InlayHintExtension on InlayHint {
+  /// Returns the parts of an InlayHint label.
+  List<InlayHintLabelPart> get labelParts => label.map(
+        (parts) => parts,
+        (string) => throw 'Expected InlayHintLabelPart, got String',
+      );
+
   /// Returns the visible text of the InlayHint, concatenating any parts.
   String get textLabel => label.map(
         // Unwrap where an InlayHint may provide its label in multiple
         // `InlayHintLabelPart`s.
-        (t1) => t1.map((part) => part.value).join(),
-        (t2) => t2,
+        (parts) => parts.map((part) => part.value).join(),
+        (string) => string,
       );
 }

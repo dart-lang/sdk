@@ -21,8 +21,14 @@ class DartUnitHoverComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
   final int _offset;
+  final DocumentationPreference documentationPreference;
 
-  DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
+  DartUnitHoverComputer(
+    this._dartdocInfo,
+    this._unit,
+    this._offset, {
+    this.documentationPreference = DocumentationPreference.full,
+  });
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -42,6 +48,8 @@ class DartUnitHoverComputer {
       locationEntity = node.name;
     } else if (node is MethodDeclaration) {
       locationEntity = node.name;
+    } else if (node is ConstructorDeclaration) {
+      locationEntity = node.name ?? node.returnType;
     } else if (node is VariableDeclaration) {
       locationEntity = node.name;
     }
@@ -58,22 +66,34 @@ class DartUnitHoverComputer {
     } else if (parent is ConstructorName &&
         grandParent is InstanceCreationExpression) {
       node = grandParent;
+    } else if (node is SimpleIdentifier &&
+        parent is ConstructorDeclaration &&
+        parent.name != null) {
+      node = parent;
     }
     if (node != null &&
         (node is CompilationUnitMember ||
             node is Expression ||
             node is FormalParameter ||
             node is MethodDeclaration ||
+            node is ConstructorDeclaration ||
             node is VariableDeclaration)) {
-      // For constructor calls the whole expression is selected (above) but this
-      // results in the range covering the whole call so narrow it to just the
-      // ConstructorName.
-      var hover = node is InstanceCreationExpression
-          ? HoverInformation(
-              node.constructorName.offset,
-              node.constructorName.length,
-            )
-          : HoverInformation(locationEntity.offset, locationEntity.length);
+      // For constructors, the location should cover the type name and
+      // constructor name (for both calls and declarations).
+      HoverInformation hover;
+      if (node is InstanceCreationExpression) {
+        hover = HoverInformation(
+          node.constructorName.offset,
+          node.constructorName.length,
+        );
+      } else if (node is ConstructorDeclaration) {
+        var offset = node.returnType.offset;
+        var end = node.name?.end ?? node.returnType.end;
+        var length = end - node.returnType.offset;
+        hover = HoverInformation(offset, length);
+      } else {
+        hover = HoverInformation(locationEntity.offset, locationEntity.length);
+      }
       // element
       var element = ElementLocator.locate(node);
       if (element != null) {
@@ -127,7 +147,8 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = computeDocumentation(_dartdocInfo, element)?.full;
+        hover.dartdoc = computePreferredDocumentation(
+            _dartdocInfo, element, documentationPreference);
       }
       // parameter
       if (node is Expression) {
@@ -239,6 +260,26 @@ class DartUnitHoverComputer {
     return result;
   }
 
+  /// Compute documentation for [element] and return either the summary or full
+  /// docs (or `null`) depending on `preference`.
+  static String? computePreferredDocumentation(
+    DartdocDirectiveInfo dartdocInfo,
+    Element element,
+    DocumentationPreference preference,
+  ) {
+    if (preference == DocumentationPreference.none) {
+      return null;
+    }
+
+    final doc = computeDocumentation(
+      dartdocInfo,
+      element,
+      includeSummary: preference == DocumentationPreference.summary,
+    );
+
+    return doc is DocumentationWithSummary ? doc.summary : doc?.full;
+  }
+
   static DartType? _getTypeOfDeclarationOrReference(Expression node) {
     if (node is SimpleIdentifier) {
       var element = node.staticElement;
@@ -254,4 +295,12 @@ class DartUnitHoverComputer {
     }
     return node.staticType;
   }
+}
+
+/// The type of documentation the user prefers to see in hovers and other
+/// related displays in their editor.
+enum DocumentationPreference {
+  none,
+  summary,
+  full,
 }

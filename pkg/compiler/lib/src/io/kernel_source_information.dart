@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// Source information system mapping that attempts a semantic mapping between
 /// offsets of JavaScript code points to offsets of Dart code points.
 
@@ -12,24 +10,22 @@ library dart2js.source_information.kernel;
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_strategy.dart';
 import '../universe/call_structure.dart';
 import 'source_information.dart';
 import 'position_information.dart';
 
 class KernelSourceInformationStrategy
     extends AbstractPositionSourceInformationStrategy {
-  final JsBackendStrategy _backendStrategy;
+  late final JsToElementMap _elementMap;
 
-  const KernelSourceInformationStrategy(this._backendStrategy);
+  @override
+  void onElementMapAvailable(JsToElementMap elementMap) {
+    _elementMap = elementMap;
+  }
 
   @override
   SourceInformationBuilder createBuilderForContext(MemberEntity member) {
-    return KernelSourceInformationBuilder(
-        _backendStrategy
-            // ignore:deprecated_member_use_from_same_package
-            .elementMap,
-        member);
+    return KernelSourceInformationBuilder(_elementMap, member);
   }
 }
 
@@ -39,19 +35,19 @@ class KernelSourceInformationStrategy
 /// [elementMap] is used to compute names for closure call methods.
 // TODO(johnniwinther): Make the closure call names available to
 // `sourcemap_helper.dart`.
-String computeKernelElementNameForSourceMaps(
+String? computeKernelElementNameForSourceMaps(
     JsToElementMap elementMap, MemberEntity member,
-    [CallStructure callStructure]) {
+    [CallStructure? callStructure]) {
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
     case MemberKind.regular:
-      ir.Member node = definition.node;
+      final node = definition.node as ir.Member;
       if (node.isExtensionMember) return _findExtensionMemberName(node);
       return computeElementNameForSourceMaps(member, callStructure);
 
     case MemberKind.closureCall:
-      ir.TreeNode node = definition.node;
-      String name;
+      var node = definition.node as ir.TreeNode;
+      String? name;
       while (node is! ir.Member) {
         if (node is ir.FunctionDeclaration) {
           if (name != null) {
@@ -66,11 +62,11 @@ String computeKernelElementNameForSourceMaps(
             name = '<anonymous function>';
           }
         }
-        node = node.parent;
+        node = node.parent!;
       }
       MemberEntity enclosingMember = elementMap.getMember(node);
       String enclosingMemberName =
-          computeElementNameForSourceMaps(enclosingMember, callStructure);
+          computeElementNameForSourceMaps(enclosingMember, callStructure)!;
       return '$enclosingMemberName.$name';
     default:
       return computeElementNameForSourceMaps(member, callStructure);
@@ -108,14 +104,14 @@ String _findExtensionMemberName(ir.Member member) {
 class KernelSourceInformationBuilder implements SourceInformationBuilder {
   final JsToElementMap _elementMap;
   final MemberEntity _member;
-  final String _name;
+  final String? _name;
 
   /// Inlining context or null when no inlining has taken place.
   ///
   /// A new builder is created every time the backend inlines a method. This
   /// field contains the location of every call site that has been inlined. The
   /// last entry on the list is always a call to [_member].
-  final List<FrameContext> inliningContext;
+  final List<FrameContext>? inliningContext;
 
   KernelSourceInformationBuilder(this._elementMap, this._member)
       : _name = computeKernelElementNameForSourceMaps(_elementMap, _member),
@@ -129,21 +125,19 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   ///
   /// If [offset] is `null`, the first `fileOffset` of [node] or its parents is
   /// used.
-  SourceLocation _getSourceLocation(String name, ir.TreeNode node,
-      [int offset]) {
+  SourceLocation _getSourceLocation(String? name, ir.TreeNode node,
+      [int? offset]) {
     ir.Location location;
     if (offset != null) {
-      location = node.location;
-      location = node.enclosingComponent.getLocation(location.file, offset);
+      location = node.location!;
+      location = node.enclosingComponent!.getLocation(location.file, offset)!;
     } else {
-      while (node != null && node.fileOffset == ir.TreeNode.noOffset) {
-        node = node.parent;
+      while (node.fileOffset == ir.TreeNode.noOffset) {
+        node = node.parent!;
       }
-      location = node.location;
+      location = node.location!;
       offset = node.fileOffset;
     }
-    assert(
-        location != null, "No location found for $node (${node.runtimeType})");
     return KernelSourceLocation(location, offset, name);
   }
 
@@ -152,7 +146,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   ///
   /// This method handles both methods, constructors, and local functions.
   SourceInformation _buildFunction(
-      String name, ir.TreeNode node, ir.FunctionNode functionNode) {
+      String? name, ir.TreeNode node, ir.FunctionNode functionNode) {
     if (functionNode.fileEndOffset != ir.TreeNode.noOffset) {
       return PositionSourceInformation(
           _getSourceLocation(name, node),
@@ -167,27 +161,28 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   ///
   /// This is used function declarations and return expressions which both point
   /// to the end of the member as the closing position.
-  SourceInformation _buildFunctionEnd(MemberEntity member, [ir.TreeNode base]) {
+  SourceInformation _buildFunctionEnd(MemberEntity member,
+      [ir.TreeNode? base]) {
     MemberDefinition definition = _elementMap.getMemberDefinition(member);
-    String name = computeKernelElementNameForSourceMaps(_elementMap, member);
+    String? name = computeKernelElementNameForSourceMaps(_elementMap, member);
     switch (definition.kind) {
       case MemberKind.regular:
-        ir.Member node = definition.node;
+        final node = definition.node as ir.Member;
         if (node is ir.Procedure) {
           return _buildFunction(name, base ?? node, node.function);
         }
         break;
       case MemberKind.constructor:
       case MemberKind.constructorBody:
-        ir.Member node = definition.node;
-        return _buildFunction(name, base ?? node, node.function);
+        final node = definition.node as ir.Member;
+        return _buildFunction(name, base ?? node, node.function!);
       case MemberKind.closureCall:
-        ir.LocalFunction node = definition.node;
+        final node = definition.node as ir.LocalFunction;
         return _buildFunction(name, base ?? node, node.function);
       // TODO(sra): generatorBody
       default:
     }
-    return _buildTreeNode(base ?? definition.node, name: name);
+    return _buildTreeNode(base ?? definition.node as ir.TreeNode, name: name);
   }
 
   /// Creates the source information for exiting a function definition defined
@@ -209,7 +204,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   ///
   /// This method is used to for code in the beginning of a method, like
   /// variable declarations in the start of a function.
-  SourceInformation _buildBody(ir.TreeNode node, ir.TreeNode body) {
+  SourceInformation _buildBody(ir.TreeNode node, ir.TreeNode? body) {
     SourceLocation location;
     if (body != null) {
       if (body is ir.Block && body.statements.isNotEmpty) {
@@ -245,19 +240,19 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
         }
         break;
       case MemberKind.closureCall:
-        ir.LocalFunction node = definition.node;
+        final node = definition.node as ir.LocalFunction;
         return _buildBody(node, node.function.body);
       case MemberKind.generatorBody:
         ir.Node node = definition.node;
         if (node is ir.LocalFunction) {
           return _buildBody(node, node.function.body);
         } else if (node is ir.Member && node.function != null) {
-          return _buildBody(node, node.function /*!*/ .body);
+          return _buildBody(node, node.function!.body);
         }
         break;
       default:
     }
-    return _buildTreeNode(definition.node);
+    return _buildTreeNode(definition.node as ir.TreeNode);
   }
 
   /// Creates source information for the exit of the current member.
@@ -272,109 +267,109 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
         break;
       case MemberKind.constructor:
       case MemberKind.constructorBody:
-        ir.Member node = definition.node;
-        return _buildFunctionExit(node, node.function);
+        final node = definition.node as ir.Member;
+        return _buildFunctionExit(node, node.function!);
       case MemberKind.closureCall:
-        ir.LocalFunction node = definition.node;
+        final node = definition.node as ir.LocalFunction;
         return _buildFunctionExit(node, node.function);
       default:
     }
-    return _buildTreeNode(definition.node);
+    return _buildTreeNode(definition.node as ir.TreeNode);
   }
 
   /// Creates source information based on the location of [node].
   SourceInformation _buildTreeNode(ir.TreeNode node,
-      {SourceLocation closingPosition, String name}) {
+      {SourceLocation? closingPosition, String? name}) {
     return PositionSourceInformation(_getSourceLocation(name ?? _name, node),
         closingPosition, inliningContext);
   }
 
   @override
   SourceInformationBuilder forContext(
-      MemberEntity member, SourceInformation context) {
-    List<FrameContext> newContext = inliningContext?.toList() ?? [];
+      MemberEntity member, SourceInformation? context) {
+    List<FrameContext>? newContext = inliningContext?.toList() ?? [];
     if (context != null) {
-      newContext.add(FrameContext(context, member.name));
+      newContext.add(FrameContext(context, member.name!));
     } else {
       // TODO(sigmund): investigate whether we have any more cases where context
       // is null.
       newContext = inliningContext;
     }
 
-    String name = computeKernelElementNameForSourceMaps(_elementMap, _member);
+    String? name = computeKernelElementNameForSourceMaps(_elementMap, _member);
     return KernelSourceInformationBuilder.withContext(
         _elementMap, member, newContext, name);
   }
 
   @override
-  SourceInformation buildSwitchCase(ir.Node node) => null;
+  SourceInformation? buildSwitchCase(ir.Node node) => null;
 
   @override
-  SourceInformation buildSwitch(ir.Node node) {
+  SourceInformation buildSwitch(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildAs(ir.Node node) {
+  SourceInformation buildAs(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildIs(ir.Node node) {
+  SourceInformation buildIs(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildTry(ir.Node node) {
+  SourceInformation buildTry(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildCatch(ir.Node node) {
+  SourceInformation buildCatch(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildBinary(ir.Node node) {
+  SourceInformation buildBinary(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildUnary(ir.Node node) {
+  SourceInformation buildUnary(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildIndexSet(ir.Node node) => null;
+  SourceInformation? buildIndexSet(ir.Node node) => null;
 
   @override
-  SourceInformation buildIndex(ir.Node node) => null;
+  SourceInformation? buildIndex(ir.Node node) => null;
 
   @override
-  SourceInformation buildForInSet(ir.Node node) {
+  SourceInformation buildForInSet(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildForInCurrent(ir.Node node) {
+  SourceInformation buildForInCurrent(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildForInMoveNext(ir.Node node) {
+  SourceInformation buildForInMoveNext(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildForInIterator(ir.Node node) {
+  SourceInformation buildForInIterator(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildStringInterpolation(ir.Node node) => null;
+  SourceInformation? buildStringInterpolation(ir.Node node) => null;
 
   @override
-  SourceInformation buildForeignCode(ir.Node node) => null;
+  SourceInformation? buildForeignCode(ir.Node node) => null;
 
   @override
   SourceInformation buildVariableDeclaration() {
@@ -382,12 +377,12 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformation buildAwait(ir.Node node) {
+  SourceInformation buildAwait(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildYield(ir.Node node) {
+  SourceInformation buildYield(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
@@ -402,27 +397,27 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformation buildAssignment(ir.Node node) {
+  SourceInformation buildAssignment(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildThrow(ir.Node node) {
+  SourceInformation buildThrow(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildAssert(ir.Node node) {
+  SourceInformation buildAssert(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildNew(ir.Node node) {
+  SourceInformation buildNew(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildIf(ir.Node node) {
+  SourceInformation buildIf(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
@@ -434,40 +429,40 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformation buildGet(ir.Node node) {
+  SourceInformation buildGet(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildSet(ir.Node node) {
+  SourceInformation buildSet(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildLoop(ir.Node node) {
+  SourceInformation buildLoop(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildImplicitReturn(MemberEntity element) => null;
+  SourceInformation? buildImplicitReturn(MemberEntity element) => null;
 
   @override
-  SourceInformation buildReturn(ir.Node node) {
+  SourceInformation buildReturn(ir.TreeNode node) {
     return _buildFunctionEnd(_member, node);
   }
 
   @override
-  SourceInformation buildCreate(ir.Node node) {
+  SourceInformation buildCreate(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildListLiteral(ir.Node node) {
+  SourceInformation buildListLiteral(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildGeneric(ir.Node node) => null;
+  SourceInformation? buildGeneric(ir.Node node) => null;
 
   @override
   SourceInformation buildDeclaration(MemberEntity member) {
@@ -478,14 +473,14 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation buildStub(
       FunctionEntity function, CallStructure callStructure) {
     MemberDefinition definition = _elementMap.getMemberDefinition(function);
-    String name = computeKernelElementNameForSourceMaps(
+    String? name = computeKernelElementNameForSourceMaps(
         _elementMap, function, callStructure);
     ir.Node node = definition.node;
-    return _buildTreeNode(node, name: name);
+    return _buildTreeNode(node as ir.TreeNode, name: name);
   }
 
   @override
-  SourceInformation buildGoto(ir.Node node) {
+  SourceInformation buildGoto(ir.TreeNode node) {
     return _buildTreeNode(node);
   }
 }
@@ -494,11 +489,11 @@ class KernelSourceLocation extends AbstractSourceLocation {
   @override
   final int offset;
   @override
-  final String sourceName;
+  final String? sourceName;
   @override
   final Uri sourceUri;
 
-  KernelSourceLocation(ir.Location location, this.offset, this.sourceName)
+  KernelSourceLocation(super.location, this.offset, this.sourceName)
       : sourceUri = location.file,
-        super.fromLocation(location);
+        super.fromLocation();
 }

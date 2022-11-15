@@ -303,7 +303,21 @@ class ExpressionInferenceResult {
   /// The inferred expression.
   final Expression expression;
 
-  ExpressionInferenceResult(this.inferredType, this.expression)
+  /// More precise type of the expression after coercion.
+  ///
+  /// Consider the following code:
+  ///
+  ///   dynamic foo = 3;
+  ///   int bar = foo;
+  ///
+  /// In the example above `foo` is coerced to `foo as int`, but
+  /// [inferredType]` of `foo` stays `dynamic`.  In some situations, like
+  /// coercing elements of record literals, we want to know the more precise
+  /// type of the expression after coercion, `int` in the example above.
+  final DartType? postCoercionType;
+
+  ExpressionInferenceResult(this.inferredType, this.expression,
+      {this.postCoercionType = null})
       // ignore: unnecessary_null_comparison
       : assert(expression != null);
 
@@ -415,6 +429,9 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
         'accessing the expression result of a '
         'NullAwareExpressionInferenceResult');
   }
+
+  @override
+  DartType? get postCoercionType => null;
 
   @override
   ExpressionInferenceResult stopShorting() {

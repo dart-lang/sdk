@@ -2443,8 +2443,8 @@ class C {
     var c = _getTopLevelVar(result.unit, 'c');
     var typeC = c.declaredElement!.type as InterfaceType;
     // The class C has an old field 'foo', not the new 'bar'.
-    expect(typeC.element2.getField('foo'), isNotNull);
-    expect(typeC.element2.getField('bar'), isNull);
+    expect(typeC.element.getField('foo'), isNotNull);
+    expect(typeC.element.getField('bar'), isNull);
   }
 
   test_importOfNonLibrary_part_afterLibrary() async {
@@ -3570,7 +3570,7 @@ var v = 0
   LibraryImportElement _getImportElement(
       CompilationUnit unit, int directiveIndex) {
     var import = unit.directives[directiveIndex] as ImportDirective;
-    return import.element2!;
+    return import.element!;
   }
 
   Source _getImportSource(CompilationUnit unit, int directiveIndex) {

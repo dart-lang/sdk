@@ -18,18 +18,19 @@ import '../js_model/class_type_variable_access.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
-import 'closure_migrated.dart'
+import 'closure.dart'
     show
         ClosureClassData,
-        RecordClassData,
+        ContextClassData,
         ClosureFunctionData,
         ClosureFieldData;
-import 'element_map_interfaces.dart' show JsToElementMap, JsKernelToElementMap;
-import 'element_map_migrated.dart'
+import 'element_map.dart'
     show
+        JsToElementMap,
         ClassDefinition,
         MemberDefinition,
         forEachOrderedParameterByFunctionNode;
+import 'element_map_impl.dart';
 import 'elements.dart';
 
 /// Environment for fast lookup of component libraries.
@@ -178,7 +179,7 @@ class JLibraryData {
 }
 
 /// Enum used for identifying [JClassEnv] subclasses in serialization.
-enum JClassEnvKind { node, closure, record }
+enum JClassEnvKind { node, closure, context }
 
 /// Member data for a class.
 abstract class JClassEnv {
@@ -190,8 +191,8 @@ abstract class JClassEnv {
         return JClassEnvImpl.readFromDataSource(source);
       case JClassEnvKind.closure:
         return ClosureClassEnv.readFromDataSource(source);
-      case JClassEnvKind.record:
-        return RecordEnv.readFromDataSource(source);
+      case JClassEnvKind.context:
+        return ContextEnv.readFromDataSource(source);
     }
   }
 
@@ -315,26 +316,26 @@ class JClassEnvImpl implements JClassEnv {
   }
 }
 
-class RecordEnv implements JClassEnv {
-  /// Tag used for identifying serialized [RecordEnv] objects in a
-  /// debugging data stream.
-  static const String tag = 'record-env';
+class ContextEnv implements JClassEnv {
+  /// Tag used for identifying serialized [ContextEnv] objects in a debugging
+  /// data stream.
+  static const String tag = 'context-env';
 
   final Map<Name, IndexedMember> _memberMap;
 
-  RecordEnv(this._memberMap);
+  ContextEnv(this._memberMap);
 
-  factory RecordEnv.readFromDataSource(DataSourceReader source) {
+  factory ContextEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Map<Name, IndexedMember> _memberMap =
         source.readNameMap(() => source.readMember() as IndexedMember)!;
     source.end(tag);
-    return RecordEnv(_memberMap);
+    return ContextEnv(_memberMap);
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(JClassEnvKind.record);
+    sink.writeEnum(JClassEnvKind.context);
     sink.begin(tag);
     sink.writeNameMap(
         _memberMap, (IndexedMember member) => sink.writeMember(member));
@@ -378,7 +379,7 @@ class RecordEnv implements JClassEnv {
   ir.Class? get cls => null;
 }
 
-class ClosureClassEnv extends RecordEnv {
+class ClosureClassEnv extends ContextEnv {
   /// Tag used for identifying serialized [ClosureClassEnv] objects in a
   /// debugging data stream.
   static const String tag = 'closure-class-env';
@@ -404,7 +405,7 @@ class ClosureClassEnv extends RecordEnv {
 }
 
 /// Enum used for identifying [JClassData] subclasses in serialization.
-enum JClassDataKind { node, closure, record }
+enum JClassDataKind { node, closure, context }
 
 abstract class JClassData {
   /// Deserializes a [JClassData] object from [source].
@@ -415,8 +416,8 @@ abstract class JClassData {
         return JClassDataImpl.readFromDataSource(source);
       case JClassDataKind.closure:
         return ClosureClassData.readFromDataSource(source);
-      case JClassDataKind.record:
-        return RecordClassData.readFromDataSource(source);
+      case JClassDataKind.context:
+        return ContextClassData.readFromDataSource(source);
     }
   }
 

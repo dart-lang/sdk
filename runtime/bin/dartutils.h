@@ -152,6 +152,10 @@ class DartUtils {
   static bool IsDartBuiltinLibURL(const char* url_name);
   static bool IsHttpSchemeURL(const char* url_name);
   static const char* RemoveScheme(const char* url);
+
+  // Retuns directory name including the last path separtor.
+  //
+  // The return value must be `free`d by the caller.
   static char* DirName(const char* url);
   static void* MapExecutable(const char* name, intptr_t* file_len);
   static void* OpenFile(const char* name, bool write);

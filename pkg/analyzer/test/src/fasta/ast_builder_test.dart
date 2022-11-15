@@ -277,6 +277,23 @@ ClassDeclaration
 ''');
   }
 
+  void test_class_view() {
+    var parseResult = parseStringWithErrors(r'''
+view class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  viewKeyword: view
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_withClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C with A, (int, int), B {}

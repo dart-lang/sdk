@@ -56,12 +56,22 @@ class ElementMatcher {
         }
       }
     } else if (nodeComponentCount < elementComponentCount) {
-      // The node has fewer components, which can happen, for example, when we
-      // can't figure out the class that used to define a field. We treat the
-      // missing components as wildcards and match the rest.
-      for (var i = 0; i < nodeComponentCount; i++) {
-        if (elementComponents[i] != components[i]) {
-          return false;
+      // The element has one more empty component
+      if (nodeComponentCount + 1 == elementComponentCount &&
+          elementComponents[0].isEmpty) {
+        for (var i = 0; i < nodeComponentCount; i++) {
+          if (elementComponents[i + 1] != components[i]) {
+            return false;
+          }
+        }
+      } else {
+        // The node has fewer components, which can happen, for example, when we
+        // can't figure out the class that used to define a field. We treat the
+        // missing components as wildcards and match the rest.
+        for (var i = 0; i < nodeComponentCount; i++) {
+          if (elementComponents[i] != components[i]) {
+            return false;
+          }
         }
       }
     } else {
@@ -100,11 +110,11 @@ class ElementMatcher {
   /// there are no appropriate matchers for the [node].
   static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
     if (node == null) {
-      return const <ElementMatcher>[];
+      return const [];
     }
     var importedUris = _importElementsForNode(node);
     if (importedUris == null) {
-      return const <ElementMatcher>[];
+      return const [];
     }
     var builder = _MatcherBuilder(importedUris);
     builder.buildMatchersForNode(node, nameToken);
@@ -387,7 +397,7 @@ class _MatcherBuilder {
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
       _addMatcher(
-        components: [node.identifier.name, targetType.element2.name],
+        components: [node.identifier.name, targetType.element.name],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
@@ -533,7 +543,7 @@ class _MatcherBuilder {
       var type = target.staticType;
       if (type != null) {
         if (type is InterfaceType) {
-          return type.element2.name;
+          return type.element.name;
         } else if (type.isDynamic) {
           // The name is likely to be undefined.
           return target.name;
@@ -544,7 +554,7 @@ class _MatcherBuilder {
     } else if (target != null) {
       var type = target.staticType;
       if (type is InterfaceType) {
-        return type.element2.name;
+        return type.element.name;
       }
       return null;
     }

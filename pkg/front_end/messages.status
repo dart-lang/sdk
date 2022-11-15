@@ -561,6 +561,20 @@ JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
+JsInteropExportClassNotMarkedExportable/analyzerCode: Fail # Web compiler specific
+JsInteropExportClassNotMarkedExportable/example: Fail # Web compiler specific
+JsInteropExportDartInterfaceHasNonEmptyJSExportValue/analyzerCode: Fail # Web compiler specific
+JsInteropExportDartInterfaceHasNonEmptyJSExportValue/example: Fail # Web compiler specific
+JsInteropExportDisallowedMember/analyzerCode: Fail # Web compiler specific
+JsInteropExportDisallowedMember/example: Fail # Web compiler specific
+JsInteropExportInvalidInteropTypeArgument/analyzerCode: Fail # Web compiler specific
+JsInteropExportInvalidInteropTypeArgument/example: Fail # Web compiler specific
+JsInteropExportInvalidTypeArgument/analyzerCode: Fail # Web compiler specific
+JsInteropExportInvalidTypeArgument/example: Fail # Web compiler specific
+JsInteropExportMemberCollision/analyzerCode: Fail # Web compiler specific
+JsInteropExportMemberCollision/example: Fail # Web compiler specific
+JsInteropExportNoExportableMembers/analyzerCode: Fail # Web compiler specific
+JsInteropExportNoExportableMembers/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
@@ -579,27 +593,27 @@ JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
-JsInteropStaticInteropMockExternalExtensionMemberConflict/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropMockExternalExtensionMemberConflict/example: Fail # Web compiler specific
-JsInteropStaticInteropMockMemberNotSubtype/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropMockMemberNotSubtype/example: Fail # Web compiler specific
-JsInteropStaticInteropMockMissingOverride/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropMockMissingOverride/example: Fail # Web compiler specific
-JsInteropStaticInteropMockNotDartInterfaceType/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropMockNotDartInterfaceType/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
+JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
+JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockMissingGetterOrSetter/example: Fail # Web compiler specific
+JsInteropStaticInteropMockMissingImplements/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockMissingImplements/example: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/example: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
@@ -762,6 +776,8 @@ NullableTearoffError/analyzerCode: Fail
 NullableTearoffError/example: Fail
 NullableTearoffWarning/analyzerCode: Fail
 NullableTearoffWarning/example: Fail
+ObjectMemberNameUsedForRecordField/analyzerCode: Fail
+ObjectMemberNameUsedForRecordField/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail

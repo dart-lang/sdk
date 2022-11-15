@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @pragma("wasm:import", "dart2wasm.doubleToString")
 external String _doubleToString(double v);
@@ -29,7 +29,11 @@ class double {
       [@deprecated double onError(String source)?]) {
     double? result = tryParse(source);
     if (result == null) {
-      throw FormatException('Invalid double $source');
+      if (onError == null) {
+        throw FormatException('Invalid double $source');
+      } else {
+        return onError(source);
+      }
     }
     return result;
   }
@@ -57,13 +61,18 @@ class _BoxedDouble implements double {
   static const int _exponentMask = 0x7FF0000000000000;
   static const int _mantissaMask = 0x000FFFFFFFFFFFFF;
 
-  int get hashCode {
-    int bits = doubleToIntBits(this);
-    if (bits == _signMask) bits = 0; // 0.0 == -0.0
-    return mix64(bits);
-  }
+  int get hashCode => _doubleHashCode(this);
+  int get _identityHashCode => _doubleHashCode(this);
 
-  int get _identityHashCode => hashCode;
+  static int _doubleHashCode(double value) {
+    const int maxInt = 0x7FFFFFFFFFFFFFFF;
+    int intValue = _toInt(value);
+    if (intValue.toDouble() == value && intValue != maxInt) {
+      return _BoxedInt._intHashCode(intValue);
+    }
+    int bits = doubleToIntBits(value);
+    return (bits ^ (bits >>> 32)) & 0x3FFFFFFF;
+  }
 
   double operator +(num other) => this + other.toDouble(); // Intrinsic +
   double operator -(num other) => this - other.toDouble(); // Intrinsic -
@@ -172,7 +181,15 @@ class _BoxedDouble implements double {
     return this;
   }
 
-  external int toInt();
+  int toInt() {
+    if (!isFinite) {
+      throw UnsupportedError("Infinity or NaN toInt");
+    }
+    return _toInt(this);
+  }
+
+  /// Wasm i64.trunc_sat_f64_s instruction
+  external static int _toInt(double a);
 
   double toDouble() {
     return this;
@@ -194,10 +211,20 @@ class _BoxedDouble implements double {
       }
     }
     // TODO(koda): Consider optimizing all small integral values.
-    if (identical(0.0, this)) {
-      return "0.0";
+    if (isNaN) return "NaN";
+    if (this == double.infinity) return "Infinity";
+    if (this == -double.infinity) return "-Infinity";
+    if (this == 0) {
+      if (isNegative) {
+        return "-0.0";
+      } else {
+        return "0.0";
+      }
     }
     String result = _doubleToString(value);
+    if (this % 1.0 == 0.0 && result.indexOf('e') == -1) {
+      result = '$result.0';
+    }
     // Replace the least recently inserted entry.
     _cache[_cacheEvictIndex] = this;
     _cache[_cacheEvictIndex + 1] = result;
@@ -218,6 +245,8 @@ class _BoxedDouble implements double {
 
     // Step 4.
     if (isNaN) return "NaN";
+    if (this == double.infinity) return "Infinity";
+    if (this == -double.infinity) return "-Infinity";
 
     // Step 5 and 6 skipped. Will be dealt with by native function.
 
@@ -226,7 +255,9 @@ class _BoxedDouble implements double {
       return x.toString();
     }
 
-    return _toStringAsFixed(fractionDigits);
+    String result = _toStringAsFixed(fractionDigits);
+    if (this == 0 && isNegative) return '-$result';
+    return result;
   }
 
   String _toStringAsFixed(int fractionDigits) =>
@@ -250,7 +281,9 @@ class _BoxedDouble implements double {
     if (this == double.infinity) return "Infinity";
     if (this == -double.infinity) return "-Infinity";
 
-    return _toStringAsExponential(fractionDigits);
+    String result = _toStringAsExponential(fractionDigits);
+    if (this == 0 && isNegative) return '-$result';
+    return result;
   }
 
   String _toStringAsExponential(int? fractionDigits) {
@@ -277,7 +310,9 @@ class _BoxedDouble implements double {
     if (this == double.infinity) return "Infinity";
     if (this == -double.infinity) return "-Infinity";
 
-    return _toStringAsPrecision(precision);
+    String result = _toStringAsPrecision(precision);
+    if (this == 0 && isNegative) return '-$result';
+    return result;
   }
 
   String _toStringAsPrecision(int fractionDigits) =>
@@ -321,7 +356,7 @@ class _BoxedDouble implements double {
             return GREATER;
           }
         }
-        return toInt().compareTo(other);
+        return _toInt(this).compareTo(other);
       } else {
         return EQUAL;
       }

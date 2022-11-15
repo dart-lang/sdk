@@ -205,7 +205,7 @@ class RefactoringManager {
         if (element != null) {
           if (element is PropertyAccessorElement) {
             refactoring = ConvertGetterToMethodRefactoring(
-                searchEngine, resolvedUnit.session, element);
+                refactoringWorkspace, resolvedUnit.session, element);
           }
         }
       }
@@ -217,7 +217,7 @@ class RefactoringManager {
         if (element != null) {
           if (element is ExecutableElement) {
             refactoring = ConvertMethodToGetterRefactoring(
-                searchEngine, resolvedUnit.session, element);
+                refactoringWorkspace, resolvedUnit.session, element);
           }
         }
       }

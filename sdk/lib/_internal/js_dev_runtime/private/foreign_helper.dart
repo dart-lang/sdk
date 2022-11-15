@@ -4,6 +4,7 @@
 
 library dart._foreign_helper;
 
+import 'dart:_js_helper' show notNull;
 import 'dart:_js_shared_embedded_names' show JsBuiltin, JsGetName;
 import 'dart:_rti' show Rti;
 
@@ -228,6 +229,7 @@ external String JS_GET_NAME(JsGetName name);
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.
+@notNull
 external bool JS_GET_FLAG(String name);
 
 /**
@@ -326,3 +328,10 @@ external Rti LEGACY_TYPE_REF<T>();
 
 /// JavaScript string concatenation. Inputs must be Strings.
 external String JS_STRING_CONCAT(String a, String b);
+
+/// Identifier used to access the JavaScript class definition for [type].
+///
+/// Note: This only valid for types represented by classes in the compiled
+/// JavaScript.
+@notNull
+external Object JS_CLASS_REF(Type type);

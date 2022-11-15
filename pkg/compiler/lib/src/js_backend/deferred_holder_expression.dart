@@ -14,7 +14,7 @@ import '../serialization/serialization.dart';
 import '../util/util.dart';
 import '../js_emitter/model.dart';
 import '../constants/values.dart' show ConstantValue;
-import 'namer.dart';
+import 'namer_migrated.dart';
 
 // TODO(joshualitt): Figure out how to subsume more of the modular naming
 // framework into this approach. For example, we are still creating ModularNames
@@ -168,7 +168,7 @@ class DeferredHolderExpression extends js.DeferredExpression
   String _className(ClassEntity cls) => cls.name.replaceAll('&', '_');
 
   String _qualifiedStaticName(MemberEntity member) {
-    if (member.isConstructor || member.isStatic) {
+    if (member is ConstructorEntity || member.isStatic) {
       return '${_className(member.enclosingClass)}.${member.name}';
     }
     return member.name;
@@ -438,7 +438,7 @@ class DeferredHolderExpressionFinalizerImpl
   bool _isPropertyOfStaticStateHolder(MemberEntity element) {
     // TODO(ahe): Make sure this method's documentation is always true and
     // remove the word "intend".
-    return element.isField;
+    return element is FieldEntity;
   }
 
   Holder globalObjectForMember(MemberEntity entity) {
@@ -680,7 +680,7 @@ class DeferredHolderExpressionFinalizerImpl
 
       // Assign names based on frequency. This will be ignored unless
       // minification is enabled.
-      var reservedNames = Namer.reservedCapitalizedGlobalSymbols
+      var reservedNames = reservedCapitalizedGlobalSymbols
           .union({globalObjectNameForInterceptors()});
       var namer = TokenScope(initialChar: $A, illegalNames: reservedNames);
       for (var holder in sortedHolders) {

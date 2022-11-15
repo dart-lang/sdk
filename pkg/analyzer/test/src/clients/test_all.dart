@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'build_resolvers/test_all.dart' as build_resolvers;
 import 'dart_style/test_all.dart' as dart_style;
 
 main() {
   defineReflectiveSuite(() {
+    build_resolvers.main();
     dart_style.main();
   }, name: 'clients');
 }

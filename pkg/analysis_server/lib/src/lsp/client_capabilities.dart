@@ -71,6 +71,7 @@ class LspClientCapabilities {
   final bool typeDefinitionLocationLink;
   final bool hierarchicalSymbols;
   final bool diagnosticCodeDescription;
+  final bool lineFoldingOnly;
   final Set<CodeActionKind> codeActionKinds;
   final Set<CompletionItemTag> completionItemTags;
   final Set<DiagnosticTag> diagnosticTags;
@@ -84,7 +85,7 @@ class LspClientCapabilities {
   final bool completionDefaultEditRange;
   final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
-  final bool codeActionCommandParameterSupport;
+  final Set<String> codeActionCommandParameterSupportedKinds;
 
   factory LspClientCapabilities(ClientCapabilities raw) {
     final workspace = raw.workspace;
@@ -142,6 +143,8 @@ class LspClientCapabilities {
     final hoverContentFormats = _listToNullableSet(hover?.contentFormat);
     final insertReplaceCompletionRanges =
         completionItem?.insertReplaceSupport ?? false;
+    final lineFoldingOnly =
+        textDocument?.foldingRange?.lineFoldingOnly ?? false;
     final literalCodeActions = codeActionLiteral != null;
     final renameValidation = textDocument?.rename?.prepareSupport ?? false;
     final signatureHelpDocumentationFormats =
@@ -151,8 +154,11 @@ class LspClientCapabilities {
         workspaceSymbol?.symbolKind?.valueSet,
         defaults: defaultSupportedSymbolKinds);
     final experimentalSnippetTextEdit = experimental['snippetTextEdit'] == true;
-    final codeActionCommandParameterSupport =
-        experimentalActions['commandParameterSupport'] == true;
+    final commandParameterSupport =
+        _mapOrEmpty(experimentalActions['commandParameterSupport']);
+    final commandParameterSupportedKinds =
+        _listToSet(commandParameterSupport['supportedKinds'] as List?)
+            .cast<String>();
 
     return LspClientCapabilities._(
       raw,
@@ -170,6 +176,7 @@ class LspClientCapabilities {
       definitionLocationLink: definitionLocationLink,
       typeDefinitionLocationLink: typeDefinitionLocationLink,
       hierarchicalSymbols: hierarchicalSymbols,
+      lineFoldingOnly: lineFoldingOnly,
       diagnosticCodeDescription: diagnosticCodeDescription,
       codeActionKinds: codeActionKinds,
       completionItemTags: completionItemTags,
@@ -184,7 +191,7 @@ class LspClientCapabilities {
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
       experimentalSnippetTextEdit: experimentalSnippetTextEdit,
-      codeActionCommandParameterSupport: codeActionCommandParameterSupport,
+      codeActionCommandParameterSupportedKinds: commandParameterSupportedKinds,
     );
   }
 
@@ -204,6 +211,7 @@ class LspClientCapabilities {
     required this.definitionLocationLink,
     required this.typeDefinitionLocationLink,
     required this.hierarchicalSymbols,
+    required this.lineFoldingOnly,
     required this.diagnosticCodeDescription,
     required this.codeActionKinds,
     required this.completionItemTags,
@@ -218,7 +226,7 @@ class LspClientCapabilities {
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,
-    required this.codeActionCommandParameterSupport,
+    required this.codeActionCommandParameterSupportedKinds,
   });
 
   /// Converts a list to a `Set`, returning null if the list is null.

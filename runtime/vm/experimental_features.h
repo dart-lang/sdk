@@ -28,6 +28,7 @@ enum class ExperimentalFeature {
   named_arguments_anywhere,
   super_parameters,
   inference_update_1,
+  unnamed_libraries,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

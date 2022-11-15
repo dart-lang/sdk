@@ -10,10 +10,10 @@ static method main() → dynamic {
 
 library /*isNonNullableByDefault*/;
 import self as test;
-import "dart:_js_helper" as _js;
+import "dart:_internal" as _in;
 import "dart:core" as core;
 
-import "dart:_js_helper";
+import "dart:_internal";
 
 @#C1
 class Class extends core::Object {
@@ -36,7 +36,7 @@ class Class extends core::Object {
 }
 
 constants  {
-  #C1 = _js::_Patch {}
+  #C1 = _in::_Patch {}
   #C2 = false
   #C3 = true
 }

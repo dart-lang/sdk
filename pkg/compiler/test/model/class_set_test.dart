@@ -14,7 +14,7 @@ import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../helpers/type_test_helper.dart';
 
 void main() {

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide NamedType, RecordType;
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
+import '../mini_types.dart';
 
 main() {
   late Harness h;
@@ -1677,6 +1680,450 @@ main() {
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
             'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          });
+        });
+      });
+    });
+
+    group('Record:', () {
+      group('Positional:', () {
+        group('Match dynamic:', () {
+          test('refutable', () {
+            h.run([
+              ifCase(
+                expr('dynamic').checkContext('?'),
+                recordPattern([
+                  RecordPatternField(
+                    name: null,
+                    pattern: Var('a').pattern(type: 'int'),
+                  ),
+                  RecordPatternField(
+                    name: null,
+                    pattern: Var('b').pattern(),
+                  ),
+                ]),
+                [],
+              ).checkIr(
+                'ifCase(expr(dynamic), recordPattern(varPattern(a, '
+                'matchedType: dynamic, staticType: int), '
+                'varPattern(b, matchedType: dynamic, staticType: dynamic), '
+                'matchedType: dynamic, requiredType: '
+                '(Object?, Object?)), true, block(), noop)',
+              ),
+            ]);
+          });
+        });
+        group('Match record type:', () {
+          group('Same shape:', () {
+            test('irrefutable', () {
+              h.addSubtype(
+                '(int, String)',
+                '(Object?, Object?)',
+                true,
+              );
+              h.run([
+                match(
+                  recordPattern([
+                    RecordPatternField(
+                      name: null,
+                      pattern: Var('a').pattern(type: 'int'),
+                    ),
+                    RecordPatternField(
+                      name: null,
+                      pattern: Var('b').pattern(),
+                    ),
+                  ]),
+                  expr('(int, String)').checkContext('(int, ?)'),
+                ).checkIr(
+                    'match(expr((int, String)), recordPattern(varPattern(a, '
+                    'matchedType: int, staticType: int), varPattern(b, '
+                    'matchedType: String, staticType: String), '
+                    'matchedType: (int, String), '
+                    'requiredType: (Object?, Object?)))')
+              ]);
+            });
+          });
+          group('Different shape:', () {
+            test('irrefutable', () {
+              h.addSubtype('(int)', '(Object?, Object?)', false);
+              h.run([
+                (match(
+                  recordPattern([
+                    RecordPatternField(
+                      name: null,
+                      pattern: Var('a').pattern(type: 'int')
+                        ..errorId = 'VAR(a)',
+                    ),
+                    RecordPatternField(
+                      name: null,
+                      pattern: Var('b').pattern(),
+                    ),
+                  ])
+                    ..errorId = 'PATTERN',
+                  expr('(int,)').checkContext('(int, ?)'),
+                )..errorId = 'CONTEXT')
+                    .checkIr('match(expr((int)), recordPattern(varPattern(a, '
+                        'matchedType: Object?, staticType: int), '
+                        'varPattern(b, matchedType: Object?, staticType: '
+                        'Object?), matchedType: (int), requiredType: '
+                        '(Object?, Object?)))'),
+              ], expectedErrors: {
+                'patternTypeMismatchInIrrefutableContext(pattern: VAR(a), '
+                    'context: CONTEXT, matchedType: Object?, '
+                    'requiredType: int)',
+                'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                    'context: CONTEXT, matchedType: (int), '
+                    'requiredType: (Object?, Object?))'
+              });
+            });
+            group('Refutable:', () {
+              test('too few', () {
+                h.run([
+                  ifCase(
+                    expr('(int,)').checkContext('?'),
+                    recordPattern([
+                      RecordPatternField(
+                        name: null,
+                        pattern: Var('a').pattern(),
+                      ),
+                      RecordPatternField(
+                        name: null,
+                        pattern: Var('b').pattern(),
+                      ),
+                    ]),
+                    [],
+                  ).checkIr('ifCase(expr((int)), recordPattern(varPattern(a, '
+                      'matchedType: Object?, staticType: Object?), '
+                      'varPattern(b, matchedType: Object?, staticType: '
+                      'Object?), matchedType: (int), requiredType: '
+                      '(Object?, Object?)), true, block(), noop)'),
+                ]);
+              });
+              test('too many', () {
+                h.run([
+                  ifCase(
+                    expr('(int, String)').checkContext('?'),
+                    recordPattern([
+                      RecordPatternField(
+                        name: null,
+                        pattern: Var('a').pattern(),
+                      ),
+                    ]),
+                    [],
+                  ).checkIr('ifCase(expr((int, String)), '
+                      'recordPattern(varPattern(a, matchedType: Object?, '
+                      'staticType: Object?), matchedType: (int, String), '
+                      'requiredType: (Object?)), true, block(), noop)'),
+                ]);
+              });
+            });
+          });
+        });
+        group('Match other type:', () {
+          test('refutable', () {
+            h.run([
+              ifCase(
+                expr('X').checkContext('?'),
+                recordPattern([
+                  RecordPatternField(
+                    name: null,
+                    pattern: Var('a').pattern(type: 'int'),
+                  ),
+                  RecordPatternField(
+                    name: null,
+                    pattern: Var('b').pattern(),
+                  ),
+                ]),
+                [],
+              ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
+                  'matchedType: Object?, staticType: int), varPattern(b, '
+                  'matchedType: Object?, staticType: Object?), '
+                  'matchedType: X, requiredType: '
+                  '(Object?, Object?)), true, block(), noop)'),
+            ]);
+          });
+        });
+      });
+      group('Named:', () {
+        group('Match dynamic:', () {
+          test('refutable', () {
+            h.run([
+              ifCase(
+                expr('dynamic').checkContext('?'),
+                recordPattern([
+                  RecordPatternField(
+                    name: 'a',
+                    pattern: Var('a').pattern(type: 'int'),
+                  ),
+                  RecordPatternField(
+                    name: 'b',
+                    pattern: Var('b').pattern(),
+                  ),
+                ]),
+                [],
+              ).checkIr('ifCase(expr(dynamic), recordPattern(varPattern(a, '
+                  'matchedType: dynamic, staticType: int), varPattern(b, '
+                  'matchedType: dynamic, staticType: dynamic), matchedType: '
+                  'dynamic, requiredType: ({Object? a, Object? b})), '
+                  'true, block(), noop)'),
+            ]);
+          });
+        });
+        group('Match record type:', () {
+          group('Same shape:', () {
+            test('irrefutable', () {
+              h.addSubtype(
+                '({int a, String b})',
+                '({Object? a, Object? b})',
+                true,
+              );
+              h.run([
+                match(
+                  recordPattern([
+                    RecordPatternField(
+                      name: 'a',
+                      pattern: Var('a').pattern(type: 'int'),
+                    ),
+                    RecordPatternField(
+                      name: 'b',
+                      pattern: Var('b').pattern(),
+                    ),
+                  ]),
+                  expr('({int a, String b})').checkContext('({int a, ? b})'),
+                ).checkIr('match(expr(({int a, String b})), '
+                    'recordPattern(varPattern(a, matchedType: int, '
+                    'staticType: int), varPattern(b, matchedType: String, '
+                    'staticType: String), matchedType: ({int a, String b}), '
+                    'requiredType: ({Object? a, Object? b})))')
+              ]);
+            });
+          });
+          group('Different shape:', () {
+            test('irrefutable', () {
+              h.addSubtype('({int a})', '({Object? a, Object? b})', false);
+              h.run([
+                (match(
+                  recordPattern([
+                    RecordPatternField(
+                      name: 'a',
+                      pattern: Var('a').pattern(type: 'int')
+                        ..errorId = 'VAR(a)',
+                    ),
+                    RecordPatternField(
+                      name: 'b',
+                      pattern: Var('b').pattern(),
+                    ),
+                  ])
+                    ..errorId = 'PATTERN',
+                  expr('({int a})').checkContext('({int a, ? b})'),
+                )..errorId = 'CONTEXT')
+                    .checkIr('match(expr(({int a})), '
+                        'recordPattern(varPattern(a, matchedType: Object?, '
+                        'staticType: int), varPattern(b, matchedType: Object?, '
+                        'staticType: Object?), matchedType: ({int a}), '
+                        'requiredType: ({Object? a, Object? b})))'),
+              ], expectedErrors: {
+                'patternTypeMismatchInIrrefutableContext(pattern: VAR(a), '
+                    'context: CONTEXT, matchedType: Object?, '
+                    'requiredType: int)',
+                'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                    'context: CONTEXT, matchedType: ({int a}), '
+                    'requiredType: ({Object? a, Object? b}))',
+              });
+            });
+            group('Refutable:', () {
+              test('too few', () {
+                h.run([
+                  ifCase(
+                    expr('({int a})').checkContext('?'),
+                    recordPattern([
+                      RecordPatternField(
+                        name: 'a',
+                        pattern: Var('a').pattern(),
+                      ),
+                      RecordPatternField(
+                        name: 'b',
+                        pattern: Var('b').pattern(),
+                      ),
+                    ]),
+                    [],
+                  ).checkIr('ifCase(expr(({int a})), '
+                      'recordPattern(varPattern(a, matchedType: Object?, '
+                      'staticType: Object?), varPattern(b, matchedType: '
+                      'Object?, staticType: Object?), matchedType: '
+                      '({int a}), requiredType: ({Object? a, Object? b})), '
+                      'true, block(), noop)'),
+                ]);
+              });
+              test('too many', () {
+                h.run([
+                  ifCase(
+                    expr('({int a, String b})').checkContext('?'),
+                    recordPattern([
+                      RecordPatternField(
+                        name: 'a',
+                        pattern: Var('a').pattern(),
+                      ),
+                    ]),
+                    [],
+                  ).checkIr('ifCase(expr(({int a, String b})), '
+                      'recordPattern(varPattern(a, matchedType: Object?, '
+                      'staticType: Object?), matchedType: ({int a, String b}), '
+                      'requiredType: ({Object? a})), true, block(), noop)'),
+                ]);
+              });
+            });
+          });
+        });
+        group('Match other type:', () {
+          test('refutable', () {
+            h.run([
+              ifCase(
+                expr('X').checkContext('?'),
+                recordPattern([
+                  RecordPatternField(
+                    name: null,
+                    pattern: Var('a').pattern(type: 'int'),
+                  ),
+                  RecordPatternField(
+                    name: null,
+                    pattern: Var('b').pattern(),
+                  ),
+                ]),
+                [],
+              ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
+                  'matchedType: Object?, staticType: int), varPattern(b, '
+                  'matchedType: Object?, staticType: Object?), '
+                  'matchedType: X, requiredType: '
+                  '(Object?, Object?)), true, block(), noop)'),
+            ]);
+          });
+        });
+      });
+    });
+
+    group('Relational:', () {
+      test('Refutability', () {
+        h.run([
+          (match(
+            relationalPattern(
+              RelationalOperatorResolution<Type>(
+                isEquality: false,
+                parameterType: Type('num'),
+                returnType: Type('bool'),
+              ),
+              intLiteral(0).checkContext('num'),
+            )..errorId = 'PATTERN',
+            intLiteral(1).checkContext('?'),
+          )..errorId = 'CONTEXT')
+              .checkIr('match(1, relationalPattern(0, matchedType: int))'),
+        ], expectedErrors: {
+          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+        });
+      });
+      test('no operator', () {
+        h.run([
+          ifCase(
+            expr('int').checkContext('?'),
+            relationalPattern(
+              null,
+              intLiteral(0).checkContext('?'),
+            ),
+            [],
+          ).checkIr('ifCase(expr(int), relationalPattern(0, '
+              'matchedType: int), true, block(), noop)')
+        ]);
+      });
+      group('Has operator:', () {
+        test('int >=', () {
+          h.run([
+            ifCase(
+              expr('int').checkContext('?'),
+              relationalPattern(
+                RelationalOperatorResolution<Type>(
+                  isEquality: false,
+                  parameterType: Type('num'),
+                  returnType: Type('bool'),
+                ),
+                intLiteral(0).checkContext('num'),
+              ),
+              [],
+            ).checkIr('ifCase(expr(int), relationalPattern(0, '
+                'matchedType: int), true, block(), noop)')
+          ]);
+        });
+        test('Object == nullable', () {
+          h.run([
+            ifCase(
+              expr('Object').checkContext('?'),
+              relationalPattern(
+                RelationalOperatorResolution<Type>(
+                  isEquality: true,
+                  parameterType: Type('Object'),
+                  returnType: Type('bool'),
+                ),
+                expr('int?').checkContext('Object'),
+              ),
+              [],
+            ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
+                'matchedType: Object), true, block(), noop)')
+          ]);
+        });
+        test('Object != nullable', () {
+          h.run([
+            ifCase(
+              expr('Object').checkContext('?'),
+              relationalPattern(
+                RelationalOperatorResolution<Type>(
+                  isEquality: true,
+                  parameterType: Type('Object'),
+                  returnType: Type('bool'),
+                ),
+                expr('int?').checkContext('Object'),
+              ),
+              [],
+            ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
+                'matchedType: Object), true, block(), noop)')
+          ]);
+        });
+        test('argument type not assignable', () {
+          h.run([
+            ifCase(
+              expr('int').checkContext('?'),
+              relationalPattern(
+                RelationalOperatorResolution<Type>(
+                  isEquality: false,
+                  parameterType: Type('num'),
+                  returnType: Type('bool'),
+                ),
+                expr('String')..errorId = 'OPERAND',
+              ),
+              [],
+            ).checkIr('ifCase(expr(int), relationalPattern(expr(String), '
+                'matchedType: int), true, block(), noop)')
+          ], expectedErrors: {
+            'argumentTypeNotAssignable(argument: OPERAND, '
+                'argumentType: String, parameterType: num)'
+          });
+        });
+        test('return type is not assignable to bool', () {
+          h.run([
+            ifCase(
+              expr('A').checkContext('?'),
+              relationalPattern(
+                RelationalOperatorResolution(
+                  isEquality: false,
+                  parameterType: Type('Object'),
+                  returnType: Type('int'),
+                ),
+                expr('String').checkContext('Object'),
+              )..errorId = 'PATTERN',
+              [],
+            ).checkIr('ifCase(expr(A), relationalPattern(expr(String), '
+                'matchedType: A), true, block(), noop)')
+          ], expectedErrors: {
+            'relationalPatternOperatorReturnTypeNotAssignableToBool('
+                'node: PATTERN, returnType: int)'
           });
         });
       });

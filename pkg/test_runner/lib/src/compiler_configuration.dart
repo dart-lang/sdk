@@ -114,9 +114,6 @@ abstract class CompilerConfiguration {
 
       case Compiler.fasta:
         return FastaCompilerConfiguration(configuration);
-
-      case Compiler.none:
-        return NoneCompilerConfiguration(configuration);
     }
 
     throw "unreachable";
@@ -529,6 +526,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
       ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       // The file being compiled is the last argument.
       args.last
     ];

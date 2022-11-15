@@ -112,7 +112,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         if (element != null) {
           if (element is PropertyAccessorElement) {
             final refactor = ConvertGetterToMethodRefactoring(
-                server.searchEngine, result.session, element);
+                server.refactoringWorkspace, result.session, element);
             return success(refactor);
           }
         }
@@ -125,7 +125,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         if (element != null) {
           if (element is ExecutableElement) {
             final refactor = ConvertMethodToGetterRefactoring(
-                server.searchEngine, result.session, element);
+                server.refactoringWorkspace, result.session, element);
             return success(refactor);
           }
         }

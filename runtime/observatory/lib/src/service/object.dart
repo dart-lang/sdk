@@ -3162,6 +3162,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.tag;
     case 'DynamicInvocationForwarder':
       return M.FunctionKind.dynamicInvocationForwarder;
+    case 'RecordFieldGetter':
+      return M.FunctionKind.recordFieldGetter;
   }
   var message = 'Unrecognized function kind: $value';
   Logger.root.severe(message);

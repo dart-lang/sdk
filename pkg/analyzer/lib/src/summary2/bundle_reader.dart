@@ -402,8 +402,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   @override
   void _read(element, reader) {
     _readLibraryOrAugmentation(element, reader);
-    for (final part in element.parts2) {
-      part as PartElementImpl;
+    for (final part in element.parts) {
       part.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -423,7 +422,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     );
 
     for (var import in element.libraryImports) {
-      import as LibraryImportElementImpl;
       import.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -434,7 +432,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     }
 
     for (var export in element.libraryExports) {
-      export as LibraryExportElementImpl;
       export.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -445,7 +442,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     }
 
     for (var import in element.augmentationImports) {
-      import as AugmentationImportElementImpl;
       import.metadata = reader._readAnnotationList(
         // TODO(scheglov) Here and for parts, unit is not valid. Test and fix.
         unitElement: unitElement,
@@ -516,7 +512,7 @@ class LibraryReader {
       unitContainerRef: _reference.getChild('@unit'),
     );
 
-    libraryElement.parts2 = _reader.readTypedList(() {
+    libraryElement.parts = _reader.readTypedList(() {
       return _readPartElement(
         libraryElement: libraryElement,
       );
@@ -630,7 +626,7 @@ class LibraryReader {
     Reference reference,
   ) {
     var accessors = <PropertyAccessorElementImpl>[];
-    var fields = <FieldElement>[];
+    var fields = <FieldElementImpl>[];
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
@@ -782,8 +778,8 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElement>[];
-    var fields = <FieldElement>[];
+    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldElementImpl>[];
 
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
@@ -802,7 +798,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var count = _reader.readUInt30();
-    unitElement.enums2 = List.generate(count, (_) {
+    unitElement.enums = List.generate(count, (_) {
       return _readEnumElement(unitElement, unitReference);
     });
   }
@@ -868,8 +864,8 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElement>[];
-    var fields = <FieldElement>[];
+    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldElementImpl>[];
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
     _readFields(unitElement, element, reference, accessors, fields);
@@ -1127,8 +1123,8 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var fields = <FieldElement>[];
-    var accessors = <PropertyAccessorElement>[];
+    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorElementImpl>[];
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
@@ -1147,7 +1143,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var length = _reader.readUInt30();
-    unitElement.mixins2 = List.generate(length, (index) {
+    unitElement.mixins = List.generate(length, (index) {
       return _readMixinElement(unitElement, unitReference);
     });
   }
@@ -1233,7 +1229,7 @@ class LibraryReader {
     });
   }
 
-  PartElement _readPartElement({
+  PartElementImpl _readPartElement({
     required LibraryElementImpl libraryElement,
   }) {
     final uri = _readDirectiveUri(
@@ -1701,7 +1697,7 @@ class ResolutionReader {
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
@@ -1709,7 +1705,7 @@ class ResolutionReader {
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
       var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -1717,7 +1713,7 @@ class ResolutionReader {
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
       var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
       );
@@ -1725,7 +1721,7 @@ class ResolutionReader {
     } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
       var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element2: element,
+        element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.star,
       );
@@ -1741,7 +1737,7 @@ class ResolutionReader {
       var element = readElement() as TypeParameterElement;
       var nullability = _readNullability();
       var type = TypeParameterTypeImpl(
-        element2: element,
+        element: element,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
@@ -1824,7 +1820,7 @@ class ResolutionReader {
         );
       } else if (type is InterfaceType) {
         return InterfaceTypeImpl(
-          element2: type.element2,
+          element: type.element,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
@@ -1844,7 +1840,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
-          element2: type.element2,
+          element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,

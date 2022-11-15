@@ -986,6 +986,16 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     );
   }
 
+  test_recordType_recordClass() {
+    _checkMatch(
+      [T],
+      recordTypeNone(positionalTypes: [T_none]),
+      recordNone,
+      true,
+      ['_ <: T <: _'],
+    );
+  }
+
   test_recordType_sameShape_named() {
     _checkMatch(
       [T],

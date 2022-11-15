@@ -10,7 +10,10 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show EqualityInfo, FlowAnalysis, Operations;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide NamedType, RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
@@ -219,6 +222,13 @@ Statement match(Pattern pattern, Expression initializer,
         isLate: isLate, isFinal: isFinal, location: computeLocation());
 
 CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
+
+Pattern recordPattern(List<RecordPatternField<Pattern>> fields) =>
+    _RecordPattern(fields, location: computeLocation());
+
+Pattern relationalPattern(
+        RelationalOperatorResolution<Type>? operator, Expression operand) =>
+    _RelationalPattern(operator, operand, location: computeLocation());
 
 Statement return_() => new _Return(location: computeLocation());
 
@@ -441,8 +451,173 @@ class ExpressionCase extends Node
   }
 }
 
-class Harness
-    with TypeOperations<Type>, TypeOperations2<Type>
+class Harness {
+  final MiniAstOperations _operations = MiniAstOperations();
+
+  bool _started = false;
+
+  late final FlowAnalysis<Node, Statement, Expression, Var, Type> flow;
+
+  bool? _patternsEnabled;
+
+  Type? _thisType;
+
+  final Map<String, _PropertyElement> _members = {};
+
+  late final typeAnalyzer = _MiniAstTypeAnalyzer(
+      this,
+      TypeAnalyzerOptions(
+          nullSafetyEnabled: !_operations.legacy,
+          patternsEnabled: patternsEnabled));
+
+  /// Indicates whether initializers of implicitly typed variables should be
+  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
+  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// always, and we need to be able to replicate the old behavior when
+  /// analyzing old language versions).
+  bool _respectImplicitlyTypedVarInitializers = true;
+
+  MiniIrBuilder get irBuilder => typeAnalyzer._irBuilder;
+
+  set legacy(bool value) {
+    assert(!_started);
+    _operations.legacy = value;
+  }
+
+  bool get patternsEnabled => _patternsEnabled ?? !_operations.legacy;
+
+  set patternsEnabled(bool value) {
+    assert(!_started);
+    _patternsEnabled = value;
+  }
+
+  set respectImplicitlyTypedVarInitializers(bool value) {
+    assert(!_started);
+    _respectImplicitlyTypedVarInitializers = value;
+  }
+
+  set thisType(String type) {
+    assert(!_started);
+    _thisType = Type(type);
+  }
+
+  /// Updates the harness so that when a [factor] query is invoked on types
+  /// [from] and [what], [result] will be returned.
+  void addFactor(String from, String what, String result) {
+    _operations.addFactor(from, what, result);
+  }
+
+  /// Updates the harness so that when member [memberName] is looked up on type
+  /// [targetType], a member is found having the given [type].
+  void addMember(String targetType, String memberName, String type,
+      {bool promotable = false}) {
+    var query = '$targetType.$memberName';
+    var member = _PropertyElement(Type(type));
+    _members[query] = member;
+    if (promotable) {
+      _operations.promotableFields.add(member);
+    }
+  }
+
+  void addPromotionException(String from, String to, String result) {
+    _operations.addPromotionException(from, to, result);
+  }
+
+  /// Updates the harness so that when an [isSubtypeOf] query is invoked on
+  /// types [leftType] and [rightType], [isSubtype] will be returned.
+  void addSubtype(String leftType, String rightType, bool isSubtype) {
+    _operations.addSubtype(leftType, rightType, isSubtype);
+  }
+
+  /// Attempts to look up a member named [memberName] in the given [type].  If
+  /// a member is found, returns its [_PropertyElement] object.  Otherwise the
+  /// test fails.
+  _PropertyElement getMember(Type type, String memberName) {
+    var query = '$type.$memberName';
+    return _members[query] ?? fail('Unknown member query: $query');
+  }
+
+  /// Runs the given [statements] through flow analysis, checking any assertions
+  /// they contain.
+  void run(List<Statement> statements,
+      {bool errorRecoveryOk = false, Set<String> expectedErrors = const {}}) {
+    _started = true;
+    if (_operations.legacy && patternsEnabled) {
+      fail('Patterns cannot be enabled in legacy mode');
+    }
+    var visitor = PreVisitor(typeAnalyzer.errors);
+    var b = _Block(statements, location: computeLocation());
+    b.preVisit(visitor);
+    flow = _operations.legacy
+        ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
+            _operations, visitor._assignedVariables)
+        : FlowAnalysis<Node, Statement, Expression, Var, Type>(
+            _operations, visitor._assignedVariables,
+            respectImplicitlyTypedVarInitializers:
+                _respectImplicitlyTypedVarInitializers);
+    typeAnalyzer.dispatchStatement(b);
+    typeAnalyzer.finish();
+    expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
+    var assertInErrorRecoveryStack =
+        typeAnalyzer.errors._assertInErrorRecoveryStack;
+    if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
+      fail('assertInErrorRecovery called but no errors reported: '
+          '$assertInErrorRecoveryStack');
+    }
+  }
+
+  Type _getIteratedType(Type iterableType) {
+    var typeStr = iterableType.type;
+    if (typeStr.startsWith('List<') && typeStr.endsWith('>')) {
+      return Type(typeStr.substring(5, typeStr.length - 1));
+    } else {
+      throw UnimplementedError('TODO(paulberry): getIteratedType($typeStr)');
+    }
+  }
+}
+
+class Label extends Node {
+  final String _name;
+
+  late final Node _binding;
+
+  Label(this._name) : super._(location: computeLocation());
+
+  CaseHeads then(CaseHeads caseHeads) =>
+      _CaseHeads(caseHeads._caseHeads, [this, ...caseHeads._labels]);
+
+  Statement thenStmt(Statement statement) {
+    if (statement is! _LabeledStatement) {
+      statement = _LabeledStatement(statement, location: computeLocation());
+    }
+    statement._labels.insert(0, this);
+    _binding = statement;
+    return statement;
+  }
+
+  @override
+  String toString() => _name;
+}
+
+/// Representation of an expression that can appear on the left hand side of an
+/// assignment (or as the target of `++` or `--`).  Methods in this class may be
+/// used to create more complex expressions based on this one.
+abstract class LValue extends Expression {
+  LValue._({required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor, {_LValueDisposition disposition});
+
+  /// Creates an expression representing a write to this L-value.
+  Expression write(Expression? value) =>
+      new _Write(this, value, location: computeLocation());
+
+  void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
+      Expression? rhs);
+}
+
+class MiniAstOperations
+    with TypeOperations<Type>
     implements Operations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,
@@ -602,15 +777,7 @@ class Harness
     '?, Null': Type('Null'),
   };
 
-  bool _started = false;
-
-  late final FlowAnalysis<Node, Statement, Expression, Var, Type> flow;
-
   bool? _legacy;
-
-  bool? _patternsEnabled;
-
-  Type? _thisType;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
@@ -620,48 +787,14 @@ class Harness
 
   final Map<String, Type> _lubs = Map.of(_coreLubs);
 
-  final Map<String, _PropertyElement> _members = {};
-
   Map<String, Map<String, String>> _promotionExceptions = {};
 
-  late final typeAnalyzer = _MiniAstTypeAnalyzer(
-      this,
-      TypeAnalyzerOptions(
-          nullSafetyEnabled: !legacy, patternsEnabled: patternsEnabled));
-
-  /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
-  /// always, and we need to be able to replicate the old behavior when
-  /// analyzing old language versions).
-  bool _respectImplicitlyTypedVarInitializers = true;
-
   final Set<_PropertyElement> promotableFields = {};
-
-  MiniIrBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   bool get legacy => _legacy ?? false;
 
   set legacy(bool value) {
-    assert(!_started);
     _legacy = value;
-  }
-
-  bool get patternsEnabled => _patternsEnabled ?? !legacy;
-
-  set patternsEnabled(bool value) {
-    assert(!_started);
-    _patternsEnabled = value;
-  }
-
-  set respectImplicitlyTypedVarInitializers(bool value) {
-    assert(!_started);
-    _respectImplicitlyTypedVarInitializers = value;
-  }
-
-  set thisType(String type) {
-    assert(!_started);
-    _thisType = Type(type);
   }
 
   /// Updates the harness so that when a [factor] query is invoked on types
@@ -669,18 +802,6 @@ class Harness
   void addFactor(String from, String what, String result) {
     var query = '$from - $what';
     _factorResults[query] = Type(result);
-  }
-
-  /// Updates the harness so that when member [memberName] is looked up on type
-  /// [targetType], a member is found having the given [type].
-  void addMember(String targetType, String memberName, String type,
-      {bool promotable = false}) {
-    var query = '$targetType.$memberName';
-    var member = _PropertyElement(Type(type));
-    _members[query] = member;
-    if (promotable) {
-      promotableFields.add(member);
-    }
   }
 
   void addPromotionException(String from, String to, String result) {
@@ -709,14 +830,6 @@ class Harness
   Type factor(Type from, Type what) {
     var query = '$from - $what';
     return _factorResults[query] ?? fail('Unknown factor query: $query');
-  }
-
-  /// Attempts to look up a member named [memberName] in the given [type].  If
-  /// a member is found, returns its [_PropertyElement] object.  Otherwise the
-  /// test fails.
-  _PropertyElement getMember(Type type, String memberName) {
-    var query = '$type.$memberName';
-    return _members[query] ?? fail('Unknown member query: $query');
   }
 
   @override
@@ -796,35 +909,6 @@ class Harness
     }
   }
 
-  /// Runs the given [statements] through flow analysis, checking any assertions
-  /// they contain.
-  void run(List<Statement> statements,
-      {bool errorRecoveryOk = false, Set<String> expectedErrors = const {}}) {
-    _started = true;
-    if (legacy && patternsEnabled) {
-      fail('Patterns cannot be enabled in legacy mode');
-    }
-    var visitor = PreVisitor(typeAnalyzer.errors);
-    var b = _Block(statements, location: computeLocation());
-    b.preVisit(visitor);
-    flow = legacy
-        ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
-            this, visitor._assignedVariables)
-        : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            this, visitor._assignedVariables,
-            respectImplicitlyTypedVarInitializers:
-                _respectImplicitlyTypedVarInitializers);
-    typeAnalyzer.dispatchStatement(b);
-    typeAnalyzer.finish();
-    expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
-    var assertInErrorRecoveryStack =
-        typeAnalyzer.errors._assertInErrorRecoveryStack;
-    if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
-      fail('assertInErrorRecovery called but no errors reported: '
-          '$assertInErrorRecoveryStack');
-    }
-  }
-
   @override
   Type? tryPromoteToType(Type to, Type from) {
     var exception = (_promotionExceptions[from.type] ?? {})[to.type];
@@ -841,15 +925,6 @@ class Harness
   @override
   Type variableType(Var variable) {
     return variable.type;
-  }
-
-  Type _getIteratedType(Type iterableType) {
-    var typeStr = iterableType.type;
-    if (typeStr.startsWith('List<') && typeStr.endsWith('>')) {
-      return Type(typeStr.substring(5, typeStr.length - 1));
-    } else {
-      throw UnimplementedError('TODO(paulberry): getIteratedType($typeStr)');
-    }
   }
 
   Type _lub(Type type1, Type type2) {
@@ -876,46 +951,6 @@ class Harness
           'TODO(paulberry): least upper bound of $type1 and $type2');
     }
   }
-}
-
-class Label extends Node {
-  final String _name;
-
-  late final Node _binding;
-
-  Label(this._name) : super._(location: computeLocation());
-
-  CaseHeads then(CaseHeads caseHeads) =>
-      _CaseHeads(caseHeads._caseHeads, [this, ...caseHeads._labels]);
-
-  Statement thenStmt(Statement statement) {
-    if (statement is! _LabeledStatement) {
-      statement = _LabeledStatement(statement, location: computeLocation());
-    }
-    statement._labels.insert(0, this);
-    _binding = statement;
-    return statement;
-  }
-
-  @override
-  String toString() => _name;
-}
-
-/// Representation of an expression that can appear on the left hand side of an
-/// assignment (or as the target of `++` or `--`).  Methods in this class may be
-/// used to create more complex expressions based on this one.
-abstract class LValue extends Expression {
-  LValue._({required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor, {_LValueDisposition disposition});
-
-  /// Creates an expression representing a write to this L-value.
-  Expression write(Expression? value) =>
-      new _Write(this, value, location: computeLocation());
-
-  void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
-      Expression? rhs);
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -2246,6 +2281,19 @@ class _MiniAstErrors
   StackTrace? _assertInErrorRecoveryStack;
 
   @override
+  void argumentTypeNotAssignable({
+    required Expression argument,
+    required Type argumentType,
+    required Type parameterType,
+  }) {
+    _recordError(
+      'argumentTypeNotAssignable(argument: ${argument.errorId}, '
+      'argumentType: ${argumentType.type}, '
+      'parameterType: ${parameterType.type})',
+    );
+  }
+
+  @override
   void assertInErrorRecovery() {
     if (_accumulatedErrors.isEmpty) {
       _assertInErrorRecoveryStack ??= StackTrace.current;
@@ -2326,6 +2374,18 @@ class _MiniAstErrors
   }
 
   @override
+  void relationalPatternOperatorReturnTypeNotAssignableToBool({
+    required Node node,
+    required Type returnType,
+  }) {
+    _recordError(
+      'relationalPatternOperatorReturnTypeNotAssignableToBool('
+      'node: ${node.errorId}, '
+      'returnType: ${returnType.type})',
+    );
+  }
+
+  @override
   void switchCaseCompletesNormally(
       covariant _SwitchStatement node, int caseIndex, int numHeads) {
     _recordError(
@@ -2387,7 +2447,7 @@ class _MiniAstTypeAnalyzer
   Type get thisType => _harness._thisType!;
 
   @override
-  TypeOperations2<Type> get typeOperations => _harness;
+  MiniAstOperations get typeOperations => _harness._operations;
 
   void analyzeAssertStatement(
       Statement node, Expression condition, Expression? message) {
@@ -2639,6 +2699,22 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  shared.RecordType<Type>? asRecordType(Type type) {
+    if (type is RecordType) {
+      return shared.RecordType<Type>(
+        positional: type.positional,
+        named: type.named.map((namedType) {
+          return shared.NamedType(
+            namedType.name,
+            namedType.type,
+          );
+        }).toList(),
+      );
+    }
+    return null;
+  }
+
+  @override
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
           Expression expression, Type context) =>
       _irBuilder.guard(expression, () => expression.visit(_harness, context));
@@ -2775,7 +2851,7 @@ class _MiniAstTypeAnalyzer
   @override
   bool isVariablePattern(Node pattern) => pattern is _VariablePattern;
 
-  Type leastUpperBound(Type t1, Type t2) => _harness._lub(t1, t2);
+  Type leastUpperBound(Type t1, Type t2) => _harness._operations._lub(t1, t2);
 
   @override
   Type listType(Type elementType) =>
@@ -2784,6 +2860,14 @@ class _MiniAstTypeAnalyzer
   _PropertyElement lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
+  }
+
+  @override
+  RecordType recordType(shared.RecordType<Type> type) {
+    return RecordType(
+      positional: type.positional,
+      named: type.named.map((e) => NamedType(e.name, e.type)).toList(),
+    );
   }
 
   @override
@@ -2798,7 +2882,8 @@ class _MiniAstTypeAnalyzer
   Type variableTypeFromInitializerType(Type type) {
     // Variables whose initializer has type `Null` receive the inferred type
     // `dynamic`.
-    if (_harness.classifyType(type) == TypeClassification.nullOrEquivalent) {
+    if (_harness._operations.classifyType(type) ==
+        TypeClassification.nullOrEquivalent) {
       type = dynamicType;
     }
     // Variables whose initializer type includes a promoted type variable
@@ -2890,7 +2975,7 @@ class _NullAwareAccess extends Expression {
     var rhsType =
         h.typeAnalyzer.analyzeExpression(rhs, h.typeAnalyzer.unknownType);
     h.flow.nullAwareAccess_end();
-    var type = h._lub(rhsType, Type('Null'));
+    var type = h._operations._lub(rhsType, Type('Null'));
     h.irBuilder.apply(
         _fakeMethodName, [Kind.expression, Kind.expression], Kind.expression,
         location: location);
@@ -3032,6 +3117,90 @@ class _PropertyElement {
   final Type _type;
 
   _PropertyElement(this._type);
+}
+
+class _RecordPattern extends Pattern {
+  final List<RecordPatternField<Pattern>> fields;
+
+  _RecordPattern(this.fields, {required super.location}) : super._();
+
+  Type computeSchema(Harness h) {
+    return h.typeAnalyzer.analyzeRecordPatternSchema(
+      fields: fields,
+    );
+  }
+
+  @override
+  void preVisit(
+    PreVisitor visitor,
+    VariableBinder<Node, Var, Type> variableBinder,
+  ) {
+    for (var field in fields) {
+      field.pattern.preVisit(visitor, variableBinder);
+    }
+  }
+
+  void visit(
+    Harness h,
+    Type matchedType,
+    Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+    MatchContext<Node, Expression> context,
+  ) {
+    var requiredType = h.typeAnalyzer.analyzeRecordPattern(
+        matchedType, typeInfos, context, this,
+        fields: fields);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.atom(requiredType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+      'recordPattern',
+      [...List.filled(fields.length, Kind.pattern), Kind.type, Kind.type],
+      Kind.pattern,
+      names: ['matchedType', 'requiredType'],
+      location: location,
+    );
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var fieldStrings = [
+      for (var field in fields)
+        field.pattern._debugString(needsKeywordOrType: needsKeywordOrType)
+    ];
+    return '(${fieldStrings.join(', ')})';
+  }
+}
+
+class _RelationalPattern extends Pattern {
+  final RelationalOperatorResolution<Type>? operator;
+  final Expression operand;
+
+  _RelationalPattern(this.operator, this.operand, {required super.location})
+      : super._();
+
+  Type computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeRelationalPatternSchema();
+
+  @override
+  void preVisit(
+      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+    operand.preVisit(visitor);
+  }
+
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    h.typeAnalyzer.analyzeRelationalPattern(
+        matchedType, typeInfos, context, this, operator, operand);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+        'relationalPattern', [Kind.expression, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
+  }
+
+  @override
+  _debugString({required bool needsKeywordOrType}) => '$operator $operand';
 }
 
 class _Return extends Statement {

@@ -4,7 +4,6 @@
 
 #include "vm/class_table.h"
 
-#include <limits>
 #include <memory>
 
 #include "platform/atomic.h"
@@ -80,12 +79,6 @@ void ClassTable::Register(const Class& cls) {
 }
 
 void ClassTable::RegisterTopLevel(const Class& cls) {
-  if (top_level_classes_.num_cids() >= std::numeric_limits<classid_t>::max()) {
-    FATAL1("Fatal error in ClassTable::RegisterTopLevel: invalid index %" Pd
-           "\n",
-           top_level_classes_.num_cids());
-  }
-
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(cls.id() == kIllegalCid);
 

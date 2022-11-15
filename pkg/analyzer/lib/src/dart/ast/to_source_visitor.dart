@@ -169,8 +169,8 @@ class ToSourceVisitor implements AstVisitor<void> {
         sink.write(' ');
       }
       sink.write('catch (');
-      _visitNode(node.exceptionParameter2);
-      _visitNode(node.stackTraceParameter2, prefix: ', ');
+      _visitNode(node.exceptionParameter);
+      _visitNode(node.stackTraceParameter, prefix: ', ');
       sink.write(') ');
     } else {
       sink.write(' ');
@@ -186,9 +186,9 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('class ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);
@@ -432,8 +432,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.onKeyword);
     sink.write(' ');
     _visitNode(node.extendedType, suffix: ' ');
-    _visitNode(node.showClause, suffix: ' ');
-    _visitNode(node.hideClause, suffix: ' ');
     _visitToken(node.leftBracket);
     _visitNodeList(node.members, separator: ' ');
     _visitToken(node.rightBracket);
@@ -448,8 +446,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitExtractorPattern(ExtractorPattern node) {
-    _visitNode(node.typeName);
-    _visitNode(node.typeArguments);
+    _visitNode(node.type);
     sink.write('(');
     _visitNodeList(node.fields, separator: ', ');
     sink.write(')');
@@ -655,12 +652,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(' = ');
     _visitNode(node.type);
     sink.write(';');
-  }
-
-  @override
-  void visitHideClause(HideClause node) {
-    sink.write('hide ');
-    _visitNodeList(node.elements, separator: ', ');
   }
 
   @override
@@ -1136,21 +1127,9 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitShowClause(ShowClause node) {
-    sink.write('show ');
-    _visitNodeList(node.elements, separator: ', ');
-  }
-
-  @override
   void visitShowCombinator(ShowCombinator node) {
     sink.write('show ');
     _visitNodeList(node.shownNames, separator: ', ');
-  }
-
-  @override
-  void visitShowHideElement(ShowHideElement node) {
-    _visitToken(node.modifier, suffix: ' ');
-    _visitNode(node.name);
   }
 
   @override

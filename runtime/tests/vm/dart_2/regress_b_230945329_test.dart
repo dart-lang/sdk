@@ -7,7 +7,7 @@
 // Check that AssertAssignables for the same uninstantiated type, where the
 // instantiated types at runtime may differ, are not optimized away.
 //
-// VMOptions=--no-use-field-guards --no-use-osr --deterministic --optimization-counter-threshold=5
+// VMOptions=--no-use-field-guards --no-use-osr --deterministic --optimization-counter-threshold=90
 //
 // @dart=2.9
 
@@ -15,7 +15,7 @@ void main() {
   final bar = Box<dynamic>('a'); // T=dynamic
   final barInt = Box<int>(1); // T=int
 
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 100; ++i) {
     bar.bar(bar);
   }
   try {

@@ -22,15 +22,17 @@ import '../../js_backend/backend_usage.dart';
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/namer.dart' show Namer, StringBackedName, compareNames;
+import '../../js_backend/namer_interfaces.dart' show Namer;
+import '../../js_backend/namer.dart' show StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
-import '../../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoding;
+import '../../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_new_migrated.dart' show RecipeEncoding;
 import '../../js_backend/runtime_types_new.dart' as newRti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
+import '../../js_model/js_world.dart';
 import '../../js_model/type_recipe.dart'
     show FullTypeEnvironmentStructure, TypeExpressionRecipe;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
@@ -39,7 +41,6 @@ import '../../universe/class_hierarchy.dart';
 import '../../universe/codegen_world_builder.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show SelectorConstraints;
-import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart'
     show
         ClassStubGenerator,
@@ -430,7 +431,7 @@ class ProgramBuilder {
             String jsName =
                 _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
-            if (member.isGetter || member.isField || member.isFunction) {
+            if (member.isGetter || member is FieldEntity || member.isFunction) {
               Iterable<Selector> selectors =
                   _codegenWorld.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
@@ -445,7 +446,7 @@ class ProgramBuilder {
               }
             }
 
-            if (member.isSetter || (member.isField && !member.isConst)) {
+            if (member.isSetter || (member is FieldEntity && !member.isConst)) {
               Iterable<Selector> selectors =
                   _codegenWorld.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
@@ -526,7 +527,7 @@ class ProgramBuilder {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = memberElements
-        .where((e) => !e.isField)
+        .where((e) => e is! FieldEntity)
         .cast<FunctionEntity>()
         .map<StaticMethod>(_buildStaticMethod)
         .toList();
@@ -584,13 +585,13 @@ class ProgramBuilder {
         _commonElements, _outputUnitData, _task, _namer, _rtiChecks);
 
     void visitInstanceMember(MemberEntity member) {
-      if (!member.isAbstract && !member.isField) {
+      if (!member.isAbstract && member is! FieldEntity) {
         if (member is! JSignatureMethod) {
           Method method = _buildMethod(member);
           if (method != null) methods.add(method);
         }
       }
-      if (member.isGetter || member.isField) {
+      if (member.isGetter || member is FieldEntity) {
         Map<Selector, SelectorConstraints> selectors =
             _codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
@@ -1130,7 +1131,7 @@ class ProgramBuilder {
     js.Expression code = _generatedCode[element];
 
     bool isApplyTarget =
-        !element.isConstructor && !element.isGetter && !element.isSetter;
+        element is! ConstructorEntity && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
 
     bool needsTearOff =

@@ -1,0 +1,15 @@
+class Foo extends Bar {
+Foo((int, int) super.x);
+Foo([(int, int) super.x]);
+Foo({(int, int) super.x});
+Foo({required (int, int) super.x});
+}
+
+
+class[KeywordToken] Foo[StringToken] extends[KeywordToken] Bar[StringToken] {[BeginToken]
+Foo[StringToken]([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] super[KeywordToken].[SimpleToken]x[StringToken])[SimpleToken];[SimpleToken]
+Foo[StringToken]([BeginToken][[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] super[KeywordToken].[SimpleToken]x[StringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+Foo[StringToken]([BeginToken]{[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] super[KeywordToken].[SimpleToken]x[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+Foo[StringToken]([BeginToken]{[BeginToken]required[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] super[KeywordToken].[SimpleToken]x[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

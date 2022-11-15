@@ -1289,12 +1289,31 @@ void Assembler::testl(Register reg, const Immediate& immediate) {
   }
 }
 
+void Assembler::testl(const Address& address, const Immediate& immediate) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF7);
+  EmitOperand(0, address);
+  EmitImmediate(immediate);
+}
+
+void Assembler::testl(const Address& address, Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x85);
+  EmitOperand(reg, address);
+}
+
 void Assembler::testb(const Address& address, const Immediate& imm) {
   ASSERT(imm.is_int8());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF6);
   EmitOperand(0, address);
   EmitUint8(imm.value() & 0xFF);
+}
+
+void Assembler::testb(const Address& address, ByteRegister reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x84);
+  EmitOperand(reg, address);
 }
 
 void Assembler::Alu(int bytes, uint8_t opcode, Register dst, Register src) {
@@ -2003,49 +2022,12 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   }
 }
 
-// Destroys the value register.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* label,
-                                      CanBeSmi can_be_smi,
-                                      BarrierFilterMode how_to_jump) {
-  if (can_be_smi == kValueIsNotSmi) {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
-    COMPILE_ASSERT((target::ObjectAlignment::kNewObjectAlignmentOffset ==
-                    target::kWordSize) &&
-                   (target::ObjectAlignment::kOldObjectAlignmentOffset == 0));
-    // Write-barrier triggers if the value is in the new space (has bit set) and
-    // the object is in the old space (has bit cleared).
-    // To check that we could compute value & ~object and skip the write barrier
-    // if the bit is not set. However we can't destroy the object.
-    // However to preserve the object we compute negated expression
-    // ~value | object instead and skip the write barrier if the bit is set.
-    notl(value);
-    orl(value, object);
-    testl(value, Immediate(target::ObjectAlignment::kNewObjectAlignmentOffset));
-  } else {
-    ASSERT(target::ObjectAlignment::kNewObjectAlignmentOffset == 4);
-    ASSERT(kHeapObjectTag == 1);
-    // Detect value being ...101 and object being ...001.
-    andl(value, Immediate(7));
-    leal(value, Address(value, object, TIMES_2, 9));
-    testl(value, Immediate(0xf));
-  }
-  Condition condition = how_to_jump == kJumpToNoUpdate ? NOT_ZERO : ZERO;
-  auto const distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
-  j(condition, label, distance);
-}
-
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi,
-                                MemoryOrder memory_order) {
+                                MemoryOrder memory_order,
+                                Register scratch) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
 
@@ -2054,18 +2036,65 @@ void Assembler::StoreIntoObject(Register object,
   } else {
     movl(dest, value);
   }
+
+  bool spill_scratch = false;
+  if (scratch == kNoRegister) {
+    spill_scratch = true;
+    if (object != EAX && value != EAX) {
+      scratch = EAX;
+    } else if (object != EBX && value != EBX) {
+      scratch = EBX;
+    } else {
+      scratch = ECX;
+    }
+  }
+  ASSERT(scratch != object);
+  ASSERT(scratch != value);
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare UntaggedObject::StorePointer.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-  // A store buffer update is required.
-  if (value != EDX) {
-    pushl(EDX);  // Preserve EDX.
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done, kNearJump);
   }
-  if (object != EDX) {
-    movl(EDX, object);
+  if (spill_scratch) {
+    pushl(scratch);
   }
-  call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
-  if (value != EDX) {
-    popl(EDX);  // Restore EDX.
+  movl(scratch, FieldAddress(object, target::Object::tags_offset()));
+  shrl(scratch, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  andl(scratch, Address(THR, target::Thread::write_barrier_mask_offset()));
+  testl(FieldAddress(value, target::Object::tags_offset()), scratch);
+  if (spill_scratch) {
+    popl(scratch);
+  }
+  j(ZERO, &done, kNearJump);
+
+  Register object_for_call = object;
+  if (value != kWriteBarrierValueReg) {
+    // Unlikely. Only non-graph intrinsics.
+    // TODO(rmacnak): Shuffle registers in intrinsics.
+    pushl(kWriteBarrierValueReg);
+    if (object == kWriteBarrierValueReg) {
+      COMPILE_ASSERT(EAX != kWriteBarrierValueReg);
+      COMPILE_ASSERT(ECX != kWriteBarrierValueReg);
+      object_for_call = (value == EAX) ? ECX : EAX;
+      pushl(object_for_call);
+      movl(object_for_call, object);
+    }
+    movl(kWriteBarrierValueReg, value);
+  }
+  call(Address(THR, target::Thread::write_barrier_wrappers_thread_offset(
+                        object_for_call)));
+  if (value != kWriteBarrierValueReg) {
+    if (object == kWriteBarrierValueReg) {
+      popl(object_for_call);
+    }
+    popl(kWriteBarrierValueReg);
   }
   Bind(&done);
 }
@@ -2086,59 +2115,56 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  pushl(value);
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  testb(FieldAddress(value, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kNewBit));
+  j(ZERO, &done, Assembler::kNearJump);
   testb(FieldAddress(object, target::Object::tags_offset()),
         Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
-
-  Stop("Store buffer update is required");
+  Stop("Write barrier is required");
   Bind(&done);
-  popl(value);
 #endif  // defined(DEBUG)
-  // No store buffer update.
 }
 
-// Destroys the value register.
 void Assembler::StoreIntoArray(Register object,
                                Register slot,
                                Register value,
-                               CanBeSmi can_be_smi) {
+                               CanBeSmi can_be_smi,
+                               Register scratch) {
   ASSERT(object != value);
   movl(Address(slot, 0), value);
 
+  ASSERT(scratch != kNoRegister);
+  ASSERT(scratch != object);
+  ASSERT(scratch != value);
+  ASSERT(scratch != slot);
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare UntaggedObject::StorePointer.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-  // A store buffer update is required.
-  if (value != kWriteBarrierObjectReg) {
-    pushl(kWriteBarrierObjectReg);  // Preserve kWriteBarrierObjectReg.
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done, kNearJump);
   }
-  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
-    pushl(kWriteBarrierSlotReg);  // Preserve kWriteBarrierSlotReg.
-  }
-  if (object != kWriteBarrierObjectReg && slot != kWriteBarrierSlotReg) {
-    if (slot == kWriteBarrierObjectReg && object == kWriteBarrierSlotReg) {
-      xchgl(slot, object);
-    } else if (slot == kWriteBarrierObjectReg) {
-      movl(kWriteBarrierSlotReg, slot);
-      movl(kWriteBarrierObjectReg, object);
-    } else {
-      movl(kWriteBarrierObjectReg, object);
-      movl(kWriteBarrierSlotReg, slot);
-    }
-  } else if (object != kWriteBarrierObjectReg) {
-    movl(kWriteBarrierObjectReg, object);
-  } else if (slot != kWriteBarrierSlotReg) {
-    movl(kWriteBarrierSlotReg, slot);
+  movl(scratch, FieldAddress(object, target::Object::tags_offset()));
+  shrl(scratch, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  andl(scratch, Address(THR, target::Thread::write_barrier_mask_offset()));
+  testl(FieldAddress(value, target::Object::tags_offset()), scratch);
+  j(ZERO, &done, kNearJump);
+
+  if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
+      (slot != kWriteBarrierSlotReg)) {
+    // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
+    // from StoreIndexInstr, which gets these exact registers from the register
+    // allocator.
+    UNIMPLEMENTED();
   }
   call(Address(THR, target::Thread::array_write_barrier_entry_point_offset()));
-  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
-    popl(kWriteBarrierSlotReg);  // Restore kWriteBarrierSlotReg.
-  }
-  if (value != kWriteBarrierObjectReg) {
-    popl(kWriteBarrierObjectReg);  // Restore kWriteBarrierObjectReg.
-  }
   Bind(&done);
 }
 
@@ -2582,7 +2608,7 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
     nop(MAX_NOP_SIZE);
     bytes_needed -= MAX_NOP_SIZE;
   }
-  if (bytes_needed) {
+  if (bytes_needed != 0) {
     nop(bytes_needed);
   }
   ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
@@ -3056,6 +3082,23 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
     return FieldAddress(array, index, ToScaleFactor(index_scale, index_unboxed),
                         target::Instance::DataOffsetFor(cid) + extra_disp);
   }
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? BELOW_EQUAL : ABOVE;
+  Register to_check = value;
+  if (temp != kNoRegister) {
+    movl(temp, value);
+    to_check = temp;
+  }
+  subl(to_check, Immediate(low));
+  cmpl(to_check, Immediate(high - low));
+  j(cc, target);
 }
 
 }  // namespace compiler

@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_foreign_helper' show JS;
+import 'dart:_internal' show patch;
 import 'dart:_js_helper'
-    show convertDartClosureToJS, assertInterop, assertInteropArgs, patch;
+    show convertDartClosureToJS, assertInterop, assertInteropArgs;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
 import 'dart:js_util';

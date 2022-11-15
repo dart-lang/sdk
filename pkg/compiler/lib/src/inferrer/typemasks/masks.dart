@@ -13,6 +13,7 @@ import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
 import '../../ir/class_relation.dart';
+import '../../js_model/js_world.dart' show JClosedWorld;
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -20,7 +21,6 @@ import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world_interfaces.dart' show JClosedWorld;
 import '../abstract_value_domain.dart';
 import '../abstract_value_strategy.dart';
 import 'constants.dart';
@@ -35,7 +35,7 @@ part 'type_mask.dart';
 part 'union_type_mask.dart';
 part 'value_type_mask.dart';
 
-class CommonMasks implements AbstractValueDomain {
+class CommonMasks with AbstractValueDomain {
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
   final JClosedWorld _closedWorld;

@@ -4,11 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -54,8 +52,9 @@ class VariableDeclarationResolver {
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
 
-    if (parent.type == null) {
-      _setInferredType(element, initializer.typeOrThrow);
+    var initializerType = initializer.typeOrThrow;
+    if (parent.type == null && element is LocalVariableElementImpl) {
+      element.type = _resolver.variableTypeFromInitializerType(initializerType);
     }
 
     if (isTopLevel) {
@@ -72,21 +71,10 @@ class VariableDeclarationResolver {
 
     _resolver.checkForAssignableExpressionAtType(
       initializer,
-      initializer.typeOrThrow,
+      initializerType,
       element.type,
       CompileTimeErrorCode.INVALID_ASSIGNMENT,
       whyNotPromoted: whyNotPromoted,
     );
-  }
-
-  void _setInferredType(VariableElement element, DartType initializerType) {
-    if (element is LocalVariableElementImpl) {
-      if (initializerType.isDartCoreNull) {
-        initializerType = DynamicTypeImpl.instance;
-      }
-
-      var inferredType = _resolver.typeSystem.demoteType(initializerType);
-      element.type = inferredType;
-    }
   }
 }

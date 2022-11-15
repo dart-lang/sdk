@@ -1,27 +1,15 @@
 {
   "org-dartlang-sdk:///lib/_http/http_impl.dart": {
-    "Dynamic access of 'message'.": 3,
-    "Dynamic invocation of 'destroy'.": 1,
-    "Dynamic access of 'address'.": 2,
-    "Dynamic access of 'host'.": 2,
-    "Dynamic access of 'port'.": 2,
-    "Dynamic access of 'remoteAddress'.": 1,
-    "Dynamic access of 'remotePort'.": 1,
-    "Dynamic invocation of 'dart._http::_toJSON'.": 3,
+    "Dynamic access of 'address'.": 1,
+    "Dynamic access of 'port'.": 1,
     "Dynamic invocation of 'listen'.": 1,
     "Dynamic invocation of 'close'.": 1
-  },
-  "org-dartlang-sdk:///lib/_http/websocket_impl.dart": {
-    "Dynamic invocation of 'dart._http::_toJSON'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
     "Dynamic access of 'length'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/async_patch.dart": {
     "Dynamic access of 'iterator'.": 1
-  },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/convert_patch.dart": {
-    "Dynamic invocation of 'clear'.": 1
   },
   "org-dartlang-sdk:///lib/convert/json.dart": {
     "Dynamic invocation of 'toJson'.": 1
@@ -31,15 +19,6 @@
     "Dynamic access of 'attributes'.": 1,
     "Dynamic invocation of '[]'.": 1,
     "Dynamic invocation of 'toLowerCase'.": 1
-  },
-  "org-dartlang-sdk:///lib/io/secure_server_socket.dart": {
-    "Dynamic update to 'dart.io::_owner'.": 1
-  },
-  "org-dartlang-sdk:///lib/io/secure_socket.dart": {
-    "Dynamic invocation of '[]'.": 4,
-    "Dynamic invocation of 'dart.io::_detachRaw'.": 2,
-    "Dynamic access of 'closedReadEventSent'.": 1,
-    "Dynamic update to 'dart.io::_owner'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_patch.dart": {
     "Dynamic invocation of '[]'.": 1

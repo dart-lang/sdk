@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -370,7 +371,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
     // prepare ClassElement
     if (type is InterfaceType) {
-      var element = type.element2;
+      var element = type.element;
       // lookup for ==
       var method = element.lookUpConcreteMethod("==", _currentLibrary);
       if (method == null ||
@@ -379,6 +380,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
       // there is == that we don't like
       return true;
+    }
+    if (type is RecordType) {
+      return type.fields
+          .map((field) => field.type)
+          .any(_implementsEqualsWhenNotAllowed);
     }
     return false;
   }

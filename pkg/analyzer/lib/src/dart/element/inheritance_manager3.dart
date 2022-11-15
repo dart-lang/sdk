@@ -115,7 +115,7 @@ class InheritanceManager3 {
 
   /// Return the result of [getInherited2] with [type] substitution.
   ExecutableElement? getInherited(InterfaceType type, Name name) {
-    var rawElement = getInherited2(type.element2, name);
+    var rawElement = getInherited2(type.element, name);
     if (rawElement == null) {
       return null;
     }
@@ -143,7 +143,7 @@ class InheritanceManager3 {
     var result = <Name, ExecutableElement>{};
 
     var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedConcreteMap2(type.element2);
+    var rawMap = getInheritedConcreteMap2(type.element);
     for (var rawEntry in rawMap.entries) {
       result[rawEntry.key] = ExecutableMember.from2(
         rawEntry.value,
@@ -171,7 +171,7 @@ class InheritanceManager3 {
     var result = <Name, ExecutableElement>{};
 
     var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedMap2(type.element2);
+    var rawMap = getInheritedMap2(type.element);
     for (var rawEntry in rawMap.entries) {
       result[rawEntry.key] = ExecutableMember.from2(
         rawEntry.value,
@@ -237,7 +237,7 @@ class InheritanceManager3 {
     bool forSuper = false,
   }) {
     var rawElement = getMember2(
-      type.element2,
+      type.element,
       name,
       concrete: concrete,
       forMixinIndex: forMixinIndex,
@@ -293,7 +293,7 @@ class InheritanceManager3 {
   /// if no members would be overridden.
   @Deprecated('Use getOverridden2')
   List<ExecutableElement>? getOverridden(InterfaceType type, Name name) {
-    return getOverridden2(type.element2, name);
+    return getOverridden2(type.element, name);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -459,7 +459,7 @@ class InheritanceManager3 {
     Interface? superTypeInterface;
     if (superType != null) {
       var substitution = Substitution.fromInterfaceType(superType);
-      superTypeInterface = getInterface(superType.element2);
+      superTypeInterface = getInterface(superType.element);
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: substitution,
@@ -485,7 +485,7 @@ class InheritanceManager3 {
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
     var mixinsConflicts = <List<Conflict>>[];
     for (var mixin in element.mixins) {
-      var mixinElement = mixin.element2;
+      var mixinElement = mixin.element;
       var substitution = Substitution.fromInterfaceType(mixin);
       var mixinInterface = getInterface(mixinElement);
       // `class X extends S with M1, M2 {}` is semantically a sequence of:
@@ -576,7 +576,7 @@ class InheritanceManager3 {
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: Substitution.fromInterfaceType(interface),
-        interface: getInterface(interface.element2),
+        interface: getInterface(interface.element),
         isNonNullableByDefault: isNonNullableByDefault,
       );
     }
@@ -653,7 +653,7 @@ class InheritanceManager3 {
     var superCandidates = <Name, List<ExecutableElement>>{};
     for (var constraint in element.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
-      var interfaceObj = getInterface(constraint.element2);
+      var interfaceObj = getInterface(constraint.element);
       _addCandidates(
         namedCandidates: superCandidates,
         substitution: substitution,
@@ -677,7 +677,7 @@ class InheritanceManager3 {
       _addCandidates(
         namedCandidates: interfaceCandidates,
         substitution: Substitution.fromInterfaceType(interface),
-        interface: getInterface(interface.element2),
+        interface: getInterface(interface.element),
         isNonNullableByDefault: isNonNullableByDefault,
       );
     }
@@ -779,7 +779,7 @@ class InheritanceManager3 {
       return result;
     }
 
-    if (executable is PropertyAccessorElement) {
+    if (executable is PropertyAccessorElementImpl) {
       assert(executable.isSetter);
       var result = PropertyAccessorElementImpl(executable.name, -1);
       result.enclosingElement = class_;
@@ -907,10 +907,7 @@ class InheritanceManager3 {
 
   static bool _isDeclaredInObject(ExecutableElement element) {
     var enclosing = element.enclosingElement;
-    // TODO(scheglov) `is! MixinElement` after the separation.
-    return enclosing is InterfaceElement &&
-        enclosing.supertype == null &&
-        enclosing is! MixinElement;
+    return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }
 

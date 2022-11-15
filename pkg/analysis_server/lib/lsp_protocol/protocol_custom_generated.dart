@@ -1858,6 +1858,147 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class TypeHierarchyAnchor implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    TypeHierarchyAnchor.canParse,
+    TypeHierarchyAnchor.fromJson,
+  );
+
+  TypeHierarchyAnchor({
+    required this.path,
+    required this.ref,
+  });
+  static TypeHierarchyAnchor fromJson(Map<String, Object?> json) {
+    final pathJson = json['path'];
+    final path =
+        (pathJson as List<Object?>).map((item) => item as int).toList();
+    final refJson = json['ref'];
+    final ref = refJson as String;
+    return TypeHierarchyAnchor(
+      path: path,
+      ref: ref,
+    );
+  }
+
+  /// Indices used to navigate from this anchor to the element.
+  final List<int> path;
+
+  /// The ElementLocation for this anchor element.
+  final String ref;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['path'] = path;
+    result['ref'] = ref;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseListInt(obj, reporter, 'path',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type TypeHierarchyAnchor');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TypeHierarchyAnchor &&
+        other.runtimeType == TypeHierarchyAnchor &&
+        listEqual(path, other.path, (int a, int b) => a == b) &&
+        ref == other.ref;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(path),
+        ref,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TypeHierarchyItemInfo implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    TypeHierarchyItemInfo.canParse,
+    TypeHierarchyItemInfo.fromJson,
+  );
+
+  TypeHierarchyItemInfo({
+    this.anchor,
+    required this.ref,
+  });
+  static TypeHierarchyItemInfo fromJson(Map<String, Object?> json) {
+    final anchorJson = json['anchor'];
+    final anchor = anchorJson != null
+        ? TypeHierarchyAnchor.fromJson(anchorJson as Map<String, Object?>)
+        : null;
+    final refJson = json['ref'];
+    final ref = refJson as String;
+    return TypeHierarchyItemInfo(
+      anchor: anchor,
+      ref: ref,
+    );
+  }
+
+  /// An anchor element that can be used to navigate to this element preserving
+  /// type arguments.
+  final TypeHierarchyAnchor? anchor;
+
+  /// The ElementLocation for this element, used to re-locate the element when
+  /// subtypes/supertypes are fetched later.
+  final String ref;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (anchor != null) {
+      result['anchor'] = anchor?.toJson();
+    }
+    result['ref'] = ref;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseTypeHierarchyAnchor(obj, reporter, 'anchor',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type TypeHierarchyItemInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TypeHierarchyItemInfo &&
+        other.runtimeType == TypeHierarchyItemInfo &&
+        anchor == other.anchor &&
+        ref == other.ref;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        anchor,
+        ref,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class ValidateRefactorResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ValidateRefactorResult.canParse,
@@ -2184,6 +2325,32 @@ bool _canParseListFlutterOutlineAttribute(
   return true;
 }
 
+bool _canParseListInt(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> || value.any((item) => item is! int))) {
+      reporter.reportError('must be of type List<int>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListOutline(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2387,6 +2554,32 @@ bool _canParseString(
     }
     if ((!nullCheck || value != null) && value is! String) {
       reporter.reportError('must be of type String');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseTypeHierarchyAnchor(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !TypeHierarchyAnchor.canParse(value, reporter)) {
+      reporter.reportError('must be of type TypeHierarchyAnchor');
       return false;
     }
   } finally {

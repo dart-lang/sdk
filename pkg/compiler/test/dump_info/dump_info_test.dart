@@ -133,7 +133,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
           Tags.classType, jsonEncode(classTypeInfos.first.accept(converter)));
     }
 
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     ir.Class node = elementMap.getClassDefinition(cls).node;
     ClassId id = ClassId(node.name);
@@ -183,7 +183,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       }
     }
 
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     ir.Member node = elementMap.getMemberDefinition(member).node;
     Id id = computeMemberId(node);

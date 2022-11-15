@@ -1371,38 +1371,46 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ StoreToOffset(temp1, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
-    if (CanExecuteGeneratedCodeInSafepoint()) {
-      // Update information in the thread object and enter a safepoint.
-      __ LoadImmediate(temp1, compiler::target::Thread::exit_through_ffi());
-      __ TransitionGeneratedToNative(branch, FPREG, temp1,
-                                     /*enter_safepoint=*/true);
+    // Update information in the thread object and enter a safepoint.
+    // Outline state transition. In AOT, for code size. In JIT, because we
+    // cannot trust that code will be executable.
+    __ ldr(temp1,
+           compiler::Address(
+               THR, compiler::target::Thread::
+                        call_native_through_safepoint_entry_point_offset()));
 
-      // We are entering runtime code, so the C stack pointer must be restored
-      // from the stack limit to the top of the stack.
-      __ mov(temp_csp, CSP);
-      __ mov(CSP, SP);
+    // Calls R9 and clobbers R19 (along with volatile registers).
+    ASSERT(branch == R9);
+    __ blr(temp1);
 
-      __ blr(branch);
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      compiler::Label not_error;
+      __ ldr(temp1,
+             compiler::Address(CallingConventions::kReturnReg,
+                               compiler::target::LocalHandle::ptr_offset()));
+      __ BranchIfSmi(temp1, &not_error);
+      __ LoadClassId(temp1, temp1);
+      __ RangeCheck(temp1, temp2, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
 
-      // Restore the Dart stack pointer.
-      __ mov(SP, CSP);
-      __ mov(CSP, temp_csp);
-
-      // Update information in the thread object and leave the safepoint.
-      __ TransitionNativeToGenerated(temp1, /*leave_safepoint=*/true);
-    } else {
-      // We cannot trust that this code will be executable within a safepoint.
-      // Therefore we delegate the responsibility of entering/exiting the
-      // safepoint to a stub which in the VM isolate's heap, which will never
-      // lose execute permission.
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      ASSERT(CallingConventions::ArgumentRegisters[0] ==
+             CallingConventions::kReturnReg);
       __ ldr(temp1,
              compiler::Address(
                  THR, compiler::target::Thread::
                           call_native_through_safepoint_entry_point_offset()));
-
-      // Calls R9 and clobbers R19 (along with volatile registers).
-      ASSERT(branch == R9);
+      __ ldr(branch, compiler::Address(
+                         THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
       __ blr(temp1);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ brk(0);
+#endif
+
+      __ Bind(&not_error);
     }
 
     // Refresh pinned registers values (inc. write barrier mask and null
@@ -2927,8 +2935,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(function, compiler->parsed_function().function());
-    intptr_t threshold =
-        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    const intptr_t configured_optimization_counter_threshold =
+        compiler->thread()->isolate_group()->optimization_counter_threshold();
+    const int32_t threshold =
+        configured_optimization_counter_threshold * (loop_depth() + 1);
     __ LoadFieldFromOffset(TMP, function, Function::usage_counter_offset(),
                            compiler::kFourBytes);
     __ add(TMP, TMP, compiler::Operand(1));
@@ -3664,8 +3674,8 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
       object_store->allocate_mint_without_fpu_regs_stub()
           ->untag()
           ->InVMIsolateHeap();
-  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     !stubs_in_vm_isolate;
+  const bool shared_slow_path_call =
+      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()          ? LocationSummary::kNoCall
@@ -4967,6 +4977,39 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ csel(result_mod, TMP, TMP2, GE);
   }
   __ Bind(&done);
+}
+
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+
+  if (smi_) {
+    __ SmiUntag(TMP2, value);
+  } else {
+    __ LoadFieldFromOffset(TMP2, value, Mint::value_offset());
+  }
+
+  __ LoadImmediate(TMP, compiler::Immediate(0x2d51));
+  __ mul(result, TMP, TMP2);
+  __ umulh(TMP, TMP, TMP2);
+  __ eor(result, result, compiler::Operand(TMP));
+  __ eor(result, result, compiler::Operand(result, LSR, 32));
+  __ ubfm(result, result, 63, 29);  // SmiTag(result & 0x3fffffff)
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {

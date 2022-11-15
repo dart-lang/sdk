@@ -252,9 +252,9 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.exceptionType, other.exceptionType) &&
         isEqualTokens(node.catchKeyword, other.catchKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.exceptionParameter2, other.exceptionParameter2) &&
+        isEqualNodes(node.exceptionParameter, other.exceptionParameter) &&
         isEqualTokens(node.comma, other.comma) &&
-        isEqualNodes(node.stackTraceParameter2, other.stackTraceParameter2) &&
+        isEqualNodes(node.stackTraceParameter, other.stackTraceParameter) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.body, other.body);
   }
@@ -558,8 +558,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitExtractorPattern(ExtractorPattern node) {
     var other = _other as ExtractorPattern;
-    return isEqualNodes(node.typeName, other.typeName) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
+    return isEqualNodes(node.type, other.type) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         _isEqualNodeLists(node.fields, other.fields) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis);
@@ -764,13 +763,6 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.equals, other.equals) &&
         isEqualNodes(node.type, other.type);
-  }
-
-  @override
-  bool visitHideClause(HideClause node) {
-    HideClause other = _other as HideClause;
-    return isEqualTokens(node.hideKeyword, other.hideKeyword) &&
-        _isEqualNodeLists(node.elements, other.elements);
   }
 
   @override
@@ -1276,24 +1268,10 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitShowClause(ShowClause node) {
-    ShowClause other = _other as ShowClause;
-    return isEqualTokens(node.showKeyword, other.showKeyword) &&
-        _isEqualNodeLists(node.elements, other.elements);
-  }
-
-  @override
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator other = _other as ShowCombinator;
     return isEqualTokens(node.keyword, other.keyword) &&
         _isEqualNodeLists(node.shownNames, other.shownNames);
-  }
-
-  @override
-  bool visitShowHideElement(ShowHideElement node) {
-    ShowHideElement other = _other as ShowHideElement;
-    return isEqualTokens(node.modifier, other.modifier) &&
-        isEqualNodes(node.name, other.name);
   }
 
   @override
@@ -1971,7 +1949,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   bool visitAnnotatedNode(covariant AnnotatedNodeImpl node) {
     if (identical(node.documentationComment, _oldNode)) {
-      node.documentationComment = _newNode as Comment;
+      node.documentationComment = _newNode as CommentImpl;
       return true;
     } else if (_replaceInList(node.metadata)) {
       return true;
@@ -1982,16 +1960,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitAnnotation(covariant AnnotationImpl node) {
     if (identical(node.arguments, _oldNode)) {
-      node.arguments = _newNode as ArgumentList;
+      node.arguments = _newNode as ArgumentListImpl;
       return true;
     } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList?;
+      node.typeArguments = _newNode as TypeArgumentListImpl?;
       return true;
     } else if (identical(node.constructorName, _oldNode)) {
-      node.constructorName = _newNode as SimpleIdentifier;
+      node.constructorName = _newNode as SimpleIdentifierImpl;
       return true;
     } else if (identical(node.name, _oldNode)) {
-      node.name = _newNode as Identifier;
+      node.name = _newNode as IdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -2008,10 +1986,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitAsExpression(covariant AsExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeAnnotationImpl;
       return true;
     }
     return visitNode(node);
@@ -2020,11 +1998,11 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitAssertInitializer(covariant AssertInitializerImpl node) {
     if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     }
     if (identical(node.message, _oldNode)) {
-      node.message = _newNode as Expression;
+      node.message = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2033,11 +2011,11 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitAssertStatement(covariant AssertStatementImpl node) {
     if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     }
     if (identical(node.message, _oldNode)) {
-      node.message = _newNode as Expression;
+      node.message = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2046,10 +2024,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitAssignmentExpression(covariant AssignmentExpressionImpl node) {
     if (identical(node.leftHandSide, _oldNode)) {
-      node.leftHandSide = _newNode as Expression;
+      node.leftHandSide = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.rightHandSide, _oldNode)) {
-      node.rightHandSide = _newNode as Expression;
+      node.rightHandSide = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2065,7 +2043,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitAwaitExpression(covariant AwaitExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2094,7 +2072,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitBlockFunctionBody(covariant BlockFunctionBodyImpl node) {
     if (identical(node.block, _oldNode)) {
-      node.block = _newNode as Block;
+      node.block = _newNode as BlockImpl;
       return true;
     }
     return visitNode(node);
@@ -2106,7 +2084,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitBreakStatement(covariant BreakStatementImpl node) {
     if (identical(node.label, _oldNode)) {
-      node.label = _newNode as SimpleIdentifier;
+      node.label = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -2115,7 +2093,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitCascadeExpression(covariant CascadeExpressionImpl node) {
     if (identical(node.target, _oldNode)) {
-      node.target = _newNode as Expression;
+      node.target = _newNode as ExpressionImpl;
       return true;
     } else if (_replaceInList(node.cascadeSections)) {
       return true;
@@ -2126,16 +2104,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitCatchClause(covariant CatchClauseImpl node) {
     if (identical(node.exceptionType, _oldNode)) {
-      node.exceptionType = _newNode as TypeAnnotation;
+      node.exceptionType = _newNode as TypeAnnotationImpl;
       return true;
-    } else if (identical(node.exceptionParameter2, _oldNode)) {
-      node.exceptionParameter2 = _newNode as CatchClauseParameterImpl;
+    } else if (identical(node.exceptionParameter, _oldNode)) {
+      node.exceptionParameter = _newNode as CatchClauseParameterImpl;
       return true;
-    } else if (identical(node.stackTraceParameter2, _oldNode)) {
-      node.stackTraceParameter2 = _newNode as CatchClauseParameterImpl;
+    } else if (identical(node.stackTraceParameter, _oldNode)) {
+      node.stackTraceParameter = _newNode as CatchClauseParameterImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Block;
+      node.body = _newNode as BlockImpl;
       return true;
     }
     return visitNode(node);
@@ -2149,19 +2127,19 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitClassDeclaration(covariant ClassDeclarationImpl node) {
     if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.extendsClause, _oldNode)) {
-      node.extendsClause = _newNode as ExtendsClause;
+      node.extendsClause = _newNode as ExtendsClauseImpl;
       return true;
     } else if (identical(node.withClause, _oldNode)) {
-      node.withClause = _newNode as WithClause;
+      node.withClause = _newNode as WithClauseImpl;
       return true;
     } else if (identical(node.implementsClause, _oldNode)) {
-      node.implementsClause = _newNode as ImplementsClause;
+      node.implementsClause = _newNode as ImplementsClauseImpl;
       return true;
     } else if (identical(node.nativeClause, _oldNode)) {
-      node.nativeClause = _newNode as NativeClause;
+      node.nativeClause = _newNode as NativeClauseImpl;
       return true;
     } else if (_replaceInList(node.members)) {
       return true;
@@ -2172,16 +2150,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.superclass, _oldNode)) {
-      node.superclass = _newNode as NamedType;
+      node.superclass = _newNode as NamedTypeImpl;
       return true;
     } else if (identical(node.withClause, _oldNode)) {
-      node.withClause = _newNode as WithClause;
+      node.withClause = _newNode as WithClauseImpl;
       return true;
     } else if (identical(node.implementsClause, _oldNode)) {
-      node.implementsClause = _newNode as ImplementsClause;
+      node.implementsClause = _newNode as ImplementsClauseImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -2198,7 +2176,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitCommentReference(covariant CommentReferenceImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Identifier;
+      node.expression = _newNode as IdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -2207,7 +2185,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitCompilationUnit(covariant CompilationUnitImpl node) {
     if (identical(node.scriptTag, _oldNode)) {
-      node.scriptTag = _newNode as ScriptTag;
+      node.scriptTag = _newNode as ScriptTagImpl;
       return true;
     } else if (_replaceInList(node.directives)) {
       return true;
@@ -2220,13 +2198,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitConditionalExpression(covariant ConditionalExpressionImpl node) {
     if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.thenExpression, _oldNode)) {
-      node.thenExpression = _newNode as Expression;
+      node.thenExpression = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.elseExpression, _oldNode)) {
-      node.elseExpression = _newNode as Expression;
+      node.elseExpression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2235,13 +2213,22 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitConfiguration(covariant ConfigurationImpl node) {
     if (identical(node.name, _oldNode)) {
-      node.name = _newNode as DottedName;
+      node.name = _newNode as DottedNameImpl;
       return true;
     } else if (identical(node.value, _oldNode)) {
-      node.value = _newNode as StringLiteral;
+      node.value = _newNode as StringLiteralImpl;
       return true;
     } else if (identical(node.uri, _oldNode)) {
-      node.uri = _newNode as StringLiteral;
+      node.uri = _newNode as StringLiteralImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitConstantPattern(covariant ConstantPatternImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2250,16 +2237,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as Identifier;
+      node.returnType = _newNode as IdentifierImpl;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     } else if (identical(node.redirectedConstructor, _oldNode)) {
-      node.redirectedConstructor = _newNode as ConstructorName;
+      node.redirectedConstructor = _newNode as ConstructorNameImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as FunctionBody;
+      node.body = _newNode as FunctionBodyImpl;
       return true;
     } else if (_replaceInList(node.initializers)) {
       return true;
@@ -2271,10 +2258,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitConstructorFieldInitializer(
       covariant ConstructorFieldInitializerImpl node) {
     if (identical(node.fieldName, _oldNode)) {
-      node.fieldName = _newNode as SimpleIdentifier;
+      node.fieldName = _newNode as SimpleIdentifierImpl;
       return true;
     } else if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2283,10 +2270,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitConstructorName(covariant ConstructorNameImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as NamedType;
+      node.type = _newNode as NamedTypeImpl;
       return true;
     } else if (identical(node.name, _oldNode)) {
-      node.name = _newNode as SimpleIdentifier;
+      node.name = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -2309,7 +2296,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitContinueStatement(covariant ContinueStatementImpl node) {
     if (identical(node.label, _oldNode)) {
-      node.label = _newNode as SimpleIdentifier;
+      node.label = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -2318,7 +2305,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitDeclaredIdentifier(covariant DeclaredIdentifierImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeAnnotationImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -2327,15 +2314,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
     if (identical(node.parameter, _oldNode)) {
-      node.parameter = _newNode as NormalFormalParameter;
+      node.parameter = _newNode as NormalFormalParameterImpl;
       return true;
     } else if (identical(node.defaultValue, _oldNode)) {
-      node.defaultValue = _newNode as Expression;
+      node.defaultValue = _newNode as ExpressionImpl;
       var parameterElement = node.declaredElement;
       if (parameterElement is DefaultParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode as Expression;
+        parameterElement.constantInitializer = _newNode as ExpressionImpl;
       } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode as Expression;
+        parameterElement.constantInitializer = _newNode as ExpressionImpl;
       }
       return true;
     }
@@ -2345,10 +2332,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitDoStatement(covariant DoStatementImpl node) {
     if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Statement;
+      node.body = _newNode as StatementImpl;
       return true;
     } else if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2385,13 +2372,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.withClause, _oldNode)) {
-      node.withClause = _newNode as WithClause;
+      node.withClause = _newNode as WithClauseImpl;
       return true;
     } else if (identical(node.implementsClause, _oldNode)) {
-      node.implementsClause = _newNode as ImplementsClause;
+      node.implementsClause = _newNode as ImplementsClauseImpl;
       return true;
     } else if (_replaceInList(node.constants)) {
       return true;
@@ -2408,7 +2395,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitExpressionFunctionBody(covariant ExpressionFunctionBodyImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2417,7 +2404,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitExpressionStatement(covariant ExpressionStatementImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2426,7 +2413,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitExtendsClause(covariant ExtendsClauseImpl node) {
     if (identical(node.superclass, _oldNode)) {
-      node.superclass = _newNode as NamedType;
+      node.superclass = _newNode as NamedTypeImpl;
       return true;
     }
     return visitNode(node);
@@ -2435,15 +2422,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     if (identical(node.documentationComment, _oldNode)) {
-      node.documentationComment = _newNode as Comment;
+      node.documentationComment = _newNode as CommentImpl;
       return true;
     } else if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.extendedType, _oldNode)) {
-      node.extendedType = _newNode as TypeAnnotation;
+      node.extendedType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (_replaceInList(node.members)) {
       return true;
@@ -2454,14 +2441,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitExtensionOverride(ExtensionOverride node) {
     if (identical(node.extensionName, _oldNode)) {
-      (node as ExtensionOverrideImpl).extensionName = _newNode as Identifier;
+      (node as ExtensionOverrideImpl).extensionName =
+          _newNode as IdentifierImpl;
       return true;
     } else if (identical(node.typeArguments, _oldNode)) {
       (node as ExtensionOverrideImpl).typeArguments =
-          _newNode as TypeArgumentList;
+          _newNode as TypeArgumentListImpl;
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
-      (node as ExtensionOverrideImpl).argumentList = _newNode as ArgumentList;
+      (node as ExtensionOverrideImpl).argumentList =
+          _newNode as ArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -2470,7 +2459,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     if (identical(node.fields, _oldNode)) {
-      node.fields = _newNode as VariableDeclarationList;
+      node.fields = _newNode as VariableDeclarationListImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -2479,13 +2468,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeAnnotationImpl;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     }
     return visitNormalFormalParameter(node);
@@ -2495,11 +2484,11 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     if (identical(node.loopVariable, _oldNode)) {
       (node as ForEachPartsWithDeclarationImpl).loopVariable =
-          _newNode as DeclaredIdentifier;
+          _newNode as DeclaredIdentifierImpl;
       return true;
     } else if (identical(node.iterable, _oldNode)) {
       (node as ForEachPartsWithDeclarationImpl).iterable =
-          _newNode as Expression;
+          _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2509,11 +2498,11 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     if (identical(node.identifier, _oldNode)) {
       (node as ForEachPartsWithIdentifierImpl).identifier =
-          _newNode as SimpleIdentifier;
+          _newNode as SimpleIdentifierImpl;
       return true;
     } else if (identical(node.iterable, _oldNode)) {
       (node as ForEachPartsWithIdentifierImpl).iterable =
-          _newNode as Expression;
+          _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2522,10 +2511,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitForElement(ForElement node) {
     if (identical(node.forLoopParts, _oldNode)) {
-      (node as ForElementImpl).forLoopParts = _newNode as ForLoopParts;
+      (node as ForElementImpl).forLoopParts = _newNode as ForLoopPartsImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      (node as ForElementImpl).body = _newNode as CollectionElement;
+      (node as ForElementImpl).body = _newNode as CollectionElementImpl;
       return true;
     }
     return visitNode(node);
@@ -2543,10 +2532,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitForPartsWithDeclarations(
       covariant ForPartsWithDeclarationsImpl node) {
     if (identical(node.variables, _oldNode)) {
-      node.variables = _newNode as VariableDeclarationList;
+      node.variables = _newNode as VariableDeclarationListImpl;
       return true;
     } else if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     } else if (_replaceInList(node.updaters)) {
       return true;
@@ -2557,10 +2546,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitForPartsWithExpression(covariant ForPartsWithExpressionImpl node) {
     if (identical(node.initialization, _oldNode)) {
-      node.initialization = _newNode as Expression;
+      node.initialization = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     } else if (_replaceInList(node.updaters)) {
       return true;
@@ -2571,10 +2560,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitForStatement(ForStatement node) {
     if (identical(node.forLoopParts, _oldNode)) {
-      (node as ForStatementImpl).forLoopParts = _newNode as ForLoopParts;
+      (node as ForStatementImpl).forLoopParts = _newNode as ForLoopPartsImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      (node as ForStatementImpl).body = _newNode as Statement;
+      (node as ForStatementImpl).body = _newNode as StatementImpl;
       return true;
     }
     return visitNode(node);
@@ -2583,10 +2572,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (identical(node.functionExpression, _oldNode)) {
-      node.functionExpression = _newNode as FunctionExpression;
+      node.functionExpression = _newNode as FunctionExpressionImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -2596,7 +2585,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitFunctionDeclarationStatement(
       covariant FunctionDeclarationStatementImpl node) {
     if (identical(node.functionDeclaration, _oldNode)) {
-      node.functionDeclaration = _newNode as FunctionDeclaration;
+      node.functionDeclaration = _newNode as FunctionDeclarationImpl;
       return true;
     }
     return visitNode(node);
@@ -2605,13 +2594,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitFunctionExpression(covariant FunctionExpressionImpl node) {
     if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as FunctionBody;
+      node.body = _newNode as FunctionBodyImpl;
       return true;
     }
     return visitNode(node);
@@ -2621,13 +2610,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitFunctionExpressionInvocation(
       covariant FunctionExpressionInvocationImpl node) {
     if (identical(node.function, _oldNode)) {
-      node.function = _newNode as Expression;
+      node.function = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
-      node.argumentList = _newNode as ArgumentList;
+      node.argumentList = _newNode as ArgumentListImpl;
       return true;
     } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList;
+      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -2648,13 +2637,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -2664,13 +2653,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitFunctionTypedFormalParameter(
       covariant FunctionTypedFormalParameterImpl node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     }
     return visitNormalFormalParameter(node);
@@ -2679,13 +2668,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool? visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     }
     return null;
@@ -2695,20 +2684,12 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitGenericTypeAlias(GenericTypeAlias node) {
     var nodeImpl = node as GenericTypeAliasImpl;
     if (identical(node.typeParameters, _oldNode)) {
-      nodeImpl.typeParameters = _newNode as TypeParameterList;
+      nodeImpl.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.type, _oldNode)) {
-      nodeImpl.type = _newNode as TypeAnnotation;
+      nodeImpl.type = _newNode as TypeAnnotationImpl;
       return true;
     } else if (_replaceInList(node.metadata)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitHideClause(covariant HideClauseImpl node) {
-    if (_replaceInList(node.elements)) {
       return true;
     }
     return visitNode(node);
@@ -2725,13 +2706,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitIfElement(IfElement node) {
     if (identical(node.condition, _oldNode)) {
-      (node as IfElementImpl).condition = _newNode as Expression;
+      (node as IfElementImpl).condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.thenElement, _oldNode)) {
-      (node as IfElementImpl).thenElement = _newNode as CollectionElement;
+      (node as IfElementImpl).thenElement = _newNode as CollectionElementImpl;
       return true;
     } else if (identical(node.elseElement, _oldNode)) {
-      (node as IfElementImpl).elseElement = _newNode as CollectionElement;
+      (node as IfElementImpl).elseElement = _newNode as CollectionElementImpl;
       return true;
     }
     return visitNode(node);
@@ -2740,13 +2721,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitIfStatement(covariant IfStatementImpl node) {
     if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.thenStatement, _oldNode)) {
-      node.thenStatement = _newNode as Statement;
+      node.thenStatement = _newNode as StatementImpl;
       return true;
     } else if (identical(node.elseStatement, _oldNode)) {
-      node.elseStatement = _newNode as Statement;
+      node.elseStatement = _newNode as StatementImpl;
       return true;
     }
     return visitNode(node);
@@ -2775,7 +2756,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitImportDirective(covariant ImportDirectiveImpl node) {
     if (identical(node.prefix, _oldNode)) {
-      node.prefix = _newNode as SimpleIdentifier;
+      node.prefix = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNamespaceDirective(node);
@@ -2784,10 +2765,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitIndexExpression(covariant IndexExpressionImpl node) {
     if (identical(node.target, _oldNode)) {
-      node.target = _newNode as Expression;
+      node.target = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.index, _oldNode)) {
-      node.index = _newNode as Expression;
+      node.index = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2797,10 +2778,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
     if (identical(node.constructorName, _oldNode)) {
-      node.constructorName = _newNode as ConstructorName;
+      node.constructorName = _newNode as ConstructorNameImpl;
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
-      node.argumentList = _newNode as ArgumentList;
+      node.argumentList = _newNode as ArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -2813,7 +2794,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitInterpolationExpression(
       covariant InterpolationExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2825,10 +2806,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitIsExpression(covariant IsExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeAnnotationImpl;
       return true;
     }
     return visitNode(node);
@@ -2837,7 +2818,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitLabel(covariant LabelImpl node) {
     if (identical(node.label, _oldNode)) {
-      node.label = _newNode as SimpleIdentifier;
+      node.label = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -2846,7 +2827,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitLabeledStatement(covariant LabeledStatementImpl node) {
     if (identical(node.statement, _oldNode)) {
-      node.statement = _newNode as Statement;
+      node.statement = _newNode as StatementImpl;
       return true;
     } else if (_replaceInList(node.labels)) {
       return true;
@@ -2864,7 +2845,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     if (identical(node.name2, _oldNode)) {
-      node.name = _newNode as LibraryIdentifier;
+      node.name = _newNode as LibraryIdentifierImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -2889,10 +2870,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitMapLiteralEntry(covariant MapLiteralEntryImpl node) {
     if (identical(node.key, _oldNode)) {
-      node.key = _newNode as Expression;
+      node.key = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.value, _oldNode)) {
-      node.value = _newNode as Expression;
+      node.value = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2901,16 +2882,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as FunctionBody;
+      node.body = _newNode as FunctionBodyImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -2919,16 +2900,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitMethodInvocation(covariant MethodInvocationImpl node) {
     if (identical(node.target, _oldNode)) {
-      node.target = _newNode as Expression;
+      node.target = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.methodName, _oldNode)) {
-      node.methodName = _newNode as SimpleIdentifier;
+      node.methodName = _newNode as SimpleIdentifierImpl;
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
-      node.argumentList = _newNode as ArgumentList;
+      node.argumentList = _newNode as ArgumentListImpl;
       return true;
     } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList;
+      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -2937,18 +2918,18 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     if (identical(node.documentationComment, _oldNode)) {
-      node.documentationComment = _newNode as Comment;
+      node.documentationComment = _newNode as CommentImpl;
       return true;
     } else if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.onClause, _oldNode)) {
-      node.onClause = _newNode as OnClause;
+      node.onClause = _newNode as OnClauseImpl;
       return true;
     } else if (identical(node.implementsClause, _oldNode)) {
-      node.implementsClause = _newNode as ImplementsClause;
+      node.implementsClause = _newNode as ImplementsClauseImpl;
       return true;
     } else if (_replaceInList(node.members)) {
       return true;
@@ -2959,10 +2940,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitNamedExpression(covariant NamedExpressionImpl node) {
     if (identical(node.name, _oldNode)) {
-      node.name = _newNode as Label;
+      node.name = _newNode as LabelImpl;
       return true;
     } else if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -2971,10 +2952,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool? visitNamedType(covariant NamedTypeImpl node) {
     if (identical(node.name, _oldNode)) {
-      node.name = _newNode as Identifier;
+      node.name = _newNode as IdentifierImpl;
       return true;
     } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList;
+      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -2990,7 +2971,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitNativeFunctionBody(covariant NativeFunctionBodyImpl node) {
     if (identical(node.stringLiteral, _oldNode)) {
-      node.stringLiteral = _newNode as StringLiteral;
+      node.stringLiteral = _newNode as StringLiteralImpl;
       return true;
     }
     return visitNode(node);
@@ -3002,7 +2983,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   bool visitNormalFormalParameter(covariant NormalFormalParameterImpl node) {
     if (identical(node.documentationComment, _oldNode)) {
-      node.documentationComment = _newNode as Comment;
+      node.documentationComment = _newNode as CommentImpl;
       return true;
     } else if (_replaceInList(node.metadata)) {
       return true;
@@ -3025,7 +3006,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitParenthesizedExpression(
       covariant ParenthesizedExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3038,7 +3019,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitPartOfDirective(covariant PartOfDirectiveImpl node) {
     if (identical(node.libraryName, _oldNode)) {
-      node.libraryName = _newNode as LibraryIdentifier;
+      node.libraryName = _newNode as LibraryIdentifierImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -3047,7 +3028,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitPostfixExpression(covariant PostfixExpressionImpl node) {
     if (identical(node.operand, _oldNode)) {
-      node.operand = _newNode as Expression;
+      node.operand = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3056,10 +3037,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     if (identical(node.prefix, _oldNode)) {
-      node.prefix = _newNode as SimpleIdentifier;
+      node.prefix = _newNode as SimpleIdentifierImpl;
       return true;
     } else if (identical(node.identifier, _oldNode)) {
-      node.identifier = _newNode as SimpleIdentifier;
+      node.identifier = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -3068,7 +3049,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitPrefixExpression(covariant PrefixExpressionImpl node) {
     if (identical(node.operand, _oldNode)) {
-      node.operand = _newNode as Expression;
+      node.operand = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3077,10 +3058,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitPropertyAccess(covariant PropertyAccessImpl node) {
     if (identical(node.target, _oldNode)) {
-      node.target = _newNode as Expression;
+      node.target = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.propertyName, _oldNode)) {
-      node.propertyName = _newNode as SimpleIdentifier;
+      node.propertyName = _newNode as SimpleIdentifierImpl;
       return true;
     }
     return visitNode(node);
@@ -3099,7 +3080,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     if (_replaceInList(node.positionalFields)) {
       return true;
     } else if (identical(node.namedFields, _oldNode)) {
-      // node.namedFields = _newNode as RecordTypeAnnotationNamedFields;
+      // node.namedFields = _newNode as RecordTypeAnnotationNamedFieldsImpl;
       throw UnimplementedError();
     }
     return visitNode(node);
@@ -3111,7 +3092,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.type, _oldNode)) {
-      // node.type = _newNode as TypeAnnotation;
+      // node.type = _newNode as TypeAnnotationImpl;
       throw UnimplementedError();
     }
     return visitNode(node);
@@ -3132,7 +3113,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.type, _oldNode)) {
-      // node.type = _newNode as TypeAnnotation;
+      // node.type = _newNode as TypeAnnotationImpl;
       throw UnimplementedError();
     }
     return visitNode(node);
@@ -3142,10 +3123,19 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     if (identical(node.constructorName, _oldNode)) {
-      node.constructorName = _newNode as SimpleIdentifier;
+      node.constructorName = _newNode as SimpleIdentifierImpl;
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
-      node.argumentList = _newNode as ArgumentList;
+      node.argumentList = _newNode as ArgumentListImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool? visitRelationalPattern(covariant RelationalPatternImpl node) {
+    if (identical(node.operand, _oldNode)) {
+      node.operand = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3157,7 +3147,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitReturnStatement(covariant ReturnStatementImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3175,14 +3165,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitShowClause(covariant ShowClauseImpl node) {
-    if (_replaceInList(node.elements)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitShowCombinator(covariant ShowCombinatorImpl node) {
     if (_replaceInList(node.shownNames)) {
       return true;
@@ -3191,18 +3173,9 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitShowHideElement(covariant ShowHideElementImpl node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as SimpleIdentifier;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeAnnotationImpl;
       return true;
     }
     return visitNormalFormalParameter(node);
@@ -3217,7 +3190,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitSpreadElement(SpreadElement node) {
     if (identical(node.expression, _oldNode)) {
-      (node as SpreadElementImpl).expression = _newNode as Expression;
+      (node as SpreadElementImpl).expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3235,10 +3208,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     if (identical(node.constructorName, _oldNode)) {
-      node.constructorName = _newNode as SimpleIdentifier;
+      node.constructorName = _newNode as SimpleIdentifierImpl;
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
-      node.argumentList = _newNode as ArgumentList;
+      node.argumentList = _newNode as ArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -3251,13 +3224,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeAnnotationImpl;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      node.typeParameters = _newNode as TypeParameterListImpl;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
+      node.parameters = _newNode as FormalParameterListImpl;
       return true;
     }
     return visitNormalFormalParameter(node);
@@ -3266,7 +3239,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitSwitchCase(covariant SwitchCaseImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitSwitchMember(node);
@@ -3288,7 +3261,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitSwitchStatement(covariant SwitchStatementImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     } else if (_replaceInList(node.members)) {
       return true;
@@ -3305,7 +3278,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitThrowExpression(covariant ThrowExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3315,7 +3288,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitTopLevelVariableDeclaration(
       covariant TopLevelVariableDeclarationImpl node) {
     if (identical(node.variables, _oldNode)) {
-      node.variables = _newNode as VariableDeclarationList;
+      node.variables = _newNode as VariableDeclarationListImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -3324,10 +3297,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitTryStatement(covariant TryStatementImpl node) {
     if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Block;
+      node.body = _newNode as BlockImpl;
       return true;
     } else if (identical(node.finallyBlock, _oldNode)) {
-      node.finallyBlock = _newNode as Block;
+      node.finallyBlock = _newNode as BlockImpl;
       return true;
     } else if (_replaceInList(node.catchClauses)) {
       return true;
@@ -3345,7 +3318,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   bool visitTypedLiteral(covariant TypedLiteralImpl node) {
     if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList;
+      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -3363,7 +3336,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitTypeParameter(covariant TypeParameterImpl node) {
     if (identical(node.bound, _oldNode)) {
-      node.bound = _newNode as TypeAnnotation;
+      node.bound = _newNode as TypeAnnotationImpl;
       return true;
     }
     return visitNode(node);
@@ -3379,7 +3352,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   bool visitUriBasedDirective(covariant UriBasedDirectiveImpl node) {
     if (identical(node.uri, _oldNode)) {
-      node.uri = _newNode as StringLiteral;
+      node.uri = _newNode as StringLiteralImpl;
       return true;
     }
     return visitAnnotatedNode(node);
@@ -3388,7 +3361,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     if (identical(node.initializer, _oldNode)) {
-      node.initializer = _newNode as Expression;
+      node.initializer = _newNode as ExpressionImpl;
       return true;
       // TODO(srawlins) also replace node's declared element's
       // `constantInitializer`, if the element is [ConstFieldElementImpl],
@@ -3401,7 +3374,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitVariableDeclarationList(
       covariant VariableDeclarationListImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeAnnotationImpl;
       return true;
     } else if (_replaceInList(node.variables)) {
       return true;
@@ -3413,7 +3386,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitVariableDeclarationStatement(
       covariant VariableDeclarationStatementImpl node) {
     if (identical(node.variables, _oldNode)) {
-      node.variables = _newNode as VariableDeclarationList;
+      node.variables = _newNode as VariableDeclarationListImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool? visitWhenClause(covariant WhenClauseImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3422,10 +3404,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitWhileStatement(covariant WhileStatementImpl node) {
     if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
+      node.condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Statement;
+      node.body = _newNode as StatementImpl;
       return true;
     }
     return visitNode(node);
@@ -3442,7 +3424,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitYieldStatement(covariant YieldStatementImpl node) {
     if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as Expression;
+      node.expression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -3513,8 +3495,8 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addToScope(node.exceptionParameter2?.name);
-    _addToScope(node.stackTraceParameter2?.name);
+    _addToScope(node.exceptionParameter?.name);
+    _addToScope(node.stackTraceParameter?.name);
     super.visitCatchClause(node);
   }
 

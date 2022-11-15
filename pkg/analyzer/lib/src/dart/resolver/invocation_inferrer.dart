@@ -195,6 +195,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         contextReturnType: contextType,
         isConst: _isConst,
         errorReporter: resolver.errorReporter,
+        inferenceErrorListener: resolver.inferenceErrorListener,
         errorNode: _errorNode,
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
       );
@@ -492,7 +493,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       Expression value;
       ParameterElement? parameter;
       Object parameterKey;
-      if (argument is NamedExpression) {
+      if (argument is NamedExpressionImpl) {
         value = argument.expression;
         parameterKey = argument.name.label.name;
       } else {

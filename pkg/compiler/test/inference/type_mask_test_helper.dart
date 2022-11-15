@@ -8,7 +8,7 @@ library type_mask_test_helper;
 
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 
 export 'package:compiler/src/inferrer/types.dart';
 

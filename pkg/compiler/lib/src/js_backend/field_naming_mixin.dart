@@ -21,7 +21,7 @@ abstract class _MinifiedFieldNamer implements Namer {
     }
 
     _FieldNamingScope names;
-    if (element is JRecordField) {
+    if (element is JContextField) {
       names = _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
       ClassEntity cls = element.enclosingClass;
@@ -137,7 +137,7 @@ class _FieldNamingScope {
     world.elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       // TODO(sra): Don't add elided names.
-      if (member.isField && member.isInstanceMember) result.add(member);
+      if (member is FieldEntity && member.isInstanceMember) result.add(member);
     });
 
     registry.scopes[cls] = result;

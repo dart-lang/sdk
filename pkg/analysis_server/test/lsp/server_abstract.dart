@@ -325,6 +325,7 @@ mixin ClientCapabilitiesHelperMixin {
           tokenModifiers: [],
           tokenTypes: []).toJson(),
       'typeDefinition': {'dynamicRegistration': true},
+      'typeHierarchy': {'dynamicRegistration': true},
     });
   }
 
@@ -536,6 +537,14 @@ mixin ClientCapabilitiesHelperMixin {
   ) {
     return extendTextDocumentCapabilities(source, {
       'hover': {'dynamicRegistration': true}
+    });
+  }
+
+  TextDocumentClientCapabilities withLineFoldingOnly(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'foldingRange': {'lineFoldingOnly': true},
     });
   }
 
@@ -1225,7 +1234,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
-  Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
+  Future<List<FoldingRange>> getFoldingRanges(Uri uri) {
     final request = makeRequest(
       Method.textDocument_foldingRange,
       FoldingRangeParams(
@@ -1469,6 +1478,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       // error handler prevents that, though since the Future completed with
       // an error it will still be handled as such when the future is later
       // awaited.
+
+      // TODO: Fix this static error.
+      // ignore: body_might_complete_normally_catch_error
       outboundRequest.catchError((_) {});
     });
 
@@ -1710,6 +1722,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, PlaceholderAndRange.fromJson);
   }
 
+  Future<List<TypeHierarchyItem>?> prepareTypeHierarchy(Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_prepareTypeHierarchy,
+      TypeHierarchyPrepareParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TypeHierarchyItem.fromJson));
+  }
+
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
   Future<T> provideConfig<T>(
@@ -1922,6 +1946,26 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       uri: uri,
       name: path.basename(uri.path),
     );
+  }
+
+  Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
+      TypeHierarchyItem item) {
+    final request = makeRequest(
+      Method.typeHierarchy_subtypes,
+      TypeHierarchySubtypesParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TypeHierarchyItem.fromJson));
+  }
+
+  Future<List<TypeHierarchyItem>?> typeHierarchySupertypes(
+      TypeHierarchyItem item) {
+    final request = makeRequest(
+      Method.typeHierarchy_supertypes,
+      TypeHierarchySupertypesParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TypeHierarchyItem.fromJson));
   }
 
   /// Tells the server the config has changed, and provides the supplied config

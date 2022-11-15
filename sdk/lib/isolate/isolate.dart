@@ -702,6 +702,7 @@ class Isolate {
 ///
 /// [SendPort]s can be transmitted to other isolates, and they preserve equality
 /// when sent.
+@pragma("vm:entry-point")
 abstract class SendPort implements Capability {
   /// Sends an asynchronous [message] through this send port, to its
   /// corresponding [ReceivePort].
@@ -713,10 +714,11 @@ abstract class SendPort implements Capability {
   ///   - [int]
   ///   - [double]
   ///   - [String]
-  ///   - [List] or [Map] (whose elements are any of these)
+  ///   - [List], [Map] or [Set] (whose elements are any of these)
   ///   - [TransferableTypedData]
   ///   - [SendPort]
   ///   - [Capability]
+  ///   - [Type] representing one of these types, Object, dynamic, void or Never
   ///
   /// If the sender and receiver isolate share the same code (e.g. isolates
   /// created via [Isolate.spawn]), the transitive object graph of [message] can

@@ -39,11 +39,6 @@ class FunctionPtr;
 // requirements above).
 class ClosureFunctionsCache : public AllStatic {
  public:
-  static FunctionPtr LookupClosureFunction(const Class& owner,
-                                           TokenPosition pos);
-  static FunctionPtr LookupClosureFunctionLocked(const Class& owner,
-                                                 TokenPosition pos);
-
   static FunctionPtr LookupClosureFunction(const Function& parent,
                                            TokenPosition token_pos);
   static FunctionPtr LookupClosureFunctionLocked(const Function& parent,
@@ -59,8 +54,6 @@ class ClosureFunctionsCache : public AllStatic {
 
   static intptr_t FindClosureIndex(const Function& needle);
   static FunctionPtr ClosureFunctionFromIndex(intptr_t idx);
-
-  static FunctionPtr GetUniqueInnerClosure(const Function& outer);
 
   // Visits all closure functions registered in the object store.
   //

@@ -987,6 +987,13 @@ class Assembler : public AssemblerBase {
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
 
+  void RangeCheck(Register value,
+                  Register temp,
+                  intptr_t low,
+                  intptr_t high,
+                  RangeCheckCondition condition,
+                  Label* target) override;
+
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
@@ -1484,11 +1491,6 @@ class Assembler : public AssemblerBase {
     kJumpToBarrier,
   };
 
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
   void StoreIntoArrayBarrier(Register object,
                              Register slot,
                              Register value,

@@ -452,8 +452,8 @@ class Object {
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
   V(ExceptionHandlers, empty_async_exception_handlers)                         \
-  V(Array, extractor_parameter_types)                                          \
-  V(Array, extractor_parameter_names)                                          \
+  V(Array, synthetic_getter_parameter_types)                                   \
+  V(Array, synthetic_getter_parameter_names)                                   \
   V(Sentinel, sentinel)                                                        \
   V(Sentinel, transition_sentinel)                                             \
   V(Sentinel, unknown_constant)                                                \
@@ -712,6 +712,12 @@ class Object {
   void StoreCompressedPointer(compressed_type const* addr, type value) const {
     ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
                                                                          value);
+  }
+  template <typename type>
+  void StorePointerUnaligned(type const* addr,
+                             type value,
+                             Thread* thread) const {
+    ptr()->untag()->StorePointerUnaligned<type>(addr, value, thread);
   }
 
   // Use for storing into an explicitly Smi-typed field of an object
@@ -1685,6 +1691,8 @@ class Class : public Object {
                                       UntaggedFunction::Kind kind,
                                       bool create_if_absent) const;
 
+  FunctionPtr GetRecordFieldGetter(const String& getter_name) const;
+
   void Finalize() const;
 
   ObjectPtr Invoke(const String& selector,
@@ -1915,6 +1923,8 @@ class Class : public Object {
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
                                          UntaggedFunction::Kind kind) const;
+
+  FunctionPtr CreateRecordFieldGetter(const String& getter_name) const;
 
   // Returns the bitmap of unboxed fields
   UnboxedFieldBitmap CalculateFieldOffsets() const;
@@ -3002,6 +3012,10 @@ class Function : public Object {
     return kind() == UntaggedFunction::kNoSuchMethodDispatcher;
   }
 
+  bool IsRecordFieldGetter() const {
+    return kind() == UntaggedFunction::kRecordFieldGetter;
+  }
+
   bool IsInvokeFieldDispatcher() const {
     return kind() == UntaggedFunction::kInvokeFieldDispatcher;
   }
@@ -3093,6 +3107,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kRecordFieldGetter:
         return true;
       case UntaggedFunction::kClosureFunction:
       case UntaggedFunction::kImplicitClosureFunction:
@@ -3127,6 +3142,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kRecordFieldGetter:
         return false;
       default:
         UNREACHABLE();
@@ -3901,6 +3917,11 @@ class Function : public Object {
   COMPILE_ASSERT(kNumTagBits <=
                  (kBitsPerByte *
                   sizeof(decltype(UntaggedFunction::kind_tag_))));
+
+#define ASSERT_FUNCTION_KIND_IN_RANGE(Name)                                    \
+  COMPILE_ASSERT(UntaggedFunction::k##Name < (1 << kKindTagSize));
+  FOR_EACH_RAW_FUNCTION_KIND(ASSERT_FUNCTION_KIND_IN_RANGE)
+#undef ASSERT_FUNCTION_KIND_IN_RANGE
 
   class KindBits : public BitField<uint32_t,
                                    UntaggedFunction::Kind,
@@ -5140,8 +5161,7 @@ class KernelProgramInfo : public Object {
                                   const Array& scripts,
                                   const Array& libraries_cache,
                                   const Array& classes_cache,
-                                  const Object& retained_kernel_blob,
-                                  const uint32_t binary_version);
+                                  const Object& retained_kernel_blob);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedKernelProgramInfo));
@@ -5172,11 +5192,6 @@ class KernelProgramInfo : public Object {
 
   ArrayPtr constants() const { return untag()->constants(); }
   void set_constants(const Array& constants) const;
-
-  uint32_t kernel_binary_version() const {
-    return untag()->kernel_binary_version_;
-  }
-  void set_kernel_binary_version(uint32_t version) const;
 
   // If we load a kernel blob with evaluated constants, then we delay setting
   // the native names of [Function] objects until we've read the constant table
@@ -6964,6 +6979,8 @@ class Code : public Object {
   friend class UntaggedFunction;
   friend class CallSiteResetter;
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
+  friend class InstanceCall;       // for StorePointerUnaligned
+  friend class StaticCall;         // for StorePointerUnaligned
 };
 
 class Context : public Object {
@@ -7681,7 +7698,9 @@ class Instance : public Object {
 
  protected:
 #ifndef PRODUCT
-  virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
+  virtual void PrintSharedInstanceJSON(JSONObject* jsobj,
+                                       bool ref,
+                                       bool include_id = true) const;
 #endif
 
  private:
@@ -8044,6 +8063,7 @@ class TypeArguments : public Instance {
       bool* with_runtime_check = nullptr) const;
   bool CanShareFunctionTypeArguments(const Function& function,
                                      bool* with_runtime_check = nullptr) const;
+  TypeArgumentsPtr TruncatedTo(intptr_t length) const;
 
   // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
@@ -8182,7 +8202,7 @@ class AbstractType : public Instance {
 
   Nullability nullability() const {
     return static_cast<Nullability>(
-        UntaggedAbstractType::NullabilityBits::decode(untag()->flags_));
+        UntaggedAbstractType::NullabilityBits::decode(untag()->flags()));
   }
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
@@ -8304,7 +8324,8 @@ class AbstractType : public Instance {
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
-  void PrintName(NameVisibility visibility, BaseTextBuffer* printer) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   // Add the class name and URI of each occurring type to the uris
   // list and mark ambiguous triplets to be printed.
@@ -8411,6 +8432,11 @@ class AbstractType : public Instance {
   // non-nullable Object is also a catch-all type.
   bool IsCatchAllType() const { return IsDynamicType() || IsObjectType(); }
 
+  // Returns true if this type has a type class permitted by SendPort.send for
+  // messages between isolates in different groups. Does not recursively visit
+  // type arguments.
+  bool IsTypeClassAllowedBySpawnUri() const;
+
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
                    Heap::Space space,
@@ -8477,7 +8503,7 @@ class AbstractType : public Instance {
 
   UntaggedAbstractType::TypeState type_state() const {
     return static_cast<UntaggedAbstractType::TypeState>(
-        UntaggedAbstractType::TypeStateBits::decode(untag()->flags_));
+        UntaggedAbstractType::TypeStateBits::decode(untag()->flags()));
   }
   void set_flags(uint32_t value) const;
   void set_type_state(UntaggedAbstractType::TypeState value) const;
@@ -8534,6 +8560,8 @@ class Type : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -8672,6 +8700,8 @@ class FunctionType : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -8936,6 +8966,8 @@ class RecordType : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -9031,6 +9063,8 @@ class TypeRef : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
 
@@ -9114,6 +9148,8 @@ class TypeParameter : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const { return; }
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
 
@@ -9196,7 +9232,7 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uint32_t CanonicalizeHash() const { return AsTruncatedUint32Value(); }
+  virtual uint32_t CanonicalizeHash() const;
   virtual bool Equals(const Instance& other) const;
 
   virtual ObjectPtr HashCode() const { return ptr(); }
@@ -10758,6 +10794,13 @@ class Record : public Instance {
     return OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data) +
            kBytesPerElement * index;
   }
+  static intptr_t field_index_at_offset(intptr_t offset_in_bytes) {
+    const intptr_t index =
+        (offset_in_bytes - OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data)) /
+        kBytesPerElement;
+    ASSERT(index >= 0);
+    return index;
+  }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedRecord) ==
@@ -10784,12 +10827,23 @@ class Record : public Instance {
   // quite expensive to query.
   RecordTypePtr GetRecordType() const;
 
+  // Parses positional field name and return its index,
+  // or -1 if [field_name] is not a valid positional field name.
+  static intptr_t GetPositionalFieldIndexFromFieldName(
+      const String& field_name);
+
+  // Returns index of the field with given name, or -1
+  // if such field doesn't exist.
+  // Supports positional field names ("$0", "$1", etc).
+  intptr_t GetFieldIndexByName(const String& field_name) const;
+
  private:
   void set_num_fields(intptr_t num_fields) const;
   void set_field_names(const Array& field_names) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
   friend class Class;
+  friend class DeferredObject;  // For set_field_names.
   friend class Object;
 };
 

@@ -782,7 +782,10 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NOT_A_TYPE: [
       ImportLibrary.forType,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
@@ -817,6 +820,7 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
       DataDriven.new,
       ImportLibrary.forExtension,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forFunction,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
@@ -1290,6 +1294,15 @@ class FixProcessor extends BaseProcessor {
     HintCode.INVALID_SEALED_ANNOTATION: [
       RemoveAnnotation.new,
     ],
+    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [
+      CreateMissingOverrides.new,
+    ],
+    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO: [
+      CreateMissingOverrides.new,
+    ],
+    HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS: [
+      CreateMissingOverrides.new,
+    ],
     HintCode.MISSING_REQUIRED_PARAM: [
       AddMissingRequiredArgument.new,
     ],
@@ -1528,7 +1541,7 @@ class FixProcessor extends BaseProcessor {
         for (var multiGenerator in multiGenerators) {
           var multiProducer = multiGenerator();
           multiProducer.configure(context);
-          await for (var producer in multiProducer.producers) {
+          for (var producer in await multiProducer.producers) {
             await compute(producer);
           }
         }

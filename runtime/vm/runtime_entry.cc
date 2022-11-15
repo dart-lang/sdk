@@ -733,6 +733,29 @@ DEFINE_RUNTIME_ENTRY(AllocateRecord, 2) {
   arguments.SetReturn(record);
 }
 
+// Allocate a new small record instance and initialize its fields.
+// Arg0: number of fields.
+// Arg1: field names.
+// Arg2-Arg4: field values.
+// Return value: newly allocated record.
+DEFINE_RUNTIME_ENTRY(AllocateSmallRecord, 5) {
+  const Smi& num_fields = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& field_names = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& value0 = Instance::CheckedHandle(zone, arguments.ArgAt(2));
+  const auto& value1 = Instance::CheckedHandle(zone, arguments.ArgAt(3));
+  const auto& value2 = Instance::CheckedHandle(zone, arguments.ArgAt(4));
+  const Record& record =
+      Record::Handle(zone, Record::New(num_fields.Value(), field_names,
+                                       SpaceForRuntimeAllocation()));
+  ASSERT(num_fields.Value() == 2 || num_fields.Value() == 3);
+  record.SetFieldAt(0, value0);
+  record.SetFieldAt(1, value1);
+  if (num_fields.Value() > 2) {
+    record.SetFieldAt(2, value2);
+  }
+  arguments.SetReturn(record);
+}
+
 // Allocate a SuspendState object.
 // Arg0: frame size.
 // Arg1: existing SuspendState object or function data.
@@ -2622,13 +2645,21 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
       cls = cls.SuperClass();
     }
 
+    if (receiver.IsRecord()) {
+      const Record& record = Record::Cast(receiver);
+      const intptr_t field_index = record.GetFieldIndexByName(function_name);
+      if (field_index >= 0) {
+        return record.FieldAt(field_index);
+      }
+    }
+
     // Fall through for noSuchMethod
   } else {
     // Call through field.
     // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
     // number of arguments, or try (o.foo).call(...)
 
-    if ((target_name.ptr() == Symbols::Call().ptr()) && receiver.IsClosure()) {
+    if ((target_name.ptr() == Symbols::call().ptr()) && receiver.IsClosure()) {
       // Special case: closures are implemented with a call getter instead of a
       // call method and with lazy dispatchers the field-invocation-dispatcher
       // would perform the closure call.
@@ -2686,6 +2717,20 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
                                         orig_arguments_desc);
       }
       cls = cls.SuperClass();
+    }
+
+    if (receiver.IsRecord()) {
+      const Record& record = Record::Cast(receiver);
+      const intptr_t field_index =
+          record.GetFieldIndexByName(demangled_target_name);
+      if (field_index >= 0) {
+        const Object& getter_result =
+            Object::Handle(zone, record.FieldAt(field_index));
+        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+        orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
+        return DartEntry::InvokeClosure(thread, orig_arguments,
+                                        orig_arguments_desc);
+      }
     }
   }
 
@@ -3901,6 +3946,32 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     1,
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
+
+// Enables reusing `Dart_PropagateError` from `FfiCallInstr`.
+// `Dart_PropagateError` requires the native state and transitions into the VM.
+// So the flow is:
+// - FfiCallInstr (slow path)
+// - TransitionGeneratedToNative
+// - DLRT_PropagateError (this)
+// - Dart_PropagateError
+// - TransitionNativeToVM
+// - Throw
+extern "C" void DLRT_PropagateError(Dart_Handle handle) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("PropagateError %p", handle);
+  ASSERT(Thread::Current()->execution_state() == Thread::kThreadInNative);
+  ASSERT(Dart_IsError(handle));
+  Dart_PropagateError(handle);
+  // We should never exit through normal control flow.
+  UNREACHABLE();
+}
+
+// Not a leaf-function, throws error.
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    PropagateError,
+    1,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&DLRT_PropagateError));
 
 #if defined(USING_MEMORY_SANITIZER)
 #define MSAN_UNPOISON_RANGE reinterpret_cast<RuntimeFunction>(&__msan_unpoison)

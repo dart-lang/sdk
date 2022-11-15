@@ -50,13 +50,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
-    _unitElement.enums2 = _enclosingContext.enums;
+    _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
-    _unitElement.mixins2 = _enclosingContext.mixins;
-    _unitElement.topLevelVariables = _enclosingContext.properties
-        .whereType<TopLevelVariableElementImpl>()
-        .toList();
+    _unitElement.mixins = _enclosingContext.mixins;
+    _unitElement.topLevelVariables = _enclosingContext.topLevelVariables;
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
 
@@ -71,7 +69,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _container.documentationComment = getCommentNodeRawText(
           firstDirective.documentationComment,
         );
-        var firstDirectiveMetadata = firstDirective.element2?.metadata;
+        var firstDirectiveMetadata = firstDirective.element?.metadata;
         if (firstDirectiveMetadata != null) {
           _container.metadata = firstDirectiveMetadata;
         }
@@ -83,7 +81,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
     final index = _augmentationDirectiveIndex++;
     final element = _container.augmentationImports[index];
-    element as AugmentationImportElementImpl;
     element.metadata = _buildAnnotations(node.metadata);
   }
 
@@ -220,9 +217,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     // Build fields for all enum constants.
     var constants = node.constants;
-    var valuesElements = <Expression>[];
+    var valuesElements = <ExpressionImpl>[];
     for (var i = 0; i < constants.length; ++i) {
-      var constant = constants[i] as EnumConstantDeclarationImpl;
+      var constant = constants[i];
       var name = constant.name.lexeme;
       var field = ConstFieldElementImpl(name, constant.name.offset)
         ..hasImplicitType = true
@@ -241,9 +238,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var constructorSelector = constant.arguments?.constructorSelector;
       var constructorName = constructorSelector?.name.name;
 
-      var initializer = astFactory.instanceCreationExpression(
-        null,
-        ConstructorNameImpl(
+      var initializer = InstanceCreationExpressionImpl(
+        keyword: null,
+        constructorName: ConstructorNameImpl(
           type: NamedTypeImpl(
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
@@ -258,13 +255,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
                 )
               : null,
         ),
-        ArgumentListImpl(
+        argumentList: ArgumentListImpl(
           leftParenthesis: Tokens.openParenthesis(),
           arguments: [
             ...?constant.arguments?.argumentList.arguments,
           ],
           rightParenthesis: Tokens.closeParenthesis(),
         ),
+        typeArguments: null,
       );
 
       var variableDeclaration = VariableDeclarationImpl(
@@ -299,12 +297,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ..isConst = true
         ..isStatic = true
         ..isSynthetic = true;
-      var initializer = astFactory.listLiteral(
-        null,
-        null,
-        Tokens.openSquareBracket(),
-        valuesElements,
-        Tokens.closeSquareBracket(),
+      var initializer = ListLiteralImpl(
+        constKeyword: null,
+        typeArguments: null,
+        leftBracket: Tokens.openSquareBracket(),
+        elements: valuesElements,
+        rightBracket: Tokens.closeSquareBracket(),
       );
       valuesField.constantInitializer = initializer;
 
@@ -317,9 +315,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, 'List', -1),
         ),
-        typeArguments: astFactory.typeArgumentList(
-          Tokens.lt(),
-          [
+        typeArguments: TypeArgumentListImpl(
+          leftBracket: Tokens.lt(),
+          arguments: [
             NamedTypeImpl(
               name: astFactory.simpleIdentifier(
                 StringToken(TokenType.STRING, element.name, -1),
@@ -328,7 +326,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
               question: null,
             )
           ],
-          Tokens.gt(),
+          rightBracket: Tokens.gt(),
         ),
         question: null,
       );
@@ -375,7 +373,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElementImpl>().toList();
+    element.fields = holder.fields;
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
@@ -386,7 +384,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     final index = _exportDirectiveIndex++;
     final exportElement = _container.libraryExports[index];
-    exportElement as LibraryExportElementImpl;
     exportElement.metadata = _buildAnnotations(node.metadata);
     node.element = exportElement;
   }
@@ -433,7 +430,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _visitPropertyFirst<FieldDeclaration>(node.members);
       });
       element.accessors = holder.propertyAccessors;
-      element.fields = holder.properties.whereType<FieldElement>().toList();
+      element.fields = holder.fields;
       element.methods = holder.methods;
     }
 
@@ -446,7 +443,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
-      variable as VariableDeclarationImpl;
       var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
@@ -754,7 +750,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     final index = _importDirectiveIndex++;
     final importElement = _container.libraryImports[index];
-    importElement as LibraryImportElementImpl;
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
   }
@@ -895,8 +890,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     final libraryElement = _container;
     if (libraryElement is LibraryElementImpl) {
       final index = _partDirectiveIndex++;
-      final partElement = libraryElement.parts2[index];
-      partElement as PartElementImpl;
+      final partElement = libraryElement.parts[index];
       partElement.metadata = _buildAnnotations(node.metadata);
     }
   }
@@ -1036,7 +1030,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
-      variable as VariableDeclarationImpl;
       var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
@@ -1139,7 +1132,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElement>().toList();
+    element.fields = holder.fields;
     element.methods = holder.methods;
 
     _resolveConstructorFieldFormals(element);
@@ -1178,7 +1171,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
-    element.fields = holder.properties.whereType<FieldElement>().toList();
+    element.fields = holder.fields;
     element.methods = holder.methods;
 
     _resolveConstructorFieldFormals(element);
@@ -1332,12 +1325,13 @@ class _EnclosingContext {
   final List<ConstructorElementImpl> constructors = [];
   final List<EnumElementImpl> enums = [];
   final List<ExtensionElementImpl> extensions = [];
+  final List<FieldElementImpl> fields = [];
   final List<FunctionElementImpl> functions = [];
   final List<MethodElementImpl> methods = [];
   final List<MixinElementImpl> mixins = [];
   final List<ParameterElementImpl> parameters = [];
-  final List<PropertyInducingElementImpl> properties = [];
   final List<PropertyAccessorElementImpl> propertyAccessors = [];
+  final List<TopLevelVariableElementImpl> topLevelVariables = [];
   final List<TypeAliasElementImpl> typeAliases = [];
   final List<TypeParameterElementImpl> typeParameters = [];
   final bool hasConstConstructor;
@@ -1376,7 +1370,7 @@ class _EnclosingContext {
   }
 
   Reference addField(String name, FieldElementImpl element) {
-    properties.add(element);
+    fields.add(element);
     return _bindReference('@field', name, element);
   }
 
@@ -1433,7 +1427,7 @@ class _EnclosingContext {
 
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
-    properties.add(element);
+    topLevelVariables.add(element);
     return _bindReference('@variable', name, element);
   }
 

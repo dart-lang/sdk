@@ -26,11 +26,11 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
     final channel = ByteStreamServerChannel(
         stdinController.stream, stdoutController.sink, null);
 
-    return MockDartCliDebugAdapter._(
+    return MockDartCliDebugAdapter.withStreams(
         stdinController.sink, stdoutController.stream, channel);
   }
 
-  MockDartCliDebugAdapter._(
+  MockDartCliDebugAdapter.withStreams(
       this.stdin, this.stdout, ByteStreamServerChannel channel)
       : super(channel);
 

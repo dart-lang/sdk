@@ -59,8 +59,9 @@ import '../../js_backend/js_backend.dart'
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
+import '../../js_backend/runtime_types_new_interfaces.dart' show RecipeEncoder;
 import '../../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoderImpl, Ruleset, RulesetEncoder;
+    show RecipeEncoderImpl, Ruleset, RulesetEncoder;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_backend/deferred_holder_expression.dart'
     show
@@ -80,10 +81,10 @@ import '../../js_backend/string_reference.dart'
         StringReferenceFinalizer,
         StringReferenceFinalizerImpl,
         StringReferenceResource;
+import '../../js_model/js_world.dart';
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
-import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';

@@ -31,9 +31,8 @@ class BlazeFileUriResolver extends ResourceUriResolver {
     for (var genRoot in [
       ...workspace.binPaths,
       workspace.genfiles,
-      workspace.readonly,
     ]) {
-      if (genRoot != null && pathContext.isWithin(genRoot, path)) {
+      if (pathContext.isWithin(genRoot, path)) {
         String relative = pathContext.relative(path, from: genRoot);
         var writablePath = pathContext.join(workspace.root, relative);
         return pathContext.toUri(writablePath);
@@ -74,7 +73,6 @@ class BlazePackageUriResolver extends UriResolver {
     for (var root in [
       ..._workspace.binPaths,
       _workspace.genfiles,
-      _workspace.readonly,
       _workspace.root
     ]) {
       var uriParts = _restoreUriParts(root, path);
@@ -178,8 +176,6 @@ class BlazePackageUriResolver extends UriResolver {
 /// Information about a Blaze workspace.
 class BlazeWorkspace extends Workspace
     implements WorkspaceWithDefaultAnalysisOptions {
-  static const String _READONLY = 'READONLY';
-
   /// The name of the file that identifies a set of Blaze Targets.
   ///
   /// For Dart package purposes, a BUILD file identifies a package.
@@ -193,10 +189,6 @@ class BlazeWorkspace extends Workspace
   /// folder.
   @override
   final String root;
-
-  /// The absolute path to the optional read only workspace root, in the
-  /// `READONLY` folder if a git-based workspace, or `null`.
-  final String? readonly;
 
   /// The absolute paths to all `blaze-bin` folders.
   ///
@@ -224,7 +216,6 @@ class BlazeWorkspace extends Workspace
   BlazeWorkspace._(
     this.provider,
     this.root,
-    this.readonly,
     this.binPaths,
     this.genfiles, {
     required bool lookForBuildFileSubstitutes,
@@ -289,14 +280,6 @@ class BlazeWorkspace extends Workspace
       File writableFile = provider.getFile(absolutePath);
       if (writableFile.exists) {
         return writableFile;
-      }
-      // READONLY
-      final readonly = this.readonly;
-      if (readonly != null) {
-        File file = provider.getFile(context.join(readonly, relative));
-        if (file.exists) {
-          return file;
-        }
       }
       // If we couldn't find the file, assume that it has not yet been
       // generated, so send an event with all the paths that we tried.
@@ -420,13 +403,6 @@ class BlazeWorkspace extends Workspace
         return context.relative(p, from: bin);
       }
     }
-    // READONLY
-    final readonly = this.readonly;
-    if (readonly != null) {
-      if (context.isWithin(readonly, p)) {
-        return context.relative(p, from: readonly);
-      }
-    }
     // Not generated
     if (context.isWithin(root, p)) {
       return context.relative(p, from: root);
@@ -459,29 +435,14 @@ class BlazeWorkspace extends Workspace
     for (var folder in startFolder.withAncestors) {
       var parent = folder.parent;
 
-      // Found the READONLY folder, might be a git-based workspace.
-      Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
-      if (readonlyFolder.exists) {
-        String root = folder.path;
-        String readonlyRoot =
-            context.join(readonlyFolder.path, folder.shortName);
-        if (provider.getFolder(readonlyRoot).exists) {
-          var binPaths = _findBinFolderPaths(folder);
-          binPaths = binPaths..add(context.join(root, 'blaze-bin'));
-          return BlazeWorkspace._(provider, root, readonlyRoot, binPaths,
-              context.join(root, 'blaze-genfiles'),
-              lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
-        }
-      }
-
       final blazeOutFolder = parent.getChildAssumingFolder('blaze-out');
       if (blazeOutFolder.exists) {
         // Found the "out" folder; must be a Blaze workspace.
         String root = parent.path;
         var binPaths = _findBinFolderPaths(parent);
         binPaths = binPaths..add(context.join(root, 'blaze-bin'));
-        return BlazeWorkspace._(provider, root, null /* readonly */, binPaths,
-            context.join(root, 'blaze-genfiles'),
+        return BlazeWorkspace._(
+            provider, root, binPaths, context.join(root, 'blaze-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
 
@@ -490,13 +451,32 @@ class BlazeWorkspace extends Workspace
         String root = folder.path;
         var binPaths = _findBinFolderPaths(folder);
         binPaths = binPaths..add(context.join(root, 'blaze-bin'));
-        return BlazeWorkspace._(provider, root, null /* readonly */, binPaths,
-            context.join(root, 'blaze-genfiles'),
+        return BlazeWorkspace._(
+            provider, root, binPaths, context.join(root, 'blaze-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
     }
 
     return null;
+  }
+
+  /// Create the Blaze workspace with the given [root].
+  ///
+  /// This method should be used during build in google3, when we know for
+  /// sure the workspace root, but [file_paths.blazeWorkspaceMarker] is not
+  /// available.
+  static BlazeWorkspace forBuild({
+    required Folder root,
+  }) {
+    var provider = root.provider;
+    var blazeBin = root.getChildAssumingFolder('blaze-bin');
+    var blazeGenfiles = root.getChildAssumingFolder('blaze-genfiles');
+
+    var binPaths = _findBinFolderPaths(root);
+    binPaths.add(blazeBin.path);
+
+    return BlazeWorkspace._(provider, root.path, binPaths, blazeGenfiles.path,
+        lookForBuildFileSubstitutes: true);
   }
 
   /// Find the "bin" folder path, by searching for it.

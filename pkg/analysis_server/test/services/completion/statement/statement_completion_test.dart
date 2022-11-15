@@ -1451,13 +1451,14 @@ void f() {
 ''',
         atEnd: true);
     _assertHasChange(
-        'Insert a newline at the end of the current line',
+        'Add a semicolon and newline',
         '''
 void f() {
-  int g()
+  int g();
+  
 }
 ''',
-        (s) => _afterLast(s, '()'));
+        (s) => _afterLast(s, '();\n  '));
   }
 
   @failingTest

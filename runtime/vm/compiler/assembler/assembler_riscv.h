@@ -1242,6 +1242,13 @@ class Assembler : public MicroAssembler {
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
 
+  void RangeCheck(Register value,
+                  Register temp,
+                  intptr_t low,
+                  intptr_t high,
+                  RangeCheckCondition condition,
+                  Label* target) override;
+
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void CompareClassId(Register object,
@@ -1470,22 +1477,6 @@ class Assembler : public MicroAssembler {
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
-
-  enum BarrierFilterMode {
-    // Filter falls through into the barrier update code. Target label
-    // is a "after-store" label.
-    kJumpToNoUpdate,
-
-    // Filter falls through to the "after-store" code. Target label
-    // is barrier update code label.
-    kJumpToBarrier,
-  };
-
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

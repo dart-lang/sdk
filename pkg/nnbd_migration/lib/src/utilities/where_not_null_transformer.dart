@@ -69,7 +69,7 @@ class WhereNotNullTransformer {
     var type = decoratedType.type;
     var typeArguments = decoratedType.typeArguments;
     if (type is InterfaceType &&
-        type.element2 == _typeProvider.iterableElement &&
+        type.element == _typeProvider.iterableElement &&
         typeArguments.length == 1) {
       return DecoratedType(type, decoratedType.node,
           typeArguments: [typeArguments.single?.withNode(graph.never)]);
@@ -86,11 +86,11 @@ class WhereNotNullTransformer {
   /// checks or type casts in other parts of the code.
   DartType transformPostMigrationInvocationType(DartType type) {
     if (type is InterfaceType &&
-        type.element2 == _typeProvider.iterableElement) {
+        type.element == _typeProvider.iterableElement) {
       var typeArguments = type.typeArguments;
       if (typeArguments.length == 1) {
         return InterfaceTypeImpl(
-            element2: type.element2,
+            element: type.element,
             typeArguments: [_typeSystem.promoteToNonNull(typeArguments.single)],
             nullabilitySuffix: type.nullabilitySuffix);
       }

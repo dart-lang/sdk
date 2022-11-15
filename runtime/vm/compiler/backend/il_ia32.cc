@@ -1117,6 +1117,35 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Calls EAX within a safepoint and clobbers EBX.
     ASSERT(branch == EAX);
     __ call(temp);
+
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      compiler::Label not_error;
+      __ movl(temp,
+              compiler::Address(CallingConventions::kReturnReg,
+                                compiler::target::LocalHandle::ptr_offset()));
+      __ BranchIfSmi(temp, &not_error);
+      __ LoadClassId(temp, temp);
+      __ RangeCheck(temp, kNoRegister, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
+
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      __ movl(temp,
+              compiler::Address(
+                  THR, compiler::target::Thread::
+                           call_native_through_safepoint_entry_point_offset()));
+      __ pushl(CallingConventions::kReturnReg);
+      __ movl(EAX, compiler::Address(
+                       THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ call(temp);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ int3();
+#endif
+
+      __ Bind(&not_error);
+    }
   }
 
   // Restore the stack when a struct by value is returned into memory pointed
@@ -1676,7 +1705,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps =
-      class_id() == kArrayCid && ShouldEmitStoreBarrier() ? 1 : 0;
+      class_id() == kArrayCid && ShouldEmitStoreBarrier() ? 2 : 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1691,12 +1720,12 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   }
   switch (class_id()) {
     case kArrayCid:
-      locs->set_in(2, ShouldEmitStoreBarrier()
-                          ? Location::WritableRegister()
-                          : LocationRegisterOrConstant(value()));
+      locs->set_in(2, LocationRegisterOrConstant(value()));
       if (ShouldEmitStoreBarrier()) {
         locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
+        locs->set_in(2, Location::RegisterLocation(kWriteBarrierValueReg));
         locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
+        locs->set_temp(1, Location::RequiresRegister());
       }
       break;
     case kExternalTypedDataUint8ArrayCid:
@@ -1762,8 +1791,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (ShouldEmitStoreBarrier()) {
         Register value = locs()->in(2).reg();
         Register slot = locs()->temp(0).reg();
+        Register scratch = locs()->temp(1).reg();
         __ leal(slot, element_address);
-        __ StoreIntoArray(array, slot, value, CanValueBeSmi());
+        __ StoreIntoArray(array, slot, value, CanValueBeSmi(), scratch);
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, element_address, constant);
@@ -2518,8 +2548,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(EDI, compiler->parsed_function().function());
-    intptr_t threshold =
-        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    const intptr_t configured_optimization_counter_threshold =
+        compiler->thread()->isolate_group()->optimization_counter_threshold();
+    const int32_t threshold =
+        configured_optimization_counter_threshold * (loop_depth() + 1);
     __ incl(compiler::FieldAddress(EDI, Function::usage_counter_offset()));
     __ cmpl(compiler::FieldAddress(EDI, Function::usage_counter_offset()),
             compiler::Immediate(threshold));
@@ -5034,6 +5066,65 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ SmiTag(EAX);
   __ SmiTag(EDX);
+}
+
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
+  summary->set_temp(2, Location::RegisterLocation(EDX));
+  return summary;
+}
+
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  Register temp = locs()->temp(0).reg();
+  Register temp1 = locs()->temp(1).reg();
+  ASSERT(value == EAX);
+  ASSERT(result == EAX);
+
+  if (smi_) {
+    __ SmiUntag(EAX);
+    __ cdq();  // sign-extend EAX to EDX
+    __ movl(temp, EDX);
+  } else {
+    __ LoadFieldFromOffset(temp, EAX,
+                           Mint::value_offset() + compiler::target::kWordSize);
+    __ LoadFieldFromOffset(EAX, EAX, Mint::value_offset());
+  }
+
+  // value = value_hi << 32 + value_lo
+  //
+  // value * 0x2d51 = (value_hi * 0x2d51) << 32 + value_lo * 0x2d51
+  // prod_lo32 = value_lo * 0x2d51
+  // prod_hi32 = carry(value_lo * 0x2d51) + value_hi * 0x2d51
+  // prod_lo64 = prod_hi32 << 32 + prod_lo32
+  // prod_hi64_lo32 = carry(value_hi * 0x2d51)
+  // result = prod_lo32 ^ prod_hi32 ^ prod_hi64_lo32
+  // return result & 0x3fffffff
+
+  // EAX has value_lo
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(
+      EDX);  // EAX = lo32(value_lo * 0x2d51), EDX = carry(value_lo * 0x2d51)
+  __ movl(temp1, EAX);  // save prod_lo32
+  __ movl(EAX, temp);   // get saved value_hi
+  __ movl(temp, EDX);   // save carry
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(EDX);  // EAX = lo32(value_hi * 0x2d51, EDX = carry(value_hi * 0x2d51)
+  __ addl(EAX, temp);  // EAX has prod_hi32, EDX has prod_hi64_lo32
+
+  __ xorl(EAX, EDX);    // EAX = prod_hi32 ^ prod_hi64_lo32
+  __ xorl(EAX, temp1);  // result = prod_hi32 ^ prod_hi64_lo32 ^ prod_lo32
+  __ andl(EAX, compiler::Immediate(0x3fffffff));
+  __ SmiTag(EAX);
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {

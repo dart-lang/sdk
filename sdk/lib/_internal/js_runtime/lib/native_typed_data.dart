@@ -1124,7 +1124,7 @@ class NativeFloat32x4 implements Float32x4 {
   static final NativeFloat32List _list = NativeFloat32List(4);
   static final Uint32List _uint32view = _list.buffer.asUint32List();
 
-  static _truncate(x) {
+  static double _truncate(x) {
     _list[0] = x;
     return _list[0];
   }
@@ -1459,7 +1459,7 @@ class NativeInt32x4 implements Int32x4 {
 
   static final _list = NativeInt32List(4);
 
-  static _truncate(x) {
+  static int _truncate(x) {
     _list[0] = x;
     return _list[0];
   }

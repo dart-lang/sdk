@@ -243,37 +243,33 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
       return failure(serverNotInitializedError);
     }
 
-    final pos = item.selectionRange.start;
     final path = pathOfUri(item.uri);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult((offset) async {
-      final supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
-      final computer = call_hierarchy.DartCallHierarchyComputer(unit.result);
+    final supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
+    final computer = call_hierarchy.DartCallHierarchyComputer(unit.result);
 
-      // Convert the clients item back to one in the servers format so that we
-      // can use it to get incoming/outgoing calls.
-      final target = toServerItem(
-        item,
-        unit.result.lineInfo,
-        supportedSymbolKinds: supportedSymbolKinds,
+    // Convert the clients item back to one in the servers format so that we
+    // can use it to get incoming/outgoing calls.
+    final target = toServerItem(
+      item,
+      unit.result.lineInfo,
+      supportedSymbolKinds: supportedSymbolKinds,
+    );
+
+    if (target == null) {
+      return error(
+        ErrorCodes.ContentModified,
+        'Content was modified since Call Hierarchy node was produced',
       );
+    }
 
-      if (target == null) {
-        return error(
-          ErrorCodes.ContentModified,
-          'Content was modified since Call Hierarchy node was produced',
-        );
-      }
-
-      final calls = await getCalls(computer, target);
-      final results = _convertCalls(
-        unit.result,
-        calls,
-        supportedSymbolKinds,
-      );
-      return success(results);
-    });
+    final calls = await getCalls(computer, target);
+    final results = _convertCalls(
+      unit.result,
+      calls,
+      supportedSymbolKinds,
+    );
+    return success(results);
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyCalls] to the appropriate

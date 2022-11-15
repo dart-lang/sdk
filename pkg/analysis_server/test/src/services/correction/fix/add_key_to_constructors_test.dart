@@ -5,17 +5,91 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddKeyToConstructorsBulkTest);
+    defineReflectiveTests(AddKeyToConstructorsInFileTest);
     defineReflectiveTests(AddKeyToConstructorsTest);
     defineReflectiveTests(
         AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest);
     defineReflectiveTests(AddKeyToConstructorsWithoutSuperParametersTest);
   });
+}
+
+@reflectiveTest
+class AddKeyToConstructorsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.use_key_in_widget_constructors;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget1 extends StatelessWidget {
+}
+
+class MyWidget2 extends StatelessWidget {
+}
+''');
+    await assertHasFix(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget1 extends StatelessWidget {
+  const MyWidget1({super.key});
+}
+
+class MyWidget2 extends StatelessWidget {
+  const MyWidget2({super.key});
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddKeyToConstructorsInFileTest extends FixInFileProcessorTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
+  Future<void> test_file() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.use_key_in_widget_constructors]);
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget();
+  const MyWidget.named();
+}
+''');
+    var fixes = await getFixesForFirstError();
+    expect(fixes, hasLength(1));
+    assertProduces(fixes.first, r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+  const MyWidget.named({super.key});
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -364,6 +438,40 @@ class MyWidget extends StatelessWidget {
   static Text t = const Text('');
 
   const MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_namedConstructor_namedParameters_withSuper_assert() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named({required String s}) : assert(s.isNotEmpty), super();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named({super.key, required String s}) : assert(s.isNotEmpty);
+}
+''');
+  }
+
+  Future<void> test_namedConstructor_noParameters_withoutSuper() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named({super.key});
 }
 ''');
   }

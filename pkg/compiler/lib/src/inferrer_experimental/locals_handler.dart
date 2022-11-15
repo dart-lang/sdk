@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../ir/util.dart';
 import '../util/util.dart';
-import 'engine_interfaces.dart';
+import 'engine.dart';
 import 'type_graph_nodes.dart';
 
 /// A variable scope holds types for variables. It has a link to a

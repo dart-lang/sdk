@@ -14,6 +14,177 @@ main() {
 
 @reflectiveTest
 class RecordLiteralTest extends PubPackageResolutionTest {
+  test_field_rewrite_named() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) r) {
+  (f1: r.$0, );
+}
+''');
+
+    final node = findNode.recordLiteral('(f1');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: PropertyAccess
+        target: SimpleIdentifier
+          token: r
+          staticElement: self::@function::f::@parameter::r
+          staticType: (int, String)
+        operator: .
+        propertyName: SimpleIdentifier
+          token: $0
+          staticElement: <null>
+          staticType: int
+        staticType: int
+  rightParenthesis: )
+  staticType: ({int f1})
+''');
+  }
+
+  test_field_rewrite_positional() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) r) {
+  (r.$0, );
+}
+''');
+
+    final node = findNode.recordLiteral('(r');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    PropertyAccess
+      target: SimpleIdentifier
+        token: r
+        staticElement: self::@function::f::@parameter::r
+        staticType: (int, String)
+      operator: .
+      propertyName: SimpleIdentifier
+        token: $0
+        staticElement: <null>
+        staticType: int
+      staticType: int
+  rightParenthesis: )
+  staticType: (int)
+''');
+  }
+
+  test_hasContext_implicitCallReference_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void call() {}
+}
+
+final a = A();
+final ({void Function() f1}) x = (f1: a);
+''');
+
+    final node = findNode.recordLiteral('(f1');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: ImplicitCallReference
+        expression: SimpleIdentifier
+          token: a
+          staticElement: self::@getter::a
+          staticType: A
+        staticElement: self::@class::A::@method::call
+        staticType: void Function()
+  rightParenthesis: )
+  staticType: ({void Function() f1})
+''');
+  }
+
+  test_hasContext_implicitCallReference_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void call() {}
+}
+
+final a = A();
+final (void Function(), ) x = (a, );
+''');
+
+    final node = findNode.recordLiteral('(a');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    ImplicitCallReference
+      expression: SimpleIdentifier
+        token: a
+        staticElement: self::@getter::a
+        staticType: A
+      staticElement: self::@class::A::@method::call
+      staticType: void Function()
+  rightParenthesis: )
+  staticType: (void Function())
+''');
+  }
+
+  test_hasContext_implicitCast_fromDynamic_named() async {
+    await assertNoErrorsInCode(r'''
+final dynamic a = 0;
+final ({int f1}) x = (f1: a);
+''');
+
+    final node = findNode.recordLiteral('(f1');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: SimpleIdentifier
+        token: a
+        staticElement: self::@getter::a
+        staticType: int
+  rightParenthesis: )
+  staticType: ({int f1})
+''');
+  }
+
+  test_hasContext_implicitCast_fromDynamic_positional() async {
+    await assertNoErrorsInCode(r'''
+final dynamic a = 0;
+final (int, ) x = (a, );
+''');
+
+    final node = findNode.recordLiteral('(a');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    SimpleIdentifier
+      token: a
+      staticElement: self::@getter::a
+      staticType: int
+  rightParenthesis: )
+  staticType: (int)
+''');
+  }
+
   test_hasContext_mixed() async {
     await assertNoErrorsInCode(r'''
 class A1 {}
@@ -300,6 +471,20 @@ RecordLiteral
         String
   rightParenthesis: )
   staticType: (int, String)
+''');
+  }
+
+  test_noContext_empty() async {
+    await assertNoErrorsInCode(r'''
+final x = ();
+''');
+
+    final node = findNode.recordLiteral('()');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  rightParenthesis: )
+  staticType: ()
 ''');
   }
 

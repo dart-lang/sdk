@@ -2,8 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Test that shows that static interop erasure doesn't work with modular/
-# incremental compilation.
+# Test that shows that static interop types work with modular/incremental
+# compilation. Unlike dart2js and dart2wasm, we don't use erasure in DDC, which
+# allows us to avoid issues with incompatible erasure among different modules.
 
 type: newworld
 target: dartdevc
@@ -68,7 +69,7 @@ worlds:
         @JS('JSClass')
         @staticInterop
         class StaticJSClass {
-          external StaticJSClass();
+          external factory StaticJSClass();
           factory StaticJSClass.factory() {
             return StaticJSClass();
           }
@@ -138,5 +139,5 @@ worlds:
           }
         }
     expectedLibraryCount: 4
-    errors: true
+    errors: false
     advancedInvalidation: bodiesOnly

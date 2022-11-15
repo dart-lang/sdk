@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // Access hidden identity hash code field
 external int _getHash(Object obj);
@@ -66,5 +66,15 @@ class Object {
   @pragma("wasm:entry-point")
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(this, invocation);
+  }
+
+  // Used for `null.toString` tear-offs
+  @pragma("wasm:entry-point")
+  static String _nullToString() => "null";
+
+  // Used for `null.noSuchMethod` tear-offs
+  @pragma("wasm:entry-point")
+  static dynamic _nullNoSuchMethod(Invocation invocation) {
+    throw new NoSuchMethodError.withInvocation(null, invocation);
   }
 }

@@ -34,9 +34,14 @@ enum E {
 }
 ''');
 
-    assertFieldFormalParameter(
-      findNode.fieldFormalParameter('this.f'),
-      element: findElement.fieldFormalParameter('f'),
-    );
+    final node = findNode.fieldFormalParameter('this.f');
+    assertResolvedNodeText(node, r'''
+FieldFormalParameter
+  thisKeyword: this
+  period: .
+  name: f
+  declaredElement: self::@enum::E::@constructor::new::@parameter::f
+  declaredElementType: int
+''');
   }
 }

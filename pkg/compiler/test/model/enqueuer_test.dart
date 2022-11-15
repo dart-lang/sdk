@@ -21,7 +21,7 @@ import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 

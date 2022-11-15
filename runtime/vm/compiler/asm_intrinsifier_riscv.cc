@@ -1128,6 +1128,38 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
                                kFClassNegSubnormal | kFClassNegZero);
 }
 
+// Input: untagged integer in A1
+// Output: tagged hash code value in A0
+// Should be kept in sync with
+//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
+//  - asm_intrinsifier(...).cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+static void Multiply64Hash(Assembler* assembler) {
+#if XLEN == 32
+  __ srai(A0, A1, 31);  // sign extend A1 to A0
+
+  __ LoadImmediate(TMP, 0x2d51);
+  __ mulhu(A2, A1, TMP);
+  __ mul(A1, A1, TMP);  // (A2:A1) = lo32 * 0x2d51
+
+  __ mulhu(TMP2, A0, TMP);
+  __ mul(A0, A0, TMP);  // (TMP2:A0) = hi32 * 0x2d51
+
+  __ add(A0, A0, A2);  // (0: TMP2: A0: A1)
+  __ xor_(TMP2, TMP2, A1);
+  __ xor_(A0, A0, TMP2);
+#else
+  __ LoadImmediate(TMP, 0x2d51);
+  __ mul(A0, TMP, A1);
+  __ mulhu(TMP, TMP, A1);
+  __ xor_(A0, A0, TMP);
+  __ srai(A1, A0, 32);
+  __ xor_(A0, A0, A1);
+#endif
+  __ AndImmediate(A0, A0, 0x3fffffff);
+  __ SmiTag(A0);
+}
+
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   Label double_hash;
@@ -1138,16 +1170,28 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
 #if XLEN == 32
   __ fcvtwd(A1, FA0);
   __ fcvtdw(FA1, A1);
+
+  // Ensure value in Smi range
+  __ SmiTag(TMP, A1);
+  __ SmiUntag(TMP2, TMP);
+  __ bne(TMP2, A1, normal_ir_body, Assembler::kNearJump);
+
+  __ feqd(TMP, FA0, FA1);
+  __ beqz(TMP, &double_hash, Assembler::kNearJump);  // Not integer.
 #else
   __ fcvtld(A1, FA0);
   __ fcvtdl(FA1, A1);
-#endif
+
   __ feqd(TMP, FA0, FA1);
   __ beqz(TMP, &double_hash, Assembler::kNearJump);  // Not integer.
 
-  __ SmiTag(A0, A1);
-  __ SmiUntag(TMP, A0);
-  __ bne(TMP, A1, normal_ir_body, Assembler::kNearJump);  // Not Smi.
+  // Ensure value in Smi range
+  __ SmiTag(TMP, A1);
+  __ SmiUntag(TMP2, TMP);
+  __ bne(TMP2, A1, normal_ir_body, Assembler::kNearJump);
+#endif
+
+  Multiply64Hash(assembler);
   __ ret();
 
   __ Bind(&double_hash);
@@ -1159,6 +1203,7 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ fmvxd(A0, FA0);
   __ srli(A1, A0, 32);
 #endif
+
   __ xor_(A0, A0, A1);
   __ AndImmediate(A0, A0, target::kSmiMax);
   __ SmiTag(A0);
@@ -1180,57 +1225,44 @@ void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
   __ ret();
 }
 
-static void RangeCheck(Assembler* assembler,
-                       Register val,
-                       Register tmp,
-                       intptr_t low,
-                       intptr_t high,
-                       Condition cc,
-                       Label* target) {
-  __ AddImmediate(tmp, val, -low);
-  __ CompareImmediate(tmp, high - low);
-  __ BranchIf(cc, target);
-}
-
-const Condition kIfNotInRange = HI;
-const Condition kIfInRange = LS;
-
 static void JumpIfInteger(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfInRange, target);
+  assembler->RangeCheck(cid, tmp, kSmiCid, kMintCid, Assembler::kIfInRange,
+                        target);
 }
 
 static void JumpIfNotInteger(Assembler* assembler,
                              Register cid,
                              Register tmp,
                              Label* target) {
-  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfNotInRange, target);
+  assembler->RangeCheck(cid, tmp, kSmiCid, kMintCid, Assembler::kIfNotInRange,
+                        target);
 }
 
 static void JumpIfString(Assembler* assembler,
                          Register cid,
                          Register tmp,
                          Label* target) {
-  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfInRange, target);
+  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotString(Assembler* assembler,
                             Register cid,
                             Register tmp,
                             Label* target) {
-  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfNotInRange, target);
+  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfNotList(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kArrayCid, kGrowableObjectArrayCid,
-             kIfNotInRange, target);
+  assembler->RangeCheck(cid, tmp, kArrayCid, kGrowableObjectArrayCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfType(Assembler* assembler,
@@ -1239,7 +1271,8 @@ static void JumpIfType(Assembler* assembler,
                        Label* target) {
   COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
                  (kRecordTypeCid == kTypeCid + 2));
-  RangeCheck(assembler, cid, tmp, kTypeCid, kRecordTypeCid, kIfInRange, target);
+  assembler->RangeCheck(cid, tmp, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler,
@@ -1248,8 +1281,8 @@ static void JumpIfNotType(Assembler* assembler,
                           Label* target) {
   COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
                  (kRecordTypeCid == kTypeCid + 2));
-  RangeCheck(assembler, cid, tmp, kTypeCid, kRecordTypeCid, kIfNotInRange,
-             target);
+  assembler->RangeCheck(cid, tmp, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 // Return type quickly for simple types (not parameterized and not signature).

@@ -131,8 +131,8 @@ class TransformSetParser {
   final ErrorReporter errorReporter;
 
   /// The name of the package from which the data file being translated was
-  /// found.
-  final String packageName;
+  /// found, or `null` for the SDK.
+  final String? packageName;
 
   /// The description of the element that is being transformed by the current
   /// transformation, or `null` if we are not in the process of parsing a
@@ -160,13 +160,6 @@ class TransformSetParser {
       return null;
     }
     return _translateTransformSet(map);
-  }
-
-  bool _equalUris(List<Uri> oldUris, List<Uri> newUris) {
-    var oldSet = oldUris.toSet();
-    var newSet = newUris.toSet();
-    return oldSet.difference(newSet).isEmpty &&
-        newSet.difference(oldSet).isEmpty;
   }
 
   /// Convert the given [template] into a list of components. Variable
@@ -877,10 +870,6 @@ class TransformSetParser {
     }
     var oldElement = elementBeingTransformed;
     if (oldElement != null) {
-      if (!_equalUris(oldElement.libraryUris, newElement.libraryUris)) {
-        _reportError(TransformSetErrorCode.unsupportedUriChange,
-            (node.valueAt(_newElementKey) as YamlMap).valueAt(_urisKey)!);
-      }
       var compatibleTypes = compatibleReplacementTypes[oldElement.kind];
       if (compatibleTypes == null) {
         _reportError(
@@ -1068,7 +1057,9 @@ class TransformSetParser {
     if (node is YamlScalar) {
       var value = node.value;
       if (value is String) {
-        if (!(value.startsWith('dart:') || value.startsWith('package:'))) {
+        if (packageName != null &&
+            !value.startsWith('dart:') &&
+            !value.startsWith('package:')) {
           value = 'package:$packageName/$value';
         }
         return Uri.parse(value);

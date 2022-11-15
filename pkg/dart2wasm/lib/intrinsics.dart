@@ -10,6 +10,8 @@ import 'package:kernel/ast.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+typedef CodeGenCallback = void Function(w.Instructions);
+
 /// Specialized code generation for external members.
 ///
 /// The code is generated either inlined at the call site, or as the body of the
@@ -32,7 +34,6 @@ class Intrinsifier {
         '+': (b) => b.i64_add(),
         '-': (b) => b.i64_sub(),
         '*': (b) => b.i64_mul(),
-        '~/': (b) => b.i64_div_s(),
         '&': (b) => b.i64_and(),
         '|': (b) => b.i64_or(),
         '^': (b) => b.i64_xor(),
@@ -77,9 +78,6 @@ class Intrinsifier {
       'unary-': (b) {
         b.f64_neg();
       },
-      'toInt': (b) {
-        b.i64_trunc_sat_f64_s();
-      },
       'roundToDouble': (b) {
         b.f64_nearest();
       },
@@ -96,7 +94,6 @@ class Intrinsifier {
   };
   static final Map<String, w.ValueType> unaryResultMap = {
     'toDouble': w.NumType.f64,
-    'toInt': w.NumType.i64,
     'roundToDouble': w.NumType.f64,
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
@@ -735,6 +732,22 @@ class Intrinsifier {
           codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
           b.struct_new(info.struct);
           return info.nonNullableType;
+        case "_div_s":
+          assert(cls == translator.boxedIntClass);
+          assert(node.arguments.positional.length == 2);
+          Expression first = node.arguments.positional[0];
+          Expression second = node.arguments.positional[1];
+          codeGen.wrap(first, w.NumType.i64);
+          codeGen.wrap(second, w.NumType.i64);
+          b.i64_div_s();
+          return w.NumType.i64;
+        case "_toInt":
+          assert(cls == translator.boxedDoubleClass);
+          assert(node.arguments.positional.length == 1);
+          Expression arg = node.arguments.positional[0];
+          codeGen.wrap(arg, w.NumType.f64);
+          b.i64_trunc_sat_f64_s();
+          return w.NumType.i64;
       }
     }
 
@@ -1112,7 +1125,7 @@ class Intrinsifier {
         codeGen.wrap(node.arguments.positional[i], functionType.inputs[i]);
       }
       b.local_get(temp);
-      b.call_ref();
+      b.call_ref(functionType);
       return translator.outputOrVoid(functionType.outputs);
     }
 
@@ -1279,8 +1292,9 @@ class Intrinsifier {
       if (member.isFactory) {
         String className = member.enclosingClass!.name;
 
-        Match? match = RegExp("^(Int|Uint|Float)(8|16|32|64)(Clamped)?List\$")
-            .matchAsPrefix(className);
+        Match? match =
+            RegExp("^(Int|Uint|Float)(8|16|32|64|32x4|64x2)(Clamped)?List\$")
+                .matchAsPrefix(className);
         if (match != null) {
           int shift = int.parse(match.group(2)!).bitLength - 4;
           Class cls = member.enclosingLibrary.classes
@@ -1306,10 +1320,7 @@ class Intrinsifier {
           return true;
         }
 
-        match = RegExp("^_(Int|Uint|Float)(8|16|32|64)(Clamped)?ArrayView\$")
-            .matchAsPrefix(className);
-        if (match != null ||
-            member.enclosingClass == translator.byteDataViewClass) {
+        bool _createView() {
           ClassInfo info = translator.classInfo[member.enclosingClass]!;
           translator.functions.allocateClass(info.classId);
 
@@ -1325,6 +1336,22 @@ class Intrinsifier {
           b.i32_wrap_i64();
           b.struct_new(info.struct);
           return true;
+        }
+
+        match = RegExp(
+                "^_(Int|Uint|Float)(8|16|32|64|32x4|64x2)(Clamped)?ArrayView\$")
+            .matchAsPrefix(className);
+        if (match != null ||
+            member.enclosingClass == translator.byteDataViewClass) {
+          return _createView();
+        }
+
+        match = RegExp(
+                "^_Unmodifiable(Int|Uint|Float)(8|16|32|64|32x4|64x2)(Clamped)?ArrayView\$")
+            .matchAsPrefix(className);
+        if (match != null ||
+            member.enclosingClass == translator.unmodifiableByteDataViewClass) {
+          return _createView();
         }
       }
 
@@ -1393,7 +1420,7 @@ class Intrinsifier {
       b.local_get(args);
       b.ref_cast(translator.functions.asyncStubBaseStruct);
       b.struct_get(translator.functions.asyncStubBaseStruct, stubFieldIndex);
-      b.call_ref();
+      b.call_ref(translator.functions.asyncStubFunctionType);
       return true;
     }
 

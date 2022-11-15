@@ -18,6 +18,6 @@ static method method6([({required a: core::int, required b: core::String}) recor
 constants  {
   #C1 = 0
   #C2 = ""
-const (#C1, #C2)
-const ({a:#C1, b:#C2})
+  #C3 = (#C1, #C2)
+  #C4 = ({a:#C1, b:#C2})
 }

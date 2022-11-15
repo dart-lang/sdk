@@ -4,3 +4,5 @@
 
 // ignore: import_internal_library
 import 'dart:_internal';
+
+part 'patch_lib2.dart';

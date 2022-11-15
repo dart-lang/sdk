@@ -427,6 +427,16 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
+    case UntaggedFunction::kRecordFieldGetter: {
+      needs_expr_temp_ = true;
+      // Add a receiver parameter.
+      Class& klass = Class::Handle(Z, function.Owner());
+      parsed_function_->set_receiver_var(
+          MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                       Symbols::This(), H.GetDeclarationType(klass)));
+      scope_->InsertParameterAt(0, parsed_function_->receiver_var());
+      break;
+    }
     case UntaggedFunction::kIrregexpFunction:
       UNREACHABLE();
   }
@@ -828,9 +838,7 @@ void ScopeBuilder::VisitExpression() {
     }
     case kIsExpression:
       helper_.ReadPosition();  // read position.
-      if (translation_helper_.info().kernel_binary_version() >= 38) {
-        helper_.ReadFlags();  // read flags.
-      }
+      helper_.ReadFlags();     // read flags.
       VisitExpression();  // read operand.
       VisitDartType();    // read type.
       return;
@@ -1378,6 +1386,9 @@ void ScopeBuilder::VisitDartType() {
     case kIntersectionType:
       VisitIntersectionType();
       return;
+    case kViewType:
+      VisitViewType();
+      return;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -1488,6 +1499,14 @@ void ScopeBuilder::VisitTypeParameterType() {
 void ScopeBuilder::VisitIntersectionType() {
   VisitDartType();         // read left.
   helper_.SkipDartType();  // read right.
+}
+
+void ScopeBuilder::VisitViewType() {
+  // We skip the view type and only use the representation type.
+  helper_.ReadNullability();
+  helper_.SkipCanonicalNameReference();  // read index for canonical name.
+  helper_.SkipListOfDartTypes();         // read type arguments
+  VisitDartType();                       // read representation type.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {

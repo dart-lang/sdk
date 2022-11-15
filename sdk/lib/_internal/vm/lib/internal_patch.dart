@@ -14,9 +14,9 @@ import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 
 /// These are the additional parts of this patch library:
-// part "class_id_fasta.dart";
-// part "print_patch.dart";
-// part "symbol_patch.dart";
+part "class_id_fasta.dart";
+part "print_patch.dart";
+part "symbol_patch.dart";
 
 // On the VM, we don't make the entire legacy weak mode check
 // const to avoid having a constant in the platform libraries
@@ -225,11 +225,12 @@ void checkValidWeakTarget(object, name) {
       (object is bool) ||
       (object is num) ||
       (object is String) ||
+      (object is Record) ||
       (object is Pointer) ||
       (object is Struct) ||
       (object is Union)) {
     throw new ArgumentError.value(object, name,
-        "Cannot be a string, number, boolean, null, Pointer, Struct or Union");
+        "Cannot be a string, number, boolean, record, null, Pointer, Struct or Union");
   }
 }
 

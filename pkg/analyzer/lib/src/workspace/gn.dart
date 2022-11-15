@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
@@ -17,11 +18,6 @@ class GnWorkspace extends Workspace {
   /// The name of the directory that identifies the root of the workspace.
   static const String _jiriRootName = '.jiri_root';
 
-  /// The name of the file that identifies a set of GN Targets.
-  ///
-  /// For Dart package purposes, a BUILD.gn file identifies a package.
-  static const String _buildFileName = 'BUILD.gn';
-
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
@@ -30,10 +26,12 @@ class GnWorkspace extends Workspace {
   @override
   final String root;
 
+  final File buildGnFile;
+
   /// Information about packages available in the workspace.
   final Packages packages;
 
-  GnWorkspace._(this.provider, this.root, this.packages);
+  GnWorkspace._(this.provider, this.root, this.buildGnFile, this.packages);
 
   /// TODO(scheglov) Finish switching to [packages].
   Map<String, List<Folder>> get packageMap {
@@ -89,31 +87,28 @@ class GnWorkspace extends Workspace {
         return null;
       }
 
-      if (folder.getChildAssumingFile(_buildFileName).exists) {
+      if (folder.getChildAssumingFile(file_paths.buildGn).exists) {
         return GnWorkspacePackage(folder.path, this);
       }
     }
     return null;
   }
 
-  /// Find the GN workspace that contains the given [filePath].
+  /// Find the GN workspace for the given [buildGnFile].
   ///
   /// Return `null` if a workspace could not be found. For a workspace to be
-  /// found, both a `.jiri_root` file must be found, and at least one "packages"
-  /// file must be found in [filePath]'s output directory.
-  static GnWorkspace? find(ResourceProvider provider, String filePath) {
-    Resource resource = provider.getResource(filePath);
-    if (resource is File) {
-      filePath = resource.parent.path;
-    }
+  /// found, the `.jiri_root` folder must be found, and at least one
+  /// `<anything>package_config.json` file must be found in [buildGnFile]'s
+  /// output directory.
+  static GnWorkspace? find(File buildGnFile) {
+    var provider = buildGnFile.provider;
 
-    var startFolder = provider.getFolder(filePath);
-    for (var folder in startFolder.withAncestors) {
+    for (var folder in buildGnFile.parent.withAncestors) {
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
         // Found the .jiri_root file, must be a non-git workspace.
         String root = folder.path;
 
-        var packagesFiles = _findPackagesFile(provider, root, filePath);
+        var packagesFiles = _findPackagesFile(provider, root, buildGnFile);
         if (packagesFiles.isEmpty) {
           return null;
         }
@@ -126,7 +121,7 @@ class GnWorkspace extends Workspace {
           }
         }
 
-        return GnWorkspace._(provider, root, Packages(packageMap));
+        return GnWorkspace._(provider, root, buildGnFile, Packages(packageMap));
       }
     }
     return null;
@@ -147,10 +142,11 @@ class GnWorkspace extends Workspace {
   static List<File> _findPackagesFile(
     ResourceProvider provider,
     String root,
-    String filePath,
+    File buildGnFile,
   ) {
     path.Context pathContext = provider.pathContext;
-    String sourceDirectory = pathContext.relative(filePath, from: root);
+    String sourceDirectory =
+        pathContext.relative(buildGnFile.parent.path, from: root);
     var outDirectory = _getOutDirectory(root, provider);
     if (outDirectory == null) {
       return const <File>[];

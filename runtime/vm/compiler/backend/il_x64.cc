@@ -1331,6 +1331,35 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(RBX, target_address);
       __ call(temp);
     }
+
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      compiler::Label not_error;
+      __ movq(temp,
+              compiler::Address(CallingConventions::kReturnReg,
+                                compiler::target::LocalHandle::ptr_offset()));
+      __ BranchIfSmi(temp, &not_error);
+      __ LoadClassId(temp, temp);
+      __ RangeCheck(temp, kNoRegister, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
+
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      __ movq(temp,
+              compiler::Address(
+                  THR, compiler::target::Thread::
+                           call_native_through_safepoint_entry_point_offset()));
+      __ movq(RBX, compiler::Address(
+                       THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ movq(CallingConventions::kArg1Reg, CallingConventions::kReturnReg);
+      __ call(temp);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ int3();
+#endif
+
+      __ Bind(&not_error);
+    }
   }
 
   // Pass the `saved_fp` reg. as a temp to clobber since we're done with it.
@@ -2923,8 +2952,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(temp, compiler->parsed_function().function());
-    int32_t threshold =
-        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    const intptr_t configured_optimization_counter_threshold =
+        compiler->thread()->isolate_group()->optimization_counter_threshold();
+    const int32_t threshold =
+        configured_optimization_counter_threshold * (loop_depth() + 1);
     __ incl(compiler::FieldAddress(temp, Function::usage_counter_offset()));
     __ cmpl(compiler::FieldAddress(temp, Function::usage_counter_offset()),
             compiler::Immediate(threshold));
@@ -5287,6 +5318,46 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(RDX);
   // Note that the result of an integer division/modulo of two
   // in-range arguments, cannot create out-of-range result.
+}
+
+LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_temp(0, Location::RegisterLocation(RDX));
+  return summary;
+}
+
+// Should be kept in sync with
+//  - asm_intrinsifier_x64.cc Multiply64Hash
+//  - integers.cc Multiply64Hash
+//  - integers.dart computeHashCode
+void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(value == RAX);
+  ASSERT(result == RAX);
+  ASSERT(temp == RDX);
+
+  if (smi_) {
+    __ SmiUntagAndSignExtend(RAX);
+  } else {
+    __ LoadFieldFromOffset(RAX, RAX, Mint::value_offset());
+  }
+
+  __ movq(RDX, compiler::Immediate(0x2d51));  // 1b873593cc9e2d51));
+  __ mulq(RDX);
+  __ xorq(RAX, RDX);  // RAX = xor(hi64, lo64)
+  __ movq(RDX, RAX);
+  __ shrq(RDX, compiler::Immediate(32));
+  __ xorq(RAX, RDX);
+  __ andq(RAX, compiler::Immediate(0x3fffffff));
+  __ SmiTag(RAX);
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {

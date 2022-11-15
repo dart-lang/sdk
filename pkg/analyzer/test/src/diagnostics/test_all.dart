@@ -42,6 +42,8 @@ import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
 import 'binary_operator_written_out_test.dart' as binary_operator_written_out;
+import 'body_might_complete_normally_catch_error_test.dart'
+    as body_might_complete_normally_catch_error;
 import 'body_might_complete_normally_nullable_test.dart'
     as body_might_complete_normally_nullable;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
@@ -160,6 +162,7 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
+import 'duplicate_variable_pattern_test.dart' as duplicate_variable_pattern;
 import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
 import 'enum_constant_with_non_const_constructor_test.dart'
@@ -174,6 +177,8 @@ import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
+import 'expected_one_list_pattern_type_arguments_test.dart'
+    as expected_one_list_pattern_type_arguments;
 import 'expected_one_list_type_arguments_test.dart'
     as expected_one_list_type_arguments;
 import 'expected_one_set_type_arguments_test.dart'
@@ -369,10 +374,6 @@ import 'invalid_modifier_on_setter_test.dart' as invalid_modifier_on_setter;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
 import 'invalid_null_aware_operator_test.dart' as invalid_null_aware_operator;
-import 'invalid_override_different_default_values_named_test.dart'
-    as invalid_override_different_default_values_named;
-import 'invalid_override_different_default_values_positional_test.dart'
-    as invalid_override_different_default_values_positional;
 import 'invalid_override_of_non_virtual_member_test.dart'
     as invalid_override_of_non_virtual_member;
 import 'invalid_override_test.dart' as invalid_override;
@@ -452,6 +453,7 @@ import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'missing_size_annotation_carray_test.dart'
     as missing_size_annotation_carray;
+import 'missing_variable_pattern_test.dart' as missing_variable_pattern;
 import 'mixin_application_concrete_super_invoked_member_type_test.dart'
     as mixin_application_concrete_super_invoked_member_type;
 import 'mixin_application_no_concrete_super_invoked_member_test.dart'
@@ -642,6 +644,8 @@ import 'redirect_to_type_alias_expands_to_type_parameter_test.dart'
     as redirect_to_type_alias_expands_to_type_parameter;
 import 'referenced_before_declaration_test.dart'
     as referenced_before_declaration;
+import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart'
+    as relational_pattern_operator_return_type_not_assignable_to_bool;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
 import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
@@ -835,6 +839,7 @@ main() {
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
     binary_operator_written_out.main();
+    body_might_complete_normally_catch_error.main();
     body_might_complete_normally_nullable.main();
     body_might_complete_normally.main();
     built_in_as_extension_name.main();
@@ -914,6 +919,7 @@ main() {
     duplicate_named_argument.main();
     duplicate_part.main();
     duplicate_shown_name.main();
+    duplicate_variable_pattern.main();
     enum_constant_same_name_as_enclosing.main();
     enum_constant_with_non_const_constructor.main();
     enum_instantiated_to_bounds_is_not_well_bounded.main();
@@ -924,6 +930,7 @@ main() {
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
     equal_keys_in_map.main();
+    expected_one_list_pattern_type_arguments.main();
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
     expected_two_map_type_arguments.main();
@@ -1049,8 +1056,6 @@ main() {
     invalid_modifier_on_setter.main();
     invalid_non_virtual_annotation.main();
     invalid_null_aware_operator.main();
-    invalid_override_different_default_values_named.main();
-    invalid_override_different_default_values_positional.main();
     invalid_override_of_non_virtual_member.main();
     invalid_override.main();
     invalid_reference_to_generative_enum_constructor.main();
@@ -1099,6 +1104,7 @@ main() {
     missing_required_param.main();
     missing_return.main();
     missing_size_annotation_carray.main();
+    missing_variable_pattern.main();
     mixin_application_concrete_super_invoked_member_type.main();
     mixin_application_no_concrete_super_invoked_member.main();
     mixin_application_not_implemented_interface.main();
@@ -1223,6 +1229,7 @@ main() {
     redirect_to_non_const_constructor.main();
     redirect_to_type_alias_expands_to_type_parameter.main();
     referenced_before_declaration.main();
+    relational_pattern_operator_return_type_not_assignable_to_bool.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();

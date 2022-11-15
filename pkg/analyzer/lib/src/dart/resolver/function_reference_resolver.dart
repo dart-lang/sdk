@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
@@ -163,7 +162,7 @@ class FunctionReferenceResolver {
     // Otherwise, a 'call' method on the interface, or on an applicable
     // extension method applies.
     return type.lookUpMethod2(
-            FunctionElement.CALL_METHOD_NAME, type.element2.library) ??
+            FunctionElement.CALL_METHOD_NAME, type.element.library) ??
         _extensionResolver
             .findExtension(type, node, FunctionElement.CALL_METHOD_NAME)
             .getter;
@@ -233,7 +232,7 @@ class FunctionReferenceResolver {
       // If the type of the function is a type parameter, the tearoff is
       // disallowed, reported in [_resolveDisallowedExpression]. Use the type
       // parameter's bound here in an attempt to assign the intended types.
-      rawType = rawType.element2.bound;
+      rawType = rawType.element.bound;
     }
 
     if (rawType is FunctionType) {
@@ -284,7 +283,7 @@ class FunctionReferenceResolver {
       callMethodType.typeFormals,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
     );
-    var callReference = astFactory.implicitCallReference(
+    var callReference = ImplicitCallReferenceImpl(
       expression: node.function,
       staticElement: callMethod,
       typeArguments: node.typeArguments,
@@ -784,7 +783,7 @@ class FunctionReferenceResolver {
     }
     element ??= classElement.getGetter(name);
     element ??= classElement.getMethod(name);
-    if (element != null && element.isAccessibleIn2(_resolver.definingLibrary)) {
+    if (element != null && element.isAccessibleIn(_resolver.definingLibrary)) {
       return element;
     }
     return null;
@@ -823,7 +822,9 @@ class FunctionReferenceResolver {
     );
     typeName.type = instantiatedType;
     typeName.name.staticType = instantiatedType;
-    var typeLiteral = astFactory.typeLiteral(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(
+      typeName: typeName,
+    );
     typeLiteral.staticType = _typeType;
     _resolver.replaceExpression(node, typeLiteral);
   }
@@ -846,7 +847,7 @@ class FunctionReferenceResolver {
       } else if (receiverElement is TypeAliasElement) {
         var aliasedType = receiverElement.aliasedType;
         if (aliasedType is InterfaceType) {
-          var element = _resolveStaticElement(aliasedType.element2, name);
+          var element = _resolveStaticElement(aliasedType.element, name);
           name.staticElement = element;
           return element?.referenceType;
         } else {

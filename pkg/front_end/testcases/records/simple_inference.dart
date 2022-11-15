@@ -15,7 +15,7 @@ foo3() {
 }
 
 foo4() {
-  (num, num) r = (3 as dynamic, 3.5); // Error.
+  (num, num) r = (3 as dynamic, 3.5);
 }
 
 foo5((int, String?) r, (int, X) Function<X>() f) {
@@ -37,5 +37,14 @@ foo8(A8 a) {}
 class A9<X extends (Y, Z), Y extends num, Z extends String?> {}
 
 foo9(A9 a) {}
+
+class A10<X, Y> {}
+
+A10<(T, T), T> foo10<T>() => throw 0;
+
+bar10() {
+  A10<Record, String> r = foo10();
+}
+
 
 main() {}

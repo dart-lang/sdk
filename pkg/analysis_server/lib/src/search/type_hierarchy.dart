@@ -52,19 +52,7 @@ class TypeHierarchyComputer {
     var pivotClass = _pivotClass;
     if (pivotClass != null) {
       _createSuperItem(pivotClass, null);
-      var superLength = _items.length;
       await _createSubclasses(_items[0], 0, pivotClass);
-
-      // sort subclasses only
-      if (_items.length > superLength + 1) {
-        var subList = _items.sublist(superLength);
-        subList
-            .sort((a, b) => a.classElement.name.compareTo(b.classElement.name));
-        for (var i = 0; i < subList.length; i++) {
-          _items[i + superLength] = subList[i];
-        }
-      }
-
       return _items;
     }
     return null;
@@ -158,19 +146,19 @@ class TypeHierarchyComputer {
       var superType = classElement.supertype;
       if (superType != null) {
         item.superclass = _createSuperItem(
-          superType.element2,
+          superType.element,
           superType.typeArguments,
         );
       }
     }
     // mixins
     for (var type in classElement.mixins) {
-      var id = _createSuperItem(type.element2, type.typeArguments);
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.mixins.add(id);
     }
     // interfaces
     for (var type in classElement.interfaces) {
-      var id = _createSuperItem(type.element2, type.typeArguments);
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.interfaces.add(id);
     }
     // done
@@ -196,12 +184,12 @@ class TypeHierarchyComputer {
         result = clazz.getSetter(pivotName);
       }
     }
-    if (result != null && result.isAccessibleIn2(_pivotLibrary)) {
+    if (result != null && result.isAccessibleIn(_pivotLibrary)) {
       return result;
     }
     // try to find in the class mixin
     for (var mixin in clazz.mixins.reversed) {
-      var mixinElement = mixin.element2;
+      var mixinElement = mixin.element;
       if (_pivotKind == ElementKind.METHOD) {
         result = mixinElement.lookUpMethod(pivotName, _pivotLibrary);
       } else if (_pivotKind == ElementKind.GETTER) {

@@ -21,7 +21,7 @@ void main() {
     defineReflectiveTests(MixinOfNonClassTest);
     defineReflectiveTests(NewWithUndefinedConstructorDefaultTest);
     defineReflectiveTests(NonBulkFixTest);
-    defineReflectiveTests(NotEnoughPositionalArgumentsTest);
+    defineReflectiveTests(NotEnoughArgumentsTest);
     defineReflectiveTests(OverrideOnNonOverridingMethodTest);
     defineReflectiveTests(UndefinedClassTest);
     defineReflectiveTests(UndefinedFunctionTest);
@@ -540,7 +540,7 @@ class NoProducerOverlapsTest {
 }
 
 @reflectiveTest
-class NotEnoughPositionalArgumentsTest extends _DataDrivenTest {
+class NotEnoughArgumentsTest extends _DataDrivenTest {
   Future<void> test_addParameter() async {
     setPackageContent('''
 int f(int x, int y) => x + y;
@@ -571,6 +571,45 @@ void g() {
 import '$importUri';
 void g() {
   f(f(0, 0), 0);
+}
+''');
+  }
+
+  Future<void> test_addParameter_named() async {
+    setPackageContent('''
+class C {
+  void m({required String x}) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add parameter'
+  date: 2022-09-22
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'x'
+      style: required_named
+      argumentValue:
+        expression: 'value'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f(String value) {
+  var c = C();
+  c.m();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(String value) {
+  var c = C();
+  c.m(x: value);
 }
 ''');
   }
@@ -1368,5 +1407,11 @@ class _DataDrivenTest extends BulkFixProcessorTest {
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
+  }
+
+  @override
+  void tearDown() {
+    TransformSetManager.instance.clearCache();
+    super.tearDown();
   }
 }

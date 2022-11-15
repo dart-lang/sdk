@@ -266,8 +266,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   MergedLibraryScope? _mergedScope;
 
+  /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
+  /// yet, or field promotion is disabled for this library.  If not `null`,
+  /// field promotion is enabled for this library and this is the set of private
+  /// field names for which promotion is blocked due to the presence of a
+  /// non-final field or a concrete getter.
+  Set<String>? unpromotablePrivateFieldNames;
+
   SourceLibraryBuilder.internal(
       SourceLoader loader,
+      Uri importUri,
       Uri fileUri,
       Uri? packageUri,
       LanguageVersion packageLanguageVersion,
@@ -282,6 +290,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Map<String, Builder>? omittedTypes})
       : this.fromScopes(
             loader,
+            importUri,
             fileUri,
             packageUri,
             packageLanguageVersion,
@@ -297,6 +306,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
+      this.importUri,
       this.fileUri,
       this._packageUri,
       this.packageLanguageVersion,
@@ -346,7 +356,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Returns the state of the experimental features within this library.
   LibraryFeatures get libraryFeatures =>
       _libraryFeatures ??= new LibraryFeatures(loader.target.globalFeatures,
-          _packageUri ?? importUri, languageVersion.version);
+          _packageUri ?? origin.importUri, languageVersion.version);
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
@@ -427,6 +437,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Map<String, Builder>? omittedTypes})
       : this.internal(
             loader,
+            importUri,
             fileUri,
             packageUri,
             packageLanguageVersion,
@@ -511,6 +522,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       libraryFeatures.inferenceUpdate1.isSupported &&
       languageVersion.version >=
           libraryFeatures.inferenceUpdate1.enabledVersion;
+
+  bool get isInferenceUpdate2Enabled =>
+      libraryFeatures.inferenceUpdate2.isEnabled;
 
   bool? _isNonNullableByDefault;
 
@@ -795,7 +809,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
     parts.add(loader.read(resolvedUri, charOffset,
-        fileUri: newFileUri, accessor: this));
+        origin: isPatch ? origin : null, fileUri: newFileUri, accessor: this));
     partOffsets.add(charOffset);
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
@@ -1174,11 +1188,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     this.fileUri, -1, noLength)
               ]);
         } else {
-          if (isPatch) {
-            usedParts.add(part.fileUri);
-          } else {
-            usedParts.add(part.importUri);
-          }
+          usedParts.add(part.importUri);
           includePart(part, usedParts, partOffset);
         }
       } else {
@@ -1611,14 +1621,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   SourceLibraryBuilder get origin {
     SourceLibraryBuilder? origin = _immediateOrigin;
-    if (origin != null && origin.isPart) {
+    // TODO(johnniwinther): This returns the wrong origin for early queries on
+    // augmentations imported into parts.
+    if (origin != null && origin.partOfLibrary is SourceLibraryBuilder) {
       origin = origin.partOfLibrary as SourceLibraryBuilder;
     }
     return origin?.origin ?? this;
   }
 
   @override
-  Uri get importUri => library.importUri;
+  final Uri importUri;
 
   @override
   void addSyntheticDeclarationOfDynamic() {

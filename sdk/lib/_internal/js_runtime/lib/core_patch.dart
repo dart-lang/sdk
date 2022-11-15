@@ -19,7 +19,6 @@ import 'dart:_js_helper'
         jsonEncodeNative,
         JSSyntaxRegExp,
         objectHashCode,
-        patch,
         Primitives,
         quoteStringForRegExp,
         getTraceFromException,
@@ -845,75 +844,6 @@ class StackTrace {
       return stackTrace;
     }
   }
-}
-
-// Called from kernel generated code.
-_malformedTypeError(message) => new RuntimeError(message);
-
-// Called from kernel generated code.
-_genericNoSuchMethod(receiver, memberName, positionalArguments, namedArguments,
-    existingArguments) {
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
-}
-
-// Called from kernel generated code.
-_unresolvedConstructorError(receiver, memberName, positionalArguments,
-    namedArguments, existingArguments) {
-  // TODO(sra): Generate an error that reads:
-  //
-  //     No constructor '$memberName' declared in class '$receiver'.
-
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
-}
-
-// Called from kernel generated code.
-_unresolvedStaticGetterError(receiver, memberName, positionalArguments,
-    namedArguments, existingArguments) {
-  // TODO(sra): Generate customized message.
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
-}
-
-// Called from kernel generated code.
-_unresolvedStaticSetterError(receiver, memberName, positionalArguments,
-    namedArguments, existingArguments) {
-  // TODO(sra): Generate customized message.
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
-}
-
-// Called from kernel generated code.
-_unresolvedStaticMethodError(receiver, memberName, positionalArguments,
-    namedArguments, existingArguments) {
-  // TODO(sra): Generate customized message.
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
-}
-
-// Called from kernel generated code.
-_unresolvedTopLevelGetterError(receiver, memberName, positionalArguments,
-    namedArguments, existingArguments) {
-  // TODO(sra): Generate customized message.
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
-}
-
-// Called from kernel generated code.
-_unresolvedTopLevelSetterError(receiver, memberName, positionalArguments,
-    namedArguments, existingArguments) {
-  // TODO(sra): Generate customized message.
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
-}
-
-// Called from kernel generated code.
-_unresolvedTopLevelMethodError(receiver, memberName, positionalArguments,
-    namedArguments, existingArguments) {
-  // TODO(sra): Generate customized message.
-  return new NoSuchMethodError._(
-      receiver, memberName, positionalArguments, namedArguments);
 }
 
 /// Used by Fasta to report a runtime error when a final field with an

@@ -13,7 +13,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                     ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record1);
   (int x, int y) record1Named = (1, 2);
 //^
@@ -21,7 +21,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                              ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record1Named);
 
   (int, int, ) record2 = (1, 2);
@@ -30,7 +30,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                       ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record2);
 
   (int x, int y, ) record2Named = (1, 2);
@@ -39,7 +39,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record2Named);
 
   (int, int, {int a, int b}) record3 = (1, 2, a: 3, b: 4);
@@ -48,7 +48,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                     ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record3);
 
   (int x, int y, {int a, int b}) record3Named = (1, 2, a: 3, b: 4);
@@ -57,7 +57,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                              ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record3Named);
 
   (int, int, {int a, int b, }) record4 = (1, 2, a: 3, b: 4);
@@ -66,7 +66,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                       ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record4);
 
   (int x, int y, {int a, int b, }) record4Named = (1, 2, a: 3, b: 4);
@@ -75,13 +75,13 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                                ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(record4Named);
 
   print(foo((42, b: true), 42));
   //        ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
 
   Bar b = new Bar();
   print(b.foo(42));
@@ -97,7 +97,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                                                ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
 
   final (int x, int y) finalRecordType = (42, 42);
   //    ^
@@ -105,7 +105,7 @@ main() {
   // [cfe] This requires the experimental 'records' language feature to be enabled.
   //                                     ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
 
   List<(int, int)> listOfRecords = [];
   //   ^
@@ -123,7 +123,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                           ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(oneElementRecord);
 
   ({int ok}) oneElementNamedRecord = (ok: 1);
@@ -132,7 +132,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                   ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
   print(oneElementNamedRecord);
 }
 
@@ -143,7 +143,7 @@ main() {
   return (42, t);
   //     ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
 }
 
 (int, T) f2<T>(T t) => (42, t);
@@ -152,7 +152,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                     ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
 
 (int a, String b) get topLevelGetterType => throw '';
 // [error column 1, length 1]
@@ -169,11 +169,11 @@ main() {
   if (inputRecord.b) return (42, 42);
   //                        ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
   return (1, 1, );
   //     ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
 }
 
 class Bar {
@@ -183,7 +183,7 @@ class Bar {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                         ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
 
   static (int x, int y) staticRecordType = (42, 42);
   //     ^
@@ -191,7 +191,7 @@ class Bar {
   // [cfe] This requires the experimental 'records' language feature to be enabled.
   //                                       ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  // [cfe] The 'records' language feature is disabled for this library.
 
   (int a, String b) get instanceGetterType => throw '';
 //^
@@ -210,7 +210,7 @@ class Bar {
     return (42, t);
     //     ^
     // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-    // [cfe] This requires the experimental 'records' language feature to be enabled.
+    // [cfe] The 'records' language feature is disabled for this library.
   }
 
   (int, T) f2<T>(T t) => (42, t);
@@ -219,6 +219,6 @@ class Bar {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                       ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
 }
 

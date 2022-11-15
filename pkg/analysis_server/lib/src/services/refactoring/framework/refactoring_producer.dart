@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// An object that can compute a refactoring in a Dart file.
@@ -33,11 +32,11 @@ abstract class RefactoringProducer {
 
   /// Return the result of resolving the file in which the refactoring was
   /// invoked.
-  ResolvedUnitResult get result => _context.resolvedResult;
+  ResolvedUnitResult get result => _context.resolvedUnitResult;
 
-  /// Return the node that was selected.
-  AstNode? get selectedNode =>
-      NodeLocator2(selectionOffset, selectionEnd).searchWithin(result.unit);
+  /// Return the node that was selected, or `null` if the selection is not
+  /// valid.
+  AstNode? get selectedNode => _context.selectedNode;
 
   /// Return the offset of the first character after the selection range.
   int get selectionEnd => selectionOffset + selectionLength;
@@ -50,13 +49,6 @@ abstract class RefactoringProducer {
 
   /// Return the helper used to efficiently access resolved units.
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
-
-  /// Return `true` if the client has support for command parameters. Subclasses
-  /// that produce command parameters that don't have a default value must not
-  /// create a refactoring if this getter returns `false`.
-  bool get supportsCommandParameters =>
-      _context.server.clientCapabilities?.codeActionCommandParameterSupport ==
-      true;
 
   /// Return `true` if the client has support for creating files. Subclasses
   /// that require the ability to create new files must not create a refactoring
@@ -83,4 +75,14 @@ abstract class RefactoringProducer {
       token != null &&
       selectionOffset >= token.offset &&
       selectionEnd <= token.end;
+
+  /// Return `true` if the client has support for command parameters of the
+  /// provided `kind`. Subclasses that produce command parameters of this kind
+  /// that don't have a default value must not create a refactoring if this
+  /// returns `false`.
+  bool supportsCommandParameter(String kind) =>
+      _context
+          .server.clientCapabilities?.codeActionCommandParameterSupportedKinds
+          .contains(kind) ??
+      false;
 }

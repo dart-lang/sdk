@@ -83,12 +83,13 @@ class _BufferAndStart {
 }
 
 // Ensure that the input List can be serialized through a native port.
-// Only Int8List and Uint8List Lists are serialized directly.
-// All other lists are first copied into a Uint8List. This has the added
-// benefit that it is faster to access from the C code as well.
 _BufferAndStart _ensureFastAndSerializableByteData(
     List<int> buffer, int start, int end) {
-  if (_isDirectIOCapableTypedList(buffer)) {
+  if ((buffer is Uint8List) &&
+      (buffer.buffer.lengthInBytes == buffer.length)) {
+    // Send typed data directly, unless it is a partial view, in which case we
+    // would rather copy than drag in the potentially much large backing store.
+    // See issue 50206.
     return new _BufferAndStart(buffer, start);
   }
   int length = end - start;
@@ -96,9 +97,6 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   newBuffer.setRange(0, length, buffer, start);
   return new _BufferAndStart(newBuffer, 0);
 }
-
-// The VM will use ClassID to check whether buffer is Uint8List or Int8List.
-external bool _isDirectIOCapableTypedList(List<int> buffer);
 
 class _IOCrypto {
   external static Uint8List getRandomBytes(int count);

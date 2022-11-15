@@ -4325,7 +4325,8 @@ List<Uint8List> _createTables() {
   b = build(pathSeg, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, ".", pathSegDot);
-  setChars(b, r"/\", pathSeg | notSimple);
+  setChars(b, "/", pathSeg);
+  setChars(b, r"\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4345,7 +4346,7 @@ List<Uint8List> _createTables() {
   b = build(path, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, "/", pathSeg);
-  setChars(b, r"/\", pathSeg | notSimple);
+  setChars(b, r"\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 

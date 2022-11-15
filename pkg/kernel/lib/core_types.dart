@@ -28,6 +28,7 @@ class CoreTypes {
       'Function',
       'Invocation',
       'FallThroughError',
+      'Record',
     ],
     'dart:_internal': [
       'LateInitializationErrorImpl',
@@ -1139,6 +1140,12 @@ class CoreTypes {
     // TOP(FutureOr<T>) is TOP(T).
     if (type is FutureOrType) {
       return isTop(type.typeArgument);
+    }
+
+    // If the representation type, R, is a top type then the view type, V0, is a
+    // top type, otherwise V0 is a proper subtype of Object?.
+    if (type is ViewType) {
+      return isTop(type.representationType);
     }
 
     return false;

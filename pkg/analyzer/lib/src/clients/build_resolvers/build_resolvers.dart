@@ -64,17 +64,26 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
 
   scheduler.start();
 
-  return AnalysisDriverForPackageBuild._(driver);
+  return AnalysisDriverForPackageBuild._(sdk.libraryUris, driver);
 }
 
 /// [AnalysisSession] plus a tiny bit more.
 class AnalysisDriverForPackageBuild {
+  final List<Uri> _sdkLibraryUris;
   final AnalysisDriver _driver;
 
-  AnalysisDriverForPackageBuild._(this._driver);
+  AnalysisDriverForPackageBuild._(
+    this._sdkLibraryUris,
+    this._driver,
+  );
 
   AnalysisSession get currentSession {
     return _driver.currentSession;
+  }
+
+  /// Returns URIs of libraries in the given SDK.
+  List<Uri> get sdkLibraryUris {
+    return _sdkLibraryUris;
   }
 
   /// Return a [Future] that completes after pending file changes are applied,

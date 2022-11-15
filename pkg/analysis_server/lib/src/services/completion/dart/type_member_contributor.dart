@@ -69,30 +69,34 @@ class TypeMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    List<InterfaceType>? mixins;
-    List<InterfaceType>? superclassConstraints;
-    if (expression is SuperExpression && type is InterfaceType) {
-      // Suggest members from superclass if target is "super".
-      mixins = type.mixins;
-      superclassConstraints = type.superclassConstraints;
-      type = type.superclass;
-    }
+
     if (type is FunctionType) {
       builder.suggestFunctionCall();
-      type = request.objectType;
-    } else if (type == null || type.isDynamic) {
-      // Suggest members from object if target is "dynamic".
-      type = request.objectType;
-    }
-
-    // Build the suggestions.
-    if (type is InterfaceType) {
-      var memberBuilder = _SuggestionBuilder(request, builder);
-      memberBuilder.buildSuggestions(type,
-          mixins: mixins, superclassConstraints: superclassConstraints);
+      _suggestFromDartCoreObject();
+    } else if (type is InterfaceType) {
+      if (expression is SuperExpression) {
+        _SuggestionBuilder(request, builder).buildSuggestions(
+          type.superclass ?? request.objectType,
+          mixins: type.mixins,
+          superclassConstraints: type.superclassConstraints,
+        );
+      } else {
+        _suggestFromInterfaceType(type);
+      }
     } else if (type is RecordType) {
       _suggestFromRecordType(type);
+      _suggestFromDartCoreObject();
+    } else {
+      _suggestFromDartCoreObject();
     }
+  }
+
+  void _suggestFromDartCoreObject() {
+    _suggestFromInterfaceType(request.objectType);
+  }
+
+  void _suggestFromInterfaceType(InterfaceType type) {
+    _SuggestionBuilder(request, builder).buildSuggestions(type);
   }
 
   void _suggestFromRecordType(RecordType type) {
@@ -268,7 +272,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     }
     for (var targetType in types) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(type.element2, targetType.element2);
+          .inheritanceDistanceFeature(type.element, targetType.element);
       for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
@@ -309,7 +313,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element2)) {
+      if (!classesSeen.add(nextType.element)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

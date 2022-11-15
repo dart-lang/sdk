@@ -1056,13 +1056,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       startHighlight(node);
     }
     if (showOffsets) writeWord("[${node.fileOffset}]");
-    bool needsParenteses = false;
+    bool needsParentheses = false;
     if (minimumPrecedence != null && getPrecedence(node) < minimumPrecedence) {
-      needsParenteses = true;
+      needsParentheses = true;
       writeSymbol('(');
     }
     writeNode(node);
-    if (needsParenteses) {
+    if (needsParentheses) {
       writeSymbol(')');
     }
     if (highlight) {
@@ -2900,8 +2900,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitRecordConstant(RecordConstant node) {
-    writeWord('const');
-    writeSpace();
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
     writeSymbol('(');
     writeList(node.positional, writeConstantReference);
     if (node.named.isNotEmpty) {

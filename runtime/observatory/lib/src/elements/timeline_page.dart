@@ -249,8 +249,9 @@ class TimelinePageElement extends CustomElement implements Renderable {
 
   Future _refresh() async {
     _postMessage('loading');
-    final traceData = await _repository.getTimeline(vm);
-    return _postMessage('refresh', traceData);
+    final params =
+        new Map<String, dynamic>.from(await _repository.getIFrameParams(vm));
+    return _postMessage('refresh', params);
   }
 
   Future _clear() async {

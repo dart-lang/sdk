@@ -10,6 +10,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:test/test.dart';
@@ -45,6 +46,35 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void setUp() {
     contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
+  }
+
+  void test_locateRoots_excludedByOptions_directoryWithParenthesis() {
+    var rootPath = convertPath('/home/test (copy)');
+    var rootFolder = newFolder(rootPath);
+    var optionsFile = newAnalysisOptionsYamlFile(rootPath, r'''
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+''');
+    var packagesFile = newPackageConfigJsonFile(rootPath, '');
+    var fooFile = newFile('$rootPath/lib/foo.dart', '');
+    newFile('$rootPath/lib/bar.g.dart', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootFolder.path, fooFile.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, rootFolder);
+    expect(
+      root.includedPaths,
+      unorderedEquals([rootFolder.path]),
+    );
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    _assertAnalyzedFiles2(root, [optionsFile, fooFile]);
   }
 
   void test_locateRoots_link_file_toOutOfRoot() {
@@ -764,6 +794,35 @@ analyzer:
     _assertAnalyzedFiles2(barRoot, [barFile]);
   }
 
+  void test_locateRoots_multiple_files_gnWorkspace() {
+    var workspaceRootPath = '/workspace';
+    newFolder(workspaceRootPath);
+    newFolder('$workspaceRootPath/.jiri_root');
+
+    var outPath = '$workspaceRootPath/out/default';
+    var dartGenPath = '$outPath/dartlang/gen';
+    newFile('$workspaceRootPath/.fx-build-dir', '''
+${getFolder(outPath).path}
+''');
+
+    var myRootPath = '$workspaceRootPath/my';
+    var myRoot = newFolder(myRootPath);
+    var myBuildGn = newBuildGnFile(myRootPath, '');
+    var myFile1 = newFile('$myRootPath/lib/file1.dart', '');
+    var myFile2 = newFile('$myRootPath/lib/file2.dart', '');
+    newFile('$myRootPath/lib/file3.dart', '');
+    newFile('$dartGenPath/my/my_package_config.json', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [myFile1.path, myFile2.path],
+    );
+    expect(roots, hasLength(1));
+
+    var myContextRoot = findRoot(roots, myRoot);
+    _assertGnWorkspace(myContextRoot.workspace, workspaceRootPath, myBuildGn);
+    _assertAnalyzedFiles2(myContextRoot, [myFile1, myFile2]);
+  }
+
   void test_locateRoots_multiple_files_sameOptions_differentPackages() {
     var fooPackagesFile = newPackageConfigJsonFile('/home/foo', '');
     var barPackagesFile = newPackageConfigJsonFile('/home/bar', '');
@@ -1410,6 +1469,42 @@ analyzer:
     ]);
   }
 
+  test_locateRoots_single_dir_children_gnWorkspaces_noPubspecYaml() {
+    var workspaceRootPath = '/workspace';
+    newFolder(workspaceRootPath);
+    newFolder('$workspaceRootPath/.jiri_root');
+
+    var outPath = '$workspaceRootPath/out/default';
+    var dartGenPath = '$outPath/dartlang/gen';
+    newFile('$workspaceRootPath/.fx-build-dir', '''
+${getFolder(outPath).path}
+''');
+
+    var dartPath = '$workspaceRootPath/dart';
+    var fooRootPath = '$dartPath/foo';
+    var fooRoot = newFolder(fooRootPath);
+    var fooBuildGn = newBuildGnFile(fooRootPath, '');
+    newFile('$dartGenPath/dart/foo/foo_package_config.json', '');
+
+    var barRootPath = '$dartPath/bar';
+    var barRoot = newFolder(barRootPath);
+    var barBuildGn = newBuildGnFile(barRootPath, '');
+    newFile('$dartGenPath/dart/bar/bar_package_config.json', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [
+        getFolder(dartPath).path,
+      ],
+    );
+    expect(roots, hasLength(3));
+
+    var fooContextRoot = findRoot(roots, fooRoot);
+    _assertGnWorkspace(fooContextRoot.workspace, workspaceRootPath, fooBuildGn);
+
+    var barContextRoot = findRoot(roots, barRoot);
+    _assertGnWorkspace(barContextRoot.workspace, workspaceRootPath, barBuildGn);
+  }
+
   void test_locateRoots_single_dir_directOptions_directPackages() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newAnalysisOptionsYamlFile('/test/root', '');
@@ -1440,6 +1535,57 @@ analyzer:
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);
     expect(package1Root.packagesFile, packagesFile);
+  }
+
+  void test_locateRoots_single_dir_gnWorkspace_hasPubspecYaml() {
+    var workspaceRootPath = '/workspace';
+    newFolder(workspaceRootPath);
+    newFolder('$workspaceRootPath/.jiri_root');
+
+    var outPath = '$workspaceRootPath/out/default';
+    var dartGenPath = '$outPath/dartlang/gen';
+    newFile('$workspaceRootPath/.fx-build-dir', '''
+${getFolder(outPath).path}
+''');
+
+    var myRootPath = '$workspaceRootPath/my';
+    var myRoot = newFolder(myRootPath);
+    var myBuildGn = newBuildGnFile(myRootPath, '');
+    newFile('$dartGenPath/my/my_package_config.json', '');
+    newPubspecYamlFile(myRootPath, '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [myRoot.path],
+    );
+    expect(roots, hasLength(1));
+
+    var package1Root = findRoot(roots, myRoot);
+    _assertGnWorkspace(package1Root.workspace, workspaceRootPath, myBuildGn);
+  }
+
+  void test_locateRoots_single_dir_gnWorkspace_noPubspecYaml() {
+    var workspaceRootPath = '/workspace';
+    newFolder(workspaceRootPath);
+    newFolder('$workspaceRootPath/.jiri_root');
+
+    var outPath = '$workspaceRootPath/out/default';
+    var dartGenPath = '$outPath/dartlang/gen';
+    newFile('$workspaceRootPath/.fx-build-dir', '''
+${getFolder(outPath).path}
+''');
+
+    var myRootPath = '$workspaceRootPath/my';
+    var myRoot = newFolder(myRootPath);
+    var myBuildGn = newBuildGnFile(myRootPath, '');
+    newFile('$dartGenPath/my/my_package_config.json', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [myRoot.path],
+    );
+    expect(roots, hasLength(1));
+
+    var package1Root = findRoot(roots, myRoot);
+    _assertGnWorkspace(package1Root.workspace, workspaceRootPath, myBuildGn);
   }
 
   void test_locateRoots_single_dir_inheritedOptions_directPackages() {
@@ -1490,6 +1636,34 @@ analyzer:
     expect(contentRoot.packagesFile, packageConfigJsonFile);
   }
 
+  void test_locateRoots_single_file_gnWorkspace() {
+    var workspaceRootPath = '/workspace';
+    newFolder(workspaceRootPath);
+    newFolder('$workspaceRootPath/.jiri_root');
+
+    var outPath = '$workspaceRootPath/out/default';
+    var dartGenPath = '$outPath/dartlang/gen';
+    newFile('$workspaceRootPath/.fx-build-dir', '''
+${getFolder(outPath).path}
+''');
+
+    var myRootPath = '$workspaceRootPath/my';
+    var myRoot = newFolder(myRootPath);
+    var myBuildGn = newBuildGnFile(myRootPath, '');
+    var myFile = newFile('$myRootPath/lib/a.dart', '');
+    newFile('$myRootPath/lib/b.dart', '');
+    newFile('$dartGenPath/my/my_package_config.json', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [myFile.path],
+    );
+    expect(roots, hasLength(1));
+
+    var myContextRoot = findRoot(roots, myRoot);
+    _assertGnWorkspace(myContextRoot.workspace, workspaceRootPath, myBuildGn);
+    _assertAnalyzedFiles2(myContextRoot, [myFile]);
+  }
+
   void test_locateRoots_single_file_inheritedOptions_directPackages() {
     File optionsFile = newAnalysisOptionsYamlFile('/test', '');
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
@@ -1504,6 +1678,32 @@ analyzer:
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);
     expect(package1Root.packagesFile, packagesFile);
+  }
+
+  void test_locateRoots_single_file_jiriRoot_noBuildGn_noPubspecYaml() {
+    var workspaceRootPath = '/workspace';
+    newFolder(workspaceRootPath);
+    newFolder('$workspaceRootPath/.jiri_root');
+
+    var outPath = '$workspaceRootPath/out/default';
+    var dartGenPath = '$outPath/dartlang/gen';
+    newFile('$workspaceRootPath/.fx-build-dir', '''
+${getFolder(outPath).path}
+''');
+
+    var myRootPath = '$workspaceRootPath/my';
+    var myFile = newFile('$myRootPath/lib/a.dart', '');
+    newFile('$myRootPath/lib/b.dart', '');
+    newFile('$dartGenPath/my/my_package_config.json', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [myFile.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, getFolder('/'));
+    _assertBasicWorkspace(root.workspace, root.root.path);
+    _assertAnalyzedFiles2(root, [myFile]);
   }
 
   void test_locateRoots_single_file_notExisting() {
@@ -1555,6 +1755,17 @@ analyzer:
     workspace as BlazeWorkspace;
     var root = convertPath(posixRoot);
     expect(workspace.root, root);
+  }
+
+  void _assertGnWorkspace(
+    Workspace workspace,
+    String posixRoot,
+    File buildGnFile,
+  ) {
+    workspace as GnWorkspace;
+    var root = convertPath(posixRoot);
+    expect(workspace.root, root);
+    expect(workspace.buildGnFile, buildGnFile);
   }
 
   void _assertNotAnalyzed(ContextRoot root, List<String> posixPathList) {

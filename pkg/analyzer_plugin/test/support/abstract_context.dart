@@ -141,7 +141,6 @@ class AbstractContextTest with ResourceProviderMixin {
       }
     }
 
-    print(buffer);
     newFile('$testPackageRootPath/analysis_options.yaml', buffer.toString());
   }
 

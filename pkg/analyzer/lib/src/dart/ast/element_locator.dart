@@ -74,13 +74,18 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitEnumDeclaration(EnumDeclaration node) {
     return node.declaredElement;
   }
 
   @override
   Element? visitExportDirective(ExportDirective node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -135,12 +140,12 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
       if (grandParent is PartOfDirective) {
-        var element = grandParent.element2;
+        var element = grandParent.element;
         if (element is LibraryElement) {
           return element.definingCompilationUnit;
         }
       } else if (grandParent is LibraryDirective) {
-        return grandParent.element2;
+        return grandParent.element;
       }
     }
     return node.writeOrReadElement;
@@ -148,7 +153,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitImportDirective(ImportDirective node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -163,7 +168,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitLibraryDirective(LibraryDirective node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -183,7 +188,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPartOfDirective(PartOfDirective node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -205,11 +210,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   Element? visitStringLiteral(StringLiteral node) {
     final parent = node.parent;
     if (parent is ExportDirective) {
-      return parent.element2?.exportedLibrary;
+      return parent.element?.exportedLibrary;
     } else if (parent is ImportDirective) {
-      return parent.element2?.importedLibrary;
+      return parent.element?.importedLibrary;
     } else if (parent is PartDirective) {
-      final elementUri = parent.element2?.uri;
+      final elementUri = parent.element?.uri;
       if (elementUri is DirectiveUriWithUnit) {
         return elementUri.unit;
       }

@@ -386,8 +386,8 @@ void f() {
       source: findNode.catchClause('(e2,'),
       childAccessors: [
         (node) => node.exceptionType!,
-        (node) => node.exceptionParameter2!,
-        (node) => node.stackTraceParameter2!,
+        (node) => node.exceptionParameter!,
+        (node) => node.stackTraceParameter!,
         (node) => node.body,
       ],
     );
@@ -513,6 +513,22 @@ void f() {
         (node) => node.condition,
         (node) => node.thenExpression,
         (node) => node.elseExpression,
+      ],
+    );
+  }
+
+  void test_constantPattern() {
+    var findNode = _parseStringToFindNode(r'''
+void f(x) async {
+  if (x case 0) {}
+  if (x case 1) {}
+}
+''');
+    _assertReplacementForChildren<ConstantPattern>(
+      destination: findNode.caseClause('0').pattern as ConstantPattern,
+      source: findNode.caseClause('1').pattern as ConstantPattern,
+      childAccessors: [
+        (node) => node.expression,
       ],
     );
   }
@@ -1513,6 +1529,22 @@ class A {
     );
   }
 
+  void test_relationalPattern() {
+    var findNode = _parseStringToFindNode(r'''
+void f(x) {
+  if (x case > 0) {}
+  if (x case > 1) {}
+}
+''');
+    _assertReplacementForChildren<RelationalPattern>(
+      destination: findNode.relationalPattern('> 0'),
+      source: findNode.relationalPattern('> 1'),
+      childAccessors: [
+        (node) => node.operand,
+      ],
+    );
+  }
+
   void test_returnStatement() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
@@ -1886,6 +1918,22 @@ void f() {
       source: findNode.variableDeclarationStatement('double b'),
       childAccessors: [
         (node) => node.variables,
+      ],
+    );
+  }
+
+  void test_whenClause() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  if (x case 0 when 1) {}
+  if (x case 0 when 2) {}
+}
+''');
+    _assertReplacementForChildren<WhenClause>(
+      destination: findNode.whenClause('when 1'),
+      source: findNode.whenClause('when 2'),
+      childAccessors: [
+        (node) => node.expression,
       ],
     );
   }

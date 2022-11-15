@@ -12,14 +12,14 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer_interfaces.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_backend/runtime_types_codegen.dart'
     show ClassChecks, ClassFunctionType, TypeCheck;
 import '../js_emitter/sorter.dart';
 import '../util/util.dart' show Setlet;
 
-import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'interfaces.dart' show CodeEmitterTask;
 
 // Function signatures used in the generation of runtime type information.
 typedef FunctionTypeSignatureEmitter = void Function(
@@ -268,6 +268,13 @@ class _TypeContainedInOutputUnitVisitor
       return false;
     }
     return visitList(type.typeArguments, argument);
+  }
+
+  @override
+  bool visitRecordType(RecordType type, OutputUnit argument) {
+    // TODO(sra): The record shape is a bit like an implicit interface
+    // type. Does it have an OutputUnit?
+    throw UnimplementedError();
   }
 
   @override

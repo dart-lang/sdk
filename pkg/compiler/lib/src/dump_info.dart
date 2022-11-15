@@ -22,7 +22,7 @@ import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common/ram_usage.dart';
-import 'compiler.dart' show Compiler;
+import 'compiler_interfaces.dart' show CompilerDumpInfoFacade;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'dump_info_javascript_monitor.dart';
@@ -33,14 +33,14 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
-import 'js_model/js_strategy.dart';
+import 'js_model/js_strategy_interfaces.dart';
+import 'js_model/js_world.dart' show JClosedWorld;
 import 'js_backend/field_analysis.dart';
 import 'universe/world_impact.dart' show WorldImpact;
 import 'util/sink_adapter.dart';
-import 'world.dart' show JClosedWorld;
 
 class ElementInfoCollector {
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -92,7 +92,7 @@ class ElementInfoCollector {
           info.topLevelFunctions.add(functionInfo);
           functionInfo.parent = info;
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member);
         if (fieldInfo != null) {
           info.topLevelVariables.add(fieldInfo);
@@ -241,7 +241,7 @@ class ElementInfoCollector {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
@@ -309,7 +309,7 @@ class ElementInfoCollector {
       kind = FunctionInfo.METHOD_FUNCTION_KIND;
     }
 
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       name = name == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";
@@ -321,9 +321,8 @@ class ElementInfoCollector {
     FunctionModifiers modifiers = FunctionModifiers(
       isStatic: function.isStatic,
       isConst: function.isConst,
-      isFactory: function.isConstructor
-          ? (function as ConstructorEntity).isFactoryConstructor
-          : false,
+      isFactory:
+          function is ConstructorEntity ? function.isFactoryConstructor : false,
       isExternal: function.isExternal,
     );
     List<CodeSpan> code = dumpInfoTask.codeOf(function);
@@ -449,7 +448,7 @@ class ElementInfoCollector {
 
 class KernelInfoCollector {
   final ir.Component component;
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
@@ -750,7 +749,7 @@ class EntityDisambiguator {
 /// analysis.
 class DumpInfoAnnotator {
   final KernelInfoCollector kernelInfo;
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -806,7 +805,7 @@ class DumpInfoAnnotator {
     environment.forEachLibraryMember(lib, (MemberEntity member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
         visitFunction(member, libname);
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         visitField(member, libname);
       } else {
         throw StateError('Class member not a function or field');
@@ -947,7 +946,7 @@ class DumpInfoAnnotator {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
+      } else if (member is FieldEntity) {
         FieldInfo fieldInfo = visitField(member, disambiguatedMemberName);
         if (fieldInfo != null) {
           for (var closureInfo in fieldInfo.closures) {
@@ -1015,7 +1014,7 @@ class DumpInfoAnnotator {
     if (size == 0 && !shouldKeep(function)) return null;
 
     var compareName = function.name;
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       compareName = compareName == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";
@@ -1153,7 +1152,7 @@ abstract class InfoReporter {
 
 class DumpInfoTask extends CompilerTask
     implements DumpInfoJavaScriptMonitor, InfoReporter {
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final bool useBinaryFormat;
 
   DumpInfoTask(this.compiler)

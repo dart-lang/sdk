@@ -100,7 +100,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginCaseExpression(Token caseKeyword) {}
 
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     logEvent("CaseExpression");
   }
 
@@ -134,7 +134,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -760,7 +760,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").
   /// Substructures:
@@ -1351,10 +1351,6 @@ class Listener implements UnescapeErrorListener {
 
   void beginTryStatement(Token token) {}
 
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    logEvent("CaseMatch");
-  }
-
   void beginCatchClause(Token token) {}
 
   void endCatchClause(Token token) {
@@ -1849,7 +1845,7 @@ class Listener implements UnescapeErrorListener {
   /// - do while loop
   /// - switch statement
   /// - while loop
-  void handleParenthesizedCondition(Token token, Token? case_) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     logEvent("ParenthesizedCondition");
   }
 
@@ -1883,6 +1879,13 @@ class Listener implements UnescapeErrorListener {
 
   /// Called after the parser has consumed a constant pattern, consisting of an
   /// optional `const` and an expression.
+  ///
+  /// Note that some expressions can legally begin with `const`, so there is
+  /// ambiguity as to whether to associate the `const` keyword with the constant
+  /// pattern or the constant expression.  This ambiguity is resolved in favor
+  /// of associating the `const` keyword with the constant pattern.  So for
+  /// example, in `case const []` the `const` keyword is passed to
+  /// [handleConstantPattern] rather than [handleLiteralList].
   void handleConstantPattern(Token? constKeyword) {
     logEvent("ConstantPattern");
   }

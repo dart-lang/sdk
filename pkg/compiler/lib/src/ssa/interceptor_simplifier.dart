@@ -9,8 +9,8 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart' show Selector;
-import '../world_interfaces.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -25,7 +25,7 @@ import 'optimize.dart';
 /// 3) If we know the object is not intercepted, we just use the object
 ///    instead.
 ///
-class SsaSimplifyInterceptors extends HBaseVisitor
+class SsaSimplifyInterceptors extends HBaseVisitor<bool>
     implements OptimizationPhase {
   @override
   final String name = "SsaSimplifyInterceptors";

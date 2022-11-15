@@ -423,9 +423,10 @@ void f(int p) {
   p.();
 }
 ''', [
+      if (!isNullSafetyEnabled)
+        error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 32, 1),
       error(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
     ]);
   }
 }

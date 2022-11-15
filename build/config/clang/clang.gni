@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("../../toolchain/goma.gni")
+
 _toolchain_cpu = host_cpu
-if (host_os == "mac") {
-  # TODO(https://fxbug.dev/73385): Use arm64 toolchain on arm64 when it exists.
+if (host_os == "mac" && use_goma) {
+  # Goma does not support ARM64.
   _toolchain_cpu = "x64"
 }
 

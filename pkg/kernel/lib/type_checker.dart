@@ -259,17 +259,8 @@ class TypeCheckingVisitor
     if (superclass.supertype == null) {
       return Substitution.empty; // Members on Object are always accessible.
     }
-    // TODO(cstefantsova): Implement the procedure for resolving type parameter
-    // types and intersection types.
-    while (true) {
-      if (type is TypeParameterType) {
-        type = type.bound;
-      } else if (type is IntersectionType) {
-        type = type.right;
-      } else {
-        break;
-      }
-    }
+
+    type = type.resolveTypeParameterType;
     if (type is NeverType || type is NullType || type is InvalidType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);
@@ -841,12 +832,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitRecordIndexGet(RecordIndexGet node) {
-    DartType receiverType = visitExpression(node.receiver);
-    assert(
-        receiverType is RecordType,
-        "Encountered RecordIndexGet with non-record receiver: "
-        "'${receiverType.runtimeType}'.");
-    RecordType recordType = receiverType as RecordType;
+    visitExpression(node.receiver);
+    RecordType recordType = node.receiverType;
     assert(
         node.index < recordType.positional.length,
         "Encountered RecordIndexGet with index out of range: "
@@ -856,13 +843,9 @@ class TypeCheckingVisitor
 
   @override
   DartType visitRecordNameGet(RecordNameGet node) {
-    DartType recordType = visitExpression(node.receiver);
-    assert(
-        recordType is RecordType,
-        "Encountered RecordNameGet with non-record receiver: "
-        "'${recordType.runtimeType}'.");
+    visitExpression(node.receiver);
     DartType? result;
-    for (NamedType namedType in (recordType as RecordType).named) {
+    for (NamedType namedType in node.receiverType.named) {
       if (namedType.name == node.name) {
         result = namedType.type;
       }

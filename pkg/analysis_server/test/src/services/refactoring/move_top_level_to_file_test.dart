@@ -42,7 +42,7 @@ class MoveTopLevelToFileTest extends RefactoringTest {
 
   Future<void> test_available_withoutClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
-    await initializeServer(commandParameterSupport: false);
+    await initializeServer(commandParameterSupportedKinds: null);
     // This refactor is available without command parameter support because
     // it has defaults.
     await expectCodeAction(simpleClassRefactorTitle);
@@ -50,6 +50,8 @@ class MoveTopLevelToFileTest extends RefactoringTest {
 
   Future<void> test_class() async {
     var originalSource = '''
+// File header.
+
 class A {}
 
 class ClassToMove^ {}
@@ -57,6 +59,8 @@ class ClassToMove^ {}
 class B {}
 ''';
     var modifiedSource = '''
+// File header.
+
 class A {}
 
 class B {}
@@ -64,6 +68,8 @@ class B {}
     var declarationName = 'ClassToMove';
     var newFileName = 'class_to_move.dart';
     var newFileContent = '''
+// File header.
+
 class ClassToMove {}
 ''';
     await _singleDeclaration(

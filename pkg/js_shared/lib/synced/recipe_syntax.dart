@@ -12,6 +12,9 @@ abstract class Recipe {
 
   // Operators.
 
+  static const int librarySeparator = _vertical;
+  static const String librarySeparatorString = _verticalString;
+
   static const int separator = _comma;
   static const String separatorString = _commaString;
 
@@ -58,6 +61,9 @@ abstract class Recipe {
   static const String genericFunctionTypeParameterIndexString =
       _circumflexString;
 
+  static const int startRecord = _plus;
+  static const String startRecordString = _plusString;
+
   static const int extensionOp = _ampersand;
   static const String extensionOpString = _ampersandString;
   static const int pushNeverExtension = 0;
@@ -73,7 +79,8 @@ abstract class Recipe {
   static bool isIdentifierStart(int ch) =>
       (((ch | 32) - _lowercaseA) & 0xffff) < 26 ||
       (ch == _underscore) ||
-      (ch == _dollar);
+      (ch == _dollar) ||
+      (ch == _vertical);
 
   static const int period = _period;
 
@@ -198,6 +205,7 @@ abstract class Recipe {
         requiredNameSeparatorString);
     test("genericFunctionTypeParameterIndex", genericFunctionTypeParameterIndex,
         genericFunctionTypeParameterIndexString);
+    test("startRecord", startRecord, startRecordString);
     test("extensionOp", extensionOp, extensionOpString);
     testExtension(
         "pushNeverExtension", pushNeverExtension, pushNeverExtensionString);

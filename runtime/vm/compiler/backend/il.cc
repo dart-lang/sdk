@@ -705,18 +705,18 @@ Cids* Cids::CreateForArgument(Zone* zone,
   return cids;
 }
 
-static intptr_t Usage(const Function& function) {
+static intptr_t Usage(Thread* thread, const Function& function) {
   intptr_t count = function.usage_counter();
   if (count < 0) {
     if (function.HasCode()) {
       // 'function' is queued for optimized compilation
-      count = FLAG_optimization_counter_threshold;
+      count = thread->isolate_group()->optimization_counter_threshold();
     } else {
       count = 0;
     }
   } else if (Code::IsOptimized(function.CurrentCode())) {
     // 'function' was optimized and stopped counting
-    count = FLAG_optimization_counter_threshold;
+    count = thread->isolate_group()->optimization_counter_threshold();
   }
   return count;
 }
@@ -770,7 +770,7 @@ void CallTargets::CreateHelper(Zone* zone, const ICData& ic_data) {
         const intptr_t filled_entry_count = cache.filled_entry_count();
         ASSERT(filled_entry_count > 0);
         cid_ranges_.Add(new (zone) TargetInfo(
-            id, id, &function, Usage(function) / filled_entry_count,
+            id, id, &function, Usage(thread, function) / filled_entry_count,
             StaticTypeExactnessState::NotTracking()));
       }
     }
@@ -6949,7 +6949,11 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 2;
+#if defined(TARGET_ARCH_IA32)
+  const intptr_t kNumTemps = ShouldEmitStoreBarrier() ? 1 : 0;
+#else
   const intptr_t kNumTemps = 0;
+#endif
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
@@ -6973,9 +6977,7 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
     Location value_loc;
     if (ShouldEmitStoreBarrier()) {
       summary->set_in(kValuePos,
-                      kWriteBarrierValueReg != kNoRegister
-                          ? Location::RegisterLocation(kWriteBarrierValueReg)
-                          : Location::WritableRegister());
+                      Location::RegisterLocation(kWriteBarrierValueReg));
     } else {
 #if defined(TARGET_ARCH_IA32)
       // IA32 supports emitting `mov mem, Imm32` even for heap
@@ -7003,6 +7005,11 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
       summary->set_in(kValuePos, Location::RequiresRegister());
 #endif
     }
+  }
+  if (kNumTemps == 1) {
+    summary->set_temp(0, Location::RequiresRegister());
+  } else {
+    ASSERT(kNumTemps == 0);
   }
   return summary;
 }
@@ -7057,8 +7064,14 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(kValuePos).reg();
     if (!compressed) {
+#if defined(TARGET_ARCH_IA32)
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
+                               CanValueBeSmi(), memory_order_,
+                               locs()->temp(0).reg());
+#else
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
                                CanValueBeSmi(), memory_order_);
+#endif
     } else {
 #if defined(DART_COMPRESSED_POINTERS)
       __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes,
@@ -7647,10 +7660,12 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateRecordInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  const intptr_t kNumInputs = 0;
+  const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0,
+               Location::RegisterLocation(AllocateRecordABI::kFieldNamesReg));
   locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
   return locs;
 }
@@ -7660,7 +7675,68 @@ void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->zone(),
       compiler->isolate_group()->object_store()->allocate_record_stub());
   __ LoadImmediate(AllocateRecordABI::kNumFieldsReg, num_fields());
-  __ LoadObject(AllocateRecordABI::kFieldNamesReg, field_names());
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+}
+
+LocationSummary* AllocateSmallRecordInstr::MakeLocationSummary(Zone* zone,
+                                                               bool opt) const {
+  ASSERT(num_fields() == 2 || num_fields() == 3);
+  const intptr_t kNumInputs = InputCount();
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  if (has_named_fields()) {
+    locs->set_in(
+        0, Location::RegisterLocation(AllocateSmallRecordABI::kFieldNamesReg));
+    locs->set_in(
+        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+    locs->set_in(
+        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+    if (num_fields() > 2) {
+      locs->set_in(
+          3, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
+    }
+  } else {
+    locs->set_in(
+        0, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+    locs->set_in(
+        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+    if (num_fields() > 2) {
+      locs->set_in(
+          2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
+    }
+  }
+  locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
+  return locs;
+}
+
+void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  auto object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  if (has_named_fields()) {
+    switch (num_fields()) {
+      case 2:
+        stub = object_store->allocate_record2_named_stub();
+        break;
+      case 3:
+        stub = object_store->allocate_record3_named_stub();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    switch (num_fields()) {
+      case 2:
+        stub = object_store->allocate_record2_stub();
+        break;
+      case 3:
+        stub = object_store->allocate_record3_stub();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }

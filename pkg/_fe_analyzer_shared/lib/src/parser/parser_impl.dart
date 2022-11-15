@@ -507,8 +507,12 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next!;
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ token,
-          /* keyword = */ next, /* macroToken = */ null, directiveState);
+      return parseTopLevelKeywordDeclaration(
+          /* start = */ token,
+          /* keyword = */ next,
+          /* macroToken = */ null,
+          /* viewToken = */ null,
+          directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -528,15 +532,25 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
+    Token? viewToken;
     if (next.isIdentifier &&
+        next.lexeme == 'view' &&
+        optional('class', next.next!)) {
+      viewToken = next;
+      next = next.next!;
+    } else if (next.isIdentifier &&
         next.lexeme == 'macro' &&
         optional('class', next.next!)) {
       macroToken = next;
       next = next.next!;
     }
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ start,
-          /* keyword = */ next, /* macroToken = */ macroToken, directiveState);
+      return parseTopLevelKeywordDeclaration(
+          /* start = */ start,
+          /* keyword = */ next,
+          /* macroToken = */ macroToken,
+          /* viewToken = */ viewToken,
+          directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -569,7 +583,7 @@ class Parser {
   /// Parse any top-level declaration that begins with a keyword.
   /// [start] is the token before any modifiers preceding [keyword].
   Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
-      Token? macroToken, DirectiveContext? directiveState) {
+      Token? macroToken, Token? viewToken, DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
@@ -579,7 +593,7 @@ class Parser {
       Token? abstractToken = context.abstractToken;
       Token? augmentToken = context.augmentToken;
       return parseClassOrNamedMixinApplication(
-          abstractToken, macroToken, augmentToken, keyword);
+          abstractToken, macroToken, viewToken, augmentToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       ModifierContext context = new ModifierContext(this);
@@ -596,10 +610,11 @@ class Parser {
       bool typedefWithRecord = false;
       if (identical(value, 'typedef') && identical(nextValue, '(')) {
         Token? endParen = keyword.next!.endGroup;
-        if (endParen != null && endParen.next!.isIdentifier) {
+        if (endParen != null &&
+            _isIdentifierOrQuestionIdentifier(endParen.next!)) {
           // Looks like a typedef with a record.
           TypeInfo typeInfo = computeType(keyword, /* required = */ false);
-          if (typeInfo is ComplexTypeInfo && typeInfo.recordType) {
+          if (typeInfo is ComplexTypeInfo && typeInfo.isRecordType) {
             typedefWithRecord = true;
           }
         }
@@ -661,6 +676,14 @@ class Parser {
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
+  }
+
+  bool _isIdentifierOrQuestionIdentifier(Token token) {
+    if (token.isIdentifier) return true;
+    if (optional("?", token)) {
+      return token.next!.isIdentifier;
+    }
+    return false;
   }
 
   /// ```
@@ -1257,7 +1280,7 @@ class Parser {
               // Insert missing 'Function' below.
               reportRecoverableError(endGroup,
                   missingParameterMessage(MemberKind.FunctionTypeAlias));
-              rewriter.insertParens(endGroup, /*includeIdentifier =*/ false);
+              rewriter.insertParens(endGroup, /* includeIdentifier = */ false);
               recover = true;
             } else if (optional('(', endGroup.next!) &&
                 endGroup.next!.endGroup != null &&
@@ -1403,21 +1426,18 @@ class Parser {
 
   /// Parse a record type similarly as a formal parameter list of a function.
   ///
-  /// TODO(jensj): Update this to fit any new updates to the spec.
-  /// E.g. having two recordTypeNamedField entries doesn't make sense.
-  ///
   /// recordType          ::= '(' recordTypeFields ',' recordTypeNamedFields ')'
   ///                       | '(' recordTypeFields ','? ')'
-  ///                       | '(' recordTypeNamedFields ')'
+  ///                       | '(' recordTypeNamedFields? ')'
   ///
   /// recordTypeFields      ::= recordTypeField ( ',' recordTypeField )*
   /// recordTypeField       ::= metadata type identifier?
   ///
   /// recordTypeNamedFields ::= '{' recordTypeNamedField
   ///                           ( ',' recordTypeNamedField )* ','? '}'
-  /// recordTypeNamedField  ::= type identifier
-  /// recordTypeNamedField  ::= metadata typedIdentifier
-  Token parseRecordType(final Token start, Token token) {
+  /// recordTypeNamedField  ::= metadata type identifier
+  Token parseRecordType(
+      final Token start, Token token, bool isQuestionMarkPartOfType) {
     token = token.next!;
     assert(optional('(', token));
 
@@ -1429,10 +1449,17 @@ class Parser {
     int parameterCount = 0;
     bool hasNamedFields = false;
     bool sawComma = false;
+    Token? illegalTrailingComma;
     while (true) {
       Token next = token.next!;
       if (optional(')', next)) {
         token = next;
+        break;
+      } else if (parameterCount == 0 &&
+          optional(',', next) &&
+          optional(')', next.next!)) {
+        illegalTrailingComma = next;
+        token = next.next!;
         break;
       }
       ++parameterCount;
@@ -1478,14 +1505,19 @@ class Parser {
     }
     assert(optional(')', token));
 
-    if (parameterCount == 1 && !hasNamedFields && !sawComma) {
+    if (parameterCount == 0 && illegalTrailingComma != null) {
+      // Empty record type with a comma `(,)`.
+      reportRecoverableError(illegalTrailingComma,
+          codes.messageRecordTypeZeroFieldsButTrailingComma);
+    } else if (parameterCount == 1 && !hasNamedFields && !sawComma) {
       // Single non-named element without trailing comma.
       reportRecoverableError(
           token, codes.messageRecordTypeOnePositionalFieldNoTrailingComma);
     }
 
+    // Only consume the `?` if it is part of the type.
     Token? questionMark = token.next!;
-    if (optional('?', questionMark)) {
+    if (optional('?', questionMark) && isQuestionMarkPartOfType) {
       token = questionMark;
     } else {
       questionMark = null;
@@ -2397,8 +2429,12 @@ class Parser {
     return token;
   }
 
-  Token parseClassOrNamedMixinApplication(Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token classKeyword) {
+  Token parseClassOrNamedMixinApplication(
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? augmentToken,
+      Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
@@ -2409,11 +2445,11 @@ class Parser {
         .parseVariables(name, this);
     if (optional('=', token.next!)) {
       listener.beginNamedMixinApplication(
-          begin, abstractToken, macroToken, augmentToken, name);
+          begin, abstractToken, macroToken, viewToken, augmentToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
       listener.beginClassDeclaration(
-          begin, abstractToken, macroToken, augmentToken, name);
+          begin, abstractToken, macroToken, viewToken, augmentToken, name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }
@@ -2838,7 +2874,7 @@ class Parser {
           } else {
             token = IdentifierContext.extensionShowHideElementMemberOrType
                 .ensureIdentifier(token.next!, this);
-            listener.handleShowHideIdentifier(null, token);
+            listener.handleShowHideIdentifier(/* modifier = */ null, token);
           }
         }
         ++elementCount;
@@ -4429,7 +4465,7 @@ class Parser {
               codes.templateExperimentNotEnabled
                   .withArguments("triple-shift", "2.14"));
           operator = rewriter.replaceNextTokensWithSyntheticToken(
-              name, 2, TokenType.GT_GT_GT);
+              name, /* count = */ 2, TokenType.GT_GT_GT);
         }
       }
     }
@@ -5502,7 +5538,7 @@ class Parser {
                     .withArguments("triple-shift", "2.14"));
             assert(next == operator);
             next = rewriter.replaceNextTokensWithSyntheticToken(
-                token, 2, TokenType.GT_GT_GT_EQ);
+                token, /* count = */ 2, TokenType.GT_GT_GT_EQ);
             operator = next;
           }
           token = optional('throw', next.next!)
@@ -5597,7 +5633,7 @@ class Parser {
                       .withArguments("triple-shift", "2.14"));
               assert(next == operator);
               next = rewriter.replaceNextTokensWithSyntheticToken(
-                  token, 2, TokenType.GT_GT_GT);
+                  token, /* count = */ 2, TokenType.GT_GT_GT);
               operator = next;
             }
           }
@@ -5628,7 +5664,7 @@ class Parser {
     if (!enteredLoop && _recoverAtPrecedenceLevel && !_currentlyRecovering) {
       // Attempt recovery
       if (_attemptPrecedenceLevelRecovery(
-          token, precedence, /*currentLevel = */ -1, allowCascades, typeArg)) {
+          token, precedence, /* currentLevel = */ -1, allowCascades, typeArg)) {
         return _parsePrecedenceExpressionLoop(
             precedence, allowCascades, typeArg, token);
       }
@@ -6103,7 +6139,8 @@ class Parser {
     }
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseParenthesizedExpressionOrRecordLiteral(token, null);
+    token = parseParenthesizedExpressionOrRecordLiteral(
+        token, /* constKeywordForRecord = */ null);
     mayParseFunctionExpressions = old;
     return token;
   }
@@ -6143,9 +6180,20 @@ class Parser {
     int count = 0;
     bool wasRecord = constKeywordForRecord != null;
     bool wasValidRecord = false;
+    Token? illegalTrailingComma;
     while (true) {
       Token next = token.next!;
-      if ((count > 0 || wasRecord) && optional(')', next)) {
+      if (optional(')', next)) {
+        if (count == 0) {
+          wasRecord = true;
+        }
+        break;
+      } else if (count == 0 &&
+          optional(',', next) &&
+          optional(')', next.next!)) {
+        illegalTrailingComma = next;
+        wasRecord = true;
+        token = next;
         break;
       }
       Token? colon = null;
@@ -6179,8 +6227,10 @@ class Parser {
     assert(wasRecord || count <= 1);
 
     if (wasRecord) {
-      if (count == 0) {
-        reportRecoverableError(token, codes.messageRecordLiteralEmpty);
+      if (count == 0 && illegalTrailingComma != null) {
+        // Empty record literal with a comma `(,)`.
+        reportRecoverableError(illegalTrailingComma,
+            codes.messageRecordLiteralZeroFieldsWithTrailingComma);
       } else if (count == 1 && !wasValidRecord) {
         reportRecoverableError(
             token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
@@ -6208,11 +6258,18 @@ class Parser {
     if (allowPatterns && optional('case', next)) {
       Token case_ = token = next;
       token = parsePattern(token);
+      next = token.next!;
+      Token? when;
+      if (optional('when', next)) {
+        when = token = next;
+        token = parseExpression(token);
+      }
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, case_);
+      listener.handleParenthesizedCondition(begin, case_, when);
     } else {
       token = ensureCloseParen(token, begin);
-      listener.handleParenthesizedCondition(begin, null);
+      listener.handleParenthesizedCondition(
+          begin, /* case_ = */ null, /* when = */ null);
     }
     assert(optional(')', token));
     return token;
@@ -6348,8 +6405,6 @@ class Parser {
 
   /// This method parses the portion of a set or map literal that starts with
   /// the left curly brace when there are no leading type arguments.
-  ///
-  /// [forPattern] indicates whether an expression or pattern should be parsed.
   Token parseLiteralSetOrMapSuffix(Token token, Token? constKeyword) {
     Token leftBrace = token = token.next!;
     assert(optional('{', leftBrace));
@@ -8227,9 +8282,14 @@ class Parser {
           } else {
             token = parseExpression(caseKeyword);
           }
+          Token? next = token.next!;
+          Token? when;
+          if (optional('when', next)) {
+            when = token = next;
+            token = parseExpression(token);
+          }
           token = ensureColon(token);
-          listener.endCaseExpression(token);
-          listener.handleCaseMatch(caseKeyword, token);
+          listener.endCaseExpression(caseKeyword, when, token);
           expressionCount++;
           peek = peekPastLabels(token.next!);
         } else if (expressionCount > 0) {
@@ -9196,7 +9256,15 @@ class Parser {
         //                   | 'const' typeArguments? '[' elements? ']'
         //                   | 'const' typeArguments? '{' elements? '}'
         //                   | 'const' '(' expression ')'
-        throw new UnimplementedError('TODO(paulberry)');
+        Token const_ = next;
+        // TODO(paulberry): report error if this constant is not permitted by
+        // the grammar.  Pay careful attention to making sure that constructs
+        // like `const const Foo()`, `const const []`, and `const const {}`
+        // lead to errors.
+        token = parsePrecedenceExpression(
+            const_, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
+        listener.handleConstantPattern(const_);
+        return token;
     }
     TokenType type = next.type;
     if (type.isRelationalOperator || type.isEqualityOperator) {
@@ -9248,14 +9316,19 @@ class Parser {
         token = parseExtractorPatternRest(token);
         listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
         return token;
+      } else if (firstIdentifier.lexeme == '_' && dot == null) {
+        // It's a wildcard pattern with no preceding type, so parse it as a
+        // variable pattern.
+        return parseVariablePattern(beforeFirstIdentifier, typeInfo: typeInfo);
       }
       // It's not an extractor pattern so parse it as an expression.
       token = beforeFirstIdentifier;
     }
     // TODO(paulberry): report error if this constant is not permitted by the
     // grammar
-    token = parseUnaryExpression(token, /* allowCascades = */ false);
-    listener.handleConstantPattern(null);
+    token = parsePrecedenceExpression(
+        token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
+    listener.handleConstantPattern(/* constKeyword = */ null);
     return token;
   }
 
@@ -9269,13 +9342,18 @@ class Parser {
       token = typeInfo.parseType(token, this);
     } else {
       Token next = token.next!;
-      assert(optional('var', next) || optional('final', next));
-      token = keyword = next;
-      // TODO(paulberry): this accepts `var <type> name` as a variable pattern.
-      // We want to accept that for error recovery, but don't forget to report
-      // the appropriate error.
-      typeInfo = computeVariablePatternType(token);
-      token = typeInfo.parseType(token, this);
+      if (optional('var', next) || optional('final', next)) {
+        token = keyword = next;
+        // TODO(paulberry): this accepts `var <type> name` as a variable
+        // pattern.  We want to accept that for error recovery, but don't forget
+        // to report the appropriate error.
+        typeInfo = computeVariablePatternType(token);
+        token = typeInfo.parseType(token, this);
+      } else {
+        // Bare wildcard pattern
+        assert(next.lexeme == '_');
+        listener.handleNoType(token);
+      }
     }
     Token next = token.next!;
     if (next.isIdentifier) {
@@ -9477,9 +9555,7 @@ class Parser {
     assert(wasRecord || count <= 1);
 
     if (wasRecord) {
-      if (count == 0) {
-        reportRecoverableError(token, codes.messageRecordLiteralEmpty);
-      } else if (count == 1 && !wasValidRecord) {
+      if (count == 1 && !wasValidRecord) {
         reportRecoverableError(
             token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
       }

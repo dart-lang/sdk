@@ -35,7 +35,7 @@ class ConvertToPackageImport extends CorrectionProducer {
       targetNode = targetNode.parent!;
     }
     if (targetNode is ImportDirective) {
-      final elementUri = targetNode.element2?.uri;
+      final elementUri = targetNode.element?.uri;
       if (elementUri is! DirectiveUriWithSource) {
         return;
       }

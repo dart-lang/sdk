@@ -19,7 +19,7 @@ import 'package:yaml/yaml.dart';
 ///
 /// If [embedderYamlPath] is provided, then libraries from this file are
 /// appended to the libraries of the specified SDK.
-Future<Uint8List> buildSdkSummary2({
+Future<Uint8List> buildSdkSummary({
   required ResourceProvider resourceProvider,
   required String sdkPath,
   String? embedderYamlPath,
@@ -70,5 +70,21 @@ Future<Uint8List> buildSdkSummary2({
       languageVersionMinor: sdk.languageVersion.minor,
       allowedExperimentsJson: sdk.allowedExperimentsJson,
     ),
+  );
+}
+
+/// Build summary for SDK at the given [sdkPath].
+///
+/// If [embedderYamlPath] is provided, then libraries from this file are
+/// appended to the libraries of the specified SDK.
+@Deprecated('Use buildSdkSummary() instead')
+Future<Uint8List> buildSdkSummary2({
+  required ResourceProvider resourceProvider,
+  required String sdkPath,
+  String? embedderYamlPath,
+}) async {
+  return buildSdkSummary(
+    resourceProvider: resourceProvider,
+    sdkPath: sdkPath,
   );
 }

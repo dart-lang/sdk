@@ -103,7 +103,7 @@
   ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                 \
     volatile intptr_t far_branch_level = 0;                                    \
     while (true) {                                                             \
-      LongJumpScope jump;                                                      \
+      LongJumpScope jump(thread);                                              \
       if (setjmp(*jump.Set()) == 0) {                                          \
         compiler::ObjectPoolBuilder object_pool_builder;                       \
         compiler::Assembler assembler(&object_pool_builder, far_branch_level); \
@@ -113,9 +113,9 @@
         AssemblerTestRun##name(&test);                                         \
         return;                                                                \
       } else {                                                                 \
-        const Error& error = Error::Handle(Thread::Current()->sticky_error()); \
+        const Error& error = Error::Handle(thread->sticky_error());            \
         if (error.ptr() == Object::branch_offset_error().ptr()) {              \
-          ASSERT(far_branch_level < 2);                                        \
+          RELEASE_ASSERT(far_branch_level < 2);                                \
           far_branch_level++;                                                  \
         } else {                                                               \
           FATAL1("Unexpected error: %s\n", error.ToErrorCString());            \
@@ -537,6 +537,16 @@ class AssemblerTest {
   }
 #endif  // ARCH_IS_64_BIT
 
+  template <typename ResultType, typename Arg1Type>
+  ResultType Invoke(Arg1Type arg1) {
+    COMPILE_ASSERT(!is_double<Arg1Type>::value);
+    const bool fp_args = false;
+    const bool fp_return = false;
+    return Simulator::Current()->Call(bit_cast<intptr_t, uword>(entry()),
+                                      static_cast<intptr_t>(arg1), 0, 0, 0,
+                                      fp_return, fp_args);
+  }
+
   template <typename ResultType,
             typename Arg1Type,
             typename Arg2Type,
@@ -569,6 +579,12 @@ class AssemblerTest {
     ASSERT(thread != NULL);
     typedef ResultType (*FunctionType)(const Code&, Thread*, Arg1Type);
     return reinterpret_cast<FunctionType>(entry())(code_, thread, arg1);
+  }
+
+  template <typename ResultType, typename Arg1Type>
+  ResultType Invoke(Arg1Type arg1) {
+    typedef ResultType (*FunctionType)(Arg1Type);
+    return reinterpret_cast<FunctionType>(entry())(arg1);
   }
 
   template <typename ResultType,

@@ -463,7 +463,10 @@ class Assembler : public AssemblerBase {
 
   void testl(Register reg1, Register reg2);
   void testl(Register reg, const Immediate& imm);
+  void testl(const Address& address, const Immediate& imm);
+  void testl(const Address& address, Register reg);
   void testb(const Address& address, const Immediate& imm);
+  void testb(const Address& address, ByteRegister reg);
 
 // clang-format off
 // Macro for handling common ALU instructions. Arguments to F:
@@ -820,11 +823,21 @@ class Assembler : public AssemblerBase {
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
                        CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
+                       MemoryOrder memory_order = kRelaxedNonAtomic) override {
+    StoreIntoObject(object, dest, value, can_value_be_smi, memory_order,
+                    kNoRegister);
+  }
+  void StoreIntoObject(Register object,      // Object we are storing into.
+                       const Address& dest,  // Where we are storing into.
+                       Register value,       // Value we are storing.
+                       CanBeSmi can_value_be_smi,
+                       MemoryOrder memory_order,
+                       Register scratch);
   void StoreIntoArray(Register object,  // Object we are storing into.
                       Register slot,    // Where we are storing into.
                       Register value,   // Value we are storing.
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      Register scratch = kNoRegister);
   void StoreIntoObjectNoBarrier(
       Register object,
       const Address& dest,
@@ -839,9 +852,10 @@ class Assembler : public AssemblerBase {
                              int32_t offset,   // Where we are storing into.
                              Register value,   // Value we are storing.
                              CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                             MemoryOrder memory_order = kRelaxedNonAtomic) {
+                             MemoryOrder memory_order = kRelaxedNonAtomic,
+                             Register scratch = kNoRegister) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
-                    can_value_be_smi, memory_order);
+                    can_value_be_smi, memory_order, scratch);
   }
   void StoreIntoObjectOffsetNoBarrier(
       Register object,
@@ -946,6 +960,13 @@ class Assembler : public AssemblerBase {
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
+
+  void RangeCheck(Register value,
+                  Register temp,
+                  intptr_t low,
+                  intptr_t high,
+                  RangeCheckCondition condition,
+                  Label* target) override;
 
   /*
    * Loading and comparing classes of objects.
@@ -1189,22 +1210,6 @@ class Assembler : public AssemblerBase {
 
   void EmitGenericShift(int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(int rm, const Operand& operand, Register shifter);
-
-  enum BarrierFilterMode {
-    // Filter falls through into the barrier update code. Target label
-    // is a "after-store" label.
-    kJumpToNoUpdate,
-
-    // Filter falls through to the "after-store" code. Target label
-    // is barrier update code label.
-    kJumpToBarrier,
-  };
-
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
 
   int32_t jit_cookie();
 

@@ -167,6 +167,7 @@ enum BenchmarkPhases {
   outline_checkOverrides,
   outline_checkAbstractMembers,
   outline_addNoSuchMethodForwarders,
+  outline_computeFieldPromotability,
   outline_checkMixins,
   outline_buildOutlineExpressions,
   outline_checkTypes,

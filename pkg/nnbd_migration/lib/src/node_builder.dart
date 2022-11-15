@@ -90,37 +90,37 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitCatchClause(CatchClause node) {
-    var exceptionElement = node.exceptionParameter2?.declaredElement;
+    var exceptionElement = node.exceptionParameter?.declaredElement;
     var target = exceptionElement == null
         ? NullabilityNodeTarget.text('exception type')
         : NullabilityNodeTarget.element(exceptionElement);
     DecoratedType? exceptionType = _pushNullabilityNodeTarget(
         target, () => node.exceptionType?.accept(this));
-    if (node.exceptionParameter2 != null) {
+    if (node.exceptionParameter != null) {
       // If there is no `on Type` part of the catch clause, the type is dynamic.
       if (exceptionType == null) {
         exceptionType = DecoratedType.forImplicitType(_typeProvider,
             _typeProvider.dynamicType, _graph, target.withCodeRef(node));
         instrumentation?.implicitType(
-            source, node.exceptionParameter2, exceptionType);
+            source, node.exceptionParameter, exceptionType);
       }
       _variables!.recordDecoratedElementType(
-          node.exceptionParameter2?.declaredElement, exceptionType);
+          node.exceptionParameter?.declaredElement, exceptionType);
     }
-    if (node.stackTraceParameter2 != null) {
+    if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
       var target = NullabilityNodeTarget.text('stack trace').withCodeRef(node);
       var nullabilityNode = NullabilityNode.forInferredType(target);
       _graph.makeNonNullableUnion(nullabilityNode,
-          StackTraceTypeOrigin(source, node.stackTraceParameter2));
+          StackTraceTypeOrigin(source, node.stackTraceParameter));
       var stackTraceType =
           DecoratedType(_typeProvider.stackTraceType, nullabilityNode);
       _variables!.recordDecoratedElementType(
-          node.stackTraceParameter2?.declaredElement, stackTraceType);
+          node.stackTraceParameter?.declaredElement, stackTraceType);
       instrumentation?.implicitType(
-          source, node.stackTraceParameter2, stackTraceType);
+          source, node.stackTraceParameter, stackTraceType);
     }
-    node.stackTraceParameter2?.accept(this);
+    node.stackTraceParameter?.accept(this);
     node.body.accept(this);
     return null;
   }
@@ -241,7 +241,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       throw StateError('No type computed for ${node.parameter.runtimeType} '
           '(${node.parent!.parent!.toSource()}) offset=${node.offset}');
     }
-    decoratedType.node!.trackPossiblyOptional();
+    decoratedType.node.trackPossiblyOptional();
     return null;
   }
 
@@ -455,8 +455,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _variables!.recordDecoratedElementType(declaredElement.variable, type,
             soft: true);
         if (_getAngularAnnotation(node.metadata) == _AngularAnnotation.child) {
-          _graph.makeNullable(
-              type.node!, AngularAnnotationOrigin(source, node));
+          _graph.makeNullable(type.node, AngularAnnotationOrigin(source, node));
         }
       }
     }
@@ -533,7 +532,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     List<DecoratedType> positionalParameters = const <DecoratedType>[];
     Map<String, DecoratedType> namedParameters =
         const <String, DecoratedType>{};
-    if (type is InterfaceType && type.element2.typeParameters.isNotEmpty) {
+    if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
       if (node is NamedType) {
         if (node.typeArguments == null) {
           int index = 0;
@@ -666,11 +665,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           switch (angularAnnotation) {
             case _AngularAnnotation.child:
               _graph.makeNullable(
-                  type.node!, AngularAnnotationOrigin(source, node));
+                  type.node, AngularAnnotationOrigin(source, node));
               break;
             case _AngularAnnotation.children:
               _graph.preventLate(
-                  type.node!, AngularAnnotationOrigin(source, node));
+                  type.node, AngularAnnotationOrigin(source, node));
               break;
           }
         }
@@ -754,7 +753,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
         if (isExternal && functionType.returnType.isDynamic) {
           _graph.makeNullableUnion(
-              decoratedReturnType.node!, ExternalDynamicOrigin(source, node));
+              decoratedReturnType.node, ExternalDynamicOrigin(source, node));
         }
       }
       var previousPositionalParameters = _positionalParameters;
@@ -801,7 +800,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _typeProvider, declaredElement.type, _graph, target);
         if (_visitingExternalDeclaration) {
           _graph.makeNullableUnion(
-              decoratedType.node!, ExternalDynamicOrigin(source, node));
+              decoratedType.node, ExternalDynamicOrigin(source, node));
         }
         instrumentation?.implicitType(source, node, decoratedType);
       }
@@ -813,7 +812,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
         if (_visitingExternalDeclaration) {
           _graph.makeNullableUnion(
-              decoratedReturnType.node!, ExternalDynamicOrigin(source, node));
+              decoratedReturnType.node, ExternalDynamicOrigin(source, node));
         }
       } else {
         decoratedReturnType = type.accept(this);
@@ -849,7 +848,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           element.enclosingElement.name == 'Optional' &&
           _isAngularUri(element.librarySource.uri)) {
         _graph.makeNullable(
-            decoratedType!.node!, AngularAnnotationOrigin(source, node));
+            decoratedType!.node, AngularAnnotationOrigin(source, node));
       }
     }
     if (declaredElement.isNamed) {
@@ -871,30 +870,29 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (hint != null) {
       switch (hint.kind) {
         case HintCommentKind.bang:
-          _graph.makeNonNullableUnion(decoratedType.node!,
+          _graph.makeNonNullableUnion(decoratedType.node,
               NullabilityCommentOrigin(source, node, false));
           _variables!.recordNullabilityHint(source, node, hint);
-          decoratedType
-                  .node!.hintActions[HintActionKind.removeNonNullableHint] =
+          decoratedType.node.hintActions[HintActionKind.removeNonNullableHint] =
               hint.changesToRemove(source!.contents.data);
-          decoratedType.node!.hintActions[HintActionKind.changeToNullableHint] =
+          decoratedType.node.hintActions[HintActionKind.changeToNullableHint] =
               hint.changesToReplace(source!.contents.data, '/*?*/');
           break;
         case HintCommentKind.question:
-          _graph.makeNullableUnion(decoratedType.node!,
-              NullabilityCommentOrigin(source, node, true));
+          _graph.makeNullableUnion(
+              decoratedType.node, NullabilityCommentOrigin(source, node, true));
           _variables!.recordNullabilityHint(source, node, hint);
-          decoratedType.node!.hintActions[HintActionKind.removeNullableHint] =
+          decoratedType.node.hintActions[HintActionKind.removeNullableHint] =
               hint.changesToRemove(source!.contents.data);
           decoratedType
-                  .node!.hintActions[HintActionKind.changeToNonNullableHint] =
+                  .node.hintActions[HintActionKind.changeToNonNullableHint] =
               hint.changesToReplace(source!.contents.data, '/*!*/');
           break;
         default:
           break;
       }
 
-      decoratedType.node!.hintActions
+      decoratedType.node.hintActions
         ..remove(HintActionKind.addNonNullableHint)
         ..remove(HintActionKind.addNullableHint);
     }
@@ -933,7 +931,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         } else {
           decoratedSupertype = supertype.accept(this);
         }
-        var class_ = (decoratedSupertype!.type as InterfaceType).element2;
+        var class_ = (decoratedSupertype!.type as InterfaceType).element;
         decoratedSupertypes[class_] = decoratedSupertype;
       }
     });

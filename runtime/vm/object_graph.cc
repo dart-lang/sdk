@@ -869,7 +869,10 @@ CountingPage* HeapSnapshotWriter::FindCountingPage(ObjectPtr obj) const {
 }
 
 void HeapSnapshotWriter::AssignObjectId(ObjectPtr obj) {
-  ASSERT(obj->IsHeapObject());
+  if (!obj->IsHeapObject()) {
+    thread()->heap()->SetObjectId(obj, ++object_count_);
+    return;
+  }
 
   CountingPage* counting_page = FindCountingPage(obj);
   if (counting_page != nullptr) {
@@ -883,7 +886,9 @@ void HeapSnapshotWriter::AssignObjectId(ObjectPtr obj) {
 
 intptr_t HeapSnapshotWriter::GetObjectId(ObjectPtr obj) const {
   if (!obj->IsHeapObject()) {
-    return 0;
+    intptr_t id = thread()->heap()->GetObjectId(obj);
+    ASSERT(id != 0);
+    return id;
   }
 
   if (FLAG_write_protect_code && obj->IsInstructions() && !OnImagePage(obj)) {
@@ -916,6 +921,13 @@ void HeapSnapshotWriter::CountExternalProperty() {
   external_property_count_ += 1;
 }
 
+void HeapSnapshotWriter::AddSmi(SmiPtr smi) {
+  if (thread()->heap()->GetObjectId(smi) == WeakTable::kNoValue) {
+    thread()->heap()->SetObjectId(smi, -1);
+    smis_.Add(smi);
+  }
+}
+
 class Pass1Visitor : public ObjectVisitor,
                      public ObjectPointerVisitor,
                      public HandleVisitor {
@@ -936,22 +948,38 @@ class Pass1Visitor : public ObjectVisitor,
     if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
       obj->untag()->VisitPointersPrecise(isolate_group(), this);
     } else {
-      writer_->CountReferences(object_slots_->ObjectSlotsFor(cid)->length());
+      for (auto& slot : *object_slots_->ObjectSlotsFor(cid)) {
+        if (slot.is_compressed_pointer) {
+          auto target = reinterpret_cast<CompressedObjectPtr*>(
+              UntaggedObject::ToAddr(obj->untag()) + slot.offset);
+          VisitCompressedPointers(obj->heap_base(), target, target);
+        } else {
+          writer_->CountReferences(1);
+        }
+      }
     }
   }
 
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
-    intptr_t count = to - from + 1;
-    ASSERT(count >= 0);
-    writer_->CountReferences(count);
+    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr obj = *ptr;
+      if (!obj->IsHeapObject()) {
+        writer_->AddSmi(static_cast<SmiPtr>(obj));
+      }
+      writer_->CountReferences(1);
+    }
   }
 
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
                                CompressedObjectPtr* to) {
-    intptr_t count = to - from + 1;
-    ASSERT(count >= 0);
-    writer_->CountReferences(count);
+    for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr obj = ptr->Decompress(heap_base);
+      if (!obj->IsHeapObject()) {
+        writer_->AddSmi(static_cast<SmiPtr>(obj));
+      }
+      writer_->CountReferences(1);
+    }
   }
 
   void VisitHandle(uword addr) {
@@ -1559,6 +1587,11 @@ void HeapSnapshotWriter::Write() {
 
     // External properties.
     isolate()->group()->VisitWeakPersistentHandles(&visitor);
+
+    // Smis.
+    for (SmiPtr smi : smis_) {
+      AssignObjectId(smi);
+    }
   }
 
   {
@@ -1618,6 +1651,15 @@ void HeapSnapshotWriter::Write() {
     visitor.set_discount_sizes(false);
     iteration.IterateObjects(&visitor);
 
+    // Smis.
+    for (SmiPtr smi : smis_) {
+      WriteUnsigned(kSmiCid + kNumExtraCids);
+      WriteUnsigned(0);  // Heap size.
+      WriteUnsigned(kIntData);
+      WriteUnsigned(Smi::Value(smi));
+      WriteUnsigned(0);  // No slots.
+    }
+
     // External properties.
     WriteUnsigned(external_property_count_);
     isolate()->group()->VisitWeakPersistentHandles(&visitor);
@@ -1638,6 +1680,10 @@ void HeapSnapshotWriter::Write() {
     // Handle visit rest of the objects.
     iteration.IterateVMIsolateObjects(&visitor);
     iteration.IterateObjects(&visitor);
+    for (SmiPtr smi : smis_) {
+      USE(smi);
+      WriteUnsigned(0);  // No identity hash.
+    }
   }
 
   ClearObjectIds();

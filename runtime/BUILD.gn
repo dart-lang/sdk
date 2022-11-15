@@ -61,6 +61,24 @@ config("dart_precompiled_runtime_config") {
   ]
 }
 
+config("add_empty_macho_section_config") {
+  if (is_mac) {
+    # We create an empty __space_for_note section in a __CUSTOM segment to
+    # reserve the header space needed for inserting a snapshot into the
+    # executable when creating standalone executables. This segment and section
+    # is removed in standalone executables, replaced with a note that points to
+    # the snapshot in the file.
+    #
+    # (A segment load command with a single section is 132 bytes in 32-bit
+    # executables and 152 bytes in 64-bit ones, and a note load command is
+    # always 40 bytes.)
+    #
+    # Keep this in sync with the constants reservedSegmentName and
+    # reservedSectionName in pkg/dart2native/lib/macho_utils.dart.
+    ldflags = [ "-Wl,-add_empty_section,__CUSTOM,__space_for_note" ]
+  }
+}
+
 # Controls DART_PRECOMPILER #define.
 config("dart_precompiler_config") {
   defines = []
@@ -236,6 +254,10 @@ config("dart_config") {
       ]
     }
   }
+}
+
+config("dart_testing_config") {
+  defines = [ "TESTING" ]
 }
 
 config("dart_shared_lib") {

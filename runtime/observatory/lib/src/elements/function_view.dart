@@ -424,6 +424,8 @@ class FunctionViewElement extends CustomElement implements Renderable {
         return 'tag';
       case M.FunctionKind.dynamicInvocationForwarder:
         return 'dynamic invocation forwarder';
+      case M.FunctionKind.recordFieldGetter:
+        return 'record field getter';
     }
     throw new Exception('Unknown Functionkind ($kind)');
   }

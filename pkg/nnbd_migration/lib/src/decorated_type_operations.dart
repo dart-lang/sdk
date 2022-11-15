@@ -53,12 +53,30 @@ class DecoratedTypeOperations
     if (!isSubtypeOf(to, from)) {
       return false;
     }
-    var fromSources = from.node!.upstreamEdges;
+    var fromSources = from.node.upstreamEdges;
     // Do not force promotion if [to] already points to [from].
     if (fromSources.length == 1 && fromSources.single.sourceNode == to.node) {
       return false;
     }
     return true;
+  }
+
+  @override
+  DecoratedType glb(DecoratedType type1, DecoratedType type2) {
+    // TODO: implement glb
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isAssignableTo(DecoratedType fromType, DecoratedType toType) {
+    // TODO: implement isAssignableTo
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isDynamic(DecoratedType type) {
+    // TODO: implement isDynamic
+    throw UnimplementedError();
   }
 
   @override
@@ -97,6 +115,24 @@ class DecoratedTypeOperations
   @override
   bool isTypeParameterType(DecoratedType type) =>
       type.type is TypeParameterType;
+
+  @override
+  DecoratedType lub(DecoratedType type1, DecoratedType type2) {
+    // TODO: implement lub
+    throw UnimplementedError();
+  }
+
+  @override
+  DecoratedType makeNullable(DecoratedType type) {
+    // TODO: implement makeNullable
+    throw UnimplementedError();
+  }
+
+  @override
+  DecoratedType? matchListType(DecoratedType type) {
+    // TODO: implement matchListType
+    throw UnimplementedError();
+  }
 
   @override
   DecoratedType promoteToNonNull(DecoratedType type) {
@@ -144,8 +180,8 @@ class DecoratedTypeOperations
         // TODO(srawlins): How to get the source or astNode from within here...
         GreatestLowerBoundOrigin(null /* source */, null /* astNode */);
     _graph.connect(firstType.node, node, origin, guards: [secondType.node]);
-    _graph.connect(node, firstType.node!, origin);
-    _graph.connect(node, secondType.node!, origin);
+    _graph.connect(node, firstType.node, origin);
+    _graph.connect(node, secondType.node, origin);
 
     return result..add(firstType.withNode(node));
   }

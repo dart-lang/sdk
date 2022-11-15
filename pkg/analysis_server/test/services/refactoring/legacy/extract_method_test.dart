@@ -281,6 +281,55 @@ class B extends A {
         'Cannot extract a constructor initializer. Select expression part of initializer.');
   }
 
+  Future<void> test_bad_directive_combinator() async {
+    await indexTestUnit('''
+import 'dart:async' show FutureOr;
+''');
+    _createRefactoringForString('show');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_combinatorNames() async {
+    await indexTestUnit('''
+import 'dart:async' show FutureOr;
+''');
+    _createRefactoringForString('FutureOr');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_import() async {
+    await indexTestUnit('''
+// Dummy comment ("The selection offset must be greater than zero")
+import 'dart:async';
+''');
+    _createRefactoringForString('import');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_prefixAs() async {
+    await indexTestUnit('''
+import 'dart:core' as core;
+''');
+    _createRefactoringForString('as');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_prefixName() async {
+    await indexTestUnit('''
+import 'dart:async' as prefixName;
+''');
+    _createRefactoringForString('prefixName');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
+  Future<void> test_bad_directive_uriString() async {
+    await indexTestUnit('''
+import 'dart:async';
+''');
+    _createRefactoringForString('dart:async');
+    return _assertConditionsFatal('Cannot extract a directive.');
+  }
+
   Future<void> test_bad_doWhile_body() async {
     await indexTestUnit('''
 void f() {
@@ -404,6 +453,33 @@ void f() {
 ''');
     _createRefactoringWithSuffix('io', '.exit');
     return _assertConditionsFatal('Cannot extract an import prefix.');
+  }
+
+  Future<void> test_bad_functionDeclaration_beforeParameters() async {
+    await indexTestUnit('''
+int test() => 42;
+''');
+    _createRefactoringForStringOffset('(');
+    return _assertConditionsFatal(
+        "Can only extract a single expression or a set of statements.");
+  }
+
+  Future<void> test_bad_functionDeclaration_inParameters() async {
+    await indexTestUnit('''
+int test() => 42;
+''');
+    _createRefactoringForStringOffset(')');
+    return _assertConditionsFatal(
+        "Can only extract a single expression or a set of statements.");
+  }
+
+  Future<void> test_bad_functionDeclaration_name() async {
+    await indexTestUnit('''
+int test() => 42;
+''');
+    _createRefactoringForStringOffset('st()');
+    return _assertConditionsFatal(
+        "Can only extract a single expression or a set of statements.");
   }
 
   Future<void> test_bad_methodName_reference() async {
@@ -2724,6 +2800,31 @@ class A {
 ''');
   }
 
+  Future<void> test_statements_localFunction() async {
+    await indexTestUnit('''
+void f() {
+// start
+  void g() {}
+  g();
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+// start
+  res();
+// end
+}
+
+void res() {
+  void g() {}
+  g();
+}
+''');
+  }
+
   Future<void> test_statements_method() async {
     await indexTestUnit('''
 class A {
@@ -3143,6 +3244,23 @@ void res() {
   print(0);
   print(0);
 }
+''');
+  }
+
+  Future<void> test_string() async {
+    await indexTestUnit('''
+void f() {
+  var a = 'test';
+}
+''');
+    _createRefactoringForString('test');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var a = res();
+}
+
+String res() => 'test';
 ''');
   }
 

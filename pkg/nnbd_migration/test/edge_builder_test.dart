@@ -103,7 +103,7 @@ class AssignmentCheckerTest extends Object
     }
     return DecoratedType(
       InterfaceTypeImpl(
-        element2: _myListOfListClass!,
+        element: _myListOfListClass!,
         typeArguments: [elementType.type!],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
@@ -725,7 +725,7 @@ B<bool> f(A<int> a) {
     assertNoEdge(anyNode, decoratedTypeAnnotation('int> a').node);
     // int> a should be connected to the bound of T in A<T>, but nothing else.
     expect(
-        decoratedTypeAnnotation('int> a').node!.downstreamEdges, hasLength(1));
+        decoratedTypeAnnotation('int> a').node.downstreamEdges, hasLength(1));
   }
 
   Future<void> test_assert_demonstrates_non_null_intent() async {
@@ -1915,7 +1915,7 @@ int f(int i, int j) => i ?? j;
 
     var left = decoratedTypeAnnotation('int i').node;
     var right = decoratedTypeAnnotation('int j').node;
-    var expression = decoratedExpressionType('??')!.node!;
+    var expression = decoratedExpressionType('??')!.node;
     assertEdge(right, expression, guards: [left], hard: false);
     expect(expression.displayName, '?? operator (test.dart:1:24)');
   }
@@ -2168,7 +2168,7 @@ void f(bool b, void Function({int p}) x, void Function({int p}) y) {
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function({int p}) y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
+    assertLUB(resultType.node, xType.node, yType.node);
     assertGLB(resultType.namedParameters!['p']!.node,
         xType.namedParameters!['p']!.node, yType.namedParameters!['p']!.node);
   }
@@ -2183,7 +2183,7 @@ void f(bool b, void Function(int) x, void Function(int) y) {
     var xType = decoratedGenericFunctionTypeAnnotation('void Function(int) x');
     var yType = decoratedGenericFunctionTypeAnnotation('void Function(int) y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
+    assertLUB(resultType.node, xType.node, yType.node);
     assertGLB(
         resultType.positionalParameters![0].node,
         xType.positionalParameters![0].node,
@@ -2202,7 +2202,7 @@ void f(bool b, void Function(int, int) x, void Function(int, int) y) {
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function(int, int) y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
+    assertLUB(resultType.node, xType.node, yType.node);
     assertGLB(
         resultType.positionalParameters![0].node,
         xType.positionalParameters![0].node,
@@ -2225,7 +2225,7 @@ void f(bool b, void Function([int]) x, void Function([int]) y) {
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function([int]) y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
+    assertLUB(resultType.node, xType.node, yType.node);
     assertGLB(
         resultType.positionalParameters![0].node,
         xType.positionalParameters![0].node,
@@ -2241,8 +2241,8 @@ void f(bool b, int Function() x, int Function() y) {
     var xType = decoratedGenericFunctionTypeAnnotation('int Function() x');
     var yType = decoratedGenericFunctionTypeAnnotation('int Function() y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
-    assertLUB(resultType.returnType!.node!, xType.returnType!.node,
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertLUB(resultType.returnType!.node, xType.returnType!.node,
         yType.returnType!.node);
   }
 
@@ -2256,8 +2256,8 @@ void f(bool b, void Function() x, void Function() y) {
     var xType = decoratedGenericFunctionTypeAnnotation('void Function() x');
     var yType = decoratedGenericFunctionTypeAnnotation('void Function() y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
-    expect(resultType.returnType!.node!.isImmutable, false);
+    assertLUB(resultType.node, xType.node, yType.node);
+    expect(resultType.returnType!.node.isImmutable, false);
   }
 
   Future<void> test_conditionalExpression_general() async {
@@ -2269,7 +2269,7 @@ int f(bool b, int i, int j) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, nullable_i, nullable_j);
     var nullable_return = decoratedTypeAnnotation('int f').node;
     assertNullCheck(checkExpression('(b ? i : j)')!,
@@ -2285,10 +2285,10 @@ void f(bool b, Map<int, String> x, Map<int, String> y) {
     var xType = decoratedTypeAnnotation('Map<int, String> x');
     var yType = decoratedTypeAnnotation('Map<int, String> y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
-    assertLUB(resultType.typeArguments[0]!.node!, xType.typeArguments[0]!.node,
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertLUB(resultType.typeArguments[0]!.node, xType.typeArguments[0]!.node,
         yType.typeArguments[0]!.node);
-    assertLUB(resultType.typeArguments[1]!.node!, xType.typeArguments[1]!.node,
+    assertLUB(resultType.typeArguments[1]!.node, xType.typeArguments[1]!.node,
         yType.typeArguments[1]!.node);
   }
 
@@ -2306,9 +2306,9 @@ A<num> f(bool b, B<num> x, C<num> y) {
     var bInA = decoratedTypeAnnotation('T/*b*/');
     var cInA = decoratedTypeAnnotation('T/*c*/');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, bType.node, cType.node);
+    assertLUB(resultType.node, bType.node, cType.node);
     assertLUB(
-        resultType.typeArguments[0]!.node!,
+        resultType.typeArguments[0]!.node,
         substitutionNode(bType.typeArguments[0]!.node, bInA.node),
         substitutionNode(cType.typeArguments[0]!.node, cInA.node));
   }
@@ -2325,9 +2325,9 @@ A<num> f(bool b, B<num> x, A<num> y) {
     var bType = decoratedTypeAnnotation('B<num> x');
     var bInA = decoratedTypeAnnotation('T/*b*/');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, bType.node, aType.node);
+    assertLUB(resultType.node, bType.node, aType.node);
     assertLUB(
-        resultType.typeArguments[0]!.node!,
+        resultType.typeArguments[0]!.node,
         substitutionNode(bType.typeArguments[0]!.node, bInA.node),
         aType.typeArguments[0]!.node);
   }
@@ -2344,8 +2344,8 @@ A<num> f(bool b, A<num> x, B<num> y) {
     var bType = decoratedTypeAnnotation('B<num> y');
     var bInA = decoratedTypeAnnotation('T/*b*/');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, aType.node, bType.node);
-    assertLUB(resultType.typeArguments[0]!.node!, aType.typeArguments[0]!.node,
+    assertLUB(resultType.node, aType.node, bType.node);
+    assertLUB(resultType.typeArguments[0]!.node, aType.typeArguments[0]!.node,
         substitutionNode(bType.typeArguments[0]!.node, bInA.node));
   }
 
@@ -2359,9 +2359,9 @@ List<num> f<T extends List<num>>(bool b, List<num> x, T y) {
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('List<num>>');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, aType.node,
-        substitutionNode(bBound.node, bType.node));
-    assertLUB(resultType.typeArguments[0]!.node!, aType.typeArguments[0]!.node,
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+    assertLUB(resultType.typeArguments[0]!.node, aType.typeArguments[0]!.node,
         bBound.typeArguments[0]!.node);
   }
 
@@ -2403,7 +2403,7 @@ int f(bool b, int i) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
@@ -2416,7 +2416,7 @@ bool Function<T>(int) g(bool b, bool Function<T>(int) f) {
 
     var nullable_i =
         decoratedGenericFunctionTypeAnnotation('bool Function<T>(int) f').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
@@ -2429,7 +2429,7 @@ T g<T>(bool b, T t) {
 ''');
 
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_t);
   }
 
@@ -2441,7 +2441,7 @@ List<int> f(bool b, List<int> l) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('List<int> l').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
@@ -2456,7 +2456,7 @@ void f(bool b, void Function(Null p) x, void Function(List<int> p) y) {
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function(List<int> p) y');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, xType.node, yType.node);
+    assertLUB(resultType.node, xType.node, yType.node);
     assertGLB(
         resultType.positionalParameters![0].node,
         xType.positionalParameters![0].node,
@@ -2472,7 +2472,7 @@ T g<T>(bool b, T x, T y) {
 
     var nullable_x = decoratedTypeAnnotation('T x').node;
     var nullable_y = decoratedTypeAnnotation('T y').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, nullable_x, nullable_y);
   }
 
@@ -2514,7 +2514,7 @@ int f(bool b, int i) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
 
@@ -2527,7 +2527,7 @@ bool Function<T>(int) g(bool b, bool Function<T>(int) f) {
 
     var nullable_i =
         decoratedGenericFunctionTypeAnnotation('bool Function<T>(int) f').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
 
@@ -2539,7 +2539,7 @@ List<int> f(bool b, List<int> l) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('List<int> l').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
 
@@ -2552,7 +2552,7 @@ T f<T>(bool b, T t) {
 ''');
 
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node;
     assertLUB(nullable_conditional, nullable_t, inSet(alwaysPlus));
   }
 
@@ -2579,8 +2579,8 @@ num f<T extends num>(bool b, num x, T y) {
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('num>');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, aType.node,
-        substitutionNode(bBound.node, bType.node));
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_conditionalExpression_typeParameter_bound_bound() async {
@@ -2595,7 +2595,7 @@ num f<T extends R, R extends num>(bool b, num x, T y) {
     var bBoundBound = decoratedTypeAnnotation('num>');
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(
-        resultType.node!,
+        resultType.node,
         aType.node,
         substitutionNode(
             bBoundBound.node, substitutionNode(bBound.node, bType.node)));
@@ -2612,8 +2612,8 @@ dynamic f<T extends num>(bool b, dynamic x, T y) {
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('num>');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, aType.node,
-        substitutionNode(bBound.node, bType.node));
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_conditionalExpression_typeParameters_bound() async {
@@ -2627,7 +2627,7 @@ num f<T extends num, R extends num>(bool b, R x, T y) {
     var aBound = decoratedTypeAnnotation('num>');
     var bBound = decoratedTypeAnnotation('num,');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, substitutionNode(aBound.node, aType.node),
+    assertLUB(resultType.node, substitutionNode(aBound.node, aType.node),
         substitutionNode(bBound.node, bType.node));
   }
 
@@ -2642,8 +2642,8 @@ R f<T extends R, R>(bool b, R x, T y) {
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('R,');
     var resultType = decoratedExpressionType('(b ?')!;
-    assertLUB(resultType.node!, aType.node,
-        substitutionNode(bBound.node, bType.node));
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_constructor_default_parameter_value_bool() async {
@@ -5049,7 +5049,7 @@ String f(void Function() g) => g.toString();
 ''');
     var toStringReturnType = variables
         .decoratedElementType(
-            typeProvider.objectType.element2.getMethod('toString')!)
+            typeProvider.objectType.element.getMethod('toString')!)
         .returnType!;
     assertEdge(
         toStringReturnType.node, decoratedTypeAnnotation('String f').node,
@@ -6939,7 +6939,7 @@ int f(int i) => i.hashCode;
     await analyze('int f(void Function() g) => g.hashCode;');
     var hashCodeReturnType = variables
         .decoratedElementType(
-            typeProvider.objectType.element2.getGetter('hashCode')!)
+            typeProvider.objectType.element.getGetter('hashCode')!)
         .returnType!;
     assertEdge(hashCodeReturnType.node, decoratedTypeAnnotation('int f').node,
         hard: false);
@@ -8255,7 +8255,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
 
   @override
   DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
-    var class_ = (type.type as InterfaceType).element2;
+    var class_ = (type.type as InterfaceType).element;
     if (class_ == superclass) return type;
     if (superclass!.name == 'Object') {
       return DecoratedType(
@@ -8268,7 +8268,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     }
     if (class_.name == 'MyListOfList' && superclass.name == 'List') {
       return assignmentCheckerTest._myListOfListSupertype
-          .substitute({class_.typeParameters[0]: type.typeArguments[0]});
+          .substitute({class_.typeParameters[0]: type.typeArguments[0]!});
     }
     if (class_.name == 'List' && superclass.name == 'Iterable') {
       return DecoratedType(

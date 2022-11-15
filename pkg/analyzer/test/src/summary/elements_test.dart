@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import 'element_text.dart';
 import 'elements_base.dart';
 
@@ -1741,7 +1742,7 @@ library
     classes
       class A @6
         fields
-          final _f @22
+          final promotable _f @22
             type: int
         constructors
           const @34
@@ -3823,9 +3824,8 @@ library
 
   test_class_constructor_unnamed_implicit() async {
     var library = await buildLibrary('class C {}');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -3833,8 +3833,7 @@ library
         constructors
           synthetic @-1
             displayName: C
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_constructor_withCycles_const() async {
@@ -3957,9 +3956,8 @@ class C {
   C.foo();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -3969,8 +3967,7 @@ library
             displayName: C.foo
             periodOffset: 13
             nameEnd: 17
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_constructors_unnamed() async {
@@ -3979,9 +3976,8 @@ class C {
   C();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -3989,8 +3985,7 @@ library
         constructors
           @12
             displayName: C
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_constructors_unnamed_new() async {
@@ -3999,9 +3994,8 @@ class C {
   C.new();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -4011,8 +4005,7 @@ library
             displayName: C
             periodOffset: 13
             nameEnd: 17
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_documented() async {
@@ -4434,9 +4427,8 @@ class C {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -4469,8 +4461,7 @@ library
             returnType: int
             id: getter_1
             variable: field_1
-''',
-        withPropertyLinking: true);
+''');
   }
 
   test_class_field_duplicate_setter() async {
@@ -4480,9 +4471,8 @@ class C {
   set foo(int _) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -4518,8 +4508,7 @@ library
             returnType: void
             id: setter_1
             variable: field_1
-''',
-        withPropertyLinking: true);
+''');
   }
 
   test_class_field_external() async {
@@ -4688,9 +4677,8 @@ class A {
   set foo(int newValue) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -4719,8 +4707,7 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-''',
-        withPropertyLinking: true);
+''');
   }
 
   test_class_field_formal_param_inferred_type_implicit() async {
@@ -5010,6 +4997,611 @@ library
         accessors
           synthetic get foo @-1
             returnType: double
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_abstract() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+abstract class B {
+  int? get _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+part 'a.dart';
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @21
+        fields
+          final _foo @38
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_static() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  static int? get _foo => 0;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasNotFinalField() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasNotFinalField_static() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  static int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasSetter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  set _field(int? _) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_language217() async {
+    var library = await buildLibrary(r'''
+// @dart = 2.18
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        fields
+          final _foo @39
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_implementedInMixin() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M {
+  final int? _foo = 0;
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// `_foo` is implemented in [M].
+class C with M implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+      mixinNames: {'M'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+      class B @90
+        fields
+          final promotable _foo @107
+            type: int?
+    mixins
+      mixin M @54
+        superclassConstraints
+          Object
+        fields
+          final promotable _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_implementedInSuperclass() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+class C {
+  final int? _foo = 0;
+}
+
+/// `_foo` is implemented in [B].
+class D extends B implements C {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+      class B @54
+        fields
+          final promotable _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_inClassTypeAlias() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+mixin M {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class E = Object with M implements B;
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_inEnum() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+enum E implements B {
+  v;
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+      class B @54
+        fields
+          final _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_getter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+abstract class B {
+  int? get _foo;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_inDifferentLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+/// Has a noSuchMethod thrower for B._field, but since private names in
+/// different libraries are distinct, this has no effect on promotion of
+/// C._field.
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+    );
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @24
+        fields
+          final promotable _foo @41
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_inheritedInterface() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B extends A {
+  A(super.value);
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_mixedInterface() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M {
+  final int? _foo = 0;
+}
+
+class B with M {}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+      mixinNames: {'M'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+    mixins
+      mixin M @54
+        superclassConstraints
+          Object
+        fields
+          final _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_unusedMixin() async {
+    // Mixins are implicitly abstract so the presence of a mixin that inherits
+    // a field into its interface, and doesn't implement it, doesn't mean that
+    // a noSuchMethod forwarder created for it. So,  this does not block that
+    // field from promoting.
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M implements A {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_notFinal() async {
+    var library = await buildLibrary(r'''
+class A {
+  int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          _foo @17
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_notPrivate() async {
+    var library = await buildLibrary(r'''
+class A {
+  int? field;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          field @17
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_typeInference() async {
+    // We decide that `_foo` is promotable before inferring the type of `bar`.
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  final bar = _foo != null ? _foo : 0;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+          final bar @37
+            type: int
 ''');
   }
 
@@ -8972,9 +9564,8 @@ class CommentThenAnnotation {}
 /// Comment 2.
 class CommentAroundAnnotation {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9056,8 +9647,7 @@ library
         codeLength: 57
         constructors
           synthetic @-1
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_class_namedMixin() async {
@@ -9090,9 +9680,8 @@ class CommentThenAnnotation = Object with A, B;
 /// Comment 2.
 class CommentAroundAnnotation = Object with A, B;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9250,8 +9839,7 @@ library
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::new
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_constructor() async {
@@ -9284,9 +9872,8 @@ class C {
   C.commentAroundAnnotation() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9375,8 +9962,7 @@ library
             codeLength: 59
             periodOffset: 331
             nameEnd: 355
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_constructor_factory() async {
@@ -9409,9 +9995,8 @@ class C {
   factory C.commentAroundAnnotation() => throw 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9500,8 +10085,7 @@ library
             codeLength: 76
             periodOffset: 443
             nameEnd: 467
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_enum() async {
@@ -9510,9 +10094,8 @@ enum E {
   aaa, bbb, ccc
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     enums
@@ -9606,8 +10189,7 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_extensions() async {
@@ -9638,9 +10220,8 @@ extension CommentThenAnnotation on A {}
 /// Comment 2.
 extension CommentAroundAnnotation on A {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9722,8 +10303,7 @@ library
         codeOffset: 318
         codeLength: 66
         extendedType: A
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_field() async {
@@ -9736,9 +10316,8 @@ class C {
   int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9804,8 +10383,7 @@ library
               requiredPositional _multiWithInit2 @-1
                 type: int
             returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_field_annotations() async {
@@ -9834,9 +10412,8 @@ class C {
   int commentAroundAnnotation, commentAroundAnnotation2;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -10053,8 +10630,7 @@ library
               requiredPositional _commentAroundAnnotation2 @-1
                 type: int
             returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_function() async {
@@ -10083,9 +10659,8 @@ void commentThenAnnotation() {}
 /// Comment 2.
 void commentAroundAnnotation() {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     functions
@@ -10161,8 +10736,7 @@ library
         codeOffset: 266
         codeLength: 58
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_functionTypeAlias() async {
@@ -10191,9 +10765,8 @@ typedef CommentThenAnnotation();
 /// Comment 2.
 typedef CommentAroundAnnotation();
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     typeAliases
@@ -10281,8 +10854,7 @@ library
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_genericTypeAlias() async {
@@ -10311,9 +10883,8 @@ typedef CommentThenAnnotation = Function();
 /// Comment 2.
 typedef CommentAroundAnnotation = Function();
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     typeAliases
@@ -10401,8 +10972,7 @@ library
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_method() async {
@@ -10433,9 +11003,8 @@ class C {
   void commentAroundAnnotation() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -10517,30 +11086,38 @@ library
             codeOffset: 308
             codeLength: 62
             returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_parameter() async {
     var library = await buildLibrary('''
 main({int a = 1, int b, int c = 2}) {}
 ''');
+    configuration.withCodeRanges = true;
     checkElementText(library, r'''
 library
   definingUnit
     functions
       main @0
+        codeOffset: 0
+        codeLength: 38
         parameters
           optionalNamed a @10
             type: int
+            codeOffset: 6
+            codeLength: 9
             constantInitializer
               IntegerLiteral
                 literal: 1 @14
                 staticType: int
           optionalNamed b @21
             type: int
+            codeOffset: 17
+            codeLength: 5
           optionalNamed c @28
             type: int
+            codeOffset: 24
+            codeLength: 9
             constantInitializer
               IntegerLiteral
                 literal: 2 @32
@@ -10553,11 +11130,14 @@ library
     var library = await buildLibrary('''
 main(@Object() int a, int b, @Object() int c) {}
 ''');
+    configuration.withCodeRanges = true;
     checkElementText(library, r'''
 library
   definingUnit
     functions
       main @0
+        codeOffset: 0
+        codeLength: 48
         parameters
           requiredPositional a @19
             type: int
@@ -10572,8 +11152,12 @@ library
                   leftParenthesis: ( @12
                   rightParenthesis: ) @13
                 element: dart:core::@class::Object::@constructor::new
+            codeOffset: 5
+            codeLength: 15
           requiredPositional b @26
             type: int
+            codeOffset: 22
+            codeLength: 5
           requiredPositional c @43
             type: int
             metadata
@@ -10587,6 +11171,8 @@ library
                   leftParenthesis: ( @36
                   rightParenthesis: ) @37
                 element: dart:core::@class::Object::@constructor::new
+            codeOffset: 29
+            codeLength: 15
         returnType: dynamic
 ''');
   }
@@ -10599,9 +11185,8 @@ int withoutInit;
 
 int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -10661,8 +11246,7 @@ library
           requiredPositional _multiWithInit2 @-1
             type: int
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_topLevelVariable_annotations() async {
@@ -10689,9 +11273,8 @@ int commentThenAnnotation, commentThenAnnotation2;
 /// Comment 2.
 int commentAroundAnnotation, commentAroundAnnotation2;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -10902,8 +11485,7 @@ library
           requiredPositional _commentAroundAnnotation2 @-1
             type: int
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_type_parameter() async {
@@ -10911,9 +11493,8 @@ library
 class A<T> {}
 void f<U extends num> {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -10937,8 +11518,7 @@ library
             codeLength: 13
             bound: num
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_compilationUnit_nnbd_disabled_via_dart_directive() async {
@@ -11236,16 +11816,14 @@ library
       synthetic static get y @-1
         returnType: Object
 ''');
-    var x = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var x = library.definingCompilationUnit.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
     var xType = xExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(
       xType,
       'C<int>',
     );
-    var y = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var y = library.definingCompilationUnit.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
     var yType = yExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(yType, 'C<int>');
@@ -19847,6 +20425,30 @@ library
 ''');
   }
 
+  test_enum_field_isPromotable() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v(null);
+  final int? _foo;
+  E(this._foo);
+}
+''');
+    configuration.forPromotableFields(
+      enumNames: {'E'},
+      fieldNames: {'_foo'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          final promotable _foo @33
+            type: int?
+''');
+  }
+
   test_enum_getter() async {
     var library = await buildLibrary(r'''
 enum E{
@@ -21251,9 +21853,8 @@ library
   test_export_class() async {
     addSource('$testPackageLibPath/a.dart', 'class C {}');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21262,8 +21863,7 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_class_type_alias() async {
@@ -21273,9 +21873,8 @@ class _D {}
 class _E {}
 ''');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21284,8 +21883,7 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_configurations_useDefault() async {
@@ -21300,9 +21898,8 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/foo.dart
@@ -21311,8 +21908,7 @@ library
     exported[(0, 0)] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
   exportNamespace
     A: package:test/foo.dart;A
-''',
-        withExportScope: true);
+''');
     expect(library.libraryExports[0].exportedLibrary!.source.shortName,
         'foo.dart');
   }
@@ -21330,9 +21926,8 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/foo_io.dart
@@ -21341,8 +21936,7 @@ library
     exported[(0, 0)] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
   exportNamespace
     A: package:test/foo_io.dart;A
-''',
-        withExportScope: true);
+''');
     expect(library.libraryExports[0].exportedLibrary!.source.shortName,
         'foo_io.dart');
   }
@@ -21360,9 +21954,8 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/foo_html.dart
@@ -21371,8 +21964,7 @@ library
     exported[(0, 0)] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
   exportNamespace
     A: package:test/foo_html.dart;A
-''',
-        withExportScope: true);
+''');
     final export = library.libraryExports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
@@ -21387,9 +21979,8 @@ class A {}
 export 'a.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21404,16 +21995,14 @@ library
   exportNamespace
     A: package:test/a.dart;A
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_function() async {
     addSource('$testPackageLibPath/a.dart', 'f() {}');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21422,8 +22011,7 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
   exportNamespace
     f: package:test/a.dart;f
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_getter() async {
@@ -21447,9 +22035,8 @@ class D {}
     var library = await buildLibrary(r'''
 export 'a.dart' hide A, C;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21462,8 +22049,7 @@ library
   exportNamespace
     B: package:test/a.dart;B
     D: package:test/a.dart;D
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_multiple_combinators() async {
@@ -21476,9 +22062,8 @@ class D {}
     var library = await buildLibrary(r'''
 export 'a.dart' hide A show C;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21490,8 +22075,7 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_reexport() async {
@@ -21514,9 +22098,9 @@ export 'b.dart';
 export 'c.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/b.dart
@@ -21536,16 +22120,14 @@ library
     B: package:test/b.dart;B
     C: package:test/c.dart;C
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_setter() async {
     addSource('$testPackageLibPath/a.dart', 'void set f(value) {}');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21554,8 +22136,7 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
   exportNamespace
     f=: package:test/a.dart;f=
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_show() async {
@@ -21568,9 +22149,8 @@ class D {}
     var library = await buildLibrary(r'''
 export 'a.dart' show A, C;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21583,8 +22163,7 @@ library
   exportNamespace
     A: package:test/a.dart;A
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_show_getter_setter() async {
@@ -21593,9 +22172,8 @@ get f => null;
 void set f(value) {}
 ''');
     var library = await buildLibrary('export "a.dart" show f;');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21608,16 +22186,14 @@ library
   exportNamespace
     f: package:test/a.dart;f?
     f=: package:test/a.dart;f=
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_typedef() async {
     addSource('$testPackageLibPath/a.dart', 'typedef F();');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21626,8 +22202,7 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
   exportNamespace
     F: package:test/a.dart;F
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_uri() async {
@@ -21642,9 +22217,8 @@ export 'foo.dart';
   test_export_variable() async {
     addSource('$testPackageLibPath/a.dart', 'var x;');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21655,16 +22229,14 @@ library
   exportNamespace
     x: package:test/a.dart;x?
     x=: package:test/a.dart;x=
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_variable_const() async {
     addSource('$testPackageLibPath/a.dart', 'const x = 0;');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21673,16 +22245,14 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_variable_final() async {
     addSource('$testPackageLibPath/a.dart', 'final x = 0;');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21691,8 +22261,7 @@ library
     exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportImport_configurations_useDefault() async {
@@ -21724,7 +22293,7 @@ library
             superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo.dart');
+    expect(typeA.element.source.shortName, 'foo.dart');
   }
 
   test_exportImport_configurations_useFirst() async {
@@ -21757,7 +22326,7 @@ library
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_io.dart');
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_exportImport_configurations_useSecond() async {
@@ -21790,16 +22359,15 @@ library
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_html.dart');
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_exports() async {
     addSource('$testPackageLibPath/a.dart', 'library a;');
     addSource('$testPackageLibPath/b.dart', 'library b;');
     var library = await buildLibrary('export "a.dart"; export "b.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -21807,8 +22375,7 @@ library
   definingUnit
   exportedReferences
   exportNamespace
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_class() async {
@@ -21820,9 +22387,8 @@ class A {}
 import augment 'a.dart';
 class B {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/a.dart
@@ -21842,8 +22408,7 @@ library
   exportNamespace
     A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
     B: package:test/test.dart;B
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_export() async {
@@ -21871,9 +22436,8 @@ import augment 'd.dart';
 import augment 'e.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/d.dart
@@ -21902,8 +22466,7 @@ library
     B2: package:test/b.dart;B2
     C: package:test/c.dart;C
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_export_hide() async {
@@ -21921,9 +22484,8 @@ export 'a.dart' hide A2, A4;
 import augment 'b.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/b.dart
@@ -21945,8 +22507,7 @@ library
     A1: package:test/a.dart;A1
     A3: package:test/a.dart;A3
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_export_show() async {
@@ -21963,9 +22524,8 @@ export 'a.dart' show A1, A3;
 import augment 'b.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/b.dart
@@ -21987,8 +22547,7 @@ library
     A1: package:test/a.dart;A1
     A3: package:test/a.dart;A3
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_nested_class() async {
@@ -22005,9 +22564,8 @@ class B {}
 import augment 'a.dart';
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/a.dart
@@ -22036,8 +22594,7 @@ library
     A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
     B: package:test/test.dart;package:test/a.dart;package:test/b.dart;package:test/b.dart;B
     C: package:test/test.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_nested_export() async {
@@ -22060,9 +22617,8 @@ export 'b.dart';
 import augment 'c.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/c.dart
@@ -22087,8 +22643,7 @@ library
     A: package:test/a.dart;A
     B: package:test/b.dart;B
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_variable() async {
@@ -22099,9 +22654,8 @@ int a = 0;
     var library = await buildLibrary(r'''
 import augment 'a.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/a.dart
@@ -22124,8 +22678,7 @@ library
   exportNamespace
     a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
     a=: package:test/test.dart;package:test/a.dart;package:test/a.dart;a=
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportScope_augmentation_variable_const() async {
@@ -22136,9 +22689,8 @@ const a = 0;
     var library = await buildLibrary(r'''
 import augment 'a.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   augmentationImports
     package:test/a.dart
@@ -22158,8 +22710,7 @@ library
     declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
   exportNamespace
     a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
-''',
-        withExportScope: true);
+''');
   }
 
   test_expr_invalid_typeParameter_asPrefix() async {
@@ -24170,7 +24721,7 @@ library
             superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo.dart');
+    expect(typeA.element.source.shortName, 'foo.dart');
   }
 
   test_import_configurations_useFirst() async {
@@ -24201,7 +24752,7 @@ library
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_io.dart');
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useFirst_eqTrue() async {
@@ -24232,7 +24783,7 @@ library
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_io.dart');
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useSecond() async {
@@ -24263,7 +24814,7 @@ library
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_html.dart');
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_import_configurations_useSecond_eqTrue() async {
@@ -24294,7 +24845,7 @@ library
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element2.source.shortName, 'foo_html.dart');
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_import_dartCore_explicit() async {
@@ -25127,6 +25678,47 @@ library
 ''');
   }
 
+  test_inferred_type_could_not_infer() async {
+    var library = await buildLibrary(r'''
+class C<P extends num> {
+  factory C(Iterable<P> p) => C._();
+  C._();
+}
+
+var c = C([]);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant P @8
+            bound: num
+            defaultType: num
+        constructors
+          factory @35
+            parameters
+              requiredPositional p @49
+                type: Iterable<P>
+          _ @66
+            periodOffset: 65
+            nameEnd: 67
+    topLevelVariables
+      static c @78
+        typeInferenceError: couldNotInfer
+        type: C<dynamic>
+    accessors
+      synthetic static get c @-1
+        returnType: C<dynamic>
+      synthetic static set c @-1
+        parameters
+          requiredPositional _c @-1
+            type: C<dynamic>
+        returnType: void
+''');
+  }
+
   test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
     var library = await buildLibrary('''
 class A {
@@ -25156,6 +25748,114 @@ library
         methods
           static baz @100
             returnType: int Function(double)
+''');
+  }
+
+  test_inferred_type_inference_failure_on_function_invocation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+int m<T>() => 1;
+var x = m();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @21
+        type: int
+    accessors
+      synthetic static get x @-1
+        returnType: int
+      synthetic static set x @-1
+        parameters
+          requiredPositional _x @-1
+            type: int
+        returnType: void
+    functions
+      m @4
+        typeParameters
+          covariant T @6
+        returnType: int
+''');
+  }
+
+  test_inferred_type_inference_failure_on_generic_invocation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+int Function<T>()? m = <T>() => 1;
+int Function<T>() n = <T>() => 2;
+var x = (m ?? n)();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static m @19
+        type: int Function<T>()?
+      static n @53
+        type: int Function<T>()
+      static x @73
+        type: int
+    accessors
+      synthetic static get m @-1
+        returnType: int Function<T>()?
+      synthetic static set m @-1
+        parameters
+          requiredPositional _m @-1
+            type: int Function<T>()?
+        returnType: void
+      synthetic static get n @-1
+        returnType: int Function<T>()
+      synthetic static set n @-1
+        parameters
+          requiredPositional _n @-1
+            type: int Function<T>()
+        returnType: void
+      synthetic static get x @-1
+        returnType: int
+      synthetic static set x @-1
+        parameters
+          requiredPositional _x @-1
+            type: int
+        returnType: void
+''');
+  }
+
+  test_inferred_type_inference_failure_on_instance_creation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+import 'dart:collection';
+var m = HashMap();
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:collection
+  definingUnit
+    topLevelVariables
+      static m @30
+        typeInferenceError: inferenceFailureOnInstanceCreation
+        type: HashMap<dynamic, dynamic>
+    accessors
+      synthetic static get m @-1
+        returnType: HashMap<dynamic, dynamic>
+      synthetic static set m @-1
+        parameters
+          requiredPositional _m @-1
+            type: HashMap<dynamic, dynamic>
+        returnType: void
 ''');
   }
 
@@ -25695,12 +26395,12 @@ class A {
   m(Stream p) {}
 }
 ''');
-    LibraryElement library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 class B extends A {
   m(p) {}
 }
-  ''');
+''');
     checkElementText(library, r'''
 library
   imports
@@ -25724,7 +26424,7 @@ library
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    final streamElement = (p.type as InterfaceType).element2;
+    final streamElement = (p.type as InterfaceType).element;
     expect(streamElement.source, isNot(streamElement.library.source));
   }
 
@@ -26340,6 +27040,7 @@ library
       class B @56
         fields
           c3 @66
+            typeInferenceError: couldNotInfer
             type: C<C<Object?>>
         constructors
           synthetic @-1
@@ -26355,6 +27056,7 @@ library
       static c @29
         type: C<C<dynamic>>
       static c2 @36
+        typeInferenceError: couldNotInfer
         type: C<C<Object?>>
     accessors
       synthetic static get c @-1
@@ -26398,6 +27100,7 @@ library
       class B @71
         fields
           c3 @81
+            typeInferenceError: couldNotInfer
             type: C<C<dynamic>*>*
         constructors
           synthetic @-1
@@ -26413,6 +27116,7 @@ library
       static c @44
         type: C<C<dynamic>*>*
       static c2 @51
+        typeInferenceError: couldNotInfer
         type: C<C<dynamic>*>*
     accessors
       synthetic static get c @-1
@@ -27228,20 +27932,18 @@ import 'dart:math' as p1;
     final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
     final import_async = library.libraryImports[0];
     final import_math = library.libraryImports[2];
-    expect(p1.imports2, unorderedEquals([import_async, import_math]));
+    expect(p1.imports, unorderedEquals([import_async, import_math]));
   }
 
   test_library_imports_syntheticDartCore() async {
     final library = await buildLibrary('');
-    checkElementText(
-        library,
-        r'''
+    configuration.withSyntheticDartCoreImport = true;
+    checkElementText(library, r'''
 library
   imports
     dart:core synthetic
   definingUnit
-''',
-        withSyntheticDartCoreImport: true);
+''');
   }
 
   test_library_imports_withRelativeUri_emptyUriSelf() async {
@@ -31991,7 +32693,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(library.parts2[0].metadata, isEmpty);
+    expect(library.parts[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {
@@ -32859,7 +33561,7 @@ mixin M {}
 
     // We intentionally ask `mixins` directly, to check that we can ask them
     // separately, without asking classes.
-    var mixins = library.definingCompilationUnit.mixins2;
+    var mixins = library.definingCompilationUnit.mixins;
     expect(mixins, hasLength(1));
     expect(mixins[0].name, 'M');
   }
@@ -34277,9 +34979,8 @@ class C {
   int foo = 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -34302,8 +35003,7 @@ library
                 nonSynthetic: self::@class::C::@field::foo
             returnType: void
             nonSynthetic: self::@class::C::@field::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_class_getter() async {
@@ -34312,9 +35012,8 @@ class C {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -34330,8 +35029,7 @@ library
           get foo @20
             returnType: int
             nonSynthetic: self::@class::C::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_class_setter() async {
@@ -34340,9 +35038,8 @@ class C {
   set foo(int value) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -34362,8 +35059,7 @@ library
                 nonSynthetic: self::@class::C::@setter::foo::@parameter::value
             returnType: void
             nonSynthetic: self::@class::C::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_enum() async {
@@ -34372,9 +35068,8 @@ enum E {
   a, b
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     enums
@@ -34445,8 +35140,7 @@ library
           synthetic static get values @-1
             returnType: List<E>
             nonSynthetic: self::@enum::E
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_extension_getter() async {
@@ -34455,9 +35149,8 @@ extension E on int {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     extensions
@@ -34471,8 +35164,7 @@ library
           get foo @31
             returnType: int
             nonSynthetic: self::@extension::E::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_extension_setter() async {
@@ -34481,9 +35173,8 @@ extension E on int {
   set foo(int value) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     extensions
@@ -34501,8 +35192,7 @@ library
                 nonSynthetic: self::@extension::E::@setter::foo::@parameter::value
             returnType: void
             nonSynthetic: self::@extension::E::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_mixin_field() async {
@@ -34511,9 +35201,8 @@ mixin M {
   int foo = 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     mixins
@@ -34535,8 +35224,7 @@ library
                 nonSynthetic: self::@mixin::M::@field::foo
             returnType: void
             nonSynthetic: self::@mixin::M::@field::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_mixin_getter() async {
@@ -34545,9 +35233,8 @@ mixin M {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     mixins
@@ -34562,8 +35249,7 @@ library
           get foo @20
             returnType: int
             nonSynthetic: self::@mixin::M::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_mixin_setter() async {
@@ -34572,9 +35258,8 @@ mixin M {
   set foo(int value) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     mixins
@@ -34593,17 +35278,15 @@ library
                 nonSynthetic: self::@mixin::M::@setter::foo::@parameter::value
             returnType: void
             nonSynthetic: self::@mixin::M::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_getter() async {
     var library = await buildLibrary(r'''
 int get foo => 0;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -34614,8 +35297,7 @@ library
       static get foo @8
         returnType: int
         nonSynthetic: self::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_getterSetter() async {
@@ -34623,9 +35305,8 @@ library
 int get foo => 0;
 set foo(int value) {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -34643,17 +35324,15 @@ library
             nonSynthetic: self::@setter::foo::@parameter::value
         returnType: void
         nonSynthetic: self::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_setter() async {
     var library = await buildLibrary(r'''
 set foo(int value) {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -34668,17 +35347,15 @@ library
             nonSynthetic: self::@setter::foo::@parameter::value
         returnType: void
         nonSynthetic: self::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_variable() async {
     var library = await buildLibrary(r'''
 int foo = 0;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -34696,8 +35373,7 @@ library
             nonSynthetic: self::@variable::foo
         returnType: void
         nonSynthetic: self::@variable::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_parameter() async {
@@ -40022,9 +40698,8 @@ library
 int foo = 0;
 int get foo => 0;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -40053,8 +40728,7 @@ library
         returnType: int
         id: getter_1
         variable: variable_1
-''',
-        withPropertyLinking: true);
+''');
   }
 
   test_unit_variable_duplicate_setter() async {
@@ -40062,9 +40736,8 @@ library
 int foo = 0;
 set foo(int _) {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -40096,8 +40769,7 @@ library
         returnType: void
         id: setter_1
         variable: variable_1
-''',
-        withPropertyLinking: true);
+''');
   }
 
   test_unit_variable_final_withSetter() async {
@@ -40105,9 +40777,8 @@ library
 final int foo = 0;
 set foo(int newValue) {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -40128,8 +40799,7 @@ library
         returnType: void
         id: setter_0
         variable: variable_0
-''',
-        withPropertyLinking: true);
+''');
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
@@ -41387,5 +42057,33 @@ library
 
     var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
+  }
+}
+
+extension on ElementTextConfiguration {
+  void forPromotableFields({
+    Set<String> classNames = const {},
+    Set<String> enumNames = const {},
+    Set<String> mixinNames = const {},
+    Set<String> fieldNames = const {},
+  }) {
+    filter = (e) {
+      if (e is ClassElement) {
+        return classNames.contains(e.name);
+      } else if (e is ConstructorElement) {
+        return false;
+      } else if (e is EnumElement) {
+        return enumNames.contains(e.name);
+      } else if (e is FieldElement) {
+        return fieldNames.isEmpty || fieldNames.contains(e.name);
+      } else if (e is MixinElement) {
+        return mixinNames.contains(e.name);
+      } else if (e is PartElement) {
+        return false;
+      } else if (e is PropertyAccessorElement) {
+        return false;
+      }
+      return true;
+    };
   }
 }

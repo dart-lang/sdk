@@ -43,8 +43,6 @@ class TranslatorOptions {
   List<int>? watchPoints = null;
 }
 
-typedef CodeGenCallback = void Function(w.Instructions);
-
 /// The main entry point for the translation from kernel to Wasm and the hub for
 /// all global state in the compiler.
 ///
@@ -105,10 +103,12 @@ class Translator {
   late final Class typedListClass;
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
+  late final Class unmodifiableByteDataViewClass;
   late final Class typeErrorClass;
   late final Class typeUniverseClass;
   late final Class symbolClass;
   late final Class invocationClass;
+  late final Class noSuchMethodErrorClass;
   late final Procedure wasmFunctionCall;
   late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
@@ -133,6 +133,10 @@ class Translator {
   late final Procedure invocationSetterFactory;
   late final Procedure invocationMethodFactory;
   late final Procedure invocationGenericMethodFactory;
+  late final Procedure nullToString;
+  late final Procedure nullNoSuchMethod;
+  late final Procedure createNormalizedFutureOrType;
+  late final Procedure noSuchMethodErrorThrowWithInvocation;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -147,8 +151,16 @@ class Translator {
   late final DynamicDispatcher dynamics;
 
   // Information about the program used and updated by the various phases.
+
+  /// [ClassInfo]s of classes in the compilation unit and the [ClassInfo] for
+  /// the `#Top` struct. Indexed by class ID. Entries added by
+  /// [ClassInfoCollector].
   final List<ClassInfo> classes = [];
+
+  /// [ClassInfo]s of classes in the compilation unit. Entries added by
+  /// [ClassInfoCollector].
   final Map<Class, ClassInfo> classInfo = {};
+
   final Map<w.HeapType, ClassInfo> classForHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
@@ -246,6 +258,8 @@ class Translator {
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
     byteDataViewClass = lookupTypedData("_ByteDataView");
+    unmodifiableByteDataViewClass =
+        lookupTypedData("_UnmodifiableByteDataView");
     symbolClass = lookupInternal("Symbol");
     wasmFunctionCall =
         wasmFunctionClass.procedures.firstWhere((p) => p.name.text == "call");
@@ -307,6 +321,14 @@ class Translator {
         invocationClass.procedures.firstWhere((p) => p.name.text == "method");
     invocationGenericMethodFactory = invocationClass.procedures
         .firstWhere((p) => p.name.text == "genericMethod");
+    nullToString = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "_nullToString");
+    nullNoSuchMethod = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "_nullNoSuchMethod");
+    createNormalizedFutureOrType = typeUniverseClass.procedures
+        .firstWhere((p) => p.name.text == "createNormalizedFutureOrType");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
@@ -332,6 +354,9 @@ class Translator {
       w.NumType.i64: boxedIntClass,
       w.NumType.f64: boxedDoubleClass,
     };
+    noSuchMethodErrorClass = lookupCore("NoSuchMethodError");
+    noSuchMethodErrorThrowWithInvocation = noSuchMethodErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwWithInvocation");
   }
 
   // Finds the `main` method for a given library which is assumed to contain
@@ -360,7 +385,6 @@ class Translator {
     m = w.Module(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
-    dynamics.collect();
     closureLayouter.collect();
     classInfoCollector.collect();
 
@@ -795,6 +819,9 @@ class Translator {
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
     w.Instructions ib = vtable.initializer;
+    if (representation.isGeneric) {
+      ib.ref_func(representation.instantiationFunction);
+    }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
       fillVtableEntry(ib, posArgCount, const []);
     }

@@ -48,6 +48,9 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   bool visitExtensionType(ExtensionType node) => false;
 
   @override
+  bool visitViewType(ViewType node) => false;
+
+  @override
   bool visitNeverType(NeverType node) => false;
 
   @override
@@ -304,7 +307,17 @@ class OperationsCfe
     implements Operations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
-  OperationsCfe(this.typeEnvironment);
+  final bool isNonNullableByDefault;
+
+  /// If `null`, field promotion is disabled for this library.  If not `null`,
+  /// field promotion is enabled for this library and this is the set of private
+  /// field names for which promotion is blocked due to the presence of a
+  /// non-final field or a concrete getter.
+  final Set<String>? unpromotablePrivateFieldNames;
+
+  OperationsCfe(this.typeEnvironment,
+      {required this.isNonNullableByDefault,
+      this.unpromotablePrivateFieldNames});
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -332,7 +345,15 @@ class OperationsCfe
   }
 
   @override
-  bool isPropertyPromotable(Object property) => false;
+  bool isPropertyPromotable(covariant Member property) {
+    Set<String>? unpromotablePrivateFieldNames =
+        this.unpromotablePrivateFieldNames;
+    if (unpromotablePrivateFieldNames == null) return false;
+    if (property is! Field) return false;
+    String name = property.name.text;
+    if (!name.startsWith('_')) return false;
+    return !unpromotablePrivateFieldNames.contains(name);
+  }
 
   // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
   @override
@@ -381,6 +402,44 @@ class OperationsCfe
       }
     }
     return from;
+  }
+
+  @override
+  DartType glb(DartType type1, DartType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  bool isAssignableTo(DartType fromType, DartType toType) {
+    if (isNonNullableByDefault) {
+      if (fromType is DynamicType) return true;
+      return typeEnvironment
+          .performNullabilityAwareSubtypeCheck(fromType, toType)
+          .isSubtypeWhenUsingNullabilities();
+    } else {
+      return typeEnvironment
+          .performNullabilityAwareSubtypeCheck(fromType, toType)
+          .orSubtypeCheckFor(toType, fromType, typeEnvironment)
+          .isSubtypeWhenIgnoringNullabilities();
+    }
+  }
+
+  @override
+  bool isDynamic(DartType type) => type is DynamicType;
+
+  @override
+  DartType lub(DartType type1, DartType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType makeNullable(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType? matchListType(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
   }
 }
 

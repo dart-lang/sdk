@@ -130,7 +130,7 @@ String unescapeLastStringPart(String last, Quote quote, Object location,
     bool isLastQuoteSynthetic, UnescapeErrorListener listener) {
   int end = last.length - (isLastQuoteSynthetic ? 0 : lastQuoteLength(quote));
   return unescape(
-      last.substring(/* startIndex = */ 0, end), quote, location, listener);
+      last.substring(/* start = */ 0, end), quote, location, listener);
 }
 
 String unescapeString(

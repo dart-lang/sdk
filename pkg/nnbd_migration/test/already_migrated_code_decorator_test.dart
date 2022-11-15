@@ -69,7 +69,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
         typeFormals: [typeFormal],
         parameters: const [],
         returnType: TypeParameterTypeImpl(
-          element2: typeFormal,
+          element: typeFormal,
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         nullabilitySuffix: suffix,
@@ -98,7 +98,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
         typeFormals: [typeFormal],
         parameters: const [],
         returnType: TypeParameterTypeImpl(
-          element2: typeFormal,
+          element: typeFormal,
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         nullabilitySuffix: suffix,
@@ -244,7 +244,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
     var withElement = await _ContextWithFiles().withEmptyUnit();
 
     var decoratedType = withElement.decorate(InterfaceTypeImpl(
-        element2: withElement.typeProvider.mapElement,
+        element: withElement.typeProvider.mapElement,
         typeArguments: [
           withElement.typeProvider.intType,
           withElement.typeProvider.numType
@@ -262,7 +262,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
     withElement.checkInt(
         withElement.decorate(
           InterfaceTypeImpl(
-            element2: withElement.typeProvider.intElement,
+            element: withElement.typeProvider.intElement,
             typeArguments: const [],
             nullabilitySuffix: NullabilitySuffix.question,
           ),
@@ -277,7 +277,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
     withElement.checkInt(
         withElement.decorate(
           InterfaceTypeImpl(
-            element2: withElement.typeProvider.intElement,
+            element: withElement.typeProvider.intElement,
             typeArguments: const [],
             nullabilitySuffix: suffix,
           ),
@@ -311,7 +311,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
 
     withElement.checkTypeParameter(
         withElement.decorate(TypeParameterTypeImpl(
-            element2: element, nullabilitySuffix: NullabilitySuffix.question)),
+            element: element, nullabilitySuffix: NullabilitySuffix.question)),
         withElement.checkExplicitlyNullable,
         element,
         'test type');
@@ -325,8 +325,8 @@ class _AlreadyMigratedCodeDecoratorTestBase {
     var withElement = withUnit.withElement(element);
 
     withElement.checkTypeParameter(
-        withElement.decorate(TypeParameterTypeImpl(
-            element2: element, nullabilitySuffix: suffix)),
+        withElement.decorate(
+            TypeParameterTypeImpl(element: element, nullabilitySuffix: suffix)),
         withElement.checkExplicitlyNonNullable,
         element,
         'test type');
@@ -427,7 +427,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
       'mixin C on num {}',
     );
     var unitElement = withUnit.unitElement;
-    var mixin_ = unitElement.mixins2.single;
+    var mixin_ = unitElement.mixins.single;
 
     var withElement = withUnit.withElement(mixin_);
 
@@ -510,7 +510,7 @@ class _ContextWithElement with EdgeTester {
 
   void checkDynamic(DecoratedType? decoratedType, String displayName) {
     expect(decoratedType!.type, same(typeProvider.dynamicType));
-    checkAlwaysNullable(decoratedType.node!, displayName);
+    checkAlwaysNullable(decoratedType.node, displayName);
   }
 
   void checkExplicitlyNonNullable(NullabilityNode? node, String displayName) {
@@ -536,7 +536,7 @@ class _ContextWithElement with EdgeTester {
     String displayName,
   ) {
     final type = decoratedType.type as InterfaceType;
-    expect(type.element2, typeProvider.futureOrElement);
+    expect(type.element, typeProvider.futureOrElement);
     checkNullability(decoratedType.node, displayName);
     checkArgument(
         decoratedType.typeArguments[0], 'type argument 0 of $displayName');
@@ -548,7 +548,7 @@ class _ContextWithElement with EdgeTester {
     String displayName,
   ) {
     final type = decoratedType.type as InterfaceType;
-    expect(type.element2, typeProvider.intElement);
+    expect(type.element, typeProvider.intElement);
     checkNullability(decoratedType.node, displayName);
   }
 
@@ -559,7 +559,7 @@ class _ContextWithElement with EdgeTester {
     String displayName,
   ) {
     final type = decoratedType.type as InterfaceType;
-    expect(type.element2, typeProvider.iterableElement);
+    expect(type.element, typeProvider.iterableElement);
     checkNullability(decoratedType.node, displayName);
     checkArgument(
         decoratedType.typeArguments[0], 'type argument 0 of $displayName');
@@ -576,7 +576,7 @@ class _ContextWithElement with EdgeTester {
     String displayName,
   ) {
     final type = decoratedType.type as InterfaceType;
-    expect(type.element2, typeProvider.numElement);
+    expect(type.element, typeProvider.numElement);
     checkNullability(decoratedType.node, displayName);
   }
 
@@ -586,7 +586,7 @@ class _ContextWithElement with EdgeTester {
     String displayName,
   ) {
     final type = decoratedType.type as InterfaceType;
-    expect(type.element2, typeProvider.objectType.element2);
+    expect(type.element, typeProvider.objectType.element);
     checkNullability(decoratedType.node, displayName);
   }
 
@@ -597,13 +597,13 @@ class _ContextWithElement with EdgeTester {
     String displayName,
   ) {
     var type = decoratedType.type as TypeParameterTypeImpl;
-    expect(type.element2, same(expectedElement));
+    expect(type.element, same(expectedElement));
     checkNullability(decoratedType.node, displayName);
   }
 
   void checkVoid(DecoratedType decoratedType, String displayName) {
     expect(decoratedType.type, same(typeProvider.voidType));
-    checkAlwaysNullable(decoratedType.node!, displayName);
+    checkAlwaysNullable(decoratedType.node, displayName);
   }
 
   DecoratedType decorate(DartType type) {

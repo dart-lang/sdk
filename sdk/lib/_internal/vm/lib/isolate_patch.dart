@@ -16,7 +16,7 @@ import "dart:collection" show HashMap;
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 /// These are the additional parts of this patch library:
-// part "timer_impl.dart";
+part "timer_impl.dart";
 
 @patch
 class ReceivePort {
@@ -31,6 +31,7 @@ class ReceivePort {
 }
 
 @patch
+@pragma("vm:entry-point")
 class Capability {
   @patch
   factory Capability() => new _CapabilityImpl();
@@ -189,7 +190,7 @@ class _RawReceivePortImpl implements RawReceivePort {
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
-    handler(message);
+    (handler as Function)(message);
     _runPendingImmediateCallback();
     return handler;
   }
@@ -290,9 +291,9 @@ void _delayEntrypointInvocation(Function entryPoint, List<String>? args,
     port.close();
     if (allowZeroOneOrTwoArgs) {
       if (entryPoint is _BinaryFunction) {
-        (entryPoint as dynamic)(args, message);
+        (entryPoint as Function)(args, message);
       } else if (entryPoint is _UnaryFunction) {
-        (entryPoint as dynamic)(args);
+        (entryPoint as Function)(args);
       } else {
         entryPoint();
       }
@@ -684,6 +685,7 @@ class Isolate {
 }
 
 @patch
+@pragma("vm:entry-point")
 abstract class TransferableTypedData {
   @patch
   factory TransferableTypedData.fromList(List<TypedData> chunks) {

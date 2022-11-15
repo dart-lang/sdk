@@ -12,11 +12,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class SurroundWith extends MultiCorrectionProducer {
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
     // If the node is the CompilationUnit, the selected statements must span multiple
     // top level items and cannot be surrounded with anything.
     if (node is CompilationUnit) {
-      return;
+      return const [];
     }
 
     // prepare selected statements
@@ -34,13 +34,13 @@ class SurroundWith extends MultiCorrectionProducer {
     // we want only statements in blocks
     for (var statement in selectedStatements) {
       if (statement.parent is! Block) {
-        return;
+        return const [];
       }
     }
     // we want only statements
     if (selectedStatements.isEmpty ||
         selectedStatements.length != selectedNodes.length) {
-      return;
+      return const [];
     }
     // prepare statement information
     var firstStatement = selectedStatements[0];
@@ -51,22 +51,20 @@ class SurroundWith extends MultiCorrectionProducer {
     var indentedCode =
         utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew);
 
-    yield _SurroundWithBlock(
-        statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithDoWhile(
-        statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithFor(statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithForIn(
-        statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithIf(statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithSetState(
-        statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithTryCatch(
-        statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithTryFinally(
-        statementsRange, indentOld, indentNew, indentedCode);
-    yield _SurroundWithWhile(
-        statementsRange, indentOld, indentNew, indentedCode);
+    return [
+      _SurroundWithBlock(statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithDoWhile(statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithFor(statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithForIn(statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithIf(statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithSetState(
+          statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithTryCatch(
+          statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithTryFinally(
+          statementsRange, indentOld, indentNew, indentedCode),
+      _SurroundWithWhile(statementsRange, indentOld, indentNew, indentedCode),
+    ];
   }
 }
 

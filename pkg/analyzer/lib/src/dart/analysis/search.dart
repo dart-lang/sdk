@@ -256,8 +256,8 @@ class Search {
         var unitResult = await _driver.getUnitElement(file);
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
-          unitResult.element.enums2.forEach(addElements);
-          unitResult.element.mixins2.forEach(addElements);
+          unitResult.element.enums.forEach(addElements);
+          unitResult.element.mixins.forEach(addElements);
         }
       }
     }
@@ -380,10 +380,10 @@ class Search {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
         unitElement.classes.forEach(addElement);
-        unitElement.enums2.forEach(addElement);
+        unitElement.enums.forEach(addElement);
         unitElement.extensions.forEach(addElement);
         unitElement.functions.forEach(addElement);
-        unitElement.mixins2.forEach(addElement);
+        unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
         unitElement.typeAliases.forEach(addElement);
       }
@@ -619,7 +619,7 @@ class Search {
       if (unitResult is ResolvedUnitResult) {
         CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
-          if (directive is PartOfDirective && directive.element2 == element) {
+          if (directive is PartOfDirective && directive.element == element) {
             results.add(
               SearchResult._(
                 unit.declaredElement!,
@@ -893,8 +893,8 @@ class _FindCompilationUnitDeclarations {
 
     _addAccessors(unit.accessors);
     _addClasses(unit.classes);
-    _addClasses(unit.enums2);
-    _addClasses(unit.mixins2);
+    _addClasses(unit.enums);
+    _addClasses(unit.mixins);
     _addExtensions(unit.extensions);
     _addFunctions(unit.functions);
     _addTypeAliases(unit.typeAliases);

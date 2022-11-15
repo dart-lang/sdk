@@ -39,6 +39,15 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the return type as derived by the type of the [Future].
+  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR = HintCode(
+    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+    "This 'onError' handler must return a value assignable to '{0}', but ends "
+        "without returning a value.",
+    correctionMessage: "Try adding a return statement.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the declared return type
   static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = HintCode(
     'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
@@ -100,7 +109,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  1: name of the supertype
   static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = HintCode(
     'DEAD_CODE_ON_CATCH_SUBTYPE',
-    "Dead code: This on-catch block won’t be executed because '{0}' is a "
+    "Dead code: This on-catch block won't be executed because '{0}' is a "
         "subtype of '{1}' and hence will have been caught already.",
     correctionMessage:
         "Try reordering the catch clauses so that this block can be reached, "
@@ -203,6 +212,15 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try re-writing the expression to use the '~/' operator.",
     hasPublishedDocs: true,
+  );
+
+  ///  Duplicate exports.
+  ///
+  ///  No parameters.
+  static const HintCode DUPLICATE_EXPORT = HintCode(
+    'DUPLICATE_EXPORT',
+    "Duplicate export.",
+    correctionMessage: "Try removing all but one export of the library.",
   );
 
   ///  No parameters.
@@ -1451,7 +1469,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  0: the name that is shown but not used
   static const HintCode UNUSED_SHOWN_NAME = HintCode(
     'UNUSED_SHOWN_NAME',
-    "The name {0} is shown, but isn’t used.",
+    "The name {0} is shown, but isn't used.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
   );

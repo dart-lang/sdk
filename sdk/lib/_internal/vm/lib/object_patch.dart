@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -83,92 +83,3 @@ String _objectToString(Object? obj) => obj.toString();
 @pragma("vm:entry-point", "call")
 dynamic _objectNoSuchMethod(Object? obj, Invocation invocation) =>
     obj.noSuchMethod(invocation);
-
-// Base class for record instances.
-// TODO(dartbug.com/49719): create a separate patch file for this class.
-@pragma("vm:entry-point")
-class _Record {
-  factory _Record._uninstantiable() {
-    throw "Unreachable";
-  }
-
-  // Do not inline to avoid mixing _fieldAt with
-  // record field accesses.
-  @pragma("vm:never-inline")
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-
-    if (other is! _Record) {
-      return false;
-    }
-
-    _Record otherRec = unsafeCast<_Record>(other);
-    final int numFields = _numFields;
-    if (numFields != otherRec._numFields ||
-        !identical(_fieldNames, otherRec._fieldNames)) {
-      return false;
-    }
-
-    for (int i = 0; i < numFields; ++i) {
-      if (_fieldAt(i) != otherRec._fieldAt(i)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // Do not inline to avoid mixing _fieldAt with
-  // record field accesses.
-  @pragma("vm:never-inline")
-  int get hashCode {
-    final int numFields = _numFields;
-    int hash = numFields;
-    hash = SystemHash.combine(hash, identityHashCode(_fieldNames));
-    for (int i = 0; i < numFields; ++i) {
-      hash = SystemHash.combine(hash, _fieldAt(i).hashCode);
-    }
-    return SystemHash.finish(hash);
-  }
-
-  // Do not inline to avoid mixing _fieldAt with
-  // record field accesses.
-  @pragma("vm:never-inline")
-  String toString() {
-    StringBuffer buffer = StringBuffer("(");
-    final int numFields = _numFields;
-    final _List fieldNames = _fieldNames;
-    final int numPositionalFields = numFields - fieldNames.length;
-    for (int i = 0; i < numFields; ++i) {
-      if (i != 0) {
-        buffer.write(", ");
-      }
-      if (i >= numPositionalFields) {
-        buffer.write(unsafeCast<String>(fieldNames[i - numPositionalFields]));
-        buffer.write(": ");
-      }
-      buffer.write(_fieldAt(i).toString());
-    }
-    buffer.write(")");
-    return buffer.toString();
-  }
-
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  external int get _numFields;
-
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  external _List get _fieldNames;
-
-  // Currently compiler does not take into account aliasing
-  // between access to record fields via _fieldAt and
-  // via record.foo / record.$n.
-  // So this method should only be used in methods
-  // which only access record fields with _fieldAt and
-  // annotated with @pragma("vm:never-inline").
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  external Object? _fieldAt(int index);
-}

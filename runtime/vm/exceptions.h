@@ -66,7 +66,6 @@ class Exceptions : AllStatic {
     kAssertion,
     kCast,
     kType,
-    kFallThrough,
     kAbstractClassInstantiation,
     kCyclicInitializationError,
     kCompileTimeError,

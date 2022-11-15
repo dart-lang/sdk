@@ -22,7 +22,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
       if (element.isGetter) {
         var type = element.returnType;
         if (type is InterfaceType) {
-          interfaceElement = type.element2;
+          interfaceElement = type.element;
         }
       }
     } else if (element is ConstructorElement) {
@@ -42,7 +42,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
           // may have been compiled with a different version of pkg:meta.
           var index = kindObject.getField('index')!.toIntValue()!;
           var targetKindClass =
-              (kindObject.type as InterfaceType).element2 as EnumElementImpl;
+              (kindObject.type as InterfaceType).element as EnumElementImpl;
           // Instead, map constants to their TargetKind by comparing getter
           // names.
           var getter = targetKindClass.constants[index];
@@ -94,6 +94,8 @@ extension ElementExtension on Element {
   /// cannot be invoked directly and are always accessed using corresponding
   /// [PropertyAccessorElement]s.
   bool get isInstanceMember {
+    assert(this is! PropertyInducingElement,
+        'Check the PropertyAccessorElement instead');
     var this_ = this;
     var enclosing = this_.enclosingElement;
     if (enclosing is InterfaceElement) {
@@ -139,6 +141,13 @@ extension ParameterElementExtensions on ParameterElement {
 extension RecordTypeExtension on RecordType {
   /// A regular expression used to match positional field names.
   static final RegExp _positionalName = RegExp(r'^\$(([0-9])|([1-9][0-9]*))$');
+
+  List<RecordTypeField> get fields {
+    return [
+      ...positionalFields,
+      ...namedFields,
+    ];
+  }
 
   /// The [name] is either an actual name like `foo` in `({int foo})`, or
   /// the name of a positional field like `$0` in `(int, String)`.

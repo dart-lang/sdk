@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "internal_patch.dart";
+part of "internal_patch.dart";
 
 @pragma("wasm:entry-point")
 class ClassID {
@@ -22,6 +22,14 @@ class ClassID {
   external static int get cidFunction;
   @pragma("wasm:class-id", "dart.core#_Function")
   external static int get cid_Function;
+  @pragma("wasm:class-id", "dart.core#_List")
+  external static int get cidFixedLengthList;
+  @pragma("wasm:class-id", "dart.core#_ListBase")
+  external static int get cidListBase;
+  @pragma("wasm:class-id", "dart.core#_GrowableList")
+  external static int get cidGrowableList;
+  @pragma("wasm:class-id", "dart.core#_ImmutableList")
+  external static int get cidImmutableList;
 
   // Class IDs for RTI Types.
   @pragma("wasm:class-id", "dart.core#_NeverType")

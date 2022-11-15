@@ -236,7 +236,10 @@ class LspMetaModelCleaner {
       },
       'TextDocumentEdit': {
         'edits': 'TextDocumentEditEdits',
-      }
+      },
+      'TypeHierarchyItem': {
+        'data': 'TypeHierarchyItemInfo',
+      },
     };
 
     final interface = improvedTypeMappings[interfaceName];

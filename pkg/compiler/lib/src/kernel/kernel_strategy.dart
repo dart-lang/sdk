@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.kernel.frontend_strategy;
 
 import 'package:kernel/ast.dart' as ir;
@@ -13,7 +11,7 @@ import '../common/elements.dart';
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../compiler.dart';
+import '../compiler_interfaces.dart';
 import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -44,49 +42,51 @@ import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
+import 'kelements.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
-import 'kernel_strategy_migrated.dart'; // TODO(48820): Remove when migrated.
 import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy
-    implements
-        KernelFrontendStrategyForBackendUsage,
-        KernelFrontendStrategyForDeferredLoading {
+class KernelFrontendStrategy {
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
-  /*late*/ KernelToElementMap _elementMap;
-  RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
+  late final KernelToElementMap _elementMap;
+  late final RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder =
+      _options.disableRtiOptimization
+          ? const TrivialRuntimeTypesNeedBuilder()
+          : RuntimeTypesNeedBuilderImpl(elementEnvironment);
 
-  KernelAnnotationProcessor _annotationProcessor;
+  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
+      _runtimeTypesNeedBuilder;
+
+  late KernelAnnotationProcessor _annotationProcessor;
 
   final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
-  ModularStrategy _modularStrategy;
-  IrAnnotationData _irAnnotationData;
+  late ModularStrategy _modularStrategy;
+  late IrAnnotationData _irAnnotationData;
 
-  NativeDataBuilder _nativeDataBuilder;
+  late NativeDataBuilder _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
 
-  BackendUsageBuilder _backendUsageBuilder;
+  late BackendUsageBuilder _backendUsageBuilder;
 
-  NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  late NativeResolutionEnqueuer _nativeResolutionEnqueuer;
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
+  late CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
 
-  KFieldAnalysis _fieldAnalysis;
+  late KFieldAnalysis _fieldAnalysis;
 
   /// Support for classifying `noSuchMethod` implementations.
-  NoSuchMethodRegistry noSuchMethodRegistry;
+  late NoSuchMethodRegistry noSuchMethodRegistry;
 
   KernelFrontendStrategy(this._compilerTask, this._options,
-      DiagnosticReporter reporter, env.Environment environment) {
-    assert(_compilerTask != null);
-    _elementMap = KernelToElementMap(reporter, environment, _options);
+      DiagnosticReporter reporter, env.Environment environment)
+      : _elementMap = KernelToElementMap(reporter, environment, _options) {
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     _backendUsageBuilder = BackendUsageBuilderImpl(this);
     noSuchMethodRegistry =
@@ -114,13 +114,12 @@ class KernelFrontendStrategy
 
   void _validateInterceptorImplementsAllObjectMethods(
       ClassEntity interceptorClass) {
-    if (interceptorClass == null) return;
     ClassEntity objectClass = commonElements.objectClass;
     elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
       if (!member.isInstanceMember) return;
       MemberEntity interceptorMember = elementEnvironment
-          .lookupLocalClassMember(interceptorClass, member.memberName);
+          .lookupLocalClassMember(interceptorClass, member.memberName)!;
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(
@@ -134,8 +133,8 @@ class KernelFrontendStrategy
   }
 
   ResolutionEnqueuer createResolutionEnqueuer(
-      CompilerTask task, Compiler compiler) {
-    RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
+      CompilerTask task, CompilerKernelStrategyFacade compiler) {
+    RuntimeTypesNeedBuilder rtiNeedBuilder = _runtimeTypesNeedBuilder;
     BackendImpacts impacts = BackendImpacts(commonElements, compiler.options);
     final nativeBasicData = _elementMap.nativeBasicData;
     _nativeResolutionEnqueuer = NativeResolutionEnqueuer(
@@ -222,7 +221,7 @@ class KernelFrontendStrategy
     _annotationProcessor = KernelAnnotationProcessor(
         elementMap, elementMap.nativeBasicDataBuilder, _irAnnotationData);
     for (Uri uri in libraries) {
-      LibraryEntity library = elementEnvironment.lookupLibrary(uri);
+      LibraryEntity library = elementEnvironment.lookupLibrary(uri)!;
       if (maybeEnableNative(library.canonicalUri)) {
         _annotationProcessor.extractNativeAnnotations(library);
       }
@@ -233,7 +232,7 @@ class KernelFrontendStrategy
     }
   }
 
-  void registerModuleData(ModuleData data) {
+  void registerModuleData(ModuleData? data) {
     if (data == null) {
       _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     } else {
@@ -248,39 +247,28 @@ class KernelFrontendStrategy
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
-  @override
   KernelElementEnvironment get elementEnvironment =>
       _elementMap.elementEnvironment;
 
   /// Returns the [CommonElements] for the element model used in this
   /// strategy.
-  @override
   KCommonElements get commonElements => _elementMap.commonElements;
 
   KernelToElementMap get elementMap => _elementMap;
 
   /// Creates a [DeferredLoadTask] for the element model used in this strategy.
-  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+  DeferredLoadTask createDeferredLoadTask(
+          CompilerDeferredLoadingFacade compiler) =>
       DeferredLoadTask(compiler, _elementMap);
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
-  FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
+  FunctionEntity? computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
 
-  RuntimeTypesNeedBuilder _createRuntimeTypesNeedBuilder() {
-    return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
-        ? const TrivialRuntimeTypesNeedBuilder()
-        : RuntimeTypesNeedBuilderImpl(elementEnvironment);
-  }
-
-  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
-      _runtimeTypesNeedBuilder;
-
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
-  @override
-  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+  SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
 }
@@ -404,16 +392,16 @@ class KernelWorkItem implements WorkItem {
           _modularStrategy.getModularMemberData(node, annotations);
       ScopeModel scopeModel = modularMemberData.scopeModel;
       if (scopeModel.closureScopeModel != null) {
-        _closureModels[element] = scopeModel.closureScopeModel;
+        _closureModels[element] = scopeModel.closureScopeModel!;
       }
-      if (element.isField && !element.isInstanceMember) {
+      if (element is FieldEntity && !element.isInstanceMember) {
         _fieldAnalysis.registerStaticField(
-            element, scopeModel.initializerComplexity);
+            element as KField, scopeModel.initializerComplexity);
       }
       ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
         WorldImpact worldImpact = _elementMap.computeWorldImpact(
-            element,
+            element as KMember,
             _impacts,
             _nativeResolutionEnqueuer,
             _backendUsageBuilder,
@@ -421,9 +409,7 @@ class KernelWorkItem implements WorkItem {
             _rtiNeedBuilder,
             _annotationsData,
             impactBuilderData);
-        if (_impactCache != null) {
-          _impactCache[element] = worldImpact;
-        }
+        _impactCache[element] = worldImpact;
         return worldImpact;
       });
     });

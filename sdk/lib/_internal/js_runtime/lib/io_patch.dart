@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_js_helper' show patch;
 import 'dart:_internal' hide Symbol;
 import 'dart:async';
 import 'dart:convert';
@@ -217,11 +216,6 @@ class _RandomAccessFileOps {
   factory _RandomAccessFileOps(int pointer) {
     throw new UnsupportedError("RandomAccessFile");
   }
-}
-
-@patch
-bool _isDirectIOCapableTypedList(List<int> buffer) {
-  throw UnsupportedError("_isDirectIOCapableTypedList");
 }
 
 @patch

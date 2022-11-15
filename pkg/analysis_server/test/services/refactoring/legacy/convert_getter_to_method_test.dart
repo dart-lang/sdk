@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide ElementKind;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
@@ -141,6 +143,24 @@ void f(A a, B b) {
 ''');
   }
 
+  Future<void> test_checkInitialConditions_outsideOfProject() async {
+    // File outside of project.
+    var externalPath = convertPath('$workspaceRootPath/aaa/lib/a.dart');
+    newFile(externalPath, r'''
+String get foo => '';
+''');
+    var externalUnit = await getResolvedUnit(externalPath);
+
+    await indexTestUnit(''); // Initialize project.
+
+    var element = FindElement(externalUnit.unit).topVar('foo').getter!;
+    _createRefactoringForElement(element);
+
+    // check conditions
+    await _assertInitialConditions_fatal(
+        'Only getters in your workspace can be converted.');
+  }
+
   Future<void> test_checkInitialConditions_syntheticGetter() async {
     await indexTestUnit('''
 int test = 42;
@@ -171,6 +191,6 @@ void f() {
 
   void _createRefactoringForElement(PropertyAccessorElement element) {
     refactoring = ConvertGetterToMethodRefactoring(
-        searchEngine, testAnalysisResult.session, element);
+        refactoringWorkspace, testAnalysisResult.session, element);
   }
 }

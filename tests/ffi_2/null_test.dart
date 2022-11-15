@@ -7,7 +7,7 @@
 // Separated into a separate file to make NNBD testing easier.
 //
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=10
+// VMOptions=--deterministic --optimization-counter-threshold=90
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 // VMOptions=--write-protect-code --no-dual-map-code

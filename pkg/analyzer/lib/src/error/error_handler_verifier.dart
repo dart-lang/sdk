@@ -65,6 +65,8 @@ class ErrorHandlerVerifier {
     if (methodName == 'catchError' && targetType.isDartAsyncFuture) {
       var callback = node.argumentList.arguments.first;
       if (callback is NamedExpression) {
+        // TODO(srawlins): The comment below is wrong, given
+        // `named-arguments-anywhere`.
         // This implies that no positional arguments are passed.
         return;
       }
@@ -251,8 +253,8 @@ class ErrorHandlerVerifier {
   /// Returns whether [element] represents the []
   bool _isDartCoreAsyncType(DartType type, String typeName) =>
       type is InterfaceType &&
-      type.element2.name == typeName &&
-      type.element2.library.isDartAsync;
+      type.element.name == typeName &&
+      type.element.library.isDartAsync;
 }
 
 /// Visits a function body, looking for return statements.

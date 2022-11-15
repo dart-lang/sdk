@@ -7,6 +7,7 @@
   A3,
   A4,
   async.dart.FutureExtensions,
+  core.dart.DateTimeCopyWith,
   core.dart.EnumByName,
   core.dart.EnumName]*/
 

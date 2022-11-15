@@ -16,12 +16,12 @@ import 'package:nnbd_migration/src/nullability_node_target.dart';
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
 /// indicating whether the type, and the types that compose it, are nullable.
-class DecoratedType implements DecoratedTypeInfo {
+class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
   @override
   final DartType? type;
 
   @override
-  final NullabilityNode? node;
+  final NullabilityNode node;
 
   @override
   final DecoratedType? returnType;
@@ -47,7 +47,6 @@ class DecoratedType implements DecoratedTypeInfo {
       this.namedParameters = const {},
       this.typeArguments = const []}) {
     assert(() {
-      assert(node != null);
       var type = this.type;
       if (type is InterfaceType) {
         assert(returnType == null);
@@ -169,25 +168,6 @@ class DecoratedType implements DecoratedTypeInfo {
     }
   }
 
-  /// Creates a [DecoratedType] for a synthetic type parameter, to be used
-  /// during comparison of generic function types.
-  DecoratedType._forTypeParameterSubstitution(TypeParameterElement parameter)
-      : type = TypeParameterTypeImpl(
-          element2: parameter,
-          nullabilitySuffix: NullabilitySuffix.star,
-        ),
-        node = null,
-        returnType = null,
-        positionalParameters = const [],
-        namedParameters = const {},
-        typeArguments = const [] {
-    // We'll be storing the type parameter bounds in
-    // [_decoratedTypeParameterBounds] so the type parameter needs to have an
-    // enclosing element of `null`.
-    assert(parameter.enclosingElement == null,
-        '$parameter should not have parent ${parameter.enclosingElement}');
-  }
-
   /// If `this` represents an interface type, returns the substitution necessary
   /// to produce this type using the class's type as a starting point.
   /// Otherwise throws an exception.
@@ -195,11 +175,13 @@ class DecoratedType implements DecoratedTypeInfo {
   /// For instance, if `this` represents `List<int?1>`, returns the substitution
   /// `{T: int?1}`, where `T` is the [TypeParameterElement] for `List`'s type
   /// parameter.
-  Map<TypeParameterElement, DecoratedType?> get asSubstitution {
+  Map<TypeParameterElement, DecoratedType> get asSubstitution {
     var type = this.type;
     if (type is InterfaceType) {
-      return Map<TypeParameterElement, DecoratedType?>.fromIterables(
-          type.element2.typeParameters, typeArguments);
+      return {
+        for (int i = 0; i < typeArguments.length; i++)
+          type.element.typeParameters[i]: typeArguments[i]!
+      };
     } else {
       throw StateError(
           'Tried to convert a non-interface type to a substitution');
@@ -248,7 +230,7 @@ class DecoratedType implements DecoratedTypeInfo {
         }
         return true;
       } else if (thisType is InterfaceType && otherType is InterfaceType) {
-        if (thisType.element2 != otherType.element2) return false;
+        if (thisType.element != otherType.element) return false;
         if (!_compareLists(typeArguments, other.typeArguments)) {
           return false;
         }
@@ -311,14 +293,14 @@ class DecoratedType implements DecoratedTypeInfo {
   /// [undecoratedResult] is the result of the substitution, as determined by
   /// the normal type system.  If not supplied, it is inferred.
   DecoratedType substitute(
-      Map<TypeParameterElement, DecoratedType?> substitution,
+      Map<TypeParameterElement, SubstitutedType> substitution,
       [DartType? undecoratedResult]) {
     if (substitution.isEmpty) return this;
     if (undecoratedResult == null) {
       var type = this.type!;
       undecoratedResult = Substitution.fromPairs(
         substitution.keys.toList(),
-        substitution.values.map((d) => d!.type!).toList(),
+        substitution.values.map((d) => d.type!).toList(),
       ).substituteType(type);
       if (undecoratedResult is FunctionType && type is FunctionType) {
         for (int i = 0; i < undecoratedResult.typeFormals.length; i++) {
@@ -333,12 +315,12 @@ class DecoratedType implements DecoratedTypeInfo {
 
   @override
   String toString() {
-    var trailing = node == null ? '' : node!.debugSuffix;
+    var trailing = node.debugSuffix;
     var type = this.type;
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
     } else if (type is InterfaceType) {
-      var name = type.element2.name;
+      var name = type.element.name;
       var args = '';
       if (type.typeArguments.isNotEmpty) {
         args = '<${typeArguments.join(', ')}>';
@@ -383,7 +365,7 @@ class DecoratedType implements DecoratedTypeInfo {
   DecoratedTypeInfo? typeArgument(int i) => typeArguments[i];
 
   /// Creates a shallow copy of `this`, replacing the nullability node.
-  DecoratedType withNode(NullabilityNode? node) => DecoratedType(type, node,
+  DecoratedType withNode(NullabilityNode node) => DecoratedType(type, node,
       returnType: returnType,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
@@ -398,9 +380,15 @@ class DecoratedType implements DecoratedTypeInfo {
           namedParameters: namedParameters,
           typeArguments: typeArguments);
 
+  @override
+  DecoratedType _performSubstitution(
+          DecoratedType other, DartType undecoratedResult) =>
+      withNodeAndType(
+          NullabilityNode.forSubstitution(node, other.node), undecoratedResult);
+
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
-      Map<TypeParameterElement, DecoratedType?> substitution,
+      Map<TypeParameterElement, SubstitutedType> substitution,
       DartType? undecoratedResult) {
     var type = this.type;
     if (type is FunctionType && undecoratedResult is FunctionType) {
@@ -411,13 +399,12 @@ class DecoratedType implements DecoratedTypeInfo {
         // substitutions, so we need to reflect that in our decorations by
         // substituting to use the type variables the analyzer used.
         substitution =
-            Map<TypeParameterElement, DecoratedType>.from(substitution);
+            Map<TypeParameterElement, SubstitutedType>.from(substitution);
         for (int i = 0; i < typeFormals.length; i++) {
           // Check if it's a fresh type variable.
           if (undecoratedResult.typeFormals[i].enclosingElement == null) {
             substitution[typeFormals[i]] =
-                DecoratedType._forTypeParameterSubstitution(
-                    undecoratedResult.typeFormals[i]);
+                _TypeVariableReplacement(undecoratedResult.typeFormals[i]);
           }
         }
         for (int i = 0; i < typeFormals.length; i++) {
@@ -457,13 +444,11 @@ class DecoratedType implements DecoratedTypeInfo {
       return DecoratedType(undecoratedResult, node,
           typeArguments: newTypeArguments);
     } else if (type is TypeParameterType) {
-      var inner = substitution[type.element2];
+      var inner = substitution[type.element];
       if (inner == null) {
         return this;
       } else {
-        return inner.withNodeAndType(
-            NullabilityNode.forSubstitution(inner.node, node),
-            undecoratedResult);
+        return inner._performSubstitution(this, undecoratedResult!);
       }
     } else if (type!.isVoid || type.isDynamic) {
       return this;
@@ -476,7 +461,7 @@ class DecoratedType implements DecoratedTypeInfo {
   /// is [undecoratedResult], and whose return type, positional parameters, and
   /// named parameters are formed by performing the given [substitution].
   DecoratedType _substituteFunctionAfterFormals(FunctionType undecoratedResult,
-      Map<TypeParameterElement, DecoratedType?> substitution) {
+      Map<TypeParameterElement, SubstitutedType> substitution) {
     var newPositionalParameters = <DecoratedType>[];
     var numRequiredParameters = undecoratedResult.normalParameterTypes.length;
     for (int i = 0; i < positionalParameters!.length; i++) {
@@ -604,17 +589,16 @@ class RenamedDecoratedFunctionTypes {
     }
     // Create a fresh set of type variables and substitute so we can
     // compare safely.
-    var substitution1 = <TypeParameterElement, DecoratedType>{};
-    var substitution2 = <TypeParameterElement, DecoratedType>{};
+    var substitution1 = <TypeParameterElement, SubstitutedType>{};
+    var substitution2 = <TypeParameterElement, SubstitutedType>{};
     var newParameters = <TypeParameterElement>[];
     for (int i = 0; i < type1.typeFormals!.length; i++) {
       var newParameter =
           TypeParameterElementImpl.synthetic(type1.typeFormals![i].name);
       newParameters.add(newParameter);
-      var newParameterType =
-          DecoratedType._forTypeParameterSubstitution(newParameter);
-      substitution1[type1.typeFormals![i]] = newParameterType;
-      substitution2[type2.typeFormals![i]] = newParameterType;
+      var newType = _TypeVariableReplacement(newParameter);
+      substitution1[type1.typeFormals![i]] = newType;
+      substitution2[type2.typeFormals![i]] = newType;
     }
     for (int i = 0; i < type1.typeFormals!.length; i++) {
       var bound1 = DecoratedTypeParameterBounds.current!
@@ -656,17 +640,56 @@ class RenamedDecoratedFunctionTypes {
   }
 
   static List<DecoratedType> _substituteList(List<DecoratedType?> list,
-      Map<TypeParameterElement, DecoratedType> substitution) {
+      Map<TypeParameterElement, SubstitutedType> substitution) {
     return list.map((t) => t!.substitute(substitution)).toList();
   }
 
   static Map<String, DecoratedType> _substituteMap(
       Map<String, DecoratedType?> map,
-      Map<TypeParameterElement, DecoratedType> substitution) {
+      Map<TypeParameterElement, SubstitutedType> substitution) {
     var result = <String, DecoratedType>{};
     for (var entry in map.entries) {
       result[entry.key] = entry.value!.substitute(substitution);
     }
     return result;
   }
+}
+
+/// Abstract base class for anything that can appear in the "value" position of
+/// a decorated type substitution map (in other words, anything that a type
+/// variable can be replaced with when performing a substitution).  A
+/// substituted type is either a [DecoratedType] (in which case the substitution
+/// will be fully general, and the resulting decorated type will have a
+/// nullability that's based on both the original type and the substituted
+/// type), or it can be a [_TypeVariableReplacement], which is used when one
+/// type variable is being replaced with another, but there is no change in
+/// nullability.
+abstract class SubstitutedType {
+  /// The undecorated type to be substituted
+  DartType? get type;
+
+  /// Called by substitute methods to perform the actual substitution.  [other]
+  /// is the decorated type to be substituted, and [undecoratedResult] is the
+  /// expected undecorated result of the substitution.
+  DecoratedType _performSubstitution(
+      DecoratedType other, DartType undecoratedResult);
+}
+
+/// Data structure used as a value in a substitution map if the only
+/// substitution that needs to be performed is to replace one type variable with
+/// another.
+class _TypeVariableReplacement implements SubstitutedType {
+  @override
+  final DartType type;
+
+  _TypeVariableReplacement(TypeParameterElement newTypeVariable)
+      : type = TypeParameterTypeImpl(
+          element: newTypeVariable,
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
+
+  @override
+  DecoratedType _performSubstitution(
+          DecoratedType other, DartType undecoratedResult) =>
+      other.withNodeAndType(other.node, undecoratedResult);
 }

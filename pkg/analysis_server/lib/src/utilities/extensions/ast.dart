@@ -123,9 +123,54 @@ extension AstNodeExtensions on AstNode {
 }
 
 extension CompilationUnitExtension on CompilationUnit {
-  /// Is `true` if library being analyzed is non-nullable by default.
+  /// Return the list of tokens that comprise the file header comment for this
+  /// compilation unit.
   ///
-  /// Will return false if the AST structure has not been resolved.
+  /// If there is no file comment the list will be empty. If the file comment is
+  /// a block comment the list will contain a single token. If the file comment
+  /// is comprised of one or more single line comments, then the list will
+  /// contain all of the tokens, and the comment is assumed to stop at the first
+  /// line that contains anything other than a single line comment (either a
+  /// blank line, a directive, a declaration, or a multi-line comment). The list
+  /// will never include a documentation comment.
+  List<Token> get fileHeader {
+    final lineInfo = this.lineInfo;
+    var firstToken = beginToken;
+    if (firstToken.type == TokenType.SCRIPT_TAG) {
+      firstToken = firstToken.next!;
+    }
+    var firstComment = firstToken.precedingComments;
+    if (firstComment == null ||
+        firstComment.lexeme.startsWith('/**') ||
+        firstComment.lexeme.startsWith('///')) {
+      return const [];
+    } else if (firstComment.lexeme.startsWith('/*')) {
+      return [firstComment];
+    } else if (!firstComment.lexeme.startsWith('//')) {
+      return const [];
+    }
+    var header = <Token>[firstComment];
+    var previousLine = lineInfo.getLocation(firstComment.offset).lineNumber;
+    var currentToken = firstComment.next;
+    while (currentToken != null) {
+      if (!currentToken.lexeme.startsWith('//') ||
+          currentToken.lexeme.startsWith('///')) {
+        return header;
+      }
+      var currentLine = lineInfo.getLocation(currentToken.offset).lineNumber;
+      if (currentLine != previousLine + 1) {
+        return header;
+      }
+      header.add(currentToken);
+      currentToken = currentToken.next;
+      previousLine = currentLine;
+    }
+    return header;
+  }
+
+  /// Return `true` if library being analyzed is non-nullable by default.
+  ///
+  /// Will return `false` if the AST structure has not been resolved.
   bool get isNonNullableByDefault =>
       declaredElement?.library.isNonNullableByDefault ?? false;
 }
@@ -133,7 +178,7 @@ extension CompilationUnitExtension on CompilationUnit {
 extension DirectiveExtensions on Directive {
   /// If the target imports or exports a [LibraryElement], returns it.
   LibraryElement? get referencedLibrary {
-    final element = element2;
+    final element = this.element;
     if (element is LibraryExportElement) {
       return element.exportedLibrary;
     } else if (element is LibraryImportElement) {
@@ -156,13 +201,13 @@ extension DirectiveExtensions on Directive {
   DirectiveUri? get referencedUri {
     final self = this;
     if (self is AugmentationImportDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     } else if (self is ExportDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     } else if (self is ImportDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     } else if (self is PartDirective) {
-      return self.element2?.uri;
+      return self.element?.uri;
     }
     return null;
   }

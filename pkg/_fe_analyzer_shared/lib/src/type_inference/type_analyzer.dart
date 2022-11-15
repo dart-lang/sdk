@@ -22,6 +22,48 @@ class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node> {
   CaseHeadOrDefaultInfo({required this.pattern, this.guard});
 }
 
+class NamedType<Type extends Object> {
+  final String name;
+  final Type type;
+
+  NamedType(this.name, this.type);
+}
+
+class RecordPatternField<Pattern extends Object> {
+  /// If not `null` then the field is named, otherwise it is positional.
+  final String? name;
+  final Pattern pattern;
+
+  RecordPatternField({
+    required this.name,
+    required this.pattern,
+  });
+}
+
+class RecordType<Type extends Object> {
+  final List<Type> positional;
+  final List<NamedType<Type>> named;
+
+  RecordType({
+    required this.positional,
+    required this.named,
+  });
+}
+
+/// Information about a relational operator.
+class RelationalOperatorResolution<Type extends Object> {
+  /// Is `true` when the operator is `==` or `!=`.
+  final bool isEquality;
+  final Type parameterType;
+  final Type returnType;
+
+  RelationalOperatorResolution({
+    required this.isEquality,
+    required this.parameterType,
+    required this.returnType,
+  });
+}
+
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
 /// about an individual `case` or `default` clause.
 ///
@@ -157,7 +199,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   TypeAnalyzerOptions get options;
 
   /// Returns the client's implementation of the [TypeOperations] class.
-  TypeOperations2<Type> get typeOperations;
+  TypeOperations<Type> get typeOperations;
 
   /// Returns the unknown type context (`?`) used in type inference.
   Type get unknownType;
@@ -303,6 +345,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     // Stack: ()
     flow?.ifStatement_conditionBegin();
     analyzeExpression(condition, boolType);
+    handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
     flow?.ifStatement_thenBegin(condition, node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
@@ -516,6 +559,167 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       errors?.assertInErrorRecovery();
       return unknownType;
     }
+  }
+
+  /// Analyzes a record pattern.  [node] is the pattern itself, and [fields]
+  /// is the list of subpatterns.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (n * Pattern) where n = fields.length.
+  Type analyzeRecordPattern(
+    Type matchedType,
+    Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+    MatchContext<Node, Expression> context,
+    Node node, {
+    required List<RecordPatternField<Node>> fields,
+  }) {
+    void dispatchField(RecordPatternField<Node> field, Type matchedType) {
+      dispatchPattern(matchedType, typeInfos, context, field.pattern);
+    }
+
+    void dispatchFields(Type matchedType) {
+      for (int i = 0; i < fields.length; i++) {
+        dispatchField(fields[i], matchedType);
+      }
+    }
+
+    // Build the required type.
+    int requiredTypePositionalCount = 0;
+    List<NamedType<Type>> requiredTypeNamedTypes = [];
+    for (RecordPatternField<Node> field in fields) {
+      String? name = field.name;
+      if (name == null) {
+        requiredTypePositionalCount++;
+      } else {
+        requiredTypeNamedTypes.add(
+          new NamedType(name, objectQuestionType),
+        );
+      }
+    }
+    Type requiredType = recordType(
+      new RecordType(
+        positional: new List.filled(
+          requiredTypePositionalCount,
+          objectQuestionType,
+        ),
+        named: requiredTypeNamedTypes,
+      ),
+    );
+
+    // Stack: ()
+    RecordType<Type>? matchedRecordType = asRecordType(matchedType);
+    if (matchedRecordType != null) {
+      List<Type>? fieldTypes = _matchRecordTypeShape(fields, matchedRecordType);
+      if (fieldTypes != null) {
+        assert(fieldTypes.length == fields.length);
+        for (int i = 0; i < fields.length; i++) {
+          dispatchField(fields[i], fieldTypes[i]);
+        }
+      } else {
+        dispatchFields(objectQuestionType);
+      }
+    } else if (typeOperations.isDynamic(matchedType)) {
+      dispatchFields(dynamicType);
+    } else {
+      dispatchFields(objectQuestionType);
+    }
+    // Stack: (n * Pattern) where n = fields.length
+
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null &&
+        !typeOperations.isAssignableTo(matchedType, requiredType)) {
+      errors?.patternTypeMismatchInIrrefutableContext(
+        pattern: node,
+        context: irrefutableContext,
+        matchedType: matchedType,
+        requiredType: requiredType,
+      );
+    }
+    return requiredType;
+  }
+
+  /// Computes the type schema for a record pattern.
+  ///
+  /// Stack effect: none.
+  Type analyzeRecordPatternSchema({
+    required List<RecordPatternField<Node>> fields,
+  }) {
+    List<Type> positional = [];
+    List<NamedType<Type>> named = [];
+    for (RecordPatternField<Node> field in fields) {
+      Type fieldType = dispatchPatternSchema(field.pattern);
+      String? name = field.name;
+      if (name != null) {
+        named.add(new NamedType(name, fieldType));
+      } else {
+        positional.add(fieldType);
+      }
+    }
+    return recordType(
+      new RecordType<Type>(
+        positional: positional,
+        named: named,
+      ),
+    );
+  }
+
+  /// Analyzes a relational pattern.  [node] is the pattern itself, [operator]
+  /// is the resolution of the used relational operator, and [operand] is a
+  /// constant expression.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (Expression).
+  void analyzeRelationalPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node,
+      RelationalOperatorResolution<Type>? operator,
+      Expression operand) {
+    // Stack: ()
+    TypeAnalyzerErrors<Node, Node, Expression, Variable, Type>? errors =
+        this.errors;
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null) {
+      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+    }
+    Type operandContext = operator?.parameterType ?? unknownType;
+    Type operandType = analyzeExpression(operand, operandContext);
+    // Stack: (Expression)
+    if (errors != null && operator != null) {
+      Type argumentType = operator.isEquality
+          ? typeOperations.promoteToNonNull(operandType)
+          : operandType;
+      if (!typeOperations.isAssignableTo(
+          argumentType, operator.parameterType)) {
+        errors.argumentTypeNotAssignable(
+          argument: operand,
+          argumentType: argumentType,
+          parameterType: operator.parameterType,
+        );
+      }
+      if (!typeOperations.isAssignableTo(operator.returnType, boolType)) {
+        errors.relationalPatternOperatorReturnTypeNotAssignableToBool(
+          node: node,
+          returnType: operator.returnType,
+        );
+      }
+    }
+  }
+
+  /// Computes the type schema for a relational pattern.
+  ///
+  /// Stack effect: none.
+  Type analyzeRelationalPatternSchema() {
+    // Relational patterns are only allowed in refutable contexts, and refutable
+    // contexts don't propagate a type schema into the scrutinee.  So this
+    // code path is only reachable if the user's code contains errors.
+    errors?.assertInErrorRecovery();
+    return unknownType;
   }
 
   /// Analyzes an expression of the form `switch (expression) { cases }`.
@@ -764,6 +968,9 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   Type analyzeVariablePatternSchema(Type? declaredType) =>
       declaredType ?? unknownType;
 
+  /// If [type] is a record type, returns it.
+  RecordType<Type>? asRecordType(Type type);
+
   /// Calls the appropriate `analyze` method according to the form of
   /// [expression], and then adjusts the stack as needed to combine any
   /// sub-structures into a single expression.
@@ -842,6 +1049,15 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// See [analyzeSwitchStatement].
   SwitchStatementMemberInfo<Node, Statement, Expression>
       getSwitchStatementMemberInfo(Statement node, int caseIndex);
+
+  /// Called after visiting the expression of an `if` statement.
+  void handle_ifStatement_conditionEnd(Statement node) {}
+
+  /// Called after visiting the `else` statement of an `if` statement.
+  void handle_ifStatement_elseEnd(Statement node, Statement ifFalse) {}
+
+  /// Called after visiting the `then` statement of an `if` statement.
+  void handle_ifStatement_thenEnd(Statement node, Statement ifTrue) {}
 
   /// Called after visiting a merged set of `case` / `default` clauses.
   ///
@@ -925,6 +1141,9 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Returns the type `List`, with type parameter [elementType].
   Type listType(Type elementType);
 
+  /// Builds the client specific record type.
+  Type recordType(RecordType<Type> type);
+
   /// Records that type inference has assigned a [type] to a [variable].  This
   /// is called once per variable, regardless of whether the variable's type is
   /// explicit or inferred.
@@ -941,6 +1160,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   void _analyzeIfCommon(Statement node, Statement ifTrue, Statement? ifFalse) {
     // Stack: ()
     dispatchStatement(ifTrue);
+    handle_ifStatement_thenEnd(node, ifTrue);
     // Stack: (Statement ifTrue)
     if (ifFalse == null) {
       handleNoStatement(node);
@@ -949,6 +1169,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       flow?.ifStatement_elseBegin();
       dispatchStatement(ifFalse);
       flow?.ifStatement_end(true);
+      handle_ifStatement_elseEnd(node, ifFalse);
     }
     // Stack: (Statement ifTrue, Statement ifFalse)
   }
@@ -961,6 +1182,49 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     if (!typeOperations.isAssignableTo(type, boolType)) {
       errors?.nonBooleanCondition(expression);
     }
+  }
+
+  /// If the shape described by [fields] is the same as the shape of the
+  /// [matchedType], returns matched types for each field in [fields].
+  /// Otherwise returns `null`.
+  List<Type>? _matchRecordTypeShape(
+    List<RecordPatternField<Node>> fields,
+    RecordType<Type> matchedType,
+  ) {
+    Map<String, Type> matchedTypeNamed = {};
+    for (NamedType<Type> namedField in matchedType.named) {
+      matchedTypeNamed[namedField.name] = namedField.type;
+    }
+
+    List<Type> result = [];
+    int positionalIndex = 0;
+    int namedCount = 0;
+    for (RecordPatternField<Node> field in fields) {
+      Type? fieldType;
+      String? name = field.name;
+      if (name != null) {
+        fieldType = matchedTypeNamed[name];
+        if (fieldType == null) {
+          return null;
+        }
+        namedCount++;
+      } else {
+        if (positionalIndex >= matchedType.positional.length) {
+          return null;
+        }
+        fieldType = matchedType.positional[positionalIndex++];
+      }
+      result.add(fieldType);
+    }
+    if (positionalIndex != matchedType.positional.length) {
+      return null;
+    }
+    if (namedCount != matchedTypeNamed.length) {
+      return null;
+    }
+
+    assert(result.length == fields.length);
+    return result;
   }
 
   /// Records in [typeInfos] that a [pattern] binds a [variable] with a given
@@ -1009,6 +1273,14 @@ abstract class TypeAnalyzerErrors<
     Expression extends Node,
     Variable extends Object,
     Type extends Object> implements TypeAnalyzerErrorsBase {
+  /// Called if [argument] has type [argumentType], which is not assignable
+  /// to [parameterType].
+  void argumentTypeNotAssignable({
+    required Expression argument,
+    required Type argumentType,
+    required Type parameterType,
+  });
+
   /// Called if pattern support is disabled and a case constant's static type
   /// doesn't properly match the scrutinee's static type.
   void caseExpressionTypeMismatch(
@@ -1076,6 +1348,13 @@ abstract class TypeAnalyzerErrors<
   ///
   /// TODO(paulberry): move this error reporting to the parser.
   void refutablePatternInIrrefutableContext(Node pattern, Node context);
+
+  /// Called if the [returnType] of the invoked relational operator is not
+  /// assignable to `bool`.
+  void relationalPatternOperatorReturnTypeNotAssignableToBool({
+    required Node node,
+    required Type returnType,
+  });
 
   /// Called if one of the case bodies of a switch statement completes normally
   /// (other than the last case body), and the "patterns" feature is not

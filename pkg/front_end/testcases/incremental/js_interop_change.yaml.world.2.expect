@@ -26,24 +26,24 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     synthetic constructor •() → lib1::Class
       : super dart.core::Object::•()
       ;
-    method instanceMethod() → dart._interceptors::JavaScriptObject
-      return sta::StaticJSClass::factory|staticInteropFactoryStub();
-    get instanceGetter() → dart._interceptors::JavaScriptObject
-      return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
-    set instanceSetter((dart._interceptors::JavaScriptObject) → void f) → void {}
-    static method staticMethod() → dart._interceptors::JavaScriptObject
-      return sta::StaticJSClass::factory|staticInteropFactoryStub();
-    static get staticGetter() → dart._interceptors::JavaScriptObject
-      return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
-    static set staticSetter((dart._interceptors::JavaScriptObject) → void f) → void {}
+    method instanceMethod() → sta::StaticJSClass
+      return sta::StaticJSClass::factory();
+    get instanceGetter() → sta::StaticJSClass
+      return sta::StaticJSClass::•();
+    set instanceSetter((sta::StaticJSClass) → void f) → void {}
+    static method staticMethod() → sta::StaticJSClass
+      return sta::StaticJSClass::factory();
+    static get staticGetter() → sta::StaticJSClass
+      return sta::StaticJSClass::•();
+    static set staticSetter((sta::StaticJSClass) → void f) → void {}
     static method _#new#tearOff() → lib1::Class
       return new lib1::Class::•();
   }
-  static method topLevelMethod() → dart._interceptors::JavaScriptObject
-    return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
-  static get topLevelGetter() → dart._interceptors::JavaScriptObject
-    return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
-  static set topLevelSetter((dart._interceptors::JavaScriptObject) → void f) → void {}
+  static method topLevelMethod() → sta::StaticJSClass
+    return sta::StaticJSClass::•();
+  static get topLevelGetter() → sta::StaticJSClass
+    return sta::StaticJSClass::•();
+  static set topLevelSetter((sta::StaticJSClass) → void f) → void {}
 }
 @#C3
 library static_interop from "org-dartlang-test:///lib2.dart" as sta {
@@ -53,18 +53,14 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
   @#C5
   @#C2
   class StaticJSClass extends dart.core::Object {
-    external constructor •() → sta::StaticJSClass
-      ;
-    static method _#new#tearOff() → dart._interceptors::JavaScriptObject
-      return new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject;
+    external static factory •() → sta::StaticJSClass;
+    static method _#new#tearOff() → sta::StaticJSClass
+      return sta::StaticJSClass::•();
     static factory factory() → sta::StaticJSClass {
-      return new sta::StaticJSClass::•();
+      return sta::StaticJSClass::•();
     }
-    static method _#factory#tearOff() → dart._interceptors::JavaScriptObject
-      return sta::StaticJSClass::factory|staticInteropFactoryStub();
-    static method /*isLegacy*/ factory|staticInteropFactoryStub() → dart._interceptors::JavaScriptObject {
-      return (new sta::StaticJSClass::•() as dart._interceptors::JavaScriptObject) as dart._interceptors::JavaScriptObject;
-    }
+    static method _#factory#tearOff() → sta::StaticJSClass
+      return sta::StaticJSClass::factory();
   }
   @#C3
   external static method eval(dart.core::String code) → void;
@@ -73,105 +69,6 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
-//
-// Problems in library:
-//
-// org-dartlang-test:///main.dart:10:29: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   StaticJSClass bar = Class.staticMethod();
-//                             ^
-//
-// org-dartlang-test:///main.dart:11:48: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   StaticJSClass Function() barFunction = Class.staticMethod;
-//                                                ^
-//
-// org-dartlang-test:///main.dart:12:15: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   bar = Class.staticGetter;
-//               ^
-//
-// org-dartlang-test:///main.dart:13:24: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//   Class.staticSetter = (StaticJSClass s) {};
-//                        ^
-//
-// org-dartlang-test:///main.dart:16:25: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   StaticJSClass baz = c.instanceMethod();
-//                         ^
-//
-// org-dartlang-test:///main.dart:17:44: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   StaticJSClass Function() bazFunction = c.instanceMethod;
-//                                            ^
-//
-// org-dartlang-test:///main.dart:18:11: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   baz = c.instanceGetter;
-//           ^
-//
-// org-dartlang-test:///main.dart:19:22: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//   c.instanceSetter = (StaticJSClass s) {};
-//                      ^
-//
-// org-dartlang-test:///main.dart:26:31: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//     StaticJSClass baz = super.instanceMethod();
-//                               ^
-//
-// org-dartlang-test:///main.dart:27:50: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//     StaticJSClass Function() bazFunction = super.instanceMethod;
-//                                                  ^
-//
-// org-dartlang-test:///main.dart:28:17: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//     baz = super.instanceGetter;
-//                 ^
-//
-// org-dartlang-test:///main.dart:29:28: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//     super.instanceSetter = (StaticJSClass s) {};
-//                            ^
-//
-// org-dartlang-test:///main.dart:5:23: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   StaticJSClass foo = topLevelMethod();
-//                       ^
-//
-// org-dartlang-test:///main.dart:6:42: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   StaticJSClass Function() fooFunction = topLevelMethod;
-//                                          ^
-//
-// org-dartlang-test:///main.dart:7:9: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//   foo = topLevelGetter;
-//         ^
-//
-// org-dartlang-test:///main.dart:8:20: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.
-//  - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.
-//  - 'JavaScriptObject' is from 'dart:_interceptors'.
-//   topLevelSetter = (StaticJSClass s) {};
-//                    ^
-//
 
   import "org-dartlang-test:///lib1.dart";
   import "org-dartlang-test:///lib2.dart";
@@ -181,28 +78,28 @@ library from "org-dartlang-test:///main.dart" as main {
       : super lib1::Class::•()
       ;
     method method() → void {
-      dart._interceptors::JavaScriptObject baz = invalid-expression "org-dartlang-test:///main.dart:26:31: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n    StaticJSClass baz = super.instanceMethod();\n                              ^" in super.{lib1::Class::instanceMethod}() as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-      () → dart._interceptors::JavaScriptObject bazFunction = invalid-expression "org-dartlang-test:///main.dart:27:50: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n    StaticJSClass Function() bazFunction = super.instanceMethod;\n                                                 ^" in super.{lib1::Class::instanceMethod} as{TypeError,ForNonNullableByDefault} () → dart._interceptors::JavaScriptObject;
-      baz = invalid-expression "org-dartlang-test:///main.dart:28:17: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n    baz = super.instanceGetter;\n                ^" in super.{lib1::Class::instanceGetter} as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-      super.{lib1::Class::instanceSetter} = invalid-expression "org-dartlang-test:///main.dart:29:28: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n    super.instanceSetter = (StaticJSClass s) {};\n                           ^" in ((dart._interceptors::JavaScriptObject s) → void {}) as{TypeError,ForNonNullableByDefault} (dart._interceptors::JavaScriptObject) → void;
+      sta::StaticJSClass baz = super.{lib1::Class::instanceMethod}();
+      () → sta::StaticJSClass bazFunction = super.{lib1::Class::instanceMethod};
+      baz = super.{lib1::Class::instanceGetter};
+      super.{lib1::Class::instanceSetter} = (sta::StaticJSClass s) → void {};
     }
     static method _#new#tearOff() → main::Subclass
       return new main::Subclass::•();
   }
   static method main() → dynamic {
-    dart._interceptors::JavaScriptObject foo = invalid-expression "org-dartlang-test:///main.dart:5:23: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  StaticJSClass foo = topLevelMethod();\n                      ^" in lib1::topLevelMethod() as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-    () → dart._interceptors::JavaScriptObject fooFunction = invalid-expression "org-dartlang-test:///main.dart:6:42: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  StaticJSClass Function() fooFunction = topLevelMethod;\n                                         ^" in #C6 as{TypeError,ForNonNullableByDefault} () → dart._interceptors::JavaScriptObject;
-    foo = invalid-expression "org-dartlang-test:///main.dart:7:9: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  foo = topLevelGetter;\n        ^" in lib1::topLevelGetter as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-    lib1::topLevelSetter = invalid-expression "org-dartlang-test:///main.dart:8:20: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n  topLevelSetter = (StaticJSClass s) {};\n                   ^" in ((dart._interceptors::JavaScriptObject s) → void {}) as{TypeError,ForNonNullableByDefault} (dart._interceptors::JavaScriptObject) → void;
-    dart._interceptors::JavaScriptObject bar = invalid-expression "org-dartlang-test:///main.dart:10:29: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  StaticJSClass bar = Class.staticMethod();\n                            ^" in lib1::Class::staticMethod() as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-    () → dart._interceptors::JavaScriptObject barFunction = invalid-expression "org-dartlang-test:///main.dart:11:48: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  StaticJSClass Function() barFunction = Class.staticMethod;\n                                               ^" in #C7 as{TypeError,ForNonNullableByDefault} () → dart._interceptors::JavaScriptObject;
-    bar = invalid-expression "org-dartlang-test:///main.dart:12:15: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  bar = Class.staticGetter;\n              ^" in lib1::Class::staticGetter as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-    lib1::Class::staticSetter = invalid-expression "org-dartlang-test:///main.dart:13:24: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n  Class.staticSetter = (StaticJSClass s) {};\n                       ^" in ((dart._interceptors::JavaScriptObject s) → void {}) as{TypeError,ForNonNullableByDefault} (dart._interceptors::JavaScriptObject) → void;
+    sta::StaticJSClass foo = lib1::topLevelMethod();
+    () → sta::StaticJSClass fooFunction = #C6;
+    foo = lib1::topLevelGetter;
+    lib1::topLevelSetter = (sta::StaticJSClass s) → void {};
+    sta::StaticJSClass bar = lib1::Class::staticMethod();
+    () → sta::StaticJSClass barFunction = #C7;
+    bar = lib1::Class::staticGetter;
+    lib1::Class::staticSetter = (sta::StaticJSClass s) → void {};
     lib1::Class c = new lib1::Class::•();
-    dart._interceptors::JavaScriptObject baz = invalid-expression "org-dartlang-test:///main.dart:16:25: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  StaticJSClass baz = c.instanceMethod();\n                        ^" in c.{lib1::Class::instanceMethod}(){() → dart._interceptors::JavaScriptObject} as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-    () → dart._interceptors::JavaScriptObject bazFunction = invalid-expression "org-dartlang-test:///main.dart:17:44: Error: A value of type 'JavaScriptObject Function()' can't be assigned to a variable of type 'StaticJSClass Function()'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  StaticJSClass Function() bazFunction = c.instanceMethod;\n                                           ^" in c.{lib1::Class::instanceMethod}{() → dart._interceptors::JavaScriptObject} as{TypeError,ForNonNullableByDefault} () → dart._interceptors::JavaScriptObject;
-    baz = invalid-expression "org-dartlang-test:///main.dart:18:11: Error: A value of type 'JavaScriptObject' can't be assigned to a variable of type 'StaticJSClass'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n  baz = c.instanceGetter;\n          ^" in c.{lib1::Class::instanceGetter}{dart._interceptors::JavaScriptObject} as{TypeError,ForNonNullableByDefault} dart._interceptors::JavaScriptObject;
-    c.{lib1::Class::instanceSetter} = invalid-expression "org-dartlang-test:///main.dart:19:22: Error: A value of type 'void Function(StaticJSClass)' can't be assigned to a variable of type 'void Function(JavaScriptObject)'.\n - 'StaticJSClass' is from 'org-dartlang-test:///lib2.dart'.\n - 'JavaScriptObject' is from 'dart:_interceptors'.\n  c.instanceSetter = (StaticJSClass s) {};\n                     ^" in ((dart._interceptors::JavaScriptObject s) → void {}) as{TypeError,ForNonNullableByDefault} (dart._interceptors::JavaScriptObject) → void;
+    sta::StaticJSClass baz = c.{lib1::Class::instanceMethod}(){() → sta::StaticJSClass};
+    () → sta::StaticJSClass bazFunction = c.{lib1::Class::instanceMethod}{() → sta::StaticJSClass};
+    baz = c.{lib1::Class::instanceGetter}{sta::StaticJSClass};
+    c.{lib1::Class::instanceSetter} = (sta::StaticJSClass s) → void {};
     dart.core::print("Hello");
   }
 }

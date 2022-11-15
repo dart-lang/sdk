@@ -867,140 +867,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  // Computes the function type of a given redirection target. Returns [null] if
-  // the type of the target could not be computed.
-  FunctionType? _computeRedirecteeType(
-      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
-    ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
-    Builder? targetBuilder = redirectionTarget.target;
-    FunctionNode targetNode;
-    if (targetBuilder == null) return null;
-    if (targetBuilder is FunctionBuilder) {
-      targetNode = targetBuilder.function;
-    } else if (targetBuilder is AmbiguousBuilder) {
-      // Multiple definitions with the same name: An error has already been
-      // issued.
-      // TODO(http://dartbug.com/35294): Unfortunate error; see also
-      // https://dart-review.googlesource.com/c/sdk/+/85390/.
-      return null;
-    } else {
-      unhandled("${redirectionTarget.target}", "computeRedirecteeType",
-          charOffset, fileUri);
-    }
-
-    List<DartType>? typeArguments = factory.getTypeArguments();
-    FunctionType targetFunctionType =
-        targetNode.computeFunctionType(libraryBuilder.nonNullable);
-    if (typeArguments != null &&
-        targetFunctionType.typeParameters.length != typeArguments.length) {
-      _addProblemForRedirectingFactory(
-          factory,
-          templateTypeArgumentMismatch
-              .withArguments(targetFunctionType.typeParameters.length),
-          redirectionTarget.charOffset,
-          noLength);
-      return null;
-    }
-
-    // Compute the substitution of the target class type parameters if
-    // [redirectionTarget] has any type arguments.
-    Substitution? substitution;
-    bool hasProblem = false;
-    if (typeArguments != null && typeArguments.length > 0) {
-      substitution = Substitution.fromPairs(
-          targetFunctionType.typeParameters, typeArguments);
-      for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
-        TypeParameter typeParameter = targetFunctionType.typeParameters[i];
-        DartType typeParameterBound =
-            substitution.substituteType(typeParameter.bound);
-        DartType typeArgument = typeArguments[i];
-        // Check whether the [typeArgument] respects the bounds of
-        // [typeParameter].
-        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
-            SubtypeCheckMode.ignoringNullabilities)) {
-          _addProblemForRedirectingFactory(
-              factory,
-              templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
-                  typeArgument,
-                  typeParameterBound,
-                  libraryBuilder.isNonNullableByDefault),
-              redirectionTarget.charOffset,
-              noLength);
-          hasProblem = true;
-        } else if (libraryBuilder.isNonNullableByDefault) {
-          if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
-              SubtypeCheckMode.withNullabilities)) {
-            _addProblemForRedirectingFactory(
-                factory,
-                templateRedirectingFactoryIncompatibleTypeArgument
-                    .withArguments(typeArgument, typeParameterBound,
-                        libraryBuilder.isNonNullableByDefault),
-                redirectionTarget.charOffset,
-                noLength);
-            hasProblem = true;
-          }
-        }
-      }
-    } else if (typeArguments == null &&
-        targetFunctionType.typeParameters.length > 0) {
-      // TODO(hillerstrom): In this case, we need to perform type inference on
-      // the redirectee to obtain actual type arguments which would allow the
-      // following program to type check:
-      //
-      //    class A<T> {
-      //       factory A() = B;
-      //    }
-      //    class B<T> implements A<T> {
-      //       B();
-      //    }
-      //
-      return null;
-    }
-
-    // Substitute if necessary.
-    targetFunctionType = substitution == null
-        ? targetFunctionType
-        : (substitution.substituteType(targetFunctionType.withoutTypeParameters)
-            as FunctionType);
-
-    return hasProblem ? null : targetFunctionType;
-  }
-
-  bool _isCyclicRedirectingFactory(RedirectingFactoryBuilder factory) {
-    // We use the [tortoise and hare algorithm]
-    // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
-    // handle cycles.
-    Builder? tortoise = factory;
-    Builder? hare = factory.redirectionTarget.target;
-    if (hare == factory) {
-      return true;
-    }
-    while (tortoise != hare) {
-      // Hare moves 2 steps forward.
-      if (hare is! RedirectingFactoryBuilder) {
-        return false;
-      }
-      hare = hare.redirectionTarget.target;
-      if (hare == factory) {
-        return true;
-      }
-      if (hare is! RedirectingFactoryBuilder) {
-        return false;
-      }
-      hare = hare.redirectionTarget.target;
-      if (hare == factory) {
-        return true;
-      }
-      // Tortoise moves one step forward. No need to test type of tortoise
-      // as it follows hare which already checked types.
-      tortoise =
-          (tortoise as RedirectingFactoryBuilder).redirectionTarget.target;
-    }
-    // Cycle found, but original factory doesn't belong to a cycle.
-    return false;
-  }
-
-  void _addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
       Message message, int charOffset, int length) {
     addProblem(message, charOffset, length);
     String text = libraryBuilder.loader.target.context
@@ -1010,74 +877,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     factory.body = new RedirectingFactoryBody.error(text);
   }
 
-  void _checkRedirectingFactory(
-      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
-    // Check that factory declaration is not cyclic.
-    if (_isCyclicRedirectingFactory(factory)) {
-      _addProblemForRedirectingFactory(
-          factory,
-          templateCyclicRedirectingFactoryConstructors
-              .withArguments("${factory.member.enclosingClass!.name}"
-                  "${factory.name == '' ? '' : '.${factory.name}'}"),
-          factory.charOffset,
-          noLength);
-      return;
-    }
-
-    // The factory type cannot contain any type parameters other than those of
-    // its enclosing class, because constructors cannot specify type parameters
-    // of their own.
-    FunctionType factoryType = factory.function
-        .computeThisFunctionType(libraryBuilder.nonNullable)
-        .withoutTypeParameters;
-    FunctionType? redirecteeType =
-        _computeRedirecteeType(factory, typeEnvironment);
-
-    // TODO(hillerstrom): It would be preferable to know whether a failure
-    // happened during [_computeRedirecteeType].
-    if (redirecteeType == null) {
-      return;
-    }
-
-    // Redirection to generative enum constructors is forbidden and is reported
-    // as an error elsewhere.
-    if (!(cls.isEnum &&
-        (factory.redirectionTarget.target?.isConstructor ?? false))) {
-      // Check whether [redirecteeType] <: [factoryType].
-      if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType,
-          SubtypeCheckMode.ignoringNullabilities)) {
-        _addProblemForRedirectingFactory(
-            factory,
-            templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType,
-                factoryType,
-                libraryBuilder.isNonNullableByDefault),
-            factory.redirectionTarget.charOffset,
-            noLength);
-      } else if (libraryBuilder.isNonNullableByDefault) {
-        if (!typeEnvironment.isSubtypeOf(
-            redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
-          _addProblemForRedirectingFactory(
-              factory,
-              templateIncompatibleRedirecteeFunctionType.withArguments(
-                  redirecteeType,
-                  factoryType,
-                  libraryBuilder.isNonNullableByDefault),
-              factory.redirectionTarget.charOffset,
-              noLength);
-        }
-      }
-    }
-  }
-
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator =
+        constructorScope.filteredIterator<SourceFactoryBuilder>(
+            parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
-      Builder constructor = iterator.current;
-      if (constructor is RedirectingFactoryBuilder) {
-        _checkRedirectingFactory(constructor, typeEnvironment);
-      }
+      iterator.current.checkRedirectingFactories(typeEnvironment);
     }
   }
 
@@ -1659,6 +1464,34 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.stubTarget = null;
   }
 
+  /// If any private field names in this library are unpromotable due to fields
+  /// in this class, adds them to [unpromotablePrivateFieldNames].
+  void addUnpromotablePrivateFieldNames(
+      Set<String> unpromotablePrivateFieldNames) {
+    for (Field field in cls.fields) {
+      // An instance field is unpromotable (and makes other fields with the same
+      // name unpromotable) if it's not final.
+      if (field.isInstanceMember &&
+          !field.isFinal &&
+          _isPrivateNameInThisLibrary(field.name)) {
+        unpromotablePrivateFieldNames.add(field.name.text);
+      }
+    }
+    for (Procedure procedure in cls.procedures) {
+      // An instance getter makes fields with the same name unpromotable if it's
+      // concrete.
+      if (procedure.isGetter &&
+          procedure.isInstanceMember &&
+          !procedure.isAbstract &&
+          _isPrivateNameInThisLibrary(procedure.name)) {
+        unpromotablePrivateFieldNames.add(procedure.name.text);
+      }
+    }
+  }
+
+  bool _isPrivateNameInThisLibrary(Name name) =>
+      name.isPrivate && name.library == libraryBuilder.library;
+
   void _addRedirectingConstructor(
       SourceFactoryBuilder constructorBuilder,
       SourceLibraryBuilder library,
@@ -1782,14 +1615,14 @@ class SourceClassBuilder extends ClassBuilderImpl
             } else if (targetBuilder is DillMemberBuilder) {
               targetNode = targetBuilder.member;
             } else if (targetBuilder is AmbiguousBuilder) {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   templateDuplicatedDeclarationUse
                       .withArguments(redirectionTarget.fullNameForErrors),
                   redirectionTarget.charOffset,
                   noLength);
             } else {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   templateRedirectionTargetNotFound
                       .withArguments(redirectionTarget.fullNameForErrors),
@@ -1799,7 +1632,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             if (targetNode != null &&
                 targetNode is Constructor &&
                 targetNode.enclosingClass.isAbstract) {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   templateAbstractRedirectedClassInstantiation
                       .withArguments(redirectionTarget.fullNameForErrors),
@@ -1810,7 +1643,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             if (targetNode != null &&
                 targetNode is Constructor &&
                 targetNode.enclosingClass.isEnum) {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   messageEnumFactoryRedirectsToConstructor,
                   redirectionTarget.charOffset,

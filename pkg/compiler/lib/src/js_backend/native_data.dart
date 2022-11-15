@@ -11,7 +11,7 @@ import '../common/elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../ir/annotations.dart';
 import '../js_model/js_to_frontend_map.dart' show identity, JsToFrontendMap;
-import '../kernel/element_map_interfaces.dart';
+import '../kernel/element_map.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../serialization/serialization.dart';
 import '../util/util.dart';
@@ -166,7 +166,7 @@ class NativeBasicData {
       this._jsInteropMembers);
 
   factory NativeBasicData.fromIr(
-      KernelToElementMapForNativeData map, IrAnnotationData data) {
+      KernelToElementMap map, IrAnnotationData data) {
     ElementEnvironment env = map.elementEnvironment;
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo = {};
     Map<LibraryEntity, String> jsInteropLibraries = {};
@@ -301,7 +301,7 @@ class NativeBasicData {
   bool isJsInteropMember(MemberEntity element) {
     // TODO(johnniwinther): Share this with [NativeData.isJsInteropMember].
     if (element.isFunction ||
-        element.isConstructor ||
+        element is ConstructorEntity ||
         element.isGetter ||
         element.isSetter) {
       final function = element as FunctionEntity;
@@ -335,7 +335,10 @@ class NativeBasicData {
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
         <ClassEntity, NativeClassTag>{};
     _nativeClassTagInfo.forEach((ClassEntity cls, NativeClassTag tag) {
-      nativeClassTagInfo[map.toBackendClass(cls)] = tag;
+      ClassEntity? backendClass = map.toBackendClass(cls);
+      if (backendClass != null) {
+        nativeClassTagInfo[backendClass] = tag;
+      }
     });
     Map<LibraryEntity, String> jsInteropLibraries =
         map.toBackendLibraryMap(_jsInteropLibraries, identity);
@@ -451,8 +454,7 @@ class NativeData implements NativeBasicData {
       this._nativeFieldLoadBehavior,
       this._nativeFieldStoreBehavior);
 
-  factory NativeData.fromIr(
-      KernelToElementMapForNativeData map, IrAnnotationData data) {
+  factory NativeData.fromIr(KernelToElementMap map, IrAnnotationData data) {
     NativeBasicData nativeBasicData = NativeBasicData.fromIr(map, data);
     Map<MemberEntity, String> nativeMemberName = {};
     Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = {};
@@ -622,7 +624,7 @@ class NativeData implements NativeBasicData {
   @override
   bool isJsInteropMember(MemberEntity element) {
     if (element.isFunction ||
-        element.isConstructor ||
+        element is ConstructorEntity ||
         element.isGetter ||
         element.isSetter) {
       final function = element as FunctionEntity;
@@ -652,8 +654,8 @@ class NativeData implements NativeBasicData {
   String? getFixedBackendName(MemberEntity element) {
     String? name = _nativeMemberName[element];
     if (name == null && isJsInteropMember(element)) {
-      if (element.isConstructor) {
-        name = _jsClassNameHelper(element.enclosingClass!);
+      if (element is ConstructorEntity) {
+        name = _jsClassNameHelper(element.enclosingClass);
       } else {
         name = _jsMemberNameHelper(element);
         // Top-level static JS interop members can be associated with a dotted
@@ -702,8 +704,8 @@ class NativeData implements NativeBasicData {
   String? getFixedBackendMethodPath(FunctionEntity element) {
     if (!isJsInteropMember(element)) return null;
     if (element.isInstanceMember) return 'this';
-    if (element.isConstructor) {
-      return _fixedBackendClassPath(element.enclosingClass!);
+    if (element is ConstructorEntity) {
+      return _fixedBackendClassPath(element.enclosingClass);
     }
     StringBuffer sb = StringBuffer();
     sb.write(_jsLibraryNameHelper(element.library));

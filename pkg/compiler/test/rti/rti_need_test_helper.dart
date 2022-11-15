@@ -225,6 +225,9 @@ class FindTypeVisitor extends DartTypeVisitor<bool, Null> {
       type.element == entity || checkList(type.typeArguments);
 
   @override
+  bool visitRecordType(RecordType type, _) => throw UnimplementedError();
+
+  @override
   bool visitDynamicType(DynamicType type, _) => false;
 
   @override
@@ -247,7 +250,7 @@ class RtiNeedDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
@@ -262,7 +265,7 @@ class RtiNeedDataComputer extends DataComputer<String> {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
             closedWorld.closureDataLookup)
@@ -311,7 +314,7 @@ abstract class IrMixin implements ComputeValueMixin {
 
   @override
   Local getFrontendClosure(MemberEntity member) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ir.Node node = closedWorld.elementMap.getMemberDefinition(member).node;
     if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
