@@ -36,7 +36,7 @@ void testHandle() {
 }
 
 void testNativeAPIs() {
-  // no need to expect here. lookupFunction throws an argument error if lookup fails.
+  // No need to expect here, lookupFunction throws an argument error if lookup fails.
   testLibrary.lookupFunction<
       Bool Function(Handle),
       bool Function(Object)>("Dart_IsNull_DL");
