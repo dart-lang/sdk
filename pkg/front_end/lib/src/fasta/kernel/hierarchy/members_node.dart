@@ -74,14 +74,6 @@ class ClassMembersNodeBuilder {
   bool get shouldModifyKernel =>
       classBuilder.libraryBuilder.loader == hierarchy.loader;
 
-  ClassMember? checkInheritanceConflict(ClassMember a, ClassMember b) {
-    if (a.isStatic || a.isProperty != b.isProperty) {
-      reportInheritanceConflict(a, b);
-      return a;
-    }
-    return null;
-  }
-
   static void inferMethodType(
       ClassHierarchyBuilder hierarchyBuilder,
       ClassMembersBuilder membersBuilder,
@@ -2311,6 +2303,7 @@ class ClassMembersNodeBuilder {
 
     return new ClassMembersNode(
         classBuilder,
+        supernode,
         classMemberMap,
         classSetterMap,
         interfaceMemberMap,
@@ -2360,6 +2353,8 @@ class ClassMembersNodeBuilder {
 class ClassMembersNode {
   final ClassBuilder classBuilder;
 
+  final ClassMembersNode? supernode;
+
   /// All the members of this class including [classMembers] of its
   /// superclasses. The members are sorted by [compareDeclarations].
   final Map<Name, ClassMember> classMemberMap;
@@ -2387,6 +2382,7 @@ class ClassMembersNode {
 
   ClassMembersNode(
       this.classBuilder,
+      this.supernode,
       this.classMemberMap,
       this.classSetterMap,
       this.interfaceMemberMap,
@@ -2434,9 +2430,16 @@ class ClassMembersNode {
   }
 
   ClassMember? getInterfaceMember(Name name, bool isSetter) {
-    return isSetter
+    ClassMember? result = isSetter
         ? (interfaceSetterMap ?? classSetterMap)[name]
         : (interfaceMemberMap ?? classMemberMap)[name];
+    if (result == null) {
+      return null;
+    }
+    if (result.isStatic) {
+      return null;
+    }
+    return result;
   }
 
   ClassMember? findMember(Name name, List<ClassMember> declarations) {
@@ -2464,7 +2467,17 @@ class ClassMembersNode {
   }
 
   ClassMember? getDispatchTarget(Name name, bool isSetter) {
-    return isSetter ? classSetterMap[name] : classMemberMap[name];
+    ClassMember? result =
+        isSetter ? classSetterMap[name] : classMemberMap[name];
+    if (result == null) {
+      return null;
+    }
+    if (result.isStatic) {
+      // TODO(johnniwinther): Can we avoid putting static members in the
+      // [classMemberMap]/[classSetterMap] maps?
+      return supernode?.getDispatchTarget(name, isSetter);
+    }
+    return result;
   }
 }
 

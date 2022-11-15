@@ -419,7 +419,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
       if (resolvedReceiverType is InterfaceType) {
         setterType = Substitution.fromPairs(
                 memberClass.typeParameters,
-                base.classHierarchy.getTypeArgumentsAsInstanceOf(
+                base.hierarchyBuilder.getTypeArgumentsAsInstanceOf(
                     resolvedReceiverType, memberClass)!)
             .substituteType(setterType);
       }

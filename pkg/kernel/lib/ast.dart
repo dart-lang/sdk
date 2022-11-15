@@ -1880,7 +1880,7 @@ class ExtensionTypeShowHideClause {
   final List<Reference> hiddenOperators = <Reference>[];
 
   Reference? findShownReference(Name name,
-      CallSiteAccessKind callSiteAccessKind, ClassHierarchy hierarchy) {
+      CallSiteAccessKind callSiteAccessKind, ClassHierarchyMembers hierarchy) {
     List<Reference> shownReferences;
     List<Reference> hiddenReferences;
     switch (callSiteAccessKind) {
@@ -1918,7 +1918,7 @@ class ExtensionTypeShowHideClause {
       Name name,
       List<Reference> references,
       List<Supertype> interfaces,
-      ClassHierarchy hierarchy,
+      ClassHierarchyMembers hierarchy,
       CallSiteAccessKind callSiteAccessKind) {
     for (Reference reference in references) {
       if (reference.asMember.name == name) {

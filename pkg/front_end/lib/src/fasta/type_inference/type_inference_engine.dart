@@ -6,7 +6,8 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
 
@@ -133,8 +134,6 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
 /// (e.g. DietListener).  Derived classes should derive from
 /// [TypeInferenceEngineImpl].
 abstract class TypeInferenceEngine {
-  late ClassHierarchy classHierarchy;
-
   late ClassHierarchyBuilder hierarchyBuilder;
 
   late ClassMembersBuilder membersBuilder;
@@ -187,7 +186,7 @@ abstract class TypeInferenceEngine {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
     for (SourceConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes(classHierarchy);
+      builder.inferFormalTypes(hierarchyBuilder);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {
@@ -200,13 +199,12 @@ abstract class TypeInferenceEngine {
   /// given [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     this.coreTypes = coreTypes;
-    this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
   static Member? resolveInferenceNode(
-      Member? member, ClassHierarchy hierarchy) {
+      Member? member, ClassHierarchyBase hierarchy) {
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {

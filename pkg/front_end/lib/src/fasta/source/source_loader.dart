@@ -2295,21 +2295,25 @@ severity: $severity
           Name name = restrictedMemberNames[i];
           Class? declarer = restrictedMemberDeclarers[i];
 
-          Member? member = hierarchy.getDispatchTarget(classBuilder.cls, name);
-          if (member?.enclosingClass != declarer &&
-              member?.enclosingClass != classBuilder.cls &&
-              member?.isAbstract == false) {
-            classBuilder.libraryBuilder.addProblem(
-                templateEnumInheritsRestricted.withArguments(name.text),
-                classBuilder.charOffset,
-                classBuilder.name.length,
-                classBuilder.fileUri,
-                context: <LocatedMessage>[
-                  messageEnumInheritsRestrictedMember.withLocation(
-                      member!.fileUri,
-                      member.fileOffset,
-                      member.name.text.length)
-                ]);
+          ClassMember? classMember =
+              membersBuilder.getDispatchClassMember(classBuilder.cls, name);
+          if (classMember != null) {
+            Member member = classMember.getMember(membersBuilder);
+            if (member.enclosingClass != declarer &&
+                member.enclosingClass != classBuilder.cls &&
+                member.isAbstract == false) {
+              classBuilder.libraryBuilder.addProblem(
+                  templateEnumInheritsRestricted.withArguments(name.text),
+                  classBuilder.charOffset,
+                  classBuilder.name.length,
+                  classBuilder.fileUri,
+                  context: <LocatedMessage>[
+                    messageEnumInheritsRestrictedMember.withLocation(
+                        classMember.fileUri,
+                        classMember.charOffset,
+                        member.name.text.length)
+                  ]);
+            }
           }
         }
       }

@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
@@ -116,8 +115,6 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final bool isTopLevel;
 
-  final ClassHierarchy classHierarchy;
-
   final Instrumentation? instrumentation;
 
   @override
@@ -140,7 +137,6 @@ class TypeInferrerImpl implements TypeInferrer {
       : assert(libraryBuilder != null),
         unknownFunction = new FunctionType(
             const [], const DynamicType(), libraryBuilder.nonNullable),
-        classHierarchy = engine.classHierarchy,
         instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,

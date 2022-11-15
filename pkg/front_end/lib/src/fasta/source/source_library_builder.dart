@@ -12,7 +12,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedContainer, IndexedLibrary;
@@ -4416,7 +4417,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInMethodInvocation(
       DartType receiverType,
       TypeEnvironment typeEnvironment,
-      ClassHierarchy hierarchy,
+      ClassHierarchyBase classHierarchy,
+      ClassHierarchyMembers membersHierarchy,
       Name name,
       Member? interfaceTarget,
       Arguments arguments,
@@ -4437,14 +4439,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     // TODO(cstefantsova): Find a better way than relying on [interfaceTarget].
     Member? method =
-        hierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
+        membersHierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
     // ignore: unnecessary_null_comparison
     if (method == null || method is! Procedure) {
       return;
     }
     if (klass != method.enclosingClass) {
       Supertype parent =
-          hierarchy.getClassAsInstanceOf(klass, method.enclosingClass!)!;
+          classHierarchy.getClassAsInstanceOf(klass, method.enclosingClass!)!;
       klass = method.enclosingClass!;
       receiverTypeArguments = parent.typeArguments;
       Map<TypeParameter, DartType> instanceSubstitutionMap = substitutionMap;
@@ -4492,7 +4494,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void checkBoundsInFunctionInvocation(
       TypeEnvironment typeEnvironment,
-      ClassHierarchy hierarchy,
       FunctionType functionType,
       String? localName,
       Arguments arguments,
@@ -4526,7 +4527,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void checkBoundsInInstantiation(
       TypeEnvironment typeEnvironment,
-      ClassHierarchy hierarchy,
       FunctionType functionType,
       List<DartType> typeArguments,
       Uri fileUri,
