@@ -166,6 +166,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   @override
   void processTypeUse(MemberEntity? member, TypeUse typeUse) {
+    if (member?.isAbstract ?? false) return;
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
