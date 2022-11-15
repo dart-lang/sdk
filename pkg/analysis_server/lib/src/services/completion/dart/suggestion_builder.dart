@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -350,7 +351,7 @@ class SuggestionBuilder {
       required String displayText,
       required int selectionOffset,
     }) {
-      return CompletionSuggestion(
+      return DartCompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
         Relevance.closure,
         completion,
@@ -359,6 +360,7 @@ class SuggestionBuilder {
         false,
         false,
         displayText: displayText,
+        dartElement: type.element,
       );
     }
 
@@ -724,7 +726,7 @@ class SuggestionBuilder {
       buffer.write('$indent});');
 
       _addSuggestion(
-        CompletionSuggestion(
+        DartCompletionSuggestion(
           kind,
           relevance,
           buffer.toString(),
@@ -734,6 +736,7 @@ class SuggestionBuilder {
           false,
           // Let the user know that we are going to insert a complete statement.
           displayText: 'setState(() {});',
+          dartElement: method,
         ),
         textToMatchOverride: 'setState',
       );
@@ -812,7 +815,7 @@ class SuggestionBuilder {
       relevance = Relevance.namedArgument;
     }
 
-    var suggestion = CompletionSuggestion(
+    var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance,
         completion,
@@ -822,7 +825,8 @@ class SuggestionBuilder {
         false,
         parameterName: name,
         parameterType: type,
-        replacementLength: replacementLength);
+        replacementLength: replacementLength,
+        dartElement: parameter);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
       suggestion.element =
@@ -916,7 +920,7 @@ class SuggestionBuilder {
     var offsetDelta = targetId.offset + replacement.indexOf(completion);
     var displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
-    var suggestion = CompletionSuggestion(
+    var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         Relevance.override,
         completion,
@@ -924,7 +928,8 @@ class SuggestionBuilder {
         selectionRange.length,
         element.hasDeprecated,
         false,
-        displayText: displayText);
+        displayText: displayText,
+        dartElement: element);
     suggestion.element = protocol.convertElement(element,
         withNullability: _isNonNullableByDefault);
     _addSuggestion(
@@ -1418,6 +1423,7 @@ class SuggestionBuilder {
       documentation: documentation,
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
+      dartElement: element,
     );
   }
 
@@ -1651,7 +1657,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   CompletionSuggestion build() {
-    return CompletionSuggestion(
+    return DartCompletionSuggestion(
       kind,
       relevance,
       completion,
@@ -1672,6 +1678,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
       libraryUri: libraryUriStr,
       isNotImported: isNotImported ? true : null,
+      dartElement: element.dartElement,
     );
   }
 }
@@ -1691,6 +1698,7 @@ class _ElementCompletionData {
   CompletionDefaultArgumentList? defaultArgumentList;
   final _ElementDocumentation? documentation;
   final protocol.Element element;
+  final Element dartElement;
 
   _ElementCompletionData({
     required this.completion,
@@ -1704,6 +1712,7 @@ class _ElementCompletionData {
     required this.defaultArgumentList,
     required this.documentation,
     required this.element,
+    required this.dartElement,
   });
 }
 

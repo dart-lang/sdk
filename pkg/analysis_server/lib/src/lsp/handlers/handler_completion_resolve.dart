@@ -4,13 +4,13 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
@@ -47,13 +47,25 @@ class CompletionResolveHandler
     }
   }
 
-  Future<ErrorOr<CompletionItem>> resolveDartCompletion(
+  Future<ErrorOr<CompletionItem>> resolveDartNotImportedCompletion(
     CompletionItem item,
-    LspClientCapabilities clientCapabilities,
-    CancellationToken token, {
-    required String file,
-    required Uri libraryUri,
-  }) async {
+    DartNotImportedCompletionResolutionInfo data,
+    CancellationToken token,
+  ) async {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
+    final file = data.file;
+    final libraryUri = Uri.parse(data.libraryUri);
+    final elementLocationReference = data.ref;
+    final elementLocation = elementLocationReference != null
+        ? ElementLocationImpl.con2(elementLocationReference)
+        : null;
+
     const timeout = Duration(milliseconds: 1000);
     var timer = Stopwatch()..start();
     _latestCompletionItem = item;
@@ -108,7 +120,9 @@ class CompletionResolveHandler
 
         // Look up documentation if we can get an element for this item.
         Either2<MarkupContent, String>? documentation;
-        final element = await _getElement(session, libraryUri, item);
+        final element = elementLocation != null
+            ? await session.locateElement(elementLocation)
+            : null;
         if (element != null) {
           final formats = clientCapabilities.completionDocumentationFormats;
           final dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
@@ -172,27 +186,6 @@ class CompletionResolveHandler
     );
   }
 
-  Future<ErrorOr<CompletionItem>> resolveDartNotImportedCompletion(
-    CompletionItem item,
-    DartNotImportedCompletionResolutionInfo data,
-    CancellationToken token,
-  ) async {
-    final clientCapabilities = server.clientCapabilities;
-    if (clientCapabilities == null) {
-      // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
-    }
-
-    return resolveDartCompletion(
-      item,
-      clientCapabilities,
-      token,
-      file: data.file,
-      libraryUri: Uri.parse(data.libraryUri),
-    );
-  }
-
   Future<ErrorOr<CompletionItem>> resolvePubPackageCompletion(
     CompletionItem item,
     PubPackageCompletionItemResolutionInfo data,
@@ -227,33 +220,5 @@ class CompletionResolveHandler
       command: item.command,
       data: item.data,
     ));
-  }
-
-  /// Gets the [Element] for the completion item [item] in [libraryUri].
-  Future<Element?> _getElement(
-    AnalysisSession session,
-    Uri libraryUri,
-    CompletionItem item,
-  ) async {
-    // If filterText is different to the label, it's because label has
-    // parens/args appended so we should take the filterText to get the
-    // elements name without. We cannot use insertText as it may include
-    // snippets, whereas filterText is always just the pure string.
-    var name = item.filterText ?? item.label;
-
-    // The label might be `MyEnum.myValue`, but we need to find `MyEnum`.
-    if (name.contains('.')) {
-      name = name.substring(0, name.indexOf('.'));
-    }
-
-    // TODO(dantup): This is not handling default constructors or enums
-    //  correctly, so they will both show dart docs from the class/enum and not
-    //  the constructor/enum member. Extension members are not found at all and
-    //  will provide no docs.
-
-    final result = await session.getLibraryByUri(libraryUri.toString());
-    return result is LibraryElementResult
-        ? result.element.exportNamespace.get(name)
-        : null;
   }
 }
