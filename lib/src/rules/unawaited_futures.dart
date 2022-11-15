@@ -22,6 +22,13 @@ When you really _do_ want to start a fire-and-forget `Future`, the recommended
 way is to use `unawaited` from `dart:async`. The `// ignore` and
 `// ignore_for_file` comments also work.
 
+**BAD:**
+```dart
+void main() async {
+  doSomething(); // Likely a bug.
+}
+```
+
 **GOOD:**
 ```dart
 Future doSomething() => ...;
@@ -30,13 +37,6 @@ void main() async {
   await doSomething();
 
   unawaited(doSomething()); // Explicitly-ignored fire-and-forget.
-}
-```
-
-**BAD:**
-```dart
-void main() async {
-  doSomething(); // Likely a bug.
 }
 ```
 

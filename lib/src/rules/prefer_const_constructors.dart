@@ -16,6 +16,17 @@ const _details = r'''
 If a constructor can be invoked as const to produce a canonicalized instance,
 it's preferable to do so.
 
+**BAD:**
+```dart
+class A {
+  const A();
+}
+
+void accessA() {
+  A a = new A();
+}
+```
+
 **GOOD:**
 ```dart
 class A {
@@ -36,17 +47,6 @@ class A {
 }
 
 A foo(int x) => new A(x);
-```
-
-**BAD:**
-```dart
-class A {
-  const A();
-}
-
-void accessA() {
-  A a = new A();
-}
 ```
 
 ''';

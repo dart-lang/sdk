@@ -6,6 +6,15 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:test/test.dart';
 
 void main() {
+  const keywords = [
+    'GOOD',
+    'BAD',
+    'NOTE',
+    'DEPRECATED',
+    'EXCEPTION',
+    'EXCEPTIONS',
+  ];
+
   group('rule doc format', () {
     var rules = Registry.ruleRegistry.rules;
     test('(setup)', () {
@@ -23,12 +32,73 @@ void main() {
         });
       }
     });
+
     group('details - no leading whitespace', () {
       for (var rule in rules) {
         test('`${rule.name}` details', () {
           expect(rule.details.startsWith(RegExp(r'\s+')), isFalse,
               reason:
                   'Rule details for ${rule.name} should not have leading whitespace.');
+        });
+      }
+    });
+
+    group('details - bad first', () {
+      for (var rule in rules) {
+        test('`${rule.name}` bad example first', () {
+          var details = rule.details;
+          var lines = details.split('\n');
+          var hasGood = false;
+          for (var line in lines) {
+            if (line.startsWith('**BAD:**')) {
+              if (hasGood) {
+                fail(
+                    'Rule details for ${rule.name} should have the BAD example before the GOOD one.');
+              }
+              break;
+            } else if (line.startsWith('**GOOD:**')) {
+              hasGood = true;
+            }
+          }
+        });
+      }
+    });
+
+    group('details - colon inside stars', () {
+      for (var rule in rules) {
+        test('`${rule.name}` colon inside stars', () {
+          var details = rule.details;
+          var lines = details.split('\n');
+
+          for (var line in lines) {
+            for (var keyword in keywords) {
+              var withStars = '**$keyword**';
+              if (line.contains(withStars)) {
+                fail(
+                    'Rule details for ${rule.name} should have **$keyword:**, put the colon inside the stars.');
+              }
+            }
+          }
+        });
+      }
+    });
+
+    group('details - upper case keywords', () {
+      for (var rule in rules) {
+        test('`${rule.name}` upper case keywords', () {
+          var details = rule.details;
+          var lines = details.split('\n');
+
+          for (var line in lines) {
+            for (var keyword in keywords) {
+              var withStars = '**$keyword:**';
+              if (line.toLowerCase().contains(withStars.toLowerCase()) &&
+                  !line.contains(withStars)) {
+                fail(
+                    'Rule details for ${rule.name} should have $withStars in upper case.');
+              }
+            }
+          }
         });
       }
     });

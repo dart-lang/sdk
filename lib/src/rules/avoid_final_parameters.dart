@@ -15,13 +15,6 @@ const _details = r'''
 Declaring parameters as final can lead to unnecessarily verbose code, especially
 when using the "parameter_assignments" rule.
 
-**GOOD:**
-```dart
-void badParameter(String label) { // OK
-  print(label);
-}
-```
-
 **BAD:**
 ```dart
 void goodParameter(final String label) { // LINT
@@ -31,7 +24,9 @@ void goodParameter(final String label) { // LINT
 
 **GOOD:**
 ```dart
-void badExpression(int value) => print(value); // OK
+void badParameter(String label) { // OK
+  print(label);
+}
 ```
 
 **BAD:**
@@ -41,12 +36,17 @@ void goodExpression(final int value) => print(value); // LINT
 
 **GOOD:**
 ```dart
-[1, 4, 6, 8].forEach((value) => print(value + 2)); // OK
+void badExpression(int value) => print(value); // OK
 ```
 
 **BAD:**
 ```dart
 [1, 4, 6, 8].forEach((final value) => print(value + 2)); // LINT
+```
+
+**GOOD:**
+```dart
+[1, 4, 6, 8].forEach((value) => print(value + 2)); // OK
 ```
 
 ''';

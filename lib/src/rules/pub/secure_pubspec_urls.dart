@@ -13,11 +13,6 @@ const _details = r'''
 
 Use `https` instead of `http` or `git:`.
 
-**GOOD:**
-```yaml
-repository: https://github.com/dart-lang/example
-```
-
 **BAD:**
 ```yaml
 repository: http://github.com/dart-lang/example
@@ -27,6 +22,12 @@ repository: http://github.com/dart-lang/example
 git:
   url: git://github.com/dart-lang/example/example.git
 ```
+
+**GOOD:**
+```yaml
+repository: https://github.com/dart-lang/example
+```
+
 ''';
 
 class SecurePubspecUrls extends LintRule {

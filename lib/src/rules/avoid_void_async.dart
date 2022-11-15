@@ -28,7 +28,7 @@ Future<void> f() async {}
 Future<void> f2() async => null;
 ```
 
-**EXCEPTION**
+**EXCEPTION:**
 
 An exception is made for top-level `main` functions, where the `Future`
 annotation *can* (and generally should) be dropped in favor of `void`.

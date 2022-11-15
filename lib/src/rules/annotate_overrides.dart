@@ -17,6 +17,17 @@ const _details = r'''
 This practice improves code readability and helps protect against
 unintentionally overriding superclass members.
 
+**BAD:**
+```dart
+class Cat {
+  int get lives => 9;
+}
+
+class Lucky extends Cat {
+  final int lives = 14;
+}
+```
+
 **GOOD:**
 ```dart
 abstract class Dog {
@@ -29,17 +40,6 @@ class Husky extends Dog {
   final String breed = 'Husky';
   @override
   void bark() {}
-}
-```
-
-**BAD:**
-```dart
-class Cat {
-  int get lives => 9;
-}
-
-class Lucky extends Cat {
-  final int lives = 14;
 }
 ```
 

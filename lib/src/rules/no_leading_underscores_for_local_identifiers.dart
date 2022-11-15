@@ -21,12 +21,12 @@ There is no concept of "private" for local variables or parameters.  When one of
 those has a name that starts with an underscore, it sends a confusing signal to
 the reader. To avoid that, don't use leading underscores in those names.
 
-**Exception**: An unused parameter can be named `_`, `__`, `___`, etc.  This is
+**EXCEPTION:**: An unused parameter can be named `_`, `__`, `___`, etc.  This is
 common practice in callbacks where you are passed a value but you don't need
 to use it. Giving it a name that consists solely of underscores is the idiomatic
 way to indicate that the value isn't used.
 
-**BAD**
+**BAD:**
 ```dart
 void print(String _name) {
   var _size = _name.length;

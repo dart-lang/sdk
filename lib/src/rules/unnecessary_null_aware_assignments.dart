@@ -18,16 +18,16 @@ const _details = r'''
 Using `null` on the right-hand side of a null-aware assignment effectively makes
 the assignment redundant.
 
-**GOOD:**
-```dart
-var x;
-x ??= 1;
-```
-
 **BAD:**
 ```dart
 var x;
 x ??= null;
+```
+
+**GOOD:**
+```dart
+var x;
+x ??= 1;
 ```
 
 ''';

@@ -29,18 +29,18 @@ Getting in the habit of placing it last improves consistency, visually
 reinforces when the superclass's constructor body is run, and may help
 performance.
 
-**GOOD:**
-```dart
-View(Style style, List children)
-    : _children = children,
-      super(style) {
-```
-
 **BAD:**
 ```dart
 View(Style style, List children)
     : super(style),
       _children = children {
+```
+
+**GOOD:**
+```dart
+View(Style style, List children)
+    : _children = children,
+      super(style) {
 ```
 
 **DEPRECATED:** In Dart 2, it is a compile-time error if a superinitializer

@@ -12,14 +12,14 @@ const _desc = r'Unnecessary parentheses can be removed.';
 const _details = r'''
 **AVOID** using parentheses when not needed.
 
-**GOOD:**
-```dart
-a = b;
-```
-
 **BAD:**
 ```dart
 a = (b);
+```
+
+**GOOD:**
+```dart
+a = b;
 ```
 
 Parentheses are considered unnecessary if they do not change the meaning of the

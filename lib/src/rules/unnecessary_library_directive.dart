@@ -17,6 +17,11 @@ const _details = r'''
 **DO** use library directives if you want to document a library and/or annotate 
 a library.
 
+**BAD:**
+```dart
+library;
+```
+
 **GOOD:**
 ```dart
 /// This library does important things
@@ -25,11 +30,6 @@ library;
 
 ```dart
 @TestOn('js')
-library;
-```
-
-**BAD:**
-```dart
 library;
 ```
 

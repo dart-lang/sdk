@@ -14,13 +14,6 @@ const _desc = r'Prefer putting asserts in initializer lists.';
 const _details = r'''
 **DO** put asserts in initializer lists.
 
-**GOOD:**
-```dart
-class A {
-  A(int a) : assert(a != 0);
-}
-```
-
 **BAD:**
 ```dart
 class A {
@@ -29,6 +22,14 @@ class A {
   }
 }
 ```
+
+**GOOD:**
+```dart
+class A {
+  A(int a) : assert(a != 0);
+}
+```
+
 ''';
 
 class PreferAssertsInInitializerLists extends LintRule {

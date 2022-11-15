@@ -23,12 +23,12 @@ gets initialized to null.  This is reliably specified by the language.  There's
 no concept of "uninitialized memory" in Dart.  Adding `= null` is redundant and
 unneeded.
 
-**GOOD:**
+**BAD:**
 ```dart
-int _nextId;
+int _nextId = null;
 
 class LazyId {
-  int _id;
+  int _id = null;
 
   int get id {
     if (_nextId == null) _nextId = 0;
@@ -39,12 +39,12 @@ class LazyId {
 }
 ```
 
-**BAD:**
+**GOOD:**
 ```dart
-int _nextId = null;
+int _nextId;
 
 class LazyId {
-  int _id = null;
+  int _id;
 
   int get id {
     if (_nextId == null) _nextId = 0;

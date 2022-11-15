@@ -27,15 +27,15 @@ declaration that's library private. The following uses of types are checked:
   `typedef F = _Private Function();`), or
 - any type used in the `on` clause of an extension or a mixin
 
-**GOOD:**
-```dart
-f(String s) { ... }
-```
-
 **BAD:**
 ```dart
 f(_Private p) { ... }
 class _Private {}
+```
+
+**GOOD:**
+```dart
+f(String s) { ... }
 ```
 
 ''';

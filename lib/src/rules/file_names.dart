@@ -19,16 +19,16 @@ in that form. Using underscores as the separator ensures that the name is still
 a valid Dart identifier, which may be helpful if the language later supports
 symbolic imports.
 
-**GOOD:**
-
-* `slider_menu.dart`
-* `file_system.dart`
-
 **BAD:**
 
 * `SliderMenu.dart`
 * `filesystem.dart`
 * `file-system.dart`
+
+**GOOD:**
+
+* `slider_menu.dart`
+* `file_system.dart`
 
 Files without a strict `.dart` extension are ignored.  For example:
 

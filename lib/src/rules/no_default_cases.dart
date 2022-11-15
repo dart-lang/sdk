@@ -22,6 +22,18 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 
 **DO** define default behavior outside switch statements.
 
+**BAD:**
+```dart
+  switch (testEnum) {
+    case TestEnum.A:
+      return '123';
+    case TestEnum.B:
+      return 'abc';
+    default:
+      return null;
+  }
+```
+
 **GOOD:**
 ```dart
   switch (testEnum) {
@@ -34,17 +46,6 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
   return null;
 ```
 
-**BAD:**
-```dart
-  switch (testEnum) {
-    case TestEnum.A:
-      return '123';
-    case TestEnum.B:
-      return 'abc';
-    default:
-      return null;
-  }
-```
 ''';
 
 class NoDefaultCases extends LintRule {

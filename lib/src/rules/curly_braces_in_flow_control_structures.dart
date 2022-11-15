@@ -15,6 +15,12 @@ const _details = r'''
 Doing so avoids the [dangling else](https://en.wikipedia.org/wiki/Dangling_else)
 problem.
 
+**BAD:**
+```dart
+if (overflowChars != other.overflowChars)
+  return overflowChars < other.overflowChars;
+```
+
 **GOOD:**
 ```dart
 if (isWeekDay) {
@@ -42,11 +48,6 @@ if (overflowChars != other.overflowChars) {
 }
 ```
 
-**BAD:**
-```dart
-if (overflowChars != other.overflowChars)
-  return overflowChars < other.overflowChars;
-```
 ''';
 
 class CurlyBracesInFlowControlStructures extends LintRule {

@@ -21,6 +21,18 @@ unpredictable and undesirable behavior when used in collections. See
 https://dart.dev/guides/language/effective-dart/design#avoid-defining-custom-equality-for-mutable-classes
 for more information.
 
+**BAD:**
+```dart
+class B {
+  String key;
+  const B(this.key);
+  @override
+  operator ==(other) => other is B && other.key == key;
+  @override
+  int get hashCode => key.hashCode;
+}
+```
+
 **GOOD:**
 ```dart
 @immutable
@@ -29,18 +41,6 @@ class A {
   const A(this.key);
   @override
   operator ==(other) => other is A && other.key == key;
-  @override
-  int get hashCode => key.hashCode;
-}
-```
-
-**BAD:**
-```dart
-class B {
-  String key;
-  const B(this.key);
-  @override
-  operator ==(other) => other is B && other.key == key;
   @override
   int get hashCode => key.hashCode;
 }

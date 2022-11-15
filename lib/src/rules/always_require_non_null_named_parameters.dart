@@ -16,6 +16,13 @@ const _details = r'''
 **DO** specify `@required` on named parameters without a default value on which 
 an `assert(param != null)` is done.
 
+**BAD:**
+```dart
+m1({a}) {
+  assert(a != null);
+}
+```
+
 **GOOD:**
 ```dart
 m1({@required a}) {
@@ -23,13 +30,6 @@ m1({@required a}) {
 }
 
 m2({a: 1}) {
-  assert(a != null);
-}
-```
-
-**BAD:**
-```dart
-m1({a}) {
   assert(a != null);
 }
 ```

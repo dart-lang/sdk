@@ -18,6 +18,13 @@ const _details = r'''
 All non-overriding public members should be documented with `///` doc-style
 comments.
 
+**BAD:**
+```dart
+class Bad {
+  void meh() { }
+}
+```
+
 **GOOD:**
 ```dart
 /// A good thing.
@@ -26,13 +33,6 @@ abstract class Good {
   void start() => _start();
 
   _start();
-}
-```
-
-**BAD:**
-```dart
-class Bad {
-  void meh() { }
 }
 ```
 

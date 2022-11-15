@@ -14,19 +14,19 @@ const _details = r'''
 
 This can be sign of forgotten comma.
 
-**GOOD:**
+**BAD:**
 ```dart
 List<String> list = <String>[
-  'a' +
+  'a'
   'b',
   'c',
 ];
 ```
 
-**BAD:**
+**GOOD:**
 ```dart
 List<String> list = <String>[
-  'a'
+  'a' +
   'b',
   'c',
 ];

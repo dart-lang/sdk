@@ -23,17 +23,17 @@ the easiest to overlook when writing code.
 When a `BuildContext` is used, its `mounted` property must be checked after an
 asynchronous gap.
 
-**GOOD:**
-```dart
-void onButtonTapped(BuildContext context) {
-  Navigator.of(context).pop();
-}
-```
-
 **BAD:**
 ```dart
 void onButtonTapped(BuildContext context) async {
   await Future.delayed(const Duration(seconds: 1));
+  Navigator.of(context).pop();
+}
+```
+
+**GOOD:**
+```dart
+void onButtonTapped(BuildContext context) {
   Navigator.of(context).pop();
 }
 ```

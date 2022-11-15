@@ -27,16 +27,7 @@ Dart doesn't have this limitation.  Fields and getters/setters are completely
 indistinguishable.  You can expose a field in a class and later wrap it in a
 getter and setter without having to touch any code that uses that field.
 
-**GOOD:**
-
-```dart
-class Box {
-  var contents;
-}
-```
-
 **BAD:**
-
 ```dart
 class Box {
   var _contents;
@@ -44,6 +35,13 @@ class Box {
   set contents(value) {
     _contents = value;
   }
+}
+```
+
+**GOOD:**
+```dart
+class Box {
+  var contents;
 }
 ```
 

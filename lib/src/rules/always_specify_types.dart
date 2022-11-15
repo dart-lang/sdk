@@ -22,19 +22,19 @@ type annotations.  Use `dynamic` if you are being explicit that the type is
 unknown.  Use `Object` if you are being explicit that you want an object that
 implements `==` and `hashCode`.
 
+**BAD:**
+```dart
+var foo = 10;
+final bar = Bar();
+const quux = 20;
+```
+
 **GOOD:**
 ```dart
 int foo = 10;
 final Bar bar = Bar();
 String baz = 'hello';
 const int quux = 20;
-```
-
-**BAD:**
-```dart
-var foo = 10;
-final bar = Bar();
-const quux = 20;
 ```
 
 NOTE: Using the the `@optionalTypeArgs` annotation in the `meta` package, API

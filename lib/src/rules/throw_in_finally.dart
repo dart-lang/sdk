@@ -16,21 +16,6 @@ const _details = r'''
 Throwing exceptions in finally blocks will inevitably cause unexpected behavior
 that is hard to debug.
 
-**GOOD:**
-```dart
-class Ok {
-  double compliantMethod() {
-    var i = 5;
-    try {
-      i = 1 / 0;
-    } catch (e) {
-      print(e); // OK
-    }
-    return i;
-  }
-}
-```
-
 **BAD:**
 ```dart
 class BadThrow {
@@ -42,6 +27,21 @@ class BadThrow {
     } finally {
       throw 'Find the hidden error :P'; // LINT
     }
+  }
+}
+```
+
+**GOOD:**
+```dart
+class Ok {
+  double compliantMethod() {
+    var i = 5;
+    try {
+      i = 1 / 0;
+    } catch (e) {
+      print(e); // OK
+    }
+    return i;
   }
 }
 ```

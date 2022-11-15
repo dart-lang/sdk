@@ -54,7 +54,7 @@ class Point {
 }
 ```
 
-**NOTE**
+**NOTE:**
 This rule will not generate a lint for named parameters unless the parameter
 name and the field name are the same. The reason for this is that resolving
 such a lint would require either renaming the field or renaming the parameter,
@@ -70,7 +70,7 @@ class Point {
 }
 ```
 
-**NOTE**
+**NOTE:**
 Also note that it is possible to enforce a type that is stricter than the
 initialized field with an initializing formal parameter.  In the following
 example the unnamed `Bid` constructor requires a non-null `int` despite

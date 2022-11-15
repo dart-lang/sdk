@@ -39,7 +39,7 @@ class Size {
 }
 ```
 
-**BAD**:
+**BAD:**
 ```dart
 class CustomSize implements Size {
   final int inBytes;
@@ -49,7 +49,7 @@ class CustomSize implements Size {
 }
 ```
 
-**BAD**:
+**BAD:**
 ```dart
 import 'package:test/test.dart';
 import 'size.dart';
@@ -65,7 +65,7 @@ void main() {
 }
 ```
 
-**GOOD**:
+**GOOD:**
 ```dart
 class ExtendedSize extends Size {
   ExtendedSize(int inBytes) : super(inBytes);
@@ -74,7 +74,7 @@ class ExtendedSize extends Size {
 }
 ```
 
-**GOOD**:
+**GOOD:**:
 ```dart
 import 'package:test/test.dart';
 import 'size.dart';

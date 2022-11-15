@@ -34,6 +34,13 @@ its API includes:
 
 All public API members should be documented with `///` doc-style comments.
 
+**BAD:**
+```dart
+class Bar {
+  void bar();
+}
+```
+
 **GOOD:**
 ```dart
 /// A Foo.
@@ -42,13 +49,6 @@ abstract class Foo {
   void start() => _start();
 
   _start();
-}
-```
-
-**BAD:**
-```dart
-class Bar {
-  void bar();
 }
 ```
 
