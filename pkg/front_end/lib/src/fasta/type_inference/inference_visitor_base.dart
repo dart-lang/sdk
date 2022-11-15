@@ -9,7 +9,8 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/canonical_name.dart' as kernel;
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/bounds_checks.dart'
     show calculateBounds, isGenericFunctionTypeOrAlias;
@@ -32,7 +33,6 @@ import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
-import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
@@ -171,7 +171,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   Instrumentation? get instrumentation => _inferrer.instrumentation;
 
-  ClassHierarchy get classHierarchy => _inferrer.classHierarchy;
+  ClassHierarchyBase get hierarchyBuilder => _inferrer.engine.hierarchyBuilder;
+
+  ClassHierarchyMembers get membersBuilder => _inferrer.engine.membersBuilder;
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
@@ -366,7 +368,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     } else if ((constructor = engine.toBeInferred[target]) != null) {
       engine.toBeInferred.remove(target);
       engine.beingInferred[target] = constructor!;
-      constructor.inferFormalTypes(classHierarchy);
+      constructor.inferFormalTypes(hierarchyBuilder);
       engine.beingInferred.remove(target);
     }
   }
@@ -669,7 +671,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   TypedTearoff _tearOffCall(
       Expression expression, InterfaceType expressionType, int fileOffset) {
     Class classNode = expressionType.classNode;
-    Member callMember = classHierarchy.getInterfaceMember(classNode, callName)!;
+    Member callMember = membersBuilder.getInterfaceMember(classNode, callName)!;
     assert(callMember is Procedure && callMember.kind == ProcedureKind.Method);
 
     // Replace expression with:
@@ -719,7 +721,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (coerceExpression && expressionType is InterfaceType) {
       Class classNode = expressionType.classNode;
       Member? callMember =
-          classHierarchy.getInterfaceMember(classNode, callName);
+          membersBuilder.getInterfaceMember(classNode, callName);
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(contextType, expressionType)) {
           needsTearoff = true;
@@ -851,7 +853,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (showHideClause == null) return defaultTarget;
 
     kernel.Reference? reference = showHideClause.findShownReference(
-        name, callSiteAccessKind, classHierarchy);
+        name, callSiteAccessKind, membersBuilder);
     if (reference != null) {
       return new ObjectAccessTarget.interfaceMember(
           receiverType, reference.asMember,
@@ -1314,7 +1316,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (memberClass.typeParameters.isNotEmpty) {
       receiverType = resolveTypeParameter(receiverType);
       if (receiverType is InterfaceType) {
-        List<DartType> castedTypeArguments = classHierarchy
+        List<DartType> castedTypeArguments = hierarchyBuilder
             .getTypeArgumentsAsInstanceOf(receiverType, memberClass)!;
         calleeType = Substitution.fromPairs(
                 memberClass.typeParameters, castedTypeArguments)
@@ -1367,7 +1369,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType? getDerivedTypeArgumentOf(DartType type, Class class_) {
     if (type is InterfaceType) {
       List<DartType>? typeArgumentsAsInstanceOfClass =
-          classHierarchy.getTypeArgumentsAsInstanceOf(type, class_);
+          hierarchyBuilder.getTypeArgumentsAsInstanceOf(type, class_);
       if (typeArgumentsAsInstanceOfClass != null) {
         return typeArgumentsAsInstanceOfClass[0];
       }
@@ -3299,7 +3301,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     libraryBuilder.checkBoundsInMethodInvocation(
         actualReceiverType,
         typeSchemaEnvironment,
-        classHierarchy,
+        hierarchyBuilder,
+        membersBuilder,
         actualMethodName,
         interfaceTarget,
         arguments,
@@ -3314,22 +3317,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(inferred != null);
     // If [arguments] were inferred, check them.
 
-    libraryBuilder.checkBoundsInInstantiation(typeSchemaEnvironment,
-        classHierarchy, functionType, arguments, helper.uri, fileOffset,
+    libraryBuilder.checkBoundsInInstantiation(
+        typeSchemaEnvironment, functionType, arguments, helper.uri, fileOffset,
         inferred: inferred);
   }
 
   void _checkBoundsInFunctionInvocation(FunctionType functionType,
       String? localName, Arguments arguments, int fileOffset) {
     // If [arguments] were inferred, check them.
-    libraryBuilder.checkBoundsInFunctionInvocation(
-        typeSchemaEnvironment,
-        classHierarchy,
-        functionType,
-        localName,
-        arguments,
-        helper.uri,
-        fileOffset);
+    libraryBuilder.checkBoundsInFunctionInvocation(typeSchemaEnvironment,
+        functionType, localName, arguments, helper.uri, fileOffset);
   }
 
   /// Performs the core type inference algorithm for super method invocations.
@@ -3635,22 +3632,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   Member? _getInterfaceMember(
       Class class_, Name name, bool setter, int charOffset) {
-    ClassMember? classMember = engine.membersBuilder
-        .getInterfaceClassMember(class_, name, setter: setter);
-    if (classMember != null) {
-      if (classMember.isStatic) {
-        classMember = null;
-      } else if (classMember.isDuplicate) {
-        libraryBuilder.addProblem(
-            templateDuplicatedDeclarationUse.withArguments(name.text),
-            charOffset,
-            name.text.length,
-            helper.uri);
-        classMember = null;
-      }
-    }
-    Member? member = classMember?.getMember(engine.membersBuilder);
-    return TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
+    Member? member =
+        engine.membersBuilder.getInterfaceMember(class_, name, setter: setter);
+    return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
   }
 
   /// Determines if the given [expression]'s type is precisely known at compile

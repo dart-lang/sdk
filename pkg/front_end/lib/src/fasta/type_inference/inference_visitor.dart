@@ -1407,7 +1407,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferredExpressionType is InterfaceType) {
       // TODO(johnniwinther): Should we use the type of
       //  `iterable.iterator.current` instead?
-      List<DartType>? supertypeArguments = classHierarchy
+      List<DartType>? supertypeArguments = hierarchyBuilder
           .getTypeArgumentsAsInstanceOf(inferredExpressionType, iterableClass);
       if (supertypeArguments != null) {
         inferredType = supertypeArguments[0];
@@ -1636,7 +1636,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InitializerInferenceResult visitInvalidSuperInitializerJudgment(
       InvalidSuperInitializerJudgment node) {
     Substitution substitution = Substitution.fromSupertype(
-        classHierarchy.getClassAsInstanceOf(
+        hierarchyBuilder.getClassAsInstanceOf(
             thisType!.classNode, node.target.enclosingClass)!);
     FunctionType functionType = replaceReturnType(
         substitution.substituteType(node.target.function
@@ -2843,10 +2843,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Ambiguous set/map literal
     if (unfuturedTypeContext is InterfaceType) {
       typeContextIsMap = typeContextIsMap ||
-          classHierarchy.isSubtypeOf(
+          hierarchyBuilder.isSubtypeOf(
               unfuturedTypeContext.classNode, coreTypes.mapClass);
       typeContextIsIterable = typeContextIsIterable ||
-          classHierarchy.isSubtypeOf(
+          hierarchyBuilder.isSubtypeOf(
               unfuturedTypeContext.classNode, coreTypes.iterableClass);
       if (node.entries.isEmpty && typeContextIsIterable && !typeContextIsMap) {
         // Set literal
@@ -3086,7 +3086,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           result.inferredType, result.applyResult(invocation));
     } else {
       // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
+      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
       Link<NullAwareGuard> nullAwareGuards = const Link<NullAwareGuard>();
       DartType receiverType = member.getterType;
       Expression receiver = new StaticGet(member)..fileOffset = node.fileOffset;
@@ -5892,7 +5892,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new ExpressionInferenceResult(replacementType, replacement);
     } else {
       // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
+      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
       DartType writeContext = member.setterType;
       ExpressionInferenceResult rhsResult =
           inferExpression(node.value, writeContext, isVoidAllowed: true);
@@ -6153,7 +6153,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readResult.inferredType, readResult.expression);
     } else {
       // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
+      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
       DartType type = member.getterType;
 
       if (member is Procedure && member.kind == ProcedureKind.Method) {
@@ -6302,7 +6302,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitStaticSet(
       StaticSet node, DartType typeContext) {
     Member writeMember = node.target;
-    TypeInferenceEngine.resolveInferenceNode(writeMember, classHierarchy);
+    TypeInferenceEngine.resolveInferenceNode(writeMember, hierarchyBuilder);
     DartType writeContext = writeMember.setterType;
     ExpressionInferenceResult rhsResult =
         inferExpression(node.value, writeContext, isVoidAllowed: true);
@@ -6318,7 +6318,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitStaticGet(
       StaticGet node, DartType typeContext) {
     Member target = node.target;
-    TypeInferenceEngine.resolveInferenceNode(target, classHierarchy);
+    TypeInferenceEngine.resolveInferenceNode(target, hierarchyBuilder);
     DartType type = target.getterType;
 
     if (!isNonNullableByDefault) {
@@ -6378,7 +6378,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
     ensureMemberType(node.target);
     Substitution substitution = Substitution.fromSupertype(
-        classHierarchy.getClassAsInstanceOf(
+        hierarchyBuilder.getClassAsInstanceOf(
             thisType!.classNode, node.target.enclosingClass)!);
     FunctionType functionType = replaceReturnType(
         substitution.substituteType(node.target.function

@@ -42,6 +42,10 @@ abstract class ClassHierarchyBase {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
+  /// True if [subtype] inherits from [superclass] though zero or more
+  /// `extends`, `with`, and `implements` relationships.
+  bool isSubtypeOf(Class subtype, Class superclass);
+
   /// Returns the least upper bound of two interface types, as defined by Dart
   /// 1.0.
   ///
@@ -62,6 +66,21 @@ abstract class ClassHierarchyBase {
 }
 
 abstract class ClassHierarchyMembers {
+  /// Returns the instance member that would respond to a dynamic dispatch of
+  /// [name] to an instance of [class_], or `null` if no such member exists.
+  ///
+  /// If [setter] is `false`, the name is dispatched as a getter or call,
+  /// and will return a field, getter, method, or operator (or null).
+  ///
+  /// If [setter] is `true`, the name is dispatched as a setter, roughly
+  /// corresponding to `name=` in the Dart specification, but note that the
+  /// returned member will not have a name ending with `=`.  In this case,
+  /// a non-final field or setter (or null) will be returned.
+  ///
+  /// If the class is abstract, abstract members are ignored and the dispatch
+  /// is resolved if the class was not abstract.
+  Member? getDispatchTarget(Class class_, Name name, {bool setter = false});
+
   /// Returns the possibly abstract interface member of [class_] with the given
   /// [name].
   ///
@@ -111,21 +130,6 @@ abstract class ClassHierarchy
   /// be a generic class.
   Supertype? asInstantiationOf(Supertype type, Class superclass);
 
-  /// Returns the instance member that would respond to a dynamic dispatch of
-  /// [name] to an instance of [class_], or `null` if no such member exists.
-  ///
-  /// If [setter] is `false`, the name is dispatched as a getter or call,
-  /// and will return a field, getter, method, or operator (or null).
-  ///
-  /// If [setter] is `true`, the name is dispatched as a setter, roughly
-  /// corresponding to `name=` in the Dart specification, but note that the
-  /// returned member will not have a name ending with `=`.  In this case,
-  /// a non-final field or setter (or null) will be returned.
-  ///
-  /// If the class is abstract, abstract members are ignored and the dispatch
-  /// is resolved if the class was not abstract.
-  Member? getDispatchTarget(Class class_, Name name, {bool setter = false});
-
   /// Returns the list of potential targets of dynamic dispatch to an instance
   /// of [class_].
   ///
@@ -158,10 +162,6 @@ abstract class ClassHierarchy
   /// True if [subclass] inherits from [superclass] though zero or more
   /// `extends` relationships.
   bool isSubclassOf(Class subclass, Class superclass);
-
-  /// True if [subtype] inherits from [superclass] though zero or more
-  /// `extends`, `with`, and `implements` relationships.
-  bool isSubtypeOf(Class subtype, Class superclass);
 
   /// True if the given class is used as the right-hand operand to a
   /// mixin application (i.e. [Class.mixedInType]).
