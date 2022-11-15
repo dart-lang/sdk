@@ -539,7 +539,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
     }
     // A LinkedHasMap overwrites its internal storage.
     // Keeping both of them in the list is redundant.
-    if (was_last_array_ && obj->IsLinkedHashMap()) {
+    if (was_last_array_ && obj->IsMap()) {
       was_last_array_ = false;
       return 1;
     }
@@ -1146,14 +1146,14 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(Smi::Value(
           static_cast<GrowableObjectArrayPtr>(obj)->untag()->length()));
-    } else if (cid == kLinkedHashMapCid || cid == kImmutableLinkedHashMapCid) {
+    } else if (cid == kMapCid || cid == kConstMapCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
-    } else if (cid == kLinkedHashSetCid || cid == kImmutableLinkedHashSetCid) {
+          Smi::Value(static_cast<MapPtr>(obj)->untag()->used_data()));
+    } else if (cid == kSetCid || cid == kConstSetCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<LinkedHashSetPtr>(obj)->untag()->used_data()));
+          Smi::Value(static_cast<SetPtr>(obj)->untag()->used_data()));
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<ObjectPoolPtr>(obj)->untag()->length_);
@@ -1721,13 +1721,13 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kExternalTwoByteStringCid:
     case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
-    case kImmutableLinkedHashMapCid:
-    case kImmutableLinkedHashSetCid:
+    case kConstMapCid:
+    case kConstSetCid:
     case kInstructionsCid:
     case kInstructionsSectionCid:
     case kInstructionsTableCid:
-    case kLinkedHashMapCid:
-    case kLinkedHashSetCid:
+    case kMapCid:
+    case kSetCid:
     case kMintCid:
     case kNeverCid:
     case kSentinelCid:

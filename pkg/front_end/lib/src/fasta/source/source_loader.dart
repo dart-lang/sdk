@@ -2925,8 +2925,8 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _InternalLinkedHashMap<K, V> {
-  _InternalLinkedHashMap();
+class _Map<K, V> {
+  _Map();
 }
 
 abstract class LinkedHashSet<E> implements Set<E> {
@@ -2936,8 +2936,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _InternalLinkedHashSet<E> {
-  _InternalLinkedHashSet();
+class _Set<E> {
+  _Set();
 }
 
 class _UnmodifiableSet {

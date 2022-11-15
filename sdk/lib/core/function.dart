@@ -148,17 +148,17 @@ abstract class Function {
 
   /// Test whether another object is equal to this function.
   ///
-  /// Function objects are only equal to other function objects
-  /// (an object satisfying `object is Function`),
-  /// and never to non-function objects.
+  /// Function objects are only equal to other function objects (an object
+  /// satisfying `object is Function`), and never to non-function objects.
   ///
-  /// Some function objects are considered equal by `==`
-  /// because they are recognized as representing the "same function":
+  /// Some function objects are considered equal by `==` because they are
+  /// recognized as representing the "same function":
   ///
   /// - It is the same object. Static and top-level functions are compile time
   ///   constants when used as values, so referring to the same function twice
   ///   always yields the same object, as does referring to a local function
   ///   declaration twice in the same scope where it was declared.
+  ///
   ///   ```dart
   ///   void main() {
   ///     assert(identical(print, print));
@@ -166,34 +166,61 @@ abstract class Function {
   ///     assert(identical(add, add));
   ///   }
   ///   ```
+  ///
   /// - The functions are same member method extracted from the same object.
-  ///   Repeatedly extracting ("tearing off") the same instance method of
-  ///   the same object to a function value
-  ///   gives equal, but not necessarily identical, function values.
+  ///   Repeatedly extracting ("tearing off") the same instance method of the
+  ///   same object to a function value gives equal, but not necessarily
+  ///   identical, function values.
+  ///
   ///   ```dart
   ///   var o = Object();
   ///   assert(o.toString == o.toString);
   ///   ```
+  ///
   /// - Instantiations of equal generic functions with the *same* types
   ///   yields equal results.
-  ///   ```dart
-  ///    T id<T>(T value) => value;
-  ///    assert(id<int> == id<int>);
-  ///   ```
-  ///    (If the function is a constant and the type arguments are known at
-  ///    compile-time, the results may also be identical.)
   ///
-  /// Different evaluations of function literals
-  /// never give rise to equal function objects.
-  /// Each time a function literal is evaluated,
-  /// it creates a new function value that is not equal to any other function
-  /// value, not even ones created by the same expression.
+  ///   ```dart
+  ///   T id<T>(T value) => value;
+  ///   assert(id<int> == id<int>);
+  ///   ```
+  ///
+  ///   (If the function is a constant and the type arguments are known at
+  ///   compile-time, the results may also be identical.)
+  ///
+  /// Different evaluations of function literals are not guaranteed or required
+  /// to give rise to identical or equal function objects. For example:
+  ///
   /// ```dart
   /// var functions = <Function>[];
   /// for (var i = 0; i < 2; i++) {
   ///   functions.add((x) => x);
   /// }
-  /// assert(functions[0] != functions[1]);
+  /// print(identical(functions[0], functions[1])); // 'true' or 'false'
+  /// print(functions[0] == functions[1]); // 'true' or 'false'
   /// ```
+  ///
+  /// If the distinct values are identical, they are always equal.
+  ///
+  /// If the function values are equal, they are guaranteed to behave
+  /// indistinguishably for all arguments.
+  ///
+  /// If two functions values behave differently, they are never equal or
+  /// identical.
+  ///
+  /// The reason to not require a specific equality or identity of the values
+  /// of a function expression is to allow compiler optimizations. If a
+  /// function expression does not depend on surrounding variables, an
+  /// implementation can safely be shared between multiple evaluations. For
+  /// example:
+  ///
+  /// ```dart
+  /// List<int> ints = [6, 2, 5, 1, 4, 3];
+  /// ints.sort((x, y) => x - y);
+  /// print(ints);
+  /// ```
+  ///
+  /// A compiler can convert the closure `(x, y) => x - y` into a top-level
+  /// function.
   bool operator ==(Object other);
 }

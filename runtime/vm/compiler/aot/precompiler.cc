@@ -2510,10 +2510,9 @@ class ConstantInstanceVisitor {
         }
         break;
       }
-      case kImmutableLinkedHashMapCid: {
-        const LinkedHashMap& map =
-            LinkedHashMap::Handle(LinkedHashMap::RawCast(object_ptr));
-        LinkedHashMap::Iterator iterator(map);
+      case kConstMapCid: {
+        const Map& map = Map::Handle(Map::RawCast(object_ptr));
+        Map::Iterator iterator(map);
         while (iterator.MoveNext()) {
           ObjectPtr element = iterator.CurrentKey();
           Visit(element);
@@ -2532,10 +2531,9 @@ class ConstantInstanceVisitor {
         }
         break;
       }
-      case kImmutableLinkedHashSetCid: {
-        const LinkedHashSet& set =
-            LinkedHashSet::Handle(LinkedHashSet::RawCast(object_ptr));
-        LinkedHashSet::Iterator iterator(set);
+      case kConstSetCid: {
+        const Set& set = Set::Handle(Set::RawCast(object_ptr));
+        Set::Iterator iterator(set);
         while (iterator.MoveNext()) {
           ObjectPtr element = iterator.CurrentKey();
           Visit(element);

@@ -19,7 +19,7 @@ class LinkedHashMap<K, V> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _InternalLinkedHashMap<K, V>();
+          return new _Map<K, V>();
         }
         hashCode = _defaultHashCode;
       } else {
@@ -50,7 +50,7 @@ class LinkedHashSet<E> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _InternalLinkedHashSet<E>();
+          return new _Set<E>();
         }
         hashCode = _defaultHashCode;
       } else {

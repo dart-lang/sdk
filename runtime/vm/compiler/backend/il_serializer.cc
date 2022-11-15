@@ -1553,8 +1553,8 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       }
       break;
     }
-    case kImmutableLinkedHashMapCid:
-    case kImmutableLinkedHashSetCid: {
+    case kConstMapCid:
+    case kConstSetCid: {
       const auto& map = LinkedHashBase::Cast(x);
       ASSERT(map.IsCanonical());
       const intptr_t length = map.Length();
@@ -1564,7 +1564,7 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       const auto& data = Array::Handle(Z, map.data());
       auto& elem = Object::Handle(Z);
       intptr_t used_data;
-      if (cid == kImmutableLinkedHashMapCid) {
+      if (cid == kConstMapCid) {
         used_data = length << 1;
       } else {
         used_data = length;
@@ -1830,17 +1830,17 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       }
       break;
     }
-    case kImmutableLinkedHashMapCid:
-    case kImmutableLinkedHashSetCid: {
+    case kConstMapCid:
+    case kConstSetCid: {
       const intptr_t length = Read<intptr_t>();
       const auto& type_args = Read<const TypeArguments&>();
       Instance& result = Instance::ZoneHandle(Z);
       intptr_t used_data;
-      if (cid == kImmutableLinkedHashMapCid) {
-        result = ImmutableLinkedHashMap::NewUninitialized(Heap::kOld);
+      if (cid == kConstMapCid) {
+        result = ConstMap::NewUninitialized(Heap::kOld);
         used_data = (length << 1);
       } else {
-        result = ImmutableLinkedHashSet::NewUninitialized(Heap::kOld);
+        result = ConstSet::NewUninitialized(Heap::kOld);
         used_data = length;
       }
       // LinkedHashBase is not a proper handle type, so

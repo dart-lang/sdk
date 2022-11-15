@@ -3090,19 +3090,19 @@ class UntaggedArray : public UntaggedInstance {
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
-  friend class LinkedHashMapSerializationCluster;
-  friend class LinkedHashMapDeserializationCluster;
-  friend class LinkedHashSetSerializationCluster;
-  friend class LinkedHashSetDeserializationCluster;
+  friend class MapSerializationCluster;
+  friend class MapDeserializationCluster;
+  friend class SetSerializationCluster;
+  friend class SetDeserializationCluster;
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
   friend class UntaggedCode;
   friend class UntaggedImmutableArray;
   friend class GrowableObjectArray;
-  friend class LinkedHashMap;
-  friend class UntaggedLinkedHashMap;
-  friend class UntaggedImmutableLinkedHashMap;
+  friend class Map;
+  friend class UntaggedMap;
+  friend class UntaggedConstMap;
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
@@ -3149,24 +3149,24 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
   }
 };
 
-class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+class UntaggedMap : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Map);
 
-  friend class UntaggedImmutableLinkedHashMap;
+  friend class UntaggedConstMap;
 };
 
-class UntaggedImmutableLinkedHashMap : public UntaggedLinkedHashMap {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashMap);
+class UntaggedConstMap : public UntaggedMap {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ConstMap);
 };
 
-class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
+class UntaggedSet : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Set);
 
-  friend class UntaggedImmutableLinkedHashSet;
+  friend class UntaggedConstSet;
 };
 
-class UntaggedImmutableLinkedHashSet : public UntaggedLinkedHashSet {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashSet);
+class UntaggedConstSet : public UntaggedSet {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ConstSet);
 };
 
 class UntaggedFloat32x4 : public UntaggedInstance {
@@ -3475,7 +3475,7 @@ class UntaggedFinalizerBase : public UntaggedInstance {
 
   COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
   VISIT_FROM(detachments)
-  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
+  COMPRESSED_POINTER_FIELD(SetPtr, all_entries)
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>

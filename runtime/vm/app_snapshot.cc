@@ -5443,20 +5443,20 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class LinkedHashMapSerializationCluster : public SerializationCluster {
+class MapSerializationCluster : public SerializationCluster {
  public:
-  LinkedHashMapSerializationCluster(bool is_canonical, intptr_t cid)
-      : SerializationCluster("LinkedHashMap",
+  MapSerializationCluster(bool is_canonical, intptr_t cid)
+      : SerializationCluster("Map",
                              cid,
-                             compiler::target::LinkedHashMap::InstanceSize(),
+                             compiler::target::Map::InstanceSize(),
                              is_canonical) {}
-  ~LinkedHashMapSerializationCluster() {}
+  ~MapSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
-    LinkedHashMapPtr map = LinkedHashMap::RawCast(object);
+    MapPtr map = Map::RawCast(object);
     // We never have mutable hashmaps in snapshots.
     ASSERT(map->untag()->IsCanonical());
-    ASSERT_EQUAL(map.GetClassId(), kImmutableLinkedHashMapCid);
+    ASSERT_EQUAL(map.GetClassId(), kConstMapCid);
     objects_.Add(map);
     PushFromTo(map);
   }
@@ -5465,7 +5465,7 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashMapPtr map = objects_[i];
+      MapPtr map = objects_[i];
       s->AssignRef(map);
     }
   }
@@ -5473,27 +5473,27 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashMapPtr map = objects_[i];
+      MapPtr map = objects_[i];
       AutoTraceObject(map);
       WriteFromTo(map);
     }
   }
 
  private:
-  GrowableArray<LinkedHashMapPtr> objects_;
+  GrowableArray<MapPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
-class LinkedHashMapDeserializationCluster
+class MapDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit LinkedHashMapDeserializationCluster(bool is_canonical, intptr_t cid)
-      : AbstractInstanceDeserializationCluster("LinkedHashMap", is_canonical),
+  explicit MapDeserializationCluster(bool is_canonical, intptr_t cid)
+      : AbstractInstanceDeserializationCluster("Map", is_canonical),
         cid_(cid) {}
-  ~LinkedHashMapDeserializationCluster() {}
+  ~MapDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    ReadAllocFixedSize(d, LinkedHashMap::InstanceSize());
+    ReadAllocFixedSize(d, Map::InstanceSize());
   }
 
   void ReadFill(Deserializer* d_, bool primary) {
@@ -5502,8 +5502,8 @@ class LinkedHashMapDeserializationCluster
     const intptr_t cid = cid_;
     const bool mark_canonical = primary && is_canonical();
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-      LinkedHashMapPtr map = static_cast<LinkedHashMapPtr>(d.Ref(id));
-      Deserializer::InitializeHeader(map, cid, LinkedHashMap::InstanceSize(),
+      MapPtr map = static_cast<MapPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(map, cid, Map::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(map);
     }
@@ -5514,20 +5514,20 @@ class LinkedHashMapDeserializationCluster
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class LinkedHashSetSerializationCluster : public SerializationCluster {
+class SetSerializationCluster : public SerializationCluster {
  public:
-  LinkedHashSetSerializationCluster(bool is_canonical, intptr_t cid)
-      : SerializationCluster("LinkedHashSet",
+  SetSerializationCluster(bool is_canonical, intptr_t cid)
+      : SerializationCluster("Set",
                              cid,
-                             compiler::target::LinkedHashSet::InstanceSize(),
+                             compiler::target::Set::InstanceSize(),
                              is_canonical) {}
-  ~LinkedHashSetSerializationCluster() {}
+  ~SetSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
-    LinkedHashSetPtr set = LinkedHashSet::RawCast(object);
+    SetPtr set = Set::RawCast(object);
     // We never have mutable hashsets in snapshots.
     ASSERT(set->untag()->IsCanonical());
-    ASSERT_EQUAL(set.GetClassId(), kImmutableLinkedHashSetCid);
+    ASSERT_EQUAL(set.GetClassId(), kConstSetCid);
     objects_.Add(set);
     PushFromTo(set);
   }
@@ -5536,7 +5536,7 @@ class LinkedHashSetSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashSetPtr set = objects_[i];
+      SetPtr set = objects_[i];
       s->AssignRef(set);
     }
   }
@@ -5544,27 +5544,27 @@ class LinkedHashSetSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      LinkedHashSetPtr set = objects_[i];
+      SetPtr set = objects_[i];
       AutoTraceObject(set);
       WriteFromTo(set);
     }
   }
 
  private:
-  GrowableArray<LinkedHashSetPtr> objects_;
+  GrowableArray<SetPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
-class LinkedHashSetDeserializationCluster
+class SetDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit LinkedHashSetDeserializationCluster(bool is_canonical, intptr_t cid)
-      : AbstractInstanceDeserializationCluster("LinkedHashSet", is_canonical),
+  explicit SetDeserializationCluster(bool is_canonical, intptr_t cid)
+      : AbstractInstanceDeserializationCluster("Set", is_canonical),
         cid_(cid) {}
-  ~LinkedHashSetDeserializationCluster() {}
+  ~SetDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    ReadAllocFixedSize(d, LinkedHashSet::InstanceSize());
+    ReadAllocFixedSize(d, Set::InstanceSize());
   }
 
   void ReadFill(Deserializer* d_, bool primary) {
@@ -5573,8 +5573,8 @@ class LinkedHashSetDeserializationCluster
     const intptr_t cid = cid_;
     const bool mark_canonical = primary && is_canonical();
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-      LinkedHashSetPtr set = static_cast<LinkedHashSetPtr>(d.Ref(id));
-      Deserializer::InitializeHeader(set, cid, LinkedHashSet::InstanceSize(),
+      SetPtr set = static_cast<SetPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(set, cid, Set::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(set);
     }
@@ -7031,18 +7031,16 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
       return new (Z) RegExpSerializationCluster();
     case kWeakPropertyCid:
       return new (Z) WeakPropertySerializationCluster();
-    case kLinkedHashMapCid:
+    case kMapCid:
       // We do not have mutable hash maps in snapshots.
       UNREACHABLE();
-    case kImmutableLinkedHashMapCid:
-      return new (Z) LinkedHashMapSerializationCluster(
-          is_canonical, kImmutableLinkedHashMapCid);
-    case kLinkedHashSetCid:
+    case kConstMapCid:
+      return new (Z) MapSerializationCluster(is_canonical, kConstMapCid);
+    case kSetCid:
       // We do not have mutable hash sets in snapshots.
       UNREACHABLE();
-    case kImmutableLinkedHashSetCid:
-      return new (Z) LinkedHashSetSerializationCluster(
-          is_canonical, kImmutableLinkedHashSetCid);
+    case kConstSetCid:
+      return new (Z) SetSerializationCluster(is_canonical, kConstSetCid);
     case kArrayCid:
       return new (Z) ArraySerializationCluster(is_canonical, kArrayCid);
     case kImmutableArrayCid:
@@ -8198,18 +8196,16 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kWeakPropertyCid:
       ASSERT(!is_canonical);
       return new (Z) WeakPropertyDeserializationCluster();
-    case kLinkedHashMapCid:
+    case kMapCid:
       // We do not have mutable hash maps in snapshots.
       UNREACHABLE();
-    case kImmutableLinkedHashMapCid:
-      return new (Z) LinkedHashMapDeserializationCluster(
-          is_canonical, kImmutableLinkedHashMapCid);
-    case kLinkedHashSetCid:
+    case kConstMapCid:
+      return new (Z) MapDeserializationCluster(is_canonical, kConstMapCid);
+    case kSetCid:
       // We do not have mutable hash sets in snapshots.
       UNREACHABLE();
-    case kImmutableLinkedHashSetCid:
-      return new (Z) LinkedHashSetDeserializationCluster(
-          is_canonical, kImmutableLinkedHashSetCid);
+    case kConstSetCid:
+      return new (Z) SetDeserializationCluster(is_canonical, kConstSetCid);
     case kArrayCid:
       return new (Z) ArrayDeserializationCluster(is_canonical, kArrayCid);
     case kImmutableArrayCid:

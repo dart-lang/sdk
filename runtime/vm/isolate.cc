@@ -2489,7 +2489,7 @@ void Isolate::RunAndCleanupFinalizersOnShutdown() {
     auto& weak_reference = WeakReference::Handle(stack_zone.GetZone());
     auto& finalizer = FinalizerBase::Handle(stack_zone.GetZone());
     auto& current_entry = FinalizerEntry::Handle(stack_zone.GetZone());
-    auto& all_entries = LinkedHashSet::Handle(stack_zone.GetZone());
+    auto& all_entries = Set::Handle(stack_zone.GetZone());
     for (int i = 0; i < num_finalizers; i++) {
       weak_reference ^= finalizers.At(i);
       finalizer ^= weak_reference.target();
@@ -2510,7 +2510,7 @@ void Isolate::RunAndCleanupFinalizersOnShutdown() {
           // Immediately call native callback.
           const auto& native_finalizer = NativeFinalizer::Cast(finalizer);
           all_entries = finalizer.all_entries();
-          LinkedHashSet::Iterator iterator(all_entries);
+          Set::Iterator iterator(all_entries);
           while (iterator.MoveNext()) {
             current_entry ^= iterator.CurrentKey();
             native_finalizer.RunCallback(current_entry, "Isolate shutdown");

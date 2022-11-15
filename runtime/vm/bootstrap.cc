@@ -96,13 +96,13 @@ static void Finish(Thread* thread) {
   cls.EnsureIsFinalized(thread);
   cls = object_store->immutable_array_class();
   cls.EnsureIsFinalized(thread);
-  cls = object_store->linked_hash_map_class();
+  cls = object_store->map_impl_class();
   cls.EnsureIsFinalized(thread);
-  cls = object_store->immutable_linked_hash_map_class();
+  cls = object_store->const_map_impl_class();
   cls.EnsureIsFinalized(thread);
-  cls = object_store->linked_hash_set_class();
+  cls = object_store->set_impl_class();
   cls.EnsureIsFinalized(thread);
-  cls = object_store->immutable_linked_hash_set_class();
+  cls = object_store->const_set_impl_class();
   cls.EnsureIsFinalized(thread);
 }
 

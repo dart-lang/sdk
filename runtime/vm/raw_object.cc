@@ -549,8 +549,8 @@ COMPRESSED_VISITOR(UnwindError)
 COMPRESSED_VISITOR(ExternalOneByteString)
 COMPRESSED_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
-COMPRESSED_VISITOR(LinkedHashMap)
-COMPRESSED_VISITOR(LinkedHashSet)
+COMPRESSED_VISITOR(Map)
+COMPRESSED_VISITOR(Set)
 COMPRESSED_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
 COMPRESSED_VISITOR(ReceivePort)
@@ -747,16 +747,16 @@ intptr_t UntaggedImmutableArray::VisitImmutableArrayPointers(
   return UntaggedArray::VisitArrayPointers(raw_obj, visitor);
 }
 
-intptr_t UntaggedImmutableLinkedHashMap::VisitImmutableLinkedHashMapPointers(
-    ImmutableLinkedHashMapPtr raw_obj,
+intptr_t UntaggedConstMap::VisitConstMapPointers(
+    ConstMapPtr raw_obj,
     ObjectPointerVisitor* visitor) {
-  return UntaggedLinkedHashMap::VisitLinkedHashMapPointers(raw_obj, visitor);
+  return UntaggedMap::VisitMapPointers(raw_obj, visitor);
 }
 
-intptr_t UntaggedImmutableLinkedHashSet::VisitImmutableLinkedHashSetPointers(
-    ImmutableLinkedHashSetPtr raw_obj,
+intptr_t UntaggedConstSet::VisitConstSetPointers(
+    ConstSetPtr raw_obj,
     ObjectPointerVisitor* visitor) {
-  return UntaggedLinkedHashSet::VisitLinkedHashSetPointers(raw_obj, visitor);
+  return UntaggedSet::VisitSetPointers(raw_obj, visitor);
 }
 
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {

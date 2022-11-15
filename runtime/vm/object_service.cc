@@ -1415,7 +1415,7 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void Map::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Map");
@@ -1437,7 +1437,7 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   {
     JSONArray jsarr(&jsobj, "associations");
     Object& object = Object::Handle();
-    LinkedHashMap::Iterator iterator(*this);
+    Map::Iterator iterator(*this);
     int i = 0;
     while (iterator.MoveNext() && i < limit) {
       if (i >= offset) {
@@ -1452,7 +1452,7 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void LinkedHashSet::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void Set::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Set");
@@ -1474,7 +1474,7 @@ void LinkedHashSet::PrintJSONImpl(JSONStream* stream, bool ref) const {
   {
     JSONArray jsarr(&jsobj, "elements");
     Object& object = Object::Handle();
-    LinkedHashSet::Iterator iterator(*this);
+    Set::Iterator iterator(*this);
     int i = 0;
     while (iterator.MoveNext() && i < limit) {
       if (i >= offset) {

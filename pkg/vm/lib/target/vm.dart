@@ -30,10 +30,10 @@ class VmTarget extends Target {
 
   Class? _growableList;
   Class? _immutableList;
-  Class? _internalImmutableLinkedHashMap;
-  Class? _internalImmutableLinkedHashSet;
-  Class? _internalLinkedHashMap;
-  Class? _internalLinkedHashSet;
+  Class? _constMap;
+  Class? _constSet;
+  Class? _map;
+  Class? _set;
   Class? _record;
   Class? _oneByteString;
   Class? _twoByteString;
@@ -431,26 +431,24 @@ class VmTarget extends Target {
 
   @override
   Class concreteMapLiteralClass(CoreTypes coreTypes) {
-    return _internalLinkedHashMap ??=
-        coreTypes.index.getClass('dart:collection', '_InternalLinkedHashMap');
+    return _map ??= coreTypes.index.getClass('dart:collection', '_Map');
   }
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _internalImmutableLinkedHashMap ??= coreTypes.index
-        .getClass('dart:collection', '_InternalImmutableLinkedHashMap');
+    return _constMap ??=
+        coreTypes.index.getClass('dart:collection', '_ConstMap');
   }
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _internalLinkedHashSet ??=
-        coreTypes.index.getClass('dart:collection', '_InternalLinkedHashSet');
+    return _set ??= coreTypes.index.getClass('dart:collection', '_Set');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
-    return _internalImmutableLinkedHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_InternalImmutableLinkedHashSet');
+    return _constSet ??=
+        coreTypes.index.getClass('dart:collection', '_ConstSet');
   }
 
   @override
