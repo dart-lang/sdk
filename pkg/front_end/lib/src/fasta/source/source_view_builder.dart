@@ -43,7 +43,7 @@ class SourceViewBuilder extends ViewBuilderImpl
       int startOffset,
       int nameOffset,
       int endOffset,
-      Extension? referenceFrom)
+      View? referenceFrom)
       : _view = new View(
             name: name,
             fileUri: parent.fileUri,

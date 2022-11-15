@@ -2186,7 +2186,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         debugName: "extension $name",
         isModifiable: false);
 
-    Extension? referenceFrom = referencesFromIndexed?.lookupExtension(name);
+    View? referenceFrom = referencesFromIndexed?.lookupView(name);
 
     ViewBuilder viewBuilder = new SourceViewBuilder(
         metadata,
