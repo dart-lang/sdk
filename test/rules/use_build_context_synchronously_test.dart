@@ -24,6 +24,27 @@ class UseBuildContextSynchronouslyTest extends LintRuleTest {
   @override
   String get testPackageRootPath => '$workspaceRootPath/lib';
 
+  /// https://github.com/dart-lang/linter/issues/3818
+  test_context_propertyAccess() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+class W {
+  final BuildContext context;
+  W(this.context);
+
+  Future<void> f() async {
+    await Future.value();
+    g(this.context);
+  }
+
+  Future<void> g(BuildContext context) async {}
+}
+''', [
+      lint(157, 15),
+    ]);
+  }
+
   /// https://github.com/dart-lang/linter/issues/3676
   test_contextPassedAsNamedParam() async {
     await assertDiagnostics(r'''

@@ -113,6 +113,9 @@ class _Visitor extends SimpleAstVisitor {
       if (argument is NamedExpression) {
         argument = argument.expression;
       }
+      if (argument is PropertyAccess) {
+        argument = argument.propertyName;
+      }
       if (argument is Identifier) {
         var element = argument.staticElement;
         if (element == null) {
