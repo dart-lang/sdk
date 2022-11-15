@@ -88,30 +88,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     _visitTypedLiteral(node);
   }
 
-  Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
-    InterfaceType? current = type;
-    // TODO(a14n) the is check looks unnecessary but prevents https://github.com/dart-lang/sdk/issues/33210
-    // for now it's not clear how this can happen
-    while (current != null) {
-      yield current;
-      current = current.superclass;
-    }
-  }
-
-  bool _hasImmutableAnnotation(DartType? type) {
-    if (type is! InterfaceType) {
-      // This happens when we find an instance creation expression for a class
-      // that cannot be resolved.
-      return false;
-    }
-    var inheritedAndSelfTypes = _getSelfAndInheritedTypes(type);
-    var inheritedAndSelfAnnotations = inheritedAndSelfTypes
-        .map((type) => type.element)
-        .expand((c) => c.metadata)
-        .map((m) => m.element);
-    return inheritedAndSelfAnnotations.any(_isImmutable);
-  }
-
   void _visitTypedLiteral(TypedLiteral literal) {
     if (literal.isConst) return;
 
@@ -134,5 +110,24 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (context.canBeConst(literal)) {
       rule.reportLint(literal);
     }
+  }
+
+  // todo(pq): consider making this a utility and sharing w/ `avoid_equals_and_hash_code_on_mutable_classes`
+  static bool _hasImmutableAnnotation(DartType? type) {
+    if (type is! InterfaceType) {
+      // This happens when we find an instance creation expression for a class
+      // that cannot be resolved.
+      return false;
+    }
+
+    InterfaceType? current = type;
+    while (current != null) {
+      for (var annotation in current.element.metadata) {
+        if (_isImmutable(annotation.element)) return true;
+      }
+      current = current.superclass;
+    }
+
+    return false;
   }
 }

@@ -78,3 +78,7 @@ var m15 = new A({1: null}); // LINT
 class C {}
 var m16 = A([C()]); // OK
 
+class B {
+  const B(b);
+}
+var bb = B([1]); //OK
