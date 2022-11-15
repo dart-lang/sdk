@@ -7,6 +7,7 @@ import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
+import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
 import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
 import 'avoid_function_literals_in_foreach_calls_test.dart'
     as avoid_function_literals_in_foreach_calls;
@@ -100,14 +101,15 @@ void main() {
   annotate_overrides.main();
   avoid_annotating_with_dynamic.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
+  avoid_escaping_inner_quotes.main();
   avoid_function_literals_in_foreach_calls.main();
-  avoid_setters_without_getters.main();
   avoid_final_parameters.main();
   avoid_init_to_null.main();
   avoid_private_typedef_functions.main();
   avoid_redundant_argument_values.main();
   avoid_renaming_method_parameters.main();
   avoid_returning_this.main();
+  avoid_setters_without_getters.main();
   avoid_shadowing_type_parameters.main();
   avoid_types_as_parameter_names.main();
   avoid_unused_constructor_parameters.main();

@@ -74,7 +74,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _check(AstNode node, String text, bool isSingleQuoted) {
     if (_isChangeable(text, isSingleQuoted: isSingleQuoted)) {
-      rule.reportLint(node);
+      rule.reportLint(node,
+          arguments: [isSingleQuoted ? "'" : '"', isSingleQuoted ? '"' : "'"]);
     }
   }
 
