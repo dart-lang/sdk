@@ -122,6 +122,9 @@ class ResolutionEnqueuer extends Enqueuer {
     }
     if (useSet.contains(ClassUse.IMPLEMENTED)) {
       applyImpact(listener.registerImplementedClass(cls));
+      if (cls.isAbstract) {
+        worldBuilder.processAbstractClassMembers(cls, _applyMemberUse);
+      }
     }
   }
 

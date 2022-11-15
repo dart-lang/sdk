@@ -246,6 +246,7 @@ abstract class KClassEnv {
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
+      Set<MemberEntity> liveAbstractMembers,
       LibraryEntity Function(ir.Library library) getJLibrary);
 
   /// Returns `true` if [node] is a known member of this class.
@@ -435,6 +436,7 @@ class KClassEnvImpl implements KClassEnv {
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
+      Set<MemberEntity> liveAbstractMembers,
       LibraryEntity Function(ir.Library library) getJLibrary) {
     Map<String, ir.Member> constructorMap;
     Map<Name, ir.Member> memberMap;
@@ -445,7 +447,8 @@ class KClassEnvImpl implements KClassEnv {
       constructorMap = <String, ir.Member>{};
       _constructorMap!.forEach((String name, ir.Member node) {
         MemberEntity member = kElementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           constructorMap[name] = node;
         }
       });
@@ -456,7 +459,8 @@ class KClassEnvImpl implements KClassEnv {
       memberMap = <Name, ir.Member>{};
       _memberMap!.forEach((Name name, ir.Member node) {
         MemberEntity member = kElementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           memberMap[name] = node;
         }
       });
@@ -467,7 +471,8 @@ class KClassEnvImpl implements KClassEnv {
       members = <ir.Member>[];
       _members!.forEach((ir.Member node) {
         MemberEntity member = kElementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           members.add(node);
         }
       });
@@ -682,7 +687,12 @@ class KFunctionDataImpl extends KMemberDataImpl
   @override
   FunctionData convert() {
     return FunctionDataImpl(
-        node, functionNode, RegularMemberDefinition(node), staticTypes!);
+        node,
+        functionNode,
+        RegularMemberDefinition(node),
+        // Abstract members without bodies will not have expressions so we use
+        // an empty cache.
+        staticTypes ?? const StaticTypeCache());
   }
 
   @override
@@ -757,7 +767,12 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
 
   @override
   JFieldData convert() {
-    return JFieldDataImpl(node, RegularMemberDefinition(node), staticTypes!);
+    return JFieldDataImpl(
+        node,
+        RegularMemberDefinition(node),
+        // Late fields in abstract classes won't have initializers so we use an
+        // empty cache.
+        staticTypes ?? const StaticTypeCache());
   }
 }
 

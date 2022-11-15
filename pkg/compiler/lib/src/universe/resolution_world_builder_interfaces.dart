@@ -21,6 +21,9 @@ abstract class ResolutionWorldBuilder implements World {
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false});
 
+  void processAbstractClassMembers(
+      ClassEntity cls, MemberUsedCallback memberUsed);
+
   bool isInheritedIn(
       MemberEntity member, ClassEntity type, ClassRelation relation);
 

@@ -40,6 +40,7 @@ class KClosedWorld implements BuiltWorld {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
   final Iterable<MemberEntity> liveInstanceMembers;
+  final Iterable<MemberEntity> liveAbstractInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
@@ -102,6 +103,7 @@ class KClosedWorld implements BuiltWorld {
       required Set<ClassEntity> implementedClasses,
       required this.liveNativeClasses,
       required this.liveInstanceMembers,
+      required this.liveAbstractInstanceMembers,
       required this.assignedInstanceMembers,
       required this.liveMemberUsage,
       required this.mixinUses,
