@@ -3387,8 +3387,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
-    flowAnalysis.thisOrSuperPropertyGet(
-        expression, name.text, member, inferredType);
+    inferredType = flowAnalysis.thisOrSuperPropertyGet(
+            expression, name.text, member, inferredType) ??
+        inferredType;
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
