@@ -4,14 +4,16 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Avoid redundant argument values.';
 
 const _details = r'''
-**DON'T** declare arguments with values that match the defaults for the
-corresponding parameter.
+**DON'T** pass an argument that matches the corresponding parameter's default
+value.
 
 **BAD:**
 ```dart
@@ -80,25 +82,31 @@ class _Visitor extends SimpleAstVisitor {
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
       var param = arg.staticParameterElement;
-      if (param == null ||
-          param.declaration.isRequired ||
-          param.hasRequired ||
-          !param.isOptional) {
-        continue;
+      if (arg is NamedExpression) {
+        arg = arg.expression;
       }
-      var value = param.computeConstantValue();
-      if (value != null && value.hasKnownValue) {
-        if (arg is NamedExpression) {
-          arg = arg.expression;
-        }
-        var expressionValue = context.evaluateConstant(arg).value;
-        if ((expressionValue?.hasKnownValue ?? false) &&
-            expressionValue == value) {
-          rule.reportLint(arg);
-        }
-      }
-      if (param.isOptionalPositional) {
+      checkArgument(arg, param);
+      if (param != null && param.isOptionalPositional) {
+        // Redundant arguments may be necessary to specify, in order to specify
+        // a non-redundant argument for the last optional positional parameter.
         break;
+      }
+    }
+  }
+
+  void checkArgument(Expression arg, ParameterElement? param) {
+    if (param == null ||
+        param.declaration.isRequired ||
+        param.hasRequired ||
+        !param.isOptional) {
+      return;
+    }
+    var value = param.computeConstantValue();
+    if (value != null && value.hasKnownValue) {
+      var expressionValue = context.evaluateConstant(arg).value;
+      if ((expressionValue?.hasKnownValue ?? false) &&
+          expressionValue == value) {
+        rule.reportLint(arg);
       }
     }
   }
@@ -115,7 +123,52 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    check(node.argumentList);
+    var redirectedConstructor =
+        node.constructorName.staticElement?.redirectedConstructor;
+    while (redirectedConstructor?.redirectedConstructor != null) {
+      redirectedConstructor = redirectedConstructor?.redirectedConstructor;
+    }
+    if (redirectedConstructor == null) {
+      check(node.argumentList);
+      return;
+    }
+
+    var parameters = redirectedConstructor.parameters;
+
+    // If the constructor being called is a redirecting constructor, an argument
+    // is redundant if it is equal to the default value of the corresponding
+    // parameter on the _redirectied constructor_, not this constructor, which
+    // may be different.
+
+    var arguments = node.argumentList.arguments;
+    if (arguments.isEmpty) {
+      return;
+    }
+
+    for (var i = arguments.length - 1; i >= 0; --i) {
+      var arg = arguments[i];
+      ParameterElement? param;
+      if (arg is NamedExpression) {
+        param = parameters.firstWhereOrNull(
+            (p) => p.isNamed && p.name == arg.name.label.name);
+      } else {
+        // Count which positional argument we're at.
+        var positionalCount =
+            arguments.take(i + 1).where((a) => a is! NamedExpression).length;
+        var positionalIndex = positionalCount - 1;
+        if (positionalIndex < parameters.length) {
+          if (parameters[positionalIndex].isPositional) {
+            param = parameters[positionalIndex];
+          }
+        }
+      }
+      checkArgument(arg, param);
+      if (param != null && param.isOptionalPositional) {
+        // Redundant arguments may be necessary to specify, in order to specify
+        // a non-redundant argument for the last optional positional parameter.
+        break;
+      }
+    }
   }
 
   @override
