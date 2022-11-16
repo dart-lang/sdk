@@ -35,6 +35,21 @@ luci.cq_group(
     verifiers = None,
 )
 
+# Commit queue group for try builders only on the main branch. E.g. nightly
+# builders only run on the main branch and their try builders can't compare with
+# non-existent results on the release branches.
+luci.cq_group(
+    name = "sdk-main",
+    watch = cq.refset(
+        DART_GERRIT + "sdk",
+        refs = ["refs/heads/main"],
+    ),
+    allow_submit_with_open_deps = True,
+    tree_status_host = "dart-status.appspot.com",
+    retry_config = cq.RETRY_NONE,
+    verifiers = None,
+)
+
 luci.cq_group(
     name = "sdk-infra-config",
     watch = cq.refset(DART_GERRIT + "sdk", refs = ["refs/heads/infra/config"]),
