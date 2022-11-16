@@ -32,6 +32,10 @@ import 'package:expect/expect.dart';
 
 import 'v8_regexp_utils.dart';
 
+// TODO(50437): A number of test cases in this group currently fail on
+// web backends, and so those cases were moved to `named_captures_2_test`.
+// To highlight the connection between these tests, those test cases have been
+// left in this file but commented out.
 void main() {
   void execRE(RegExp re, String input, List<String> expectedResult) {
     assertTrue(re.hasMatch(input));
@@ -39,7 +43,7 @@ void main() {
   }
 
   void execString(String pattern, String input, List<String> expectedResult,
-      {bool unicode = true, bool caseSensitive: false}) {
+      {bool unicode = true, bool caseSensitive = false}) {
     execRE(RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
         input, expectedResult);
   }
@@ -54,7 +58,7 @@ void main() {
 
   void execStringGroups(
       String pattern, String input, Map<String, String> expectedResults,
-      {bool unicode = true, bool caseSensitive: false}) {
+      {bool unicode = true, bool caseSensitive = false}) {
     namedRE(RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
         input, expectedResults);
   }
@@ -263,7 +267,7 @@ void main() {
   execStringGroups(r"(?<π>a)", "bab", {"π": "a"}, unicode: false);
   execStringGroups(r"(?<$>a)", "bab", {"\$": "a"}, unicode: false);
   execStringGroups(r"(?<_>a)", "bab", {"_": "a"}, unicode: false);
-  assertThrows(() => RegExp(r"(?<$𐒤>a)"));
+  // assertThrows(() => RegExp(r"(?<$𐒤>a)"));
   execStringGroups(r"(?<ಠ_ಠ>a)", "bab", {"ಠ_ಠ": "a"}, unicode: false);
   // ID_Continue but not ID_Start.
   assertThrows(() => RegExp(r"/(?<❤>a)"));
@@ -324,17 +328,17 @@ void main() {
   // Also checking non-unicode patterns, where surrogate pairs will not
   // be combined (so only \u0041 will have any success).
 
-  assertThrows(() => RegExp("(?<a\uD801\uDCA4>.)"));
-  assertThrows(() => RegExp(r"(?<a\uD801\uDCA4>.)"));
-  assertThrows(() => RegExp("(?<a\uD801>.)"));
-  assertThrows(() => RegExp(r"(?<a\uD801>.)"));
-  assertThrows(() => RegExp("(?<a\uDCA4>.)"));
-  assertThrows(() => RegExp(r"(?<a\uDCA4>.)"));
+  // assertThrows(() => RegExp("(?<a\uD801\uDCA4>.)"));
+  // assertThrows(() => RegExp(r"(?<a\uD801\uDCA4>.)"));
+  // assertThrows(() => RegExp("(?<a\uD801>.)"));
+  // assertThrows(() => RegExp(r"(?<a\uD801>.)"));
+  // assertThrows(() => RegExp("(?<a\uDCA4>.)"));
+  // assertThrows(() => RegExp(r"(?<a\uDCA4>.)"));
   assertTrue(RegExp("(?<\u0041>.)").hasMatch("a"));
   assertTrue(RegExp(r"(?<\u0041>.)").hasMatch("a"));
-  assertThrows(() => RegExp("(?<a\u{104A4}>.)"));
-  assertThrows(() => RegExp(r"(?<a\u{104A4}>.)"));
-  assertThrows(() => RegExp("(?<a\u{10FFFF}>.)"));
-  assertThrows(() => RegExp(r"(?<a\u{10FFFF}>.)"));
-  assertThrows(() => RegExp(r"(?<a\\u{110000}>.)"));
+  // assertThrows(() => RegExp("(?<a\u{104A4}>.)"));
+  // assertThrows(() => RegExp(r"(?<a\u{104A4}>.)"));
+  // assertThrows(() => RegExp("(?<a\u{10FFFF}>.)"));
+  // assertThrows(() => RegExp(r"(?<a\u{10FFFF}>.)"));
+  // assertThrows(() => RegExp(r"(?<a\\u{110000}>.)"));
 }
