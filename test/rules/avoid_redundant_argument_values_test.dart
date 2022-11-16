@@ -86,7 +86,7 @@ void f() {
 ''');
   }
 
-  test_redirectingConstructor() async {
+  test_redirectingFactoryConstructor() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A([int? value]) = B;
@@ -103,7 +103,7 @@ void f() {
 ''');
   }
 
-  test_redirectingConstructor_multipleOptional() async {
+  test_redirectingFactoryConstructor_multipleOptional() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A([int? one, int? two]) = B;
@@ -122,7 +122,7 @@ void f() {
 ''');
   }
 
-  test_redirectingConstructor_named() async {
+  test_redirectingFactoryConstructor_named() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A({int? value}) = B;
@@ -139,7 +139,7 @@ void f() {
 ''');
   }
 
-  test_redirectingConstructor_named_redundant() async {
+  test_redirectingFactoryConstructor_named_redundant() async {
     await assertDiagnostics(r'''
 class A {
   factory A({int? value}) = B;
@@ -156,7 +156,7 @@ void f() {
     ]);
   }
 
-  test_redirectingConstructor_namedArgumentsAnywhere() async {
+  test_redirectingFactoryConstructor_namedArgumentsAnywhere() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A(int? one, int? two, {int? three}) = B;
@@ -175,7 +175,7 @@ void f() {
 ''');
   }
 
-  test_redirectingConstructor_namedArgumentsAnywhere_redundant() async {
+  test_redirectingFactoryConstructor_namedArgumentsAnywhere_redundant() async {
     await assertDiagnostics(r'''
 class A {
   factory A(int? one, int? two, {int? three}) = B;
@@ -192,7 +192,7 @@ void f() {
     ]);
   }
 
-  test_redirectingConstructor_nested() async {
+  test_redirectingFactoryConstructor_nested() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A([num? value]) = B;
@@ -217,7 +217,7 @@ void f() {
 ''');
   }
 
-  test_redirectingConstructor_redundant() async {
+  test_redirectingFactoryConstructor_redundant() async {
     await assertDiagnostics(r'''
 class A {
   factory A([int? value]) = B;
@@ -231,6 +231,58 @@ void f() {
 }
 ''', [
       lint(124, 1),
+    ]);
+  }
+
+  test_redirectingGenerativeConstructor() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A([int? value]) : this._(value);
+  A._([int? value = 2]);
+}
+void f() {
+  A(2);
+}
+''');
+  }
+
+  test_redirectingGenerativeConstructor_named() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int? value}) : this._(value: value);
+  A._({int? value = 2});
+}
+void f() {
+  A(value: 2);
+}
+''');
+  }
+
+  test_redirectingGenerativeConstructor_named_redundant() async {
+    await assertDiagnostics(r'''
+class A {
+  A({int? value}) : this._(value: value);
+  A._({int? value = 2});
+}
+void f() {
+  A(value: null);
+}
+''', [
+      lint(101, 4),
+    ]);
+  }
+
+  test_redirectingGenerativeConstructor_redundant() async {
+    await assertDiagnostics(r'''
+class A {
+  A([int? value]) : this._(value);
+  A._([int? value = 2]);
+}
+void f() {
+  A(null);
+}
+''', [
+      lint(87, 4),
     ]);
   }
 

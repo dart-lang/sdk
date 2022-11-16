@@ -123,8 +123,13 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var redirectedConstructor =
-        node.constructorName.staticElement?.redirectedConstructor;
+    var constructor = node.constructorName.staticElement;
+    if (constructor != null && !constructor.isFactory) {
+      check(node.argumentList);
+      return;
+    }
+
+    var redirectedConstructor = constructor?.redirectedConstructor;
     while (redirectedConstructor?.redirectedConstructor != null) {
       redirectedConstructor = redirectedConstructor?.redirectedConstructor;
     }
@@ -135,10 +140,10 @@ class _Visitor extends SimpleAstVisitor {
 
     var parameters = redirectedConstructor.parameters;
 
-    // If the constructor being called is a redirecting constructor, an argument
-    // is redundant if it is equal to the default value of the corresponding
-    // parameter on the _redirectied constructor_, not this constructor, which
-    // may be different.
+    // If the constructor being called is a redirecting factory constructor, an
+    // argument is redundant if it is equal to the default value of the
+    // corresponding parameter on the _redirectied constructor_, not this
+    // constructor, which may be different.
 
     var arguments = node.argumentList.arguments;
     if (arguments.isEmpty) {
