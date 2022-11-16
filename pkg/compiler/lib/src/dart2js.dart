@@ -44,6 +44,7 @@ class OptionHandler {
   final bool multipleArguments;
 
   void handle(argument) {
+    // ignore: avoid_dynamic_calls
     (_handle as dynamic)(argument);
   }
 

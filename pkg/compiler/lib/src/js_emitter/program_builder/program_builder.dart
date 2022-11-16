@@ -794,6 +794,7 @@ class ProgramBuilder {
           (DartType type, String? name, ConstantValue? defaultValue) {
         if (parameterStructure.namedParameters.contains(name)) {
           assert(defaultValue != null);
+          // ignore: avoid_dynamic_calls
           optionalParameterDefaultValues[name] = defaultValue;
         }
       });
@@ -803,6 +804,7 @@ class ProgramBuilder {
       _elementEnvironment.forEachParameter(method,
           (DartType type, String? name, ConstantValue? defaultValue) {
         if (index >= parameterStructure.requiredPositionalParameters) {
+          // ignore: avoid_dynamic_calls
           optionalParameterDefaultValues.add(defaultValue);
         }
         index++;

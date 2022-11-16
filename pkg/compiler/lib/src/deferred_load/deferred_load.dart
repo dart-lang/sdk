@@ -585,6 +585,7 @@ class DeferredLoadTask extends CompilerTask {
         var element = d.entity;
         var elements = elementMap.putIfAbsent(importSet.unit!, () => []);
         var id = element.name ?? '$element';
+        // ignore: avoid_dynamic_calls
         var context = (element as dynamic).memberContext.name;
         id = element.name == null || element.name == '' ? '<anonymous>' : id;
         id = '$context.$id';

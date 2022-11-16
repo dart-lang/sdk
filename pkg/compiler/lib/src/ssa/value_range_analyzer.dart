@@ -197,6 +197,7 @@ class IntValue extends Value {
   @override
   bool operator ==(other) {
     if (other is! IntValue) return false;
+    // ignore: avoid_dynamic_calls
     return this.value == other.value;
   }
 
@@ -287,6 +288,7 @@ class InstructionValue extends Value {
   @override
   bool operator ==(other) {
     if (other is! InstructionValue) return false;
+    // ignore: avoid_dynamic_calls
     return this.instruction == other.instruction;
   }
 
@@ -359,7 +361,9 @@ class AddValue extends BinaryOperationValue {
   @override
   bool operator ==(other) {
     if (other is! AddValue) return false;
+    // ignore: avoid_dynamic_calls
     return (left == other.left && right == other.right) ||
+        // ignore: avoid_dynamic_calls
         (left == other.right && right == other.left);
   }
 
@@ -415,6 +419,7 @@ class SubtractValue extends BinaryOperationValue {
   @override
   bool operator ==(other) {
     if (other is! SubtractValue) return false;
+    // ignore: avoid_dynamic_calls
     return left == other.left && right == other.right;
   }
 
@@ -471,6 +476,7 @@ class NegateValue extends Value {
   @override
   bool operator ==(other) {
     if (other is! NegateValue) return false;
+    // ignore: avoid_dynamic_calls
     return value == other.value;
   }
 
@@ -615,6 +621,7 @@ class Range {
   @override
   bool operator ==(other) {
     if (other is! Range) return false;
+    // ignore: avoid_dynamic_calls
     return other.lower == lower && other.upper == upper;
   }
 

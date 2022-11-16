@@ -38,16 +38,16 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
+    defineReflectiveTests(CompletionDocumentationResolutionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
   });
 }
 
-@reflectiveTest
-class CompletionTest extends AbstractLspAnalysisServerTest
+abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
-  CompletionTest() {
+  AbstractCompletionTest() {
     defaultInitializationOptions = {
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.
@@ -55,6 +55,174 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     };
   }
 
+  void expectDocumentation(CompletionItem completion, Matcher matcher) {
+    final docs = completion.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+    expect(docs, matcher);
+  }
+}
+
+@reflectiveTest
+class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
+  late String content;
+
+  Future<CompletionItem> getCompletionItem(String label) async {
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    return completions.singleWhere((c) => c.label == label);
+  }
+
+  Future<void> initializeServer() async {
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+  }
+
+  Future<void> test_class() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+/// Class.
+class MyClass {}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Class.'));
+  }
+
+  Future<void> test_class_constructor() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+class MyClass {
+  /// Constructor.
+  MyClass();
+}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass()');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Constructor.'));
+  }
+
+  Future<void> test_class_constructorNamed() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+class MyClass {
+  /// Named Constructor.
+  MyClass.named();
+}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass.named()');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Named Constructor.'));
+  }
+
+  Future<void> test_enum() async {
+    newFile(
+      join(projectFolderPath, 'my_enum.dart'),
+      '''
+/// Enum.
+enum MyEnum {}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyEnum^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyEnum');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Enum.'));
+  }
+
+  Future<void> test_enum_member() async {
+    // Function used to provide type context in main file without importing
+    // the enum.
+    newFile(
+      join(projectFolderPath, 'lib', 'func.dart'),
+      '''
+import 'my_enum.dart';
+void enumFunc(MyEnum e) {}
+      ''',
+    );
+
+    newFile(
+      join(projectFolderPath, 'lib', 'my_enum.dart'),
+      '''
+enum MyEnum {
+  /// Enum Member.
+  one,
+}
+      ''',
+    );
+
+    content = '''
+import 'func.dart';
+void f() {
+  enumFunc(MyEnum^)
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyEnum.one');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Enum Member.'));
+  }
+}
+
+@reflectiveTest
+class CompletionTest extends AbstractCompletionTest {
   /// Checks whether the correct types of documentation are returned for
   /// completions based on [preference].
   Future<void> assertDocumentation(
@@ -85,21 +253,17 @@ A^
 
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final completion = res.singleWhere((c) => c.label == 'A');
-    final docs = completion.documentation?.map(
-      (markup) => markup.value,
-      (string) => string,
-    );
 
     if (includesSummary) {
-      expect(docs, contains('Summary.'));
+      expectDocumentation(completion, contains('Summary.'));
     } else {
-      expect(docs, isNot(contains('Summary.')));
+      expectDocumentation(completion, isNot(contains('Summary.')));
     }
 
     if (includesFull) {
-      expect(docs, contains('Full.'));
+      expectDocumentation(completion, contains('Full.'));
     } else {
-      expect(docs, isNot(contains('Full.')));
+      expectDocumentation(completion, isNot(contains('Full.')));
     }
   }
 
@@ -143,23 +307,19 @@ void f() {
 
     // Expect no docs in original response and correct type of docs added
     // during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
     final resolved = await resolveCompletion(completion);
-    final docs = resolved.documentation?.map(
-      (markup) => markup.value,
-      (string) => string,
-    );
 
     if (includesSummary) {
-      expect(docs, contains('Summary.'));
+      expectDocumentation(resolved, contains('Summary.'));
     } else {
-      expect(docs, isNot(contains('Summary.')));
+      expectDocumentation(resolved, isNot(contains('Summary.')));
     }
 
     if (includesFull) {
-      expect(docs, contains('Full.'));
+      expectDocumentation(resolved, contains('Full.'));
     } else {
-      expect(docs, isNot(contains('Full.')));
+      expectDocumentation(resolved, isNot(contains('Full.')));
     }
   }
 
@@ -1982,7 +2142,7 @@ void f() {
     final originalTextEdit = completion.textEdit;
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -1998,10 +2158,7 @@ void f() {
     );
 
     // Ensure the doc comment was added.
-    expect(
-      resolved.documentation!.valueEquals('This class is in another file.'),
-      isTrue,
-    );
+    expectDocumentation(resolved, equals('This class is in another file.'));
 
     // Ensure the edit did not change.
     expect(resolved.textEdit, originalTextEdit);
@@ -2485,7 +2642,7 @@ void f() {
     final originalTextEdit = completion.textEdit;
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -2501,10 +2658,7 @@ void f() {
     );
 
     // Ensure the doc comment was added.
-    expect(
-      resolved.documentation!.valueEquals('This class is in another file.'),
-      isTrue,
-    );
+    expectDocumentation(resolved, equals('This class is in another file.'));
 
     // Ensure the edit did not change.
     expect(resolved.textEdit, originalTextEdit);
@@ -2762,7 +2916,7 @@ void f() {
     expect(completion.textEdit, isNotNull);
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -2887,6 +3041,7 @@ void f() {
     );
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
+
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
 
     // Ensure the item doesn't appear in the results (because we might not

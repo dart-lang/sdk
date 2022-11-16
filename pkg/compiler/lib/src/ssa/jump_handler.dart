@@ -133,14 +133,16 @@ class TargetJumpHandler implements JumpHandler {
   }
 
   @override
-  void forEachBreak(Function action) {
+  void forEachBreak(
+      void Function(HBreak instruction, LocalsHandler locals) action) {
     for (_JumpHandlerEntry entry in jumps) {
       if (entry.isBreak()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
   @override
-  void forEachContinue(Function action) {
+  void forEachContinue(
+      void Function(HContinue instruction, LocalsHandler locals) action) {
     for (_JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) action(entry.jumpInstruction, entry.locals);
     }

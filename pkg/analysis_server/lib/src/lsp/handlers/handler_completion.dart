@@ -13,6 +13,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
@@ -455,12 +456,17 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         // call later.
         CompletionItemResolutionInfo? resolutionInfo;
         final libraryUri = item.libraryUri;
+
         if (useNotImportedCompletions &&
             libraryUri != null &&
             (item.isNotImported ?? false)) {
+          final dartElement =
+              item is DartCompletionSuggestion ? item.dartElement : null;
+
           resolutionInfo = DartNotImportedCompletionResolutionInfo(
             file: unit.path,
             libraryUri: libraryUri,
+            ref: dartElement?.location?.encoding,
           );
         }
 

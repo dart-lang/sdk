@@ -4,6 +4,8 @@
 
 // @dart = 2.10
 
+// ignore_for_file: avoid_dynamic_calls
+
 /// A script to track the high water-mark of memory usage of an application.
 /// To monitor how much memory dart2js is using, run dart2js as follows:
 ///

@@ -152,6 +152,7 @@ String? libraryGroupName(Info info) {
 String pad(value, n, {bool right = false}) {
   var s = '$value';
   if (s.length >= n) return s;
+  // ignore: avoid_dynamic_calls
   var pad = ' ' * (n - s.length);
   return right ? '$s$pad' : '$pad$s';
 }

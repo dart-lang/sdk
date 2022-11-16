@@ -319,6 +319,13 @@ List<LspEntity> getCustomClasses() {
           type: 'string',
           comment: 'The URI to be imported if this completion is selected.',
         ),
+        field(
+          'ref',
+          type: 'string',
+          canBeUndefined: true,
+          comment: 'The ElementLocation of the item being completed.\n\n'
+              'This is used to provide documentation in the resolved response.',
+        ),
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),

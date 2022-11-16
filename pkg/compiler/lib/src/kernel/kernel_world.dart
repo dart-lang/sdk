@@ -165,7 +165,7 @@ class KClosedWorld implements BuiltWorld {
   bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
 
   @override
-  void forEachGenericMethod(Function f) {
+  void forEachGenericMethod(void Function(FunctionEntity e) f) {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
@@ -175,7 +175,7 @@ class KClosedWorld implements BuiltWorld {
   }
 
   @override
-  void forEachGenericInstanceMethod(Function f) {
+  void forEachGenericInstanceMethod(void Function(FunctionEntity e) f) {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           member.isInstanceMember &&

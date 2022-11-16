@@ -307,6 +307,7 @@ class DartNotImportedCompletionResolutionInfo
   DartNotImportedCompletionResolutionInfo({
     required this.file,
     required this.libraryUri,
+    this.ref,
   });
   static DartNotImportedCompletionResolutionInfo fromJson(
       Map<String, Object?> json) {
@@ -314,9 +315,12 @@ class DartNotImportedCompletionResolutionInfo
     final file = fileJson as String;
     final libraryUriJson = json['libraryUri'];
     final libraryUri = libraryUriJson as String;
+    final refJson = json['ref'];
+    final ref = refJson as String?;
     return DartNotImportedCompletionResolutionInfo(
       file: file,
       libraryUri: libraryUri,
+      ref: ref,
     );
   }
 
@@ -328,11 +332,19 @@ class DartNotImportedCompletionResolutionInfo
   /// The URI to be imported if this completion is selected.
   final String libraryUri;
 
+  /// The ElementLocation of the item being completed.
+  ///
+  /// This is used to provide documentation in the resolved response.
+  final String? ref;
+
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['file'] = file;
     result['libraryUri'] = libraryUri;
+    if (ref != null) {
+      result['ref'] = ref;
+    }
     return result;
   }
 
@@ -342,8 +354,12 @@ class DartNotImportedCompletionResolutionInfo
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'libraryUri',
-          allowsUndefined: false, allowsNull: false);
+      if (!_canParseString(obj, reporter, 'libraryUri',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError(
           'must be of type DartNotImportedCompletionResolutionInfo');
@@ -356,13 +372,15 @@ class DartNotImportedCompletionResolutionInfo
     return other is DartNotImportedCompletionResolutionInfo &&
         other.runtimeType == DartNotImportedCompletionResolutionInfo &&
         file == other.file &&
-        libraryUri == other.libraryUri;
+        libraryUri == other.libraryUri &&
+        ref == other.ref;
   }
 
   @override
   int get hashCode => Object.hash(
         file,
         libraryUri,
+        ref,
       );
 
   @override
