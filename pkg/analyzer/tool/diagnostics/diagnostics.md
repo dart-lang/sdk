@@ -9209,7 +9209,7 @@ enum E {
   const E(int x);
 }
 
-E f() => const [!E!](2); 
+E f() => const [!E!](2);
 {% endprettify %}
 
 #### Common fixes
@@ -9224,7 +9224,7 @@ enum E {
   const E(int x);
 }
 
-E f() => E.b; 
+E f() => E.b;
 {% endprettify %}
 
 If you need to use a constructor invocation, then use a factory

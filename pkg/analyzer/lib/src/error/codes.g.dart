@@ -2336,8 +2336,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_FIELD_NAME_POSITIONAL =
       CompileTimeErrorCode(
     'INVALID_FIELD_NAME',
-    "Record field names can't be a dollar sign followed by an integer when "
-        "the\ninteger is the index of a positional field.",
+    "Record field names can't be a dollar sign followed by an integer when the "
+        "integer is the index of a positional field.",
     correctionMessage: "Try using a different name for the field.",
     uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
   );
