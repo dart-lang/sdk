@@ -7021,8 +7021,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitRecordConstant(RecordConstant node) {
-    var sortedNames = node.named.entries.toList().sortedBy((e) => e.key);
-    var names = sortedNames.map((e) => e.key);
+    // RecordConstant names are already sorted alphabetically in kernel.
+    var names = node.named.keys;
     var shape = '${node.positional.length} ${names.join(" ")}';
     return runtimeCall('recordLiteral(#, #, #, [#])', [
       js.string(shape),
@@ -7030,7 +7030,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       names.isEmpty ? js.call('void 0') : js.stringArray(names),
       [
         ...node.positional.map(visitConstant),
-        ...sortedNames.map((e) => visitConstant(e.value))
+        ...node.named.values.map(visitConstant)
       ]
     ]);
   }
