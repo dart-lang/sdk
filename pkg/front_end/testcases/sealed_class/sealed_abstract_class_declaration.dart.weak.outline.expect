@@ -22,11 +22,11 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-abstract class A#1#0 extends core::Object {
+abstract sealed class A#1#0 extends core::Object {
   synthetic constructor •() → self::A#1#0
     ;
 }
-abstract class A extends core::Object {
+abstract sealed class A extends core::Object {
   synthetic constructor •() → self::A
     ;
 }

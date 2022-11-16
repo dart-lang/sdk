@@ -1306,6 +1306,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isMacro, 'macro');
+    writeModifier(node.isSealed, 'sealed');
     writeWord('class');
     writeWord(getClassName(node));
     writeTypeParameterList(node.typeParameters);

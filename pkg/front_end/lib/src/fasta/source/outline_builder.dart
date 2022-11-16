@@ -1179,8 +1179,6 @@ class OutlineBuilder extends StackListenerImpl {
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
-    // TODO(kallentu): Support sealed in source library builder.
-    // ignore: unused_local_variable
     Token? sealedToken = pop(NullValue.Token) as Token?;
     // TODO(johnniwinther): Create builder for view.
     // ignore: unused_local_variable
@@ -1247,7 +1245,9 @@ class OutlineBuilder extends StackListenerImpl {
           }
         }
       }
-
+      if (sealedToken != null) {
+        modifiers |= abstractMask;
+      }
       if (viewToken != null) {
         libraryBuilder.addViewDeclaration(
           metadata,
@@ -1277,6 +1277,7 @@ class OutlineBuilder extends StackListenerImpl {
             endToken.charOffset,
             supertypeOffset,
             isMacro: macroToken != null,
+            isSealed: sealedToken != null,
             isAugmentation: augmentToken != null);
       }
     }
