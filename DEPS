@@ -142,7 +142,7 @@ vars = {
   "markdown_rev": "a70b93a1a004cc1da04a3e3ea59821ef8391e0d6",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "6a9b83bbd73e50df2058b3e8e4aa301df49569c6",
-  "mime_rev": "d80f4d09067af87d84d9cb647acfa4d2d313d795",
+  "mime_rev": "c0c4c47a3d7bf696f1aa1959fb83d598baadb33c",
   "mockito_rev": "748e88e4cbf7e3acd1144cd8e3ea4ae87ea8c9c2",
   "package_config_rev": "cff98c90acc457a3b0750f0a7da0e351a35e5d0c",
   "path_rev": "58ba22c53e40a05c407abb070ec63674b3a38c4d",
