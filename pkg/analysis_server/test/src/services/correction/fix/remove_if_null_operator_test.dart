@@ -23,7 +23,33 @@ class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 
-  Future<void> test_assignmentExpression_nonPromotable() async {
+  Future<void>
+      test_assignmentExpression_propertyAccess_methodInvocation() async {
+    await resolveTestCode('''
+class C {
+  int a = 0;
+}
+
+void f() {
+  g().a ??= 0;
+}
+
+C g() => C();
+''');
+    await assertHasFix('''
+class C {
+  int a = 0;
+}
+
+void f() {
+  g().a;
+}
+
+C g() => C();
+''');
+  }
+
+  Future<void> test_assignmentExpression_simpleIdentifier_field() async {
     await resolveTestCode('''
 class C {
   int a = 1;
@@ -36,13 +62,12 @@ class C {
 class C {
   int a = 1;
   void f(int b) {
-    a;
   }
 }
 ''');
   }
 
-  Future<void> test_assignmentExpression_promotable() async {
+  Future<void> test_assignmentExpression_simpleIdentifier_parameter() async {
     await resolveTestCode('''
 void f(int a, int b) {
   a ??= b;
