@@ -6,41 +6,45 @@
 
 import 'package:benchmark_harness/benchmark_harness.dart';
 
-class LongStringCompare extends BenchmarkBase {
-  late String s, t;
+int equalCount = 0;
 
-  String generateLongString() {
-    var s = "abcdefgh";
-    for (int i = 0; i < 20; i++) {
-      s = "$s ghijkl $s";
-    }
-    return s;
+class LongStringCompare extends BenchmarkBase {
+  final int reps;
+  final List<String> s = [];
+
+  String generateLongString(int lengthPower) {
+    return "abc" * (1 << lengthPower) + "def";
   }
 
-  LongStringCompare() : super('LongStringCompare') {
-    s = generateLongString();
-    t = s;
-    // Difference in two strings goes in the middle.
-    s += "." + s;
-    t += "!" + t;
+  LongStringCompare(int lengthPower, this.reps)
+      : super('LongStringCompare.${1 << lengthPower}.${reps}reps') {
+    final single = generateLongString(lengthPower);
+    s.add(single + "." + single);
+    s.add(single + "!" + single);
   }
 
   @override
   void warmup() {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < reps / 2; i++) {
       run();
     }
   }
 
   @override
   void run() {
-    bool b = true;
-    for (int i = 0; i < 5; i++) {
-      b &= (s == t);
+    for (int i = 0; i < reps; i++) {
+      // Make string comparison code hoisiting harder for the compiler to do.
+      bool comparison = s[i % 2] == s[(i + 1) % 2];
+      if (comparison) {
+        equalCount++;
+      }
     }
   }
 }
 
 void main() {
-  LongStringCompare().report();
+  LongStringCompare(1, 3000).report();
+  LongStringCompare(5, 1000).report();
+  LongStringCompare(10, 30).report();
+  if (equalCount > 0) throw StateError("Unexpected equalCount: $equalCount");
 }
