@@ -769,7 +769,6 @@ import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_import_test.dart' as unnecessary_import;
-import 'unnecessary_nan_comparison_test.dart' as unnecessary_nan_comparison;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
@@ -1324,7 +1323,6 @@ main() {
     unnecessary_cast.main();
     unnecessary_final.main();
     unnecessary_ignore.main();
-    unnecessary_nan_comparison.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
     unnecessary_null_comparison.main();

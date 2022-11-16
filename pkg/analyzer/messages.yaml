@@ -21196,18 +21196,6 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
-  UNNECESSARY_NAN_COMPARISON_FALSE:
-    sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: "A double can't equal NaN, so the condition is always 'false'."
-    correctionMessage: Try using 'isNan', or removing the condition.
-    hasPublishedDocs: false
-    comment: No parameters.
-  UNNECESSARY_NAN_COMPARISON_TRUE:
-    sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: "A double can't equal NaN, so the condition is always 'true'."
-    correctionMessage: Try using 'isNan', or removing the condition.
-    hasPublishedDocs: false
-    comment: No parameters.
   UNNECESSARY_NO_SUCH_METHOD:
     problemMessage: "Unnecessary 'noSuchMethod' declaration."
     correctionMessage: "Try removing the declaration of 'noSuchMethod'."
@@ -21259,7 +21247,7 @@ HintCode:
       ```
   UNNECESSARY_NULL_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'false'."
+    problemMessage: "The operand can't be null, so the condition is always false."
     correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
     hasPublishedDocs: true
     comment: No parameters.
@@ -21317,7 +21305,7 @@ HintCode:
       ```
   UNNECESSARY_NULL_COMPARISON_TRUE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'true'."
+    problemMessage: "The operand can't be null, so the condition is always true."
     correctionMessage: Remove the condition.
     hasPublishedDocs: true
     comment: No parameters.
