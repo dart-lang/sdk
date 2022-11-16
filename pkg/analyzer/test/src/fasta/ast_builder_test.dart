@@ -405,6 +405,31 @@ ClassTypeAlias
 ''');
   }
 
+  void test_classAlias_notNamedType() {
+    var parseResult = parseStringWithErrors(r'''
+class C = A Function() with M;
+''');
+    parseResult.assertErrors(
+        [error(ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, 10, 12)]);
+    var node = parseResult.findNode.classTypeAlias('class');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: C
+  equals: =
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: identifier <synthetic>
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
+  }
+
   void test_classTypeAlias_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C = Object with M implements A, (int, int), B;

@@ -2588,7 +2588,25 @@ class AstBuilder extends StackListener {
       );
     }
     var withClause = pop(NullValue.WithClause) as WithClauseImpl;
-    var superclass = pop() as NamedTypeImpl;
+    var superclass = pop() as TypeAnnotationImpl;
+    if (superclass is! NamedTypeImpl) {
+      errorReporter.errorReporter?.reportErrorForNode(
+          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, superclass);
+      var beginToken = superclass.beginToken;
+      var endToken = superclass.endToken;
+      var currentToken = beginToken;
+      var count = 1;
+      while (currentToken != endToken) {
+        count++;
+        currentToken = currentToken.next!;
+      }
+      var nameToken = parser.rewriter.replaceNextTokensWithSyntheticToken(
+          beginToken.previous!, count, TokenType.IDENTIFIER);
+      superclass = NamedTypeImpl(
+          name: SimpleIdentifierImpl(nameToken),
+          typeArguments: null,
+          question: null);
+    }
     var augmentKeyword = pop(NullValue.Token) as Token?;
     var viewKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
