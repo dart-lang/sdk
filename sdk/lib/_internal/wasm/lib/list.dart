@@ -34,9 +34,10 @@ abstract class _ListBase<E> extends ListBase<E> {
   }
 
   void forEach(f(E element)) {
-    final length = this.length;
-    for (int i = 0; i < length; i++) {
+    final initialLength = length;
+    for (int i = 0; i < initialLength; i++) {
       f(this[i]);
+      if (length != initialLength) throw ConcurrentModificationError(this);
     }
   }
 
