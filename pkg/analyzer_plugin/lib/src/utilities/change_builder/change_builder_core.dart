@@ -120,7 +120,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   Future<void> addDartFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,
-      {ImportPrefixGenerator? importPrefixGenerator}) async {
+      {ImportPrefixGenerator? importPrefixGenerator,
+      bool createEditsForImports = true}) async {
     if (_genericFileEditBuilders.containsKey(path)) {
       throw StateError("Can't create both a generic file edit and a dart file "
           'edit for the same file');
@@ -131,7 +132,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     var builder = _dartFileEditBuilders[path];
     if (builder == null) {
-      builder = await _createDartFileEditBuilder(path);
+      builder = await _createDartFileEditBuilder(path,
+          createEditsForImports: createEditsForImports);
       if (builder != null) {
         // It's not currently supported to call this method twice concurrently
         // for the same file as two builder may be produced because of the above
@@ -278,8 +280,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   /// Create and return a [DartFileEditBuilder] that can be used to build edits
   /// to the Dart file with the given [path].
-  Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(
-      String? path) async {
+  Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(String? path,
+      {bool createEditsForImports = true}) async {
     if (path == null || !(workspace.containsFile(path) ?? false)) {
       return null;
     }
@@ -300,10 +302,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
       // library file builder so that imports can be finalized synchronously.
       await addDartFileEdit(libraryUnit.source.fullName, (builder) {
         libraryEditBuilder = builder as DartFileEditBuilderImpl;
-      });
+      }, createEditsForImports: createEditsForImports);
     }
 
-    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder);
+    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder,
+        createEditsForImports: createEditsForImports);
   }
 
   void _setSelectionRange(SourceRange range) {

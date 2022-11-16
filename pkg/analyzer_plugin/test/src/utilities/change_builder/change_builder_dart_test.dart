@@ -2598,6 +2598,23 @@ import 'aaa.dart';
     );
   }
 
+  Future<void> test_withoutImportEdits() async {
+    await _assertImportLibrary(
+      createEditsForImports: false,
+      initialCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+      uriList: ['dart:bbb'],
+      expectedCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+    );
+  }
+
   Future<void> test_withPrefix() async {
     await _assertImportLibrary(
       initialCode: '''
@@ -2622,15 +2639,19 @@ import 'aaa.dart' as aaa;
     required List<String> uriList,
     required String expectedCode,
     String? prefix,
+    bool createEditsForImports = true,
   }) async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
     var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path,
+        createEditsForImports: createEditsForImports, (builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
         builder.importLibrary(uri, prefix: prefix);
       }
+
+      expect(builder.requiredImports.map((uri) => uri.toString()), uriList);
     });
 
     var resultCode = initialCode;

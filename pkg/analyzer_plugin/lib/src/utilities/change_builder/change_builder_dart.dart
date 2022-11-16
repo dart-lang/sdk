@@ -1388,6 +1388,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// or `null` if the receiver is the builder for the library.
   final DartFileEditBuilderImpl? libraryChangeBuilder;
 
+  /// Whether to create edits that add imports for any written types that are
+  /// not already imported.
+  final bool createEditsForImports;
+
   /// The optional generator of prefixes for new imports.
   ImportPrefixGenerator? importPrefixGenerator;
 
@@ -1399,7 +1403,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given [resolvedUnit] and [timeStamp].
   DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
-      int timeStamp, this.libraryChangeBuilder)
+      int timeStamp, this.libraryChangeBuilder,
+      {this.createEditsForImports = true})
       : super(changeBuilder, resolvedUnit.path, timeStamp);
 
   CodeStyleOptions get codeStyleOptions =>
@@ -1407,6 +1412,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
+
+  @override
+  List<Uri> get requiredImports => librariesToImport.keys.toList();
 
   @override
   void addInsertion(
@@ -1451,7 +1459,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       {Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
           const {}}) {
     var copy = DartFileEditBuilderImpl(changeBuilder, resolvedUnit,
-        fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder]);
+        fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder],
+        createEditsForImports: createEditsForImports);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.importPrefixGenerator = importPrefixGenerator;
     for (var entry in librariesToImport.entries) {
@@ -1467,7 +1476,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void finalize() {
-    if (librariesToImport.isNotEmpty) {
+    if (createEditsForImports && librariesToImport.isNotEmpty) {
       _addLibraryImports(librariesToImport.values);
     }
   }

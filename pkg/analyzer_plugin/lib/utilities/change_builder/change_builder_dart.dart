@@ -306,6 +306,10 @@ abstract class DartEditBuilder implements EditBuilder {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartFileEditBuilder implements FileEditBuilder {
+  /// A list of new URIs that must be imported for the types being referenced in
+  /// edits.
+  List<Uri> get requiredImports;
+
   @override
   void addInsertion(
       int offset, void Function(DartEditBuilder builder) buildEdit);
