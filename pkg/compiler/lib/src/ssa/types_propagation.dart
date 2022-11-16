@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -13,7 +11,7 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart' show Selector;
 import 'logging.dart';
 import 'nodes.dart';
-import 'optimize.dart';
+import 'optimize_interfaces.dart' show OptimizationPhase;
 
 /// Type propagation and conditioning check insertion.
 ///
@@ -40,7 +38,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   final GlobalTypeInferenceResults results;
   final CommonElements commonElements;
   final JClosedWorld closedWorld;
-  final OptimizationTestLog _log;
+  final OptimizationTestLog? _log;
   @override
   String get name => 'SsaTypePropagator';
 
@@ -60,7 +58,6 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     // Compute old and new types.
     AbstractValue oldType = instruction.instructionType;
     AbstractValue newType = computeType(instruction);
-    assert(newType != null);
     // We unconditionally replace the propagated type with the new type. The
     // computeType must make sure that we eventually reach a stable state.
     instruction.instructionType = newType;
@@ -98,7 +95,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       });
     }
 
-    HInstruction instruction = block.first;
+    HInstruction? instruction = block.first;
     while (instruction != null) {
       if (updateType(instruction)) {
         addDependentInstructionsToWorkList(instruction);
@@ -111,8 +108,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     do {
       while (!worklist.isEmpty) {
         int id = worklist.removeLast();
-        HInstruction instruction = workmap[id];
-        assert(instruction != null);
+        HInstruction instruction = workmap[id]!;
         workmap.remove(id);
         if (updateType(instruction)) {
           addDependentInstructionsToWorkList(instruction);
@@ -203,7 +199,6 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
 
   @override
   AbstractValue visitInstruction(HInstruction instruction) {
-    assert(instruction.instructionType != null);
     return instruction.instructionType;
   }
 
@@ -229,7 +224,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // Replace dominated uses of input with uses of this HPrimitiveCheck so
       // the uses benefit from the stronger type.
       assert(!(input is HParameterValue && input.usedAsVariable()));
-      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
     }
     return outputType;
   }
@@ -241,7 +236,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     AbstractValue outputType =
         abstractValueDomain.intersection(instruction.knownType, inputType);
     if (inputType != outputType) {
-      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
     }
     return outputType;
   }
@@ -250,13 +245,13 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       AbstractValue type, int kind, DartType typeExpression) {
     assert(kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK ||
         kind == HPrimitiveCheck.ARGUMENT_TYPE_CHECK);
-    Selector selector = (kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK)
+    Selector? selector = (kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK)
         ? instruction.selector
         : null;
     HPrimitiveCheck converted = HPrimitiveCheck(
         typeExpression, kind, type, input, instruction.sourceInformation,
         receiverTypeCheckSelector: selector);
-    instruction.block.addBefore(instruction, converted);
+    instruction.block!.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
     _log?.registerPrimitiveCheck(instruction, converted);
   }
@@ -300,7 +295,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
           instruction.selector, instruction.receiverType);
       if (targets.length == 1) {
         MemberEntity target = targets.first;
-        ClassEntity cls = target.enclosingClass;
+        ClassEntity cls = target.enclosingClass!;
         AbstractValue type = abstractValueDomain.createNonNullSubclass(cls);
         // We currently only optimize on some primitive types.
         DartType typeExpression;
@@ -424,7 +419,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
           AbstractValue newType = abstractValueDomain.excludeNull(receiverType);
           HTypeKnown converted =
               HTypeKnown.witnessed(newType, receiver, instruction);
-          instruction.block.addBefore(instruction.next, converted);
+          instruction.block!.addBefore(instruction.next, converted);
           uses.replaceWith(converted);
           addDependentInstructionsToWorkList(converted);
         }
@@ -444,7 +439,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
       assert(!(input is HParameterValue && input.usedAsVariable()));
-      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
     }
     return outputType;
   }
@@ -458,7 +453,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
-      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
     }
     return outputType;
   }
@@ -484,7 +479,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
       assert(!(input is HParameterValue && input.usedAsVariable()));
-      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
     }
     return outputType;
   }
