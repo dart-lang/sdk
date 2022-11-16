@@ -1181,12 +1181,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType recordType(shared.RecordType<DartType> type) {
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
     return RecordTypeImpl(
-      positionalFields: type.positional.map((type) {
+      positionalFields: positional.map((type) {
         return RecordTypePositionalFieldImpl(type: type);
       }).toList(),
-      namedFields: type.named.map((namedType) {
+      namedFields: named.map((namedType) {
         return RecordTypeNamedFieldImpl(
           name: namedType.name,
           type: namedType.type,

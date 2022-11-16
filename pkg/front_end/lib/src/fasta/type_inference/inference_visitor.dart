@@ -7746,8 +7746,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType recordType(shared.RecordType<DartType> type) {
-    // TODO: implement recordType
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
     throw new UnimplementedError('TODO(scheglov)');
   }
 

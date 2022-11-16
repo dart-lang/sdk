@@ -744,13 +744,11 @@ mixin TypeAnalyzer<
       }
     }
     Type requiredType = recordType(
-      new RecordType(
-        positional: new List.filled(
-          requiredTypePositionalCount,
-          objectQuestionType,
-        ),
-        named: requiredTypeNamedTypes,
+      positional: new List.filled(
+        requiredTypePositionalCount,
+        objectQuestionType,
       ),
+      named: requiredTypeNamedTypes,
     );
 
     // Stack: ()
@@ -802,12 +800,7 @@ mixin TypeAnalyzer<
         positional.add(fieldType);
       }
     }
-    return recordType(
-      new RecordType<Type>(
-        positional: positional,
-        named: named,
-      ),
-    );
+    return recordType(positional: positional, named: named);
   }
 
   /// Analyzes a relational pattern.  [node] is the pattern itself, [operator]
@@ -1317,7 +1310,8 @@ mixin TypeAnalyzer<
   Type listType(Type elementType);
 
   /// Builds the client specific record type.
-  Type recordType(RecordType<Type> type);
+  Type recordType(
+      {required List<Type> positional, required List<NamedType<Type>> named});
 
   /// Returns the type of the property in [receiverType] that corresponds to
   /// the name of the [field].  If the property cannot be resolved, the client

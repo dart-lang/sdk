@@ -3240,10 +3240,12 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  RecordType recordType(shared.RecordType<Type> type) {
+  RecordType recordType(
+      {required List<Type> positional,
+      required List<shared.NamedType<Type>> named}) {
     return RecordType(
-      positional: type.positional,
-      named: type.named.map((e) => NamedType(e.name, e.type)).toList(),
+      positional: positional,
+      named: named.map((e) => NamedType(e.name, e.type)).toList(),
     );
   }
 
