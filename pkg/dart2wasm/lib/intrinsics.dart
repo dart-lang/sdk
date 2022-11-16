@@ -1489,6 +1489,46 @@ class Intrinsifier {
       }
     }
 
+    if (member.enclosingClass == translator.functionClass &&
+        name == "_equals") {
+      // Compare context and vtable references
+      final w.StructType closureBaseStruct =
+          translator.closureLayouter.closureBaseStruct;
+      final w.RefType closureBaseStructRef =
+          w.RefType.def(closureBaseStruct, nullable: false);
+
+      final w.Local fun1 = codeGen.function.addLocal(closureBaseStructRef);
+      b.local_get(function.locals[0]);
+      translator.convertType(
+          function, function.locals[0].type, closureBaseStructRef);
+      b.local_set(fun1);
+
+      final w.Local fun2 = codeGen.function.addLocal(closureBaseStructRef);
+      b.local_get(function.locals[1]);
+      translator.convertType(
+          function, function.locals[1].type, closureBaseStructRef);
+      b.local_set(fun2);
+
+      // Compare context references
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.ref_eq();
+      b.if_();
+      // Compare vtable references
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.ref_eq();
+      b.return_();
+      b.end(); // if
+      b.i32_const(0); // false
+
+      return true;
+    }
+
     return false;
   }
 }
