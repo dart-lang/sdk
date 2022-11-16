@@ -8,10 +8,9 @@ Defines rules that can be used to define nightly and weekly builders.
 load("//lib/dart.star", "dart")
 load("//lib/priority.star", "priority")
 
-def _nightly_builder(name, cq_group = "sdk-main", notifies = None, **kwargs):
+def _nightly_builder(name, notifies = None, **kwargs):
     dart.ci_sandbox_builder(
         name,
-        cq_group = cq_group,
         notifies = notifies or [luci.notifier(
             name = "nightly",
             on_new_failure = True,
@@ -28,10 +27,9 @@ def _nightly_builder(name, cq_group = "sdk-main", notifies = None, **kwargs):
         **kwargs
     )
 
-def _weekly_builder(name, cq_group = "sdk-main", notifies = None, **kwargs):
+def _weekly_builder(name, notifies = None, **kwargs):
     dart.ci_sandbox_builder(
         name,
-        cq_group = cq_group,
         notifies = notifies,
         on_cq = False,
         priority = priority.low,

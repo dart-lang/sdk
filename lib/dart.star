@@ -80,7 +80,6 @@ def _try_builder(
         name,
         recipe = "dart/neo",
         bucket = "try",
-        cq_group = "sdk",
         dimensions = None,
         execution_timeout = None,
         experiment_percentage = None,
@@ -95,7 +94,6 @@ def _try_builder(
         name: The builder name.
         recipe: The recipe to use (defaults to "dart/neo").
         bucket: The bucket to use (defaults to "try").
-        cq_group: The commit queue group to use (defaults to "sdk").
         dimensions: Extra swarming dimensions required by this builder.
         execution_timeout: Time to allow for the build to run.
         experiment_percentage: What experiment percentage to use.
@@ -129,7 +127,7 @@ def _try_builder(
                        not location_filters)
     luci.cq_tryjob_verifier(
         builder = builder,
-        cq_group = cq_group,
+        cq_group = "sdk",
         experiment_percentage = experiment_percentage,
         location_filters = location_filters,
         includable_only = includable_only,
@@ -143,7 +141,6 @@ def _builder(
         enabled = True,
         category = None,
         channels = [],
-        cq_group = "sdk",
         dimensions = None,
         executable = None,
         execution_timeout = None,
@@ -173,7 +170,6 @@ def _builder(
         enabled: Whether this builder is currently running or not.
         category: Where to show the builder on the console.
         channels: Which other channels the builder should be added to.
-        cq_group: The commit queue group to use (defaults to "sdk").
         dimensions: Extra swarming dimensions required by this builder.
         executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
@@ -212,7 +208,6 @@ def _builder(
             _try_builder(
                 name,
                 recipe = recipe,
-                cq_group = cq_group,
                 dimensions = dimensions,
                 properties = properties,
                 on_cq = on_cq,
