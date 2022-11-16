@@ -451,8 +451,6 @@ abstract class AstVisitor<R> {
 
   R? visitExtensionOverride(ExtensionOverride node);
 
-  R? visitExtractorPattern(ExtractorPattern node);
-
   R? visitFieldDeclaration(FieldDeclaration node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
@@ -552,6 +550,8 @@ abstract class AstVisitor<R> {
   R? visitNativeFunctionBody(NativeFunctionBody node);
 
   R? visitNullLiteral(NullLiteral node);
+
+  R? visitObjectPattern(ObjectPattern node);
 
   R? visitOnClause(OnClause node);
 
@@ -1649,16 +1649,15 @@ abstract class ContinueStatement implements Statement {
 ///
 ///    pattern ::=
 ///        [BinaryPattern]
-///      | [ExpressionPattern]
 ///      | [CastPattern]
-///      | [ExtractorPattern]
+///      | [ConstantPattern]
 ///      | [ListPattern]
-///      | [LiteralPattern]
 ///      | [MapPattern]
-///      | [RecordPattern]
-///      | [RelationalPattern]
+///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
 ///      | [PostfixPattern]
+///      | [RecordPattern]
+///      | [RelationalPattern]
 ///      | [VariablePattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2165,27 +2164,6 @@ abstract class ExtensionOverride implements Expression {
   ///
   /// Return `null` if the AST structure has not been resolved.
   List<DartType>? get typeArgumentTypes;
-}
-
-/// An extractor pattern.
-///
-///    extractorPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ExtractorPattern implements DartPattern {
-  /// Return the patterns matching the properties of the object.
-  NodeList<RecordPatternField> get fields;
-
-  /// Return the left parenthesis.
-  Token get leftParenthesis;
-
-  /// Return the right parenthesis.
-  Token get rightParenthesis;
-
-  /// The name of the type of object from which values will be extracted.
-  NamedType get type;
 }
 
 /// The declaration of one or more fields of the same type.
@@ -3967,6 +3945,27 @@ abstract class NullShortableExpression implements Expression {
   /// the expression `a?.b[c] = d`, indicating that the null-shorting induced by
   /// the `?.` causes the rest of the subexpression `a?.b[c] = d` to be skipped.
   Expression get nullShortingTermination;
+}
+
+/// An object pattern.
+///
+///    objectPattern ::=
+///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ObjectPattern implements DartPattern {
+  /// Return the patterns matching the properties of the object.
+  NodeList<RecordPatternField> get fields;
+
+  /// Return the left parenthesis.
+  Token get leftParenthesis;
+
+  /// Return the right parenthesis.
+  Token get rightParenthesis;
+
+  /// The name of the type of object from which values will be extracted.
+  NamedType get type;
 }
 
 /// The "on" clause in a mixin declaration.

@@ -9,12 +9,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtractorPatternResolutionTest);
+    defineReflectiveTests(ObjectPatternResolutionTest);
   });
 }
 
 @reflectiveTest
-class ExtractorPatternResolutionTest extends PatternsResolutionTest {
+class ObjectPatternResolutionTest extends PatternsResolutionTest {
   test_class_generic_noTypeArguments_infer_interfaceType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
@@ -28,7 +28,7 @@ void f(A<int> x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: B
@@ -54,7 +54,7 @@ void f(A<int, String> x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: L
@@ -84,7 +84,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -134,7 +134,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -173,7 +173,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -212,7 +212,7 @@ void f(x) {
     ]);
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -250,7 +250,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -286,11 +286,11 @@ void f(x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME, 75, 3),
+      error(CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME, 75, 3),
     ]);
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -326,7 +326,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -363,7 +363,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -402,7 +402,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -442,7 +442,7 @@ void f(x) {
     ]);
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -479,7 +479,7 @@ void f(x) {
     ]);
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -514,7 +514,7 @@ void f(Object? x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -554,7 +554,7 @@ void f(Object? x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -607,7 +607,7 @@ void f(Object? x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -644,7 +644,7 @@ void f(Object? x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -683,7 +683,7 @@ void f(Object? x) {
     ]);
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -720,7 +720,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A
@@ -757,7 +757,7 @@ void f(x) {
 ''');
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
-ExtractorPattern
+ObjectPattern
   type: NamedType
     name: SimpleIdentifier
       token: A

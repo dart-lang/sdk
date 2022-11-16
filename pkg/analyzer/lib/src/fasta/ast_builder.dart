@@ -3898,7 +3898,7 @@ class AstBuilder extends StackListener {
       Token firstIdentifierToken, Token? dot, Token? secondIdentifierToken) {
     debugEvent("ExtractorPattern");
 
-    var arguments = pop() as _ExtractorPatternFields;
+    var arguments = pop() as _ObjectPatternFields;
     var typeArguments = pop() as TypeArgumentListImpl?;
     var firstIdentifier = SimpleIdentifierImpl(firstIdentifierToken);
     var typeName = dot == null
@@ -3909,7 +3909,7 @@ class AstBuilder extends StackListener {
             identifier: SimpleIdentifierImpl(secondIdentifierToken!),
           );
     push(
-      ExtractorPatternImpl(
+      ObjectPatternImpl(
         type: NamedTypeImpl(
           name: typeName,
           typeArguments: typeArguments,
@@ -3927,7 +3927,7 @@ class AstBuilder extends StackListener {
       int count, Token beginToken, Token endToken) {
     debugEvent("ExtractorPatternFields");
     var fields = popTypedList2<RecordPatternFieldImpl>(count);
-    push(_ExtractorPatternFields(beginToken, endToken, fields));
+    push(_ObjectPatternFields(beginToken, endToken, fields));
   }
 
   @override
@@ -5495,17 +5495,6 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   }
 }
 
-/// Temporary representation of the fields of an extractor used internally by
-/// the [AstBuilder].
-class _ExtractorPatternFields {
-  final Token leftParenthesis;
-  final Token rightParenthesis;
-  final List<RecordPatternFieldImpl> fields;
-
-  _ExtractorPatternFields(
-      this.leftParenthesis, this.rightParenthesis, this.fields);
-}
-
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token mixinKeyword;
@@ -5584,6 +5573,17 @@ class _Modifiers {
         ? finalConstOrVarKeyword
         : null;
   }
+}
+
+/// Temporary representation of the fields of an extractor used internally by
+/// the [AstBuilder].
+class _ObjectPatternFields {
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final List<RecordPatternFieldImpl> fields;
+
+  _ObjectPatternFields(
+      this.leftParenthesis, this.rightParenthesis, this.fields);
 }
 
 /// Data structure placed on the stack to represent the keyword "operator"

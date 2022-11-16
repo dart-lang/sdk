@@ -445,14 +445,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitExtractorPattern(ExtractorPattern node) {
-    _visitNode(node.type);
-    sink.write('(');
-    _visitNodeList(node.fields, separator: ', ');
-    sink.write(')');
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -901,6 +893,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitNullLiteral(NullLiteral node) {
     sink.write('null');
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    _visitNode(node.type);
+    sink.write('(');
+    _visitNodeList(node.fields, separator: ', ');
+    sink.write(')');
   }
 
   @override

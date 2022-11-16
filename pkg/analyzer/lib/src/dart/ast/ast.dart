@@ -3340,15 +3340,15 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///
 ///    pattern ::=
 ///        [BinaryPattern]
-///      | [ConstantPattern]
 ///      | [CastPattern]
-///      | [ExtractorPattern]
+///      | [ConstantPattern]
 ///      | [ListPattern]
-///      | [LiteralPattern]
 ///      | [MapPattern]
+///      | [ObjectPattern]
+///      | [ParenthesizedPattern]
+///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
-///      | [UnaryPattern]
 ///      | [VariablePattern]
 @experimental
 abstract class DartPatternImpl extends AstNodeImpl implements DartPattern {
@@ -4684,78 +4684,6 @@ class ExtensionOverrideImpl extends ExpressionImpl
     _extensionName.accept(visitor);
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
-  }
-}
-
-/// An extractor pattern.
-///
-///    extractorPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
-@experimental
-class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
-  final NodeListImpl<RecordPatternFieldImpl> _fields = NodeListImpl._();
-
-  @override
-  final Token leftParenthesis;
-
-  @override
-  final Token rightParenthesis;
-
-  @override
-  final NamedTypeImpl type;
-
-  ExtractorPatternImpl({
-    required this.type,
-    required this.leftParenthesis,
-    required List<RecordPatternFieldImpl> fields,
-    required this.rightParenthesis,
-  }) {
-    _becomeParentOf(type);
-    _fields._initialize(this, fields);
-  }
-
-  @override
-  Token get beginToken => type.beginToken;
-
-  @override
-  Token get endToken => rightParenthesis;
-
-  @override
-  NodeList<RecordPatternFieldImpl> get fields => _fields;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('type', type)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('fields', fields)
-    ..addToken('rightParenthesis', rightParenthesis);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtractorPattern(this);
-
-  @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
-
-  @override
-  void resolvePattern(
-    ResolverVisitor resolverVisitor,
-    DartType matchedType,
-    SharedMatchContext context,
-  ) {
-    resolverVisitor.analyzeObjectPattern(
-      matchedType,
-      context,
-      this,
-      requiredType: null,
-      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
-    );
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    type.accept(visitor);
-    fields.accept(visitor);
   }
 }
 
@@ -9407,6 +9335,78 @@ mixin NullShortableExpressionImpl implements NullShortableExpression {
   /// Indicates whether the effect of any null-shorting within [descendant]
   /// (which should be a descendant of `this`) should extend to include `this`.
   bool _extendsNullShorting(Expression descendant);
+}
+
+/// An object pattern.
+///
+///    objectPattern ::=
+///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+@experimental
+class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
+  final NodeListImpl<RecordPatternFieldImpl> _fields = NodeListImpl._();
+
+  @override
+  final Token leftParenthesis;
+
+  @override
+  final Token rightParenthesis;
+
+  @override
+  final NamedTypeImpl type;
+
+  ObjectPatternImpl({
+    required this.type,
+    required this.leftParenthesis,
+    required List<RecordPatternFieldImpl> fields,
+    required this.rightParenthesis,
+  }) {
+    _becomeParentOf(type);
+    _fields._initialize(this, fields);
+  }
+
+  @override
+  Token get beginToken => type.beginToken;
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  NodeList<RecordPatternFieldImpl> get fields => _fields;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('type', type)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    DartType matchedType,
+    SharedMatchContext context,
+  ) {
+    resolverVisitor.analyzeObjectPattern(
+      matchedType,
+      context,
+      this,
+      requiredType: null,
+      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
+    );
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    type.accept(visitor);
+    fields.accept(visitor);
+  }
 }
 
 /// The "on" clause in a mixin declaration.

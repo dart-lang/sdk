@@ -1208,21 +1208,6 @@ $code
     _assertSource(code, findNode.extensionDeclaration(code));
   }
 
-  void test_visitExtractorPattern() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case C(f: 1):
-      break;
-  }
-}
-''');
-    _assertSource(
-      'C(f: 1)',
-      findNode.extractorPattern('C'),
-    );
-  }
-
   void test_visitFieldDeclaration_abstract() {
     final code = 'abstract var a;';
     final findNode = _parseStringToFindNode('''
@@ -2606,6 +2591,21 @@ void foo() $code
 final x = $code;
 ''');
     _assertSource(code, findNode.nullLiteral(code));
+  }
+
+  void test_visitObjectPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case C(f: 1):
+      break;
+  }
+}
+''');
+    _assertSource(
+      'C(f: 1)',
+      findNode.objectPattern('C'),
+    );
   }
 
   void test_visitParenthesizedExpression() {

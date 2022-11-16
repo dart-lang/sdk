@@ -556,15 +556,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitExtractorPattern(ExtractorPattern node) {
-    var other = _other as ExtractorPattern;
-    return isEqualNodes(node.type, other.type) &&
-        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        _isEqualNodeLists(node.fields, other.fields) &&
-        isEqualTokens(node.rightParenthesis, other.rightParenthesis);
-  }
-
-  @override
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = _other as FieldDeclaration;
     return isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
@@ -1036,6 +1027,15 @@ class AstComparator implements AstVisitor<bool> {
   bool visitNullLiteral(NullLiteral node) {
     NullLiteral other = _other as NullLiteral;
     return isEqualTokens(node.literal, other.literal);
+  }
+
+  @override
+  bool visitObjectPattern(ObjectPattern node) {
+    var other = _other as ObjectPattern;
+    return isEqualNodes(node.type, other.type) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        _isEqualNodeLists(node.fields, other.fields) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   @override

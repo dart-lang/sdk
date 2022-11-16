@@ -223,10 +223,6 @@ class FindNode {
     return _node(search, (n) => n is ExtensionOverride);
   }
 
-  ExtractorPattern extractorPattern(String search) {
-    return _node(search, (n) => n is ExtractorPattern);
-  }
-
   FieldDeclaration fieldDeclaration(String search) {
     return _node(search, (n) => n is FieldDeclaration);
   }
@@ -437,6 +433,10 @@ class FindNode {
 
   NullLiteral nullLiteral(String search) {
     return _node(search, (n) => n is NullLiteral);
+  }
+
+  ObjectPattern objectPattern(String search) {
+    return _node(search, (n) => n is ObjectPattern);
   }
 
   /// Return the unique offset where the [search] string occurs in [content].

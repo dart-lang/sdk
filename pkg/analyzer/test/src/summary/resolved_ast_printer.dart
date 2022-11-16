@@ -512,14 +512,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtractorPattern(ExtractorPattern node) {
-    _writeln('ExtractorPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _writeln('FieldDeclaration');
     _withIndent(() {
@@ -954,6 +946,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    _writeln('ObjectPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 

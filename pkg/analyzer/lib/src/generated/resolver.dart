@@ -534,7 +534,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           nameToken = field.pattern.variablePattern?.name;
           if (nameToken == null) {
             errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME,
+              CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
               field,
             );
           }
@@ -818,7 +818,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType downwardInferObjectPatternRequiredType({
     required DartType matchedType,
-    required covariant ExtractorPatternImpl pattern,
+    required covariant ObjectPatternImpl pattern,
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
@@ -1351,7 +1351,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
       errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME,
+        CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
         fieldNode,
       );
       return typeProvider.dynamicType;

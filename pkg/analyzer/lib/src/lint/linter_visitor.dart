@@ -324,12 +324,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitExtractorPattern(ExtractorPattern node) {
-    _runSubscriptions(node, registry._forExtractorPattern);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _runSubscriptions(node, registry._forFieldDeclaration);
     node.visitChildren(this);
@@ -626,6 +620,12 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitNullLiteral(NullLiteral node) {
     _runSubscriptions(node, registry._forNullLiteral);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    _runSubscriptions(node, registry._forObjectPattern);
     node.visitChildren(this);
   }
 
@@ -1080,7 +1080,7 @@ class NodeLintRegistry {
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
   final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
   final List<_Subscription<ExtensionOverride>> _forExtensionOverride = [];
-  final List<_Subscription<ExtractorPattern>> _forExtractorPattern = [];
+  final List<_Subscription<ObjectPattern>> _forObjectPattern = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
   final List<_Subscription<FieldFormalParameter>> _forFieldFormalParameter = [];
   final List<_Subscription<ForEachPartsWithDeclaration>>
@@ -1443,10 +1443,6 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addExtractorPattern(LintRule linter, AstVisitor visitor) {
-    _forExtractorPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
   void addFieldDeclaration(LintRule linter, AstVisitor visitor) {
     _forFieldDeclaration.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1669,6 +1665,10 @@ class NodeLintRegistry {
 
   void addNullLiteral(LintRule linter, AstVisitor visitor) {
     _forNullLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addObjectPattern(LintRule linter, AstVisitor visitor) {
+    _forObjectPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addOnClause(LintRule linter, AstVisitor visitor) {

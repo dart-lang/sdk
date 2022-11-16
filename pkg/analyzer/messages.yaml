@@ -8362,7 +8362,7 @@ CompileTimeErrorCode:
     correctionMessage: "Try removing the '@'."
     hasPublishedDocs: true
     comment: No parameters.
-  MISSING_EXTRACTOR_PATTERN_GETTER_NAME:
+  MISSING_OBJECT_PATTERN_GETTER_NAME:
     problemMessage: The getter name is not specified explicitly, and the pattern is not a variable.
     correctionMessage: Try specifying the getter name explicitly, or using a variable pattern.
   MISSING_REQUIRED_ARGUMENT:
