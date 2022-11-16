@@ -134,6 +134,16 @@ class Template {
     }
     throw ArgumentError.value(arguments, 'arguments', 'Must be a List or Map');
   }
+
+  // TODO(sra): We should rather make the return type of `instantiate` be what
+  // we need, either by making Template be generic or have Expression and
+  // Statement subclasses that override `instantiate`. Checking is likely still
+  // required since the argument can be the result (e.g. "#").
+  Expression instantiateExpression(Object arguments) =>
+      instantiate(arguments) as Expression;
+
+  Statement instantiateStatement(Object arguments) =>
+      instantiate(arguments) as Statement;
 }
 
 /// An Instantiator is a Function that generates a JS AST tree or List of

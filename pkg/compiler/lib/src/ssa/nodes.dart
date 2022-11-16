@@ -768,6 +768,9 @@ class HBasicBlock extends HInstructionList {
   static const int STATUS_CLOSED = 2;
   int status = STATUS_NEW;
 
+  // TODO(48820): Can we make the Phi list better typed? As it stands, the
+  // first/last fields and the next/previous fields of the HPhi nodes are all
+  // typed as HInstruction, requiring downcasts to HPhi/HPhi?
   HInstructionList phis = HInstructionList();
 
   HLoopInformation? loopInformation = null;
@@ -3417,7 +3420,7 @@ class HLazyStatic extends HInstruction {
 }
 
 class HStaticStore extends HInstruction {
-  MemberEntity element;
+  FieldEntity element;
   HStaticStore(AbstractValueDomain domain, this.element, HInstruction value)
       : super([value], domain.emptyType) {
     sideEffects.clearAllSideEffects();
@@ -4036,7 +4039,6 @@ abstract class HStatementInformationVisitor {
 }
 
 abstract class HExpressionInformationVisitor {
-  bool visitAndOrInfo(HAndOrBlockInformation info);
   bool visitSubExpressionInfo(HSubExpressionBlockInformation info);
 }
 
@@ -4182,28 +4184,6 @@ class HIfBlockInformation implements HStatementInformation {
   @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitIfInfo(this);
-}
-
-class HAndOrBlockInformation implements HExpressionInformation {
-  final bool isAnd;
-  final HExpressionInformation left;
-  final HExpressionInformation right;
-  HAndOrBlockInformation(this.isAnd, this.left, this.right);
-
-  @override
-  HBasicBlock get start => left.start;
-  @override
-  HBasicBlock get end => right.end;
-
-  // We don't currently use HAndOrBlockInformation.
-  @override
-  HInstruction? get conditionExpression {
-    return null;
-  }
-
-  @override
-  bool accept(HExpressionInformationVisitor visitor) =>
-      visitor.visitAndOrInfo(this);
 }
 
 class HTryBlockInformation implements HStatementInformation {
@@ -4494,7 +4474,7 @@ class HAsCheckSimple extends HCheck {
   final DartType dartType;
   final AbstractValueWithPrecision checkedType;
   final bool isTypeError;
-  final MemberEntity method;
+  final FunctionEntity method;
 
   HAsCheckSimple(HInstruction checked, this.dartType, this.checkedType,
       this.isTypeError, this.method, AbstractValue type)

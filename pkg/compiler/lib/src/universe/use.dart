@@ -496,7 +496,7 @@ class StaticUse {
 
   /// Direct invocation of a method [element] with the given [callStructure].
   factory StaticUse.directInvoke(FunctionEntity element,
-      CallStructure callStructure, List<DartType> typeArguments) {
+      CallStructure callStructure, List<DartType>? typeArguments) {
     assert(
         element.isInstanceMember,
         failedAt(element,
