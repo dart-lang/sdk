@@ -91,7 +91,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
-  _PatternContext? _patternContext;
+  _VariableBinder? _variableBinder;
 
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
@@ -178,20 +178,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitBinaryPattern(covariant BinaryPatternImpl node) {
     final isOr = node.operator.type == TokenType.BAR;
-    final binder = _patternContext!.binder;
     if (isOr) {
-      binder.startAlternatives();
-      binder.startAlternative(node.leftOperand);
-    }
-    node.leftOperand.accept(this);
-    if (isOr) {
-      binder.finishAlternative();
-      binder.startAlternative(node.rightOperand);
-    }
-    node.rightOperand.accept(this);
-    if (isOr) {
-      binder.finishAlternative();
-      binder.finishAlternatives();
+      final binder = _variableBinder!;
+      binder.logicalOrPatternStart();
+      node.leftOperand.accept(this);
+      binder.logicalOrPatternFinishLeft();
+      node.rightOperand.accept(this);
+      binder.logicalOrPatternFinish(node);
+    } else {
+      node.leftOperand.accept(this);
+      node.rightOperand.accept(this);
     }
   }
 
@@ -810,6 +806,27 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIfStatement(IfStatement node) {
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      _withPatternContext(() {
+        var variableBinder = _variableBinder!; // TODO(scheglov) bad
+        node.expression.accept(this);
+        variableBinder.casePatternStart();
+        caseClause.pattern.accept(this);
+        // TODO(scheglov) add variables
+        variableBinder.casePatternFinish();
+        caseClause.whenClause?.accept(this);
+        node.thenStatement.accept(this);
+        // TODO(scheglov) pop the context
+        node.elseStatement?.accept(this);
+      });
+    } else {
+      node.visitChildren(this);
+    }
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     var element = node.element;
     if (element is LibraryImportElementImpl) {
@@ -1135,45 +1152,27 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    final patternContext = _variableBinder!;
+    patternContext.casePatternStart();
+    super.visitSwitchPatternCase(node);
+    patternContext.casePatternFinish(); // TODO(scheglov)
+  }
+
+  @override
+  void visitSwitchStatement(covariant SwitchStatementImpl node) {
     node.expression.accept(this);
 
-    void visitGroup(List<SwitchMember> members) {
-      _withPatternContext(() {
-        final patternContext = _patternContext!;
-        var startedAlternatives = false;
-        for (final member in members) {
-          if (member is SwitchPatternCaseImpl) {
-            if (!startedAlternatives) {
-              patternContext.binder.startAlternatives();
-              startedAlternatives = true;
-            }
-            patternContext.binder.startAlternative(member.pattern);
-          }
+    _withPatternContext(() {
+      final patternContext = _variableBinder!;
+      for (var group in node.memberGroups) {
+        patternContext.switchStatementSharedCaseScopeStart();
+        for (var member in group.members) {
           member.accept(this);
-          if (member is SwitchPatternCaseImpl) {
-            patternContext.binder.finishAlternative();
-          }
         }
-        if (startedAlternatives) {
-          patternContext.binder.finishAlternatives();
-        }
-        members.last.statements.accept(this);
-      });
-    }
-
-    var group = <SwitchMember>[];
-    for (final member in node.members) {
-      group.add(member);
-      if (member.statements.isNotEmpty) {
-        visitGroup(group);
-        group = <SwitchMember>[];
+        patternContext.switchStatementSharedCaseScopeFinish();
       }
-    }
-
-    if (group.isNotEmpty) {
-      visitGroup(group);
-    }
+    });
   }
 
   @override
@@ -1257,21 +1256,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     final name = node.name.lexeme;
     if (name != '_') {
-      final patternContext = _patternContext!;
-      var element = patternContext.variables[name];
-      if (element == null) {
-        element = VariablePatternElementImpl(
-          name,
-          node.name.offset,
-        );
-        patternContext.variables[name] = element;
-        _elementHolder.enclose(element);
-        _define(element);
-        element.isFinal = node.keyword?.keyword == Keyword.FINAL;
-        element.hasImplicitType = node.type == null;
-      }
+      final patternContext = _variableBinder!;
+      var element = VariablePatternElementImpl(
+        node,
+        name,
+        node.name.offset,
+      );
+      patternContext.add(name, element);
+      _elementHolder.enclose(element);
+      _define(element);
+      element.isFinal = node.keyword?.keyword == Keyword.FINAL;
+      element.hasImplicitType = node.type == null;
       node.declaredElement = element;
-      patternContext.binder.add(node, element);
     }
   }
 
@@ -1559,14 +1555,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   /// Run [f] with a new pattern variable binder.
   void _withPatternContext(void Function() f) {
-    final saved = _patternContext;
+    final saved = _variableBinder;
     try {
-      final patternContext = _PatternContext(this);
-      _patternContext = patternContext;
+      final patternContext = _VariableBinder(
+        errors: _VariableBinderErrors(this),
+      );
+      _variableBinder = patternContext;
       f();
-      patternContext.binder.finish();
+      patternContext.finish();
     } finally {
-      _patternContext = saved;
+      _variableBinder = saved;
     }
   }
 
@@ -1595,21 +1593,30 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _PatternContext
-    implements
-        VariableBindingCallbacks<DartPatternImpl, VariablePatternElementImpl,
-            DartType>,
-        VariableBinderErrors<DartPatternImpl, VariablePatternElementImpl> {
-  final ResolutionVisitor visitor;
-  final Map<String, VariablePatternElementImpl> variables = {};
-  late final VariableBinder<DartPatternImpl, VariablePatternElementImpl,
-      DartType> binder = VariableBinder(this);
-
-  _PatternContext(this.visitor);
+class _VariableBinder
+    extends VariableBinder<DartPatternImpl, PromotableElement> {
+  _VariableBinder({required super.errors});
 
   @override
-  VariableBinderErrors<DartPatternImpl, VariablePatternElementImpl>
-      get errors => this;
+  LocalVariableElementImpl joinPatternVariables({
+    required Object key,
+    required List<PromotableElement> components,
+    required bool isConsistent,
+  }) {
+    return VariablePatternJoinElementImpl(
+      components.first.name,
+      -1,
+      components.cast(),
+      isConsistent,
+    );
+  }
+}
+
+class _VariableBinderErrors
+    implements VariableBinderErrors<DartPatternImpl, PromotableElement> {
+  final ResolutionVisitor visitor;
+
+  _VariableBinderErrors(this.visitor);
 
   @override
   void assertInErrorRecovery() {
@@ -1618,31 +1625,33 @@ class _PatternContext
   }
 
   @override
-  void matchVarOverlap({
-    required DartPatternImpl pattern,
-    required DartPatternImpl previousPattern,
+  void duplicateVariablePattern({
+    required String name,
+    required covariant VariablePatternElementImpl original,
+    required covariant VariablePatternElementImpl duplicate,
   }) {
-    pattern as VariablePatternImpl;
     visitor._errorReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(
         visitor._errorReporter.source,
         CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
-        pattern,
-        previousPattern,
-        [pattern.name.lexeme],
+        duplicate.node,
+        original.node,
+        [name],
       ),
     );
   }
 
   @override
-  void missingMatchVar(
-    DartPatternImpl alternative,
-    VariablePatternElementImpl variable,
-  ) {
+  void logicalOrPatternBranchMissingVariable({
+    required covariant BinaryPatternImpl node,
+    required bool hasInLeft,
+    required String name,
+    required PromotableElement variable,
+  }) {
     visitor._errorReporter.reportErrorForNode(
       CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
-      alternative,
-      [variable.name],
+      hasInLeft ? node.rightOperand : node.leftOperand,
+      [name],
     );
   }
 }

@@ -23,6 +23,12 @@ class DecoratedTypeOperations
       this._typeSystem, this._variableRepository, this._graph);
 
   @override
+  bool areStructurallyEqual(DecoratedType type1, DecoratedType type2) {
+    // TODO(scheglov): implement areStructurallyEqual
+    throw UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   TypeClassification classifyType(DecoratedType type) {
     if (type.type!.isDartCoreNull) {
       return TypeClassification.nullOrEquivalent;
@@ -132,6 +138,12 @@ class DecoratedTypeOperations
   DecoratedType? matchListType(DecoratedType type) {
     // TODO: implement matchListType
     throw UnimplementedError();
+  }
+
+  @override
+  DecoratedType normalize(DecoratedType type) {
+    // TODO(scheglov): implement normalize
+    throw UnimplementedError('TODO(scheglov)');
   }
 
   @override

@@ -1869,18 +1869,23 @@ main() {
       var x = Var('x');
       var y = Var('y');
       var z = Var('z');
-      var w = Var('w');
+      var w = Var('w', errorId: 'w');
       h.run([
         declare(x, type: 'int'),
         declare(y, type: 'int'),
         declare(z, type: 'int'),
-        ifCase(expr('num'), w.pattern(type: 'int'), [
-          x.write(expr('int')).stmt,
-          y.write(expr('int')).stmt,
-        ], else_: [
-          y.write(expr('int')).stmt,
-          z.write(expr('int')).stmt,
-        ]),
+        ifCase(
+          expr('num'),
+          w.pattern(type: 'int').noGuard,
+          ifTrue: [
+            x.write(expr('int')).stmt,
+            y.write(expr('int')).stmt,
+          ],
+          ifFalse: [
+            y.write(expr('int')).stmt,
+            z.write(expr('int')).stmt,
+          ],
+        ),
         checkAssigned(x, false),
         checkAssigned(y, true),
         checkAssigned(z, false),
@@ -1891,9 +1896,13 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        ifCase(x.expr.notEq(nullLiteral), intLiteral(0).pattern, [
-          checkNotPromoted(x),
-        ]),
+        ifCase(
+          x.expr.notEq(nullLiteral),
+          intLiteral(0).pattern.noGuard,
+          ifTrue: [
+            checkNotPromoted(x),
+          ],
+        ),
       ]);
     });
 
@@ -1951,6 +1960,7 @@ main() {
         switchExpr(throw_(expr('C')), [
           intLiteral(0)
               .pattern
+              .noGuard
               .thenExpr(checkReachable(false).thenExpr(intLiteral(1))),
           default_.thenExpr(checkReachable(false).thenExpr(intLiteral(2))),
         ]).stmt,
@@ -1961,7 +1971,7 @@ main() {
     test('switchExpression throw in case body has isolated effect', () {
       h.run([
         switchExpr(expr('int'), [
-          intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
+          intLiteral(0).pattern.noGuard.thenExpr(throw_(expr('C'))),
           default_.thenExpr(checkReachable(true).thenExpr(intLiteral(2))),
         ]).stmt,
         checkReachable(true),
@@ -1971,7 +1981,7 @@ main() {
     test('switchExpression throw in all case bodies affects flow after', () {
       h.run([
         switchExpr(expr('int'), [
-          intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
+          intLiteral(0).pattern.noGuard.thenExpr(throw_(expr('C'))),
           default_.thenExpr(throw_(expr('C'))),
         ]).stmt,
         checkReachable(false),
@@ -1984,6 +1994,7 @@ main() {
         switchExpr(expr('int'), [
           x
               .pattern(type: 'int?')
+              .noGuard
               .thenExpr(checkPromoted(x, 'int').thenExpr(nullLiteral)),
         ]).stmt,
       ]);
@@ -1994,10 +2005,10 @@ main() {
         switch_(
             throw_(expr('C')),
             [
-              intLiteral(0).pattern.then([
+              intLiteral(0).pattern.noGuard.then([
                 checkReachable(false),
               ]),
-              intLiteral(1).pattern.then([
+              intLiteral(1).pattern.noGuard.then([
                 checkReachable(false),
               ]),
             ],
@@ -2007,12 +2018,12 @@ main() {
     });
 
     test('switchStatement var promotes', () {
-      var x = Var('x');
+      var x = Var('x')..errorId = 'x';
       h.run([
         switch_(
             expr('int'),
             [
-              x.pattern(type: 'int?').then([
+              x.pattern(type: 'int?').noGuard.then([
                 checkPromoted(x, 'int'),
               ]),
             ],
@@ -2021,7 +2032,7 @@ main() {
     });
 
     test('switchStatement_afterWhen() promotes', () {
-      var x = Var('x');
+      var x = Var('x')..errorId = 'x';
       h.run([
         switch_(
             expr('num'),
@@ -2054,12 +2065,12 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.then([
+              intLiteral(0).pattern.noGuard.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
               ]),
-              intLiteral(1).pattern.then([
+              intLiteral(1).pattern.noGuard.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2077,7 +2088,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.then([
+              intLiteral(0).pattern.noGuard.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2094,64 +2105,68 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                checkPromoted(x, 'int'),
-                localFunction([
-                  x.write(expr('int?')).stmt,
-                ]),
-                checkNotPromoted(x),
+          expr('int'),
+          [
+            intLiteral(0).pattern.noGuard.then([
+              checkPromoted(x, 'int'),
+              localFunction([
+                x.write(expr('int?')).stmt,
               ]),
-            ],
-            isExhaustive: false),
+              checkNotPromoted(x),
+            ]),
+          ],
+          isExhaustive: false,
+        ),
       ]);
     });
 
     test('switchStatement_beginCase(true) un-promotes', () {
       var x = Var('x');
-      var l = Label('l');
       late SsaNode<Type> ssaBeforeSwitch;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('int').thenStmt(block([
-              checkPromoted(x, 'int'),
-              getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
-            ])),
-            [
-              l.then(intLiteral(0).pattern).then([
-                checkNotPromoted(x),
-                getSsaNodes(
-                    (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ]),
-            ],
-            isExhaustive: false),
+          expr('int').thenStmt(block([
+            checkPromoted(x, 'int'),
+            getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
+          ])),
+          [
+            switchStatementMember([
+              intLiteral(0).pattern.noGuard.switchCase,
+            ], [
+              checkNotPromoted(x),
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
+              x.write(expr('int?')).stmt,
+              checkNotPromoted(x),
+            ], hasLabels: true),
+          ],
+          isExhaustive: false,
+        ),
       ]);
     });
 
     test('switchStatement_beginCase(true) handles write captures in cases', () {
       var x = Var('x');
-      var l = Label('l');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('int'),
-            [
-              l.then(intLiteral(0).pattern).then([
-                x.expr.as_('int').stmt,
-                checkNotPromoted(x),
-                localFunction([
-                  x.write(expr('int?')).stmt,
-                ]),
-                checkNotPromoted(x),
+          expr('int'),
+          [
+            switchStatementMember([
+              intLiteral(0).pattern.noGuard.switchCase,
+            ], [
+              x.expr.as_('int').stmt,
+              checkNotPromoted(x),
+              localFunction([
+                x.write(expr('int?')).stmt,
               ]),
-            ],
-            isExhaustive: false),
+              checkNotPromoted(x),
+            ], hasLabels: true),
+          ],
+          isExhaustive: false,
+        ),
       ]);
     });
 
@@ -2168,7 +2183,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.then([
+              intLiteral(0).pattern.noGuard.then([
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
                 break_(),
@@ -2197,7 +2212,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.then([
+              intLiteral(0).pattern.noGuard.then([
                 w.expr.as_('int').stmt,
                 y.expr.as_('int').stmt,
                 x.write(expr('int?')).stmt,
@@ -2225,7 +2240,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.then([
+              intLiteral(0).pattern.noGuard.then([
                 x.expr.as_('int').stmt,
                 break_(),
               ]),
@@ -2237,26 +2252,33 @@ main() {
     });
 
     test('switchStatement_endAlternative() joins branches', () {
-      var x = Var('x');
+      var x1 = Var('x')..errorId = 'x1';
+      var x2 = Var('x')..errorId = 'x2';
       var y = Var('y');
       var z = Var('z');
       h.run([
         declare(y, type: 'num'),
         declare(z, type: 'num'),
         switch_(
-            expr('num'),
-            [
-              x
+          expr('num'),
+          [
+            switchStatementMember([
+              x1
                   .pattern()
-                  .when(x.expr.is_('int').and(y.expr.is_('int')))
-                  .then([]),
-              x.pattern().when(y.expr.is_('int').and(z.expr.is_('int'))).then([
-                checkNotPromoted(x),
-                checkPromoted(y, 'int'),
-                checkNotPromoted(z),
-              ]),
-            ],
-            isExhaustive: true),
+                  .when(x1.expr.is_('int').and(y.expr.is_('int')))
+                  .switchCase,
+              x2
+                  .pattern()
+                  .when(y.expr.is_('int').and(z.expr.is_('int')))
+                  .switchCase,
+            ], [
+              checkNotPromoted(x2),
+              checkPromoted(y, 'int'),
+              checkNotPromoted(z),
+            ]),
+          ],
+          isExhaustive: true,
+        ),
       ]);
     });
 

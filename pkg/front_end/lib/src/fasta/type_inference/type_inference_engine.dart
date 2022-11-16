@@ -439,6 +439,18 @@ class OperationsCfe
   DartType? matchListType(DartType type) {
     throw new UnimplementedError('TODO(paulberry)');
   }
+
+  @override
+  bool areStructurallyEqual(DartType type1, DartType type2) {
+    // TODO(scheglov): implement areStructurallyEqual
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType normalize(DartType type) {
+    // TODO(scheglov): implement normalize
+    throw new UnimplementedError('TODO(scheglov)');
+  }
 }
 
 /// Type inference results used for testing.

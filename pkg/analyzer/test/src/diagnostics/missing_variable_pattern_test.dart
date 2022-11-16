@@ -88,7 +88,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: a@35
+    declaredElement: hasImplicitType isFinal a@45
+      type: int
 ''');
   }
 
@@ -116,7 +117,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: a@39
+    declaredElement: hasImplicitType isFinal a@49
+      type: int
 ''');
   }
 
@@ -220,7 +222,8 @@ BinaryPattern
     rightOperand: VariablePattern
       keyword: final
       name: a
-      declaredElement: a@35
+      declaredElement: hasImplicitType isFinal a@45
+        type: int
   operator: |
   rightOperand: ConstantPattern
     expression: IntegerLiteral
@@ -248,12 +251,14 @@ BinaryPattern
     rightOperand: VariablePattern
       keyword: final
       name: a
-      declaredElement: a@35
+      declaredElement: hasImplicitType isFinal a@45
+        type: int
   operator: |
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: a@35
+    declaredElement: hasImplicitType isFinal a@55
+      type: int
 ''');
   }
 
@@ -283,7 +288,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: a@35
+    declaredElement: hasImplicitType isFinal a@49
+      type: int
 ''');
   }
 
@@ -344,7 +350,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: a@39
+    declaredElement: hasImplicitType isFinal a@49
+      type: int
 ''');
   }
 
@@ -399,7 +406,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: a@46
+    declaredElement: hasImplicitType isFinal a@56
+      type: int
 ''');
   }
 
@@ -482,12 +490,13 @@ VariablePattern
 VariablePattern
   keyword: final
   name: a
-  declaredElement: a@52
+  declaredElement: hasImplicitType isFinal a@76
+    type: int
 ''');
   }
 
   test_switchStatement_case2_left() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case final a:
@@ -495,13 +504,11 @@ void f(int x) {
       return;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 58, 1),
-    ]);
+''');
   }
 
   test_switchStatement_case2_right() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case 1:
@@ -509,9 +516,7 @@ void f(int x) {
       return;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
-    ]);
+''');
   }
 
   test_switchStatement_differentCases_nested() async {

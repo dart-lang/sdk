@@ -92,6 +92,24 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateVariablePattern({
+    required String name,
+    required PromotableElement original,
+    required PromotableElement duplicate,
+  }) {
+    // TODO: implement duplicateVariablePattern
+  }
+
+  @override
+  void inconsistentJoinedPatternVariable({
+    required PromotableElement variable,
+    required PromotableElement component,
+  }) {
+    // TODO: implement logicalOrPatternInconsistentVariablePair
+    throw UnimplementedError();
+  }
+
+  @override
   void inconsistentMatchVar(
       {required AstNode pattern,
       required DartType type,
@@ -104,6 +122,20 @@ class SharedTypeAnalyzerErrors
   void inconsistentMatchVarExplicitness(
       {required AstNode pattern, required AstNode previousPattern}) {
     throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void logicalOrPatternBranchMissingVariable({
+    required covariant BinaryPatternImpl node,
+    required bool hasInLeft,
+    required String name,
+    required PromotableElement variable,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+      hasInLeft ? node.rightOperand : node.leftOperand,
+      [variable.name],
+    );
   }
 
   @override

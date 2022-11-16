@@ -36,7 +36,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: var
     name: a
-    declaredElement: a@33
+    declaredElement: hasImplicitType a@41
+      type: int
 ''');
   }
 
@@ -64,7 +65,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: var
     name: a
-    declaredElement: a@44
+    declaredElement: hasImplicitType a@52
+      type: int
 ''');
   }
 }

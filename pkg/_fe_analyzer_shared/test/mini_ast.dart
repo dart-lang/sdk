@@ -26,7 +26,8 @@ import 'mini_types.dart';
 final RegExp _locationRegExp =
     RegExp('(file:)?[a-zA-Z0-9_./]+.dart:[0-9]+:[0-9]+');
 
-CaseHead get default_ => _Default(location: computeLocation());
+_SwitchHeadDefault get default_ =>
+    _SwitchHeadDefault(location: computeLocation());
 
 Expression get nullLiteral => new _NullLiteral(location: computeLocation());
 
@@ -83,14 +84,22 @@ String computeLocation() {
   var callStack = StackTrace.current.toString().split('\n');
   assert(callStack[0].contains('mini_ast.dart'));
   assert(callStack[1].contains('mini_ast.dart'));
-  assert(
-      callStack[2].contains('type_inference_test.dart') ||
-          callStack[2].contains('flow_analysis_test.dart'),
-      'Unexpected file: ${callStack[2]}');
-  var match = _locationRegExp.firstMatch(callStack[2]);
+
+  String stackLine;
+  if (callStack[3].contains('joinPatternVariables')) {
+    stackLine = callStack[3];
+  } else {
+    stackLine = callStack[2];
+    assert(
+        stackLine.contains('type_inference_test.dart') ||
+            stackLine.contains('flow_analysis_test.dart'),
+        'Unexpected file: $stackLine');
+  }
+
+  var match = _locationRegExp.firstMatch(stackLine);
   if (match == null) {
     throw AssertionError(
-        '_locationRegExp failed to match ${callStack[2]} in $callStack');
+        '_locationRegExp failed to match $stackLine in $callStack');
   }
   return match.group(0)!;
 }
@@ -192,25 +201,37 @@ Statement if_(Expression condition, List<Statement> ifTrue,
 }
 
 Statement ifCase(
-    Expression expression, CaseHead caseHead, List<Statement> ifTrue,
-    {List<Statement>? else_}) {
+  Expression expression,
+  GuardedPattern guardedPattern, {
+  List<Statement>? ifTrue,
+  List<Statement>? ifFalse,
+}) {
   var location = computeLocation();
-  return new _IfCase(
-      expression,
-      caseHead._pattern!,
-      caseHead._guard,
-      _Block(ifTrue, location: location),
-      else_ == null ? null : _Block(else_, location: location),
-      location: location);
+  return _IfCase(
+    expression,
+    guardedPattern.pattern,
+    guardedPattern.guard,
+    _Block(ifTrue ?? [], location: location),
+    ifFalse != null ? _Block(ifFalse, location: location) : null,
+    location: location,
+  );
 }
 
 CollectionElement ifCaseElement(
-    Expression expression, CaseHead caseHead, CollectionElement ifTrue,
-    [CollectionElement? ifFalse]) {
+  Expression expression,
+  GuardedPattern guardedPattern,
+  CollectionElement ifTrue, {
+  CollectionElement? ifFalse,
+}) {
   var location = computeLocation();
   return new _IfCaseElement(
-      expression, caseHead._pattern!, caseHead._guard, ifTrue, ifFalse,
-      location: location);
+    expression,
+    guardedPattern.pattern,
+    guardedPattern.guard,
+    ifTrue,
+    ifFalse,
+    location: location,
+  );
 }
 
 CollectionElement ifElement(Expression condition, CollectionElement ifTrue,
@@ -233,12 +254,19 @@ Statement localFunction(List<Statement> body) {
   return _LocalFunction(_Block(body, location: location), location: location);
 }
 
+Pattern logicalOrPattern(Pattern left, Pattern right, {String? errorId}) {
+  var location = computeLocation();
+  var result = _LogicalPattern(left, right, isAnd: false, location: location);
+  if (errorId != null) {
+    result.errorId = errorId;
+  }
+  return result;
+}
+
 Statement match(Pattern pattern, Expression initializer,
         {bool isLate = false, bool isFinal = false}) =>
     new _Declare(pattern, initializer,
         isLate: isLate, isFinal: isFinal, location: computeLocation());
-
-CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
 
 Pattern objectPattern({
   required ObjectPatternRequiredType requiredType,
@@ -255,12 +283,19 @@ Pattern recordPattern(List<RecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
 Pattern relationalPattern(
-        RelationalOperatorResolution<Type>? operator, Expression operand) =>
-    _RelationalPattern(operator, operand, location: computeLocation());
+    RelationalOperatorResolution<Type>? operator, Expression operand,
+    {String? errorId}) {
+  var result =
+      _RelationalPattern(operator, operand, location: computeLocation());
+  if (errorId != null) {
+    result.errorId = errorId;
+  }
+  return result;
+}
 
 Statement return_() => new _Return(location: computeLocation());
 
-Statement switch_(Expression expression, List<StatementCase> cases,
+Statement switch_(Expression expression, List<_SwitchStatementMember> cases,
         {required bool isExhaustive,
         bool? expectHasDefault,
         bool? expectIsExhaustive,
@@ -275,6 +310,20 @@ Statement switch_(Expression expression, List<StatementCase> cases,
 
 Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
     new _SwitchExpression(expression, cases, location: computeLocation());
+
+_SwitchStatementMember switchStatementMember(
+  List<SwitchHead> cases,
+  List<Statement> body, {
+  bool hasLabels = false,
+}) {
+  var location = computeLocation();
+  return _SwitchStatementMember._(
+    cases,
+    _Block(body, location: location),
+    hasLabels: hasLabels,
+    location: computeLocation(),
+  );
+}
 
 PromotableLValue thisOrSuperProperty(String name) =>
     new _ThisOrSuperProperty(name, location: computeLocation());
@@ -302,41 +351,6 @@ typedef SharedMatchContext
     = shared.MatchContext<Node, Expression, Pattern, Type, Var>;
 
 typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
-
-mixin CaseHead implements CaseHeads, Node {
-  @override
-  List<CaseHead> get _caseHeads => [this];
-
-  Expression? get _guard;
-
-  @override
-  List<Label> get _labels => const [];
-
-  Pattern? get _pattern;
-
-  ExpressionCase thenExpr(Expression body) =>
-      ExpressionCase._(_pattern, _guard, body, location: computeLocation());
-
-  void _preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
-    variableBinder.startAlternative(this);
-    _pattern?.preVisit(visitor, variableBinder);
-    variableBinder.finishAlternative();
-    _guard?.preVisit(visitor);
-  }
-}
-
-mixin CaseHeads {
-  List<CaseHead> get _caseHeads;
-
-  List<Label> get _labels;
-
-  StatementCase then(List<Statement> body) {
-    var location = computeLocation();
-    return StatementCase._(this, _Block(body, location: location),
-        location: location);
-  }
-}
 
 /// Representation of a collection element in the pseudo-Dart language used for
 /// type analysis testing.
@@ -481,38 +495,60 @@ abstract class Expression extends Node {
 
 /// Representation of a single case clause in a switch expression.  Use
 /// [caseExpr] to create instances of this class.
-class ExpressionCase extends Node
-    implements
-        SwitchExpressionMemberInfo<Node, Expression>,
-        CaseHeadOrDefaultInfo<Node, Expression> {
-  @override
-  final Pattern? pattern;
-
-  @override
-  final Expression? guard;
-
-  @override
+class ExpressionCase extends Node {
+  final GuardedPattern? guardedPattern;
   final Expression expression;
 
-  ExpressionCase._(this.pattern, this.guard, this.expression,
+  ExpressionCase._(this.guardedPattern, this.expression,
       {required super.location})
       : super._();
 
-  @override
-  CaseHeadOrDefaultInfo<Node, Expression> get head => this;
-
   String toString() => [
-        pattern == null ? 'default' : 'case $pattern',
-        if (guard != null) ' when $guard',
+        guardedPattern == null ? 'default' : 'case $guardedPattern',
         ': $expression'
       ].join('');
 
   void _preVisit(PreVisitor visitor) {
-    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
-    pattern?.preVisit(visitor, variableBinder);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
+    guardedPattern?.pattern.preVisit(visitor, variableBinder);
+    variableBinder.casePatternFinish();
     variableBinder.finish();
     expression.preVisit(visitor);
   }
+}
+
+class GuardedPattern extends Node {
+  final Pattern pattern;
+  late final Map<String, Var> variables;
+  final Expression? guard;
+
+  GuardedPattern._({
+    required this.pattern,
+    required this.guard,
+    required super.location,
+  }) : super._();
+
+  SwitchHead get switchCase {
+    return _SwitchHeadCase._(
+      this,
+      location: location,
+    );
+  }
+
+  _SwitchStatementMember then(List<Statement> body) {
+    return _SwitchStatementMember._(
+      [
+        _SwitchHeadCase._(this, location: location),
+      ],
+      _Block(body, location: location),
+      hasLabels: false,
+      location: location,
+    );
+  }
+
+  ExpressionCase thenExpr(Expression body) =>
+      ExpressionCase._(this, body, location: computeLocation());
 }
 
 class Harness {
@@ -659,9 +695,6 @@ class Label extends Node {
   late final Node _binding;
 
   Label(this._name) : super._(location: computeLocation());
-
-  CaseHeads then(CaseHeads caseHeads) =>
-      _CaseHeads(caseHeads._caseHeads, [this, ...caseHeads._labels]);
 
   Statement thenStmt(Statement statement) {
     if (statement is! _LabeledStatement) {
@@ -858,6 +891,22 @@ class MiniAstOperations
     'List <: Iterable<int>': Type('List<int>'),
   };
 
+  static final Map<String, Type> _coreNormalizeResults = {
+    'Object': Type('Object'),
+    'FutureOr<Object>': Type('Object'),
+    'int': Type('int'),
+    'num': Type('num'),
+    'List<int>': Type('List<int>'),
+  };
+
+  static final Map<String, bool> _coreAreStructurallyEqualResults = {
+    'Object == FutureOr<Object>': false,
+    'int == Object': false,
+    'int == num': false,
+    'num == int': false,
+    'List<int> == int': false,
+  };
+
   bool? _legacy;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
@@ -872,6 +921,11 @@ class MiniAstOperations
       Map.of(_coreDownwardInferenceResults);
 
   Map<String, Map<String, String>> _promotionExceptions = {};
+
+  Map<String, Type> _normalizeResults = Map.of(_coreNormalizeResults);
+
+  Map<String, bool> _areStructurallyEqualResults =
+      Map.of(_coreAreStructurallyEqualResults);
 
   final Set<_PropertyElement> promotableFields = {};
 
@@ -907,6 +961,15 @@ class MiniAstOperations
   void addSubtype(String leftType, String rightType, bool isSubtype) {
     var query = '$leftType <: $rightType';
     _subtypes[query] = isSubtype;
+  }
+
+  @override
+  bool areStructurallyEqual(Type type1, Type type2) {
+    if ('$type1' == '$type2') {
+      return true;
+    }
+    var query = '$type1 == $type2';
+    return _areStructurallyEqualResults[query] ?? fail('Unknown query: $query');
   }
 
   @override
@@ -998,6 +1061,12 @@ class MiniAstOperations
       }
     }
     return null;
+  }
+
+  @override
+  Type normalize(Type type) {
+    var query = '$type';
+    return _normalizeResults[query] ?? fail('Unknown query: $query');
   }
 
   @override
@@ -1105,20 +1174,22 @@ class ObjectPatternRequiredType {
   }
 }
 
-abstract class Pattern extends Node with CaseHead, CaseHeads {
+abstract class Pattern extends Node {
   Pattern._({required super.location}) : super._();
+
+  GuardedPattern get noGuard {
+    return GuardedPattern._(
+      pattern: this,
+      guard: null,
+      location: location,
+    );
+  }
 
   Pattern get nullAssert =>
       _NullCheckOrAssertPattern(this, true, location: computeLocation());
 
   Pattern get nullCheck =>
       _NullCheckOrAssertPattern(this, false, location: computeLocation());
-
-  @override
-  Expression? get _guard => null;
-
-  @override
-  Pattern? get _pattern => this;
 
   Pattern and(Pattern other) =>
       _LogicalPattern(this, other, isAnd: true, location: computeLocation());
@@ -1131,8 +1202,7 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   Pattern or(Pattern other) =>
       _LogicalPattern(this, other, isAnd: false, location: computeLocation());
 
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder);
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder);
 
   RecordPatternField recordField([String? name]) {
     return RecordPatternField(
@@ -1151,19 +1221,56 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
     SharedMatchContext context,
   );
 
-  CaseHead when(Expression guard) =>
-      _GuardedCaseHead(this, guard, location: location);
+  GuardedPattern when(Expression? guard) {
+    return GuardedPattern._(
+      pattern: this,
+      guard: guard,
+      location: location,
+    );
+  }
 
   String _debugString({required bool needsKeywordOrType});
 }
 
+class PatternVariableJoin extends Var {
+  final List<Var> components;
+
+  @override
+  bool isConsistent;
+
+  PatternVariableJoin(
+    super.name, {
+    required this.components,
+    required this.isConsistent,
+  });
+
+  @override
+  String get stringToCheckVariables {
+    return toString();
+  }
+
+  @override
+  String toString() {
+    var isConsistent = this.isConsistent;
+    var declarationStr = <String>[
+      if (_type != null) ...[
+        if (!isConsistent) 'notConsistent',
+        if (isFinal) 'final',
+        type.type,
+      ],
+      name,
+    ].join(' ');
+    var componentsStr = components.map((v) => v._errorId ?? v).join(', ');
+    return '$declarationStr = [$componentsStr]';
+  }
+}
+
 /// Data structure holding information needed during the "pre-visit" phase of
 /// type analysis.
-class PreVisitor implements VariableBindingCallbacks<Node, Var, Type> {
+class PreVisitor {
   final AssignedVariables<Node, Var> _assignedVariables =
       AssignedVariables<Node, Var>();
 
-  @override
   final VariableBinderErrors<Node, Var>? errors;
 
   PreVisitor(this.errors);
@@ -1225,15 +1332,20 @@ abstract class Statement extends Node {
   void visit(Harness h);
 }
 
-/// Representation of a single case clause in a switch statement.  Use [case_]
-/// to create instances of this class.
-class StatementCase extends Node {
-  final CaseHeads _caseHeads;
+abstract class SwitchHead extends Node {
+  SwitchHead._({required super.location}) : super._();
 
-  final _Block _body;
+  _SwitchStatementMember then(List<Statement> body) {
+    return _SwitchStatementMember._(
+      [this],
+      _Block(body, location: location),
+      hasLabels: false,
+      location: location,
+    );
+  }
 
-  StatementCase._(this._caseHeads, this._body, {required super.location})
-      : super._();
+  ExpressionCase thenExpr(Expression body) =>
+      ExpressionCase._(null, body, location: computeLocation());
 }
 
 abstract class TryBuilder {
@@ -1251,16 +1363,26 @@ abstract class TryStatement extends Statement implements TryBuilder {
 /// analysis testing.
 class Var extends Node implements Promotable {
   final String name;
-  final bool isFinal;
+  bool isFinal;
 
   /// The type of the variable, or `null` if it is not yet known.
   Type? _type;
 
-  Var(this.name, {this.isFinal = false}) : super._(location: computeLocation());
+  Var(this.name, {this.isFinal = false, String? errorId})
+      : super._(location: computeLocation()) {
+    if (errorId != null) {
+      this.errorId = errorId;
+    }
+  }
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr =>
       new _VariableReference(this, null, location: computeLocation());
+
+  bool get isConsistent => true;
+
+  /// The string that should be used to check variables in a set.
+  String get stringToCheckVariables => errorId;
 
   /// Gets the type if known; otherwise throws an exception.
   Type get type {
@@ -1416,16 +1538,6 @@ class _Break extends Statement {
   }
 }
 
-class _CaseHeads with CaseHeads {
-  @override
-  final List<CaseHead> _caseHeads;
-
-  @override
-  final List<Label> _labels;
-
-  _CaseHeads(this._caseHeads, this._labels);
-}
-
 class _CastPattern extends Pattern {
   final Pattern _inner;
 
@@ -1436,8 +1548,7 @@ class _CastPattern extends Pattern {
   Type computeSchema(Harness h) => h.typeAnalyzer.analyzeCastPatternSchema();
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     _inner.preVisit(visitor, variableBinder);
   }
 
@@ -1782,8 +1893,7 @@ class _ConstantPattern extends Pattern {
       h.typeAnalyzer.analyzeConstantPatternSchema();
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     constant.preVisit(visitor);
   }
 
@@ -1829,8 +1939,10 @@ class _Declare extends Statement {
 
   @override
   void preVisit(PreVisitor visitor) {
-    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder);
+    variableBinder.casePatternFinish();
     variableBinder.finish();
     if (isLate) {
       visitor._assignedVariables.beginNode();
@@ -1879,16 +1991,6 @@ class _Declare extends Statement {
         Kind.statement,
         location: location);
   }
-}
-
-class _Default extends Node with CaseHead, CaseHeads {
-  _Default({required super.location}) : super._();
-
-  @override
-  Expression? get _guard => null;
-
-  @override
-  Pattern? get _pattern => null;
 }
 
 class _Do extends Statement {
@@ -2137,17 +2239,6 @@ class _ForEach extends Statement {
   }
 }
 
-class _GuardedCaseHead extends Node with CaseHead, CaseHeads {
-  @override
-  final Pattern _pattern;
-
-  @override
-  final Expression _guard;
-
-  _GuardedCaseHead(this._pattern, this._guard, {required super.location})
-      : super._();
-}
-
 class _If extends _IfBase {
   final Expression condition;
 
@@ -2198,6 +2289,11 @@ class _IfCase extends _IfBase {
   final Pattern _pattern;
   final Expression? _guard;
 
+  /// These variables are set during pre-visit, and some of them are joins of
+  /// pattern variable declarations. We don't know their types until we do
+  /// type analysis. So, some of these variables might become unavailable.
+  late final Map<String, Var> _candidateVariables;
+
   _IfCase(
       this._expression, this._pattern, this._guard, super.ifTrue, super.ifFalse,
       {required super.location});
@@ -2208,8 +2304,10 @@ class _IfCase extends _IfBase {
   @override
   void preVisit(PreVisitor visitor) {
     _expression.preVisit(visitor);
-    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
     _pattern.preVisit(visitor, variableBinder);
+    _candidateVariables = variableBinder.casePatternFinish();
     variableBinder.finish();
     _guard?.preVisit(visitor);
     super.preVisit(visitor);
@@ -2217,19 +2315,21 @@ class _IfCase extends _IfBase {
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzeIfCaseStatement(
-        this, _expression, _pattern, _guard, ifTrue, ifFalse);
+    h.typeAnalyzer.analyzeIfCaseStatement(this, _expression, _pattern, _guard,
+        ifTrue, ifFalse, _candidateVariables);
     h.irBuilder.apply(
-        'ifCase',
-        [
-          Kind.expression,
-          Kind.pattern,
-          Kind.expression,
-          Kind.statement,
-          Kind.statement
-        ],
+      'ifCase',
+      [
+        Kind.expression,
+        Kind.pattern,
+        Kind.variables,
+        Kind.expression,
         Kind.statement,
-        location: location);
+        Kind.statement,
+      ],
+      Kind.statement,
+      location: location,
+    );
   }
 }
 
@@ -2248,8 +2348,10 @@ class _IfCaseElement extends _IfElementBase {
   @override
   void preVisit(PreVisitor visitor) {
     _expression.preVisit(visitor);
-    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
     _pattern.preVisit(visitor, variableBinder);
+    variableBinder.casePatternFinish();
     variableBinder.finish();
     _guard?.preVisit(visitor);
     super.preVisit(visitor);
@@ -2447,8 +2549,7 @@ class _ListPattern extends Pattern {
       .analyzeListPatternSchema(elementType: _elementType, elements: _elements);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     for (var element in _elements) {
       element.preVisit(visitor, variableBinder);
     }
@@ -2551,21 +2652,16 @@ class _LogicalPattern extends Pattern {
       h.typeAnalyzer.analyzeLogicalPatternSchema(_lhs, _rhs, isAnd: isAnd);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
-    if (!isAnd) {
-      variableBinder.startAlternatives();
-      variableBinder.startAlternative(_lhs);
-    }
-    _lhs.preVisit(visitor, variableBinder);
-    if (!isAnd) {
-      variableBinder.finishAlternative();
-      variableBinder.startAlternative(_rhs);
-    }
-    _rhs.preVisit(visitor, variableBinder);
-    if (!isAnd) {
-      variableBinder.finishAlternative();
-      variableBinder.finishAlternatives();
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    if (isAnd) {
+      _lhs.preVisit(visitor, variableBinder);
+      _rhs.preVisit(visitor, variableBinder);
+    } else {
+      variableBinder.logicalOrPatternStart();
+      _lhs.preVisit(visitor, variableBinder);
+      variableBinder.logicalOrPatternFinishLeft();
+      _rhs.preVisit(visitor, variableBinder);
+      variableBinder.logicalOrPatternFinish(this);
     }
   }
 
@@ -2665,6 +2761,29 @@ class _MiniAstErrors
   }
 
   @override
+  void duplicateVariablePattern({
+    required String name,
+    required Var original,
+    required Var duplicate,
+  }) {
+    _recordError(
+      'duplicateVariablePattern(name: $name, original: ${original.errorId}, '
+      'duplicate: ${duplicate.errorId})',
+    );
+  }
+
+  @override
+  void inconsistentJoinedPatternVariable({
+    required covariant PatternVariableJoin variable,
+    required Var component,
+  }) {
+    _recordError(
+      'inconsistentJoinedPatternVariable(variable: $variable, '
+      'component: ${component.errorId})',
+    );
+  }
+
+  @override
   void inconsistentMatchVar(
       {required Node pattern,
       required Type type,
@@ -2685,14 +2804,16 @@ class _MiniAstErrors
   }
 
   @override
-  void matchVarOverlap({required Node pattern, required Node previousPattern}) {
-    _recordError('matchVarOverlap(pattern: ${pattern.errorId}, '
-        'previousPattern: ${previousPattern.errorId})');
-  }
-
-  @override
-  void missingMatchVar(Node alternative, Var variable) {
-    _recordError('missingMatchVar(${alternative.errorId}, ${variable.name})');
+  void logicalOrPatternBranchMissingVariable({
+    required Node node,
+    required bool hasInLeft,
+    required String name,
+    required Var variable,
+  }) {
+    _recordError(
+      'logicalOrPatternBranchMissingVariable(node: ${node.errorId}, '
+      'hasInLeft: $hasInLeft, name: $name, variable: ${variable.errorId})',
+    );
   }
 
   @override
@@ -3116,32 +3237,116 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  SwitchExpressionMemberInfo<Node, Expression> getSwitchExpressionMemberInfo(
-          covariant _SwitchExpression node, int index) =>
-      node.cases[index];
+  void finishJoinedPatternVariable(
+    covariant PatternVariableJoin variable, {
+    required bool isConsistent,
+    required bool isFinal,
+    required Type type,
+  }) {
+    variable.isFinal = isFinal;
+    variable.type = type;
+    if (!isConsistent) {
+      variable.isConsistent = false;
+    }
+  }
 
   @override
-  SwitchStatementMemberInfo<Node, Statement, Expression>
+  List<Var>? getJoinedVariableComponents(Var variable) {
+    if (variable is PatternVariableJoin) {
+      return variable.components;
+    }
+    return null;
+  }
+
+  @override
+  SwitchExpressionMemberInfo<Node, Expression, Var>
+      getSwitchExpressionMemberInfo(
+          covariant _SwitchExpression node, int index) {
+    var case_ = node.cases[index];
+    return SwitchExpressionMemberInfo(
+      head: CaseHeadOrDefaultInfo(
+        pattern: case_.guardedPattern?.pattern,
+        variables: {}, // TODO(scheglov) provide it
+        guard: case_.guardedPattern?.guard,
+      ),
+      expression: case_.expression,
+    );
+  }
+
+  @override
+  SwitchStatementMemberInfo<Node, Statement, Expression, Var>
       getSwitchStatementMemberInfo(
           covariant _SwitchStatement node, int caseIndex) {
-    StatementCase case_ = node.cases[caseIndex];
-    return SwitchStatementMemberInfo([
-      for (var caseHead in case_._caseHeads._caseHeads)
-        CaseHeadOrDefaultInfo(
-            pattern: caseHead._pattern, guard: caseHead._guard)
-    ], case_._body.statements, labels: case_._caseHeads._labels);
+    _SwitchStatementMember case_ = node.cases[caseIndex];
+    return SwitchStatementMemberInfo(
+      [
+        for (var element in case_.elements)
+          if (element is _SwitchHeadCase)
+            CaseHeadOrDefaultInfo(
+              pattern: element.guardedPattern.pattern,
+              variables: element.guardedPattern.variables,
+              guard: element.guardedPattern.guard,
+            )
+          else
+            CaseHeadOrDefaultInfo(
+              pattern: null,
+              variables: {},
+              guard: null,
+            )
+      ],
+      case_._body.statements,
+      case_._candidateVariables,
+      hasLabels: case_.hasLabels,
+    );
+  }
+
+  @override
+  Type getVariableType(Var node) {
+    return node.type;
+  }
+
+  @override
+  void handle_ifCaseStatement_afterPattern({
+    required covariant _IfCase node,
+    required Iterable<Var> variables,
+  }) {
+    var variableList = variables.toList();
+    for (var variable in variableList) {
+      _irBuilder.atom(variable.stringToCheckVariables, Kind.variable,
+          location: variable.location);
+    }
+    _irBuilder.apply(
+      'variables',
+      List.filled(variableList.length, Kind.variable),
+      Kind.variables,
+      location: node.location,
+    );
   }
 
   @override
   void handleCase_afterCaseHeads(
-      covariant _SwitchStatement node, int caseIndex, int numHeads) {
-    var labels = node.cases[caseIndex]._caseHeads._labels;
-    for (var label in labels) {
-      _irBuilder.atom(label._name, Kind.caseHead, location: node.location);
+      covariant _SwitchStatement node, int caseIndex, Iterable<Var> variables) {
+    var case_ = node.cases[caseIndex];
+
+    for (var variable in variables) {
+      _irBuilder.atom(variable.stringToCheckVariables, Kind.variable,
+          location: variable.location);
     }
-    _irBuilder.apply('heads',
-        List.filled(numHeads + labels.length, Kind.caseHead), Kind.caseHeads,
-        location: node.location);
+    _irBuilder.apply(
+      'variables',
+      List.filled(variables.length, Kind.variable),
+      Kind.variables,
+      location: node.location,
+    );
+    _irBuilder.apply(
+      'heads',
+      [
+        ...List.filled(case_.elements.length, Kind.caseHead),
+        Kind.variables,
+      ],
+      Kind.caseHeads,
+      location: node.location,
+    );
   }
 
   @override
@@ -3157,10 +3362,11 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleMergedStatementCase(Statement node,
-      {required int caseIndex,
-      required int executionPathIndex,
-      required int numStatements}) {
+  void handleMergedStatementCase(
+    covariant _SwitchStatement node, {
+    required int caseIndex,
+  }) {
+    var numStatements = node.cases[caseIndex]._body.statements.length;
     _irBuilder.apply(
         'block', List.filled(numStatements, Kind.statement), Kind.statement,
         location: node.location);
@@ -3383,8 +3589,7 @@ class _NullCheckOrAssertPattern extends Pattern {
       .analyzeNullCheckOrAssertPatternSchema(_inner, isAssert: _isAssert);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     _inner.preVisit(visitor, variableBinder);
   }
 
@@ -3441,7 +3646,7 @@ class _ObjectPattern extends Pattern {
   @override
   void preVisit(
     PreVisitor visitor,
-    VariableBinder<Node, Var, Type> variableBinder,
+    VariableBinder<Node, Var> variableBinder,
   ) {
     for (var field in fields) {
       field.pattern.preVisit(visitor, variableBinder);
@@ -3574,7 +3779,7 @@ class _RecordPattern extends Pattern {
   @override
   void preVisit(
     PreVisitor visitor,
-    VariableBinder<Node, Var, Type> variableBinder,
+    VariableBinder<Node, Var> variableBinder,
   ) {
     for (var field in fields) {
       field.pattern.preVisit(visitor, variableBinder);
@@ -3620,8 +3825,7 @@ class _RelationalPattern extends Pattern {
       h.typeAnalyzer.analyzeRelationalPatternSchema();
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     operand.preVisit(visitor);
   }
 
@@ -3698,10 +3902,20 @@ class _SwitchExpression extends Expression {
   }
 }
 
+class _SwitchHeadCase extends SwitchHead {
+  final GuardedPattern guardedPattern;
+
+  _SwitchHeadCase._(this.guardedPattern, {required super.location}) : super._();
+}
+
+class _SwitchHeadDefault extends SwitchHead {
+  _SwitchHeadDefault({required super.location}) : super._();
+}
+
 class _SwitchStatement extends Statement {
   final Expression scrutinee;
 
-  final List<StatementCase> cases;
+  final List<_SwitchStatementMember> cases;
 
   final bool isExhaustive;
 
@@ -3724,27 +3938,8 @@ class _SwitchStatement extends Statement {
   void preVisit(PreVisitor visitor) {
     scrutinee.preVisit(visitor);
     visitor._assignedVariables.beginNode();
-    VariableBinder<Node, Var, Type>? variableBinder;
     for (var case_ in cases) {
-      variableBinder ??= VariableBinder<Node, Var, Type>(visitor)
-        ..startAlternatives();
-      for (var label in case_._caseHeads._labels) {
-        variableBinder.startAlternative(label);
-        variableBinder.finishAlternative();
-      }
-      for (var caseHead in case_._caseHeads._caseHeads) {
-        caseHead._preVisit(visitor, variableBinder);
-      }
-      if (case_._body.statements.isNotEmpty) {
-        variableBinder.finishAlternatives();
-        variableBinder.finish();
-        variableBinder = null;
-      }
-      case_._body.preVisit(visitor);
-    }
-    if (variableBinder != null) {
-      variableBinder.finishAlternatives();
-      variableBinder.finish();
+      case_._preVisit(visitor);
     }
     visitor._assignedVariables.endNode(this);
   }
@@ -3775,17 +3970,64 @@ class _SwitchStatement extends Statement {
     expect(analysisResult.lastCaseTerminates,
         expectLastCaseTerminates ?? anything);
     expect(analysisResult.scrutineeType.type, expectScrutineeType ?? anything);
-    var numExecutionPaths = analysisResult.numExecutionPaths;
     h.irBuilder.apply(
-        'switch',
-        [
-          Kind.expression,
-          ...List.filled(numExecutionPaths, Kind.statementCase)
-        ],
-        Kind.statement,
-        location: location);
+      'switch',
+      [
+        Kind.expression,
+        ...List.filled(cases.length, Kind.statementCase),
+      ],
+      Kind.statement,
+      location: location,
+    );
     h.typeAnalyzer._currentBreakTarget = previousBreakTarget;
     h.typeAnalyzer._currentContinueTarget = previousContinueTarget;
+  }
+}
+
+/// Representation of a single case clause in a switch statement.  Use [case_]
+/// to create instances of this class.
+class _SwitchStatementMember extends Node {
+  final bool hasLabels;
+  final List<SwitchHead> elements;
+  final _Block _body;
+
+  /// These variables are set during pre-visit, and some of them are joins of
+  /// pattern variable declarations. We don't know their types until we do
+  /// type analysis. So, some of these variables might become unavailable.
+  late final Map<String, Var> _candidateVariables;
+
+  _SwitchStatementMember._(
+    this.elements,
+    this._body, {
+    required super.location,
+    required this.hasLabels,
+  }) : super._();
+
+  void _preVisit(PreVisitor visitor) {
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.switchStatementSharedCaseScopeStart();
+    for (SwitchHead element in elements) {
+      if (element is _SwitchHeadCase) {
+        variableBinder.casePatternStart();
+        element.guardedPattern.pattern.preVisit(visitor, variableBinder);
+        element.guardedPattern.guard?.preVisit(visitor);
+        element.guardedPattern.variables = variableBinder.casePatternFinish(
+          sharedCaseScopeKey: this,
+        );
+        if (hasLabels) {
+          variableBinder.switchStatementSharedCaseScopeEmpty(
+            sharedCaseScopeKey: this,
+          );
+        }
+      } else {
+        variableBinder.switchStatementSharedCaseScopeEmpty(
+          sharedCaseScopeKey: this,
+        );
+      }
+    }
+    _candidateVariables =
+        variableBinder.switchStatementSharedCaseScopeFinish() ?? {};
+    _body.preVisit(visitor);
   }
 }
 
@@ -3925,6 +4167,31 @@ class _TryStatement extends TryStatement {
   }
 }
 
+class _VariableBinder extends VariableBinder<Node, Var> {
+  _VariableBinder({
+    required super.errors,
+  });
+
+  @override
+  Var joinPatternVariables({
+    required Object? key,
+    required List<Var> components,
+    required bool isConsistent,
+  }) {
+    return PatternVariableJoin(
+      components.first.name,
+      components: [
+        for (var variable in components)
+          if (key is _LogicalPattern && variable is PatternVariableJoin)
+            ...variable.components
+          else
+            variable
+      ],
+      isConsistent: isConsistent && components.every((e) => e.isConsistent),
+    );
+  }
+}
+
 class _VariablePattern extends Pattern {
   final Type? declaredType;
 
@@ -3940,10 +4207,9 @@ class _VariablePattern extends Pattern {
       h.typeAnalyzer.analyzeVariablePatternSchema(declaredType);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     var variable = this.variable;
-    if (variable != null && variableBinder.add(this, variable)) {
+    if (variable != null && variableBinder.add(variable.name, variable)) {
       visitor._assignedVariables.declare(variable);
     }
   }
@@ -3954,7 +4220,7 @@ class _VariablePattern extends Pattern {
     SharedMatchContext context,
   ) {
     var staticType = h.typeAnalyzer.analyzeVariablePattern(
-        matchedType, context, this, variable, declaredType);
+        matchedType, context, this, variable, variable?.name, declaredType);
     h.typeAnalyzer.handleVariablePattern(this,
         matchedType: matchedType, staticType: staticType);
   }

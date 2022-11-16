@@ -12454,6 +12454,13 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
   }
 }
 
+class SwitchStatementCaseGroup {
+  final List<SwitchMemberImpl> members;
+  final bool hasLabels;
+
+  SwitchStatementCaseGroup(this.members, this.hasLabels);
+}
+
 /// A switch statement.
 ///
 ///    switchStatement ::=
@@ -12481,6 +12488,9 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 
   /// The switch members that can be selected by the expression.
   final NodeListImpl<SwitchMemberImpl> _members = NodeListImpl._();
+
+  late final List<SwitchStatementCaseGroup> memberGroups =
+      _computeMemberGroups();
 
   /// The right curly bracket.
   @override
@@ -12534,6 +12544,29 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
     _members.accept(visitor);
+  }
+
+  List<SwitchStatementCaseGroup> _computeMemberGroups() {
+    var groups = <SwitchStatementCaseGroup>[];
+    var groupMembers = <SwitchMemberImpl>[];
+    var groupHasLabels = false;
+    for (var member in members) {
+      groupMembers.add(member);
+      groupHasLabels |= member.labels.isNotEmpty;
+      if (member.statements.isNotEmpty) {
+        groups.add(
+          SwitchStatementCaseGroup(groupMembers, groupHasLabels),
+        );
+        groupMembers = [];
+        groupHasLabels = false;
+      }
+    }
+    if (groupMembers.isNotEmpty) {
+      groups.add(
+        SwitchStatementCaseGroup(groupMembers, groupHasLabels),
+      );
+    }
+    return groups;
   }
 }
 
@@ -13562,8 +13595,8 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeVariablePattern(
-        matchedType, context, this, declaredElement, type?.typeOrThrow);
+    resolverVisitor.analyzeVariablePattern(matchedType, context, this,
+        declaredElement, declaredElement?.name, type?.typeOrThrow);
   }
 
   @override
