@@ -4899,12 +4899,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitRecordIndexGet(RecordIndexGet node) {
-    return defaultExpression(node);
+    return _emitPropertyGet(node.receiver, null, '\$${node.index}');
   }
 
   @override
   js_ast.Expression visitRecordNameGet(RecordNameGet node) {
-    return defaultExpression(node);
+    return _emitPropertyGet(node.receiver, null, node.name);
   }
 
   @override
@@ -7020,8 +7020,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
-  js_ast.Expression visitRecordConstant(RecordConstant node) =>
-      defaultConstant(node);
+  js_ast.Expression visitRecordConstant(RecordConstant node) {
+    var sortedNames = node.named.entries.toList().sortedBy((e) => e.key);
+    var names = sortedNames.map((e) => e.key);
+    var shape = '${node.positional.length} ${names.join(" ")}';
+    return runtimeCall('recordLiteral(#, #, #, [#])', [
+      js.string(shape),
+      js.number(node.positional.length),
+      names.isEmpty ? js.call('void 0') : js.stringArray(names),
+      [
+        ...node.positional.map(visitConstant),
+        ...sortedNames.map((e) => visitConstant(e.value))
+      ]
+    ]);
+  }
 
   @override
   js_ast.Expression visitInstanceConstant(InstanceConstant node) {

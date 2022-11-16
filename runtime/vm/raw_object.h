@@ -468,8 +468,7 @@ class UntaggedObject {
 
   // This variant ensures that we do not visit the extra slot created from
   // rounding up instance sizes up to the allocation unit.
-  void VisitPointersPrecise(IsolateGroup* isolate_group,
-                            ObjectPointerVisitor* visitor);
+  void VisitPointersPrecise(ObjectPointerVisitor* visitor);
 
   static ObjectPtr FromAddr(uword addr) {
     // We expect the untagged address here.

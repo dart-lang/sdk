@@ -4,6 +4,7 @@
 
 library dart2js.abstract_value_domain;
 
+import '../common/metrics.dart';
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
@@ -635,4 +636,8 @@ abstract class AbstractValueDomain {
   // TODO(48820): Remove covariant when DataSinkWriter is migrated.
   void writeAbstractValueToDataSink(
       covariant DataSinkWriter sink, AbstractValue? value);
+
+  void finalizeMetrics() {}
+
+  Metrics get metrics => Metrics.none();
 }

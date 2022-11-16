@@ -19524,7 +19524,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     // Make sure that we are not missing any fields.
     IsolateGroup* group = IsolateGroup::Current();
     CheckForPointers has_pointers(group);
-    this->ptr()->untag()->VisitPointersPrecise(group, &has_pointers);
+    this->ptr()->untag()->VisitPointersPrecise(&has_pointers);
     ASSERT(!has_pointers.has_pointers());
 #endif  // DEBUG
   }

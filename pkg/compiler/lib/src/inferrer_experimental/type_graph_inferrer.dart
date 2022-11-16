@@ -44,6 +44,7 @@ class TypeGraphInferrer implements TypesInferrer {
     inferrer = createInferrerEngineFor(main);
     inferrer.runOverAllElements();
     _metrics = inferrer.metrics;
+    closedWorld.abstractValueDomain.finalizeMetrics();
     return buildResults();
   }
 

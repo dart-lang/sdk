@@ -2215,18 +2215,56 @@ class Shape {
 }
 
 final _shape = JS('', 'Symbol("shape")');
-var Record = JS('!', '''class Record {}''');
+
 final Object _RecordImpl = JS(
     '!',
     '''
-class _RecordImpl extends # {
+class _RecordImpl {
   constructor(values) {
-    super();
     this.values = values;
+  }
+
+  [#](other) {
+    if (!(other instanceof #)) return false;
+    if (this.# !== other.#) return false;
+    if (this.values.length !== other.values.length) return false;
+    for (let i = 0; i < this.values.length; i++)
+      if (!#(this.values[i], other.values[i]))
+        return false;
+    return true;
+  }
+
+  get [#]() {
+    return #([this.#].concat(this.values.map((v) => #(v))));
+  }
+
+  [#]() {
+    let shape = this.#;
+    let s = '(';
+    for (let i = 0; i < this.values.length; i++) {
+      if (i >= shape.positionals) {
+        s += shape.named[i - shape.positionals] + ': '
+      }
+      s += #(this.values[i]);
+      if (i < this.values.length - 1) s += ', ';
+    }
+    s += ')';
+    return s;
   }
 }
 ''',
-    Record);
+    extensionSymbol('_equals'),
+    _RecordImpl,
+    _shape,
+    _shape,
+    equals,
+    extensionSymbol('hashCode'),
+    Object.hashAll,
+    _shape,
+    hashCode,
+    extensionSymbol('toString'),
+    _shape,
+    _toString);
 
 /// Cache for Record shapes. These are keyed by a distinct shape recipe,
 /// which consists of an integer followed by space-separated named labels.
