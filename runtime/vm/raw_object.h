@@ -2982,6 +2982,7 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
 
   friend class Api;
   friend class Instance;
+  friend class DeltaEncodedTypedDataDeserializationCluster;
   friend class NativeEntryData;
   friend class Object;
   friend class ObjectPool;

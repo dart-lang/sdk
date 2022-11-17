@@ -4609,6 +4609,10 @@ class Script : public Object {
 
   TypedDataPtr kernel_string_offsets() const;
 
+  static intptr_t line_starts_offset() {
+    return OFFSET_OF(UntaggedScript, line_starts_);
+  }
+
   TypedDataPtr line_starts() const;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
