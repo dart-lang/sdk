@@ -5317,6 +5317,61 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // in-range arguments, cannot create out-of-range result.
 }
 
+// Should be kept in sync with integers.cc Multiply64Hash
+static void EmitHashIntegerCodeSequence(FlowGraphCompiler* compiler) {
+  __ movq(RDX, compiler::Immediate(0x2d51));
+  __ mulq(RDX);
+  __ xorq(RAX, RDX);  // RAX = xor(hi64, lo64)
+  __ movq(RDX, RAX);
+  __ shrq(RDX, compiler::Immediate(32));
+  __ xorq(RAX, RDX);
+  __ andq(RAX, compiler::Immediate(0x3fffffff));
+}
+
+LocationSummary* HashDoubleOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RegisterLocation(RDX));
+  summary->set_temp(1, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RegisterLocation(RAX));
+  return summary;
+}
+
+void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const XmmRegister value = locs()->in(0).fpu_reg();
+  ASSERT(locs()->out(0).reg() == RAX);
+  ASSERT(locs()->temp(0).reg() == RDX);
+  const FpuRegister temp_fpu_reg = locs()->temp(1).fpu_reg();
+
+  compiler::Label hash_double;
+
+  __ cvttsd2siq(RAX, value);
+  __ cvtsi2sdq(temp_fpu_reg, RAX);
+  __ comisd(value, temp_fpu_reg);
+  __ j(PARITY_EVEN, &hash_double);  // one of the arguments is NaN
+  __ j(NOT_EQUAL, &hash_double);
+
+  // RAX has int64 value
+  EmitHashIntegerCodeSequence(compiler);
+
+  compiler::Label done;
+  __ jmp(&done);
+
+  __ Bind(&hash_double);
+  // Convert the double bits to a hash code that fits in a Smi.
+  __ movq(RAX, value);
+  __ movq(RDX, RAX);
+  __ shrq(RDX, compiler::Immediate(32));
+  __ xorq(RAX, RDX);
+  __ andq(RAX, compiler::Immediate(compiler::target::kSmiMax));
+
+  __ Bind(&done);
+}
+
 LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5329,10 +5384,6 @@ LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-// Should be kept in sync with
-//  - asm_intrinsifier_x64.cc Multiply64Hash
-//  - integers.cc Multiply64Hash
-//  - integers.dart computeHashCode
 void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
@@ -5347,13 +5398,7 @@ void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadFieldFromOffset(RAX, RAX, Mint::value_offset());
   }
 
-  __ movq(RDX, compiler::Immediate(0x2d51));  // 1b873593cc9e2d51));
-  __ mulq(RDX);
-  __ xorq(RAX, RDX);  // RAX = xor(hi64, lo64)
-  __ movq(RDX, RAX);
-  __ shrq(RDX, compiler::Immediate(32));
-  __ xorq(RAX, RDX);
-  __ andq(RAX, compiler::Immediate(0x3fffffff));
+  EmitHashIntegerCodeSequence(compiler);
   __ SmiTag(RAX);
 }
 

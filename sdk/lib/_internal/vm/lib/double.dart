@@ -11,12 +11,9 @@ class _Double implements double {
   @pragma("vm:external-name", "Double_doubleFromInteger")
   external factory _Double.fromInteger(int value);
 
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:external-name", "Double_hashCode")
+  @pragma("vm:recognized", "other")
   external int get hashCode;
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:external-name", "Double_hashCode")
-  external int get _identityHashCode;
+  int get _identityHashCode => hashCode;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)

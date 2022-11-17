@@ -572,7 +572,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
     return instructions;
   }
 
-  Fragment BuildHashCode(bool smi);
+  Fragment BuildDoubleHashCode();
+  Fragment BuildIntegerHashCode(bool smi);
 
   TranslationHelper translation_helper_;
   Thread* thread_;

@@ -4976,6 +4976,60 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
+// Should be kept in sync with integers.cc Multiply64Hash
+static void EmitHashIntegerCodeSequence(FlowGraphCompiler* compiler,
+                                        const Register value,
+                                        const Register result) {
+  ASSERT(value != TMP2);
+  ASSERT(result != TMP2);
+  ASSERT(value != result);
+  __ LoadImmediate(TMP2, compiler::Immediate(0x2d51));
+  __ mul(result, value, TMP2);
+  __ umulh(value, value, TMP2);
+  __ eor(result, result, compiler::Operand(value));
+  __ eor(result, result, compiler::Operand(result, LSR, 32));
+}
+
+LocationSummary* HashDoubleOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const VRegister value = locs()->in(0).fpu_reg();
+  const VRegister temp_double = locs()->temp(0).fpu_reg();
+  const Register result = locs()->out(0).reg();
+
+  compiler::Label done, hash_double;
+  __ vmovrd(TMP, value, 0);
+  __ AndImmediate(TMP, TMP, 0x7FF0000000000000LL);
+  __ CompareImmediate(TMP, 0x7FF0000000000000LL);
+  __ b(&hash_double, EQ);  // is_infinity or nan
+
+  __ fcvtzsxd(TMP, value);
+  __ scvtfdx(temp_double, TMP);
+  __ fcmpd(temp_double, value);
+  __ b(&hash_double, NE);
+
+  EmitHashIntegerCodeSequence(compiler, TMP, result);
+  __ AndImmediate(result, result, 0x3fffffff);
+  __ b(&done);
+
+  __ Bind(&hash_double);
+  __ fmovrd(result, value);
+  __ eor(result, result, compiler::Operand(result, LSR, 32));
+  __ AndImmediate(result, result, compiler::target::kSmiMax);
+
+  __ Bind(&done);
+}
+
 LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4987,25 +5041,17 @@ LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-// Should be kept in sync with
-//  - asm_intrinsifier_x64.cc Multiply64Hash
-//  - integers.cc Multiply64Hash
-//  - integers.dart computeHashCode
 void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
   if (smi_) {
-    __ SmiUntag(TMP2, value);
+    __ SmiUntag(TMP, value);
   } else {
-    __ LoadFieldFromOffset(TMP2, value, Mint::value_offset());
+    __ LoadFieldFromOffset(TMP, value, Mint::value_offset());
   }
 
-  __ LoadImmediate(TMP, compiler::Immediate(0x2d51));
-  __ mul(result, TMP, TMP2);
-  __ umulh(TMP, TMP, TMP2);
-  __ eor(result, result, compiler::Operand(TMP));
-  __ eor(result, result, compiler::Operand(result, LSR, 32));
+  EmitHashIntegerCodeSequence(compiler, TMP, result);
   __ ubfm(result, result, 63, 29);  // SmiTag(result & 0x3fffffff)
 }
 

@@ -1209,6 +1209,17 @@ void ConstantPropagator::VisitUnboxInt64(UnboxInt64Instr* instr) {
   VisitUnbox(instr);
 }
 
+void ConstantPropagator::VisitHashDoubleOp(HashDoubleOpInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsUnknown(value)) {
+    return;
+  }
+  if (value.IsDouble()) {
+    // TODO(aam): Add constant hash evaluation
+  }
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitHashIntegerOp(HashIntegerOpInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsUnknown(value)) {

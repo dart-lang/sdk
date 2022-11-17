@@ -5065,6 +5065,115 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(EDX);
 }
 
+// Should be kept in sync with integers.cc Multiply64Hash
+static void EmitHashIntegerCodeSequence(FlowGraphCompiler* compiler,
+                                        const Register value_lo,
+                                        const Register value_hi,
+                                        const Register temp) {
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(EDX);  // EAX = lo32(value_lo*0x2d51), EDX = carry(value_lo * 0x2d51)
+  __ movl(temp, EAX);      // save prod_lo32
+  __ movl(EAX, value_hi);  // get saved value_hi
+  __ movl(value_hi, EDX);  // save carry
+  __ movl(EDX, compiler::Immediate(0x2d51));
+  __ mull(EDX);  // EAX = lo32(value_hi * 0x2d51, EDX = carry(value_hi * 0x2d51)
+  __ addl(EAX, value_hi);  // EAX has prod_hi32, EDX has prod_hi64_lo32
+
+  __ xorl(EAX, EDX);   // EAX = prod_hi32 ^ prod_hi64_lo32
+  __ xorl(EAX, temp);  // result = prod_hi32 ^ prod_hi64_lo32 ^ prod_lo32
+  __ andl(EAX, compiler::Immediate(0x3fffffff));
+}
+
+LocationSummary* HashDoubleOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 4;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RegisterLocation(EBX));
+  summary->set_temp(2, Location::RegisterLocation(EDX));
+  summary->set_temp(3, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::Pair(Location::RegisterLocation(EAX),
+                                     Location::RegisterLocation(EDX)));
+  return summary;
+}
+
+void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const XmmRegister value = locs()->in(0).fpu_reg();
+  const Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->temp(1).reg() == EBX);
+  ASSERT(locs()->temp(2).reg() == EDX);
+  const XmmRegister temp_double = locs()->temp(3).fpu_reg();
+  PairLocation* result_pair = locs()->out(0).AsPairLocation();
+  ASSERT(result_pair->At(0).reg() == EAX);
+  ASSERT(result_pair->At(1).reg() == EDX);
+
+  // If either nan or infinity, do hash double
+  compiler::Label hash_double, try_convert;
+
+  // extract high 32-bits out of double value.
+  __ pextrd(temp, value, compiler::Immediate(1));
+  __ andl(temp, compiler::Immediate(0x7FF00000));
+  __ cmpl(temp, compiler::Immediate(0x7FF00000));
+  __ j(EQUAL, &hash_double);  // is infinity or nan
+
+  compiler::Label slow_path;
+  __ Bind(&try_convert);
+  __ cvttsd2si(EAX, value);
+  // Overflow is signaled with minint.
+  __ cmpl(EAX, compiler::Immediate(0x80000000));
+  __ j(EQUAL, &slow_path);
+  __ cvtsi2sd(temp_double, EAX);
+  __ comisd(value, temp_double);
+  __ j(NOT_EQUAL, &hash_double);
+  __ cdq();  // sign-extend EAX to EDX
+  __ movl(temp, EDX);
+
+  compiler::Label hash_integer, done;
+  // integer hash for (temp:EAX)
+  __ Bind(&hash_integer);
+  EmitHashIntegerCodeSequence(compiler, EAX, temp, EBX);
+  __ jmp(&done);
+
+  __ Bind(&slow_path);
+  // double value is potentially doesn't fit into Smi range, so
+  // do the double->int64->double via runtime call.
+  __ StoreUnboxedDouble(value, THR,
+                        compiler::target::Thread::unboxed_runtime_arg_offset());
+  {
+    compiler::LeafRuntimeScope rt(
+        compiler->assembler(),
+        /*frame_size=*/1 * compiler::target::kWordSize,
+        /*preserve_registers=*/true);
+    __ movl(compiler::Address(ESP, 0 * compiler::target::kWordSize), THR);
+    // Check if double can be represented as int64, load it into (temp:EAX) if
+    // it can.
+    rt.Call(kTryDoubleAsIntegerRuntimeEntry, 1);
+    __ movl(EBX, EAX);  // use non-volatile register to carry value out.
+  }
+  __ orl(EBX, EBX);
+  __ j(ZERO, &hash_double);
+  __ movl(EAX,
+          compiler::Address(
+              THR, compiler::target::Thread::unboxed_runtime_arg_offset()));
+  __ movl(temp,
+          compiler::Address(
+              THR, compiler::target::Thread::unboxed_runtime_arg_offset() +
+                       kWordSize));
+  __ jmp(&hash_integer);
+
+  __ Bind(&hash_double);
+  __ pextrd(EAX, value, compiler::Immediate(0));
+  __ pextrd(temp, value, compiler::Immediate(1));
+  __ xorl(EAX, temp);
+  __ andl(EAX, compiler::Immediate(compiler::target::kSmiMax));
+
+  __ Bind(&done);
+  __ xorl(EDX, EDX);
+}
+
 LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5108,19 +5217,7 @@ void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // return result & 0x3fffffff
 
   // EAX has value_lo
-  __ movl(EDX, compiler::Immediate(0x2d51));
-  __ mull(
-      EDX);  // EAX = lo32(value_lo * 0x2d51), EDX = carry(value_lo * 0x2d51)
-  __ movl(temp1, EAX);  // save prod_lo32
-  __ movl(EAX, temp);   // get saved value_hi
-  __ movl(temp, EDX);   // save carry
-  __ movl(EDX, compiler::Immediate(0x2d51));
-  __ mull(EDX);  // EAX = lo32(value_hi * 0x2d51, EDX = carry(value_hi * 0x2d51)
-  __ addl(EAX, temp);  // EAX has prod_hi32, EDX has prod_hi64_lo32
-
-  __ xorl(EAX, EDX);    // EAX = prod_hi32 ^ prod_hi64_lo32
-  __ xorl(EAX, temp1);  // result = prod_hi32 ^ prod_hi64_lo32 ^ prod_lo32
-  __ andl(EAX, compiler::Immediate(0x3fffffff));
+  EmitHashIntegerCodeSequence(compiler, EAX, temp, temp1);
   __ SmiTag(EAX);
 }
 
