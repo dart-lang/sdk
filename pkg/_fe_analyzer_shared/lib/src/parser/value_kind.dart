@@ -31,6 +31,7 @@ class SingleValueKind<T> implements ValueKind {
     return value is T;
   }
 
+  @override
   String toString() {
     if (nullValue != null) {
       return '$T or $nullValue';
@@ -55,6 +56,7 @@ class UnionValueKind implements ValueKind {
     return false;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     String or = '';

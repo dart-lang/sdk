@@ -240,22 +240,27 @@ class TokenStreamRewriterImpl extends TokenStreamRewriter {
   // }
   //
 
+  @override
   Token _setNext(Token setOn, Token nextToken) {
     return setOn.setNext(nextToken);
   }
 
+  @override
   void _setEndGroup(BeginToken setOn, Token endGroup) {
     setOn.endGroup = endGroup;
   }
 
+  @override
   void _setOffset(Token setOn, int offset) {
     setOn.offset = offset;
   }
 
+  @override
   void _setPrecedingComments(SimpleToken setOn, CommentToken? comment) {
     setOn.precedingComments = comment;
   }
 
+  @override
   void _setPrevious(Token setOn, Token previous) {
     setOn.previous = previous;
   }

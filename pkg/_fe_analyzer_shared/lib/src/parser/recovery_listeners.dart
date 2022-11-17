@@ -49,21 +49,25 @@ class ImportRecoveryListener extends ForwardingListener {
     hasCombinator = false;
   }
 
+  @override
   void endConditionalUri(Token ifKeyword, Token leftParen, Token? equalSign) {
     this.ifKeyword = ifKeyword;
     super.endConditionalUri(ifKeyword, leftParen, equalSign);
   }
 
+  @override
   void endHide(Token hideKeyword) {
     this.hasCombinator = true;
     super.endHide(hideKeyword);
   }
 
+  @override
   void endShow(Token showKeyword) {
     this.hasCombinator = true;
     super.endShow(showKeyword);
   }
 
+  @override
   void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     this.deferredKeyword = deferredKeyword;
     this.asKeyword = asKeyword;

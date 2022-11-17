@@ -1524,6 +1524,7 @@ class ForwardingListener implements Listener {
     listener?.handleInvalidStatement(token, message);
   }
 
+  @override
   void handleInvalidTopLevelBlock(Token token) {
     listener?.handleInvalidTopLevelBlock(token);
   }

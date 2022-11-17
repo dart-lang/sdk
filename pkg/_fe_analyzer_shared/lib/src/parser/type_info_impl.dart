@@ -1151,12 +1151,14 @@ class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
   @override
   TypeInfo get typeInfo => simpleTypeWith1ArgumentGtEq;
 
+  @override
   Token skipEndGroup(Token token) {
     token = token.next!;
     assert(optional('>=', token));
     return splitGtEq(token);
   }
 
+  @override
   Token parseEndGroup(Token beginGroup, Token beforeEndGroup) {
     Token endGroup = beforeEndGroup.next!;
     if (!optional('>', endGroup)) {
@@ -1174,12 +1176,14 @@ class SimpleTypeArgument1GtGt extends SimpleTypeArgument1 {
   @override
   TypeInfo get typeInfo => simpleTypeWith1ArgumentGtGt;
 
+  @override
   Token skipEndGroup(Token token) {
     token = token.next!;
     assert(optional('>>', token));
     return splitGtGt(token);
   }
 
+  @override
   Token parseEndGroup(Token beginGroup, Token beforeEndGroup) {
     Token endGroup = beforeEndGroup.next!;
     if (!optional('>', endGroup)) {

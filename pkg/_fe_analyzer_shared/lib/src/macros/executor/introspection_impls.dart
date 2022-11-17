@@ -8,6 +8,7 @@ import 'serialization_extensions.dart';
 import '../api.dart';
 
 class IdentifierImpl extends RemoteInstance implements Identifier {
+  @override
   final String name;
 
   @override
@@ -27,6 +28,7 @@ class IdentifierImpl extends RemoteInstance implements Identifier {
 
 abstract class TypeAnnotationImpl extends RemoteInstance
     implements TypeAnnotation {
+  @override
   final bool isNullable;
 
   TypeAnnotationImpl({required int id, required this.isNullable}) : super(id);
@@ -168,6 +170,7 @@ class OmittedTypeAnnotationImpl extends TypeAnnotationImpl
 }
 
 abstract class DeclarationImpl extends RemoteInstance implements Declaration {
+  @override
   final IdentifierImpl identifier;
 
   DeclarationImpl({required int id, required this.identifier}) : super(id);
@@ -523,6 +526,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.fieldDeclaration;
 
+  @override
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
@@ -544,6 +548,7 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
     required this.typeParameters,
   });
 
+  @override
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
@@ -623,6 +628,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
 class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements TypeAliasDeclaration {
   /// The type being aliased.
+  @override
   final TypeAnnotationImpl aliasedType;
 
   @override

@@ -14,8 +14,10 @@ class LinkIterator<T> implements Iterator<T> {
 
   LinkIterator(this._link);
 
+  @override
   T get current => _current!;
 
+  @override
   bool moveNext() {
     if (_link.isEmpty) {
       _current = null;
@@ -36,8 +38,10 @@ class MappedLinkIterator<S, T> extends Iterator<T> {
 
   MappedLinkIterator(this._link, this._transformation);
 
+  @override
   T get current => _current!;
 
+  @override
   bool moveNext() {
     if (_link.isEmpty) {
       _current = null;
@@ -55,22 +59,27 @@ class MappedLinkIterable<S, T> extends IterableBase<T> {
 
   MappedLinkIterable(this._link, this._transformation);
 
+  @override
   Iterator<T> get iterator {
     return new MappedLinkIterator<S, T>(_link, _transformation);
   }
 }
 
 class LinkEntry<T> extends Link<T> {
+  @override
   final T head;
+  @override
   Link<T> tail;
 
   LinkEntry(this.head, [Link<T>? tail]) : tail = tail ?? const Link<Never>();
 
+  @override
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
     return new LinkEntry<T>(element, this);
   }
 
+  @override
   void printOn(StringBuffer buffer, [separatedBy]) {
     buffer.write(head);
     if (separatedBy == null) separatedBy = '';
@@ -80,6 +89,7 @@ class LinkEntry<T> extends Link<T> {
     }
   }
 
+  @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
     buffer.write('[ ');
@@ -97,6 +107,7 @@ class LinkEntry<T> extends Link<T> {
     return result;
   }
 
+  @override
   Link<T> reversePrependAll(Link<T> from) {
     Link<T> result;
     for (result = this; from.isNotEmpty; from = from.tail!) {
@@ -105,6 +116,7 @@ class LinkEntry<T> extends Link<T> {
     return result;
   }
 
+  @override
   Link<T> skip(int n) {
     Link<T> link = this;
     for (int i = 0; i < n; i++) {
@@ -116,15 +128,19 @@ class LinkEntry<T> extends Link<T> {
     return link;
   }
 
+  @override
   bool get isEmpty => false;
+  @override
   bool get isNotEmpty => true;
 
+  @override
   void forEach(void f(T element)) {
     for (Link<T> link = this; link.isNotEmpty; link = link.tail!) {
       f(link.head);
     }
   }
 
+  @override
   bool operator ==(other) {
     if (other is! Link<T>) return false;
     Link<T> myElements = this;
@@ -139,8 +155,10 @@ class LinkEntry<T> extends Link<T> {
     return myElements.isEmpty && otherElements.isEmpty;
   }
 
+  @override
   int get hashCode => throw new UnsupportedError('LinkEntry.hashCode');
 
+  @override
   int slowLength() {
     int length = 0;
     for (Link<T> current = this; current.isNotEmpty; current = current.tail!) {
@@ -153,6 +171,7 @@ class LinkEntry<T> extends Link<T> {
 class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   LinkEntry<T>? head = null;
   LinkEntry<T>? lastLink = null;
+  @override
   int length = 0;
 
   LinkBuilderImplementation();
@@ -168,6 +187,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     return link;
   }
 
+  @override
   List<T> toList() {
     if (length == 0) return <T>[];
 
@@ -183,6 +203,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     return list;
   }
 
+  @override
   Link<T> addLast(T t) {
     length++;
     LinkEntry<T> entry = new LinkEntry<T>(t, null);
@@ -195,8 +216,10 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     return entry;
   }
 
+  @override
   bool get isEmpty => length == 0;
 
+  @override
   T get first {
     if (head != null) {
       return head!.head;
@@ -204,6 +227,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     throw new StateError("no elements");
   }
 
+  @override
   void clear() {
     head = null;
     lastLink = null;

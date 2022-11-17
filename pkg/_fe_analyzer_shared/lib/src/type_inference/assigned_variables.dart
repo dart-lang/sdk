@@ -240,6 +240,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
     _info[node] = info;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('AssignedVariables(');
@@ -292,6 +293,7 @@ class AssignedVariablesForTesting<Node extends Object, Variable extends Object>
 
   Set<int> readInNode(Node node) => getInfoForNode(node).read;
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('AssignedVariablesForTesting(');
@@ -324,6 +326,7 @@ class AssignedVariablesNodeInfo {
   /// The set of local variables that are declared in the node.
   final Set<int> declared = {};
 
+  @override
   String toString() =>
       'AssignedVariablesNodeInfo(written=$written, captured=$captured, '
       'declared=$declared)';

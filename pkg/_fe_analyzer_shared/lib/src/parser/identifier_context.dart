@@ -321,6 +321,7 @@ abstract class IdentifierContext {
             allowedInConstantExpression ??
                 (inDeclaration || isContinuation || inSymbol);
 
+  @override
   String toString() => _name;
 
   /// Indicates whether the token `new` in this context should be treated as a

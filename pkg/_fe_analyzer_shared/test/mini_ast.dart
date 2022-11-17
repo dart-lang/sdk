@@ -503,6 +503,7 @@ class ExpressionCase extends Node {
       {required super.location})
       : super._();
 
+  @override
   String toString() => [
         guardedPattern == null ? 'default' : 'case $guardedPattern',
         ': $expression'
@@ -1150,6 +1151,7 @@ class Node {
     _errorId = value;
   }
 
+  @override
   String toString() => 'Node#$id';
 }
 
@@ -1297,7 +1299,9 @@ abstract class PromotableLValue extends LValue implements Promotable {
 /// A field in object and record patterns.
 class RecordPatternField extends Node
     implements shared.RecordPatternField<Node, Pattern> {
+  @override
   final String? name;
+  @override
   final Pattern pattern;
 
   RecordPatternField({
@@ -1545,6 +1549,7 @@ class _CastPattern extends Pattern {
 
   _CastPattern(this._inner, this._type, {required super.location}) : super._();
 
+  @override
   Type computeSchema(Harness h) => h.typeAnalyzer.analyzeCastPatternSchema();
 
   @override
@@ -1581,6 +1586,7 @@ class _CatchClause {
 
   _CatchClause(this._body, this._exception, this._stackTrace);
 
+  @override
   String toString() {
     String initialPart;
     if (_stackTrace != null) {
@@ -1889,6 +1895,7 @@ class _ConstantPattern extends Pattern {
 
   _ConstantPattern(this.constant, {required super.location}) : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeConstantPatternSchema();
 
@@ -1897,6 +1904,7 @@ class _ConstantPattern extends Pattern {
     constant.preVisit(visitor);
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
@@ -2545,6 +2553,7 @@ class _ListPattern extends Pattern {
   _ListPattern(this._elementType, this._elements, {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) => h.typeAnalyzer
       .analyzeListPatternSchema(elementType: _elementType, elements: _elements);
 
@@ -2555,6 +2564,7 @@ class _ListPattern extends Pattern {
     }
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
@@ -2648,6 +2658,7 @@ class _LogicalPattern extends Pattern {
       {required this.isAnd, required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeLogicalPatternSchema(_lhs, _rhs, isAnd: isAnd);
 
@@ -2665,6 +2676,7 @@ class _LogicalPattern extends Pattern {
     }
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
@@ -3565,6 +3577,7 @@ class _NullCheckOrAssertPattern extends Pattern {
       {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) => h.typeAnalyzer
       .analyzeNullCheckOrAssertPatternSchema(_inner, isAssert: _isAssert);
 
@@ -3573,6 +3586,7 @@ class _NullCheckOrAssertPattern extends Pattern {
     _inner.preVisit(visitor, variableBinder);
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
@@ -3619,6 +3633,7 @@ class _ObjectPattern extends Pattern {
     required super.location,
   }) : super._();
 
+  @override
   Type computeSchema(Harness h) {
     return h.typeAnalyzer.analyzeObjectPatternSchema(requiredType.type!);
   }
@@ -3633,6 +3648,7 @@ class _ObjectPattern extends Pattern {
     }
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
@@ -3750,6 +3766,7 @@ class _RecordPattern extends Pattern {
 
   _RecordPattern(this.fields, {required super.location}) : super._();
 
+  @override
   Type computeSchema(Harness h) {
     return h.typeAnalyzer.analyzeRecordPatternSchema(
       fields: fields,
@@ -3766,6 +3783,7 @@ class _RecordPattern extends Pattern {
     }
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
@@ -3801,6 +3819,7 @@ class _RelationalPattern extends Pattern {
   _RelationalPattern(this.operator, this.operand, {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeRelationalPatternSchema();
 
@@ -3809,6 +3828,7 @@ class _RelationalPattern extends Pattern {
     operand.preVisit(visitor);
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
@@ -4183,6 +4203,7 @@ class _VariablePattern extends Pattern {
       {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeVariablePatternSchema(declaredType);
 
@@ -4194,6 +4215,7 @@ class _VariablePattern extends Pattern {
     }
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,

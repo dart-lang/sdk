@@ -6450,8 +6450,10 @@ class _MockNonPromotionReason extends NonPromotionReason {
   @override
   String get documentationLink => fail('Unexpected call to documentationLink');
 
+  @override
   String get shortName => fail('Unexpected call to shortName');
 
+  @override
   R accept<R, Node extends Object, Variable extends Object,
               Type extends Object>(
           NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
