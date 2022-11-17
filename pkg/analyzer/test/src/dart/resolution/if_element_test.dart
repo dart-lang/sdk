@@ -32,10 +32,11 @@ IfElement
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
-    pattern: ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-        staticType: int
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -65,19 +66,20 @@ IfElement
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
-    pattern: ConstantPattern
-      const: const
-      expression: FunctionExpressionInvocation
-        function: SimpleIdentifier
-          token: a
-          staticElement: self::@function::f::@parameter::a
-          staticType: int Function()
-        argumentList: ArgumentList
-          leftParenthesis: (
-          rightParenthesis: )
-        staticElement: <null>
-        staticInvokeType: int Function()
-        staticType: int
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        const: const
+        expression: FunctionExpressionInvocation
+          function: SimpleIdentifier
+            token: a
+            staticElement: self::@function::f::@parameter::a
+            staticType: int Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticElement: <null>
+          staticInvokeType: int Function()
+          staticType: int
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 0
@@ -140,10 +142,11 @@ IfElement
     staticType: int
   caseClause: CaseClause
     caseKeyword: case
-    pattern: ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-        staticType: int
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -169,23 +172,24 @@ IfElement
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
-    pattern: ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-        staticType: int
-    whenClause: WhenClause
-      whenKeyword: when
-      expression: FunctionExpressionInvocation
-        function: SimpleIdentifier
-          token: a
-          staticElement: self::@function::f::@parameter::a
-          staticType: bool Function()
-        argumentList: ArgumentList
-          leftParenthesis: (
-          rightParenthesis: )
-        staticElement: <null>
-        staticInvokeType: bool Function()
-        staticType: bool
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: FunctionExpressionInvocation
+          function: SimpleIdentifier
+            token: a
+            staticElement: self::@function::f::@parameter::a
+            staticType: bool Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticElement: <null>
+          staticInvokeType: bool Function()
+          staticType: bool
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1
@@ -211,15 +215,16 @@ IfElement
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
-    pattern: ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-        staticType: int
-    whenClause: WhenClause
-      whenKeyword: when
-      expression: BooleanLiteral
-        literal: true
-        staticType: bool
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BooleanLiteral
+          literal: true
+          staticType: bool
   rightParenthesis: )
   thenElement: IntegerLiteral
     literal: 1

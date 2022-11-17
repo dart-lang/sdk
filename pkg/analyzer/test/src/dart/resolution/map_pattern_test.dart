@@ -23,7 +23,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
   pattern: MapPattern
@@ -53,7 +53,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -70,7 +70,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList

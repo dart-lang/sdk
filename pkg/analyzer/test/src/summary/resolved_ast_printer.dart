@@ -688,6 +688,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitGuardedPattern(GuardedPattern node) {
+    _writeln('GuardedPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitHideCombinator(HideCombinator node) {
     _writeln('HideCombinator');
     _withIndent(() {

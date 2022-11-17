@@ -20,7 +20,7 @@ void f(x) {
   if (x case int _ & double _) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
@@ -52,7 +52,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
@@ -81,7 +81,7 @@ void f(x) {
   if (x case int _ | double _) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
@@ -113,7 +113,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern

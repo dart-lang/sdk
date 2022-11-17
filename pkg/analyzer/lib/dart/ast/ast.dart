@@ -491,6 +491,8 @@ abstract class AstVisitor<R> {
 
   R? visitGenericTypeAlias(GenericTypeAlias node);
 
+  R? visitGuardedPattern(GuardedPattern node);
+
   R? visitHideCombinator(HideCombinator node);
 
   R? visitIfElement(IfElement node);
@@ -861,7 +863,7 @@ abstract class CascadeExpression
 /// The `case` clause that can optionally appear in an `if` statement.
 ///
 ///    caseClause ::=
-///        'case' [DartPattern] [WhenClause]?
+///        'case' [GuardedPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
@@ -870,10 +872,7 @@ abstract class CaseClause implements AstNode {
   Token get caseKeyword;
 
   /// Return the pattern controlling whether the statements will be executed.
-  DartPattern get pattern;
-
-  /// Return the clause controlling whether the statements will be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// A cast pattern.
@@ -2878,6 +2877,21 @@ abstract class GenericTypeAlias implements TypeAlias {
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
   TypeParameterList? get typeParameters;
+}
+
+/// The pattern with an optional [WhenClause].
+///
+///    guardedPattern ::=
+///        [DartPattern] [WhenClause]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class GuardedPattern implements AstNode {
+  /// Return the pattern controlling whether the statements will be executed.
+  DartPattern get pattern;
+
+  /// Return the clause controlling whether the statements will be executed.
+  WhenClause? get whenClause;
 }
 
 /// A combinator that restricts the names being imported to those that are not
@@ -4914,12 +4928,7 @@ abstract class SwitchExpression implements Expression {
 @experimental
 abstract class SwitchExpressionCase implements SwitchExpressionMember {
   /// Return the refutable pattern that must match for the [expression] to be executed.
-  DartPattern get pattern;
-
-  /// Return the clause containing the condition that is evaluated when the
-  /// [pattern] matches, that must evaluate to `true` in order for the
-  /// [expression] to be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// The default case in a switch expression.
@@ -4995,10 +5004,7 @@ abstract class SwitchMember implements AstNode {
 @experimental
 abstract class SwitchPatternCase implements SwitchMember {
   /// Return the pattern controlling whether the statements will be executed.
-  DartPattern get pattern;
-
-  /// Return the clause controlling whether the statements will be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// A switch statement.

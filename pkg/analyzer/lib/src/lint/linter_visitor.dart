@@ -444,6 +444,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitGuardedPattern(GuardedPattern node) {
+    _runSubscriptions(node, registry._forCaseClause);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitHideCombinator(HideCombinator node) {
     _runSubscriptions(node, registry._forHideCombinator);
     node.visitChildren(this);
@@ -1109,6 +1115,7 @@ class NodeLintRegistry {
       _forFunctionTypedFormalParameter = [];
   final List<_Subscription<GenericFunctionType>> _forGenericFunctionType = [];
   final List<_Subscription<GenericTypeAlias>> _forGenericTypeAlias = [];
+  final List<_Subscription<GuardedPattern>> _forGuardedPattern = [];
   final List<_Subscription<HideCombinator>> _forHideCombinator = [];
   final List<_Subscription<IfElement>> _forIfElement = [];
   final List<_Subscription<IfStatement>> _forIfStatement = [];
@@ -1537,6 +1544,10 @@ class NodeLintRegistry {
 
   void addGenericTypeAlias(LintRule linter, AstVisitor visitor) {
     _forGenericTypeAlias.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addGuardedPattern(LintRule linter, AstVisitor visitor) {
+    _forGuardedPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addHideCombinator(LintRule linter, AstVisitor visitor) {

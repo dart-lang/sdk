@@ -1468,42 +1468,35 @@ class CascadeExpressionImpl extends ExpressionImpl
 @experimental
 class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   @override
-  final WhenClauseImpl? whenClause;
-
-  @override
   final Token caseKeyword;
 
   @override
-  final DartPatternImpl pattern;
+  final GuardedPatternImpl guardedPattern;
 
   CaseClauseImpl({
     required this.caseKeyword,
-    required this.pattern,
-    required this.whenClause,
+    required this.guardedPattern,
   }) {
-    _becomeParentOf(pattern);
-    _becomeParentOf(whenClause);
+    _becomeParentOf(guardedPattern);
   }
 
   @override
   Token get beginToken => caseKeyword;
 
   @override
-  Token get endToken => whenClause?.endToken ?? pattern.endToken;
+  Token get endToken => guardedPattern.endToken;
 
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('caseKeyword', caseKeyword)
-    ..addNode('pattern', pattern)
-    ..addNode('whenClause', whenClause);
+    ..addNode('guardedPattern', guardedPattern);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCaseClause(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
-    pattern.accept(visitor);
-    whenClause?.accept(visitor);
+    guardedPattern.accept(visitor);
   }
 }
 
@@ -6444,6 +6437,49 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     super.visitChildren(visitor);
     _typeParameters?.accept(visitor);
     _type.accept(visitor);
+  }
+}
+
+/// The `case` clause that can optionally appear in an `if` statement.
+///
+///    caseClause ::=
+///        'case' [DartPattern] [WhenClause]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
+  @override
+  final DartPatternImpl pattern;
+
+  @override
+  final WhenClauseImpl? whenClause;
+
+  GuardedPatternImpl({
+    required this.pattern,
+    required this.whenClause,
+  }) {
+    _becomeParentOf(pattern);
+    _becomeParentOf(whenClause);
+  }
+
+  @override
+  Token get beginToken => pattern.beginToken;
+
+  @override
+  Token get endToken => whenClause?.endToken ?? pattern.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('pattern', pattern)
+    ..addNode('whenClause', whenClause);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitGuardedPattern(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+    whenClause?.accept(visitor);
   }
 }
 
@@ -12172,20 +12208,15 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
 class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
     implements SwitchExpressionCase {
   @override
-  final WhenClauseImpl? whenClause;
-
-  @override
-  final DartPatternImpl pattern;
+  final GuardedPatternImpl guardedPattern;
 
   SwitchExpressionCaseImpl({
     required super.keyword,
-    required this.pattern,
-    required this.whenClause,
+    required this.guardedPattern,
     required super.arrow,
     required super.expression,
   }) {
-    _becomeParentOf(whenClause);
-    _becomeParentOf(pattern);
+    _becomeParentOf(guardedPattern);
   }
 
   @override
@@ -12197,8 +12228,7 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
-    ..addNode('pattern', pattern)
-    ..addNode('whenClause', whenClause)
+    ..addNode('guardedPattern', guardedPattern)
     ..addToken('arrow', arrow)
     ..addNode('expression', expression);
 
@@ -12208,8 +12238,7 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    pattern.accept(visitor);
-    whenClause?.accept(visitor);
+    guardedPattern.accept(visitor);
     expression.accept(visitor);
   }
 }
@@ -12416,29 +12445,23 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 class SwitchPatternCaseImpl extends SwitchMemberImpl
     implements SwitchPatternCase {
   @override
-  final WhenClauseImpl? whenClause;
-
-  @override
-  final DartPatternImpl pattern;
+  final GuardedPatternImpl guardedPattern;
 
   SwitchPatternCaseImpl({
     required super.labels,
     required super.keyword,
-    required this.pattern,
-    required this.whenClause,
+    required this.guardedPattern,
     required super.colon,
     required super.statements,
   }) {
-    _becomeParentOf(pattern);
-    _becomeParentOf(whenClause);
+    _becomeParentOf(guardedPattern);
   }
 
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addNodeList('labels', labels)
     ..addToken('keyword', keyword)
-    ..addNode('pattern', pattern)
-    ..addNode('whenClause', whenClause)
+    ..addNode('guardedPattern', guardedPattern)
     ..addToken('colon', colon)
     ..addNodeList('statements', statements);
 
@@ -12448,8 +12471,7 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
-    pattern.accept(visitor);
-    whenClause?.accept(visitor);
+    guardedPattern.accept(visitor);
     statements.accept(visitor);
   }
 }

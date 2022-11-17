@@ -813,10 +813,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         var variableBinder = _variableBinder!; // TODO(scheglov) bad
         node.expression.accept(this);
         variableBinder.casePatternStart();
-        caseClause.pattern.accept(this);
+        caseClause.guardedPattern.pattern.accept(this);
         // TODO(scheglov) add variables
         variableBinder.casePatternFinish();
-        caseClause.whenClause?.accept(this);
+        caseClause.guardedPattern.whenClause?.accept(this);
         node.thenStatement.accept(this);
         // TODO(scheglov) pop the context
         node.elseStatement?.accept(this);

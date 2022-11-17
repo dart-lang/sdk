@@ -525,8 +525,10 @@ void f(x) async {
 }
 ''');
     _assertReplacementForChildren<ConstantPattern>(
-      destination: findNode.caseClause('0').pattern as ConstantPattern,
-      source: findNode.caseClause('1').pattern as ConstantPattern,
+      destination:
+          findNode.caseClause('0').guardedPattern.pattern as ConstantPattern,
+      source:
+          findNode.caseClause('1').guardedPattern.pattern as ConstantPattern,
       childAccessors: [
         (node) => node.expression,
       ],

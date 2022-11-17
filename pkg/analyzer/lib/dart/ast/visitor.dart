@@ -398,6 +398,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitGenericTypeAlias(GenericTypeAlias node) => visitTypeAlias(node);
 
   @override
+  R? visitGuardedPattern(GuardedPattern node) => visitNode(node);
+
+  @override
   R? visitHideCombinator(HideCombinator node) => visitCombinator(node);
 
   R? visitIdentifier(Identifier node) => visitExpression(node);
@@ -1190,6 +1193,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitGuardedPattern(GuardedPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitHideCombinator(HideCombinator node) {
     node.visitChildren(this);
     return null;
@@ -1970,6 +1979,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitGenericTypeAlias(GenericTypeAlias node) => null;
 
   @override
+  R? visitGuardedPattern(GuardedPattern node) => null;
+
+  @override
   R? visitHideCombinator(HideCombinator node) => null;
 
   @override
@@ -2486,6 +2498,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
+
+  @override
+  R? visitGuardedPattern(GuardedPattern node) => _throw(node);
 
   @override
   R? visitHideCombinator(HideCombinator node) => _throw(node);
@@ -3356,6 +3371,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitGenericTypeAlias(GenericTypeAlias node) {
     stopwatch.start();
     T? result = _baseVisitor.visitGenericTypeAlias(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitGuardedPattern(GuardedPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitGuardedPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -4339,6 +4362,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
+
+  @override
+  R? visitGuardedPattern(GuardedPattern node) => visitNode(node);
 
   @override
   R? visitHideCombinator(HideCombinator node) => visitNode(node);

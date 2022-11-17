@@ -23,7 +23,7 @@ void f(int x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: final
@@ -42,7 +42,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: final
@@ -67,7 +67,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   type: NamedType
@@ -91,7 +91,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   type: NamedType
@@ -113,7 +113,7 @@ void f<T>(T x) {
 }
 ''');
 
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: var
@@ -135,7 +135,7 @@ void f() {
   if (x case var y) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: var
@@ -151,7 +151,7 @@ void f(int x) {
   if (x case var y) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: var
@@ -167,7 +167,7 @@ void f(Never? x) {
   if (x case var y) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: var
@@ -183,7 +183,7 @@ void f(Null x) {
   if (x case var y) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: var
@@ -205,7 +205,7 @@ void f() {
   if (x case var y) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: var
@@ -224,7 +224,7 @@ void f(int x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 VariablePattern
   keyword: var
@@ -243,7 +243,7 @@ void f(int x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: VariablePattern

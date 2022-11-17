@@ -922,10 +922,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           guard: null,
         );
       } else if (member is SwitchPatternCaseImpl) {
+        var guardedPattern = member.guardedPattern;
         return CaseHeadOrDefaultInfo(
-          pattern: member.pattern,
+          pattern: guardedPattern.pattern,
           variables: {}, // TODO(scheglov) use actual
-          guard: member.whenClause?.expression,
+          guard: guardedPattern.whenClause?.expression,
         );
       } else {
         return CaseHeadOrDefaultInfo(
@@ -2404,11 +2405,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     final caseClause = node.caseClause;
     if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
       analyzeIfCaseElement(
         node: node,
         expression: node.expression,
-        pattern: caseClause.pattern,
-        guard: caseClause.whenClause?.expression,
+        pattern: guardedPattern.pattern,
+        guard: guardedPattern.whenClause?.expression,
         ifTrue: node.thenElement,
         ifFalse: node.elseElement,
         context: context,
@@ -2433,11 +2435,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     final caseClause = node.caseClause;
     if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
       analyzeIfCaseStatement(
         node,
         node.expression,
-        caseClause.pattern,
-        caseClause.whenClause?.expression,
+        guardedPattern.pattern,
+        guardedPattern.whenClause?.expression,
         node.thenStatement,
         node.elseStatement,
         {},

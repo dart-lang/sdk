@@ -20,17 +20,15 @@ void f(x) {
   if (x case (0)) {}
 }
 ''');
-    final node = findNode.caseClause('case');
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-CaseClause
-  caseKeyword: case
-  pattern: ParenthesizedPattern
-    leftParenthesis: (
-    pattern: ConstantPattern
-      expression: IntegerLiteral
-        literal: 0
-        staticType: int
-    rightParenthesis: )
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+  rightParenthesis: )
 ''');
   }
 
@@ -43,7 +41,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
