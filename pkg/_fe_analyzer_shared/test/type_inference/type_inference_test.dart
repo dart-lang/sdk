@@ -62,7 +62,7 @@ main() {
         h.run([
           ifCaseElement(
             expr('Object').checkContext('?'),
-            intLiteral(0).pattern.noGuard,
+            intLiteral(0).pattern,
             intLiteral(1).checkContext('int').asCollectionElement,
           )
               .checkIr('if(expression: expr(Object), pattern: '
@@ -76,7 +76,7 @@ main() {
         h.run([
           ifCaseElement(
             expr('Object'),
-            intLiteral(0).pattern.noGuard,
+            intLiteral(0).pattern,
             intLiteral(1).checkContext('int').asCollectionElement,
             ifFalse: intLiteral(2).checkContext('int').asCollectionElement,
           )
@@ -107,7 +107,7 @@ main() {
         h.run([
           ifCaseElement(
             expr('Object'),
-            x.pattern(type: 'int').noGuard, // has type, refutable
+            x.pattern(type: 'int'), // has type, refutable
             intLiteral(1).checkContext('int').asCollectionElement,
           )
               .checkIr('if(expression: expr(Object), pattern: varPattern(x, '
@@ -257,7 +257,7 @@ main() {
       test('least upper bound behavior', () {
         h.run([
           switchExpr(expr('int'), [
-            intLiteral(0).pattern.noGuard.thenExpr(expr('int')),
+            intLiteral(0).pattern.thenExpr(expr('int')),
             default_.thenExpr(expr('double')),
           ]).checkType('num').stmt
         ]);
@@ -346,7 +346,7 @@ main() {
         h.run([
           ifCase(
             expr('int').checkContext('?'),
-            x.pattern(type: 'num').noGuard,
+            x.pattern(type: 'num'),
           ).checkIr('ifCase(expr(int), '
               'varPattern(x, matchedType: int, staticType: num), variables(x), '
               'true, block(), noop)'),
@@ -358,7 +358,7 @@ main() {
         h.run([
           ifCase(
             expr('num'),
-            x.pattern(type: 'int').noGuard,
+            x.pattern(type: 'int'),
             ifTrue: [
               expr('Object').stmt,
             ],
@@ -388,7 +388,7 @@ main() {
         h.run([
           ifCase(
             expr('num').checkContext('?'),
-            x.pattern(type: 'int').noGuard,
+            x.pattern(type: 'int'),
           ).checkIr('ifCase(expr(num), '
               'varPattern(x, matchedType: num, staticType: int), variables(x), '
               'true, block(), noop)'),
@@ -447,7 +447,7 @@ main() {
           switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 break_(),
               ]),
             ],
@@ -462,7 +462,7 @@ main() {
           switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 break_(),
               ]),
             ],
@@ -478,7 +478,7 @@ main() {
           switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 break_(),
               ]),
               default_.then([
@@ -497,10 +497,10 @@ main() {
           switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 expr('int').stmt,
               ]),
-              intLiteral(1).pattern.noGuard.then([
+              intLiteral(1).pattern.then([
                 break_(),
               ]),
             ],
@@ -515,10 +515,10 @@ main() {
           switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 break_(),
               ]),
-              intLiteral(1).pattern.noGuard.then([
+              intLiteral(1).pattern.then([
                 expr('int').stmt,
               ]),
             ],
@@ -540,7 +540,7 @@ main() {
           switch_(
             expr('int').checkContext('?'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 break_(),
               ]),
             ],
@@ -558,7 +558,7 @@ main() {
             switch_(
               expr('int').checkContext('?'),
               [
-                x.pattern().noGuard.then([
+                x.pattern().then([
                   break_(),
                 ]),
               ],
@@ -576,7 +576,7 @@ main() {
             switch_(
               expr('int').checkContext('?'),
               [
-                x.pattern(type: 'num').noGuard.then([
+                x.pattern(type: 'num').then([
                   break_(),
                 ]),
               ],
@@ -594,7 +594,7 @@ main() {
           switch_(
             expr('int').checkContext('?'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 break_(),
               ]),
             ],
@@ -608,10 +608,10 @@ main() {
           switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 break_(),
               ]),
-              intLiteral(1).pattern.noGuard.then([]),
+              intLiteral(1).pattern.then([]),
             ],
             isExhaustive: false,
           ).checkIr('switch(expr(int), case(heads(head(const(0, matchedType: '
@@ -652,10 +652,10 @@ main() {
             switch_(
               expr('int'),
               [
-                x.pattern().noGuard.then([
+                x.pattern().then([
                   break_(),
                 ]),
-                y.pattern().noGuard.then([
+                y.pattern().then([
                   break_(),
                 ]),
               ],
@@ -677,8 +677,8 @@ main() {
                   expr('int'),
                   [
                     switchStatementMember([
-                      x1.pattern().noGuard.switchCase,
-                      x2.pattern().noGuard.switchCase,
+                      x1.pattern().switchCase,
+                      x2.pattern().switchCase,
                     ], [
                       break_(),
                     ]),
@@ -702,8 +702,8 @@ main() {
                       logicalOrPattern(
                         x1.pattern(),
                         x2.pattern(),
-                      ).noGuard.switchCase,
-                      x3.pattern().noGuard.switchCase,
+                      ).switchCase,
+                      x3.pattern().switchCase,
                     ], [
                       break_(),
                     ]),
@@ -726,8 +726,8 @@ main() {
                     expr('int'),
                     [
                       switchStatementMember([
-                        x1.pattern(type: 'num').noGuard.switchCase,
-                        x2.pattern(type: 'int').noGuard.switchCase,
+                        x1.pattern(type: 'num').switchCase,
+                        x2.pattern(type: 'int').switchCase,
                       ], [
                         break_(),
                       ]),
@@ -748,8 +748,8 @@ main() {
                     expr('int'),
                     [
                       switchStatementMember([
-                        x1.pattern(type: 'num').noGuard.switchCase,
-                        x2.pattern().noGuard.switchCase,
+                        x1.pattern(type: 'num').switchCase,
+                        x2.pattern().switchCase,
                       ], [
                         break_(),
                       ]),
@@ -770,8 +770,8 @@ main() {
                     expr('List<int>'),
                     [
                       switchStatementMember([
-                        x1.pattern().noGuard.switchCase,
-                        listPattern([x2.pattern()]).noGuard.switchCase,
+                        x1.pattern().switchCase,
+                        listPattern([x2.pattern()]).switchCase,
                       ], [
                         break_(),
                       ]),
@@ -796,8 +796,8 @@ main() {
                   expr('int'),
                   [
                     switchStatementMember([
-                      x1.pattern().noGuard.switchCase,
-                      x2.pattern().noGuard.switchCase,
+                      x1.pattern().switchCase,
+                      x2.pattern().switchCase,
                     ], [
                       break_(),
                     ]),
@@ -818,8 +818,8 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    x1.pattern().noGuard.switchCase,
-                    intLiteral(0).pattern.noGuard.switchCase,
+                    x1.pattern().switchCase,
+                    intLiteral(0).pattern.switchCase,
                   ], [
                     break_(),
                   ]),
@@ -838,8 +838,8 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    intLiteral(0).pattern.noGuard.switchCase,
-                    x1.pattern().noGuard.switchCase,
+                    intLiteral(0).pattern.switchCase,
+                    x1.pattern().switchCase,
                   ], [
                     break_(),
                   ]),
@@ -859,7 +859,7 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    x1.pattern().noGuard.switchCase,
+                    x1.pattern().switchCase,
                     default_,
                   ], [
                     break_(),
@@ -878,7 +878,7 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    x1.pattern().noGuard.switchCase,
+                    x1.pattern().switchCase,
                   ], [
                     break_(),
                   ], hasLabels: true),
@@ -900,7 +900,7 @@ main() {
             (switch_(
               expr('int'),
               [
-                intLiteral(0).pattern.noGuard.then([
+                intLiteral(0).pattern.then([
                   expr('int').stmt,
                 ]),
                 default_.then([
@@ -921,9 +921,9 @@ main() {
               expr('int'),
               [
                 switchStatementMember([
-                  intLiteral(0).pattern.noGuard.switchCase,
-                  intLiteral(1).pattern.noGuard.switchCase,
-                  intLiteral(2).pattern.noGuard.switchCase,
+                  intLiteral(0).pattern.switchCase,
+                  intLiteral(1).pattern.switchCase,
+                  intLiteral(2).pattern.switchCase,
                 ], [
                   expr('int').stmt,
                 ]),
@@ -944,7 +944,7 @@ main() {
             switch_(
               expr('int'),
               [
-                intLiteral(0).pattern.noGuard.then([
+                intLiteral(0).pattern.then([
                   break_(),
                 ]),
                 default_.then([
@@ -962,7 +962,7 @@ main() {
             switch_(
               expr('int'),
               [
-                intLiteral(0).pattern.noGuard.then([
+                intLiteral(0).pattern.then([
                   expr('int').stmt,
                 ]),
               ],
@@ -981,7 +981,7 @@ main() {
             switch_(
               expr('int'),
               [
-                intLiteral(0).pattern.noGuard.then([
+                intLiteral(0).pattern.then([
                   expr('int').stmt,
                 ]),
                 default_.then([
@@ -1001,7 +1001,7 @@ main() {
             switch_(
               expr('int'),
               [
-                intLiteral(0).pattern.noGuard.then([
+                intLiteral(0).pattern.then([
                   expr('int').stmt,
                 ]),
                 default_.then([
@@ -1022,7 +1022,7 @@ main() {
               switch_(
                 expr('num'),
                 [
-                  expr('int').pattern.noGuard.then([
+                  expr('int').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1037,7 +1037,7 @@ main() {
               switch_(
                 expr('int'),
                 [
-                  expr('num').pattern.noGuard.then([
+                  expr('num').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1052,10 +1052,7 @@ main() {
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
                 [
-                  (expr('String')..errorId = 'EXPRESSION')
-                      .pattern
-                      .noGuard
-                      .then([
+                  (expr('String')..errorId = 'EXPRESSION').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1074,7 +1071,7 @@ main() {
               switch_(
                 expr('dynamic'),
                 [
-                  expr('int').pattern.noGuard.then([
+                  expr('int').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1089,7 +1086,7 @@ main() {
               switch_(
                 expr('int'),
                 [
-                  expr('dynamic').pattern.noGuard.then([
+                  expr('dynamic').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1106,7 +1103,7 @@ main() {
               switch_(
                 expr('num'),
                 [
-                  expr('int').pattern.noGuard.then([
+                  expr('int').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1121,7 +1118,7 @@ main() {
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
                 [
-                  (expr('num')..errorId = 'EXPRESSION').pattern.noGuard.then([
+                  (expr('num')..errorId = 'EXPRESSION').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1140,10 +1137,7 @@ main() {
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
                 [
-                  (expr('String')..errorId = 'EXPRESSION')
-                      .pattern
-                      .noGuard
-                      .then([
+                  (expr('String')..errorId = 'EXPRESSION').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1162,7 +1156,7 @@ main() {
               switch_(
                 expr('dynamic'),
                 [
-                  expr('int').pattern.noGuard.then([
+                  expr('int').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1177,10 +1171,7 @@ main() {
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
                 [
-                  (expr('dynamic')..errorId = 'EXPRESSION')
-                      .pattern
-                      .noGuard
-                      .then([
+                  (expr('dynamic')..errorId = 'EXPRESSION').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1200,7 +1191,7 @@ main() {
               switch_(
                 expr('num'),
                 [
-                  expr('int').pattern.noGuard.then([
+                  expr('int').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1214,7 +1205,7 @@ main() {
               switch_(
                 expr('int'),
                 [
-                  expr('num').pattern.noGuard.then([
+                  expr('num').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1228,7 +1219,7 @@ main() {
               switch_(
                 expr('int'),
                 [
-                  expr('String').pattern.noGuard.then([
+                  expr('String').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1242,7 +1233,7 @@ main() {
               switch_(
                 expr('dynamic'),
                 [
-                  expr('int').pattern.noGuard.then([
+                  expr('int').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1256,7 +1247,7 @@ main() {
               switch_(
                 expr('int'),
                 [
-                  expr('dynamic').pattern.noGuard.then([
+                  expr('dynamic').pattern.then([
                     break_(),
                   ]),
                 ],
@@ -1292,8 +1283,8 @@ main() {
               expr('int'),
               [
                 switchStatementMember([
-                  intLiteral(0).pattern.noGuard.switchCase,
-                  intLiteral(1).pattern.noGuard.switchCase,
+                  intLiteral(0).pattern.switchCase,
+                  intLiteral(1).pattern.switchCase,
                 ], [
                   break_(),
                 ]),
@@ -1440,7 +1431,7 @@ main() {
         h.run([
           ifCase(
             expr('num'),
-            x.pattern().as_('int').noGuard,
+            x.pattern().as_('int'),
           ).checkIr('ifCase(expr(num), castPattern(varPattern(x, '
               'matchedType: int, staticType: int), int, matchedType: num), '
               'variables(x), true, block(), noop)'),
@@ -1565,7 +1556,7 @@ main() {
               expr('Object'),
               listPattern([
                 x.pattern(expectInferredType: 'Object?'),
-              ]).noGuard,
+              ]),
             ).checkIr('ifCase(expr(Object), listPattern(varPattern(x, '
                 'matchedType: Object?, staticType: Object?), matchedType: '
                 'Object, requiredType: List<Object?>), variables(x), '
@@ -1728,7 +1719,7 @@ main() {
                   logicalOrPattern(
                     x1.pattern(type: 'int'),
                     x2.pattern(type: 'int'),
-                  ).noGuard,
+                  ),
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: int), '
@@ -1745,7 +1736,7 @@ main() {
                   logicalOrPattern(
                     x1.pattern(type: 'Object'),
                     x2.pattern(type: 'FutureOr<Object>'),
-                  ).noGuard,
+                  ),
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: Object), varPattern(x, '
                     'matchedType: Object, staticType: FutureOr<Object>), '
@@ -1762,7 +1753,7 @@ main() {
                   logicalOrPattern(
                     x1.pattern(type: 'int'),
                     x2.pattern(),
-                  ).noGuard,
+                  ),
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -1778,7 +1769,7 @@ main() {
                   logicalOrPattern(
                     x1.pattern(),
                     x2.pattern(type: 'int'),
-                  ).noGuard,
+                  ),
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -1794,7 +1785,7 @@ main() {
                   logicalOrPattern(
                     x1.pattern(),
                     x2.pattern(),
-                  ).noGuard,
+                  ),
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -1812,7 +1803,7 @@ main() {
                   logicalOrPattern(
                     x1.pattern(type: 'int'),
                     x2.pattern(type: 'num'),
-                  ).noGuard,
+                  ),
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: num), matchedType: '
@@ -1832,7 +1823,7 @@ main() {
                   logicalOrPattern(
                     x1.pattern(type: 'int'),
                     x2.pattern(),
-                  ).noGuard,
+                  ),
                 ).checkIr('ifCase(expr(num), logicalOrPattern(varPattern(x, '
                     'matchedType: num, staticType: int), varPattern(x, '
                     'matchedType: num, staticType: num), matchedType: num), '
@@ -1854,7 +1845,7 @@ main() {
               logicalOrPattern(
                 x1.pattern(),
                 x2.pattern(),
-              ).noGuard,
+              ),
             ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                 'matchedType: int, staticType: int), varPattern(x, '
                 'matchedType: int, staticType: int), matchedType: int), '
@@ -1875,7 +1866,7 @@ main() {
                 logicalOrPattern(
                   x1.pattern(),
                   x2.pattern(),
-                ).noGuard,
+                ),
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                   'matchedType: int, staticType: int), varPattern(x, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -1891,7 +1882,7 @@ main() {
                   x1.pattern(),
                   wildcard(),
                   errorId: 'PATTERN',
-                ).noGuard,
+                ),
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                   'matchedType: int, staticType: int), varPattern(_, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -1911,7 +1902,7 @@ main() {
                   wildcard(),
                   x1.pattern(),
                   errorId: 'PATTERN',
-                ).noGuard,
+                ),
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(_, '
                   'matchedType: int, staticType: int), varPattern(x, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -2044,7 +2035,7 @@ main() {
                 fields: [
                   Var('foo', errorId: 'foo').pattern().recordField('foo'),
                 ],
-              ).noGuard,
+              ),
             ).checkIr('ifCase(expr(A<int>), objectPattern(varPattern(foo, '
                 'matchedType: int, staticType: int), matchedType: A<int>, '
                 'requiredType: B<int>), variables(foo), true, block(), noop)'),
@@ -2063,7 +2054,7 @@ main() {
                   Var('b', errorId: 'b').pattern().recordField('foo')
                     ..errorId = 'DUPLICATE',
                 ],
-              ).noGuard,
+              ),
             ),
           ], expectedErrors: {
             'duplicateRecordPatternField(name: foo, original: ORIGINAL, '
@@ -2123,7 +2114,7 @@ main() {
                 recordPattern([
                   Var('a', errorId: 'a').pattern(type: 'int').recordField(),
                   Var('b', errorId: 'b').pattern().recordField(),
-                ]).noGuard,
+                ]),
               ).checkIr(
                 'ifCase(expr(dynamic), recordPattern(varPattern(a, '
                 'matchedType: dynamic, staticType: int), varPattern(b, '
@@ -2193,7 +2184,7 @@ main() {
                     recordPattern([
                       Var('a', errorId: 'a').pattern().recordField(),
                       Var('b', errorId: 'b').pattern().recordField(),
-                    ]).noGuard,
+                    ]),
                   ).checkIr('ifCase(expr((int)), recordPattern(varPattern(a, '
                       'matchedType: Object?, staticType: Object?), '
                       'varPattern(b, matchedType: Object?, staticType: '
@@ -2208,7 +2199,7 @@ main() {
                     expr('(int, String)').checkContext('?'),
                     recordPattern([
                       Var('a', errorId: 'a').pattern().recordField(),
-                    ]).noGuard,
+                    ]),
                   ).checkIr('ifCase(expr((int, String)), '
                       'recordPattern(varPattern(a, matchedType: Object?, '
                       'staticType: Object?), matchedType: (int, String), '
@@ -2227,7 +2218,7 @@ main() {
                 recordPattern([
                   Var('a', errorId: 'a').pattern(type: 'int').recordField(),
                   Var('b', errorId: 'b').pattern().recordField(),
-                ]).noGuard,
+                ]),
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
                   'matchedType: Object?, staticType: int), varPattern(b, '
                   'matchedType: Object?, staticType: Object?), matchedType: X, '
@@ -2246,7 +2237,7 @@ main() {
                 recordPattern([
                   Var('a', errorId: 'a').pattern(type: 'int').recordField('a'),
                   Var('b', errorId: 'b').pattern().recordField('b'),
-                ]).noGuard,
+                ]),
               ).checkIr('ifCase(expr(dynamic), recordPattern(varPattern(a, '
                   'matchedType: dynamic, staticType: int), varPattern(b, '
                   'matchedType: dynamic, staticType: dynamic), matchedType: '
@@ -2313,7 +2304,7 @@ main() {
                     recordPattern([
                       Var('a', errorId: 'a').pattern().recordField('a'),
                       Var('b', errorId: 'b').pattern().recordField('b'),
-                    ]).noGuard,
+                    ]),
                   ).checkIr('ifCase(expr(({int a})), recordPattern('
                       'varPattern(a, matchedType: Object?, staticType: '
                       'Object?), varPattern(b, matchedType: Object?, '
@@ -2328,7 +2319,7 @@ main() {
                     expr('({int a, String b})').checkContext('?'),
                     recordPattern([
                       Var('a', errorId: 'a').pattern().recordField('a'),
-                    ]).noGuard,
+                    ]),
                   ).checkIr('ifCase(expr(({int a, String b})), '
                       'recordPattern(varPattern(a, matchedType: Object?, '
                       'staticType: Object?), matchedType: ({int a, String b}), '
@@ -2347,7 +2338,7 @@ main() {
                 recordPattern([
                   Var('a', errorId: 'a').pattern(type: 'int').recordField('a'),
                   Var('b', errorId: 'b').pattern().recordField('b'),
-                ]).noGuard,
+                ]),
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
                   'matchedType: Object?, staticType: int), varPattern(b, '
                   'matchedType: Object?, staticType: Object?), matchedType: X, '
@@ -2365,7 +2356,7 @@ main() {
                   ..errorId = 'ORIGINAL',
                 Var('b', errorId: 'b').pattern().recordField('a')
                   ..errorId = 'DUPLICATE',
-              ]).noGuard,
+              ]),
             ),
           ], expectedErrors: {
             'duplicateRecordPatternField(name: a, original: ORIGINAL, '
@@ -2401,7 +2392,7 @@ main() {
             relationalPattern(
               null,
               intLiteral(0).checkContext('?'),
-            ).noGuard,
+            ),
           ).checkIr('ifCase(expr(int), relationalPattern(0, matchedType: int), '
               'variables(), true, block(), noop)')
         ]);
@@ -2418,7 +2409,7 @@ main() {
                   returnType: Type('bool'),
                 ),
                 intLiteral(0).checkContext('num'),
-              ).noGuard,
+              ),
             ).checkIr('ifCase(expr(int), relationalPattern(0, matchedType: '
                 'int), variables(), true, block(), noop)')
           ]);
@@ -2434,7 +2425,7 @@ main() {
                   returnType: Type('bool'),
                 ),
                 expr('int?').checkContext('Object'),
-              ).noGuard,
+              ),
             ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
           ]);
@@ -2450,7 +2441,7 @@ main() {
                   returnType: Type('bool'),
                 ),
                 expr('int?').checkContext('Object'),
-              ).noGuard,
+              ),
             ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
           ]);
@@ -2466,7 +2457,7 @@ main() {
                   returnType: Type('bool'),
                 ),
                 expr('String')..errorId = 'OPERAND',
-              ).noGuard,
+              ),
             ).checkIr('ifCase(expr(int), relationalPattern(expr(String), '
                 'matchedType: int), variables(), true, block(), noop)')
           ], expectedErrors: {
@@ -2486,7 +2477,7 @@ main() {
                 ),
                 expr('String').checkContext('Object'),
                 errorId: 'PATTERN',
-              ).noGuard,
+              ),
             ).checkIr('ifCase(expr(A), relationalPattern(expr(String), '
                 'matchedType: A), variables(), true, block(), noop)')
           ], expectedErrors: {
@@ -2535,7 +2526,7 @@ main() {
         h.run([
           ifCase(
             expr('int'),
-            wildcard().noGuard,
+            wildcard(),
           ).checkIr('ifCase(expr(int), varPattern(_, matchedType: int, '
               'staticType: int), variables(), true, block(), noop)'),
         ]);
@@ -2545,7 +2536,7 @@ main() {
         h.run([
           ifCase(
             expr('num'),
-            wildcard(type: 'int').noGuard,
+            wildcard(type: 'int'),
           ).checkIr('ifCase(expr(num), varPattern(_, matchedType: num, '
               'staticType: int), variables(), true, block(), noop)'),
         ]);

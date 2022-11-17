@@ -202,11 +202,12 @@ Statement if_(Expression condition, List<Statement> ifTrue,
 
 Statement ifCase(
   Expression expression,
-  GuardedPattern guardedPattern, {
+  PossiblyGuardedPattern pattern, {
   List<Statement>? ifTrue,
   List<Statement>? ifFalse,
 }) {
   var location = computeLocation();
+  var guardedPattern = pattern._asGuardedPattern;
   return _IfCase(
     expression,
     guardedPattern.pattern,
@@ -219,11 +220,12 @@ Statement ifCase(
 
 CollectionElement ifCaseElement(
   Expression expression,
-  GuardedPattern guardedPattern,
+  PossiblyGuardedPattern pattern,
   CollectionElement ifTrue, {
   CollectionElement? ifFalse,
 }) {
   var location = computeLocation();
+  var guardedPattern = pattern._asGuardedPattern;
   return new _IfCaseElement(
     expression,
     guardedPattern.pattern,
@@ -519,7 +521,7 @@ class ExpressionCase extends Node {
   }
 }
 
-class GuardedPattern extends Node {
+class GuardedPattern extends Node with PossiblyGuardedPattern {
   final Pattern pattern;
   late final Map<String, Var> variables;
   final Expression? guard;
@@ -530,26 +532,8 @@ class GuardedPattern extends Node {
     required super.location,
   }) : super._();
 
-  SwitchHead get switchCase {
-    return _SwitchHeadCase._(
-      this,
-      location: location,
-    );
-  }
-
-  _SwitchStatementMember then(List<Statement> body) {
-    return _SwitchStatementMember._(
-      [
-        _SwitchHeadCase._(this, location: location),
-      ],
-      _Block(body, location: location),
-      hasLabels: false,
-      location: location,
-    );
-  }
-
-  ExpressionCase thenExpr(Expression body) =>
-      ExpressionCase._(this, body, location: computeLocation());
+  @override
+  GuardedPattern get _asGuardedPattern => this;
 }
 
 class Harness {
@@ -1176,22 +1160,23 @@ class ObjectPatternRequiredType {
   }
 }
 
-abstract class Pattern extends Node {
+abstract class Pattern extends Node with PossiblyGuardedPattern {
   Pattern._({required super.location}) : super._();
-
-  GuardedPattern get noGuard {
-    return GuardedPattern._(
-      pattern: this,
-      guard: null,
-      location: location,
-    );
-  }
 
   Pattern get nullAssert =>
       _NullCheckOrAssertPattern(this, true, location: computeLocation());
 
   Pattern get nullCheck =>
       _NullCheckOrAssertPattern(this, false, location: computeLocation());
+
+  @override
+  GuardedPattern get _asGuardedPattern {
+    return GuardedPattern._(
+      pattern: this,
+      guard: null,
+      location: location,
+    );
+  }
 
   Pattern and(Pattern other) =>
       _LogicalPattern(this, other, isAnd: true, location: computeLocation());
@@ -1265,6 +1250,36 @@ class PatternVariableJoin extends Var {
     var componentsStr = components.map((v) => v._errorId ?? v).join(', ');
     return '$declarationStr = [$componentsStr]';
   }
+}
+
+/// Mixin containing logic shared by [Pattern] and [GuardedPattern].  Both of
+/// these types can be used in a case where a pattern with an optional guard is
+/// expected.
+mixin PossiblyGuardedPattern on Node {
+  SwitchHead get switchCase {
+    return _SwitchHeadCase._(
+      _asGuardedPattern,
+      location: location,
+    );
+  }
+
+  /// Converts `this` to a [GuardedPattern], including a `null` guard if
+  /// necessary.
+  GuardedPattern get _asGuardedPattern;
+
+  _SwitchStatementMember then(List<Statement> body) {
+    return _SwitchStatementMember._(
+      [
+        _SwitchHeadCase._(_asGuardedPattern, location: location),
+      ],
+      _Block(body, location: location),
+      hasLabels: false,
+      location: location,
+    );
+  }
+
+  ExpressionCase thenExpr(Expression body) =>
+      ExpressionCase._(_asGuardedPattern, body, location: computeLocation());
 }
 
 /// Data structure holding information needed during the "pre-visit" phase of

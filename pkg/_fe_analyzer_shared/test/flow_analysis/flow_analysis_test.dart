@@ -1876,7 +1876,7 @@ main() {
         declare(z, type: 'int'),
         ifCase(
           expr('num'),
-          w.pattern(type: 'int').noGuard,
+          w.pattern(type: 'int'),
           ifTrue: [
             x.write(expr('int')).stmt,
             y.write(expr('int')).stmt,
@@ -1898,7 +1898,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         ifCase(
           x.expr.notEq(nullLiteral),
-          intLiteral(0).pattern.noGuard,
+          intLiteral(0).pattern,
           ifTrue: [
             checkNotPromoted(x),
           ],
@@ -1960,7 +1960,6 @@ main() {
         switchExpr(throw_(expr('C')), [
           intLiteral(0)
               .pattern
-              .noGuard
               .thenExpr(checkReachable(false).thenExpr(intLiteral(1))),
           default_.thenExpr(checkReachable(false).thenExpr(intLiteral(2))),
         ]).stmt,
@@ -1971,7 +1970,7 @@ main() {
     test('switchExpression throw in case body has isolated effect', () {
       h.run([
         switchExpr(expr('int'), [
-          intLiteral(0).pattern.noGuard.thenExpr(throw_(expr('C'))),
+          intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
           default_.thenExpr(checkReachable(true).thenExpr(intLiteral(2))),
         ]).stmt,
         checkReachable(true),
@@ -1981,7 +1980,7 @@ main() {
     test('switchExpression throw in all case bodies affects flow after', () {
       h.run([
         switchExpr(expr('int'), [
-          intLiteral(0).pattern.noGuard.thenExpr(throw_(expr('C'))),
+          intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
           default_.thenExpr(throw_(expr('C'))),
         ]).stmt,
         checkReachable(false),
@@ -1994,7 +1993,6 @@ main() {
         switchExpr(expr('int'), [
           x
               .pattern(type: 'int?')
-              .noGuard
               .thenExpr(checkPromoted(x, 'int').thenExpr(nullLiteral)),
         ]).stmt,
       ]);
@@ -2005,10 +2003,10 @@ main() {
         switch_(
             throw_(expr('C')),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 checkReachable(false),
               ]),
-              intLiteral(1).pattern.noGuard.then([
+              intLiteral(1).pattern.then([
                 checkReachable(false),
               ]),
             ],
@@ -2023,7 +2021,7 @@ main() {
         switch_(
             expr('int'),
             [
-              x.pattern(type: 'int?').noGuard.then([
+              x.pattern(type: 'int?').then([
                 checkPromoted(x, 'int'),
               ]),
             ],
@@ -2065,12 +2063,12 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
               ]),
-              intLiteral(1).pattern.noGuard.then([
+              intLiteral(1).pattern.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2088,7 +2086,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2107,7 +2105,7 @@ main() {
         switch_(
           expr('int'),
           [
-            intLiteral(0).pattern.noGuard.then([
+            intLiteral(0).pattern.then([
               checkPromoted(x, 'int'),
               localFunction([
                 x.write(expr('int?')).stmt,
@@ -2133,7 +2131,7 @@ main() {
           ])),
           [
             switchStatementMember([
-              intLiteral(0).pattern.noGuard.switchCase,
+              intLiteral(0).pattern.switchCase,
             ], [
               checkNotPromoted(x),
               getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
@@ -2155,7 +2153,7 @@ main() {
           expr('int'),
           [
             switchStatementMember([
-              intLiteral(0).pattern.noGuard.switchCase,
+              intLiteral(0).pattern.switchCase,
             ], [
               x.expr.as_('int').stmt,
               checkNotPromoted(x),
@@ -2183,7 +2181,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
                 break_(),
@@ -2212,7 +2210,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 w.expr.as_('int').stmt,
                 y.expr.as_('int').stmt,
                 x.write(expr('int?')).stmt,
@@ -2240,7 +2238,7 @@ main() {
         switch_(
             expr('int'),
             [
-              intLiteral(0).pattern.noGuard.then([
+              intLiteral(0).pattern.then([
                 x.expr.as_('int').stmt,
                 break_(),
               ]),
