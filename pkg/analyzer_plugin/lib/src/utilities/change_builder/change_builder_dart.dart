@@ -44,10 +44,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// If not `null`, [write] will copy everything into this buffer.
   StringBuffer? _carbonCopyBuffer;
 
+  /// Whether the target file is non-null by default.
+  ///
+  /// When `true`, question `?` suffixes will be included on nullable types.
+  final bool isNonNullableByDefault;
+
   /// Initialize a newly created builder to build a source edit.
   DartEditBuilderImpl(
       DartFileEditBuilderImpl sourceFileEditBuilder, int offset, int length)
-      : super(sourceFileEditBuilder, offset, length);
+      : isNonNullableByDefault = sourceFileEditBuilder
+            .resolvedUnit.libraryElement.isNonNullableByDefault,
+        super(sourceFileEditBuilder, offset, length);
 
   DartFileEditBuilderImpl get dartFileEditBuilder =>
       fileEditBuilder as DartFileEditBuilderImpl;
@@ -579,12 +586,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       Expression argument, int index, Set<String> usedNames) {
     // append type name
     var type = argument.staticType;
-    var library = dartFileEditBuilder.resolvedUnit.libraryElement;
     if (type == null || type.isBottom || type.isDartCoreNull) {
       type = DynamicTypeImpl.instance;
     }
     if (argument is NamedExpression &&
-        library.isNonNullableByDefault &&
+        isNonNullableByDefault &&
         type.nullabilitySuffix == NullabilitySuffix.none) {
       write('required ');
     }
@@ -874,8 +880,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return false;
     }
     if (type.isBottom) {
-      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
-      if (library.isNonNullableByDefault) {
+      if (isNonNullableByDefault) {
         return true;
       }
       return false;
@@ -1224,8 +1229,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return false;
     }
     if (type.isBottom) {
-      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
-      if (library.isNonNullableByDefault) {
+      if (isNonNullableByDefault) {
         write('Never');
         return true;
       }
@@ -1929,26 +1933,34 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
     implements DartLinkedEditBuilder {
   /// Initialize a newly created linked edit builder.
-  DartLinkedEditBuilderImpl(EditBuilderImpl editBuilder) : super(editBuilder);
+  DartLinkedEditBuilderImpl(DartEditBuilderImpl editBuilder)
+      : super(editBuilder);
+
+  DartEditBuilderImpl get dartEditBuilder => editBuilder as DartEditBuilderImpl;
 
   @override
   void addSuperTypesAsSuggestions(DartType? type) {
-    _addSuperTypesAsSuggestions(type, <DartType>{});
+    if (type is InterfaceType) {
+      _addTypeAsSuggestions(type);
+      type.allSupertypes.forEach(_addTypeAsSuggestions);
+    }
   }
 
-  /// Safely implement [addSuperTypesAsSuggestions] by using the set of
-  /// [alreadyAdded] types to prevent infinite loops.
-  void _addSuperTypesAsSuggestions(DartType? type, Set<DartType> alreadyAdded) {
-    if (type is InterfaceType && alreadyAdded.add(type)) {
-      addSuggestion(
-        LinkedEditSuggestionKind.TYPE,
-        type.getDisplayString(withNullability: false),
-      );
-      _addSuperTypesAsSuggestions(type.superclass, alreadyAdded);
-      for (var interfaceType in type.interfaces) {
-        _addSuperTypesAsSuggestions(interfaceType, alreadyAdded);
-      }
-    }
+  void _addTypeAsSuggestions(InterfaceType type) {
+    addSuggestion(
+      LinkedEditSuggestionKind.TYPE,
+      _getTypeSuggestionText(type),
+    );
+  }
+
+  String _getTypeSuggestionText(InterfaceType type) {
+    // Add the suffix manually, because it should only be included for '?' and
+    // not '*'.
+    var typeDisplay = type.getDisplayString(withNullability: false);
+    return dartEditBuilder.isNonNullableByDefault &&
+            type.nullabilitySuffix == NullabilitySuffix.question
+        ? '$typeDisplay?'
+        : typeDisplay;
   }
 }
 

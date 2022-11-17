@@ -734,6 +734,8 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     check(objectNone, []);
     check(numNone, ['Comparable<num>', 'Object']);
     check(intNone, ['Comparable<num>', 'Object', 'num']);
+    check(intQuestion, ['Comparable<num>?', 'Object?', 'num?']);
+    check(intStar, ['Comparable<num>*', 'Object*', 'num*']);
     check(listNone(intQuestion), ['Iterable<int?>', 'Object']);
   }
 
