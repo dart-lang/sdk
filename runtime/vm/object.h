@@ -5421,34 +5421,34 @@ class Instructions : public Object {
 // necessary) to allow them to be seen as Smis by the GC.
 #if defined(TARGET_ARCH_IA32)
   static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 34;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 36;
   static const intptr_t kMonomorphicEntryOffsetAOT = 0;
   static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #elif defined(TARGET_ARCH_X64)
   static const intptr_t kMonomorphicEntryOffsetJIT = 8;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
   static const intptr_t kPolymorphicEntryOffsetAOT = 22;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kMonomorphicEntryOffsetJIT = 0;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
   static const intptr_t kMonomorphicEntryOffsetAOT = 0;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 12;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
 #elif defined(TARGET_ARCH_ARM64)
   static const intptr_t kMonomorphicEntryOffsetJIT = 8;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 48;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 52;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 20;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 24;
 #elif defined(TARGET_ARCH_RISCV32)
   static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
   static const intptr_t kMonomorphicEntryOffsetAOT = 6;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 18;
 #elif defined(TARGET_ARCH_RISCV64)
   static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
   static const intptr_t kMonomorphicEntryOffsetAOT = 6;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 18;
 #else
 #error Missing entry offsets for current architecture
 #endif

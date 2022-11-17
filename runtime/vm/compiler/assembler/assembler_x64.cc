@@ -2101,7 +2101,9 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   OBJ(add)(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
   xorq(R10, R10);  // GC-safe for OptimizeInvokedFunction.
 #if defined(DART_COMPRESSED_POINTERS)
-  nop(3);
+  nop(4);
+#else
+  nop(1);
 #endif
 
   // Fall through to unchecked entry.
@@ -2135,10 +2137,8 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   // Ensure the unchecked entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays).
-#if !defined(DART_COMPRESSED_POINTERS)
+#if defined(DART_COMPRESSED_POINTERS)
   nop(1);
-#else
-  nop(2);
 #endif
 
   // Fall through to unchecked entry.
@@ -2427,15 +2427,15 @@ void Assembler::EmitGenericShift(bool wide,
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
   movl(result, tags);
-  shrl(result, Immediate(target::UntaggedObject::kClassIdTagPos));
+  shrl(result, Immediate(12));
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kSizeTagPos == 8);
-  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 4);
   movzxw(result, tags);
   shrl(result, Immediate(target::UntaggedObject::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2));
@@ -2445,12 +2445,10 @@ void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  movzxw(result, FieldAddress(object, class_id_offset));
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+  movl(result, FieldAddress(object, target::Object::tags_offset()));
+  shrl(result, Immediate(target::UntaggedObject::kClassIdTagPos));
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
@@ -2475,18 +2473,16 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      Label* is_smi) {
 #if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
   j(NOT_CARRY, is_smi, kNearJump);
   // Load cid: can't use LoadClassId, object is untagged. Use TIMES_2 scale
   // factor in the addressing mode to compensate for this.
-  movzxw(TMP, Address(object, TIMES_2, class_id_offset));
+  movl(TMP, Address(object, TIMES_2,
+                    target::Object::tags_offset() + kHeapObjectTag));
+  shrl(TMP, Immediate(target::UntaggedObject::kClassIdTagPos));
   cmpl(TMP, Immediate(class_id));
 #else
   // Cannot speculatively untag compressed Smis because it erases upper address

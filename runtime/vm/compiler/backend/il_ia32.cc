@@ -1924,9 +1924,9 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 16);
-  ASSERT(sizeof(UntaggedField::guarded_cid_) == 2);
-  ASSERT(sizeof(UntaggedField::is_nullable_) == 2);
+  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 20);
+  ASSERT(sizeof(UntaggedField::guarded_cid_) == 4);
+  ASSERT(sizeof(UntaggedField::is_nullable_) == 4);
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -1972,17 +1972,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
-      __ cmpw(value_cid_reg, field_cid_operand);
+      __ cmpl(value_cid_reg, field_cid_operand);
       __ j(EQUAL, &ok);
-      __ cmpw(value_cid_reg, field_nullability_operand);
+      __ cmpl(value_cid_reg, field_nullability_operand);
     } else if (value_cid == kNullCid) {
       // Value in graph known to be null.
       // Compare with null.
-      __ cmpw(field_nullability_operand, compiler::Immediate(value_cid));
+      __ cmpl(field_nullability_operand, compiler::Immediate(value_cid));
     } else {
       // Value in graph known to be non-null.
       // Compare class id with guard field class id.
-      __ cmpw(field_cid_operand, compiler::Immediate(value_cid));
+      __ cmpl(field_cid_operand, compiler::Immediate(value_cid));
     }
     __ j(EQUAL, &ok);
 
@@ -1995,19 +1995,19 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ cmpw(field_cid_operand, compiler::Immediate(kIllegalCid));
+      __ cmpl(field_cid_operand, compiler::Immediate(kIllegalCid));
       // Jump to failure path when guard field has been initialized and
       // the field and value class ids do not not match.
       __ j(NOT_EQUAL, fail);
 
       if (value_cid == kDynamicCid) {
         // Do not know value's class id.
-        __ movw(field_cid_operand, value_cid_reg);
-        __ movw(field_nullability_operand, value_cid_reg);
+        __ movl(field_cid_operand, value_cid_reg);
+        __ movl(field_nullability_operand, value_cid_reg);
       } else {
         ASSERT(field_reg != kNoRegister);
-        __ movw(field_cid_operand, compiler::Immediate(value_cid));
-        __ movw(field_nullability_operand, compiler::Immediate(value_cid));
+        __ movl(field_cid_operand, compiler::Immediate(value_cid));
+        __ movl(field_nullability_operand, compiler::Immediate(value_cid));
       }
 
       __ jmp(&ok);
@@ -2016,7 +2016,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (deopt == NULL) {
       __ Bind(fail);
 
-      __ cmpw(compiler::FieldAddress(field_reg, Field::guarded_cid_offset()),
+      __ cmpl(compiler::FieldAddress(field_reg, Field::guarded_cid_offset()),
               compiler::Immediate(kDynamicCid));
       __ j(EQUAL, &ok);
 

@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_CLASS_TABLE_H_
 #define RUNTIME_VM_CLASS_TABLE_H_
 
-#include <limits>
 #include <memory>
 #include <tuple>
 #include <utility>
@@ -272,7 +271,7 @@ class CidIndexedTable {
   };
 
   void SetNumCids(intptr_t new_num_cids) {
-    if (new_num_cids > std::numeric_limits<CidType>::max()) {
+    if (new_num_cids > kClassIdTagMax) {
       FATAL("Too many classes");
     }
     num_cids_ = new_num_cids;
@@ -508,7 +507,7 @@ class ClassTable : public MallocAllocated {
   friend class IsolateGroup;  // for table()
   static const int kInitialCapacity = 512;
 
-  static const intptr_t kTopLevelCidOffset = (1 << 16);
+  static const intptr_t kTopLevelCidOffset = kClassIdTagMax + 1;
 
   ClassTable(const ClassTable& original)
       : allocator_(original.allocator_),

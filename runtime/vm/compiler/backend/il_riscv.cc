@@ -2621,9 +2621,9 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 16);
-  ASSERT(sizeof(UntaggedField::guarded_cid_) == 2);
-  ASSERT(sizeof(UntaggedField::is_nullable_) == 2);
+  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 20);
+  ASSERT(sizeof(UntaggedField::guarded_cid_) == 4);
+  ASSERT(sizeof(UntaggedField::is_nullable_) == 4);
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -2670,17 +2670,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
       compiler::Label skip_length_check;
-      __ lhu(TMP, field_cid_operand);
+      __ lw(TMP, field_cid_operand);
       __ CompareRegisters(value_cid_reg, TMP);
       __ BranchIf(EQ, &ok);
-      __ lhu(TMP, field_nullability_operand);
+      __ lw(TMP, field_nullability_operand);
       __ CompareRegisters(value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      __ lhu(value_cid_reg, field_nullability_operand);
+      __ lw(value_cid_reg, field_nullability_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     } else {
       compiler::Label skip_length_check;
-      __ lhu(value_cid_reg, field_cid_operand);
+      __ lw(value_cid_reg, field_cid_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     }
     __ BranchIf(EQ, &ok);
@@ -2694,17 +2694,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ lhu(TMP, field_cid_operand);
+      __ lw(TMP, field_cid_operand);
       __ CompareImmediate(TMP, kIllegalCid);
       __ BranchIf(NE, fail);
 
       if (value_cid == kDynamicCid) {
-        __ sh(value_cid_reg, field_cid_operand);
-        __ sh(value_cid_reg, field_nullability_operand);
+        __ sw(value_cid_reg, field_cid_operand);
+        __ sw(value_cid_reg, field_nullability_operand);
       } else {
         __ LoadImmediate(TMP, value_cid);
-        __ sh(TMP, field_cid_operand);
-        __ sh(TMP, field_nullability_operand);
+        __ sw(TMP, field_cid_operand);
+        __ sw(TMP, field_nullability_operand);
       }
 
       __ j(&ok);

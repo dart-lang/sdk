@@ -1339,28 +1339,23 @@ void Assembler::StoreInternalPointer(Register object,
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  LsrImmediate(result, tags, target::UntaggedObject::kClassIdTagPos,
-               kFourBytes);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+  ubfx(result, tags, target::UntaggedObject::kClassIdTagPos,
+       target::UntaggedObject::kClassIdTagSize);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kSizeTagPos == 8);
-  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 4);
   ubfx(result, tags, target::UntaggedObject::kSizeTagPos,
        target::UntaggedObject::kSizeTagSize);
   LslImmediate(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
-                 kUnsignedTwoBytes);
+  ldr(result, FieldAddress(object, target::Object::tags_offset()));
+  ExtractClassIdFromTags(result, result);
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {

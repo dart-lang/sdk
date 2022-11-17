@@ -21833,8 +21833,7 @@ TypePtr Type::New(const Class& clazz,
 }
 
 void Type::set_type_class_id(intptr_t id) const {
-  COMPILE_ASSERT(std::is_unsigned<ClassIdTagType>::value);
-  ASSERT(Utils::IsUint(sizeof(ClassIdTagType) * kBitsPerByte, id));
+  ASSERT(Utils::IsUint(UntaggedObject::kClassIdTagSize, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
   ASSERT(id != kIllegalCid);

@@ -164,7 +164,7 @@ class BitField {
 
   // Returns an S with the bit field value encoded.
   static constexpr S encode(T value) {
-    assert(is_valid(value));
+    ASSERT(is_valid(value));
     return encode_unchecked(value);
   }
 

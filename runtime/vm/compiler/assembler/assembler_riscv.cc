@@ -3403,30 +3403,34 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
 #if XLEN == 64
   srliw(result, tags, target::UntaggedObject::kClassIdTagPos);
 #else
   srli(result, tags, target::UntaggedObject::kClassIdTagPos);
 #endif
 }
+
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kSizeTagPos == 8);
-  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 4);
   srli(result, tags, target::UntaggedObject::kSizeTagPos);
   andi(result, result, (1 << target::UntaggedObject::kSizeTagSize) - 1);
   slli(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  lhu(result, FieldAddress(object, class_id_offset));
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+#if XLEN == 64
+  lwu(result, FieldAddress(object, target::Object::tags_offset()));
+#else
+  lw(result, FieldAddress(object, target::Object::tags_offset()));
+#endif
+  srli(result, result, target::UntaggedObject::kClassIdTagPos);
 }
+
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 

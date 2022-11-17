@@ -167,9 +167,9 @@ class UntaggedObject {
     kReservedBit = 7,
 
     kSizeTagPos = kReservedBit + 1,  // = 8
-    kSizeTagSize = 8,
-    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
-    kClassIdTagSize = 16,
+    kSizeTagSize = 4,
+    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 12
+    kClassIdTagSize = 20,
     kHashTagPos = kClassIdTagPos + kClassIdTagSize,  // = 32
     kHashTagSize = 32,
   };
@@ -230,7 +230,8 @@ class UntaggedObject {
                                      ClassIdTagType,
                                      kClassIdTagPos,
                                      kClassIdTagSize> {};
-  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) == kClassIdTagSize);
+  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) >= kClassIdTagSize);
+  COMPILE_ASSERT(kClassIdTagMax == (1 << kClassIdTagSize) - 1);
 
 #if defined(HASH_IN_OBJECT_HEADER)
   class HashTag : public BitField<uword, uint32_t, kHashTagPos, kHashTagSize> {
@@ -2641,10 +2642,8 @@ class UntaggedAbstractType : public UntaggedInstance {
 class UntaggedType : public UntaggedAbstractType {
  public:
   static constexpr intptr_t kTypeClassIdShift = TypeStateBits::kNextBit;
-  using TypeClassIdBits = BitField<uint32_t,
-                                   ClassIdTagType,
-                                   kTypeClassIdShift,
-                                   sizeof(ClassIdTagType) * kBitsPerByte>;
+  using TypeClassIdBits =
+      BitField<uint32_t, ClassIdTagType, kTypeClassIdShift, kClassIdTagSize>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);

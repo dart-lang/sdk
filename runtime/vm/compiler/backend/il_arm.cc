@@ -2483,9 +2483,9 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 16);
-  ASSERT(sizeof(UntaggedField::guarded_cid_) == 2);
-  ASSERT(sizeof(UntaggedField::is_nullable_) == 2);
+  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 20);
+  ASSERT(sizeof(UntaggedField::guarded_cid_) == 4);
+  ASSERT(sizeof(UntaggedField::is_nullable_) == 4);
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -2531,16 +2531,16 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
-      __ ldrh(IP, field_cid_operand);
+      __ ldr(IP, field_cid_operand);
       __ cmp(value_cid_reg, compiler::Operand(IP));
       __ b(&ok, EQ);
-      __ ldrh(IP, field_nullability_operand);
+      __ ldr(IP, field_nullability_operand);
       __ cmp(value_cid_reg, compiler::Operand(IP));
     } else if (value_cid == kNullCid) {
-      __ ldrh(value_cid_reg, field_nullability_operand);
+      __ ldr(value_cid_reg, field_nullability_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     } else {
-      __ ldrh(value_cid_reg, field_cid_operand);
+      __ ldr(value_cid_reg, field_cid_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     }
     __ b(&ok, EQ);
@@ -2554,17 +2554,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ ldrh(IP, field_cid_operand);
+      __ ldr(IP, field_cid_operand);
       __ CompareImmediate(IP, kIllegalCid);
       __ b(fail, NE);
 
       if (value_cid == kDynamicCid) {
-        __ strh(value_cid_reg, field_cid_operand);
-        __ strh(value_cid_reg, field_nullability_operand);
+        __ str(value_cid_reg, field_cid_operand);
+        __ str(value_cid_reg, field_nullability_operand);
       } else {
         __ LoadImmediate(IP, value_cid);
-        __ strh(IP, field_cid_operand);
-        __ strh(IP, field_nullability_operand);
+        __ str(IP, field_cid_operand);
+        __ str(IP, field_nullability_operand);
       }
 
       __ b(&ok);
@@ -2573,9 +2573,8 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (deopt == NULL) {
       __ Bind(fail);
 
-      __ ldrh(IP,
-              compiler::FieldAddress(
-                  field_reg, compiler::target::Field::guarded_cid_offset()));
+      __ ldr(IP, compiler::FieldAddress(
+                     field_reg, compiler::target::Field::guarded_cid_offset()));
       __ CompareImmediate(IP, kDynamicCid);
       __ b(&ok, EQ);
 
