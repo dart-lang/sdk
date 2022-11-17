@@ -67,46 +67,11 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void duplicateVariablePattern({
-    required String name,
-    required VariableDeclaration original,
-    required VariableDeclaration duplicate,
-  }) {
-    // TODO(scheglov): implement duplicateVariablePattern
-  }
-
-  @override
   void inconsistentJoinedPatternVariable({
     required VariableDeclaration variable,
     required VariableDeclaration component,
   }) {
     // TODO(scheglov): implement logicalOrPatternInconsistentVariablePair
-    throw new UnimplementedError('TODO(scheglov)');
-  }
-
-  @override
-  void inconsistentMatchVar(
-      {required Node pattern,
-      required DartType type,
-      required Node previousPattern,
-      required DartType previousType}) {
-    throw new UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void inconsistentMatchVarExplicitness(
-      {required Node pattern, required Node previousPattern}) {
-    throw new UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void logicalOrPatternBranchMissingVariable({
-    required Node node,
-    required bool hasInLeft,
-    required String name,
-    required VariableDeclaration variable,
-  }) {
-    // TODO(scheglov): implement logicalOrPatternBranchMissingVariable
     throw new UnimplementedError('TODO(scheglov)');
   }
 

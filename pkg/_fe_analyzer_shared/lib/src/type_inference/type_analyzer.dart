@@ -1587,56 +1587,12 @@ abstract class TypeAnalyzerErrors<
     required RecordPatternField<Node, Pattern> duplicate,
   });
 
-  /// Called when [pattern] declares variable [duplicate] that has the same
-  /// [name] as the [original] variable.
-  void duplicateVariablePattern({
-    required String name,
-    required Variable original,
-    required Variable duplicate,
-  });
-
-  /// Called when both branches have variables with the [name], both these
+  /// Called when both branches have variables with the same name, but these
   /// variables either don't have the same finality, or their `NORM` types
   /// are not structurally equal.
   void inconsistentJoinedPatternVariable({
     required Variable variable,
     required Variable component,
-  });
-
-  /// Called if a single variable is bound using two different types within the
-  /// same pattern, or between two patterns in a set of case clauses that share
-  /// a body.
-  ///
-  /// [pattern] is the variable pattern that was being processed at the time the
-  /// inconsistency was discovered, and [type] is its type (which might have
-  /// been inferred).  [previousPattern] is the previous variable pattern that
-  /// was binding the same variable, and [previousType] is its type.
-  void inconsistentMatchVar(
-      {required Pattern pattern,
-      required Type type,
-      required Pattern previousPattern,
-      required Type previousType});
-
-  /// Called if a single variable is bound both with an explicit type and with
-  /// an implicit type within the same pattern, or between two patterns in a set
-  /// of case clauses that share a body.
-  ///
-  /// [pattern] is the variable pattern that was being processed at the time the
-  /// inconsistency was discovered.  [previousPattern] is the previous variable
-  /// pattern that was binding the same variable.
-  ///
-  /// TODO(paulberry): the spec might be changed so that this is not an error
-  /// condition.  See https://github.com/dart-lang/language/issues/2424.
-  void inconsistentMatchVarExplicitness(
-      {required Pattern pattern, required Node previousPattern});
-
-  /// Called when one of the branches has the [variable] with the [name], but
-  /// the other branch does not.
-  void logicalOrPatternBranchMissingVariable({
-    required Node node,
-    required bool hasInLeft,
-    required String name,
-    required Variable variable,
   });
 
   /// Called if the static type of a condition is not assignable to `bool`.

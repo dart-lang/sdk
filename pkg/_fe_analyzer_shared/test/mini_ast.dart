@@ -2784,26 +2784,6 @@ class _MiniAstErrors
   }
 
   @override
-  void inconsistentMatchVar(
-      {required Node pattern,
-      required Type type,
-      required Node previousPattern,
-      required Type previousType}) {
-    _recordError(
-        'inconsistentMatchVar(pattern: ${pattern.errorId}, type: ${type.type}, '
-        'previousPattern: ${previousPattern.errorId}, '
-        'previousType: ${previousType.type})');
-  }
-
-  @override
-  void inconsistentMatchVarExplicitness(
-      {required Node pattern, required Node previousPattern}) {
-    _recordError(
-        'inconsistentMatchVarExplicitness(pattern: ${pattern.errorId}, '
-        'previousPattern: ${previousPattern.errorId})');
-  }
-
-  @override
   void logicalOrPatternBranchMissingVariable({
     required Node node,
     required bool hasInLeft,
