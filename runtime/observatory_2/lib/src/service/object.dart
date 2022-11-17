@@ -2882,8 +2882,9 @@ class Instance extends HeapObject implements M.Instance {
   Iterable<MapAssociation> associations; // If a Map.
   List<dynamic> typedElements; // If a TypedData.
   HeapObject referent; // If a MirrorReference.
-  Instance key; // If a WeakProperty.
-  Instance value; // If a WeakProperty.
+  HeapObject target; // If a WeakReference.
+  HeapObject key; // If a WeakProperty.
+  HeapObject value; // If a WeakProperty.
   Breakpoint activationBreakpoint; // If a Closure.
   ServiceFunction oneByteFunction; // If a RegExp.
   ServiceFunction twoByteFunction; // If a RegExp.
@@ -3074,6 +3075,7 @@ class Instance extends HeapObject implements M.Instance {
     bound = map['bound'];
 
     referent = map['mirrorReferent'];
+    target = map['target'];
     key = map['propertyKey'];
     value = map['propertyValue'];
     activationBreakpoint = map['_activationBreakpoint'];

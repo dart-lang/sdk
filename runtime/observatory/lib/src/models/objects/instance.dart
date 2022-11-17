@@ -374,17 +374,23 @@ abstract class Instance extends Object implements InstanceRef {
   ///   Map
   Iterable<MapAssociation>? get associations;
 
-  /// [optional] The key for a WeakProperty instance.
+  /// [optional] The target of a WeakReference instance.
   ///
   /// Provided for instance kinds:
-  ///   WeakProperty
-  InstanceRef? get key;
+  ///   WeakReference
+  ObjectRef? get target;
 
   /// [optional] The key for a WeakProperty instance.
   ///
   /// Provided for instance kinds:
   ///   WeakProperty
-  InstanceRef? get value;
+  ObjectRef? get key;
+
+  /// [optional] The key for a WeakProperty instance.
+  ///
+  /// Provided for instance kinds:
+  ///   WeakProperty
+  ObjectRef? get value;
 
   /// [optional] The referent of a MirrorReference instance.
   ///

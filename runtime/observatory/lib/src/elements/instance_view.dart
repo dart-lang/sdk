@@ -486,6 +486,10 @@ class InstanceViewElement extends CustomElement implements Renderable {
       members.add(member('referent', _instance.referent));
     }
 
+    if (_instance.kind == M.InstanceKind.weakReference) {
+      members.add(member('target', _instance.target));
+    }
+
     if (_instance.kind == M.InstanceKind.weakProperty) {
       members.add(member('key', _instance.key));
       members.add(member('value', _instance.value));
