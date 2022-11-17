@@ -148,12 +148,8 @@ library /*isNonNullableByDefault*/;
 //   @topLevelMethod
 //    ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:24: Error: Expected ':' before this.
-//     case topLevelMethod;
-//                        ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:10: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//     case topLevelMethod;
+//     case topLevelMethod:
 //          ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
@@ -297,11 +293,9 @@ static method test() → dynamic {
   switch(null) {
     #L1:
     case invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:10: Error: Can't use 'topLevelMethod' because it is declared more than once.
-    case topLevelMethod;
+    case topLevelMethod:
          ^":
-      {
-        ;
-      }
+      {}
   }
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
   topLevelMethod || topLevelMethod;
