@@ -870,12 +870,7 @@ class FlowGraphCompiler : public ValueObject {
   // Return true-, false- and fall-through label for a branch instruction.
   BranchLabels CreateBranchLabels(BranchInstr* branch) const;
 
-  void AddExceptionHandler(intptr_t try_index,
-                           intptr_t outer_try_index,
-                           intptr_t pc_offset,
-                           bool is_generated,
-                           const Array& handler_types,
-                           bool needs_stacktrace);
+  void AddExceptionHandler(CatchBlockEntryInstr* entry);
   void SetNeedsStackTrace(intptr_t try_index);
   void AddCurrentDescriptor(UntaggedPcDescriptors::Kind kind,
                             intptr_t deopt_id,

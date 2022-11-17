@@ -2297,6 +2297,8 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   // corresponds.
   intptr_t catch_try_index() const { return catch_try_index_; }
 
+  const Array& catch_handler_types() const { return catch_handler_types_; }
+
   PRINT_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(CatchBlockEntryInstr)
 
