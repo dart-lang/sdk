@@ -5,12 +5,33 @@
 import 'type_analyzer.dart';
 
 /// Data structure for tracking declared pattern variables.
+///
+/// To analyze a single `case pattern when guard`:
+/// 1. Invoke [casePatternStart].
+/// 2. Invoke zero or more [add].
+/// 3. Invoke [casePatternFinish], get the set of variables `VS`.
+/// 4. Use `VS` to analyze the guard.
+///
+/// To analyze a group of `case` members of a `switch` statement, sharing
+/// the same body, and so having the shared set of pattern variables:
+/// 1. Invoke [switchStatementSharedCaseScopeStart].
+/// 2. Analyze individual `case pattern when guard` clauses.
+/// 3. Invoke [switchStatementSharedCaseScopeEmpty] if there are labels,
+///    or a `default` member.
+/// 4. Invoke [switchStatementSharedCaseScopeFinish] to get the set of
+///    variables `VS`, and use it to analyze the shared body.
 abstract class VariableBinder<Node extends Object, Variable extends Object> {
   /// The interface for reporting error conditions up to the client.
   final VariableBinderErrors<Node, Variable>? errors;
 
+  /// The stack of variable sets, starting with an empty one on
+  /// [casePatternStart], or [logicalOrPatternStart].
   List<Map<String, Variable>> _variables = [];
-  List<Map<String, Variable>?> _sharedCaseScopes = [];
+
+  /// The stack of variable sets for potentially nested (e.g. `switch` in
+  /// a closure in a `when` clause) groups of `case` members of a `switch`
+  /// statement.
+  List<_SharedCaseScope<Variable>> _sharedCaseScopes = [];
 
   VariableBinder({
     required this.errors,
@@ -36,6 +57,10 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
 
   /// Should be invoked after visiting a `case pattern` structure.  Returns
   /// all the accumulated variables (individual and joined).
+  ///
+  /// If [sharedCaseScopeKey] is provided, it expected to be the same as
+  /// the key of the last shared case scope, and the resulting set will be
+  /// joined with the current shared case scope.
   Map<String, Variable> casePatternFinish({
     Object? sharedCaseScopeKey,
   }) {
@@ -43,9 +68,11 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
 
     if (sharedCaseScopeKey != null) {
       Map<String, Variable> right = variables;
-      Map<String, Variable>? left = _sharedCaseScopes.removeLast();
+      _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.last;
+      assert(sharedScope.key == sharedCaseScopeKey);
+      Map<String, Variable>? left = sharedScope.variables;
       if (left == null) {
-        _sharedCaseScopes.add(right);
+        sharedScope.variables = right;
       } else {
         Map<String, Variable> result = {};
         for (MapEntry<String, Variable> leftEntry in left.entries) {
@@ -77,7 +104,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
             );
           }
         }
-        _sharedCaseScopes.add(result);
+        sharedScope.variables = result;
       }
     }
 
@@ -171,22 +198,22 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
 
   /// Notifies that the `default` case head, or a label, was found, so that
   /// all the variables of the current shared case scope are not consistent.
-  void switchStatementSharedCaseScopeEmpty({
-    required Object sharedCaseScopeKey,
-  }) {
-    Map<String, Variable>? left = _sharedCaseScopes.last;
+  void switchStatementSharedCaseScopeEmpty(Object key) {
+    _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.last;
+    assert(sharedScope.key == key);
+    Map<String, Variable>? left = sharedScope.variables;
     if (left != null) {
       Map<String, Variable> result = {};
       for (MapEntry<String, Variable> leftEntry in left.entries) {
         String name = leftEntry.key;
         Variable leftVariable = leftEntry.value;
         result[name] = joinPatternVariables(
-          key: sharedCaseScopeKey,
+          key: key,
           components: [leftVariable],
           isConsistent: false,
         );
       }
-      _sharedCaseScopes.add(result);
+      sharedScope.variables = result;
     }
   }
 
@@ -195,13 +222,19 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   /// have the same types (because we have not done inference, so we don't
   /// know types for many of them), so some of them might become not
   /// consistent later.
-  Map<String, Variable>? switchStatementSharedCaseScopeFinish() {
-    return _sharedCaseScopes.removeLast();
+  Map<String, Variable> switchStatementSharedCaseScopeFinish(Object key) {
+    assert(_variables.isEmpty);
+    _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.removeLast();
+    assert(sharedScope.key == key);
+    return sharedScope.variables ?? {};
   }
 
   /// Notifies that computing new shared case scope should be started.
-  void switchStatementSharedCaseScopeStart() {
-    _sharedCaseScopes.add(null);
+  void switchStatementSharedCaseScopeStart(Object key) {
+    assert(_variables.isEmpty);
+    _sharedCaseScopes.add(
+      new _SharedCaseScope(key),
+    );
   }
 }
 
@@ -225,4 +258,11 @@ abstract class VariableBinderErrors<Node extends Object,
     required String name,
     required Variable variable,
   });
+}
+
+class _SharedCaseScope<Variable extends Object> {
+  final Object key;
+  Map<String, Variable>? variables;
+
+  _SharedCaseScope(this.key);
 }

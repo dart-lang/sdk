@@ -4020,7 +4020,7 @@ class _SwitchStatementMember extends Node {
 
   void _preVisit(PreVisitor visitor) {
     var variableBinder = _VariableBinder(errors: visitor.errors);
-    variableBinder.switchStatementSharedCaseScopeStart();
+    variableBinder.switchStatementSharedCaseScopeStart(this);
     for (SwitchHead element in elements) {
       if (element is _SwitchHeadCase) {
         variableBinder.casePatternStart();
@@ -4029,19 +4029,15 @@ class _SwitchStatementMember extends Node {
         element.guardedPattern.variables = variableBinder.casePatternFinish(
           sharedCaseScopeKey: this,
         );
-        if (hasLabels) {
-          variableBinder.switchStatementSharedCaseScopeEmpty(
-            sharedCaseScopeKey: this,
-          );
-        }
       } else {
-        variableBinder.switchStatementSharedCaseScopeEmpty(
-          sharedCaseScopeKey: this,
-        );
+        variableBinder.switchStatementSharedCaseScopeEmpty(this);
       }
     }
+    if (hasLabels) {
+      variableBinder.switchStatementSharedCaseScopeEmpty(this);
+    }
     _candidateVariables =
-        variableBinder.switchStatementSharedCaseScopeFinish() ?? {};
+        variableBinder.switchStatementSharedCaseScopeFinish(this);
     _body.preVisit(visitor);
   }
 }

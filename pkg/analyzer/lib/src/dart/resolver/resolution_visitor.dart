@@ -1166,11 +1166,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withPatternContext(() {
       final patternContext = _variableBinder!;
       for (var group in node.memberGroups) {
-        patternContext.switchStatementSharedCaseScopeStart();
+        patternContext.switchStatementSharedCaseScopeStart(node);
         for (var member in group.members) {
           member.accept(this);
         }
-        patternContext.switchStatementSharedCaseScopeFinish();
+        patternContext.switchStatementSharedCaseScopeFinish(node);
       }
     });
   }

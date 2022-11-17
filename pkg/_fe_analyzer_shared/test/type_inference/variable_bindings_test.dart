@@ -72,7 +72,8 @@ main() {
   group('Switch statement:', () {
     test('Both have', () {
       h.runSwitchStatementSharedBody(
-        [
+        sharedCaseScopeKey: 0,
+        casePatterns: [
           _VarPattern('x', 1),
           _VarPattern('x', 2),
         ],
@@ -81,7 +82,8 @@ main() {
     });
     test('First has', () {
       h.runSwitchStatementSharedBody(
-        [
+        sharedCaseScopeKey: 0,
+        casePatterns: [
           _VarPattern('x', 1),
           _Empty(),
         ],
@@ -90,7 +92,8 @@ main() {
     });
     test('Second has', () {
       h.runSwitchStatementSharedBody(
-        [
+        sharedCaseScopeKey: 0,
+        casePatterns: [
           _Empty(),
           _VarPattern('x', 1),
         ],
@@ -99,7 +102,8 @@ main() {
     });
     test('Partial intersection', () {
       h.runSwitchStatementSharedBody(
-        [
+        sharedCaseScopeKey: 0,
+        casePatterns: [
           _And(
             _VarPattern('x', 1),
             _VarPattern('y', 2),
@@ -109,10 +113,21 @@ main() {
         expectedVariables: {'x: [1, 3]', 'y: notConsistent [2]'},
       );
     });
+    test('Has default', () {
+      h.runSwitchStatementSharedBody(
+        sharedCaseScopeKey: 0,
+        casePatterns: [
+          _VarPattern('x', 1),
+        ],
+        hasDefault: true,
+        expectedVariables: {'x: notConsistent [1]'},
+      );
+    });
     group('With logical-or', () {
       test('Both have', () {
         h.runSwitchStatementSharedBody(
-          [
+          sharedCaseScopeKey: 0,
+          casePatterns: [
             _Or(
               _VarPattern('x', 1),
               _VarPattern('x', 2),
@@ -124,7 +139,8 @@ main() {
       });
       test('Both have, inconsistent', () {
         h.runSwitchStatementSharedBody(
-          [
+          sharedCaseScopeKey: 0,
+          casePatterns: [
             _Or(
               _VarPattern('x', 1),
               _Empty(),
@@ -140,7 +156,8 @@ main() {
       });
       test('First has', () {
         h.runSwitchStatementSharedBody(
-          [
+          sharedCaseScopeKey: 0,
+          casePatterns: [
             _Or(
               _VarPattern('x', 1),
               _VarPattern('x', 2),
@@ -152,7 +169,8 @@ main() {
       });
       test('Second has', () {
         h.runSwitchStatementSharedBody(
-          [
+          sharedCaseScopeKey: 0,
+          casePatterns: [
             _Empty(),
             _Or(
               _VarPattern('x', 1),
@@ -228,24 +246,32 @@ class _Harness {
     _binder.casePatternStart();
     node._visit(this);
     var variables = _binder.casePatternFinish();
+    _binder.finish();
     _assertVariables(variables, expectedVariables);
     expect(errors._errors, expectErrors);
   }
 
-  void runSwitchStatementSharedBody(
-    List<_Node> casePatterns, {
+  void runSwitchStatementSharedBody({
+    required Object sharedCaseScopeKey,
+    required List<_Node> casePatterns,
+    bool hasDefault = false,
     List<String> expectErrors = const [],
     required Set<String> expectedVariables,
   }) {
-    _binder.switchStatementSharedCaseScopeStart();
+    _binder.switchStatementSharedCaseScopeStart(sharedCaseScopeKey);
     for (var casePattern in casePatterns) {
       _binder.casePatternStart();
       casePattern._visit(this);
       _binder.casePatternFinish(
-        sharedCaseScopeKey: casePatterns,
+        sharedCaseScopeKey: sharedCaseScopeKey,
       );
     }
-    var variables = _binder.switchStatementSharedCaseScopeFinish()!;
+    if (hasDefault) {
+      _binder.switchStatementSharedCaseScopeEmpty(sharedCaseScopeKey);
+    }
+    var variables =
+        _binder.switchStatementSharedCaseScopeFinish(sharedCaseScopeKey);
+    _binder.finish();
     _assertVariables(variables, expectedVariables);
     expect(errors._errors, expectErrors);
   }
