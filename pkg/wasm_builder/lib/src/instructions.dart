@@ -538,8 +538,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         [...type.inputs, RefType.def(type, nullable: true)], type.outputs,
         trace: ['call_ref', type]));
-    // TODO(askesc): Change to 0x14 when supported by both V8 and Binaryen.
-    writeByte(0x17);
+    writeByte(0x14);
     writeUnsigned(type.index);
   }
 
