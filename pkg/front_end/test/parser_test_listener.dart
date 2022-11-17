@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
@@ -2884,6 +2885,17 @@ class ParserTestListener implements Listener {
     doPrint(
         'handleRecoverableError(' '$message, ' '$startToken, ' '$endToken)');
     checkEof(endToken);
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    seen(startToken);
+    seen(endToken);
+    doPrint('handleExperimentNotEnabled('
+        '$experimentalFlag, '
+        '$startToken, '
+        '$endToken)');
   }
 
   @override

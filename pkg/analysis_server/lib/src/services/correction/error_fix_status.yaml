@@ -2264,6 +2264,8 @@ ParserErrorCode.EXPECTED_TYPE_NAME:
   status: needsEvaluation
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
   status: needsEvaluation
+ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT:
+  status: needsEvaluation
 ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsEvaluation
 ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:

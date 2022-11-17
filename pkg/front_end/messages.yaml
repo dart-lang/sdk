@@ -295,9 +295,10 @@ ExperimentNotEnabled:
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 ExperimentNotEnabledOffByDefault:
+  index: 133
   problemMessage: "This requires the experimental '#string' language feature to be enabled."
   correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT
 
 ExperimentDisabled:
   problemMessage: "This requires the '#string' language feature to be enabled."

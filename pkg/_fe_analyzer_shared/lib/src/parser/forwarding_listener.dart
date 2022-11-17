@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../experiments/flags.dart';
 import '../messages/codes.dart';
 import '../scanner/scanner.dart';
 import 'parser.dart';
@@ -1951,6 +1952,13 @@ class ForwardingListener implements Listener {
   @override
   void reportVarianceModifierNotEnabled(Token? variance) {
     listener?.reportVarianceModifierNotEnabled(variance);
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    listener?.handleExperimentNotEnabled(
+        experimentalFlag, startToken, endToken);
   }
 }
 
