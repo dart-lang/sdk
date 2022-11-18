@@ -98,6 +98,9 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);
     }
+    if (node is ir.LoadLibrary) {
+      return _annotationData.getLoadLibraryPriorityAt(node).name;
+    }
     return null;
   }
 }

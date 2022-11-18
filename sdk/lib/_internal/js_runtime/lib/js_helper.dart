@@ -68,6 +68,8 @@ import 'dart:_rti' as newRti
         instantiatedGenericFunctionType,
         throwTypeError;
 
+import 'dart:_load_library_priority';
+
 part 'annotations.dart';
 part 'constant_map.dart';
 part 'instantiation.dart';
@@ -2670,7 +2672,21 @@ typedef void DeferredLoadCallback();
 // Function that will be called every time a new deferred import is loaded.
 DeferredLoadCallback? deferredLoadHook;
 
-Future<Null> loadDeferredLibrary(String loadId) {
+/// Loads a deferred library. The compiler generates a call to this method to
+/// implement `import.loadLibrary()`. The [priority] argument is the index of
+/// one of the [LoadLibraryPriority] enum's members.
+///
+///   - `0` for `LoadLibraryPriority.normal`
+///   - `1` for `LoadLibraryPriority.high`
+Future<Null> loadDeferredLibrary(String loadId, int priority) {
+  // Convert [priority] to the enum value as form of validation:
+  final unusedPriorityEnum = LoadLibraryPriority.values[priority];
+  // The enum's values may be checked via the `index`:
+  assert(priority == LoadLibraryPriority.normal.index ||
+      priority == LoadLibraryPriority.high.index);
+
+  // TODO(sra): Implement prioritization.
+
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and
   // another that maps the index to a hash.

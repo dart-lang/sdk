@@ -191,6 +191,11 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
+  "_load_library_priority": const LibraryInfo(
+      "_internal/js_runtime/lib/synced/load_library_priority.dart",
+      categories: "",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
   "_metadata": const LibraryInfo("html/html_common/metadata.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_js_annotations": const LibraryInfo("js/_js_annotations.dart",

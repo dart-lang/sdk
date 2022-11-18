@@ -319,6 +319,9 @@ _dart2js_common:
     _async_await_error_codes:
       uri: "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
 
+    _load_library_priority:
+      uri: "_internal/js_runtime/lib/synced/load_library_priority.dart"
+
     _recipe_syntax:
       uri: "_internal/js_shared/lib/synced/recipe_syntax.dart"
 
