@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.common.codegen;
 
 import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
@@ -23,12 +21,12 @@ import '../js_backend/deferred_holder_expression.dart'
     show DeferredHolderExpression;
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
-import '../js_emitter/code_emitter_task.dart' show Emitter;
+import '../js_emitter/interfaces.dart' show Emitter;
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
-import '../ssa/ssa.dart';
+import '../ssa/ssa_interfaces.dart' show SsaFunctionCompiler;
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -87,24 +85,24 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   final MemberEntity member;
-  Set<Pair<DartType, DartType>> _typeVariableBoundsSubtypeChecks;
-  Set<String> _constSymbols;
-  List<Set<ClassEntity>> _specializedGetInterceptors;
+  Set<Pair<DartType, DartType>>? _typeVariableBoundsSubtypeChecks;
+  Set<String>? _constSymbols;
+  List<Set<ClassEntity>>? _specializedGetInterceptors;
   bool _usesInterceptor = false;
-  EnumSet<AsyncMarker> _asyncMarkers;
-  Set<GenericInstantiation> _genericInstantiations;
-  List<NativeBehavior> _nativeBehaviors;
-  Set<FunctionEntity> _nativeMethods;
-  Set<Selector> _oneShotInterceptors;
+  EnumSet<AsyncMarker>? _asyncMarkers;
+  Set<GenericInstantiation>? _genericInstantiations;
+  List<NativeBehavior>? _nativeBehaviors;
+  Set<FunctionEntity>? _nativeMethods;
+  Set<Selector>? _oneShotInterceptors;
 
   _CodegenImpact(this.member);
 
   _CodegenImpact.internal(
       this.member,
-      Set<DynamicUse> dynamicUses,
-      Set<StaticUse> staticUses,
-      Set<TypeUse> typeUses,
-      Set<ConstantUse> constantUses,
+      Set<DynamicUse>? dynamicUses,
+      Set<StaticUse>? staticUses,
+      Set<TypeUse>? typeUses,
+      Set<ConstantUse>? constantUses,
       this._typeVariableBoundsSubtypeChecks,
       this._constSymbols,
       this._specializedGetInterceptors,
@@ -119,39 +117,37 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   factory _CodegenImpact.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberEntity member = source.readMember();
-    Set<DynamicUse> dynamicUses = source
+    final dynamicUses = source
         .readListOrNull(() => DynamicUse.readFromDataSource(source))
         ?.toSet();
-    Set<StaticUse> staticUses = source
+    final staticUses = source
         .readListOrNull(() => StaticUse.readFromDataSource(source))
         ?.toSet();
-    Set<TypeUse> typeUses = source
+    final typeUses = source
         .readListOrNull(() => TypeUse.readFromDataSource(source))
         ?.toSet();
-    Set<ConstantUse> constantUses = source
+    final constantUses = source
         .readListOrNull(() => ConstantUse.readFromDataSource(source))
         ?.toSet();
-    Set<Pair<DartType, DartType>> typeVariableBoundsSubtypeChecks =
-        source.readListOrNull(() {
+    final typeVariableBoundsSubtypeChecks = source.readListOrNull(() {
       return Pair(source.readDartType(), source.readDartType());
     })?.toSet();
-    Set<String> constSymbols = source.readStrings(emptyAsNull: true)?.toSet();
-    List<Set<ClassEntity>> specializedGetInterceptors =
-        source.readListOrNull(() {
+    final constSymbols = source.readStrings(emptyAsNull: true)?.toSet();
+    final specializedGetInterceptors = source.readListOrNull(() {
       return source.readClasses().toSet();
     });
     bool usesInterceptor = source.readBool();
-    int asyncMarkersValue = source.readIntOrNull();
-    EnumSet<AsyncMarker> asyncMarkers =
-        asyncMarkersValue != null ? EnumSet.fromValue(asyncMarkersValue) : null;
-    Set<GenericInstantiation> genericInstantiations = source
+    final asyncMarkersValue = source.readIntOrNull();
+    final asyncMarkers = asyncMarkersValue != null
+        ? EnumSet<AsyncMarker>.fromValue(asyncMarkersValue)
+        : null;
+    final genericInstantiations = source
         .readListOrNull(() => GenericInstantiation.readFromDataSource(source))
         ?.toSet();
-    List<NativeBehavior> nativeBehaviors =
+    final nativeBehaviors =
         source.readListOrNull(() => NativeBehavior.readFromDataSource(source));
-    Set<FunctionEntity> nativeMethods =
-        source.readMembersOrNull<FunctionEntity>()?.toSet();
-    Set<Selector> oneShotInterceptors = source
+    final nativeMethods = source.readMembersOrNull<FunctionEntity>()?.toSet();
+    final oneShotInterceptors = source
         .readListOrNull(() => Selector.readFromDataSource(source))
         ?.toSet();
     source.end(tag);
@@ -211,35 +207,31 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   void registerTypeVariableBoundsSubtypeCheck(
       DartType subtype, DartType supertype) {
-    _typeVariableBoundsSubtypeChecks ??= {};
-    _typeVariableBoundsSubtypeChecks
+    (_typeVariableBoundsSubtypeChecks ??= {})
         .add(Pair<DartType, DartType>(subtype, supertype));
   }
 
   @override
   Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
-    return _typeVariableBoundsSubtypeChecks ??
-        const <Pair<DartType, DartType>>[];
+    return _typeVariableBoundsSubtypeChecks ?? const {};
   }
 
   void registerConstSymbol(String name) {
-    _constSymbols ??= {};
-    _constSymbols.add(name);
+    (_constSymbols ??= {}).add(name);
   }
 
   @override
   Iterable<String> get constSymbols {
-    return _constSymbols ?? const <String>[];
+    return _constSymbols ?? const [];
   }
 
   void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
-    _specializedGetInterceptors ??= <Set<ClassEntity>>[];
-    _specializedGetInterceptors.add(classes);
+    (_specializedGetInterceptors ??= []).add(classes);
   }
 
   @override
   Iterable<Set<ClassEntity>> get specializedGetInterceptors {
-    return _specializedGetInterceptors ?? const <Set<ClassEntity>>[];
+    return _specializedGetInterceptors ?? const [];
   }
 
   void registerUseInterceptor() {
@@ -250,40 +242,36 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    _asyncMarkers ??= EnumSet();
-    _asyncMarkers.add(asyncMarker);
+    (_asyncMarkers ??= EnumSet()).add(asyncMarker);
   }
 
   @override
   Iterable<AsyncMarker> get asyncMarkers {
-    return _asyncMarkers != null
-        ? _asyncMarkers.iterable(AsyncMarker.values)
-        : const <AsyncMarker>[];
+    return _asyncMarkers == null
+        ? const []
+        : _asyncMarkers!.iterable(AsyncMarker.values);
   }
 
   void registerGenericInstantiation(GenericInstantiation instantiation) {
-    _genericInstantiations ??= {};
-    _genericInstantiations.add(instantiation);
+    (_genericInstantiations ??= {}).add(instantiation);
   }
 
   @override
   Iterable<GenericInstantiation> get genericInstantiations {
-    return _genericInstantiations ?? const <GenericInstantiation>[];
+    return _genericInstantiations ?? const [];
   }
 
   void registerNativeBehavior(NativeBehavior nativeBehavior) {
-    _nativeBehaviors ??= [];
-    _nativeBehaviors.add(nativeBehavior);
+    (_nativeBehaviors ??= []).add(nativeBehavior);
   }
 
   @override
   Iterable<NativeBehavior> get nativeBehaviors {
-    return _nativeBehaviors ?? const <NativeBehavior>[];
+    return _nativeBehaviors ?? const [];
   }
 
   void registerNativeMethod(FunctionEntity function) {
-    _nativeMethods ??= {};
-    _nativeMethods.add(function);
+    (_nativeMethods ??= {}).add(function);
   }
 
   @override
@@ -292,8 +280,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   }
 
   void registerOneShotInterceptor(Selector selector) {
-    _oneShotInterceptors ??= {};
-    _oneShotInterceptors.add(selector);
+    (_oneShotInterceptors ??= {}).add(selector);
   }
 
   @override
@@ -336,8 +323,8 @@ class CodegenRegistry implements interfaces.CodegenRegistry {
   final ElementEnvironment _elementEnvironment;
   final MemberEntity _currentElement;
   final _CodegenImpact _worldImpact;
-  List<ModularName> _names;
-  List<ModularExpression> _expressions;
+  late final List<ModularName> _names = [];
+  late final List<ModularExpression> _expressions = [];
 
   CodegenRegistry(this._elementEnvironment, this._currentElement)
       : this._worldImpact = _CodegenImpact(_currentElement);
@@ -429,20 +416,18 @@ class CodegenRegistry implements interfaces.CodegenRegistry {
 
   @override
   void registerModularName(covariant ModularName name) {
-    _names ??= [];
     _names.add(name);
   }
 
   @override
   void registerModularExpression(covariant ModularExpression expression) {
-    _expressions ??= [];
     _expressions.add(expression);
   }
 
   @override
   CodegenResult close(js.Fun code) {
-    return CodegenResult(
-        code, _worldImpact, _names ?? const [], _expressions ?? const []);
+    return CodegenResult(code, _worldImpact, _names.isEmpty ? const [] : _names,
+        _expressions.isEmpty ? const [] : _expressions);
   }
 }
 
@@ -460,7 +445,7 @@ class OnDemandCodegenResults extends CodegenResults {
       this._functionCompiler);
 
   @override
-  CodegenResult getCodegenResults(MemberEntity member) {
+  interfaces.CodegenResult getCodegenResults(MemberEntity member) {
     return _functionCompiler.compile(member);
   }
 }
@@ -469,7 +454,7 @@ class OnDemandCodegenResults extends CodegenResults {
 class CodegenResult implements interfaces.CodegenResult {
   static const String tag = 'codegen-result';
 
-  final js.Fun code;
+  final js.Fun? code;
   final CodegenImpact impact;
   final Iterable<ModularName> modularNames;
   final Iterable<ModularExpression> modularExpressions;
@@ -492,7 +477,7 @@ class CodegenResult implements interfaces.CodegenResult {
       List<ModularName> modularNames,
       List<ModularExpression> modularExpressions) {
     source.begin(tag);
-    js.Fun code = source.readJsNodeOrNull();
+    final code = source.readJsNodeOrNull() as js.Fun?;
     CodegenImpact impact = CodegenImpact.readFromDataSource(source);
     source.end(tag);
     return CodegenResult(code, impact, modularNames, modularExpressions);
@@ -518,49 +503,55 @@ class CodegenResult implements interfaces.CodegenResult {
           name.value = namer.rtiFieldJsName;
           break;
         case ModularNameKind.className:
-          name.value = namer.className(name.data);
+          name.value = namer.className(name.data as ClassEntity);
           break;
         case ModularNameKind.aliasedSuperMember:
-          name.value = namer.aliasedSuperMemberPropertyName(name.data);
+          name.value =
+              namer.aliasedSuperMemberPropertyName(name.data as MemberEntity);
           break;
         case ModularNameKind.staticClosure:
-          name.value = namer.staticClosureName(name.data);
+          name.value = namer.staticClosureName(name.data as FunctionEntity);
           break;
         case ModularNameKind.methodProperty:
-          name.value = namer.methodPropertyName(name.data);
+          name.value = namer.methodPropertyName(name.data as FunctionEntity);
           break;
         case ModularNameKind.operatorIs:
-          name.value = namer.operatorIs(name.data);
+          name.value = namer.operatorIs(name.data as ClassEntity);
           break;
         case ModularNameKind.instanceMethod:
-          name.value = namer.instanceMethodName(name.data);
+          name.value = namer.instanceMethodName(name.data as FunctionEntity);
           break;
         case ModularNameKind.instanceField:
-          name.value = namer.instanceFieldPropertyName(name.data);
+          name.value =
+              namer.instanceFieldPropertyName(name.data as FieldEntity);
           break;
         case ModularNameKind.invocation:
-          name.value = namer.invocationName(name.data);
+          name.value = namer.invocationName(name.data as Selector);
           break;
         case ModularNameKind.lazyInitializer:
-          name.value = namer.lazyInitializerName(name.data);
+          name.value = namer.lazyInitializerName(name.data as FieldEntity);
           break;
         case ModularNameKind.globalPropertyNameForClass:
-          name.value = namer.globalPropertyNameForClass(name.data);
+          name.value =
+              namer.globalPropertyNameForClass(name.data as ClassEntity);
           break;
         case ModularNameKind.globalPropertyNameForMember:
-          name.value = namer.globalPropertyNameForMember(name.data);
+          name.value =
+              namer.globalPropertyNameForMember(name.data as MemberEntity);
           break;
         case ModularNameKind.globalNameForInterfaceTypeVariable:
-          name.value = namer.globalNameForInterfaceTypeVariable(name.data);
+          name.value = namer.globalNameForInterfaceTypeVariable(
+              name.data as TypeVariableEntity);
           break;
         case ModularNameKind.nameForGetInterceptor:
-          name.value = namer.nameForGetInterceptor(name.set);
+          name.value = namer.nameForGetInterceptor(name.set!);
           break;
         case ModularNameKind.nameForOneShotInterceptor:
-          name.value = namer.nameForOneShotInterceptor(name.data, name.set);
+          name.value =
+              namer.nameForOneShotInterceptor(name.data as Selector, name.set!);
           break;
         case ModularNameKind.asName:
-          name.value = namer.asName(name.data);
+          name.value = namer.asName(name.data as String);
           break;
       }
     }
@@ -568,12 +559,12 @@ class CodegenResult implements interfaces.CodegenResult {
       switch (expression.kind) {
         case ModularExpressionKind.constant:
           expression.value = emitter
-              .constantReference(expression.data)
+              .constantReference(expression.data as ConstantValue)
               .withSourceInformation(expression.sourceInformation);
           break;
         case ModularExpressionKind.embeddedGlobalAccess:
           expression.value = emitter
-              .generateEmbeddedGlobalAccess(expression.data)
+              .generateEmbeddedGlobalAccess(expression.data as String)
               .withSourceInformation(expression.sourceInformation);
           break;
       }
@@ -584,7 +575,7 @@ class CodegenResult implements interfaces.CodegenResult {
   String toString() {
     StringBuffer sb = StringBuffer();
     sb.write('CodegenResult(code=');
-    sb.write(code != null ? js.DebugPrint(code) : '<null>,');
+    sb.write(code != null ? js.DebugPrint(code!) : '<null>,');
     sb.write('impact=$impact,');
     sb.write('modularNames=$modularNames,');
     sb.write('modularExpressions=$modularExpressions');
@@ -604,7 +595,7 @@ class ModularExpression extends js.DeferredExpression
 
   final ModularExpressionKind kind;
   final Object data;
-  js.Expression _value;
+  js.Expression? _value;
 
   ModularExpression(this.kind, this.data);
 
@@ -629,10 +620,10 @@ class ModularExpression extends js.DeferredExpression
     sink.writeEnum(kind);
     switch (kind) {
       case ModularExpressionKind.constant:
-        sink.writeConstant(data);
+        sink.writeConstant(data as ConstantValue);
         break;
       case ModularExpressionKind.embeddedGlobalAccess:
-        sink.writeString(data);
+        sink.writeString(data as String);
         break;
     }
     sink.end(tag);
@@ -643,13 +634,11 @@ class ModularExpression extends js.DeferredExpression
 
   @override
   js.Expression get value {
-    assert(isFinalized);
-    return _value;
+    return _value!;
   }
 
   void set value(js.Expression node) {
     assert(!isFinalized);
-    assert(node != null);
     _value = node.withSourceInformation(sourceInformation);
   }
 
@@ -658,7 +647,7 @@ class ModularExpression extends js.DeferredExpression
 
   @override
   Iterable<js.Node> get containedNodes {
-    return _value != null ? [_value] : const [];
+    return _value != null ? [_value!] : const [];
   }
 
   @override
@@ -695,7 +684,6 @@ class ModularExpression extends js.DeferredExpression
       case ModularExpressionKind.embeddedGlobalAccess:
         return 'ModularExpression"init.$data"';
     }
-    return super.nonfinalizedDebugText();
   }
 }
 
@@ -844,15 +832,16 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     sink.end(JsNodeTags.tag);
   }
 
-  void visit(js.Node node, {bool allowNull = false}) {
-    if (allowNull) {
-      sink.writeBool(node != null);
-      if (node != null) {
-        node.accept(this);
-      }
-    } else {
-      node.accept(this);
+  void visitOrNull(js.Node? node) {
+    final isNotNull = node != null;
+    sink.writeBool(isNotNull);
+    if (isNotNull) {
+      visit(node);
     }
+  }
+
+  void visit(js.Node node) {
+    node.accept(this);
   }
 
   void visitList(Iterable<js.Node> nodes) {
@@ -860,7 +849,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 
   void _writeInfo(js.Node node) {
-    sink.writeCached<SourceInformation /*!*/ >(node.sourceInformation,
+    sink.writeCached<SourceInformation>(
+        node.sourceInformation as SourceInformation?,
         (SourceInformation sourceInformation) {
       SourceInformation.writeToDataSink(sink, sourceInformation);
     });
@@ -1249,7 +1239,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     sink.writeEnum(JsNodeKind.variableInitialization);
     sink.begin(JsNodeTags.variableInitialization);
     visit(node.declaration);
-    visit(node.value, allowNull: true);
+    visitOrNull(node.value);
     sink.end(JsNodeTags.variableInitialization);
     _writeInfo(node);
   }
@@ -1367,8 +1357,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     sink.writeEnum(JsNodeKind.tryStatement);
     sink.begin(JsNodeTags.tryStatement);
     visit(node.body);
-    visit(node.catchPart, allowNull: true);
-    visit(node.finallyPart, allowNull: true);
+    visitOrNull(node.catchPart);
+    visitOrNull(node.finallyPart);
     sink.end(JsNodeTags.tryStatement);
     _writeInfo(node);
   }
@@ -1386,7 +1376,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   void visitReturn(js.Return node) {
     sink.writeEnum(JsNodeKind.returnStatement);
     sink.begin(JsNodeTags.returnStatement);
-    visit(node.value, allowNull: true);
+    visitOrNull(node.value);
     sink.end(JsNodeTags.returnStatement);
     _writeInfo(node);
   }
@@ -1444,9 +1434,9 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   void visitFor(js.For node) {
     sink.writeEnum(JsNodeKind.forStatement);
     sink.begin(JsNodeTags.forStatement);
-    visit(node.init, allowNull: true);
-    visit(node.condition, allowNull: true);
-    visit(node.update, allowNull: true);
+    visitOrNull(node.init);
+    visitOrNull(node.condition);
+    visitOrNull(node.update);
     visit(node.body);
     sink.end(JsNodeTags.forStatement);
     _writeInfo(node);
@@ -1522,11 +1512,13 @@ class JsNodeDeserializer {
     return node;
   }
 
-  T read<T extends js.Node>({bool allowNull = false}) {
-    if (allowNull) {
-      bool hasValue = source.readBool();
-      if (!hasValue) return null;
-    }
+  T? readOrNull<T extends js.Node>() {
+    bool hasValue = source.readBool();
+    if (!hasValue) return null;
+    return read();
+  }
+
+  T read<T extends js.Node>() {
     JsNodeKind kind = source.readEnum(JsNodeKind.values);
     js.Node node;
     switch (kind) {
@@ -1555,7 +1547,7 @@ class JsNodeDeserializer {
       case JsNodeKind.methodDefinition:
         source.begin(JsNodeTags.methodDefinition);
         js.Expression name = read();
-        js.Expression function = read();
+        final function = read() as js.Fun;
         node = js.MethodDefinition(name, function);
         source.end(JsNodeTags.methodDefinition);
         break;
@@ -1742,14 +1734,14 @@ class JsNodeDeserializer {
       case JsNodeKind.variableInitialization:
         source.begin(JsNodeTags.variableInitialization);
         js.Declaration declaration = read();
-        js.Expression value = source.readValueOrNull(read);
+        final value = source.readValueOrNull(read) as js.Expression?;
         node = js.VariableInitialization(declaration, value);
         source.end(JsNodeTags.variableInitialization);
         break;
       case JsNodeKind.assignment:
         source.begin(JsNodeTags.assignment);
         js.Expression leftHandSide = read();
-        String op = source.readStringOrNull();
+        final op = source.readStringOrNull();
         js.Expression value = read();
         node = js.Assignment.compound(leftHandSide, op, value);
         source.end(JsNodeTags.assignment);
@@ -1823,8 +1815,8 @@ class JsNodeDeserializer {
       case JsNodeKind.tryStatement:
         source.begin(JsNodeTags.tryStatement);
         js.Block body = read();
-        js.Catch catchPart = source.readValueOrNull(read);
-        js.Block finallyPart = source.readValueOrNull(read);
+        final catchPart = source.readValueOrNull(read) as js.Catch?;
+        final finallyPart = source.readValueOrNull(read) as js.Block?;
         node = js.Try(body, catchPart, finallyPart);
         source.end(JsNodeTags.tryStatement);
         break;
@@ -1836,19 +1828,19 @@ class JsNodeDeserializer {
         break;
       case JsNodeKind.returnStatement:
         source.begin(JsNodeTags.returnStatement);
-        js.Expression value = source.readValueOrNull(read);
+        final value = source.readValueOrNull(read) as js.Expression?;
         node = js.Return(value);
         source.end(JsNodeTags.returnStatement);
         break;
       case JsNodeKind.breakStatement:
         source.begin(JsNodeTags.breakStatement);
-        String targetLabel = source.readStringOrNull();
+        final targetLabel = source.readStringOrNull();
         node = js.Break(targetLabel);
         source.end(JsNodeTags.breakStatement);
         break;
       case JsNodeKind.continueStatement:
         source.begin(JsNodeTags.continueStatement);
-        String targetLabel = source.readStringOrNull();
+        final targetLabel = source.readStringOrNull();
         node = js.Continue(targetLabel);
         source.end(JsNodeTags.continueStatement);
         break;
@@ -1876,9 +1868,9 @@ class JsNodeDeserializer {
         break;
       case JsNodeKind.forStatement:
         source.begin(JsNodeTags.forStatement);
-        js.Expression init = read(allowNull: true);
-        js.Expression condition = read(allowNull: true);
-        js.Expression update = read(allowNull: true);
+        final init = readOrNull() as js.Expression?;
+        final condition = readOrNull() as js.Expression?;
+        final update = readOrNull() as js.Expression?;
         js.Statement body = read();
         node = js.For(init, condition, update, body);
         source.end(JsNodeTags.forStatement);
@@ -1929,19 +1921,17 @@ class JsNodeDeserializer {
         source.end(JsNodeTags.deferredHolderExpression);
         break;
     }
-    SourceInformation sourceInformation =
-        source.readCachedOrNull<SourceInformation>(() {
+    final sourceInformation = source.readCachedOrNull<SourceInformation>(() {
       return SourceInformation.readFromDataSource(source);
     });
     if (sourceInformation != null) {
       node = node.withSourceInformation(sourceInformation);
     }
-    return node;
+    return node as T;
   }
 
-  List<T> readList<T extends js.Node>({bool emptyAsNull = false}) {
-    // TODO(48820): Is [emptyAsNull] unused?
-    return emptyAsNull ? source.readListOrNull(read) : source.readList(read);
+  List<T> readList<T extends js.Node>() {
+    return source.readList(read);
   }
 }
 
