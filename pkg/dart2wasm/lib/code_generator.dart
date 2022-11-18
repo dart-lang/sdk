@@ -1601,22 +1601,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     pushReceiver(selector.signature);
 
+    if (selector.targetCount == 1) {
+      pushArguments(selector.signature);
+      return call(selector.singularTarget!);
+    }
+
     int? offset = selector.offset;
     if (offset == null) {
-      // Singular target or unreachable call
-      assert(selector.targetCount <= 1);
-      if (selector.targetCount == 1) {
-        pushArguments(selector.signature);
-        return call(selector.singularTarget!);
-      } else {
-        b.comment("Virtual call of ${selector.name} with no targets"
-            " at ${node.location}");
-        b.drop();
-        b.block(const [], selector.signature.outputs);
-        b.unreachable();
-        b.end();
-        return translator.outputOrVoid(selector.signature.outputs);
-      }
+      // Unreachable call
+      assert(selector.targetCount == 0);
+      b.comment("Virtual call of ${selector.name} with no targets"
+          " at ${node.location}");
+      b.drop();
+      b.block(const [], selector.signature.outputs);
+      b.unreachable();
+      b.end();
+      return translator.outputOrVoid(selector.signature.outputs);
     }
 
     // Receiver is already on stack.
