@@ -581,7 +581,7 @@ void ObjectStore::LazyInitIsolateMembers() {
     ASSERT(!cls.IsNull());
     transferable_class_.store(cls.ptr());
 
-    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl());
+    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePort());
     ASSERT(!cls.IsNull());
     const auto& error = cls.EnsureIsFinalized(thread);
     ASSERT(error == Error::null());

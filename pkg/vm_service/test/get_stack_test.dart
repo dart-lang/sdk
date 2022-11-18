@@ -105,7 +105,7 @@ final tests = <IsolateTest>[
       [equals('Regular'), anything], // Internal mech. ..
       [equals('Regular'), anything],
       [equals('Regular'), anything],
-      [equals('Regular'), endsWith(' _RawReceivePortImpl._handleMessage')],
+      [equals('Regular'), endsWith(' _RawReceivePort._handleMessage')],
     ]);
 
     expectFrames(result.asyncCausalFrames, [

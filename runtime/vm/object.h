@@ -11767,6 +11767,7 @@ class Closure : public Instance {
   friend class Class;
 };
 
+// Corresponds to _Capability in dart:isolate.
 class Capability : public Instance {
  public:
   uint64_t Id() const { return untag()->id_; }
@@ -11781,6 +11782,7 @@ class Capability : public Instance {
   friend class Class;
 };
 
+// Corresponds to _RawReceivePort in dart:isolate.
 class ReceivePort : public Instance {
  public:
   SendPortPtr send_port() const { return untag()->send_port(); }
@@ -11810,6 +11812,7 @@ class ReceivePort : public Instance {
   friend class Class;
 };
 
+// Corresponds to _SendPort in dart:isolate.
 class SendPort : public Instance {
  public:
   Dart_Port Id() const { return untag()->id_; }
@@ -12257,6 +12260,7 @@ class RegExp : public Instance {
   friend class Class;
 };
 
+// Corresponds to _WeakProperty in dart:core.
 class WeakProperty : public Instance {
  public:
   ObjectPtr key() const { return untag()->key(); }
@@ -12288,6 +12292,7 @@ class WeakProperty : public Instance {
   friend class Class;
 };
 
+// Corresponds to _WeakReference in dart:core.
 class WeakReference : public Instance {
  public:
   ObjectPtr target() const { return untag()->target(); }

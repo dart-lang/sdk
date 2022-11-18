@@ -277,7 +277,7 @@ class ObjectPointerVisitor;
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(_CapabilityImpl, "_CapabilityImpl")                                        \
+  V(_Capability, "_Capability")                                                \
   V(_ClassMirror, "_ClassMirror")                                              \
   V(_Closure, "_Closure")                                                      \
   V(_ClosureCall, "_Closure.call")                                             \
@@ -361,11 +361,11 @@ class ObjectPointerVisitor;
   V(_NativeFinalizer, "_NativeFinalizer")                                      \
   V(_ParameterMirror, "_ParameterMirror")                                      \
   V(_Random, "_Random")                                                        \
-  V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
+  V(_RawReceivePort, "_RawReceivePort")                                        \
   V(_Record, "_Record")                                                        \
   V(_RecordType, "_RecordType")                                                \
   V(_RegExp, "_RegExp")                                                        \
-  V(_SendPortImpl, "_SendPortImpl")                                            \
+  V(_SendPort, "_SendPort")                                                    \
   V(_Set, "_Set")                                                              \
   V(_Smi, "_Smi")                                                              \
   V(_SourceLocation, "_SourceLocation")                                        \
@@ -416,7 +416,7 @@ class ObjectPointerVisitor;
   V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
-  V(_WeakReferenceImpl, "_WeakReferenceImpl")                                  \
+  V(_WeakReference, "_WeakReference")                                          \
   V(_await, "_await")                                                          \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \

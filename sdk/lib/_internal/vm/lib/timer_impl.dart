@@ -140,7 +140,7 @@ class _Timer implements Timer {
   static const _ID_MASK = 0x1fffffff;
   static int _idCount = 0;
 
-  static _RawReceivePortImpl? _receivePort;
+  static _RawReceivePort? _receivePort;
   static SendPort? _sendPort;
   static bool _receivePortActive = false;
   static int _scheduledWakeupTime = 0;
@@ -455,7 +455,7 @@ class _Timer implements Timer {
     var receivePort = _receivePort;
     if (receivePort == null) {
       assert(_sendPort == null);
-      final port = _RawReceivePortImpl('Timer');
+      final port = _RawReceivePort('Timer');
       port.handler = _handleMessage;
       _sendPort = port.sendPort;
       _receivePort = port;

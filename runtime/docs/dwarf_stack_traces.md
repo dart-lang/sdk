@@ -63,7 +63,7 @@ Throw of null.
 #1      foo (file:///.../sdk/throws.dart:5)
 #2      main (file:///.../sdk/throws.dart:7)
 #3      _startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:307)
-#4      _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
+#4      _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 
 $ out/ReleaseX64/dart_precompiled_runtime dwarf_snapshot.so
 Unhandled exception:
@@ -158,7 +158,7 @@ isolate_instructions: 7fc7ad076000 vm_instructions: 0
 #1	foo (file:///.../sdk/throws.dart:5)
 #2	main (file:///.../sdk/throws.dart:7)
 #3	_startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:307)
-#4	_RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
+#4	_RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 
 # Using the separately saved debugging information and piping all output to the tool's stdin.
 $ out/ReleaseX64/dart_precompiled_runtime dwarf_snapshot.so |& out/ReleaseX64/dart pkg/native_stack_traces/bin/decode.dart -e debug.data
@@ -172,7 +172,7 @@ isolate_instructions: 7f0df76e1000 vm_instructions: 0
 #1	foo (file:///.../sdk/throws.dart:5)
 #2	main (file:///.../sdk/throws.dart:7)
 #3	_startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:307)
-#4	_RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
+#4	_RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 
 # Saving all output to the file "output.txt".
 $ out/ReleaseX64/dart_precompiled_runtime dwarf_snapshot.so >output.txt 2>&1
@@ -189,7 +189,7 @@ isolate_instructions: 7f524b090000 vm_instructions: 0
 #1	foo (file:///.../sdk/throws.dart:5)
 #2	main (file:///.../sdk/throws.dart:7)
 #3	_startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:307)
-#4	_RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
+#4	_RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 
 # Output the converted input to the file "converted.txt" instead of stdout.
 $ out/ReleaseX64/dart pkg/native_stack_traces/bin/decode.dart -e debug.data -i output.txt -o converted.txt
@@ -205,7 +205,7 @@ isolate_instructions: 7f524b090000 vm_instructions: 0
 #1	foo (file:///.../sdk/throws.dart:5)
 #2	main (file:///.../sdk/throws.dart:7)
 #3	_startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:307)
-#4	_RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
+#4	_RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 ```
 
 > **Note**: As seen here, only lines that contain stack trace frames are
