@@ -198,7 +198,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    b.local_get(paramLocals[0]);
+    b.local_get(paramLocals[0]); // `this` as context
     b.global_get(closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);

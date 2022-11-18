@@ -1491,7 +1491,55 @@ class Intrinsifier {
 
     if (member.enclosingClass == translator.functionClass &&
         name == "_equals") {
-      // Compare context and vtable references
+      // Function equality works like this:
+      //
+      // - Function literals and local functions are only equal if they're the
+      //   same reference.
+      //
+      // - Instance tear-offs are equal if they are tear-offs of the same
+      //   method on the same object.
+      //
+      // - Tear-offs of static methods and top-level functions are identical
+      //   (and thus equal) when they are tear-offs of the same function. Generic
+      //   instantiations of these are identical when the tear-offs are identical
+      //   and they are instantiated with identical types.
+      //
+      // To distinguish a function literal or local function from an instance
+      // tear-off we check type of the context:
+      //
+      // - If context's type is a subtype of the top type for Dart objects then
+      //   the function is a tear-off and we compare the context using the
+      //   `identical` function.
+      //
+      //   The reason why we use `identical` (instead of `ref.eq`) is to handle
+      //   bool, double, and int receivers in code like `1.toString ==
+      //   1.toString`, which should evaluate to `true` even if the receivers
+      //   do not point to the same Wasm object.
+      //
+      // - Otherwise the function is a function literal or local function.
+      //
+      // In pseudo code:
+      //
+      //   bool _equals(f1, f2) {
+      //     if (identical(f1, f2) return true;
+      //     if (f1.vtable == f2.vtable) {
+      //       if (v1.context is #Top && v2.context is #Top) {
+      //         return identical(v1.context, v2.context);
+      //       }
+      //     }
+      //     return false;
+      //   }
+
+      // Check if the arguments are the same
+      b.local_get(function.locals[0]);
+      b.local_get(function.locals[1]);
+      b.ref_eq();
+      b.if_();
+      b.i32_const(1); // true
+      b.return_();
+      b.end();
+
+      // Arguments are different, compare context and vtable references
       final w.StructType closureBaseStruct =
           translator.closureLayouter.closureBaseStruct;
       final w.RefType closureBaseStructRef =
@@ -1509,21 +1557,38 @@ class Intrinsifier {
           function, function.locals[1].type, closureBaseStructRef);
       b.local_set(fun2);
 
-      // Compare context references
-      b.local_get(fun1);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.local_get(fun2);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.ref_eq();
-      b.if_();
       // Compare vtable references
       b.local_get(fun1);
       b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
       b.local_get(fun2);
       b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
       b.ref_eq();
+
+      b.if_(); // fun1.vtable == fun2.vtable
+
+      // Compare context references. If context of a function has the top type
+      // then the function is an instance tear-off. Otherwise it's a closure.
+      final contextCheckFail = b.block([], [w.RefType.data(nullable: false)]);
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(contextCheckFail, translator.topInfo.struct);
+
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(contextCheckFail, translator.topInfo.struct);
+
+      // Both contexts are objects, compare for equality with `identical`. This
+      // handles identical `this` values in instance tear-offs.
+      b.call(translator.functions
+          .getFunction(translator.coreTypes.identicalProcedure.reference));
       b.return_();
-      b.end(); // if
+      b.end(); // contextCheckFail
+
+      b.i32_const(0); // false
+      b.return_();
+
+      b.end(); // fun1.vtable == fun2.vtable
+
       b.i32_const(0); // false
 
       return true;
