@@ -3352,6 +3352,9 @@ abstract class DartPatternImpl extends AstNodeImpl implements DartPattern {
   //  have constants for pattern-related precedence values.
   Precedence get precedence => throw UnimplementedError();
 
+  @override
+  DartPattern get unParenthesized => this;
+
   /// The variable pattern, itself, or wrapped in a unary pattern.
   VariablePatternImpl? get variablePattern => null;
 
@@ -9592,6 +9595,15 @@ class ParenthesizedPatternImpl extends DartPatternImpl
 
   @override
   Token get endToken => rightParenthesis;
+
+  @override
+  DartPattern get unParenthesized {
+    var result = pattern;
+    while (result is ParenthesizedPatternImpl) {
+      result = result.pattern;
+    }
+    return result;
+  }
 
   @override
   VariablePatternImpl? get variablePattern => pattern.variablePattern;

@@ -1668,6 +1668,11 @@ abstract class DartPattern implements AstNode {
   /// code is parsed into an AST. For example `a | b & c` is parsed as `a | (b
   /// & c)` because the precedence of `&` is greater than the precedence of `|`.
   Precedence get precedence;
+
+  /// If this pattern is a parenthesized pattern, return the result of
+  /// unwrapping the pattern inside the parentheses. Otherwise, return this
+  /// pattern.
+  DartPattern get unParenthesized;
 }
 
 /// A node that represents the declaration of one or more names.
