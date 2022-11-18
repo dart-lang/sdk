@@ -2960,6 +2960,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         target.isObjectMember ||
         target.isNullableInstanceMember);
     Field field = target.member as Field;
+    Expression originalReceiver = receiver;
 
     DartType calleeType = target.getGetterType(this);
     FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
@@ -2977,11 +2978,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // We won't report the error until later (after we have an
       // invocationResult), but we need to gather "why not promoted" info now,
       // before we tell flow analysis about the property get.
-      whyNotPromoted = flowAnalysis.whyNotPromoted(receiver);
+      whyNotPromoted = flowAnalysis.whyNotPromoted(originalReceiver);
     }
 
     Name originalName = field.name;
-    Expression originalReceiver = receiver;
     Member originalTarget = field;
     InstanceAccessKind kind;
     switch (target.kind) {
@@ -2998,7 +2998,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         throw new UnsupportedError('Unexpected target kind $target');
     }
     InstanceGet originalPropertyGet = new InstanceGet(
-        kind, originalReceiver, originalName,
+        kind, receiver, originalName,
         resultType: calleeType, interfaceTarget: originalTarget)
       ..fileOffset = fileOffset;
     calleeType = flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
