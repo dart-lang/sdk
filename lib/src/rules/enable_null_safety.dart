@@ -24,6 +24,7 @@ a() {
 ```dart
 b() {
 }
+```
 ''';
 
 class EnableNullSafety extends LintRule implements NodeLintRule {

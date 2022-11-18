@@ -46,7 +46,7 @@ class A {
 }
 ```
 
-NOTE: The lint checks the use of the @immutable annotation, and will trigger
+NOTE: The lint checks the use of the `@immutable` annotation, and will trigger
 even if the class is otherwise not mutable. Thus:
 
 **BAD:**
