@@ -640,8 +640,6 @@ abstract class AstVisitor<R> {
 
   R? visitSwitchExpressionCase(SwitchExpressionCase node);
 
-  R? visitSwitchExpressionDefault(SwitchExpressionDefault node);
-
   R? visitSwitchPatternCase(SwitchPatternCase node);
 
   R? visitSwitchStatement(SwitchStatement node);
@@ -4894,13 +4892,16 @@ abstract class SwitchDefault implements SwitchMember {}
 /// A switch expression.
 ///
 ///    switchExpression ::=
-///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]*
-///        [SwitchExpressionDefault]? '}'
+///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
+///        (',' [SwitchExpressionCase])* ','? '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class SwitchExpression implements Expression {
-  /// Return the expression used to determine which of the switch members will
+  /// Return the cases that can be selected by the expression.
+  NodeList<SwitchExpressionCase> get cases;
+
+  /// Return the expression used to determine which of the switch cases will
   /// be selected.
   Expression get expression;
 
@@ -4909,10 +4910,6 @@ abstract class SwitchExpression implements Expression {
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
-
-  /// Return the switch expression members that can be selected by the
-  /// expression.
-  NodeList<SwitchExpressionMember> get members;
 
   /// Return the right curly bracket.
   Token get rightBracket;
@@ -4927,45 +4924,21 @@ abstract class SwitchExpression implements Expression {
 /// A case in a switch expression.
 ///
 ///    switchExpressionCase ::=
-///        'case' [DartPattern] [WhenClause]? '=>' [Expression]
+///        [GuardedPattern] '=>' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class SwitchExpressionCase implements SwitchExpressionMember {
-  /// Return the refutable pattern that must match for the [expression] to be executed.
-  GuardedPattern get guardedPattern;
-}
-
-/// The default case in a switch expression.
-///
-///    switchDefault ::=
-///        'default' '=>' [Expression]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class SwitchExpressionDefault implements SwitchExpressionMember {}
-
-/// A member within a switch expression.
-///
-///    switchExpressionMember ::=
-///        [SwitchExpressionCase]
-///      | [SwitchExpressionDefault]
-///
-/// Clients may not extend, implement or mix-in this class.
-// TODO(brianwilkerson) Consider renaming `SwitchMember`, `SwitchCase`, and
-//  `SwitchDefault` to start with `SwitchStatement` for consistency.
-@experimental
-abstract class SwitchExpressionMember implements AstNode {
-  /// Return the arrow separating the keyword or the expression from the
-  /// expression.
+abstract class SwitchExpressionCase implements AstNode {
+  /// Return the arrow separating the pattern from the expression.
   Token get arrow;
 
   /// Return the expression whose value will be returned from the switch
-  /// expression if this member is selected.
+  /// expression if the pattern matches.
   Expression get expression;
 
-  /// Return the token representing the 'case' or 'default' keyword.
-  Token get keyword;
+  /// Return the refutable pattern that must match for the [expression] to
+  /// be executed.
+  GuardedPattern get guardedPattern;
 }
 
 /// An element within a switch statement.
@@ -4984,6 +4957,8 @@ abstract class SwitchExpressionMember implements AstNode {
 /// tokens.
 ///
 /// Clients may not extend, implement or mix-in this class.
+// TODO(brianwilkerson) Consider renaming `SwitchMember`, `SwitchCase`, and
+//  `SwitchDefault` to start with `SwitchStatement` for consistency.
 abstract class SwitchMember implements AstNode {
   /// Return the colon separating the keyword or the expression from the
   /// statements.

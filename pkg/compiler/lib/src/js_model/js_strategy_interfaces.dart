@@ -10,7 +10,7 @@ import '../js/js.dart' as js;
 import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/runtime_types.dart';
-import '../js_emitter/interfaces.dart' show CodeEmitterTask;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart';
 import '../serialization/serialization.dart';

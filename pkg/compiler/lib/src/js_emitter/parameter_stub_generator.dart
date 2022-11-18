@@ -22,7 +22,7 @@ import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
 import 'model.dart';
-import 'interfaces.dart' show Emitter;
+import 'js_emitter.dart' show Emitter;
 import 'native_emitter.dart';
 
 class ParameterStubGenerator {

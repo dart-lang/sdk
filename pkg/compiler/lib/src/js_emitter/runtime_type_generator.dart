@@ -17,7 +17,7 @@ import '../js_backend/runtime_types_codegen.dart'
 import '../js_emitter/sorter.dart';
 import '../util/util.dart' show Setlet;
 
-import 'interfaces.dart' show CodeEmitterTask;
+import 'js_emitter.dart' show CodeEmitterTask;
 
 // Function signatures used in the generation of runtime type information.
 typedef FunctionTypeSignatureEmitter = void Function(

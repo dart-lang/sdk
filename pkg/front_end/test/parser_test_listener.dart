@@ -286,12 +286,16 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     seen(augmentToken);
+    seen(sealedToken);
     seen(mixinKeyword);
     seen(name);
-    doPrint(
-        'beginMixinDeclaration(' '$augmentToken, ' '$mixinKeyword, ' '$name)');
+    doPrint('beginMixinDeclaration('
+        '$augmentToken, '
+        '$sealedToken, '
+        '$mixinKeyword, '
+        '$name)');
     indent++;
   }
 
@@ -1063,12 +1067,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
     seen(viewToken);
+    seen(sealedToken);
     seen(augmentToken);
     seen(name);
     doPrint('beginNamedMixinApplication('
@@ -1076,6 +1087,7 @@ class ParserTestListener implements Listener {
         '$abstractToken, '
         '$macroToken, '
         '$viewToken, '
+        '$sealedToken, '
         '$augmentToken, '
         '$name)');
     indent++;

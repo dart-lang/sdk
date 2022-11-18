@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -594,12 +595,26 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
+  void visitIfStatement(covariant IfStatementImpl node) {
     node.condition.accept(this);
-    assignedVariables.beginNode();
-    node.thenStatement.accept(this);
-    assignedVariables.endNode(node);
-    node.elseStatement?.accept(this);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      assignedVariables.beginNode();
+      for (var variable in guardedPattern.variables.values) {
+        assignedVariables.declare(variable);
+      }
+      guardedPattern.whenClause?.accept(this);
+      node.thenStatement.accept(this);
+      assignedVariables.endNode(node);
+      node.elseStatement?.accept(this);
+    } else {
+      assignedVariables.beginNode();
+      node.thenStatement.accept(this);
+      assignedVariables.endNode(node);
+      node.elseStatement?.accept(this);
+    }
   }
 
   @override

@@ -41,3 +41,14 @@ class B extends SealedClass {
   @override
   int bar(int value) => value;
 }
+
+mixin M {}
+sealed class SealedClassTypeAlias = Object with M;
+// [error column 1, length 6]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'sealed-class' language feature to be enabled.
+
+sealed mixin SealedMixin {}
+// [error column 1, length 6]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'sealed-class' language feature to be enabled.

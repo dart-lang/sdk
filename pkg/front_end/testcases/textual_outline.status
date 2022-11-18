@@ -191,6 +191,7 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 sealed_class/sealed_abstract_class_declaration: FormatterCrash
 sealed_class/sealed_class_declaration: FormatterCrash
+sealed_class/sealed_mixin_declaration: FormatterCrash
 super_parameters/issue47741: FormatterCrash
 super_parameters/issue47922: FormatterCrash
 super_parameters/issue48714: FormatterCrash

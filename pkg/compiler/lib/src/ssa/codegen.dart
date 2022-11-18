@@ -11,7 +11,7 @@ import '../common.dart';
 import '../common/elements.dart' show JCommonElements;
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../common/codegen_interfaces.dart' show CodegenRegistry;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -31,7 +31,7 @@ import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
 import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_backend/type_reference.dart' show TypeReference;
-import '../js_emitter/interfaces.dart' show ModularEmitter;
+import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart';

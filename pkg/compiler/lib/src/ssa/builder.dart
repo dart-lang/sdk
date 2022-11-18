@@ -1719,9 +1719,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _elementMap.getSpannable(targetElement, loadLibrary),
         _elementMap.getImport(loadLibrary.import));
     // TODO(efortuna): Source information!
+
+    final priority =
+        closedWorld.annotationsData.getLoadLibraryPriorityAt(loadLibrary);
+    final flag = priority.index;
+
     push(HInvokeStatic(
         _commonElements.loadDeferredLibrary,
-        [graph.addConstantString(loadId, closedWorld)],
+        [
+          graph.addConstantString(loadId, closedWorld),
+          graph.addConstantInt(flag, closedWorld)
+        ],
         _abstractValueDomain.nonNullType,
         const <DartType>[],
         targetCanThrow: false));

@@ -37,8 +37,10 @@ import '../universe/use.dart' show StaticUse;
 import 'codegen.dart';
 import 'nodes.dart';
 import 'optimize.dart';
+import 'ssa_interfaces.dart' as interfaces;
 
-class SsaFunctionCompiler implements FunctionCompiler {
+class SsaFunctionCompiler
+    implements FunctionCompiler, interfaces.SsaFunctionCompiler {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final SsaMetrics _metrics;

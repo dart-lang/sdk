@@ -5,7 +5,7 @@
 library js_backend.backend;
 
 import '../common.dart';
-import '../common/codegen_interfaces.dart';
+import '../common/codegen.dart';
 import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../js_model/elements.dart';

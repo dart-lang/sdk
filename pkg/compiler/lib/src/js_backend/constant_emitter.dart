@@ -14,7 +14,7 @@ import '../js_backend/field_analysis.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_backend/string_reference.dart'
     show StringReference, StringReferencePolicy;
-import '../js_emitter/interfaces.dart' show Emitter;
+import '../js_emitter/js_emitter.dart' show Emitter;
 import '../js_model/elements.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
@@ -40,11 +40,11 @@ class ModularConstantEmitter
   /// Constructs a literal expression that evaluates to the constant. Uses a
   /// canonical name unless the constant can be emitted multiple times (as for
   /// numbers and strings).
-  jsAst.Expression generate(ConstantValue constant) {
+  jsAst.Expression? generate(ConstantValue constant) {
     return _visit(constant);
   }
 
-  jsAst.Expression _visit(ConstantValue constant) {
+  jsAst.Expression? _visit(ConstantValue constant) {
     return constant.accept(this, null);
   }
 

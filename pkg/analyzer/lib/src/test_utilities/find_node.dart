@@ -627,10 +627,6 @@ class FindNode {
     return _node(search, (n) => n is SwitchExpressionCase);
   }
 
-  SwitchExpressionDefault switchExpressionDefault(String search) {
-    return _node(search, (n) => n is SwitchExpressionDefault);
-  }
-
   SwitchPatternCase switchPatternCase(String search) {
     return _node(search, (n) => n is SwitchPatternCase);
   }

@@ -699,10 +699,7 @@ main() {
                   expr('int'),
                   [
                     switchStatementMember([
-                      logicalOrPattern(
-                        x1.pattern(),
-                        x2.pattern(),
-                      ).switchCase,
+                      x1.pattern().or(x2.pattern()).switchCase,
                       x3.pattern().switchCase,
                     ], [
                       break_(),
@@ -1716,10 +1713,7 @@ main() {
               h.run([
                 ifCase(
                   expr('Object'),
-                  logicalOrPattern(
-                    x1.pattern(type: 'int'),
-                    x2.pattern(type: 'int'),
-                  ),
+                  x1.pattern(type: 'int').or(x2.pattern(type: 'int')),
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: int), '
@@ -1733,10 +1727,9 @@ main() {
               h.run([
                 ifCase(
                   expr('Object'),
-                  logicalOrPattern(
-                    x1.pattern(type: 'Object'),
-                    x2.pattern(type: 'FutureOr<Object>'),
-                  ),
+                  x1
+                      .pattern(type: 'Object')
+                      .or(x2.pattern(type: 'FutureOr<Object>')),
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: Object), varPattern(x, '
                     'matchedType: Object, staticType: FutureOr<Object>), '
@@ -1750,10 +1743,7 @@ main() {
               h.run([
                 ifCase(
                   expr('int'),
-                  logicalOrPattern(
-                    x1.pattern(type: 'int'),
-                    x2.pattern(),
-                  ),
+                  x1.pattern(type: 'int').or(x2.pattern()),
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -1766,10 +1756,7 @@ main() {
               h.run([
                 ifCase(
                   expr('int'),
-                  logicalOrPattern(
-                    x1.pattern(),
-                    x2.pattern(type: 'int'),
-                  ),
+                  x1.pattern().or(x2.pattern(type: 'int')),
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -1782,10 +1769,7 @@ main() {
               h.run([
                 ifCase(
                   expr('int'),
-                  logicalOrPattern(
-                    x1.pattern(),
-                    x2.pattern(),
-                  ),
+                  x1.pattern().or(x2.pattern()),
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -1800,10 +1784,7 @@ main() {
               h.run([
                 ifCase(
                   expr('Object'),
-                  logicalOrPattern(
-                    x1.pattern(type: 'int'),
-                    x2.pattern(type: 'num'),
-                  ),
+                  x1.pattern(type: 'int').or(x2.pattern(type: 'num')),
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: num), matchedType: '
@@ -1820,10 +1801,7 @@ main() {
               h.run([
                 ifCase(
                   expr('num'),
-                  logicalOrPattern(
-                    x1.pattern(type: 'int'),
-                    x2.pattern(),
-                  ),
+                  x1.pattern(type: 'int').or(x2.pattern()),
                 ).checkIr('ifCase(expr(num), logicalOrPattern(varPattern(x, '
                     'matchedType: num, staticType: int), varPattern(x, '
                     'matchedType: num, staticType: num), matchedType: num), '
@@ -1842,10 +1820,7 @@ main() {
           h.run([
             ifCase(
               expr('int'),
-              logicalOrPattern(
-                x1.pattern(),
-                x2.pattern(),
-              ),
+              x1.pattern().or(x2.pattern()),
             ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                 'matchedType: int, staticType: int), varPattern(x, '
                 'matchedType: int, staticType: int), matchedType: int), '
@@ -1863,10 +1838,7 @@ main() {
             h.run([
               ifCase(
                 expr('int'),
-                logicalOrPattern(
-                  x1.pattern(),
-                  x2.pattern(),
-                ),
+                x1.pattern().or(x2.pattern()),
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                   'matchedType: int, staticType: int), varPattern(x, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -1878,11 +1850,7 @@ main() {
             h.run([
               ifCase(
                 expr('int'),
-                logicalOrPattern(
-                  x1.pattern(),
-                  wildcard(),
-                  errorId: 'PATTERN',
-                ),
+                (x1.pattern().or(wildcard()))..errorId = 'PATTERN',
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                   'matchedType: int, staticType: int), varPattern(_, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -1898,11 +1866,7 @@ main() {
             h.run([
               ifCase(
                 expr('int'),
-                logicalOrPattern(
-                  wildcard(),
-                  x1.pattern(),
-                  errorId: 'PATTERN',
-                ),
+                (wildcard().or(x1.pattern()))..errorId = 'PATTERN',
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(_, '
                   'matchedType: int, staticType: int), varPattern(x, '
                   'matchedType: int, staticType: int), matchedType: int), '

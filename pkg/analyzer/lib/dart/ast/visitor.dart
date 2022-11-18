@@ -676,15 +676,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitSwitchExpression(SwitchExpression node) => visitExpression(node);
 
   @override
-  R? visitSwitchExpressionCase(SwitchExpressionCase node) =>
-      visitSwitchExpressionMember(node);
-
-  @override
-  R? visitSwitchExpressionDefault(SwitchExpressionDefault node) =>
-      visitSwitchExpressionMember(node);
-
-  R? visitSwitchExpressionMember(SwitchExpressionMember node) =>
-      visitNode(node);
+  R? visitSwitchExpressionCase(SwitchExpressionCase node) => visitNode(node);
 
   R? visitSwitchMember(SwitchMember node) => visitNode(node);
 
@@ -1635,12 +1627,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitSwitchExpressionDefault(SwitchExpressionDefault node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitSwitchPatternCase(SwitchPatternCase node) {
     node.visitChildren(this);
     return null;
@@ -2209,9 +2195,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitSwitchExpressionCase(SwitchExpressionCase node) => null;
 
   @override
-  R? visitSwitchExpressionDefault(SwitchExpressionDefault node) => null;
-
-  @override
   R? visitSwitchPatternCase(SwitchPatternCase node) => null;
 
   @override
@@ -2732,9 +2715,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitSwitchExpressionCase(SwitchExpressionCase node) => _throw(node);
-
-  @override
-  R? visitSwitchExpressionDefault(SwitchExpressionDefault node) => _throw(node);
 
   @override
   R? visitSwitchPatternCase(SwitchPatternCase node) => _throw(node);
@@ -3964,14 +3944,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitSwitchExpressionDefault(SwitchExpressionDefault node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitSwitchExpressionDefault(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitSwitchPatternCase(SwitchPatternCase node) {
     stopwatch.start();
     T? result = _baseVisitor.visitSwitchPatternCase(node);
@@ -4604,10 +4576,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitSwitchExpressionCase(SwitchExpressionCase node) => visitNode(node);
-
-  @override
-  R? visitSwitchExpressionDefault(SwitchExpressionDefault node) =>
-      visitNode(node);
 
   @override
   R? visitSwitchPatternCase(SwitchPatternCase node) => visitNode(node);

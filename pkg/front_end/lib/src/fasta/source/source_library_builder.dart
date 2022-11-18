@@ -1819,7 +1819,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset,
-      {required bool isAugmentation}) {
+      {required bool isSealed,
+      required bool isAugmentation}) {
     TypeBuilder? supertype;
     MixinApplicationBuilder? mixinApplication;
     if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
@@ -1845,8 +1846,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         endOffset,
         supertypeOffset,
         isMacro: false,
-        // TODO(kallentu): Support for sealed mixins
-        isSealed: false,
+        isSealed: isSealed,
         isAugmentation: isAugmentation);
   }
 
@@ -1903,6 +1903,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             className, isMixinDeclaration,
             typeVariables: typeVariables,
             isMacro: false,
+            isSealed: false,
             // TODO(johnniwinther): How can we support class with mixins?
             isAugmentation: false),
         interfaces,
@@ -2269,6 +2270,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int modifiers = 0,
       List<TypeBuilder>? interfaces,
       required bool isMacro,
+      required bool isSealed,
       required bool isAugmentation}) {
     if (name == null) {
       // The following parameters should only be used when building a named
@@ -2504,6 +2506,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             referencesFromIndexedClass,
             mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
             isMacro: isNamedMixinApplication && isMacro,
+            isSealed: isNamedMixinApplication && isSealed,
             isAugmentation: isNamedMixinApplication && isAugmentation);
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
@@ -2563,6 +2566,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOffset,
       int charEndOffset,
       {required bool isMacro,
+      required bool isSealed,
       required bool isAugmentation}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
@@ -2575,6 +2579,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         modifiers: modifiers,
         interfaces: interfaces,
         isMacro: isMacro,
+        isSealed: isSealed,
         isAugmentation: isAugmentation)!;
     checkTypeVariables(typeVariables, supertype.declaration);
   }
@@ -3045,6 +3050,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             /* isMixinDeclaration = */ false,
             typeVariables: typeVariables,
             isMacro: false,
+            isSealed: false,
             isAugmentation: false),
         interfaceBuilders,
         enumConstantInfos,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -40,6 +41,791 @@ IfStatement
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr2_consistent() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a | [int a] when a > 0) {
+    a;
+  }
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@37
+            type: int
+        operator: |
+        rightOperand: ListPattern
+          leftBracket: [
+          elements
+            VariablePattern
+              type: NamedType
+                name: SimpleIdentifier
+                  token: int
+                  staticElement: dart:core::@class::int
+                  staticType: null
+                type: int
+              name: a
+              declaredElement: a@46
+                type: int
+          rightBracket: ]
+          requiredType: List<Object?>
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a[a@37, a@46]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a[a@37, a@46]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr2_notConsistent_differentFinality() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a | [final int a] when a > 0) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 52, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@37
+            type: int
+        operator: |
+        rightOperand: ListPattern
+          leftBracket: [
+          elements
+            VariablePattern
+              keyword: final
+              type: NamedType
+                name: SimpleIdentifier
+                  token: int
+                  staticElement: dart:core::@class::int
+                  staticType: null
+                type: int
+              name: a
+              declaredElement: isFinal a@52
+                type: int
+          rightBracket: ]
+          requiredType: List<Object?>
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@37, a@52]
+            staticType: dynamic
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: <null>
+            staticType: int
+          staticElement: <null>
+          staticInvokeType: null
+          staticType: dynamic
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@37, a@52]
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr2_notConsistent_differentType() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a | [double a] when a > 0) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 49, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@37
+            type: int
+        operator: |
+        rightOperand: ListPattern
+          leftBracket: [
+          elements
+            VariablePattern
+              type: NamedType
+                name: SimpleIdentifier
+                  token: double
+                  staticElement: dart:core::@class::double
+                  staticType: null
+                type: double
+              name: a
+              declaredElement: a@49
+                type: double
+          rightBracket: ]
+          requiredType: List<Object?>
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@37, a@49]
+            staticType: dynamic
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: <null>
+            staticType: int
+          staticElement: <null>
+          staticInvokeType: null
+          staticType: dynamic
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@37, a@49]
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr3_1() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a | 2 | 3 when a > 0) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 41, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: BinaryPattern
+          leftOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@37
+              type: int
+          operator: |
+          rightOperand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 2
+              staticType: int
+        operator: |
+        rightOperand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 3
+            staticType: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@37]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@37]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr3_12() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a | int a | 3 when a > 0) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: BinaryPattern
+          leftOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@37
+              type: int
+          operator: |
+          rightOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@45
+              type: int
+        operator: |
+        rightOperand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 3
+            staticType: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@37, a@45]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@37, a@45]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr3_123() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a | int a | int a when a > 0) {
+    a;
+  }
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: BinaryPattern
+          leftOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@37
+              type: int
+          operator: |
+          rightOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@45
+              type: int
+        operator: |
+        rightOperand: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@53
+            type: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a[a@37, a@45, a@53]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a[a@37, a@45, a@53]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr3_13() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a | 2 | int a when a > 0) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 41, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: BinaryPattern
+          leftOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@37
+              type: int
+          operator: |
+          rightOperand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 2
+              staticType: int
+        operator: |
+        rightOperand: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@49
+            type: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@37, a@49]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@37, a@49]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr3_2() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case 1 | int a | 3 when a > 0) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: BinaryPattern
+          leftOperand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 1
+              staticType: int
+          operator: |
+          rightOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@41
+              type: int
+        operator: |
+        rightOperand: ConstantPattern
+          expression: IntegerLiteral
+            literal: 3
+            staticType: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@41]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@41]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_logicalOr3_23() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case 1 | int a | int a when a > 0) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: BinaryPattern
+        leftOperand: BinaryPattern
+          leftOperand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 1
+              staticType: int
+          operator: |
+          rightOperand: VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@41
+              type: int
+        operator: |
+        rightOperand: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@49
+            type: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@41, a@49]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@41, a@49]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_single() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int a when a > 0) {
+    a;
+  } else {
+    a; // error
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 75, 1),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        name: a
+        declaredElement: a@37
+          type: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a@37
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@37
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+  elseKeyword: else
+  elseStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: <null>
+          staticType: dynamic
+        semicolon: ;
     rightBracket: }
 ''');
   }

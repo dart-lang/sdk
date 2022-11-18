@@ -15,7 +15,7 @@ import '../js_backend/native_data.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
 
-import 'interfaces.dart' show CodeEmitterTask;
+import 'js_emitter.dart' show CodeEmitterTask;
 import 'model.dart';
 
 class NativeEmitter {

@@ -5,3 +5,8 @@
 // @dart=2.18
 
 sealed class A {}
+
+sealed mixin M {}
+
+mixin MM {}
+sealed class B = Object with MM;

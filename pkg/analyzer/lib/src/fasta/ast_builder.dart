@@ -381,14 +381,31 @@ class AstBuilder extends StackListener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     assert(_classLikeBuilder == null);
+    if (!enableSealedClass) {
+      if (sealedToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.sealed_class,
+          startToken: sealedToken,
+        );
+        // Pretend that 'sealed' didn't occur while this feature is incomplete.
+        sealedToken = null;
+      }
+    }
     push(augmentToken ?? NullValue.Token);
+    push(sealedToken ?? NullValue.Token);
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
       if (macroToken != null) {
@@ -410,8 +427,19 @@ class AstBuilder extends StackListener {
         viewToken = null;
       }
     }
+    if (!enableSealedClass) {
+      if (sealedToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.sealed_class,
+          startToken: sealedToken,
+        );
+        // Pretend that 'sealed' didn't occur while this feature is incomplete.
+        sealedToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
     push(viewToken ?? NullValue.Token);
+    push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -2613,6 +2641,7 @@ class AstBuilder extends StackListener {
           question: null);
     }
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var sealedKeyword = pop(NullValue.Token) as Token?;
     var viewKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
@@ -2632,6 +2661,7 @@ class AstBuilder extends StackListener {
         abstractKeyword: abstractKeyword,
         macroKeyword: macroKeyword,
         viewKeyword: viewKeyword,
+        sealedKeyword: sealedKeyword,
         augmentKeyword: augmentKeyword,
         superclass: superclass,
         withClause: withClause,
@@ -4467,6 +4497,7 @@ class AstBuilder extends StackListener {
     var implementsClause =
         pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
     var onClause = pop(NullValue.IdentifierList) as OnClauseImpl?;
+    var sealedKeyword = pop(NullValue.Token) as Token?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -4477,6 +4508,7 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
+      sealedKeyword: sealedKeyword,
       mixinKeyword: mixinKeyword,
       name: name.token,
       typeParameters: typeParameters,
@@ -5524,6 +5556,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
+  final Token? sealedKeyword;
   final Token mixinKeyword;
   final Token name;
   OnClauseImpl? onClause;
@@ -5536,6 +5569,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.leftBracket,
     required super.rightBracket,
     required this.augmentKeyword,
+    required this.sealedKeyword,
     required this.mixinKeyword,
     required this.name,
     required this.onClause,
@@ -5547,6 +5581,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
+      sealedKeyword: sealedKeyword,
       mixinKeyword: mixinKeyword,
       name: name,
       typeParameters: typeParameters,

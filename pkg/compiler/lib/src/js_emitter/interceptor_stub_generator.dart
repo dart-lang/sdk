@@ -22,7 +22,7 @@ import '../native/enqueue.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 
-import 'interfaces.dart' show Emitter;
+import 'js_emitter.dart' show Emitter;
 
 class InterceptorStubGenerator {
   final CommonElements _commonElements;

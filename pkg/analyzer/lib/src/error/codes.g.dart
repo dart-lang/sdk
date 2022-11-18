@@ -3369,6 +3369,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the variable pattern
+  static const CompileTimeErrorCode NOT_CONSISTENT_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'NOT_CONSISTENT_VARIABLE_PATTERN',
+    "Variable pattern '{0}' has a different type or finality in this branch of "
+        "the logical-or pattern.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "both branches.",
+  );
+
+  ///  Parameters:
   ///  0: the expected number of required arguments
   ///  1: the actual number of positional arguments given
   ///  2: name of the function or method

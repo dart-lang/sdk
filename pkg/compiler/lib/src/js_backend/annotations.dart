@@ -5,6 +5,7 @@
 library js_backend.backend.annotations;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:js_runtime/synced/load_library_priority.dart';
 
 import '../common.dart';
 import '../elements/entities.dart';
@@ -130,6 +131,12 @@ class PragmaAnnotation {
   // TODO(45682): Make this annotation apply to local and static late variables.
   static const PragmaAnnotation lateCheck = PragmaAnnotation(19, 'late:check');
 
+  static const PragmaAnnotation loadLibraryPriorityNormal =
+      PragmaAnnotation(20, 'load-priority:normal');
+
+  static const PragmaAnnotation loadLibraryPriorityHigh =
+      PragmaAnnotation(21, 'load-priority:high');
+
   static const List<PragmaAnnotation> values = [
     noInline,
     tryInline,
@@ -151,6 +158,8 @@ class PragmaAnnotation {
     indexBoundsCheck,
     lateTrust,
     lateCheck,
+    loadLibraryPriorityNormal,
+    loadLibraryPriorityHigh,
   ];
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
@@ -170,6 +179,8 @@ class PragmaAnnotation {
     asCheck: {asTrust},
     lateTrust: {lateCheck},
     lateCheck: {lateTrust},
+    loadLibraryPriorityNormal: {loadLibraryPriorityHigh},
+    loadLibraryPriorityHigh: {loadLibraryPriorityNormal},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -374,6 +385,9 @@ abstract class AnnotationsData {
   // If we change our late field lowering to happen later, [node] could be the
   // [ir.Field].
   CheckPolicy getLateVariableCheckPolicyAt(ir.TreeNode node);
+
+  ///
+  LoadLibraryPriority getLoadLibraryPriorityAt(ir.LoadLibrary node);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -596,6 +610,28 @@ class AnnotationsDataImpl implements AnnotationsData {
         processMemberAnnotations(_options, _reporter, node,
             computePragmaAnnotationDataFromIr(node)));
   }
+
+  @override
+  LoadLibraryPriority getLoadLibraryPriorityAt(ir.LoadLibrary node) {
+    // Annotation may be on enclosing declaration or on the import.
+    return _getLoadLibraryPriorityAt(_findContext(node)) ??
+        _getLoadLibraryPriorityAt(_findContext(node.import)) ??
+        LoadLibraryPriority.normal;
+  }
+
+  LoadLibraryPriority? _getLoadLibraryPriorityAt(DirectivesContext? context) {
+    while (context != null) {
+      EnumSet<PragmaAnnotation>? annotations = context.annotations;
+      if (annotations.contains(PragmaAnnotation.loadLibraryPriorityHigh)) {
+        return LoadLibraryPriority.high;
+      } else if (annotations
+          .contains(PragmaAnnotation.loadLibraryPriorityNormal)) {
+        return LoadLibraryPriority.normal;
+      }
+      context = context.parent;
+    }
+    return null;
+  }
 }
 
 class AnnotationsDataBuilder {
@@ -659,7 +695,7 @@ class AnnotationsDataBuilder {
 /// the library, but the shared root might be a good place to put a set of
 /// annotations derived from the command-line.
 ///
-/// If we ever introduce a singled annotation that means something different in
+/// If we ever introduce a single annotation that means something different in
 /// different positions (e.g. on a class vs. on a method), we might want to make
 /// the [DirectivesContext] have a 'scope-kind'.
 class DirectivesContext {

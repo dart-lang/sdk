@@ -549,7 +549,7 @@ class Parser {
       next = next.next!;
     } else if (next.isIdentifier && next.lexeme == 'sealed') {
       sealedToken = next;
-      if (optional('class', next.next!)) {
+      if (optional('class', next.next!) || optional('mixin', next.next!)) {
         next = next.next!;
       } else if (optional('abstract', next.next!) &&
           optional('class', next.next!.next!)) {
@@ -674,7 +674,7 @@ class Parser {
         } else if (identical(value, 'mixin')) {
           context.parseMixinModifiers(start, keyword);
           directiveState?.checkDeclaration();
-          return parseMixin(context.augmentToken, keyword);
+          return parseMixin(context.augmentToken, sealedToken, keyword);
         } else if (identical(value, 'extension')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
@@ -2469,8 +2469,8 @@ class Parser {
       reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
     }
     if (optional('=', token.next!)) {
-      listener.beginNamedMixinApplication(
-          begin, abstractToken, macroToken, viewToken, augmentToken, name);
+      listener.beginNamedMixinApplication(begin, abstractToken, macroToken,
+          viewToken, sealedToken, augmentToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
       listener.beginClassDeclaration(begin, abstractToken, macroToken,
@@ -2688,11 +2688,13 @@ class Parser {
   ///
   /// ```
   /// mixinDeclaration:
-  ///   metadata? 'augment'? 'mixin' [SimpleIdentifier] [TypeParameterList]?
-  ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+  ///   metadata? 'augment'? 'sealed'? 'mixin' [SimpleIdentifier]
+  ///        [TypeParameterList]? [OnClause]? [ImplementsClause]?
+  ///        '{' [ClassMember]* '}'
   /// ;
   /// ```
-  Token parseMixin(Token? augmentToken, Token mixinKeyword) {
+  Token parseMixin(
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
@@ -2700,7 +2702,8 @@ class Parser {
     Token headerStart = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    listener.beginMixinDeclaration(augmentToken, mixinKeyword, name);
+    listener.beginMixinDeclaration(
+        augmentToken, sealedToken, mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next!)) {
       // Recovery

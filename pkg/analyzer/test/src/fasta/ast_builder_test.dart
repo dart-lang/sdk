@@ -470,6 +470,33 @@ ClassTypeAlias
         withOffsets: true);
   }
 
+  void test_classTypeAlias_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+mixin M {}
+sealed class A = Object with M;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: A
+  equals: =
+  sealedKeyword: sealed
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
+  }
+
   void test_classTypeAlias_withClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C = Object with A, (int, int), B;
@@ -948,6 +975,23 @@ MixinDeclaration
   rightBracket: } @29
 ''',
         withOffsets: true);
+  }
+
+  void test_mixin_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+sealed mixin M {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  sealedKeyword: sealed
+  mixinKeyword: mixin
+  name: M
+  leftBracket: {
+  rightBracket: }
+''');
   }
 
   void test_recordLiteral() {
