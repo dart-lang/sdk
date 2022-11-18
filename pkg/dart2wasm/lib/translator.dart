@@ -606,10 +606,8 @@ class Translator {
     if (type is DynamicType || type is VoidType) {
       return topInfo.nullableType;
     }
-    // TODO(joshualitt): When we add support to `wasm_builder` for bottom heap
-    // types, we should return bottom heap type here.
     if (type is NullType || type is NeverType) {
-      return topInfo.nullableType;
+      return const w.RefType.none(nullable: true);
     }
     if (type is TypeParameterType) {
       return translateStorageType(type.isPotentiallyNullable
@@ -828,7 +826,7 @@ class Translator {
         // This can happen when a void method has its return type overridden
         // to return a value, in which case the selector signature will have a
         // non-void return type to encompass all possible return values.
-        b.ref_null((to as w.RefType).heapType);
+        b.ref_null((to as w.RefType).heapType.bottomType);
         return;
       }
     }
@@ -875,31 +873,35 @@ class Translator {
         var heapType = (to as w.RefType).heapType;
         if (heapType is w.FunctionType) {
           b.ref_cast(heapType);
-          return;
-        }
-        w.Label? nullLabel = null;
-        if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
-          if (from.nullable && to.nullable) {
-            // Nullable cast from above dataref. Since ref.as_data is not
-            // null-polymorphic, we need to check explicitly for null.
-            w.Local temp = function.addLocal(from);
-            b.local_set(temp);
-            nullLabel = b.block(const [], [to]);
-            w.Label nonNullLabel =
-                b.block(const [], [from.withNullability(false)]);
-            b.local_get(temp);
-            b.br_on_non_null(nonNullLabel);
-            b.ref_null(to.heapType);
-            b.br(nullLabel);
-            b.end(); // nonNullLabel
+        } else if (heapType == w.HeapType.none) {
+          assert(to.nullable);
+          b.drop();
+          b.ref_null(w.HeapType.none);
+        } else {
+          w.Label? nullLabel = null;
+          if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
+            if (from.nullable && to.nullable) {
+              // Nullable cast from above dataref. Since ref.as_data is not
+              // null-polymorphic, we need to check explicitly for null.
+              w.Local temp = function.addLocal(from);
+              b.local_set(temp);
+              nullLabel = b.block(const [], [to]);
+              w.Label nonNullLabel =
+                  b.block(const [], [from.withNullability(false)]);
+              b.local_get(temp);
+              b.br_on_non_null(nonNullLabel);
+              b.ref_null(w.HeapType.none);
+              b.br(nullLabel);
+              b.end(); // nonNullLabel
+            }
+            b.ref_as_data();
           }
-          b.ref_as_data();
-        }
-        if (heapType is w.DefType) {
-          b.ref_cast(heapType);
-        }
-        if (nullLabel != null) {
-          b.end(); // nullLabel
+          if (heapType is w.DefType) {
+            b.ref_cast(heapType);
+          }
+          if (nullLabel != null) {
+            b.end(); // nullLabel
+          }
         }
       }
     }

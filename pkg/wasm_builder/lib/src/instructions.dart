@@ -223,7 +223,7 @@ class Instructions with SerializerMixin {
   }
 
   ValueType get _topOfStack {
-    if (!reachable) return RefType.top(nullable: true);
+    if (!reachable) return RefType.common(nullable: true);
     if (_stackTypes.isEmpty) _reportError("Stack underflow");
     return _stackTypes.last;
   }
@@ -885,7 +885,7 @@ class Instructions with SerializerMixin {
   /// Emit a `ref.is_null` instruction.
   void ref_is_null() {
     assert(_verifyTypes(
-        const [RefType.top(nullable: true)], const [NumType.i32],
+        const [RefType.common(nullable: true)], const [NumType.i32],
         trace: const ['ref.is_null']));
     writeByte(0xD1);
   }
@@ -900,7 +900,7 @@ class Instructions with SerializerMixin {
 
   /// Emit a `ref.as_non_null` instruction.
   void ref_as_non_null() {
-    assert(_verifyTypes(const [RefType.top(nullable: true)],
+    assert(_verifyTypes(const [RefType.common(nullable: true)],
         [_topOfStack.withNullability(false)],
         trace: const ['ref.as_non_null']));
     writeByte(0xD3);
@@ -908,7 +908,7 @@ class Instructions with SerializerMixin {
 
   /// Emit a `br_on_null` instruction.
   void br_on_null(Label label) {
-    assert(_verifyTypes(const [RefType.top(nullable: true)],
+    assert(_verifyTypes(const [RefType.common(nullable: true)],
         [_topOfStack.withNullability(false)],
         trace: ['br_on_null', label]));
     assert(_verifyBranchTypes(label, 1));
@@ -928,7 +928,7 @@ class Instructions with SerializerMixin {
   /// Emit a `br_on_non_null` instruction.
   void br_on_non_null(Label label) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack.withNullability(false)]));
-    assert(_verifyTypes(const [RefType.top(nullable: true)], const [],
+    assert(_verifyTypes(const [RefType.common(nullable: true)], const [],
         trace: ['br_on_non_null', label]));
     writeByte(0xD6);
     _writeLabel(label);
