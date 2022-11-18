@@ -8,6 +8,7 @@ import '../kernel/late_lowering.dart' as late_lowering;
 
 enum FieldNameType { Field, Getter, Setter, IsSetField }
 
+// TODO(johnniwinther): Support view names.
 class NameScheme {
   final bool isInstanceMember;
   final String? className;

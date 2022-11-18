@@ -2195,6 +2195,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     View? referenceFrom = referencesFromIndexed?.lookupView(name);
 
+    SourceFieldBuilder? representationFieldBuilder;
+    outer:
+    for (Builder? member in members.values) {
+      while (member != null) {
+        if (!member.isDuplicate &&
+            member is SourceFieldBuilder &&
+            !member.isStatic) {
+          representationFieldBuilder = member;
+          break outer;
+        }
+        member = member.next;
+      }
+    }
+
     ViewBuilder viewBuilder = new SourceViewBuilder(
         metadata,
         modifiers,
@@ -2205,7 +2219,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         startOffset,
         nameOffset,
         endOffset,
-        referenceFrom);
+        referenceFrom,
+        representationFieldBuilder);
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, viewBuilder);

@@ -9,6 +9,7 @@ import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/view_builder.dart';
 import '../fasta_codes.dart'
@@ -18,6 +19,7 @@ import '../fasta_codes.dart'
         noLength;
 import '../problems.dart';
 import '../scope.dart';
+import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
@@ -33,6 +35,8 @@ class SourceViewBuilder extends ViewBuilderImpl
   @override
   final List<TypeVariableBuilder>? typeParameters;
 
+  final SourceFieldBuilder? representationFieldBuilder;
+
   SourceViewBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -43,7 +47,8 @@ class SourceViewBuilder extends ViewBuilderImpl
       int startOffset,
       int nameOffset,
       int endOffset,
-      View? referenceFrom)
+      View? referenceFrom,
+      this.representationFieldBuilder)
       : _view = new View(
             name: name,
             fileUri: parent.fileUri,
@@ -80,8 +85,19 @@ class SourceViewBuilder extends ViewBuilderImpl
   /// added to the library to avoid name clashes with other members in the
   /// library.
   View build(LibraryBuilder coreLibrary, {required bool addMembersToLibrary}) {
-    // TODO(johnniwinther): Find and build the representation type.
-    _view.representationType = const DynamicType();
+    DartType representationType;
+    if (representationFieldBuilder != null) {
+      TypeBuilder typeBuilder = representationFieldBuilder!.type;
+      if (typeBuilder.isExplicit) {
+        representationType =
+            typeBuilder.build(libraryBuilder, TypeUse.fieldType);
+      } else {
+        representationType = const DynamicType();
+      }
+    } else {
+      representationType = const InvalidType();
+    }
+    _view.representationType = representationType;
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 

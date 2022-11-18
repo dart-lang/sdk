@@ -711,9 +711,12 @@ class RegularFieldEncoding implements FieldEncoding {
       SourceLibraryBuilder library,
       SourceFieldBuilder fieldBuilder,
       void Function(Member, BuiltMemberKind) f) {
+    if (fieldBuilder.isViewMember && !fieldBuilder.isStatic) {
+      return;
+    }
     f(
         _field,
-        fieldBuilder.isExtensionMember
+        fieldBuilder.isExtensionMember || fieldBuilder.isViewMember
             ? BuiltMemberKind.ExtensionField
             : BuiltMemberKind.Field);
   }
@@ -1133,7 +1136,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       void Function(Member, BuiltMemberKind) f) {
     f(
         _field,
-        fieldBuilder.isExtensionMember
+        fieldBuilder.isExtensionMember || fieldBuilder.isViewMember
             ? BuiltMemberKind.ExtensionField
             : BuiltMemberKind.Field);
     if (_lateIsSetField != null) {
