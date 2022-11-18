@@ -224,7 +224,7 @@ class ModelEmitter {
     // We are only interested in the "isInlined" part, but it does not hurt to
     // test for the other predicates.
     if (isConstantInlinedOrAlreadyEmitted(value)) {
-      return constantEmitter.generate(value);
+      return constantEmitter.generate(value)!;
     }
     return js.js('#.#',
         [_namer.globalObjectForConstant(value), _namer.constantName(value)]);

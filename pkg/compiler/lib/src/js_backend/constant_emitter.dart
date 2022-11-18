@@ -40,11 +40,11 @@ class ModularConstantEmitter
   /// Constructs a literal expression that evaluates to the constant. Uses a
   /// canonical name unless the constant can be emitted multiple times (as for
   /// numbers and strings).
-  jsAst.Expression generate(ConstantValue constant) {
+  jsAst.Expression? generate(ConstantValue constant) {
     return _visit(constant);
   }
 
-  jsAst.Expression _visit(ConstantValue constant) {
+  jsAst.Expression? _visit(ConstantValue constant) {
     return constant.accept(this, null);
   }
 
