@@ -1217,7 +1217,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('switch (');
     _visitNode(node.expression);
     sink.write(') {');
-    _visitNodeList(node.members, separator: ' ');
+    _visitNodeList(node.cases, separator: ', ');
     sink.write('}');
   }
 
@@ -1226,12 +1226,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('case ');
     _visitNode(node.guardedPattern);
     sink.write(' => ');
-    _visitNode(node.expression);
-  }
-
-  @override
-  void visitSwitchExpressionDefault(SwitchExpressionDefault node) {
-    sink.write('default => ');
     _visitNode(node.expression);
   }
 

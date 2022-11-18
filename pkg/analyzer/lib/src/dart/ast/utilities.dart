@@ -1372,23 +1372,14 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.members, other.members) &&
+        _isEqualNodeLists(node.cases, other.cases) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitSwitchExpressionCase(SwitchExpressionCase node) {
     var other = _other as SwitchExpressionCase;
-    return isEqualTokens(node.keyword, other.keyword) &&
-        isEqualNodes(node.guardedPattern, other.guardedPattern) &&
-        isEqualTokens(node.arrow, other.arrow) &&
-        isEqualNodes(node.expression, other.expression);
-  }
-
-  @override
-  bool visitSwitchExpressionDefault(SwitchExpressionDefault node) {
-    var other = _other as SwitchExpressionDefault;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualNodes(node.guardedPattern, other.guardedPattern) &&
         isEqualTokens(node.arrow, other.arrow) &&
         isEqualNodes(node.expression, other.expression);
   }

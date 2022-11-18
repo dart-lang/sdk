@@ -887,12 +887,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitSwitchExpressionDefault(SwitchExpressionDefault node) {
-    _runSubscriptions(node, registry._forSwitchExpressionDefault);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _runSubscriptions(node, registry._forSwitchPatternCase);
     node.visitChildren(this);
@@ -1201,8 +1195,6 @@ class NodeLintRegistry {
   final List<_Subscription<SwitchCase>> _forSwitchCase = [];
   final List<_Subscription<SwitchDefault>> _forSwitchDefault = [];
   final List<_Subscription<SwitchExpressionCase>> _forSwitchExpressionCase = [];
-  final List<_Subscription<SwitchExpressionDefault>>
-      _forSwitchExpressionDefault = [];
   final List<_Subscription<SwitchExpression>> _forSwitchExpression = [];
   final List<_Subscription<SwitchPatternCase>> _forSwitchPatternCase = [];
   final List<_Subscription<SwitchStatement>> _forSwitchStatement = [];
@@ -1853,11 +1845,6 @@ class NodeLintRegistry {
 
   void addSwitchExpressionCase(LintRule linter, AstVisitor visitor) {
     _forSwitchExpressionCase
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addSwitchExpressionDefault(LintRule linter, AstVisitor visitor) {
-    _forSwitchExpressionDefault
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 

@@ -12215,31 +12215,36 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
 /// A case in a switch expression.
 ///
 ///    switchExpressionCase ::=
-///        'case' [DartPattern] [WhenClause]? '=>' [Expression]
+///        [GuardedPattern] '=>' [Expression]
 @experimental
-class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
+class SwitchExpressionCaseImpl extends AstNodeImpl
     implements SwitchExpressionCase {
   @override
   final GuardedPatternImpl guardedPattern;
 
+  @override
+  final Token arrow;
+
+  @override
+  final ExpressionImpl expression;
+
   SwitchExpressionCaseImpl({
-    required super.keyword,
     required this.guardedPattern,
-    required super.arrow,
-    required super.expression,
+    required this.arrow,
+    required this.expression,
   }) {
     _becomeParentOf(guardedPattern);
+    _becomeParentOf(expression);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => guardedPattern.beginToken;
 
   @override
   Token get endToken => expression.endToken;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
     ..addNode('guardedPattern', guardedPattern)
     ..addToken('arrow', arrow)
     ..addNode('expression', expression);
@@ -12255,67 +12260,33 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
   }
 }
 
-/// The default case in a switch expression.
-///
-///    switchDefault ::=
-///        'default' '=>' [Expression]
-@experimental
-class SwitchExpressionDefaultImpl extends SwitchExpressionMemberImpl
-    implements SwitchExpressionDefault {
-  SwitchExpressionDefaultImpl({
-    required super.keyword,
-    required super.arrow,
-    required super.expression,
-  });
-
-  @override
-  Token get beginToken => keyword;
-
-  @override
-  Token get endToken => expression.endToken;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addToken('arrow', arrow)
-    ..addNode('expression', expression);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitSwitchExpressionDefault(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    expression.accept(visitor);
-  }
-}
-
 /// A switch expression.
 ///
 ///    switchExpression ::=
-///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]*
-///        [SwitchExpressionDefault]? '}'
+///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
+///        (',' [SwitchExpressionCase])* ','? '}'
 @experimental
 class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   @override
-  final ExpressionImpl expression;
-
-  @override
-  final Token leftBracket;
+  final Token switchKeyword;
 
   @override
   final Token leftParenthesis;
 
-  final NodeListImpl<SwitchExpressionMemberImpl> _members = NodeListImpl._();
-
   @override
-  final Token rightBracket;
+  final ExpressionImpl expression;
 
   @override
   final Token rightParenthesis;
 
   @override
-  final Token switchKeyword;
+  final Token leftBracket;
+
+  @override
+  final NodeListImpl<SwitchExpressionCaseImpl> cases = NodeListImpl._();
+
+  @override
+  final Token rightBracket;
 
   SwitchExpressionImpl({
     required this.switchKeyword,
@@ -12323,11 +12294,11 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
     required this.expression,
     required this.rightParenthesis,
     required this.leftBracket,
-    required List<SwitchExpressionMemberImpl> members,
+    required List<SwitchExpressionCaseImpl> cases,
     required this.rightBracket,
   }) {
     _becomeParentOf(expression);
-    _members._initialize(this, members);
+    this.cases._initialize(this, cases);
   }
 
   @override
@@ -12335,9 +12306,6 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
 
   @override
   Token get endToken => rightBracket;
-
-  @override
-  NodeList<SwitchExpressionMember> get members => _members;
 
   @override
   Precedence get precedence => Precedence.primary;
@@ -12349,7 +12317,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
     ..addNode('expression', expression)
     ..addToken('rightParenthesis', rightParenthesis)
     ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
+    ..addNodeList('cases', cases)
     ..addToken('rightBracket', rightBracket);
 
   @override
@@ -12364,33 +12332,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
-    members.accept(visitor);
-  }
-}
-
-/// A member within a switch expression.
-///
-///    switchExpressionMember ::=
-///        [SwitchExpressionCase]
-///      | [SwitchExpressionDefault]
-@experimental
-abstract class SwitchExpressionMemberImpl extends AstNodeImpl
-    implements SwitchExpressionMember {
-  @override
-  final Token arrow;
-
-  @override
-  final ExpressionImpl expression;
-
-  @override
-  final Token keyword;
-
-  SwitchExpressionMemberImpl({
-    required this.keyword,
-    required this.arrow,
-    required this.expression,
-  }) {
-    _becomeParentOf(expression);
+    cases.accept(visitor);
   }
 }
 
