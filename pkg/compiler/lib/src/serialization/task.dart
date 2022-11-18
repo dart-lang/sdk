@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:async';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
@@ -44,7 +42,7 @@ class SerializationTask extends CompilerTask {
   final api.CompilerInput _provider;
   final api.CompilerOutput _outputProvider;
   final _stringInterner = _StringInterner();
-  final ValueInterner /*?*/ _valueInterner;
+  final ValueInterner? _valueInterner;
 
   SerializationTask(this._options, this._reporter, this._provider,
       this._outputProvider, Measurer measurer)
@@ -62,7 +60,7 @@ class SerializationTask extends CompilerTask {
       // how we apply our modular kernel transformation for super mixin calls.
       _reporter.log('Writing dill to ${_options.outputUri}');
       api.BinaryOutputSink dillOutput =
-          _outputProvider.createBinarySink(_options.outputUri);
+          _outputProvider.createBinarySink(_options.outputUri!);
       BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
       ir.BinaryPrinter printer = ir.BinaryPrinter(irSink);
       printer.writeComponentFile(component);
@@ -73,8 +71,8 @@ class SerializationTask extends CompilerTask {
   Future<ir.Component> deserializeComponent() async {
     return measureIoSubtask('deserialize dill', () async {
       _reporter.log('Reading dill from ${_options.inputDillUri}');
-      api.Input<List<int>> dillInput = await _provider
-          .readFromUri(_options.inputDillUri, inputKind: api.InputKind.binary);
+      final dillInput = await _provider.readFromUri(_options.inputDillUri!,
+          inputKind: api.InputKind.binary);
       ir.Component component = ir.Component();
       // Not using growable lists saves memory.
       ir.BinaryBuilder(dillInput.data,
@@ -114,7 +112,7 @@ class SerializationTask extends CompilerTask {
       ModuleData data, ir.Component component, Set<Uri> includedLibraries) {
     measureSubtask('serialize transformed dill', () {
       _reporter.log('Writing dill to ${_options.outputUri}');
-      var dillOutput = _outputProvider.createBinarySink(_options.outputUri);
+      var dillOutput = _outputProvider.createBinarySink(_options.outputUri!);
       var irSink = BinaryOutputSinkAdapter(dillOutput);
       ir.BinaryPrinter printer = ir.BinaryPrinter(irSink,
           libraryFilter: (ir.Library l) =>
@@ -126,7 +124,7 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize module data', () {
       _reporter.log('Writing data to ${_options.writeModularAnalysisUri}');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeModularAnalysisUri);
+          _outputProvider.createBinarySink(_options.writeModularAnalysisUri!);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
       data.toDataSink(sink);
@@ -162,8 +160,8 @@ class SerializationTask extends CompilerTask {
     return await measureIoSubtask('deserialize module data', () async {
       _reporter.log('Reading data from ${_options.modularAnalysisInputs}');
       final results = ModuleData();
-      for (Uri uri in _options.modularAnalysisInputs) {
-        api.Input<List<int>> dataInput =
+      for (Uri uri in _options.modularAnalysisInputs!) {
+        final dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
         DataSourceReader source = DataSourceReader(
             BinaryDataSource(dataInput.data), _options,
@@ -179,7 +177,7 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize closed world', () {
       _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeClosedWorldUri);
+          _outputProvider.createBinarySink(_options.writeClosedWorldUri!);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
       serializeClosedWorldToSink(closedWorld, sink);
@@ -194,7 +192,7 @@ class SerializationTask extends CompilerTask {
     return await measureIoSubtask('deserialize closed world', () async {
       _reporter.log('Reading data from ${_options.readClosedWorldUri}');
       api.Input<List<int>> dataInput = await _provider.readFromUri(
-          _options.readClosedWorldUri,
+          _options.readClosedWorldUri!,
           inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
@@ -216,7 +214,7 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize data', () {
       _reporter.log('Writing data to ${_options.writeDataUri}');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeDataUri);
+          _outputProvider.createBinarySink(_options.writeDataUri!);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
           importedIndices: indices);
@@ -234,7 +232,7 @@ class SerializationTask extends CompilerTask {
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
-          .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
+          .readFromUri(_options.readDataUri!, inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
           _options,
@@ -261,8 +259,8 @@ class SerializationTask extends CompilerTask {
     GlobalTypeInferenceResults globalTypeInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    int shard = _options.codegenShard;
-    int shards = _options.codegenShards;
+    int shard = _options.codegenShard!;
+    int shards = _options.codegenShards!;
     Map<MemberEntity, CodegenResult> results = {};
     int index = 0;
     EntityWriter entityWriter =
@@ -296,7 +294,7 @@ class SerializationTask extends CompilerTask {
       CodegenInputs codegenInputs,
       DataSourceIndices indices,
       bool useDeferredSourceReads) async {
-    int shards = _options.codegenShards;
+    int shards = _options.codegenShards!;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     Map<MemberEntity, CodegenResult> results = {};
     for (int shard = 0; shard < shards; shard++) {
