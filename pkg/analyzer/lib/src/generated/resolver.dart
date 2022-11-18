@@ -863,20 +863,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void finishJoinedPatternVariable(
-    PromotableElement variable, {
+    covariant VariablePatternJoinElementImpl variable, {
     required bool isConsistent,
     required bool isFinal,
     required DartType type,
   }) {
-    // TODO(scheglov): implement finishJoinedPatternVariable
-    throw UnimplementedError();
+    variable.isConsistent &= isConsistent;
+    variable.isFinal = isFinal;
+    variable.type = type;
   }
 
   @override
   List<PromotableElement>? getJoinedVariableComponents(
       PromotableElement variable) {
-    // TODO: implement getJoinedVariableComponents
-    throw UnimplementedError();
+    if (variable is VariablePatternJoinElementImpl) {
+      return variable.components;
+    }
+    return null;
   }
 
   /// Return the static element associated with the given expression whose type
@@ -2443,7 +2446,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         guardedPattern.whenClause?.expression,
         node.thenStatement,
         node.elseStatement,
-        {},
+        guardedPattern.variables,
       );
       // Stack: (Expression, Guard)
       popRewrite(); // guard
@@ -4342,11 +4345,26 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
+  void visitIfStatement(covariant IfStatementImpl node) {
     node.condition.accept(this);
-    node.caseClause?.accept(this);
-    visitStatementInScope(node.thenStatement);
-    visitStatementInScope(node.elseStatement);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      guardedPattern.pattern.accept(this);
+      _withNameScope(() {
+        var patternVariables = guardedPattern.variables;
+        for (var variable in patternVariables.values) {
+          _define(variable);
+        }
+        guardedPattern.whenClause?.accept(this);
+        visitStatementInScope(node.thenStatement);
+      });
+      visitStatementInScope(node.elseStatement);
+    } else {
+      visitStatementInScope(node.thenStatement);
+      visitStatementInScope(node.elseStatement);
+    }
   }
 
   @override
@@ -4657,6 +4675,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       f();
     } finally {
       nameScope = outerScope;
+    }
+  }
+
+  /// Run [f] with the new name scope.
+  void _withNameScope(void Function() f) {
+    var current = nameScope;
+    try {
+      nameScope = LocalScope(current);
+      f();
+    } finally {
+      nameScope = current;
     }
   }
 

@@ -806,19 +806,24 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
+  void visitIfStatement(covariant IfStatementImpl node) {
     var caseClause = node.caseClause;
     if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
       _withPatternContext(() {
         var variableBinder = _variableBinder!; // TODO(scheglov) bad
         node.expression.accept(this);
         variableBinder.casePatternStart();
-        caseClause.guardedPattern.pattern.accept(this);
-        // TODO(scheglov) add variables
-        variableBinder.casePatternFinish();
-        caseClause.guardedPattern.whenClause?.accept(this);
-        node.thenStatement.accept(this);
-        // TODO(scheglov) pop the context
+        guardedPattern.pattern.accept(this);
+        var variables = variableBinder.casePatternFinish();
+        _withNameScope(() {
+          guardedPattern.variables = variables;
+          for (var variable in variables.values) {
+            _define(variable);
+          }
+          guardedPattern.whenClause?.accept(this);
+          node.thenStatement.accept(this);
+        });
         node.elseStatement?.accept(this);
       });
     } else {
@@ -1603,12 +1608,24 @@ class _VariableBinder
     required List<PromotableElement> components,
     required bool isConsistent,
   }) {
+    var first = components.first;
+    var expandedComponents = components.expand((component) {
+      component as LocalVariableElementImpl;
+      if (component is VariablePatternJoinElementImpl) {
+        return component.components;
+      } else {
+        return [component];
+      }
+    }).toList(growable: false);
     return VariablePatternJoinElementImpl(
-      components.first.name,
+      first.name,
       -1,
-      components.cast(),
-      isConsistent,
-    );
+      expandedComponents,
+      isConsistent &&
+          components.every((element) =>
+              element is! VariablePatternJoinElementImpl ||
+              element.isConsistent),
+    )..enclosingElement = first.enclosingElement;
   }
 }
 

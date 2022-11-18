@@ -6454,6 +6454,10 @@ class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   @override
   final DartPatternImpl pattern;
 
+  /// Variables declared in [pattern], available in [whenClause] guard, and
+  /// to the `ifTrue` node.
+  late final Map<String, PromotableElement> variables;
+
   @override
   final WhenClauseImpl? whenClause;
 

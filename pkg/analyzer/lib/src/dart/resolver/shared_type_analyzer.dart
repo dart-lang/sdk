@@ -96,8 +96,11 @@ class SharedTypeAnalyzerErrors
     required PromotableElement variable,
     required PromotableElement component,
   }) {
-    // TODO: implement logicalOrPatternInconsistentVariablePair
-    throw UnimplementedError();
+    _errorReporter.reportErrorForElement(
+      CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN,
+      component,
+      [variable.name],
+    );
   }
 
   @override

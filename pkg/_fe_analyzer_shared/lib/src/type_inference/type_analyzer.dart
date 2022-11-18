@@ -416,6 +416,10 @@ mixin TypeAnalyzer<
       reportErrors: true,
     );
 
+    for (Variable variable in variables.values) {
+      flow?.declare(variable, true);
+    }
+
     handle_ifCaseStatement_afterPattern(
       node: node,
       variables: variables.values,

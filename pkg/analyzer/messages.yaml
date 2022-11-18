@@ -10272,6 +10272,12 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Replace the name with the name of a type.
+  NOT_CONSISTENT_VARIABLE_PATTERN:
+    problemMessage: "Variable pattern '{0}' has a different type or finality in this branch of the logical-or pattern."
+    correctionMessage: "Try declaring the variable pattern with the same type and finality in both branches."
+    comment: |-
+      Parameters:
+      0: the name of the variable pattern
   NOT_BINARY_OPERATOR:
     problemMessage: "'{0}' isn't a binary operator."
     hasPublishedDocs: true

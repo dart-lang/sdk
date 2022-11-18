@@ -813,6 +813,8 @@ CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
   status: needsEvaluation
 CompileTimeErrorCode.NOT_BINARY_OPERATOR:
   status: needsEvaluation
+CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN:
+  status: needsEvaluation
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
   status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:

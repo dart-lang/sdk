@@ -1431,16 +1431,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           element as VariablePatternElementImpl;
           _sink.write(_indent);
           _sink.write('declaredElement: ');
-          if (node.name.offset == element.nameOffset) {
-            _writeIf(element.hasImplicitType, 'hasImplicitType ');
-            _writeIf(element.isFinal, 'isFinal ');
-            _sink.writeln('${element.name}@${element.nameOffset}');
-            _withIndent(() {
-              _writeType('type', element.type);
-            });
-          } else {
-            _sink.writeln('${element.name}@${element.nameOffset}');
-          }
+          _writeIf(element.hasImplicitType, 'hasImplicitType ');
+          _writeIf(element.isFinal, 'isFinal ');
+          _sink.writeln('${element.name}@${element.nameOffset}');
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
         }
       }
     });
@@ -1561,6 +1557,15 @@ Expected parent: (${parent.runtimeType}) $parent
           ? _elementToReferenceString(enclosingElement)
           : 'root';
       return '$enclosingStr::@parameter::${element.name}';
+    } else if (element is VariablePatternJoinElementImpl) {
+      return [
+        if (!element.isConsistent) 'notConsistent ',
+        if (element.isFinal) 'final ',
+        element.name,
+        '[',
+        element.components.map(_elementToReferenceString).join(', '),
+        ']',
+      ].join('');
     } else {
       return '${element.name}@${element.nameOffset}';
     }
