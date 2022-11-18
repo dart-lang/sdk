@@ -99,6 +99,7 @@ vars = {
   "boolean_selector_rev": "5082b3debf97421c071be957063763d98412b2e2",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
+  "binaryen_rev" : "ec53f4b2d5b0d52ae703c5b696ecf052ad5fffbb",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "browser_launcher_rev": "5fa0bd6cddc33785f43c920576fc03dcee1c3caa",
   "characters_rev": "4ffccb88a98c026f3351671479c85a886451dc33",
@@ -275,6 +276,10 @@ deps = {
   Var("dart_root") + "/third_party/boringssl/src":
       "https://boringssl.googlesource.com/boringssl.git" +
       "@" + Var("boringssl_rev"),
+
+  Var("dart_root") + "/third_party/binaryen/src" :
+      Var("chromium_git") + "/external/github.com/WebAssembly/binaryen.git" +
+      "@" + Var("binaryen_rev"),
 
   Var("dart_root") + "/third_party/gsutil": {
       "packages": [{

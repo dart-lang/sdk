@@ -125,6 +125,13 @@ group("dart2wasm") {
   ]
 }
 
+group("dart2wasm_benchmark") {
+  deps = [
+    ":dart2wasm_platform",
+    "third_party/binaryen:wasm-opt",
+  ]
+}
+
 group("dartanalyzer") {
   deps = [ "utils/dartanalyzer" ]
 }
