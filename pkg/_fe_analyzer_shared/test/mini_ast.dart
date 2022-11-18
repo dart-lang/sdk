@@ -256,15 +256,6 @@ Statement localFunction(List<Statement> body) {
   return _LocalFunction(_Block(body, location: location), location: location);
 }
 
-Pattern logicalOrPattern(Pattern left, Pattern right, {String? errorId}) {
-  var location = computeLocation();
-  var result = _LogicalPattern(left, right, isAnd: false, location: location);
-  if (errorId != null) {
-    result.errorId = errorId;
-  }
-  return result;
-}
-
 Statement match(Pattern pattern, Expression initializer,
         {bool isLate = false, bool isFinal = false}) =>
     new _Declare(pattern, initializer,
