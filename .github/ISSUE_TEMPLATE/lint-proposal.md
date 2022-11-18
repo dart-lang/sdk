@@ -23,13 +23,13 @@ assignees: ''
 
 *Does this enforce style advice?  Guard against errors?  Other?*
 
-## Good Examples 
-
-*Add a few examples that demonstrate a “good” adoption of this lint’s principle.*
-
 ## Bad Examples
 
 *Add a few examples that demonstrate where this lint should fire.*
+
+## Good Examples 
+
+*Add a few examples that demonstrate a “good” adoption of this lint’s principle.*
 
 ## Discussion
 
