@@ -99,7 +99,6 @@ vars = {
   "boolean_selector_rev": "5082b3debf97421c071be957063763d98412b2e2",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
-  "binaryen_rev" : "ec53f4b2d5b0d52ae703c5b696ecf052ad5fffbb",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "browser_launcher_rev": "5fa0bd6cddc33785f43c920576fc03dcee1c3caa",
   "characters_rev": "4ffccb88a98c026f3351671479c85a886451dc33",
@@ -110,6 +109,9 @@ vars = {
   "convert_rev": "4feeb10d2f26d22eab461469da0739a57d001edf",
   "crypto_rev": "bf0c33b42eb7e5991ee98429318884695e576c2b",
   "csslib_rev": "34203c09f073ed8267f5d6e333daddb02e6ff609",
+
+  # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
+  "binaryen_rev" : "ec53f4b2d5b0d52ae703c5b696ecf052ad5fffbb",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
