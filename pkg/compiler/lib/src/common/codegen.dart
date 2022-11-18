@@ -21,7 +21,7 @@ import '../js_backend/deferred_holder_expression.dart'
     show DeferredHolderExpression;
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
-import '../js_emitter/interfaces.dart' show Emitter;
+import '../js_emitter/js_emitter.dart' show Emitter;
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';

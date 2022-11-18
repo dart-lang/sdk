@@ -14,7 +14,7 @@ import '../js_backend/field_analysis.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_backend/string_reference.dart'
     show StringReference, StringReferencePolicy;
-import '../js_emitter/interfaces.dart' show Emitter;
+import '../js_emitter/js_emitter.dart' show Emitter;
 import '../js_model/elements.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';

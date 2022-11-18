@@ -47,7 +47,7 @@ import '../main_call_stub_generator.dart' show MainCallStubGenerator;
 import '../parameter_stub_generator.dart' show ParameterStubGenerator;
 import '../runtime_type_generator.dart'
     show RuntimeTypeGenerator, TypeTestProperties;
-import '../interfaces.dart' show CodeEmitterTask, Emitter;
+import '../js_emitter.dart' show CodeEmitterTask, Emitter;
 import '../model.dart';
 import '../sorter.dart';
 

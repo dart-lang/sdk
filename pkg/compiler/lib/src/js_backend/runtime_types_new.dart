@@ -13,7 +13,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
-import '../js_emitter/interfaces.dart' show ModularEmitter;
+import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../universe/class_hierarchy.dart';
 import 'namer.dart' show StringBackedName;
 import 'native_data.dart';

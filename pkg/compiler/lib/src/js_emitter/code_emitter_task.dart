@@ -26,23 +26,17 @@ import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 import 'startup_emitter/fragment_merger.dart';
 
-import 'metadata_collector.dart' show MetadataCollector;
+import 'js_emitter.dart';
 import 'model.dart';
-import 'native_emitter.dart' show NativeEmitter;
-import 'interfaces.dart' as interfaces;
 
 /// Generates the code for all used classes in the program. Static fields (even
 /// in classes) are ignored, since they can be treated as non-class elements.
 ///
 /// The code for the containing (used) methods must exist in the `universe`.
-class CodeEmitterTask extends CompilerTask
-    implements interfaces.CodeEmitterTask {
+class CodeEmitterTask extends CompilerTask {
   late final RuntimeTypesChecks _rtiChecks;
-  @override
   late final NativeEmitter nativeEmitter;
-  @override
   late final MetadataCollector metadataCollector;
-  @override
   late final Emitter emitter;
   final CompilerEmitterFacade _compiler;
   final bool _generateSourceMap;
@@ -54,11 +48,9 @@ class CodeEmitterTask extends CompilerTask
   /// The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
   /// Currently used for testing and dump-info.
-  @override
   late final Set<ClassEntity> neededClasses;
 
   /// See [neededClasses] but for class types.
-  @override
   late final Set<ClassEntity> neededClassTypes;
 
   @override
@@ -148,48 +140,39 @@ class CodeEmitterTask extends CompilerTask
 ///
 /// Note that the emission phase is not itself modular but performed on
 /// the closed world computed by the codegen enqueuer.
-abstract class ModularEmitter implements interfaces.ModularEmitter {
+abstract class ModularEmitter {
   /// Returns the JS prototype of the given class [e].
-  @override
   jsAst.Expression prototypeAccess(ClassEntity e);
 
   /// Returns the JS function representing the given function.
   ///
   /// The function must be invoked and can not be used as closure.
-  @override
   jsAst.Expression staticFunctionAccess(FunctionEntity element);
 
-  @override
   jsAst.Expression staticFieldAccess(FieldEntity element);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
-  @override
   jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
 
   /// Returns the closure expression of a static function.
-  @override
   jsAst.Expression staticClosureAccess(covariant FunctionEntity element);
 
   /// Returns the JS constructor of the given element.
   ///
   /// The returned expression must only be used in a JS `new` expression.
-  @override
   jsAst.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS name representing the type [e].
-  @override
   jsAst.Name typeAccessNewRti(ClassEntity e);
 
   /// Returns the JS name representing the type variable [e].
-  @override
   jsAst.Name typeVariableAccessNewRti(TypeVariableEntity e);
 
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
 
   /// Returns the JS code for accessing the given [constant].
-  @override
   jsAst.Expression constantReference(ConstantValue constant);
 
   /// Returns the JS code for accessing the global property [global].
@@ -200,7 +183,7 @@ abstract class ModularEmitter implements interfaces.ModularEmitter {
 /// closed world computed by the codegen enqueuer.
 ///
 /// These methods are _not_ available during modular code generation.
-abstract class Emitter implements ModularEmitter, interfaces.Emitter {
+abstract class Emitter implements ModularEmitter {
   Program? get programForTesting;
 
   List<PreFragment>? get preDeferredFragmentsForTesting;
@@ -209,11 +192,9 @@ abstract class Emitter implements ModularEmitter, interfaces.Emitter {
   Set<OutputUnit> get omittedOutputUnits;
 
   /// A map of loadId to list of [FinalizedFragments].
-  @override
   Map<String, List<FinalizedFragment>> get finalizedFragmentsToLoad;
 
   /// The [FragmentMerger] itself.
-  @override
   FragmentMerger get fragmentMerger;
 
   /// Uses the [programBuilder] to generate a model of the program, emits
@@ -221,23 +202,18 @@ abstract class Emitter implements ModularEmitter, interfaces.Emitter {
   int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
 
   /// Returns the JS prototype of the given interceptor class [e].
-  @override
   jsAst.Expression interceptorPrototypeAccess(ClassEntity e);
 
   /// Returns the JS constructor of the given interceptor class [e].
-  @override
   jsAst.Expression interceptorClassAccess(ClassEntity e);
 
   /// Returns the JS expression representing a function that returns 'null'
   jsAst.Expression generateFunctionThatReturnsNull();
 
-  @override
   int compareConstants(ConstantValue a, ConstantValue b);
-  @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 
   /// Returns the size of the code generated for a given output [unit].
-  @override
   int generatedSize(OutputUnit unit);
 }
 

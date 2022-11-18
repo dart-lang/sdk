@@ -84,13 +84,10 @@ import '../../js_model/js_world.dart';
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
-import '../interfaces.dart';
+import '../js_emitter.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
-import '../class_stub_generator.dart' show buildTearOffCode;
-import '../native_generator.dart' show NativeGenerator;
 import '../model.dart';
-import '../native_emitter.dart';
 import 'fragment_merger.dart';
 
 part 'fragment_emitter.dart';
