@@ -147,6 +147,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_argumen
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
@@ -667,6 +668,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_late: [
       RemoveUnnecessaryLate.new,
+    ],
+    LintNames.unnecessary_library_directive: [
+      RemoveUnnecessaryLibraryDirective.new,
     ],
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.new,
