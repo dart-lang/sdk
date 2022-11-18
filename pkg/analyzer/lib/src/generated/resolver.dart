@@ -4706,18 +4706,30 @@ class SwitchExhaustiveness {
 
   void visitSwitchMember(SwitchStatementCaseGroup group) {
     for (var node in group.members) {
-      if (_enumConstants != null && node is SwitchCaseImpl) {
-        var element = _referencedElement(node.expression);
-        if (element is PropertyAccessorElement) {
-          _enumConstants!.remove(element.variable);
+      if (_enumConstants != null) {
+        ExpressionImpl? caseConstant;
+        if (node is SwitchCaseImpl) {
+          caseConstant = node.expression;
+        } else if (node is SwitchPatternCaseImpl) {
+          var guardedPattern = node.guardedPattern;
+          if (guardedPattern.whenClause == null) {
+            var pattern = guardedPattern.pattern.unParenthesized;
+            if (pattern is ConstantPatternImpl) {
+              caseConstant = pattern.expression;
+            }
+          }
         }
-
-        if (node.expression is NullLiteral) {
-          _isNullEnumValueCovered = true;
-        }
-
-        if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
-          isExhaustive = true;
+        if (caseConstant != null) {
+          var element = _referencedElement(caseConstant);
+          if (element is PropertyAccessorElement) {
+            _enumConstants!.remove(element.variable);
+          }
+          if (caseConstant is NullLiteral) {
+            _isNullEnumValueCovered = true;
+          }
+          if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
+            isExhaustive = true;
+          }
         }
       } else if (node is SwitchDefault) {
         isExhaustive = true;

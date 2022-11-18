@@ -1181,6 +1181,7 @@ CompileTimeErrorCode:
       associated with the case clause for `0`:
 
       ```dart
+      %language=2.18
       void f(int i) {
         switch (i) {
           l: case 0:
@@ -1211,6 +1212,7 @@ CompileTimeErrorCode:
       `continue` rather than `break`:
 
       ```dart
+      %language=2.18
       void f(int i) {
         switch (i) {
           l: case 0:
@@ -1374,6 +1376,7 @@ CompileTimeErrorCode:
       overrides the `==` operator:
 
       ```dart
+      %language=2.18
       class C {
         final int value;
 
@@ -1419,6 +1422,7 @@ CompileTimeErrorCode:
       isn't necessary, then remove it:
 
       ```dart
+      %language=2.18
       class C {
         final int value;
 
@@ -1475,6 +1479,7 @@ CompileTimeErrorCode:
       isn't a subtype of `String` (the type of `s`):
 
       ```dart
+      %language=2.18
       void f(String s) {
         switch (s) {
           case [!1!]:
@@ -9362,6 +9367,7 @@ CompileTimeErrorCode:
       The following code produces this diagnostic because `j` isn't a constant:
 
       ```dart
+      %language=2.18
       void f(int i, int j) {
         switch (i) {
           case [!j!]:
@@ -9414,6 +9420,7 @@ CompileTimeErrorCode:
       the imported library, is used in a case clause:
 
       ```dart
+      %language=2.18
       import 'a.dart' deferred as a;
 
       void f(int x) {
@@ -13232,6 +13239,7 @@ CompileTimeErrorCode:
        a value of zero (`0`) falls through to the `default` statements:
 
       ```dart
+      %language=2.18
       void f(int a) {
         switch (a) {
           [!case!] 0:

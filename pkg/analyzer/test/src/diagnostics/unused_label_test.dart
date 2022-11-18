@@ -16,7 +16,19 @@ main() {
 
 @reflectiveTest
 class UnusedLabelTest extends PubPackageResolutionTest
-    with UnusedLabelTestCases {}
+    with UnusedLabelTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_unused_inSwitch() {
+    return super.test_unused_inSwitch();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_used_inSwitch() {
+    return super.test_used_inSwitch();
+  }
+}
 
 @reflectiveTest
 class UnusedLabelTest_Language218 extends PubPackageResolutionTest

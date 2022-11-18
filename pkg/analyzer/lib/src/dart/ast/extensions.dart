@@ -111,6 +111,19 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   }
 }
 
+extension DartPatternExtension on DartPattern {
+  /// If this pattern is a parenthesized pattern, returns the result of
+  /// unwrapping the pattern inside the parentheses. Otherwise, return this
+  /// pattern.
+  DartPattern get unParenthesized {
+    final self = this;
+    if (self is ParenthesizedPattern) {
+      return self.pattern.unParenthesized;
+    }
+    return self;
+  }
+}
+
 extension ExpressionExtension on Expression {
   /// Return the static type of this expression.
   ///

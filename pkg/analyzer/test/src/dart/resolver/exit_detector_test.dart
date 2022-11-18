@@ -929,7 +929,43 @@ void f() { // ref
 
 @reflectiveTest
 class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
-    with ExitDetectorResolvedStatementTestCases {}
+    with ExitDetectorResolvedStatementTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_switch_withEnum_false_noDefault() {
+    return super.test_switch_withEnum_false_noDefault();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_switch_withEnum_false_withDefault() {
+    return super.test_switch_withEnum_false_withDefault();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_switch_withEnum_true_noDefault() {
+    return super.test_switch_withEnum_true_noDefault();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_switch_withEnum_true_withExitingDefault() {
+    return super.test_switch_withEnum_true_withExitingDefault();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_switch_withEnum_true_withNonExitingDefault() {
+    return super.test_switch_withEnum_true_withNonExitingDefault();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_whileStatement_switchWithBreakWithLabel() {
+    return super.test_whileStatement_switchWithBreakWithLabel();
+  }
+}
 
 @reflectiveTest
 class ExitDetectorResolvedStatementTest_Language218

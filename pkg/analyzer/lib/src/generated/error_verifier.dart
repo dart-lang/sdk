@@ -3307,8 +3307,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .toSet();
 
         for (var member in statement.members) {
+          Expression? caseConstant;
           if (member is SwitchCase) {
-            var expression = member.expression.unParenthesized;
+            caseConstant = member.expression;
+          } else if (member is SwitchPatternCase) {
+            var guardedPattern = member.guardedPattern;
+            if (guardedPattern.whenClause == null) {
+              var pattern = guardedPattern.pattern.unParenthesized;
+              if (pattern is ConstantPattern) {
+                caseConstant = pattern.expression;
+              }
+            }
+          }
+          if (caseConstant != null) {
+            var expression = caseConstant.unParenthesized;
             if (expression is NullLiteral) {
               hasCaseNull = true;
             } else {
