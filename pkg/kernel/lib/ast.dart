@@ -8815,6 +8815,7 @@ class RecordLiteral extends Expression {
   RecordLiteral(this.positional, this.named, this.recordType,
       {this.isConst = false})
       : assert(positional.length == recordType.positional.length &&
+            named.length == recordType.named.length &&
             recordType.named
                 .map((f) => f.name)
                 .toSet()
@@ -14071,11 +14072,35 @@ class SetConstant extends Constant {
 }
 
 class RecordConstant extends Constant {
+  /// Positional field values.
   final List<Constant> positional;
+
+  /// Named field values, sorted by name.
   final Map<String, Constant> named;
+
+  /// The static type of the constant.
   final RecordType recordType;
 
-  RecordConstant(this.positional, this.named, this.recordType);
+  RecordConstant(this.positional, this.named, this.recordType)
+      : assert(positional.length == recordType.positional.length &&
+            named.length == recordType.named.length &&
+            recordType.named
+                .map((f) => f.name)
+                .toSet()
+                .containsAll(named.keys)),
+        assert(() {
+          // Assert that the named fields are sorted.
+          String? previous;
+          for (String name in named.keys) {
+            if (previous != null && name.compareTo(previous) < 0) {
+              return false;
+            }
+            previous = name;
+          }
+          return true;
+        }(),
+            "Named fields of a RecordConstant aren't sorted lexicographically: "
+            "${named.keys.join(", ")}");
 
   @override
   void visitChildren(Visitor v) {
