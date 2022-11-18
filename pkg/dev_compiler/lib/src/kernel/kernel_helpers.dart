@@ -374,9 +374,23 @@ bool _isDartInternal(Uri uri) =>
 
 /// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
 /// visited `DartType`.
-class TypeParameterTypeFinder extends RecursiveVisitor<void> {
-  final found = <TypeParameter>{};
+class TypeParameterFinder extends RecursiveVisitor<void> {
+  final _found = <TypeParameter>{};
+  static TypeParameterFinder? _instance;
+
+  TypeParameterFinder._();
+  factory TypeParameterFinder.instance() {
+    if (_instance != null) return _instance!;
+    return TypeParameterFinder._();
+  }
+
+  Set<TypeParameter> find(DartType type) {
+    _found.clear();
+    type.accept(this);
+    return _found;
+  }
+
   @override
   void visitTypeParameterType(TypeParameterType node) =>
-      found.add(node.parameter);
+      _found.add(node.parameter);
 }
