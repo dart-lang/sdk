@@ -585,9 +585,9 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         ASSERT(STRING_STARTS_WITH(format, "width"));
         // 'width: width field of bit field extract instructions
         // (field value in encoding is 1 less than in mnemonic)
-        buffer_pos_ = Utils::SNPrint(current_position_in_buffer(),
-                                     remaining_size_in_buffer(), "%u",
-                                     instr->BitFieldExtractWidthField() + 1);
+        buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                      remaining_size_in_buffer(), "%u",
+                                      instr->BitFieldExtractWidthField() + 1);
         return 5;
       } else {
         // 'w: W field of load and store instructions.

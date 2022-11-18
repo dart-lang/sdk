@@ -1990,7 +1990,8 @@ void functionAfter() {
 
 @reflectiveTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
-  Future<void> test_addSuperTypesAsSuggestions() async {
+  Future<void>
+      test_addSuperTypesAsSuggestions_legacyTargetFile_noneSuffix() async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''
 class A {}
@@ -1999,7 +2000,122 @@ class C extends B {}
 ''');
     var unit = (await resolveFile(path)).unit;
     var classC = unit.declarations[2] as ClassDeclaration;
-    var builder = DartLinkedEditBuilderImpl(MockEditBuilderImpl());
+    var builder = DartLinkedEditBuilderImpl(
+        MockDartEditBuilderImpl(isNonNullableByDefault: false));
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void>
+      test_addSuperTypesAsSuggestions_legacyTargetFile_questionSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(
+        MockDartEditBuilderImpl(isNonNullableByDefault: false));
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.question,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void>
+      test_addSuperTypesAsSuggestions_legacyTargetFile_starSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(
+        MockDartEditBuilderImpl(isNonNullableByDefault: false));
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void> test_addSuperTypesAsSuggestions_noneSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void> test_addSuperTypesAsSuggestions_questionSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.question,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object?', 'A?', 'B?', 'C?']));
+  }
+
+  Future<void> test_addSuperTypesAsSuggestions_starSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
       classC.declaredElement?.instantiate(
         typeArguments: [],
@@ -2598,6 +2714,23 @@ import 'aaa.dart';
     );
   }
 
+  Future<void> test_withoutImportEdits() async {
+    await _assertImportLibrary(
+      createEditsForImports: false,
+      initialCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+      uriList: ['dart:bbb'],
+      expectedCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+    );
+  }
+
   Future<void> test_withPrefix() async {
     await _assertImportLibrary(
       initialCode: '''
@@ -2622,15 +2755,19 @@ import 'aaa.dart' as aaa;
     required List<String> uriList,
     required String expectedCode,
     String? prefix,
+    bool createEditsForImports = true,
   }) async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
     var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path,
+        createEditsForImports: createEditsForImports, (builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
         builder.importLibrary(uri, prefix: prefix);
       }
+
+      expect(builder.requiredImports.map((uri) => uri.toString()), uriList);
     });
 
     var resultCode = initialCode;

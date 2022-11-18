@@ -12,7 +12,7 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 import 'package:front_end/src/api_prototype/standard_file_system.dart' as fe;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 main() {
   runTest(Map<fe.ExperimentalFlag, bool> experimentalFlags) async {

@@ -70,6 +70,14 @@ Future<void> astCoverage(AstModel astModel) async {
 void experimentalFlags() {
   {
     Uri generatedFile =
+        generateExperimentalFlags.computeFeAnalyzerSharedGeneratedFile(repoDir);
+    String generated =
+        generateExperimentalFlags.generateFeAnalyzerSharedFile(repoDir);
+    check(generated, generatedFile,
+        "dart pkg/front_end/tool/fasta.dart generate-experimental-flags");
+  }
+  {
+    Uri generatedFile =
         generateExperimentalFlags.computeCfeGeneratedFile(repoDir);
     String generated = generateExperimentalFlags.generateCfeFile(repoDir);
     check(generated, generatedFile,

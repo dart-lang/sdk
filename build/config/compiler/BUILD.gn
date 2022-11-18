@@ -152,7 +152,7 @@ config("compiler") {
   # ----------------------------------
   if (is_mac) {
     # These flags are shared between the C compiler and linker.
-    common_mac_flags = [ "-fno-exceptions" ]
+    common_mac_flags = []
 
     # CPU architecture.
     if (current_cpu == "x64") {
@@ -234,8 +234,6 @@ config("compiler") {
         ]
       }
     }
-
-    cflags += [ "-fno-exceptions" ]
   }
 
   # Linux/Android common flags setup.

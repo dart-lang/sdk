@@ -111,6 +111,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   final bool isMacro;
 
   @override
+  final bool isSealed;
+
+  @override
   final bool isAugmentation;
 
   bool? _isConflictingAugmentationMember;
@@ -151,6 +154,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
       this.isMacro = false,
+      this.isSealed = false,
       this.isAugmentation = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
@@ -268,6 +272,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // compile-time error.
     cls.isAbstract = isAbstract;
     cls.isMacro = isMacro;
+    cls.isSealed = isSealed;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);

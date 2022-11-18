@@ -1022,6 +1022,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kExtensionStreamHasListener:
     case MethodRecognizer::kSmi_hashCode:
     case MethodRecognizer::kMint_hashCode:
+    case MethodRecognizer::kDouble_hashCode:
 #define CASE(method, slot) case MethodRecognizer::k##method:
       LOAD_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD(CASE)
@@ -1490,16 +1491,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 #endif  // PRODUCT
     } break;
     case MethodRecognizer::kSmi_hashCode: {
+      // TODO(dartbug.com/38985): We should make this LoadLocal+Unbox+
+      // IntegerHash+Box. Though  this would make use of unboxed values on stack
+      // which isn't allowed in unoptimized mode.
+      // Once force-optimized functions can be inlined, we should change this
+      // code to the above.
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += BuildHashCode(/*smi=*/true);
+      body += BuildIntegerHashCode(/*smi=*/true);
     } break;
     case MethodRecognizer::kMint_hashCode: {
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += BuildHashCode(/*smi=*/false);
+      body += BuildIntegerHashCode(/*smi=*/false);
     } break;
-    // case MethodRecognizer::kDouble_hashCode:
+    case MethodRecognizer::kDouble_hashCode: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += UnboxTruncate(kUnboxedDouble);
+      body += BuildDoubleHashCode();
+      body += Box(kUnboxedInt64);
+    } break;
     case MethodRecognizer::kFfiAsExternalTypedDataInt8:
     case MethodRecognizer::kFfiAsExternalTypedDataInt16:
     case MethodRecognizer::kFfiAsExternalTypedDataInt32:
@@ -5095,13 +5107,23 @@ const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {
   return prepend_type_arguments_;
 }
 
-Fragment FlowGraphBuilder::BuildHashCode(bool smi) {
+Fragment FlowGraphBuilder::BuildIntegerHashCode(bool smi) {
   Fragment body;
   Value* unboxed_value = Pop();
   HashIntegerOpInstr* hash =
       new HashIntegerOpInstr(unboxed_value, smi, DeoptId::kNone);
   Push(hash);
   body <<= hash;
+  return body;
+}
+
+Fragment FlowGraphBuilder::BuildDoubleHashCode() {
+  Fragment body;
+  Value* double_value = Pop();
+  HashDoubleOpInstr* hash = new HashDoubleOpInstr(double_value, DeoptId::kNone);
+  Push(hash);
+  body <<= hash;
+  body += Box(kUnboxedInt64);
   return body;
 }
 

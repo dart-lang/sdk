@@ -14,11 +14,6 @@ void AsmIntrinsifier::String_identityHash(Assembler* assembler,
   String_getHashCode(assembler, normal_ir_body);
 }
 
-void AsmIntrinsifier::Double_identityHash(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  Double_hashCode(assembler, normal_ir_body);
-}
-
 void AsmIntrinsifier::RegExp_ExecuteMatch(Assembler* assembler,
                                           Label* normal_ir_body) {
   AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(assembler, normal_ir_body,

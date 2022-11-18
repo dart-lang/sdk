@@ -451,8 +451,6 @@ abstract class AstVisitor<R> {
 
   R? visitExtensionOverride(ExtensionOverride node);
 
-  R? visitExtractorPattern(ExtractorPattern node);
-
   R? visitFieldDeclaration(FieldDeclaration node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
@@ -492,6 +490,8 @@ abstract class AstVisitor<R> {
   R? visitGenericFunctionType(GenericFunctionType node);
 
   R? visitGenericTypeAlias(GenericTypeAlias node);
+
+  R? visitGuardedPattern(GuardedPattern node);
 
   R? visitHideCombinator(HideCombinator node);
 
@@ -552,6 +552,8 @@ abstract class AstVisitor<R> {
   R? visitNativeFunctionBody(NativeFunctionBody node);
 
   R? visitNullLiteral(NullLiteral node);
+
+  R? visitObjectPattern(ObjectPattern node);
 
   R? visitOnClause(OnClause node);
 
@@ -861,7 +863,7 @@ abstract class CascadeExpression
 /// The `case` clause that can optionally appear in an `if` statement.
 ///
 ///    caseClause ::=
-///        'case' [DartPattern] [WhenClause]?
+///        'case' [GuardedPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
@@ -870,10 +872,7 @@ abstract class CaseClause implements AstNode {
   Token get caseKeyword;
 
   /// Return the pattern controlling whether the statements will be executed.
-  DartPattern get pattern;
-
-  /// Return the clause controlling whether the statements will be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// A cast pattern.
@@ -1649,16 +1648,15 @@ abstract class ContinueStatement implements Statement {
 ///
 ///    pattern ::=
 ///        [BinaryPattern]
-///      | [ExpressionPattern]
 ///      | [CastPattern]
-///      | [ExtractorPattern]
+///      | [ConstantPattern]
 ///      | [ListPattern]
-///      | [LiteralPattern]
 ///      | [MapPattern]
-///      | [RecordPattern]
-///      | [RelationalPattern]
+///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
 ///      | [PostfixPattern]
+///      | [RecordPattern]
+///      | [RelationalPattern]
 ///      | [VariablePattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1670,6 +1668,11 @@ abstract class DartPattern implements AstNode {
   /// code is parsed into an AST. For example `a | b & c` is parsed as `a | (b
   /// & c)` because the precedence of `&` is greater than the precedence of `|`.
   Precedence get precedence;
+
+  /// If this pattern is a parenthesized pattern, return the result of
+  /// unwrapping the pattern inside the parentheses. Otherwise, return this
+  /// pattern.
+  DartPattern get unParenthesized;
 }
 
 /// A node that represents the declaration of one or more names.
@@ -2165,27 +2168,6 @@ abstract class ExtensionOverride implements Expression {
   ///
   /// Return `null` if the AST structure has not been resolved.
   List<DartType>? get typeArgumentTypes;
-}
-
-/// An extractor pattern.
-///
-///    extractorPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ExtractorPattern implements DartPattern {
-  /// Return the patterns matching the properties of the object.
-  NodeList<RecordPatternField> get fields;
-
-  /// Return the left parenthesis.
-  Token get leftParenthesis;
-
-  /// Return the right parenthesis.
-  Token get rightParenthesis;
-
-  /// The name of the type of object from which values will be extracted.
-  NamedType get type;
 }
 
 /// The declaration of one or more fields of the same type.
@@ -2900,6 +2882,21 @@ abstract class GenericTypeAlias implements TypeAlias {
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
   TypeParameterList? get typeParameters;
+}
+
+/// The pattern with an optional [WhenClause].
+///
+///    guardedPattern ::=
+///        [DartPattern] [WhenClause]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class GuardedPattern implements AstNode {
+  /// Return the pattern controlling whether the statements will be executed.
+  DartPattern get pattern;
+
+  /// Return the clause controlling whether the statements will be executed.
+  WhenClause? get whenClause;
 }
 
 /// A combinator that restricts the names being imported to those that are not
@@ -3969,6 +3966,27 @@ abstract class NullShortableExpression implements Expression {
   Expression get nullShortingTermination;
 }
 
+/// An object pattern.
+///
+///    objectPattern ::=
+///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ObjectPattern implements DartPattern {
+  /// Return the patterns matching the properties of the object.
+  NodeList<RecordPatternField> get fields;
+
+  /// Return the left parenthesis.
+  Token get leftParenthesis;
+
+  /// Return the right parenthesis.
+  Token get rightParenthesis;
+
+  /// The name of the type of object from which values will be extracted.
+  NamedType get type;
+}
+
 /// The "on" clause in a mixin declaration.
 ///
 ///    onClause ::=
@@ -4915,12 +4933,7 @@ abstract class SwitchExpression implements Expression {
 @experimental
 abstract class SwitchExpressionCase implements SwitchExpressionMember {
   /// Return the refutable pattern that must match for the [expression] to be executed.
-  DartPattern get pattern;
-
-  /// Return the clause containing the condition that is evaluated when the
-  /// [pattern] matches, that must evaluate to `true` in order for the
-  /// [expression] to be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// The default case in a switch expression.
@@ -4996,10 +5009,7 @@ abstract class SwitchMember implements AstNode {
 @experimental
 abstract class SwitchPatternCase implements SwitchMember {
   /// Return the pattern controlling whether the statements will be executed.
-  DartPattern get pattern;
-
-  /// Return the clause controlling whether the statements will be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// A switch statement.

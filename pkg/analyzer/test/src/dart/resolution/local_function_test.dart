@@ -45,6 +45,7 @@ f() {
     expect(element.nameOffset, 23);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_element_switchCase() async {
     await assertNoErrorsInCode(r'''
 f(int a) {

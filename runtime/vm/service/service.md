@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.61
+# Dart VM Service Protocol 3.62
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.61_ of the Dart VM Service Protocol. This
+This document describes of _version 3.62_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2853,6 +2853,7 @@ class Instance extends Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -3014,6 +3015,12 @@ class Instance extends Object {
   //   WeakProperty
   @Instance propertyValue [optional];
 
+  // The target for a WeakReference instance.
+  //
+  // Provided for instance kinds:
+  //   WeakReference
+  @Instance target [optional];
+
   // The type arguments for this type.
   //
   // Provided for instance kinds:
@@ -3141,6 +3148,9 @@ enum InstanceKind {
 
   // An instance of the Dart class WeakProperty.
   WeakProperty,
+
+  // An instance of the Dart class WeakReference.
+  WeakReference,
 
   // An instance of the Dart class Type.
   Type,
@@ -4399,7 +4409,7 @@ version | comments
 3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
 3.55 | Added `streamCpuSamplesWithUserTag` RPC.
 3.56 | Added optional `line` and `column` properties to `SourceLocation`. Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level coverage information.
-3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC.
+3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC. Added `WeakReference` to `InstanceKind`.
 3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
 3.59 | Added `abstract` property to `@Function` and `Function`.
 3.60 | Added `gcType` property to `Event`.

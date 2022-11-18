@@ -8381,6 +8381,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
+    case MethodRecognizer::kDouble_hashCode:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
     // kernel_to_il.cc that no GC can happen in between the relevant IL
@@ -21832,8 +21833,7 @@ TypePtr Type::New(const Class& clazz,
 }
 
 void Type::set_type_class_id(intptr_t id) const {
-  COMPILE_ASSERT(std::is_unsigned<ClassIdTagType>::value);
-  ASSERT(Utils::IsUint(sizeof(ClassIdTagType) * kBitsPerByte, id));
+  ASSERT(Utils::IsUint(UntaggedObject::kClassIdTagSize, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
   ASSERT(id != kIllegalCid);

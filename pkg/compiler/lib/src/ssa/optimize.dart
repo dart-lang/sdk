@@ -42,17 +42,12 @@ import 'late_field_optimizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
 import 'metrics.dart';
+import 'optimize_interfaces.dart' show OptimizationPhase;
 import 'types.dart';
 import 'types_propagation.dart';
 import 'validate.dart' show NoUnusedPhiValidator;
 import 'value_range_analyzer.dart';
 import 'value_set.dart';
-
-abstract class OptimizationPhase {
-  String get name;
-  void visitGraph(HGraph graph);
-  bool validPostcondition(HGraph graph);
-}
 
 class SsaOptimizerTask extends CompilerTask {
   final CompilerOptions _options;

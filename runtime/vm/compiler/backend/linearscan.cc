@@ -257,6 +257,11 @@ void SSALivenessAnalysis::ComputeInitialSets() {
         }
       }
     } else if (auto entry = block->AsBlockEntryWithInitialDefs()) {
+      // Initialize location summary for instruction if needed.
+      if (entry->IsCatchBlockEntry()) {
+        entry->InitializeLocationSummary(zone(), true);  // opt
+      }
+
       // Process initial definitions, i.e. parameters and special parameters.
       for (intptr_t i = 0; i < entry->initial_definitions()->length(); i++) {
         Definition* def = (*entry->initial_definitions())[i];
@@ -625,6 +630,10 @@ void FlowGraphAllocator::BuildLiveRanges() {
     if (auto join_entry = block->AsJoinEntry()) {
       ConnectIncomingPhiMoves(join_entry);
     } else if (auto catch_entry = block->AsCatchBlockEntry()) {
+      // Catch entries are briefly safepoints after catch entry moves execute
+      // and before execution jumps to the handler.
+      safepoints_.Add(catch_entry);
+
       // Process initial definitions.
       ProcessEnvironmentUses(catch_entry, catch_entry);  // For lazy deopt
       for (intptr_t i = 0; i < catch_entry->initial_definitions()->length();

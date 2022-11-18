@@ -272,9 +272,7 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 0, 1) {
   return Smi::New(result);
 }
 
-// Should be kept in sync with
-//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
-//  - asm_intrinsifier(...).cc Multiply64Hash
+// Should be kept in sync with il_*.cc EmitHashIntegerCodeSequence
 uint32_t Multiply64Hash(int64_t ivalue) {
   const uint64_t magic_constant = /*0x1b873593cc9e*/ 0x2d51;
   uint64_t value = static_cast<uint64_t>(ivalue);

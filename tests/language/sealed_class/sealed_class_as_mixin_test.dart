@@ -32,14 +32,6 @@ class AImplements implements A {
   int nonAbstractBar(int value) => value;
 }
 
-class CMixin with C {
-  @override
-  int foo = 0;
-
-  @override
-  int bar(int value) => value;
-}
-
 main() {
   A a = AImpl();
   Expect.equals(0, a.nonAbstractFoo);
@@ -70,10 +62,4 @@ main() {
   Expect.equals(0, aImplements.foo);
   Expect.equals(0, aImplements.bar(0));
   Expect.equals(0, aImplements.nonAbstractBar(0));
-
-  var cMixin = CMixin();
-  Expect.equals(0, cMixin.nonAbstractFoo);
-  Expect.equals(0, cMixin.foo);
-  Expect.equals(0, cMixin.bar(0));
-  Expect.equals(100, cMixin.nonAbstractBar(0));
 }

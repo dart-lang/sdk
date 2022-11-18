@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
@@ -2433,6 +2434,20 @@ class TestParser extends Parser {
     indent++;
     var result =
         super.reportRecoverableErrorWithEnd(startToken, endToken, message);
+    indent--;
+    return result;
+  }
+
+  @override
+  void reportExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    doPrint('reportExperimentNotEnabled('
+        '$experimentalFlag, '
+        '$startToken, '
+        '$endToken)');
+    indent++;
+    var result = super
+        .reportExperimentNotEnabled(experimentalFlag, startToken, endToken);
     indent--;
     return result;
   }

@@ -842,6 +842,7 @@ class C = Object with A;''');
     expect(a.isValidMixin, isTrue);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_labels_switch() async {
     await assertNoErrorsInCode(r'''
 void doSwitch(int target) {

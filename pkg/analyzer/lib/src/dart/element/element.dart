@@ -6536,10 +6536,28 @@ abstract class VariableElementImpl extends ElementImpl
 
 class VariablePatternElementImpl extends LocalVariableElementImpl
     implements VariablePatternElement {
+  final VariablePatternImpl node;
+
   @override
   final List<VariablePatternElementImpl> aliases = [];
 
-  VariablePatternElementImpl(super.name, super.offset);
+  VariablePatternElementImpl(this.node, super.name, super.offset);
+}
+
+class VariablePatternJoinElementImpl extends LocalVariableElementImpl
+    implements VariablePatternElement {
+  final List<LocalVariableElementImpl> components;
+  bool isConsistent;
+
+  @override
+  final List<VariablePatternElementImpl> aliases = [];
+
+  VariablePatternJoinElementImpl(
+    super.name,
+    super.offset,
+    this.components,
+    this.isConsistent,
+  );
 }
 
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {

@@ -198,7 +198,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    b.local_get(paramLocals[0]);
+    b.local_get(paramLocals[0]); // `this` as context
     b.global_get(closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);
@@ -547,7 +547,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.ValueType returnType = function.type.outputs[0];
       if (returnType is w.RefType && returnType.nullable) {
         // Dart body may have an implicit return null.
-        b.ref_null(returnType.heapType);
+        b.ref_null(returnType.heapType.bottomType);
       } else {
         // This point is unreachable, but the Wasm validator still expects the
         // stack to contain a value matching the Wasm function return type.
@@ -1601,22 +1601,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     pushReceiver(selector.signature);
 
+    if (selector.targetCount == 1) {
+      pushArguments(selector.signature);
+      return call(selector.singularTarget!);
+    }
+
     int? offset = selector.offset;
     if (offset == null) {
-      // Singular target or unreachable call
-      assert(selector.targetCount <= 1);
-      if (selector.targetCount == 1) {
-        pushArguments(selector.signature);
-        return call(selector.singularTarget!);
-      } else {
-        b.comment("Virtual call of ${selector.name} with no targets"
-            " at ${node.location}");
-        b.drop();
-        b.block(const [], selector.signature.outputs);
-        b.unreachable();
-        b.end();
-        return translator.outputOrVoid(selector.signature.outputs);
-      }
+      // Unreachable call
+      assert(selector.targetCount == 0);
+      b.comment("Virtual call of ${selector.name} with no targets"
+          " at ${node.location}");
+      b.drop();
+      b.block(const [], selector.signature.outputs);
+      b.unreachable();
+      b.end();
+      return translator.outputOrVoid(selector.signature.outputs);
     }
 
     // Receiver is already on stack.

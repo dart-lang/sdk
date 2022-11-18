@@ -23,7 +23,7 @@ import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 class Test {
   final String name;

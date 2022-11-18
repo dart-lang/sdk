@@ -2336,8 +2336,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_FIELD_NAME_POSITIONAL =
       CompileTimeErrorCode(
     'INVALID_FIELD_NAME',
-    "Record field names can't be a dollar sign followed by an integer when "
-        "the\ninteger is the index of a positional field.",
+    "Record field names can't be a dollar sign followed by an integer when the "
+        "integer is the index of a positional field.",
     correctionMessage: "Try using a different name for the field.",
     uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
   );
@@ -2741,9 +2741,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
   );
 
-  static const CompileTimeErrorCode MISSING_EXTRACTOR_PATTERN_GETTER_NAME =
+  static const CompileTimeErrorCode MISSING_OBJECT_PATTERN_GETTER_NAME =
       CompileTimeErrorCode(
-    'MISSING_EXTRACTOR_PATTERN_GETTER_NAME',
+    'MISSING_OBJECT_PATTERN_GETTER_NAME',
     "The getter name is not specified explicitly, and the pattern is not a "
         "variable.",
     correctionMessage:

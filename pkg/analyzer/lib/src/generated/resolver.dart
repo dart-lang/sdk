@@ -534,7 +534,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           nameToken = field.pattern.variablePattern?.name;
           if (nameToken == null) {
             errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME,
+              CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
               field,
             );
           }
@@ -818,7 +818,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType downwardInferObjectPatternRequiredType({
     required DartType matchedType,
-    required covariant ExtractorPatternImpl pattern,
+    required covariant ObjectPatternImpl pattern,
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
@@ -861,6 +861,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     throw UnimplementedError('TODO(paulberry)');
   }
 
+  @override
+  void finishJoinedPatternVariable(
+    PromotableElement variable, {
+    required bool isConsistent,
+    required bool isFinal,
+    required DartType type,
+  }) {
+    // TODO(scheglov): implement finishJoinedPatternVariable
+    throw UnimplementedError();
+  }
+
+  @override
+  List<PromotableElement>? getJoinedVariableComponents(
+      PromotableElement variable) {
+    // TODO: implement getJoinedVariableComponents
+    throw UnimplementedError();
+  }
+
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
   /// overridden.
@@ -883,33 +901,54 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<AstNode, Expression> getSwitchExpressionMemberInfo(
-      Expression node, int index) {
+  SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement>
+      getSwitchExpressionMemberInfo(Expression node, int index) {
     throw UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  SwitchStatementMemberInfo<AstNode, Statement, Expression>
-      getSwitchStatementMemberInfo(covariant SwitchStatement node, int index) {
-    var member = node.members[index];
-    AstNode? pattern;
-    WhenClause? whenClause;
-    if (member is SwitchCase) {
-      pattern = member.expression;
-    } else if (member is SwitchPatternCase) {
-      pattern = member.pattern;
-      whenClause = member.whenClause;
+  SwitchStatementMemberInfo<AstNode, Statement, Expression, PromotableElement>
+      getSwitchStatementMemberInfo(
+    covariant SwitchStatementImpl node,
+    int index,
+  ) {
+    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElement> ofMember(
+      SwitchMemberImpl member,
+    ) {
+      if (member is SwitchCaseImpl) {
+        return CaseHeadOrDefaultInfo(
+          pattern: member.expression,
+          variables: {},
+          guard: null,
+        );
+      } else if (member is SwitchPatternCaseImpl) {
+        var guardedPattern = member.guardedPattern;
+        return CaseHeadOrDefaultInfo(
+          pattern: guardedPattern.pattern,
+          variables: {}, // TODO(scheglov) use actual
+          guard: guardedPattern.whenClause?.expression,
+        );
+      } else {
+        return CaseHeadOrDefaultInfo(
+          pattern: null,
+          variables: {},
+          guard: null,
+        );
+      }
     }
+
+    var group = node.memberGroups[index];
     return SwitchStatementMemberInfo(
-      [
-        CaseHeadOrDefaultInfo(
-          pattern: pattern,
-          guard: whenClause?.expression,
-        ),
-      ],
-      member.statements,
-      labels: member.labels,
+      group.members.map(ofMember).toList(),
+      group.members.last.statements,
+      {},
+      hasLabels: group.hasLabels,
     );
+  }
+
+  @override
+  DartType getVariableType(PromotableElement element) {
+    return element.type;
   }
 
   @override
@@ -959,32 +998,34 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void handleCase_afterCaseHeads(AstNode node, int caseIndex, int numHeads) {}
+  void handleCase_afterCaseHeads(
+      AstNode node, int caseIndex, Iterable<PromotableElement> variables) {}
 
   @override
   void handleCaseHead(
       // TODO(paulberry): once we support switch expressions this type will
       // need to change.
-      covariant SwitchStatement node,
+      covariant SwitchStatementImpl node,
       {required int caseIndex,
       required int subIndex}) {
     // Stack: (Expression)
     popRewrite(); // "when" expression
     // Stack: ()
-    switchExhaustiveness!.visitSwitchMember(node.members[caseIndex]);
+    switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
   }
 
   @override
-  void handleDefault(covariant SwitchStatement node, int caseIndex) {
-    switchExhaustiveness!.visitSwitchMember(node.members[caseIndex]);
+  void handleDefault(covariant SwitchStatementImpl node, int caseIndex) {
+    switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
   }
 
   @override
-  void handleMergedStatementCase(covariant SwitchStatement node,
-      {required int caseIndex,
-      required int executionPathIndex,
-      required int numStatements}) {
-    nullSafetyDeadCodeVerifier.flowEnd(node.members[caseIndex]);
+  void handleMergedStatementCase(
+    covariant SwitchStatementImpl node, {
+    required int caseIndex,
+  }) {
+    nullSafetyDeadCodeVerifier
+        .flowEnd(node.memberGroups[caseIndex].members.last);
   }
 
   @override
@@ -1181,12 +1222,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType recordType(shared.RecordType<DartType> type) {
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
     return RecordTypeImpl(
-      positionalFields: type.positional.map((type) {
+      positionalFields: positional.map((type) {
         return RecordTypePositionalFieldImpl(type: type);
       }).toList(),
-      namedFields: type.named.map((namedType) {
+      namedFields: named.map((namedType) {
         return RecordTypeNamedFieldImpl(
           name: namedType.name,
           type: namedType.type,
@@ -1309,7 +1352,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
       errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME,
+        CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
         fieldNode,
       );
       return typeProvider.dynamicType;
@@ -2362,11 +2405,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     final caseClause = node.caseClause;
     if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
       analyzeIfCaseElement(
         node: node,
         expression: node.expression,
-        pattern: caseClause.pattern,
-        guard: caseClause.whenClause?.expression,
+        pattern: guardedPattern.pattern,
+        guard: guardedPattern.whenClause?.expression,
         ifTrue: node.thenElement,
         ifFalse: node.elseElement,
         context: context,
@@ -2391,13 +2435,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     final caseClause = node.caseClause;
     if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
       analyzeIfCaseStatement(
         node,
         node.expression,
-        caseClause.pattern,
-        caseClause.whenClause?.expression,
+        guardedPattern.pattern,
+        guardedPattern.whenClause?.expression,
         node.thenStatement,
         node.elseStatement,
+        {},
       );
       // Stack: (Expression, Guard)
       popRewrite(); // guard
@@ -3013,12 +3059,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(covariant SwitchStatementImpl node) {
     // Stack: ()
     checkUnreachableNode(node);
 
     var previousExhaustiveness = switchExhaustiveness;
-    analyzeSwitchStatement(node, node.expression, node.members.length);
+    analyzeSwitchStatement(node, node.expression, node.memberGroups.length);
     // Stack: (Expression)
     popRewrite();
     // Stack: ()
@@ -4658,22 +4704,36 @@ class SwitchExhaustiveness {
 
   SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
 
-  void visitSwitchMember(SwitchMember node) {
-    if (_enumConstants != null && node is SwitchCase) {
-      var element = _referencedElement(node.expression);
-      if (element is PropertyAccessorElement) {
-        _enumConstants!.remove(element.variable);
-      }
-
-      if (node.expression is NullLiteral) {
-        _isNullEnumValueCovered = true;
-      }
-
-      if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
+  void visitSwitchMember(SwitchStatementCaseGroup group) {
+    for (var node in group.members) {
+      if (_enumConstants != null) {
+        ExpressionImpl? caseConstant;
+        if (node is SwitchCaseImpl) {
+          caseConstant = node.expression;
+        } else if (node is SwitchPatternCaseImpl) {
+          var guardedPattern = node.guardedPattern;
+          if (guardedPattern.whenClause == null) {
+            var pattern = guardedPattern.pattern.unParenthesized;
+            if (pattern is ConstantPatternImpl) {
+              caseConstant = pattern.expression;
+            }
+          }
+        }
+        if (caseConstant != null) {
+          var element = _referencedElement(caseConstant);
+          if (element is PropertyAccessorElement) {
+            _enumConstants!.remove(element.variable);
+          }
+          if (caseConstant is NullLiteral) {
+            _isNullEnumValueCovered = true;
+          }
+          if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
+            isExhaustive = true;
+          }
+        }
+      } else if (node is SwitchDefault) {
         isExhaustive = true;
       }
-    } else if (node is SwitchDefault) {
-      isExhaustive = true;
     }
   }
 

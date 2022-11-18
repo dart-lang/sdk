@@ -49,7 +49,9 @@
   be used for library-level annotations (such as `@deprecated`) and for
   library-level documentation comments, and with this new feature, you don't
   have to provide a unique name for each library directive. Instead, a name can
-  simply be omitted.
+  simply be omitted (see [#1073][]).
+  
+[#1073]: https://github.com/dart-lang/language/issues/1073
 
 ### Libraries
 

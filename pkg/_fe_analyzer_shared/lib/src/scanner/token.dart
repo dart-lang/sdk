@@ -444,6 +444,7 @@ class Keyword extends TokenType {
   /**
    * The name of the keyword type.
    */
+  @override
   String get name => lexeme.toUpperCase();
 
   @override

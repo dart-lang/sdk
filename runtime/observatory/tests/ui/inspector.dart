@@ -41,6 +41,7 @@ class Node {
   var nullable;
   var mixedType;
   var array;
+  var arrayConst;
   var bigint;
   var blockClean;
   var blockCopying;
@@ -61,6 +62,7 @@ class Node {
   var int32x4;
   var isolate;
   var map;
+  var mapConst;
   var mint;
   var mirrorClass;
   var mirrorClosure;
@@ -72,6 +74,8 @@ class Node {
   var recordType;
   var regex;
   late var sentinel;  // Not initialized
+  var set;
+  var setConst;
   var smi;
   var stacktrace;
   var string;
@@ -153,6 +157,7 @@ class Node {
     array[0] = 1;
     array[1] = 2;
     array[2] = 3;
+    arrayConst = const [1, 2, 3];
     bigint = BigInt.one << 65;
     blockClean = genCleanBlock();
     blockCopying = genCopyingBlock();
@@ -177,6 +182,10 @@ class Node {
       "y-key": "y-value",
       "removed-key": "removed-value"
     };
+    mapConst = const {
+      1: 1.5,
+      2: 2.5,
+    };
     map.remove("removed-key");
     mint = 1 << 32;
     mirrorClass = reflectClass(Object);
@@ -188,6 +197,13 @@ class Node {
     record = (1, 2, three: 3, four: 4);
     recordType = record.runtimeType;
     regex = new RegExp("a*b+c");
+    set = {
+      "element1", "element2", "removed-element"
+    };
+    set.remove("removed-element");
+    setConst = const {
+      10, 20, 30
+    };
     smi = 7;
     stacktrace = genStackTrace();
     string = "Hello $smi ${smi.runtimeType}";

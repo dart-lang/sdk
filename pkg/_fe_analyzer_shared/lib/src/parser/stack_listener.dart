@@ -477,6 +477,7 @@ abstract class StackListener extends Listener {
     pop(); // Discard the metadata.
   }
 
+  @override
   void handleExtraneousExpression(Token token, Message message) {
     debugEvent("ExtraneousExpression");
     pop(); // Discard the extraneous expression.
@@ -559,19 +560,24 @@ class StackImpl implements Stack {
       new List<Object?>.filled(/* length = */ 8, /* fill = */ null);
   int arrayLength = 0;
 
+  @override
   bool get isNotEmpty => arrayLength > 0;
 
+  @override
   int get length => arrayLength;
 
+  @override
   Object? get last {
     final Object? value = array[arrayLength - 1];
     return value is NullValue ? null : value;
   }
 
+  @override
   Object? operator [](int index) {
     return array[arrayLength - 1 - index];
   }
 
+  @override
   void push(Object value) {
     array[arrayLength++] = value;
     if (array.length == arrayLength) {
@@ -579,6 +585,7 @@ class StackImpl implements Stack {
     }
   }
 
+  @override
   Object? pop(NullValue? nullValue) {
     assert(arrayLength > 0);
     final Object? value = array[--arrayLength];
@@ -592,6 +599,7 @@ class StackImpl implements Stack {
     }
   }
 
+  @override
   List<T?>? popList<T>(int count, List<T?> list, NullValue? nullValue) {
     assert(arrayLength >= count);
     final List<Object?> array = this.array;
@@ -617,6 +625,7 @@ class StackImpl implements Stack {
     return isParserRecovery ? null : list;
   }
 
+  @override
   List<T>? popNonNullableList<T>(int count, List<T> list) {
     assert(arrayLength >= count);
     final List<Object?> array = this.array;
@@ -638,6 +647,7 @@ class StackImpl implements Stack {
     return isParserRecovery ? null : list;
   }
 
+  @override
   List<Object?> get values {
     final int length = arrayLength;
     final List<Object?> list =
@@ -772,5 +782,6 @@ class ParserRecovery {
   final int charOffset;
   ParserRecovery(this.charOffset);
 
+  @override
   String toString() => "ParserRecovery(@$charOffset)";
 }

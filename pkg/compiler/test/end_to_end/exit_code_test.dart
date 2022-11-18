@@ -28,7 +28,7 @@ import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/universe/world_impact.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 class TestCompiler extends Compiler {
   final String testMarker;

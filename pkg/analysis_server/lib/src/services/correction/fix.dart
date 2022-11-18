@@ -1213,6 +1213,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Remove unnecessary 'Container's in file",
   );
+  static const REMOVE_UNNECESSARY_LIBRARY_DIRECTIVE = FixKind(
+    'dart.fix.remove.unnecessaryLibraryDirective',
+    DartFixKindPriority.DEFAULT,
+    'Remove unnecessary library directive',
+  );
   static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
     'dart.fix.remove.unnecessaryParentheses',
     DartFixKindPriority.DEFAULT,

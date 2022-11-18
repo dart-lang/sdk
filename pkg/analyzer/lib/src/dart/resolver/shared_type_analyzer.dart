@@ -92,18 +92,12 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void inconsistentMatchVar(
-      {required AstNode pattern,
-      required DartType type,
-      required AstNode previousPattern,
-      required DartType previousType}) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void inconsistentMatchVarExplicitness(
-      {required AstNode pattern, required AstNode previousPattern}) {
-    throw UnimplementedError('TODO(paulberry)');
+  void inconsistentJoinedPatternVariable({
+    required PromotableElement variable,
+    required PromotableElement component,
+  }) {
+    // TODO: implement logicalOrPatternInconsistentVariablePair
+    throw UnimplementedError();
   }
 
   @override

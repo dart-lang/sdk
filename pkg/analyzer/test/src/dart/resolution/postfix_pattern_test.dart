@@ -20,7 +20,7 @@ void f(int? x) {
   if (x case var y!) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
@@ -41,7 +41,7 @@ void f(int? x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
@@ -59,7 +59,7 @@ void f(int? x) {
   if (x case var y?) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
@@ -80,7 +80,7 @@ void f(int? x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern

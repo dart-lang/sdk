@@ -4,4 +4,4 @@ files:
 filters:
   - ignoreListenerArguments
 ignored:
-  - handleRecoverableError
+  - handleExperimentNotEnabled

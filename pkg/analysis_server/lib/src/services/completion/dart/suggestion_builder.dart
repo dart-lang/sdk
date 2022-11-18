@@ -882,7 +882,8 @@ class SuggestionBuilder {
       Token targetId, ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
     var builder = ChangeBuilder(session: request.analysisSession);
-    await builder.addDartFileEdit(request.path, (builder) {
+    await builder.addDartFileEdit(request.path, createEditsForImports: false,
+        (builder) {
       builder.addReplacement(range.token(targetId), (builder) {
         builder.writeOverride(
           element,

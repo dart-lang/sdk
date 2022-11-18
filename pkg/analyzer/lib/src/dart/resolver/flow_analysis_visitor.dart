@@ -385,6 +385,11 @@ class TypeSystemOperations
   TypeSystemOperations(this.typeSystem);
 
   @override
+  bool areStructurallyEqual(DartType type1, DartType type2) {
+    return type1 == type2;
+  }
+
+  @override
   TypeClassification classifyType(DartType type) {
     if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;
@@ -454,6 +459,11 @@ class TypeSystemOperations
     var listElement = typeSystem.typeProvider.listElement;
     var listType = type.asInstanceOf(listElement);
     return listType?.typeArguments[0];
+  }
+
+  @override
+  DartType normalize(DartType type) {
+    return typeSystem.normalize(type);
   }
 
   @override

@@ -95,7 +95,7 @@ class Constants {
     w.Instructions ib = emptyTypeList.initializer;
     ib.i32_const(info.classId);
     ib.i32_const(initialIdentityHash);
-    ib.ref_null(typeInfo.struct); // Initialized later
+    ib.ref_null(w.HeapType.none); // Initialized later
     ib.i64_const(0);
     ib.array_new_fixed(arrayType, 0);
     ib.struct_new(info.struct);
@@ -282,11 +282,8 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
 
   @override
   w.ValueType visitNullConstant(NullConstant node) {
-    w.ValueType expectedType = this.expectedType;
-    w.HeapType heapType =
-        expectedType is w.RefType ? expectedType.heapType : w.HeapType.data;
-    b.ref_null(heapType);
-    return w.RefType(heapType, nullable: true);
+    b.ref_null(w.HeapType.none);
+    return const w.RefType.none(nullable: true);
   }
 
   w.ValueType _maybeBox(w.ValueType wasmType, void Function() pushValue) {
@@ -352,7 +349,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       // Create uninitialized global and function to initialize it.
       w.DefinedGlobal global =
           m.addGlobal(w.GlobalType(type.withNullability(true)));
-      global.initializer.ref_null(type.heapType);
+      global.initializer.ref_null(w.HeapType.none);
       global.initializer.end();
       w.FunctionType ftype = m.addFunctionType(const [], [type]);
       w.DefinedFunction function = m.addFunction(ftype, "$constant");

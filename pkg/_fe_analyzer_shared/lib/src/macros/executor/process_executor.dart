@@ -142,6 +142,7 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
   /// Sends the [Serializer.result] to [stdin].
   ///
   /// Json results are serialized to a `String`, and separated by newlines.
+  @override
   void sendResult(Serializer serializer) {
     if (serializationMode == SerializationMode.jsonServer) {
       outSink.writeln(jsonEncode(serializer.result));

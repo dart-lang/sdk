@@ -2216,9 +2216,9 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 16);
-  ASSERT(sizeof(UntaggedField::guarded_cid_) == 2);
-  ASSERT(sizeof(UntaggedField::is_nullable_) == 2);
+  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 20);
+  ASSERT(sizeof(UntaggedField::guarded_cid_) == 4);
+  ASSERT(sizeof(UntaggedField::is_nullable_) == 4);
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -2265,13 +2265,13 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
 
-      __ cmpw(value_cid_reg, field_cid_operand);
+      __ cmpl(value_cid_reg, field_cid_operand);
       __ j(EQUAL, &ok);
-      __ cmpw(value_cid_reg, field_nullability_operand);
+      __ cmpl(value_cid_reg, field_nullability_operand);
     } else if (value_cid == kNullCid) {
-      __ cmpw(field_nullability_operand, compiler::Immediate(value_cid));
+      __ cmpl(field_nullability_operand, compiler::Immediate(value_cid));
     } else {
-      __ cmpw(field_cid_operand, compiler::Immediate(value_cid));
+      __ cmpl(field_cid_operand, compiler::Immediate(value_cid));
     }
     __ j(EQUAL, &ok);
 
@@ -2286,16 +2286,16 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!is_complicated_field) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ cmpw(field_cid_operand, compiler::Immediate(kIllegalCid));
+      __ cmpl(field_cid_operand, compiler::Immediate(kIllegalCid));
       __ j(NOT_EQUAL, fail);
 
       if (value_cid == kDynamicCid) {
-        __ movw(field_cid_operand, value_cid_reg);
-        __ movw(field_nullability_operand, value_cid_reg);
+        __ movl(field_cid_operand, value_cid_reg);
+        __ movl(field_nullability_operand, value_cid_reg);
       } else {
         ASSERT(field_reg != kNoRegister);
-        __ movw(field_cid_operand, compiler::Immediate(value_cid));
-        __ movw(field_nullability_operand, compiler::Immediate(value_cid));
+        __ movl(field_cid_operand, compiler::Immediate(value_cid));
+        __ movl(field_nullability_operand, compiler::Immediate(value_cid));
       }
 
       __ jmp(&ok);
@@ -2304,7 +2304,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (deopt == NULL) {
       __ Bind(fail);
 
-      __ cmpw(compiler::FieldAddress(field_reg, Field::guarded_cid_offset()),
+      __ cmpl(compiler::FieldAddress(field_reg, Field::guarded_cid_offset()),
               compiler::Immediate(kDynamicCid));
       __ j(EQUAL, &ok);
 
@@ -2805,15 +2805,12 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  UNREACHABLE();
-  return NULL;
+  return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
 }
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
-  compiler->AddExceptionHandler(
-      catch_try_index(), try_index(), compiler->assembler()->CodeSize(),
-      is_generated(), catch_handler_types_, needs_stacktrace());
+  compiler->AddExceptionHandler(this);
   if (!FLAG_precompiled_mode) {
     // On lazy deoptimization we patch the optimized code here to enter the
     // deoptimization stub.
@@ -5317,6 +5314,61 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // in-range arguments, cannot create out-of-range result.
 }
 
+// Should be kept in sync with integers.cc Multiply64Hash
+static void EmitHashIntegerCodeSequence(FlowGraphCompiler* compiler) {
+  __ movq(RDX, compiler::Immediate(0x2d51));
+  __ mulq(RDX);
+  __ xorq(RAX, RDX);  // RAX = xor(hi64, lo64)
+  __ movq(RDX, RAX);
+  __ shrq(RDX, compiler::Immediate(32));
+  __ xorq(RAX, RDX);
+  __ andq(RAX, compiler::Immediate(0x3fffffff));
+}
+
+LocationSummary* HashDoubleOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RegisterLocation(RDX));
+  summary->set_temp(1, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RegisterLocation(RAX));
+  return summary;
+}
+
+void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const XmmRegister value = locs()->in(0).fpu_reg();
+  ASSERT(locs()->out(0).reg() == RAX);
+  ASSERT(locs()->temp(0).reg() == RDX);
+  const FpuRegister temp_fpu_reg = locs()->temp(1).fpu_reg();
+
+  compiler::Label hash_double;
+
+  __ cvttsd2siq(RAX, value);
+  __ cvtsi2sdq(temp_fpu_reg, RAX);
+  __ comisd(value, temp_fpu_reg);
+  __ j(PARITY_EVEN, &hash_double);  // one of the arguments is NaN
+  __ j(NOT_EQUAL, &hash_double);
+
+  // RAX has int64 value
+  EmitHashIntegerCodeSequence(compiler);
+
+  compiler::Label done;
+  __ jmp(&done);
+
+  __ Bind(&hash_double);
+  // Convert the double bits to a hash code that fits in a Smi.
+  __ movq(RAX, value);
+  __ movq(RDX, RAX);
+  __ shrq(RDX, compiler::Immediate(32));
+  __ xorq(RAX, RDX);
+  __ andq(RAX, compiler::Immediate(compiler::target::kSmiMax));
+
+  __ Bind(&done);
+}
+
 LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5329,10 +5381,6 @@ LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-// Should be kept in sync with
-//  - asm_intrinsifier_x64.cc Multiply64Hash
-//  - integers.cc Multiply64Hash
-//  - integers.dart computeHashCode
 void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
@@ -5347,13 +5395,7 @@ void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadFieldFromOffset(RAX, RAX, Mint::value_offset());
   }
 
-  __ movq(RDX, compiler::Immediate(0x2d51));  // 1b873593cc9e2d51));
-  __ mulq(RDX);
-  __ xorq(RAX, RDX);  // RAX = xor(hi64, lo64)
-  __ movq(RDX, RAX);
-  __ shrq(RDX, compiler::Immediate(32));
-  __ xorq(RAX, RDX);
-  __ andq(RAX, compiler::Immediate(0x3fffffff));
+  EmitHashIntegerCodeSequence(compiler);
   __ SmiTag(RAX);
 }
 

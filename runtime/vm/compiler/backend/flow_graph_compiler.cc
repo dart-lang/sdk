@@ -875,15 +875,14 @@ void FlowGraphCompiler::GenerateDeferredCode() {
   }
 }
 
-void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
-                                            intptr_t outer_try_index,
-                                            intptr_t pc_offset,
-                                            bool is_generated,
-                                            const Array& handler_types,
-                                            bool needs_stacktrace) {
-  exception_handlers_list_->AddHandler(try_index, outer_try_index, pc_offset,
-                                       is_generated, handler_types,
-                                       needs_stacktrace);
+void FlowGraphCompiler::AddExceptionHandler(CatchBlockEntryInstr* entry) {
+  exception_handlers_list_->AddHandler(
+      entry->catch_try_index(), entry->try_index(), assembler()->CodeSize(),
+      entry->is_generated(), entry->catch_handler_types(),
+      entry->needs_stacktrace());
+  if (is_optimizing()) {
+    RecordSafepoint(entry->locs());
+  }
 }
 
 void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {

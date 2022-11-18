@@ -2235,7 +2235,11 @@ class _RecordImpl {
   }
 
   get [#]() {
-    return #([this.#].concat(this.values.map((v) => #(v))));
+    return #([this.#].concat(this.values));
+  }
+
+  [#]() {
+    throw Error('Unimplemented');
   }
 
   [#]() {
@@ -2261,7 +2265,7 @@ class _RecordImpl {
     extensionSymbol('hashCode'),
     Object.hashAll,
     _shape,
-    hashCode,
+    _runtimeType,
     extensionSymbol('toString'),
     _shape,
     _toString);

@@ -4,115 +4,237 @@
 
 import 'type_analyzer.dart';
 
-/// Data structure for tracking all the variable bindings used by a pattern or
-/// a collection of patterns.
-class VariableBinder<Node extends Object, Variable extends Object,
-    Type extends Object> {
-  final VariableBindingCallbacks<Node, Variable, Type> _callbacks;
+/// Data structure for tracking declared pattern variables.
+///
+/// To analyze a single `case pattern when guard`:
+/// 1. Invoke [casePatternStart].
+/// 2. Invoke zero or more [add].
+/// 3. Invoke [casePatternFinish], get the set of variables `VS`.
+/// 4. Use `VS` to analyze the guard.
+///
+/// To analyze a group of `case` members of a `switch` statement, sharing
+/// the same body, and so having the shared set of pattern variables:
+/// 1. Invoke [switchStatementSharedCaseScopeStart].
+/// 2. Analyze individual `case pattern when guard` clauses.
+/// 3. Invoke [switchStatementSharedCaseScopeEmpty] if there are labels,
+///    or a `default` member.
+/// 4. Invoke [switchStatementSharedCaseScopeFinish] to get the set of
+///    variables `VS`, and use it to analyze the shared body.
+abstract class VariableBinder<Node extends Object, Variable extends Object> {
+  /// The interface for reporting error conditions up to the client.
+  final VariableBinderErrors<Node, Variable>? errors;
 
-  final Map<Variable, VariableBinding<Node>> _bindings = {};
+  /// The stack of variable sets, starting with an empty one on
+  /// [casePatternStart], or [logicalOrPatternStart].
+  List<Map<String, Variable>> _variables = [];
 
-  /// Stack reflecting the nesting of alternatives under consideration.
-  ///
-  /// Each entry in the outer list represents a nesting level of alternatives,
-  /// corresponding to a call to [startAlternatives] that has not yet been
-  /// matched by a call to [finishAlternatives].  Each inner list contains the
-  /// list of alternatives that have been passed to [startAlternative] so far
-  /// at the corresponding nesting level.
-  List<List<Node>> _alternativesStack = [];
+  /// The stack of variable sets for potentially nested (e.g. `switch` in
+  /// a closure in a `when` clause) groups of `case` members of a `switch`
+  /// statement.
+  List<_SharedCaseScope<Variable>> _sharedCaseScopes = [];
 
-  /// The innermost alternative for which variable bindings are currently being
-  /// accumulated.
-  Node? _currentAlternative;
-
-  VariableBinder(this._callbacks);
+  VariableBinder({
+    required this.errors,
+  });
 
   /// Updates the set of bindings to account for the presence of a variable
-  /// pattern.  [pattern] is the variable pattern, [variable] is the variable it
-  /// refers to, [staticType] is the static type of the variable (inferred or
-  /// declared), and [isImplicitlyTyped] indicates whether the variable pattern
-  /// had an explicit type.
-  bool add(Node pattern, Variable variable) {
-    VariableBinding<Node>? binding = _bindings[variable];
-    VariableBinderErrors<Node, Variable>? errors = _callbacks.errors;
-    if (binding == null) {
-      if (errors != null) {
-        for (List<Node> alternatives in _alternativesStack) {
-          for (int i = 0; i < alternatives.length - 1; i++) {
-            errors.missingMatchVar(alternatives[i], variable);
-          }
-        }
-      }
-      _bindings[variable] = new VariableBinding._(pattern,
-          currentAlternative: _currentAlternative);
+  /// pattern.  [name] is the name of the variable, [variable] is the object
+  /// that represents it in the client.
+  bool add(String name, Variable variable) {
+    Variable? existing = _variables.last[name];
+    if (existing == null) {
+      _variables.last[name] = variable;
       return true;
     } else {
-      if (identical(_currentAlternative, binding._latestAlternative)) {
-        errors?.matchVarOverlap(
-            pattern: pattern, previousPattern: binding._latestPattern);
-      }
-      binding._latestPattern = pattern;
-      binding._latestAlternative = _currentAlternative;
+      errors?.duplicateVariablePattern(
+        name: name,
+        original: existing,
+        duplicate: variable,
+      );
       return false;
     }
   }
 
-  /// Performs a debug check that start/finish calls were properly nested.
-  /// Should be called after all the alternatives have been visited.
+  /// Should be invoked after visiting a `case pattern` structure.  Returns
+  /// all the accumulated variables (individual and joined).
+  ///
+  /// If [sharedCaseScopeKey] is provided, it expected to be the same as
+  /// the key of the last shared case scope, and the resulting set will be
+  /// joined with the current shared case scope.
+  Map<String, Variable> casePatternFinish({
+    Object? sharedCaseScopeKey,
+  }) {
+    Map<String, Variable> variables = _variables.removeLast();
+
+    if (sharedCaseScopeKey != null) {
+      Map<String, Variable> right = variables;
+      _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.last;
+      assert(sharedScope.key == sharedCaseScopeKey);
+      Map<String, Variable>? left = sharedScope.variables;
+      if (left == null) {
+        sharedScope.variables = right;
+      } else {
+        Map<String, Variable> result = {};
+        for (MapEntry<String, Variable> leftEntry in left.entries) {
+          String name = leftEntry.key;
+          Variable leftVariable = leftEntry.value;
+          Variable? rightVariable = right[name];
+          if (rightVariable != null) {
+            result[name] = joinPatternVariables(
+              key: sharedCaseScopeKey,
+              components: [leftVariable, rightVariable],
+              isConsistent: true,
+            );
+          } else {
+            result[name] = joinPatternVariables(
+              key: sharedCaseScopeKey,
+              components: [leftVariable],
+              isConsistent: false,
+            );
+          }
+        }
+        for (MapEntry<String, Variable> rightEntry in right.entries) {
+          String name = rightEntry.key;
+          Variable rightVariable = rightEntry.value;
+          if (!left.containsKey(name)) {
+            result[name] = joinPatternVariables(
+              key: sharedCaseScopeKey,
+              components: [rightVariable],
+              isConsistent: false,
+            );
+          }
+        }
+        sharedScope.variables = result;
+      }
+    }
+
+    return variables;
+  }
+
+  /// Notifies that are new `case pattern` structure is about to be visited.
+  void casePatternStart() {
+    _variables.add({});
+  }
+
+  /// Notifies that this instance is about to be discarded.
   void finish() {
-    assert(_alternativesStack.isEmpty);
+    assert(_variables.isEmpty);
+    assert(_sharedCaseScopes.isEmpty);
   }
 
-  /// Called at the end of processing an alternative (either the left or right
-  /// hand side of a logical-or pattern, or one of the cases in a set of cases
-  /// that share a body).
-  void finishAlternative() {
-    if (_alternativesStack.last.length > 1) {
-      Node previousAlternative =
-          _alternativesStack.last[_alternativesStack.last.length - 2];
-      for (MapEntry<Variable, VariableBinding<Node>> entry
-          in _bindings.entries) {
-        VariableBinding<Node> variable = entry.value;
-        if (identical(variable._latestAlternative, previousAlternative)) {
-          // For error recovery, pretend it wasn't missing.
-          _callbacks.errors?.missingMatchVar(_currentAlternative!, entry.key);
-          variable._latestAlternative = _currentAlternative;
-        }
+  /// Returns a new variable that is a join of [components].
+  Variable joinPatternVariables({
+    required Object key,
+    required List<Variable> components,
+    required bool isConsistent,
+  });
+
+  /// Updates the binder after visiting a logical-or pattern, joins variables
+  /// from them.  If some variables are in one side of the pattern, but not
+  /// in another, they are still joined, but marked as not consistent.
+  void logicalOrPatternFinish(Node node) {
+    Map<String, Variable> right = _variables.removeLast();
+    Map<String, Variable> left = _variables.removeLast();
+    for (MapEntry<String, Variable> leftEntry in left.entries) {
+      String name = leftEntry.key;
+      Variable leftVariable = leftEntry.value;
+      Variable? rightVariable = right.remove(name);
+      if (rightVariable != null) {
+        add(
+          name,
+          joinPatternVariables(
+            key: node,
+            components: [leftVariable, rightVariable],
+            isConsistent: true,
+          ),
+        );
+      } else {
+        errors?.logicalOrPatternBranchMissingVariable(
+          node: node,
+          hasInLeft: true,
+          name: name,
+          variable: leftVariable,
+        );
+        add(
+          name,
+          joinPatternVariables(
+            key: node,
+            components: [leftVariable],
+            isConsistent: false,
+          ),
+        );
       }
+    }
+    for (MapEntry<String, Variable> rightEntry in right.entries) {
+      String name = rightEntry.key;
+      Variable rightVariable = rightEntry.value;
+      errors?.logicalOrPatternBranchMissingVariable(
+        node: node,
+        hasInLeft: false,
+        name: name,
+        variable: rightVariable,
+      );
+      add(
+        name,
+        joinPatternVariables(
+          key: node,
+          components: [rightVariable],
+          isConsistent: false,
+        ),
+      );
     }
   }
 
-  /// Called at the end of processing a set of alternatives (either a logical-or
-  /// pattern, or all of the cases in a set of cases that share a body).
-  void finishAlternatives() {
-    List<Node> alternatives = _alternativesStack.removeLast();
-    if (alternatives.isEmpty) {
-      _callbacks.errors?.assertInErrorRecovery();
-      // Do nothing; it will be as if `startAlternatives` was never called.
-    } else {
-      Node lastAlternative = alternatives.last;
-      _currentAlternative =
-          _alternativesStack.isEmpty ? null : _alternativesStack.last.last;
-      for (VariableBinding<Node> binding in _bindings.values) {
-        if (identical(binding._latestAlternative, lastAlternative)) {
-          binding._latestAlternative = _currentAlternative;
-        }
+  /// Notifies that the LHS of a logical-or pattern was visited, and the RHS
+  /// is about to be visited.
+  void logicalOrPatternFinishLeft() {
+    _variables.add({});
+  }
+
+  /// Notifies that we are about to start visiting a logical-or pattern.
+  void logicalOrPatternStart() {
+    _variables.add({});
+  }
+
+  /// Notifies that the `default` case head, or a label, was found, so that
+  /// all the variables of the current shared case scope are not consistent.
+  void switchStatementSharedCaseScopeEmpty(Object key) {
+    _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.last;
+    assert(sharedScope.key == key);
+    Map<String, Variable>? left = sharedScope.variables;
+    if (left != null) {
+      Map<String, Variable> result = {};
+      for (MapEntry<String, Variable> leftEntry in left.entries) {
+        String name = leftEntry.key;
+        Variable leftVariable = leftEntry.value;
+        result[name] = joinPatternVariables(
+          key: key,
+          components: [leftVariable],
+          isConsistent: false,
+        );
       }
+      sharedScope.variables = result;
     }
   }
 
-  /// Called at the start of processing an alternative (either the left or right
-  /// hand side of a logical-or pattern, or one of the cases in a set of cases
-  /// that share a body).
-  void startAlternative(Node alternative) {
-    _currentAlternative = alternative;
-    _alternativesStack.last.add(alternative);
+  /// Notifies that computing of the shared case scope was finished, returns
+  /// the joined set of variables.  The variables have not been checked to
+  /// have the same types (because we have not done inference, so we don't
+  /// know types for many of them), so some of them might become not
+  /// consistent later.
+  Map<String, Variable> switchStatementSharedCaseScopeFinish(Object key) {
+    assert(_variables.isEmpty);
+    _SharedCaseScope<Variable> sharedScope = _sharedCaseScopes.removeLast();
+    assert(sharedScope.key == key);
+    return sharedScope.variables ?? {};
   }
 
-  /// Called at the end of processing a set of alternatives (either a logical-or
-  /// pattern, or all of the cases in a set of cases that share a body).
-  void startAlternatives() {
-    _alternativesStack.add([]);
+  /// Notifies that computing new shared case scope should be started.
+  void switchStatementSharedCaseScopeStart(Object key) {
+    assert(_variables.isEmpty);
+    _sharedCaseScopes.add(
+      new _SharedCaseScope(key),
+    );
   }
 }
 
@@ -120,43 +242,27 @@ class VariableBinder<Node extends Object, Variable extends Object,
 /// up to the client during the "pre-visit" phase of type analysis.
 abstract class VariableBinderErrors<Node extends Object,
     Variable extends Object> extends TypeAnalyzerErrorsBase {
-  /// Called if two subpatterns of a pattern attempt to declare the same
-  /// variable (with the exception of `_` and logical-or patterns).
-  ///
-  /// [pattern] is the variable pattern that was being processed at the time the
-  /// overlap was discovered.  [previousPattern] is the previous variable
-  /// pattern that overlaps with it.
-  void matchVarOverlap({required Node pattern, required Node previousPattern});
+  /// Called when a pattern attempts to declare the variable [duplicate] that
+  /// has the same [name] as the [original] variable.
+  void duplicateVariablePattern({
+    required String name,
+    required Variable original,
+    required Variable duplicate,
+  });
 
-  /// Called if a variable is bound by one of the alternatives of a logical-or
-  /// pattern but not the other, or if it is bound by one of the cases in a set
-  /// of case clauses that share a body, but not all of them.
-  ///
-  /// [alternative] is the AST node which fails to bind the variable.  This will
-  /// either be one of the immediate sub-patterns of a logical-or pattern, or a
-  /// value of [StatementCaseInfo.node].
-  ///
-  /// [variable] is the variable that is not bound within [alternative].
-  void missingMatchVar(Node alternative, Variable variable);
+  /// Called when one of the branches has the [variable] with the [name], but
+  /// the other branch does not.
+  void logicalOrPatternBranchMissingVariable({
+    required Node node,
+    required bool hasInLeft,
+    required String name,
+    required Variable variable,
+  });
 }
 
-/// Information about how a single variable is bound within a pattern (or in the
-/// case of several case clauses that share a body, a collection of patterns).
-class VariableBinding<Node extends Object> {
-  /// The most recently seen variable pattern that binds [variable].
-  Node _latestPattern;
+class _SharedCaseScope<Variable extends Object> {
+  final Object key;
+  Map<String, Variable>? variables;
 
-  /// The alternative enclosing [_latestPattern].  This is used to detect
-  /// [TypeAnalyzerErrors.matchVarOverlap].
-  Node? _latestAlternative;
-
-  VariableBinding._(this._latestPattern, {required Node? currentAlternative})
-      : _latestAlternative = currentAlternative;
-}
-
-/// Callbacks used by [VariableBindings] to access members of [TypeAnalyzer].
-abstract class VariableBindingCallbacks<Node extends Object,
-    Variable extends Object, Type extends Object> {
-  /// Returns the interface for reporting error conditions up to the client.
-  VariableBinderErrors<Node, Variable>? get errors;
+  _SharedCaseScope(this.key);
 }

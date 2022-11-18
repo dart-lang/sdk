@@ -58,6 +58,9 @@ class DillClassBuilder extends ClassBuilderImpl {
   bool get isMacro => cls.isMacro;
 
   @override
+  bool get isSealed => cls.isSealed;
+
+  @override
   bool get isAugmentation => false;
 
   @override

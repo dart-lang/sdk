@@ -16,6 +16,7 @@ import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
@@ -27,7 +28,6 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../helpers/args_helper.dart';
-import '../helpers/memory_compiler.dart';
 
 main(List<String> args) {
   ArgParser argParser = createArgParser();

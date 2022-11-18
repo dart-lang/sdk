@@ -650,7 +650,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     __ LoadFieldFromOffset(
         kScratchReg, kCurrentTypeReg,
         target::TypeParameter::parameterized_class_id_offset(),
-        kUnsignedTwoBytes);
+        kUnsignedFourBytes);
     __ CompareImmediate(kScratchReg, kFunctionCid);
     __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
     handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
@@ -767,7 +767,7 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
   Label function_type_param;
   __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
                          target::TypeParameter::parameterized_class_id_offset(),
-                         kUnsignedTwoBytes);
+                         kUnsignedFourBytes);
   __ CompareImmediate(TypeTestABI::kScratchReg, kFunctionCid);
   __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
   handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);

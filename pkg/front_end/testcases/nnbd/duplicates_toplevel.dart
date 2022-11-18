@@ -90,7 +90,7 @@ test() {
   @topLevelMethod
   var foo;
   switch (null) {
-    case topLevelMethod;
+    case topLevelMethod:
   }
   topLevelMethod || topLevelMethod;
   topLevelMethod + 0;

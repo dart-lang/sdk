@@ -18,6 +18,7 @@ abstract class Node {
 class StringNode extends Node {
   StringNode(super.payload, super.next);
 
+  @override
   int get hash =>
       StringCanonicalizer.hashString(payload, /* start = */ 0, payload.length);
 }
@@ -30,6 +31,7 @@ class Utf8Node extends Node {
   Utf8Node(this.data, this.start, this.end, String payload, Node? next)
       : super(payload, next);
 
+  @override
   int get hash => StringCanonicalizer.hashBytes(data, start, end);
 }
 

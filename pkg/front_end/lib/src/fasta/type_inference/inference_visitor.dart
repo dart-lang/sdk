@@ -1737,8 +1737,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
+    // TODO(scheglov) Pass actual variables, not just `{}`.
     DartType scrutineeType = analyzeIfCaseStatement(node, node.expression,
-        node.pattern, node.guard, node.then, node.otherwise);
+        node.pattern, node.guard, node.then, node.otherwise, {});
     // Stack: (Expression scrutinee, Expression guard, Statement ifTrue,
     //         Statement ifFalse)
     Statement? otherwise = node.otherwise;
@@ -7454,21 +7455,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleMergedStatementCase(covariant SwitchStatement node,
-      {required int caseIndex,
-      required int executionPathIndex,
-      required int numStatements}) {
-    assert(numStatements == 1 || numStatements == 0);
-    if (numStatements == 1) {
-      // Stack: (Statement)
-      SwitchCase case_ = node.cases[executionPathIndex];
-      Statement body = case_.body;
-      Node? rewrite = popRewrite();
-      // Stack: ()
-      if (!identical(body, rewrite)) {
-        body = rewrite as Statement;
-        case_.body = body..parent = case_;
-      }
+  void handleMergedStatementCase(
+    covariant SwitchStatement node, {
+    required int caseIndex,
+  }) {
+    // Stack: (Statement)
+    SwitchCase case_ = node.cases[caseIndex];
+    Statement body = case_.body;
+    Node? rewrite = popRewrite();
+    // Stack: ()
+    if (!identical(body, rewrite)) {
+      body = rewrite as Statement;
+      case_.body = body..parent = case_;
     }
   }
 
@@ -7477,23 +7475,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       get flow => flowAnalysis;
 
   @override
-  SwitchExpressionMemberInfo<Node, Expression> getSwitchExpressionMemberInfo(
-      Expression node, int index) {
+  SwitchExpressionMemberInfo<Node, Expression, VariableDeclaration>
+      getSwitchExpressionMemberInfo(Expression node, int index) {
     throw new UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  SwitchStatementMemberInfo<Node, Statement, Expression>
+  SwitchStatementMemberInfo<Node, Statement, Expression, VariableDeclaration>
       getSwitchStatementMemberInfo(
           covariant SwitchStatement node, int caseIndex) {
     SwitchCaseImpl case_ = node.cases[caseIndex] as SwitchCaseImpl;
     return new SwitchStatementMemberInfo([
       for (Expression expression in case_.expressions)
-        new CaseHeadOrDefaultInfo(pattern: expression),
-      if (case_.isDefault) new CaseHeadOrDefaultInfo(pattern: null)
+        new CaseHeadOrDefaultInfo(
+          pattern: expression,
+          // TODO(scheglov) pass actual variables, not just `{}`.
+          variables: {},
+        ),
+      if (case_.isDefault)
+        new CaseHeadOrDefaultInfo(
+          pattern: null,
+          variables: {},
+        )
     ], [
       case_.body
-    ], labels: case_.hasLabel ? [case_] : const []);
+    ], {}, hasLabels: case_.hasLabel);
+    // TODO(scheglov) pass actual variables, not just `{}`.
   }
 
   @override
@@ -7521,7 +7528,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleCase_afterCaseHeads(Statement node, int caseIndex, int numHeads) {}
+  void handleCase_afterCaseHeads(
+      Statement node, int caseIndex, Iterable<VariableDeclaration> variables) {}
 
   @override
   void handleDefault(Node node, int caseIndex) {}
@@ -7608,8 +7616,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    DartType inferredType = analyzeVariablePattern(
-        matchedType, context, binder, binder.variable, binder.type);
+    DartType inferredType = analyzeVariablePattern(matchedType, context, binder,
+        binder.variable, binder.variable.name, binder.type);
     instrumentation?.record(uriForInstrumentation, binder.variable.fileOffset,
         'type', new InstrumentationValueForType(inferredType));
     if (binder.type == null) {
@@ -7741,13 +7749,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   shared.RecordType<DartType>? asRecordType(DartType type) {
-    // TODO: implement asRecordType
+    // TODO(scheglov): implement asRecordType
     throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
-  DartType recordType(shared.RecordType<DartType> type) {
-    // TODO: implement recordType
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
+    // TODO(scheglov): implement recordType
     throw new UnimplementedError('TODO(scheglov)');
   }
 
@@ -7756,13 +7766,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required Pattern pattern,
   }) {
-    // TODO: implement downwardInferObjectPatternRequiredType
+    // TODO(scheglov): implement downwardInferObjectPatternRequiredType
     throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
   void dispatchCollectionElement(Node element, Object? context) {
-    // TODO: implement dispatchCollectionElement
+    // TODO(scheglov): implement dispatchCollectionElement
     throw new UnimplementedError('TODO(scheglov)');
   }
 
@@ -7771,19 +7781,44 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {
-    // TODO: implement resolveObjectPatternPropertyGet
+    // TODO(scheglov): implement resolveObjectPatternPropertyGet
     throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
   void handleNoCollectionElement(Node element) {
-    // TODO: implement handleNoCollectionElement
+    // TODO(scheglov): implement handleNoCollectionElement
     throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
+  }
+
+  @override
+  DartType getVariableType(VariableDeclaration node) {
+    // TODO(scheglov): implement getVariableType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void finishJoinedPatternVariable(
+    VariableDeclaration variable, {
+    required bool isConsistent,
+    required bool isFinal,
+    required DartType type,
+  }) {
+    // TODO(scheglov): implement finishJoinedPatternVariable
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  List<VariableDeclaration>? getJoinedVariableComponents(
+    VariableDeclaration variable,
+  ) {
+    // TODO(scheglov): implement getJoinedVariableComponents
+    throw new UnimplementedError('TODO(scheglov)');
   }
 }
 

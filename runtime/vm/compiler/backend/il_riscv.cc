@@ -2621,9 +2621,9 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 16);
-  ASSERT(sizeof(UntaggedField::guarded_cid_) == 2);
-  ASSERT(sizeof(UntaggedField::is_nullable_) == 2);
+  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 20);
+  ASSERT(sizeof(UntaggedField::guarded_cid_) == 4);
+  ASSERT(sizeof(UntaggedField::is_nullable_) == 4);
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -2670,17 +2670,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
       compiler::Label skip_length_check;
-      __ lhu(TMP, field_cid_operand);
+      __ lw(TMP, field_cid_operand);
       __ CompareRegisters(value_cid_reg, TMP);
       __ BranchIf(EQ, &ok);
-      __ lhu(TMP, field_nullability_operand);
+      __ lw(TMP, field_nullability_operand);
       __ CompareRegisters(value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      __ lhu(value_cid_reg, field_nullability_operand);
+      __ lw(value_cid_reg, field_nullability_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     } else {
       compiler::Label skip_length_check;
-      __ lhu(value_cid_reg, field_cid_operand);
+      __ lw(value_cid_reg, field_cid_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     }
     __ BranchIf(EQ, &ok);
@@ -2694,17 +2694,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ lhu(TMP, field_cid_operand);
+      __ lw(TMP, field_cid_operand);
       __ CompareImmediate(TMP, kIllegalCid);
       __ BranchIf(NE, fail);
 
       if (value_cid == kDynamicCid) {
-        __ sh(value_cid_reg, field_cid_operand);
-        __ sh(value_cid_reg, field_nullability_operand);
+        __ sw(value_cid_reg, field_cid_operand);
+        __ sw(value_cid_reg, field_nullability_operand);
       } else {
         __ LoadImmediate(TMP, value_cid);
-        __ sh(TMP, field_cid_operand);
-        __ sh(TMP, field_nullability_operand);
+        __ sw(TMP, field_cid_operand);
+        __ sw(TMP, field_nullability_operand);
       }
 
       __ j(&ok);
@@ -3122,15 +3122,12 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  UNREACHABLE();
-  return nullptr;
+  return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
 }
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
-  compiler->AddExceptionHandler(
-      catch_try_index(), try_index(), compiler->assembler()->CodeSize(),
-      is_generated(), catch_handler_types_, needs_stacktrace());
+  compiler->AddExceptionHandler(this);
   if (!FLAG_precompiled_mode) {
     // On lazy deoptimization we patch the optimized code here to enter the
     // deoptimization stub.
@@ -5144,6 +5141,169 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+// Should be kept in sync with integers.cc Multiply64Hash
+#if XLEN == 32
+static void EmitHashIntegerCodeSequence(FlowGraphCompiler* compiler,
+                                        const Register value_lo,
+                                        const Register value_hi,
+                                        const Register result) {
+  ASSERT(value_lo != TMP);
+  ASSERT(value_lo != TMP2);
+  ASSERT(value_hi != TMP);
+  ASSERT(value_hi != TMP2);
+  ASSERT(result != TMP);
+  ASSERT(result != TMP2);
+
+  __ LoadImmediate(TMP, 0x2d51);
+  // (value_hi:value_lo) * (0:TMP) =
+  //   value_lo * TMP + (value_hi * TMP) * 2^32 =
+  //   lo32(value_lo * TMP) +
+  //     (hi32(value_lo * TMP) + lo32(value_hi * TMP) * 2^32 +
+  //     hi32(value_hi * TMP) * 2^64
+  __ mulhu(TMP2, value_lo, TMP);
+  __ mul(result, value_lo, TMP);  // (TMP2:result) = lo32 * 0x2d51
+  __ mulhu(value_lo, value_hi, TMP);
+  __ mul(TMP, value_hi, TMP);  // (value_lo:TMP) = hi32 * 0x2d51
+  __ add(TMP, TMP, TMP2);
+  //  (0:value_lo:TMP:result) is 128-bit product
+  __ xor_(result, value_lo, result);
+  __ xor_(result, TMP, result);
+  __ AndImmediate(result, result, 0x3fffffff);
+}
+
+#else
+static void EmitHashIntegerCodeSequence(FlowGraphCompiler* compiler,
+                                        const Register value,
+                                        const Register result) {
+  ASSERT(value != TMP);
+  ASSERT(result != TMP);
+  __ LoadImmediate(TMP, 0x2d51);
+  __ mul(result, TMP, value);
+  __ mulhu(TMP, TMP, value);
+  __ xor_(result, result, TMP);
+  __ srai(TMP, result, 32);
+  __ xor_(result, result, TMP);
+  __ AndImmediate(result, result, 0x3fffffff);
+}
+
+#endif
+
+LocationSummary* HashDoubleOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kNativeLeafCall);
+
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
+  summary->set_temp(2, Location::RequiresFpuRegister());
+#if XLEN == 32
+  summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+#else
+  summary->set_out(0, Location::RequiresRegister());
+#endif
+  return summary;
+}
+
+void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const FpuRegister value = locs()->in(0).fpu_reg();
+#if XLEN == 32
+  const PairLocation* out_pair = locs()->out(0).AsPairLocation();
+  const Register result = out_pair->At(0).reg();
+  const Register result_hi = out_pair->At(1).reg();
+#else
+  const Register result = locs()->out(0).reg();
+#endif
+  const Register temp = locs()->temp(0).reg();
+  const Register temp1 = locs()->temp(1).reg();
+  const FpuRegister temp_double = locs()->temp(2).fpu_reg();
+
+  compiler::Label hash_double, hash_double_value, hash_integer;
+  compiler::Label slow_path, done;
+  __ fclassd(temp, value);
+  __ TestImmediate(temp, kFClassSignallingNan | kFClassQuietNan |
+                             kFClassNegInfinity | kFClassPosInfinity);
+  __ BranchIf(NOT_ZERO, &hash_double_value);
+#if XLEN == 32
+  __ fcvtwd(temp1, value, RTZ);
+  __ fcvtdw(temp_double, temp1);
+#else
+  __ fcvtld(temp1, value, RTZ);
+  __ fcvtdl(temp_double, temp1);
+#endif
+  __ feqd(temp, value, temp_double);
+  __ CompareImmediate(temp, 1);
+  __ BranchIf(NE, &hash_double_value);
+#if XLEN == 32
+  // integer hash of (0:temp1)
+  __ srai(temp, temp1, XLEN - 1);  // SignFill
+  __ Bind(&hash_integer);
+  // integer hash of (temp, temp1)
+  EmitHashIntegerCodeSequence(compiler, temp1, temp, result);
+#else
+  // integer hash of temp1
+  __ Bind(&hash_integer);
+  EmitHashIntegerCodeSequence(compiler, temp1, result);
+#endif
+  __ j(&done);
+
+  __ Bind(&slow_path);
+  // double value is potentially doesn't fit into Smi range, so
+  // do the double->int64->double via runtime call.
+  __ StoreDToOffset(value, THR,
+                    compiler::target::Thread::unboxed_runtime_arg_offset());
+  {
+    compiler::LeafRuntimeScope rt(compiler->assembler(), /*frame_size=*/0,
+                                  /*preserve_registers=*/true);
+    __ mv(A0, THR);
+    // Check if double can be represented as int64, load it into (temp:EAX) if
+    // it can.
+    rt.Call(kTryDoubleAsIntegerRuntimeEntry, 1);
+    __ mv(TMP, A0);
+  }
+#if XLEN == 32
+  __ LoadFromOffset(temp1, THR,
+                    compiler::target::Thread::unboxed_runtime_arg_offset());
+  __ LoadFromOffset(temp, THR,
+                    compiler::target::Thread::unboxed_runtime_arg_offset() +
+                        compiler::target::kWordSize);
+#else
+  __ fmvxd(temp1, value);
+  __ srli(temp, temp1, 32);
+#endif
+  __ CompareImmediate(TMP, 0);
+  __ BranchIf(NE, &hash_integer);
+  __ j(&hash_double);
+
+#if XLEN == 32
+  __ Bind(&hash_double_value);
+  __ StoreDToOffset(value, THR,
+                    compiler::target::Thread::unboxed_runtime_arg_offset());
+  __ LoadFromOffset(temp1, THR,
+                    compiler::target::Thread::unboxed_runtime_arg_offset());
+  __ LoadFromOffset(temp, THR,
+                    compiler::target::Thread::unboxed_runtime_arg_offset() +
+                        compiler::target::kWordSize);
+#else
+  __ Bind(&hash_double_value);
+  __ fmvxd(temp1, value);
+  __ srli(temp, temp1, 32);
+#endif
+
+  // double hi/lo words are in (temp:temp1)
+  __ Bind(&hash_double);
+  __ xor_(result, temp1, temp);
+  __ AndImmediate(result, result, compiler::target::kSmiMax);
+
+  __ Bind(&done);
+#if XLEN == 32
+  __ xor_(result_hi, result_hi, result_hi);
+#endif
+}
+
 LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5162,10 +5322,6 @@ LocationSummary* HashIntegerOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-// Should be kept in sync with
-//  - asm_intrinsifier_x64.cc Multiply64Hash
-//  - integers.cc Multiply64Hash
-//  - integers.dart computeHashCode
 void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   Register value = locs()->in(0).reg();
@@ -5181,38 +5337,15 @@ void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            Mint::value_offset() + compiler::target::kWordSize);
     __ LoadFieldFromOffset(value, value, Mint::value_offset());
   }
-  Register value_lo = value;
-
-  __ LoadImmediate(TMP, 0x2d51);
-  // (value_hi:value_lo) * (0:TMP) =
-  //   value_lo * TMP + (value_hi * TMP) * 2^32 =
-  //   lo32(value_lo * TMP) +
-  //     (hi32(value_lo * TMP) + lo32(value_hi * TMP) * 2^32 +
-  //     hi32(value_hi * TMP) * 2^64
-  __ mulhu(TMP2, value_lo, TMP);
-  __ mul(result, value_lo, TMP);  // (TMP2:result) = lo32 * 0x2d51
-  __ mulhu(value_lo, value_hi, TMP);
-  __ mul(TMP, value_hi, TMP);  // (value_lo:TMP) = hi32 * 0x2d51
-  __ add(TMP, TMP, TMP2);
-  //  (0:value_lo:TMP:result) is 128-bit product
-  __ xor_(result, value_lo, result);
-  __ xor_(result, TMP, result);
+  EmitHashIntegerCodeSequence(compiler, value, value_hi, result);
 #else
   if (smi_) {
     __ SmiUntag(value);
   } else {
     __ LoadFieldFromOffset(value, value, Mint::value_offset());
   }
-
-  __ LoadImmediate(TMP, 0x2d51);
-  __ mul(result, TMP, value);
-  __ mulhu(TMP, TMP, value);
-  __ xor_(result, result, TMP);
-  __ srai(TMP, result, 32);
-  __ xor_(result, result, TMP);
+  EmitHashIntegerCodeSequence(compiler, value, result);
 #endif
-
-  __ AndImmediate(result, result, 0x3fffffff);
   __ SmiTag(result);
 }
 

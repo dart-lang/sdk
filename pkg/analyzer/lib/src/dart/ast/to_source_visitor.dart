@@ -150,8 +150,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitCaseClause(CaseClause node) {
     sink.write('case ');
-    _visitNode(node.pattern);
-    _visitNode(node.whenClause, prefix: ' ');
+    _visitNode(node.guardedPattern);
   }
 
   @override
@@ -445,14 +444,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitExtractorPattern(ExtractorPattern node) {
-    _visitNode(node.type);
-    sink.write('(');
-    _visitNodeList(node.fields, separator: ', ');
-    sink.write(')');
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -652,6 +643,12 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(' = ');
     _visitNode(node.type);
     sink.write(';');
+  }
+
+  @override
+  void visitGuardedPattern(GuardedPattern node) {
+    _visitNode(node.pattern);
+    _visitNode(node.whenClause, prefix: ' ');
   }
 
   @override
@@ -901,6 +898,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitNullLiteral(NullLiteral node) {
     sink.write('null');
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    _visitNode(node.type);
+    sink.write('(');
+    _visitNodeList(node.fields, separator: ', ');
+    sink.write(')');
   }
 
   @override
@@ -1219,8 +1224,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     sink.write('case ');
-    _visitNode(node.pattern);
-    _visitNode(node.whenClause, prefix: ' ');
+    _visitNode(node.guardedPattern);
     sink.write(' => ');
     _visitNode(node.expression);
   }
@@ -1235,8 +1239,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     sink.write('case ');
-    _visitNode(node.pattern);
-    _visitNode(node.whenClause, prefix: ' ');
+    _visitNode(node.guardedPattern);
     sink.write(': ');
     _visitNodeList(node.statements, separator: ' ');
   }

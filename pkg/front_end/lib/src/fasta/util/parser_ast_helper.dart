@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
@@ -2752,6 +2753,17 @@ abstract class AbstractParserAstListener implements Listener {
     RecoverableErrorHandle data = new RecoverableErrorHandle(
         ParserAstType.HANDLE,
         message: message,
+        startToken: startToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    ExperimentNotEnabledHandle data = new ExperimentNotEnabledHandle(
+        ParserAstType.HANDLE,
+        experimentalFlag: experimentalFlag,
         startToken: startToken,
         endToken: endToken);
     seen(data);
@@ -7731,6 +7743,25 @@ class RecoverableErrorHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "message": message,
+        "startToken": startToken,
+        "endToken": endToken,
+      };
+}
+
+class ExperimentNotEnabledHandle extends ParserAstNode {
+  final ExperimentalFlag experimentalFlag;
+  final Token startToken;
+  final Token endToken;
+
+  ExperimentNotEnabledHandle(ParserAstType type,
+      {required this.experimentalFlag,
+      required this.startToken,
+      required this.endToken})
+      : super("ExperimentNotEnabled", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "experimentalFlag": experimentalFlag,
         "startToken": startToken,
         "endToken": endToken,
       };

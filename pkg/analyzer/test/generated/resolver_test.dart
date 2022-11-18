@@ -26,6 +26,7 @@ main() {
 
 @reflectiveTest
 class ErrorResolverTest extends PubPackageResolutionTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_breakLabelOnSwitchMember() async {
     await assertErrorsInCode(r'''
 class A {

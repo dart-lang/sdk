@@ -6,6 +6,8 @@ library _fe_analyzer_shared.parser.parser;
 
 import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
 
+import '../experiments/flags.dart';
+
 import '../messages/codes.dart' as codes;
 
 import '../scanner/scanner.dart' show ErrorToken, Token;
@@ -3434,10 +3436,8 @@ class Parser {
         // TODO(danrubel): Remove when extension methods are enabled by default
         // because then 'extension' will be interpreted as a built-in
         // and this code will never be executed
-        reportRecoverableError(
-            beforeType.next!,
-            codes.templateExperimentNotEnabled
-                .withArguments('extension-methods', '2.6'));
+        reportExperimentNotEnabled(ExperimentalFlag.extensionMethods,
+            beforeType.next!, beforeType.next!);
         token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
       } else {
         token = ensureSemicolon(token);
@@ -4482,11 +4482,8 @@ class Parser {
             optional(">", operator.next!) &&
             operator.charEnd == operator.next!.charOffset) {
           // Special case use of triple-shift in cases where it isn't enabled.
-          reportRecoverableErrorWithEnd(
-              operator,
-              operator.next!,
-              codes.templateExperimentNotEnabled
-                  .withArguments("triple-shift", "2.14"));
+          reportExperimentNotEnabled(
+              ExperimentalFlag.tripleShift, operator, operator.next!);
           operator = rewriter.replaceNextTokensWithSyntheticToken(
               name, /* count = */ 2, TokenType.GT_GT_GT);
         }
@@ -5554,11 +5551,8 @@ class Parser {
           if (optional(">=", next.next!)) {
             // Special case use of triple-shift in cases where it isn't
             // enabled.
-            reportRecoverableErrorWithEnd(
-                next,
-                next.next!,
-                codes.templateExperimentNotEnabled
-                    .withArguments("triple-shift", "2.14"));
+            reportExperimentNotEnabled(
+                ExperimentalFlag.tripleShift, next, next.next!);
             assert(next == operator);
             next = rewriter.replaceNextTokensWithSyntheticToken(
                 token, /* count = */ 2, TokenType.GT_GT_GT_EQ);
@@ -5649,11 +5643,8 @@ class Parser {
             if (optional(">", next.next!)) {
               // Special case use of triple-shift in cases where it isn't
               // enabled.
-              reportRecoverableErrorWithEnd(
-                  next,
-                  next.next!,
-                  codes.templateExperimentNotEnabled
-                      .withArguments("triple-shift", "2.14"));
+              reportExperimentNotEnabled(
+                  ExperimentalFlag.tripleShift, next, next.next!);
               assert(next == operator);
               next = rewriter.replaceNextTokensWithSyntheticToken(
                   token, /* count = */ 2, TokenType.GT_GT_GT);
@@ -8721,6 +8712,11 @@ class Parser {
   void reportRecoverableErrorWithEnd(
       Token startToken, Token endToken, codes.Message message) {
     listener.handleRecoverableError(message, startToken, endToken);
+  }
+
+  void reportExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    listener.handleExperimentNotEnabled(experimentalFlag, startToken, endToken);
   }
 
   void reportRecoverableErrorWithToken(

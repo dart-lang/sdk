@@ -1788,6 +1788,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int endOffset,
       int supertypeOffset,
       {required bool isMacro,
+      required bool isSealed,
       required bool isAugmentation}) {
     _addClass(
         TypeParameterScopeKind.classDeclaration,
@@ -1803,6 +1804,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         endOffset,
         supertypeOffset,
         isMacro: isMacro,
+        isSealed: isSealed,
         isAugmentation: isAugmentation);
   }
 
@@ -1843,6 +1845,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         endOffset,
         supertypeOffset,
         isMacro: false,
+        // TODO(kallentu): Support for sealed mixins
+        isSealed: false,
         isAugmentation: isAugmentation);
   }
 
@@ -1860,6 +1864,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int endOffset,
       int supertypeOffset,
       {required bool isMacro,
+      required bool isSealed,
       required bool isAugmentation}) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
@@ -1914,6 +1919,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         _currentClassReferencesFromIndexed,
         isMixinDeclaration: isMixinDeclaration,
         isMacro: isMacro,
+        isSealed: isSealed,
         isAugmentation: isAugmentation);
 
     constructorReferences.clear();
@@ -2189,6 +2195,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     View? referenceFrom = referencesFromIndexed?.lookupView(name);
 
+    SourceFieldBuilder? representationFieldBuilder;
+    outer:
+    for (Builder? member in members.values) {
+      while (member != null) {
+        if (!member.isDuplicate &&
+            member is SourceFieldBuilder &&
+            !member.isStatic) {
+          representationFieldBuilder = member;
+          break outer;
+        }
+        member = member.next;
+      }
+    }
+
     ViewBuilder viewBuilder = new SourceViewBuilder(
         metadata,
         modifiers,
@@ -2199,7 +2219,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         startOffset,
         nameOffset,
         endOffset,
-        referenceFrom);
+        referenceFrom,
+        representationFieldBuilder);
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, viewBuilder);

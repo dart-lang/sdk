@@ -112,7 +112,7 @@ class Globals {
         if (type is w.RefType) {
           w.HeapType heapType = type.heapType;
           if (type.nullable) {
-            b.ref_null(heapType);
+            b.ref_null(heapType.bottomType);
           } else {
             b.global_get(_prepareDummyValue(type)!);
           }

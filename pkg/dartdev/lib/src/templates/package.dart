@@ -40,14 +40,11 @@ class PackageGenerator extends DefaultGenerator {
 }
 
 final String _gitignore = '''
-# Files and directories created by pub.
+# https://dart.dev/guides/libraries/private-files
+# Created by `dart pub`
 .dart_tool/
-.packages
 
-# Conventional directory for build outputs.
-build/
-
-# Omit committing pubspec.lock for library packages; see
+# Avoid committing pubspec.lock for library packages; see
 # https://dart.dev/guides/libraries/private-files#pubspeclock.
 pubspec.lock
 ''';

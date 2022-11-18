@@ -19,7 +19,19 @@ main() {
 
 @reflectiveTest
 class CaseExpressionTypeImplementsEqualsTest extends PubPackageResolutionTest
-    with CaseExpressionTypeImplementsEqualsTestCases {}
+    with CaseExpressionTypeImplementsEqualsTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_implements() {
+    return super.test_implements();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_Object() {
+    return super.test_Object();
+  }
+}
 
 @reflectiveTest
 class CaseExpressionTypeImplementsEqualsTest_Language218

@@ -315,9 +315,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => visitExpression(node);
 
   @override
-  R? visitExtractorPattern(ExtractorPattern node) => visitDartPattern(node);
-
-  @override
   R? visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
 
   @override
@@ -399,6 +396,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitGenericTypeAlias(GenericTypeAlias node) => visitTypeAlias(node);
+
+  @override
+  R? visitGuardedPattern(GuardedPattern node) => visitNode(node);
 
   @override
   R? visitHideCombinator(HideCombinator node) => visitCombinator(node);
@@ -521,6 +521,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNullLiteral(NullLiteral node) => visitLiteral(node);
+
+  @override
+  R? visitObjectPattern(ObjectPattern node) => visitDartPattern(node);
 
   @override
   R? visitOnClause(OnClause node) => visitNode(node);
@@ -1070,12 +1073,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitExtractorPattern(ExtractorPattern node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitFieldDeclaration(FieldDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -1191,6 +1188,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitGenericTypeAlias(GenericTypeAlias node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitGuardedPattern(GuardedPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1371,6 +1374,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNullLiteral(NullLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitObjectPattern(ObjectPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1907,9 +1916,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => null;
 
   @override
-  R? visitExtractorPattern(ExtractorPattern node) => null;
-
-  @override
   R? visitFieldDeclaration(FieldDeclaration node) => null;
 
   @override
@@ -1971,6 +1977,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitGenericTypeAlias(GenericTypeAlias node) => null;
+
+  @override
+  R? visitGuardedPattern(GuardedPattern node) => null;
 
   @override
   R? visitHideCombinator(HideCombinator node) => null;
@@ -2063,6 +2072,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNullLiteral(NullLiteral node) => null;
+
+  @override
+  R? visitObjectPattern(ObjectPattern node) => null;
 
   @override
   R? visitOnClause(OnClause node) => null;
@@ -2422,9 +2434,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => _throw(node);
 
   @override
-  R? visitExtractorPattern(ExtractorPattern node) => _throw(node);
-
-  @override
   R? visitFieldDeclaration(FieldDeclaration node) => _throw(node);
 
   @override
@@ -2489,6 +2498,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
+
+  @override
+  R? visitGuardedPattern(GuardedPattern node) => _throw(node);
 
   @override
   R? visitHideCombinator(HideCombinator node) => _throw(node);
@@ -2582,6 +2594,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNullLiteral(NullLiteral node) => _throw(node);
+
+  @override
+  R? visitObjectPattern(ObjectPattern node) => _throw(node);
 
   @override
   R? visitOnClause(OnClause node) => _throw(node);
@@ -3201,14 +3216,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitExtractorPattern(ExtractorPattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitExtractorPattern(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitFieldDeclaration(FieldDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFieldDeclaration(node);
@@ -3364,6 +3371,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitGenericTypeAlias(GenericTypeAlias node) {
     stopwatch.start();
     T? result = _baseVisitor.visitGenericTypeAlias(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitGuardedPattern(GuardedPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitGuardedPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3604,6 +3619,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitNullLiteral(NullLiteral node) {
     stopwatch.start();
     T? result = _baseVisitor.visitNullLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitObjectPattern(ObjectPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitObjectPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -4273,9 +4296,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => visitNode(node);
 
   @override
-  R? visitExtractorPattern(ExtractorPattern node) => visitNode(node);
-
-  @override
   R? visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
 
   @override
@@ -4342,6 +4362,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
+
+  @override
+  R? visitGuardedPattern(GuardedPattern node) => visitNode(node);
 
   @override
   R? visitHideCombinator(HideCombinator node) => visitNode(node);
@@ -4441,6 +4464,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNullLiteral(NullLiteral node) => visitNode(node);
+
+  @override
+  R? visitObjectPattern(ObjectPattern node) => visitNode(node);
 
   @override
   R? visitOnClause(OnClause node) => visitNode(node);

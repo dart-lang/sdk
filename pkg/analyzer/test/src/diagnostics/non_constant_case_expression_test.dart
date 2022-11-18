@@ -17,7 +17,13 @@ main() {
 
 @reflectiveTest
 class NonConstantCaseExpressionTest extends PubPackageResolutionTest
-    with NonConstantCaseExpressionTestCases {}
+    with NonConstantCaseExpressionTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_parameter() {
+    return super.test_parameter();
+  }
+}
 
 @reflectiveTest
 class NonConstantCaseExpressionTest_Language218 extends PubPackageResolutionTest

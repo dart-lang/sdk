@@ -3388,6 +3388,18 @@ static void CopySavedRegisters(uword saved_registers_address,
 }
 #endif
 
+DEFINE_LEAF_RUNTIME_ENTRY(bool, TryDoubleAsInteger, 1, Thread* thread) {
+  double value = thread->unboxed_double_runtime_arg();
+  int64_t int_value = static_cast<int64_t>(value);
+  double converted_double = static_cast<double>(int_value);
+  if (converted_double != value) {
+    return false;
+  }
+  thread->set_unboxed_int64_runtime_arg(int_value);
+  return true;
+}
+END_LEAF_RUNTIME_ENTRY
+
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
 // The calling code must be optimized, but its function may not have

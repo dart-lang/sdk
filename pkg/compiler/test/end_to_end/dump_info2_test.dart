@@ -13,7 +13,7 @@ import 'package:dart2js_info/binary_serialization.dart' as binary;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String TEST_BASIC = r"""
 library main;

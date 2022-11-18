@@ -161,26 +161,36 @@ void f() {}
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.ANNOTATIONS,
-    });
+    expectRegions(
+      {
+        0: FoldingKind.ANNOTATIONS,
+      },
+      onlyVerify: {
+        FoldingKind.ANNOTATIONS,
+      },
+    );
   }
 
   Future<void> test_annotations_multiple() async {
     var content = '''
 @multipleAnnotations1/*[0*/(
-  "this",
+  /*[1*/"this",
   "is a test"
-)
+/*1]*/)
 @multipleAnnotations2()
 @multipleAnnotations3/*0]*/
 main3() {}
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.ANNOTATIONS,
-    });
+    expectRegions(
+      {
+        0: FoldingKind.ANNOTATIONS,
+      },
+      onlyVerify: {
+        FoldingKind.ANNOTATIONS,
+      },
+    );
   }
 
   Future<void> test_annotations_singleLine() async {
@@ -198,28 +208,31 @@ class MyClass {}
 
   Future<void> test_assertInitializer() async {
     var content = '''
-class C {/*[0*/
-  C() : assert(/*[1*/
-    true,
+class C/*[0*/ {
+  C/*[1*/() : assert(
+    /*[2*/true,
     ''
-  /*1]*/);
-/*0]*/}
+  /*2]*/);/*1]*/
+}/*0]*/
 ''';
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.CLASS_BODY,
-      1: FoldingKind.INVOCATION,
-    });
+    expectRegions(
+      {
+        0: FoldingKind.CLASS_BODY,
+        1: FoldingKind.FUNCTION_BODY,
+        2: FoldingKind.INVOCATION,
+      },
+    );
   }
 
   Future<void> test_assertStatement() async {
     var content = '''
-void f() {/*[0*/
+void f/*[0*/() {
   assert(/*[1*/
     true,
     ''
   /*1]*/);
-/*0]*/}
+}/*0]*/
 ''';
     await _computeRegions(content);
     expectRegions({
@@ -232,15 +245,15 @@ void f() {/*[0*/
     var content = '''
 // Content before
 
-class Person {/*[0*/
-  Person() {/*[1*/
+class Person/*[0*/ {
+  Person/*[1*/() {
     print("Hello, world!");
-  /*1]*/}
+  }/*1]*/
 
-  void sayHello() {/*[2*/
+  void sayHello/*[2*/() {
     print("Hello, world!");
-  /*2]*/}
-/*0]*/}
+  }/*2]*/
+}/*0]*/
 
 // Content after
 ''';
@@ -448,9 +461,9 @@ void f() {}
     var content = '''
 // Content before
 
-void f() {/*[0*/
+void f/*[0*/() {
   print("Hello, world!");
-/*0]*/}
+}/*0]*/
 
 // Content after
 ''';
@@ -465,16 +478,16 @@ void f() {/*[0*/
     var content = '''
 // Content before
 
-getFunc() => (String a, String b) {/*[0*/
+getFunc/*[0*/() => (String a, String b) {
   print(a);
-/*0]*/};
+};/*0]*/
 
-main2() {/*[1*/
+main2/*[1*/() {
   getFunc()(/*[2*/
     "one",
     "two"
   /*2]*/);
-/*1]*/}
+}/*1]*/
 
 // Content after
 ''';
@@ -493,9 +506,9 @@ main2() {/*[1*/
 
 /// This is a doc comment/*[0*/
 /// that spans lines/*0]*/
-void f() {/*[1*/
+void f/*[1*/() {
   print("Hello, world!");
-/*1]*/}
+}/*1]*/
 
 // Content after
 ''';
@@ -511,11 +524,11 @@ void f() {/*[1*/
     var content = '''
 // Content before
 
-void f() {/*[0*/
+void f/*[0*/() {
   print(/*[1*/
     "Hello, world!",
   /*1]*/);
-/*0]*/}
+}/*0]*/
 
 // Content after
 ''';
@@ -531,12 +544,12 @@ void f() {/*[0*/
     var content = '''
 // Content before
 
-void f() {/*[0*/
+void f/*[0*/() {
   final List<String> things = <String>[/*[1*/
     "one",
     "two"
   /*1]*/];
-/*0]*/}
+}/*0]*/
 
 // Content after
 ''';
@@ -552,12 +565,12 @@ void f() {/*[0*/
     var content = '''
 // Content before
 
-main2() {/*[0*/
+void f/*[0*/() {
   final Map<String, String> things = <String, String>{/*[1*/
     "one": "one",
     "two": "two"
     /*1]*/};
-/*0]*/}
+}/*0]*/
 
 // Content after
 ''';
@@ -573,7 +586,7 @@ main2() {/*[0*/
     var content = '''
 // Content before
 
-void f() {/*[0*/
+void f/*[0*/() {
   final r = (/*[1*/
     "one",
     2,
@@ -583,7 +596,7 @@ void f() {/*[0*/
     'field record',
     /*2]*/),
   /*1]*/);
-/*0]*/}
+}/*0]*/
 
 // Content after
 ''';
@@ -600,11 +613,11 @@ void f() {/*[0*/
     var content = '''
 // Content before
 
-mixin M {/*[0*/
-  void m() {/*[1*/
+mixin M/*[0*/ {
+  void m/*[1*/() {
     print("Got to m");
-  /*1]*/}
-/*0]*/}
+  }/*1]*/
+}/*0]*/
 
 // Content after
 ''';
@@ -658,12 +671,12 @@ void f() {}
     var content = '''
 // Content before
 
-void f() {/*[0*/
-  doPrint() {/*[1*/
+void f/*[0*/() {
+  doPrint/*[1*/() {
     print("Hello, world!");
-  /*1]*/}
+  }/*1]*/
   doPrint();
-/*0]*/}
+}/*0]*/
 
 // Content after
 ''';
@@ -679,7 +692,7 @@ void f() {/*[0*/
     var content = '''
 // Content before
 
-void f() {/*[0*/
+void f/*[0*/() {
   a(/*[1*/
     b(/*[2*/
       c(/*[3*/
@@ -687,7 +700,7 @@ void f() {/*[0*/
       /*3]*/),
     /*2]*/),
   /*1]*/);
-/*0]*/}
+}/*0]*/
 
 // Content after
 ''';
@@ -703,31 +716,33 @@ void f() {/*[0*/
 
   Future<void> test_parameters_function() async {
     var content = '''
-foo(/*[0*/
-  String aaaaa,
+foo/*[0*/(
+  /*[1*/String aaaaa,
   String bbbbb, {
   String ccccc,
-  }/*0]*/) {}
+  }/*1]*/) {}/*0]*/
 ''';
     await _computeRegions(content);
     expectRegions({
-      0: FoldingKind.PARAMETERS,
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.PARAMETERS,
     });
   }
 
   Future<void> test_parameters_method() async {
     var content = '''
-class C {/*[0*/
-  C(/*[1*/
-    String aaaaa,
+class C/*[0*/ {
+  C/*[1*/(
+    /*[2*/String aaaaa,
     String bbbbb,
-  /*1]*/) : super();
-/*0]*/}
+  /*2]*/) : super();/*1]*/
+}/*0]*/
 ''';
     await _computeRegions(content);
     expectRegions({
       0: FoldingKind.CLASS_BODY,
-      1: FoldingKind.PARAMETERS,
+      1: FoldingKind.FUNCTION_BODY,
+      2: FoldingKind.PARAMETERS,
     });
   }
 

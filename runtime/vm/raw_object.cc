@@ -248,12 +248,12 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       auto isolate_group = IsolateGroup::Current();
 #if defined(DEBUG)
       auto class_table = isolate_group->heap_walk_class_table();
-      ASSERT(class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
                class_id, this, static_cast<uint32_t>(tags));
       }
+      ASSERT(class_table->SizeAt(class_id) > 0);
 #endif  // DEBUG
       instance_size = isolate_group->heap_walk_class_table()->SizeAt(class_id);
     }

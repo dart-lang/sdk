@@ -574,6 +574,68 @@ class LibraryFeatures {
   LibraryFeature? _views;
   LibraryFeature get views => _views ??= globalFeatures._computeLibraryFeature(
       ExperimentalFlag.views, canonicalUri, libraryVersion);
+
+  /// Returns the [LibraryFeature] corresponding to [experimentalFlag].
+  LibraryFeature fromSharedExperimentalFlags(
+      shared.ExperimentalFlag experimentalFlag) {
+    switch (experimentalFlag) {
+      case shared.ExperimentalFlag.constFunctions:
+        return constFunctions;
+      case shared.ExperimentalFlag.constantUpdate2018:
+        return constantUpdate2018;
+      case shared.ExperimentalFlag.constructorTearoffs:
+        return constructorTearoffs;
+      case shared.ExperimentalFlag.controlFlowCollections:
+        return controlFlowCollections;
+      case shared.ExperimentalFlag.enhancedEnums:
+        return enhancedEnums;
+      case shared.ExperimentalFlag.extensionMethods:
+        return extensionMethods;
+      case shared.ExperimentalFlag.extensionTypes:
+        return extensionTypes;
+      case shared.ExperimentalFlag.genericMetadata:
+        return genericMetadata;
+      case shared.ExperimentalFlag.inferenceUpdate1:
+        return inferenceUpdate1;
+      case shared.ExperimentalFlag.inferenceUpdate2:
+        return inferenceUpdate2;
+      case shared.ExperimentalFlag.macros:
+        return macros;
+      case shared.ExperimentalFlag.namedArgumentsAnywhere:
+        return namedArgumentsAnywhere;
+      case shared.ExperimentalFlag.nonNullable:
+        return nonNullable;
+      case shared.ExperimentalFlag.nonfunctionTypeAliases:
+        return nonfunctionTypeAliases;
+      case shared.ExperimentalFlag.patterns:
+        return patterns;
+      case shared.ExperimentalFlag.records:
+        return records;
+      case shared.ExperimentalFlag.sealedClass:
+        return sealedClass;
+      case shared.ExperimentalFlag.setLiterals:
+        return setLiterals;
+      case shared.ExperimentalFlag.spreadCollections:
+        return spreadCollections;
+      case shared.ExperimentalFlag.superParameters:
+        return superParameters;
+      case shared.ExperimentalFlag.testExperiment:
+        return testExperiment;
+      case shared.ExperimentalFlag.tripleShift:
+        return tripleShift;
+      case shared.ExperimentalFlag.unnamedLibraries:
+        return unnamedLibraries;
+      case shared.ExperimentalFlag.valueClass:
+        return valueClass;
+      case shared.ExperimentalFlag.variance:
+        return variance;
+      case shared.ExperimentalFlag.views:
+        return views;
+      default:
+        throw new UnsupportedError(
+            'LibraryFeatures.fromSharedExperimentalFlags($experimentalFlag)');
+    }
+  }
 }
 
 ExperimentalFlag? parseExperimentalFlag(String flag) {
@@ -864,3 +926,36 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     ExperimentalFlag.nonNullable,
   },
 });
+const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
+  shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
+  shared.ExperimentalFlag.constantUpdate2018:
+      ExperimentalFlag.constantUpdate2018,
+  shared.ExperimentalFlag.constructorTearoffs:
+      ExperimentalFlag.constructorTearoffs,
+  shared.ExperimentalFlag.controlFlowCollections:
+      ExperimentalFlag.controlFlowCollections,
+  shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
+  shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
+  shared.ExperimentalFlag.extensionTypes: ExperimentalFlag.extensionTypes,
+  shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
+  shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
+  shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
+  shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
+  shared.ExperimentalFlag.namedArgumentsAnywhere:
+      ExperimentalFlag.namedArgumentsAnywhere,
+  shared.ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable,
+  shared.ExperimentalFlag.nonfunctionTypeAliases:
+      ExperimentalFlag.nonfunctionTypeAliases,
+  shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
+  shared.ExperimentalFlag.records: ExperimentalFlag.records,
+  shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
+  shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
+  shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
+  shared.ExperimentalFlag.superParameters: ExperimentalFlag.superParameters,
+  shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
+  shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
+  shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
+  shared.ExperimentalFlag.valueClass: ExperimentalFlag.valueClass,
+  shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
+  shared.ExperimentalFlag.views: ExperimentalFlag.views,
+};

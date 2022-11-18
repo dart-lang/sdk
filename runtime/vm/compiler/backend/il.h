@@ -470,6 +470,7 @@ struct InstrAttrs {
   M(CloneContext, _)                                                           \
   M(BinarySmiOp, kNoGC)                                                        \
   M(BinaryInt32Op, kNoGC)                                                      \
+  M(HashDoubleOp, kNoGC)                                                       \
   M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
   M(UnaryDoubleOp, kNoGC)                                                      \
@@ -2295,6 +2296,8 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   // Returns try index for the try block to which this catch handler
   // corresponds.
   intptr_t catch_try_index() const { return catch_try_index_; }
+
+  const Array& catch_handler_types() const { return catch_handler_types_; }
 
   PRINT_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(CatchBlockEntryInstr)
@@ -8444,6 +8447,46 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
+};
+
+class HashDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  HashDoubleOpInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id) {
+    SetInputAt(0, value);
+  }
+
+  static HashDoubleOpInstr* Create(Value* value, intptr_t deopt_id) {
+    return new HashDoubleOpInstr(value, deopt_id);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return GetDeoptId();
+  }
+
+  virtual Representation representation() const { return kUnboxedInt64; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  DECLARE_INSTRUCTION(HashDoubleOp)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual CompileType ComputeType() const { return CompileType::Smi(); }
+
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+
+  DECLARE_EMPTY_SERIALIZATION(HashDoubleOpInstr, TemplateDefinition)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(HashDoubleOpInstr);
 };
 
 class HashIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {

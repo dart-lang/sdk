@@ -91,10 +91,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   Extension? currentExtension;
 
+  View? currentView;
+
   TreeNode? currentParent;
 
   TreeNode? get currentClassOrExtensionOrMember =>
-      currentMember ?? currentClass ?? currentExtension;
+      currentMember ?? currentClass ?? currentExtension ?? currentView;
 
   static void check(Component component,
       {bool? isOutline,
@@ -273,6 +275,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
     currentExtension = null;
+  }
+
+  @override
+  void visitView(View node) {
+    currentView = node;
+    declareTypeParameters(node.typeParameters);
+    final TreeNode? oldParent = enterParent(node);
+    node.visitChildren(this);
+    exitParent(oldParent);
+    undeclareTypeParameters(node.typeParameters);
+    currentView = null;
   }
 
   void checkTypedef(Typedef node) {

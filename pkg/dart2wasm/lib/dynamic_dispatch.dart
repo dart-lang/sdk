@@ -507,7 +507,7 @@ class DynamicDispatcher {
     // `noSuchMethod` if the supplied number of arguments is less than the
     // number required for any given selector.
     for (int i = positionalArguments.length; i < maxParameterCount; i++) {
-      b.ref_null(translator.topInfo.nullableType.heapType);
+      b.ref_null(w.HeapType.none);
     }
     b.call(dynamicTrampolines[type]![name]!);
     return translator.topInfo.nullableType;

@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.22 Change pattern rules, following updated feature specification.
+//
 // v0.21 Add support for patterns.
 //
 // v0.20 Adjust record syntax such that () is allowed (denoting the empty
@@ -1043,7 +1045,7 @@ primaryPattern
     |    listPattern
     |    mapPattern
     |    recordPattern
-    |    extractorPattern
+    |    objectPattern
     ;
 
 castPattern
@@ -1107,15 +1109,8 @@ patternField
     :    (identifier? ':')? pattern
     ;
 
-extractorPattern
-    :    extractorName typeArguments? '(' patternFields? ')'
-    ;
-
-// TODO: Could this be a single case containing `typeName`?
-// I don't think we need `C.new` or `N1.N2.N3` or `N1.N2.new`.
-extractorName
-    :    typeIdentifier
-    |    qualifiedName
+objectPattern
+    :    typeName typeArguments? '(' patternFields? ')'
     ;
 
 patternVariableDeclaration
@@ -1127,7 +1122,7 @@ outerPattern
     |    listPattern
     |    mapPattern
     |    recordPattern
-    |    extractorPattern
+    |    objectPattern
     ;
 
 patternAssignment
@@ -1172,10 +1167,9 @@ expressionStatement
     :    expression? ';'
     ;
 
-// TODO: make it `metadata patternVariableDeclaration ';'`?
 localVariableDeclaration
     :    metadata initializedVariableDeclaration ';'
-    |    patternVariableDeclaration ';'
+    |    metadata patternVariableDeclaration ';'
     ;
 
 initializedVariableDeclaration
@@ -1199,7 +1193,7 @@ forLoopParts
     :    metadata declaredIdentifier IN expression
     |    metadata identifier IN expression
     |    forInitializerStatement expression? ';' expressionList?
-    |    ('final' | 'var') outerPattern 'in' expression
+    |    metadata (FINAL | VAR) outerPattern IN expression
     ;
 
 // The localVariableDeclaration cannot be CONST, but that can

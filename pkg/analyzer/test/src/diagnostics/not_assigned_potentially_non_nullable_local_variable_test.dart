@@ -1085,6 +1085,7 @@ void f(bool b, int e) {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_switch_case_default_continue() async {
     // We don't analyze to which `case` we go from `continue L`,
     // but we don't have to. If all cases assign, then the variable is

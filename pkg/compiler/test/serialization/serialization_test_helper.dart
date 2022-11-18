@@ -17,7 +17,7 @@ import 'package:compiler/src/serialization/strategies.dart';
 import 'package:compiler/src/serialization/task.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import '../helpers/text_helpers.dart';
 
 /// Entries in dump info that naturally differ between compilations.

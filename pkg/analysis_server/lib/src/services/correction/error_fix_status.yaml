@@ -24,11 +24,11 @@
 #   issue created for it.
 #
 # Stats:
-# - 713 "needsEvaluation"
-#   - 206 for ParserErrorCodes.
-# -  68 "needsFix"
-# - 287 "hasFix"
-# -  55 "noFix"
+# - 717 "needsEvaluation"
+#   - 220 for ParserErrorCodes.
+# -  72 "needsFix"
+# - 296 "hasFix"
+# -  57 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -683,7 +683,7 @@ CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
   status: hasFix
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
   status: hasFix
-CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME:
+CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME:
   status: noFix
 CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
   status: hasFix
@@ -2031,7 +2031,7 @@ LintCode.unnecessary_lambdas:
 LintCode.unnecessary_late:
   status: hasFix
 LintCode.unnecessary_library_directive:
-  status: needsEvaluation
+  status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.unnecessary_null_aware_assignments:
@@ -2263,6 +2263,8 @@ ParserErrorCode.EXPECTED_TOKEN:
 ParserErrorCode.EXPECTED_TYPE_NAME:
   status: needsEvaluation
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
+  status: needsEvaluation
+ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT:
   status: needsEvaluation
 ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsEvaluation

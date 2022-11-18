@@ -63,19 +63,14 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// statement or switch expression.
   final Expression? _switchScrutinee;
 
-  /// A data structure keeping track of the variable patterns seen so far and
-  /// their type information.
-  final Map<Variable, VariableTypeInfo<Pattern, Type>> typeInfos;
-
-  const MatchContext(
-      {Expression? initializer,
-      this.irrefutableContext,
-      required this.isFinal,
-      this.isLate = false,
-      Expression? switchScrutinee,
-      required this.topPattern,
-      required this.typeInfos})
-      : _initializer = initializer,
+  MatchContext({
+    Expression? initializer,
+    this.irrefutableContext,
+    required this.isFinal,
+    this.isLate = false,
+    Expression? switchScrutinee,
+    required this.topPattern,
+  })  : _initializer = initializer,
         _switchScrutinee = switchScrutinee;
 
   /// If the pattern [pattern] is the [topPattern] and there is a corresponding
@@ -100,7 +95,6 @@ class MatchContext<Node extends Object, Expression extends Node,
               isLate: isLate,
               switchScrutinee: _switchScrutinee,
               topPattern: topPattern,
-              typeInfos: typeInfos,
             );
 }
 
@@ -131,17 +125,13 @@ class SwitchStatementTypeAnalysisResult<Type> {
   /// Whether the last case body in the switch statement terminated.
   final bool lastCaseTerminates;
 
-  /// The number of case bodies in the switch statement (after merging cases
-  /// that share a body).
-  final int numExecutionPaths;
-
   /// The static type of the scrutinee expression.
   final Type scrutineeType;
 
-  SwitchStatementTypeAnalysisResult(
-      {required this.hasDefault,
-      required this.isExhaustive,
-      required this.lastCaseTerminates,
-      required this.numExecutionPaths,
-      required this.scrutineeType});
+  SwitchStatementTypeAnalysisResult({
+    required this.hasDefault,
+    required this.isExhaustive,
+    required this.lastCaseTerminates,
+    required this.scrutineeType,
+  });
 }

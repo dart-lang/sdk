@@ -24,7 +24,7 @@ void f(int x) {
       error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 41, 1,
           contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
     ]);
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
@@ -36,7 +36,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: var
     name: a
-    declaredElement: a@33
+    declaredElement: hasImplicitType a@41
+      type: int
 ''');
   }
 
@@ -52,7 +53,7 @@ void f(int x) {
       error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 52, 1,
           contextMessages: [message('/home/test/lib/test.dart', 44, 1)]),
     ]);
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
@@ -64,7 +65,8 @@ BinaryPattern
   rightOperand: VariablePattern
     keyword: var
     name: a
-    declaredElement: a@44
+    declaredElement: hasImplicitType a@52
+      type: int
 ''');
   }
 }

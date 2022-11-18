@@ -213,6 +213,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.plainInstance:
       case M.InstanceKind.mirrorReference:
       case M.InstanceKind.stackTrace:
+      case M.InstanceKind.weakReference:
       case M.InstanceKind.weakProperty:
       case M.InstanceKind.recordType:
         return true;
@@ -335,17 +336,18 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ..classes = ['stackTraceBox']
             ..text = _instance.valueAsString
         ];
+      case M.InstanceKind.weakReference:
+        return [
+          new SpanElement()..text = '<target> : ',
+          anyRef(_isolate, _loadedInstance.target, _objects, queue: _r.queue)
+        ];
       case M.InstanceKind.weakProperty:
         return [
           new SpanElement()..text = '<key> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.key, _objects,
-                  queue: _r.queue)
-              .element,
+          anyRef(_isolate, _loadedInstance.key, _objects, queue: _r.queue),
           new BRElement(),
           new SpanElement()..text = '<value> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.value, _objects,
-                  queue: _r.queue)
-              .element,
+          anyRef(_isolate, _loadedInstance.value, _objects, queue: _r.queue),
         ];
       case M.InstanceKind.recordType:
         final fields = _loadedInstance.fields.toList();

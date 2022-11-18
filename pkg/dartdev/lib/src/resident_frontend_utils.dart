@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io'
-    show File, FileSystemException, InternetAddress, Platform, Socket;
+import 'dart:io' show File, FileSystemException, InternetAddress, Socket;
+
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
+import 'analytics.dart';
 import 'resident_frontend_constants.dart';
 
 /// The Resident Frontend Compiler's shutdown command.
@@ -17,27 +18,26 @@ final residentServerShutdownCommand = jsonEncode(
   },
 );
 
-/// The path to the user's home directory
-///
-/// TODO: The current implementation gives 1 server to a user
-///   and stores the info file in the .dart directory in the user's home.
-///   This adds some fragility to the --resident command as it expects this
-///   environment variable to exist.
-///   If/when the resident frontend compiler is used without requiring the
-///   --resident flag, this reliance on the environment variable should be
-///   addressed.
-final home = Platform.isWindows
-    ? Platform.environment['USERPROFILE']!
-    : Platform.environment['HOME']!;
+// TODO: The current implementation gives 1 server to a user and stores the info
+// file in the .dart directory in the user's home. This adds some fragility to
+// the --resident command as it expects this environment variable to exist.
+//
+// If/when the resident frontend compiler is used without requiring the
+// --resident flag, this reliance on the environment variable should be
+// addressed.
 
 /// The path to the directory that stores the Resident Frontend Compiler's
 /// information file, which stores the server's address and port number.
 ///
-/// File has the form: address:__ port:__
-final defaultResidentServerInfoFile =
-    p.join(home, '.dart', 'dartdev_compilation_server_info');
+/// File has the `form: address:__ port:__`.
+File? get defaultResidentServerInfoFile {
+  var dartConfigDir = getDartStorageDirectory();
+  if (dartConfigDir == null) return null;
 
-final packageConfigName = p.join('.dart_tool', 'package_config.json');
+  return File(p.join(dartConfigDir.path, 'dartdev_compilation_server_info'));
+}
+
+final String packageConfigName = p.join('.dart_tool', 'package_config.json');
 
 /// Get the port number the Resident Frontend Compiler is listening on.
 int getPortNumber(String serverInfo) =>

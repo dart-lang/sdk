@@ -15,6 +15,7 @@ class BlockKind {
   /// If `null` the generic [templateExpectedButGot] is used instead.
   String? get missingBlockName => useNameForMissingBlock ? name : null;
 
+  @override
   String toString() => 'BlockKind($name)';
 
   static const BlockKind catchClause =

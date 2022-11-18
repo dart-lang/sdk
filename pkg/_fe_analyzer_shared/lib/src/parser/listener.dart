@@ -4,8 +4,9 @@
 
 library _fe_analyzer_shared.parser.listener;
 
-import '../messages/codes.dart'
-    show Message, MessageCode, templateExperimentNotEnabled;
+import '../experiments/errors.dart';
+import '../experiments/flags.dart';
+import '../messages/codes.dart' show Message, MessageCode;
 
 import '../scanner/token.dart' show Token;
 
@@ -1507,10 +1508,7 @@ class Listener implements UnescapeErrorListener {
 
   void reportVarianceModifierNotEnabled(Token? variance) {
     if (variance != null) {
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('variance', '2.9'),
-          variance,
-          variance);
+      handleExperimentNotEnabled(ExperimentalFlag.variance, variance, variance);
     }
   }
 
@@ -2008,6 +2006,17 @@ class Listener implements UnescapeErrorListener {
   /// highlighted. The [startToken] and [endToken] can be the same token.
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {}
+
+  /// The parser noticed a use of the experimental feature by the flag
+  /// [experimentalFlag] that was not enabled, but was able to recover from it.
+  /// The error should be reported and the code between the beginning of the
+  /// [startToken] and the end of the [endToken] should be highlighted. The
+  /// [startToken] and [endToken] can be the same token.
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    handleRecoverableError(
+        getExperimentNotEnabledMessage(experimentalFlag), startToken, endToken);
+  }
 
   /// The parser encountered an [ErrorToken] representing an error
   /// from the scanner but recovered from it. By default, the error is reported

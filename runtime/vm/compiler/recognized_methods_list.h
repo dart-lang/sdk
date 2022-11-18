@@ -322,6 +322,7 @@ namespace dart {
   V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfab46343)\
   V(_Smi, get:hashCode, Smi_hashCode, 0x75e0ccd2)                              \
   V(_Mint, get:hashCode, Mint_hashCode, 0x75e0ccd2)                            \
+  V(_Double, get:hashCode, Double_hashCode, 0x75e0ccd2)                        \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
@@ -345,8 +346,6 @@ namespace dart {
   V(_Double, -, Double_sub, 0xb8343210)                                        \
   V(_Double, *, Double_mul, 0xf9bb3c0d)                                        \
   V(_Double, /, Double_div, 0xefe9ca49)                                        \
-  V(_Double, get:hashCode, Double_hashCode, 0x75e0d093)                        \
-  V(_Double, get:_identityHashCode, Double_identityHash, 0x47a56551)           \
   V(_Double, get:isNaN, Double_getIsNaN, 0xd4890713)                           \
   V(_Double, get:isInfinite, Double_getIsInfinite, 0xc4facbd2)                 \
   V(_Double, get:isNegative, Double_getIsNegative, 0xd4715091)                 \

@@ -1998,15 +1998,18 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   str(value, dest);
 }
 
-void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  Lsr(result, tags, Operand(target::UntaggedObject::kClassIdTagPos), AL);
+void Assembler::ExtractClassIdFromTags(Register result,
+                                       Register tags,
+                                       Condition cond) {
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+  ubfx(result, tags, target::UntaggedObject::kClassIdTagPos,
+       target::UntaggedObject::kClassIdTagSize, cond);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kSizeTagPos == 8);
-  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 4);
   Lsr(result, tags,
       Operand(target::UntaggedObject::kSizeTagPos -
               target::ObjectAlignment::kObjectAlignmentLog2),
@@ -2017,12 +2020,8 @@ void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
 }
 
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  ldrh(result, FieldAddress(object, class_id_offset), cond);
+  ldr(result, FieldAddress(object, target::Object::tags_offset()), cond);
+  ExtractClassIdFromTags(result, result, cond);
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {

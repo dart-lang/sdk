@@ -21,6 +21,9 @@ enum TypeClassification {
 /// This mixin provides default implementations for some members that won't need
 /// to be overridden very frequently.
 mixin TypeOperations<Type extends Object> {
+  /// Returns `true` if [type1] and [type2] are structurally equal.
+  bool areStructurallyEqual(Type type1, Type type2);
+
   /// Classifies the given type into one of the three categories defined by
   /// the [TypeClassification] enum.
   TypeClassification classifyType(Type type);
@@ -75,6 +78,11 @@ mixin TypeOperations<Type extends Object> {
   /// If [type] is a subtype of the type `List<T>` for some `T`, returns the
   /// type `T`.  Otherwise returns `null`.
   Type? matchListType(Type type);
+
+  /// Computes `NORM` of [type].
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/normalization.md`
+  Type normalize(Type type);
 
   /// Returns the non-null promoted version of [type].
   ///

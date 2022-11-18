@@ -94,6 +94,12 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
   return DartdevAnalytics(_trackingId, settingsFile, _appName);
 }
 
+/// Return the user's home directory for the current platform.
+Directory? get homeDir {
+  var dir = Directory(userHomeDir());
+  return dir.existsSync() ? dir : null;
+}
+
 /// The directory used to store the analytics settings file.
 ///
 /// Typically, the directory is `~/.dart/` (and the settings file is
@@ -102,11 +108,12 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
 /// This can return null under some conditions, including when the user's home
 /// directory does not exist.
 Directory? getDartStorageDirectory() {
-  var homeDir = Directory(userHomeDir());
-  if (!homeDir.existsSync()) {
+  var dir = homeDir;
+  if (dir == null) {
     return null;
+  } else {
+    return Directory(path.join(dir.path, _dartDirectoryName));
   }
-  return Directory(path.join(homeDir.path, _dartDirectoryName));
 }
 
 /// The method used by dartdev to determine if this machine is a bot such as a
