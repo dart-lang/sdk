@@ -7289,9 +7289,10 @@ void RecordCoverageInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(array_temp, coverage_array_);
   __ LoadImmediate(value_temp, Smi::RawValue(1));
-  __ StoreFieldToOffset(value_temp, array_temp,
-                        Array::element_offset(coverage_index_),
-                        compiler::kObjectBytes);
+  __ StoreFieldToOffset(
+      value_temp, array_temp,
+      compiler::target::Array::element_offset(coverage_index_),
+      compiler::kObjectBytes);
 }
 
 #undef Z
