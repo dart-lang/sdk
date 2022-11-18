@@ -16,12 +16,14 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/codegen_inputs.dart';
-import '../js_backend/namer.dart' show AsyncName, Namer, StringBackedName;
+import '../js_backend/namer.dart'
+    show AsyncName, Namer, operatorNameToIdentifier, StringBackedName;
 import '../js_backend/deferred_holder_expression.dart'
     show DeferredHolderExpression;
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/js_emitter.dart' show Emitter;
+import '../js_model/elements.dart';
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
@@ -34,11 +36,7 @@ import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart';
 import '../util/util.dart';
 
-import 'codegen_interfaces.dart' as interfaces;
-import 'codegen_migrated.dart';
-export 'codegen_migrated.dart';
-
-class CodegenImpact extends WorldImpact implements interfaces.CodegenImpact {
+class CodegenImpact extends WorldImpact {
   const CodegenImpact();
 
   factory CodegenImpact.readFromDataSource(DataSourceReader source) =
@@ -48,35 +46,27 @@ class CodegenImpact extends WorldImpact implements interfaces.CodegenImpact {
     throw UnsupportedError('CodegenImpact.writeToDataSink');
   }
 
-  @override
   Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
     return const <Pair<DartType, DartType>>[];
   }
 
   Iterable<String> get constSymbols => const <String>[];
 
-  @override
   Iterable<Set<ClassEntity>> get specializedGetInterceptors {
     return const <Set<ClassEntity>>[];
   }
 
-  @override
   bool get usesInterceptor => false;
 
-  @override
   Iterable<AsyncMarker> get asyncMarkers => const <AsyncMarker>[];
 
-  @override
   Iterable<GenericInstantiation> get genericInstantiations =>
       const <GenericInstantiation>[];
 
-  @override
   Iterable<NativeBehavior> get nativeBehaviors => const [];
 
-  @override
   Iterable<FunctionEntity> get nativeMethods => const [];
 
-  @override
   Iterable<Selector> get oneShotInterceptors => const [];
 }
 
@@ -319,7 +309,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
-class CodegenRegistry implements interfaces.CodegenRegistry {
+class CodegenRegistry {
   final ElementEnvironment _elementEnvironment;
   final MemberEntity _currentElement;
   final _CodegenImpact _worldImpact;
@@ -333,98 +323,79 @@ class CodegenRegistry implements interfaces.CodegenRegistry {
   String toString() => 'CodegenRegistry for $_currentElement';
 
   @deprecated
-  @override
   void registerInstantiatedClass(ClassEntity element) {
     registerInstantiation(_elementEnvironment.getRawType(element));
   }
 
-  @override
   void registerStaticUse(StaticUse staticUse) {
     _worldImpact.registerStaticUse(staticUse);
   }
 
-  @override
   void registerDynamicUse(DynamicUse dynamicUse) {
     _worldImpact.registerDynamicUse(dynamicUse);
   }
 
-  @override
   void registerTypeUse(TypeUse typeUse) {
     _worldImpact.registerTypeUse(typeUse);
   }
 
-  @override
   void registerConstantUse(ConstantUse constantUse) {
     _worldImpact.registerConstantUse(constantUse);
   }
 
-  @override
   void registerTypeVariableBoundsSubtypeCheck(
       DartType subtype, DartType supertype) {
     _worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  @override
   void registerInstantiatedClosure(FunctionEntity element) {
     _worldImpact.registerStaticUse(StaticUse.callMethod(element));
   }
 
-  @override
   void registerConstSymbol(String name) {
     _worldImpact.registerConstSymbol(name);
   }
 
-  @override
   void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
     _worldImpact.registerSpecializedGetInterceptor(classes);
   }
 
-  @override
   void registerOneShotInterceptor(Selector selector) {
     _worldImpact.registerOneShotInterceptor(selector);
   }
 
-  @override
   void registerUseInterceptor() {
     _worldImpact.registerUseInterceptor();
   }
 
-  @override
   void registerInstantiation(InterfaceType type) {
     registerTypeUse(TypeUse.instantiation(type));
   }
 
-  @override
   void registerAsyncMarker(AsyncMarker asyncMarker) {
     _worldImpact.registerAsyncMarker(asyncMarker);
   }
 
-  @override
   void registerGenericInstantiation(GenericInstantiation instantiation) {
     _worldImpact.registerGenericInstantiation(instantiation);
   }
 
-  @override
   void registerNativeBehavior(NativeBehavior nativeBehavior) {
     _worldImpact.registerNativeBehavior(nativeBehavior);
   }
 
-  @override
   void registerNativeMethod(FunctionEntity function) {
     _worldImpact.registerNativeMethod(function);
   }
 
-  @override
   void registerModularName(covariant ModularName name) {
     _names.add(name);
   }
 
-  @override
   void registerModularExpression(covariant ModularExpression expression) {
     _expressions.add(expression);
   }
 
-  @override
   CodegenResult close(js.Fun code) {
     return CodegenResult(code, _worldImpact, _names.isEmpty ? const [] : _names,
         _expressions.isEmpty ? const [] : _expressions);
@@ -445,13 +416,13 @@ class OnDemandCodegenResults extends CodegenResults {
       this._functionCompiler);
 
   @override
-  interfaces.CodegenResult getCodegenResults(MemberEntity member) {
+  CodegenResult getCodegenResults(MemberEntity member) {
     return _functionCompiler.compile(member);
   }
 }
 
 /// The code generation result for a single [MemberEntity].
-class CodegenResult implements interfaces.CodegenResult {
+class CodegenResult {
   static const String tag = 'codegen-result';
 
   final js.Fun? code;
@@ -488,7 +459,6 @@ class CodegenResult implements interfaces.CodegenResult {
   /// The [modularNames] and [modularExpressions] fields are not directly
   /// serializes because these are embedded in the [code] node and collected
   /// through this during deserialization.
-  @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeJsNodeOrNull(code);
@@ -590,7 +560,7 @@ enum ModularExpressionKind {
 }
 
 class ModularExpression extends js.DeferredExpression
-    implements js.AstContainer, interfaces.ModularExpression {
+    implements js.AstContainer {
   static const String tag = 'modular-expression';
 
   final ModularExpressionKind kind;
@@ -1989,5 +1959,295 @@ class CodegenWriterImpl implements CodegenWriter {
   @override
   void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe) {
     recipe.writeToDataSink(sink);
+  }
+}
+
+enum ModularNameKind {
+  rtiField,
+  className,
+  aliasedSuperMember,
+  staticClosure,
+  methodProperty,
+  operatorIs,
+  instanceMethod,
+  instanceField,
+  invocation,
+  lazyInitializer,
+  globalPropertyNameForClass,
+  globalPropertyNameForMember,
+  globalNameForInterfaceTypeVariable,
+  nameForGetInterceptor,
+  nameForOneShotInterceptor,
+  asName,
+}
+
+class ModularName extends js.Name implements js.AstContainer {
+  static const String tag = 'modular-name';
+
+  final ModularNameKind kind;
+  js.Name? _value;
+  final Object? data;
+  final Set<ClassEntity>? set;
+
+  ModularName(this.kind, {this.data, this.set});
+
+  factory ModularName.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    ModularNameKind kind = source.readEnum(ModularNameKind.values);
+    Object? data;
+    Set<ClassEntity>? set;
+    switch (kind) {
+      case ModularNameKind.rtiField:
+        break;
+      case ModularNameKind.className:
+      case ModularNameKind.operatorIs:
+      case ModularNameKind.globalPropertyNameForClass:
+        data = source.readClass();
+        break;
+      case ModularNameKind.aliasedSuperMember:
+      case ModularNameKind.staticClosure:
+      case ModularNameKind.methodProperty:
+      case ModularNameKind.instanceField:
+      case ModularNameKind.instanceMethod:
+      case ModularNameKind.lazyInitializer:
+      case ModularNameKind.globalPropertyNameForMember:
+        data = source.readMember();
+        break;
+      case ModularNameKind.invocation:
+        data = Selector.readFromDataSource(source);
+        break;
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        data = source.readTypeVariable();
+        break;
+      case ModularNameKind.nameForGetInterceptor:
+        set = source.readClasses().toSet();
+        break;
+      case ModularNameKind.nameForOneShotInterceptor:
+        data = Selector.readFromDataSource(source);
+        set = source.readClasses().toSet();
+        break;
+      case ModularNameKind.asName:
+        data = source.readString();
+        break;
+    }
+    source.end(tag);
+    return ModularName(kind, data: data, set: set);
+  }
+
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.begin(tag);
+    sink.writeEnum(kind);
+    switch (kind) {
+      case ModularNameKind.rtiField:
+        break;
+      case ModularNameKind.className:
+      case ModularNameKind.operatorIs:
+      case ModularNameKind.globalPropertyNameForClass:
+        sink.writeClass(data as ClassEntity);
+        break;
+      case ModularNameKind.aliasedSuperMember:
+      case ModularNameKind.staticClosure:
+      case ModularNameKind.methodProperty:
+      case ModularNameKind.instanceField:
+      case ModularNameKind.instanceMethod:
+      case ModularNameKind.lazyInitializer:
+      case ModularNameKind.globalPropertyNameForMember:
+        sink.writeMember(data as MemberEntity);
+        break;
+      case ModularNameKind.invocation:
+        final selector = data as Selector;
+        selector.writeToDataSink(sink);
+        break;
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        final typeVariable = data as TypeVariableEntity;
+        sink.writeTypeVariable(typeVariable);
+        break;
+      case ModularNameKind.nameForGetInterceptor:
+        sink.writeClasses(set);
+        break;
+      case ModularNameKind.nameForOneShotInterceptor:
+        final selector = data as Selector;
+        selector.writeToDataSink(sink);
+        sink.writeClasses(set);
+        break;
+      case ModularNameKind.asName:
+        sink.writeString(data as String);
+        break;
+    }
+    sink.end(tag);
+  }
+
+  @override
+  bool get isFinalized => _value != null;
+
+  js.Name get value {
+    assert(isFinalized, 'value not set for $this');
+    return _value!;
+  }
+
+  void set value(js.Name node) {
+    assert(!isFinalized);
+    assert((node as dynamic) != null);
+    _value = node.withSourceInformation(sourceInformation) as js.Name;
+  }
+
+  @override
+  String get key {
+    assert(isFinalized);
+    return _value!.key;
+  }
+
+  @override
+  String get name {
+    assert(isFinalized, 'value not set for $this');
+    return _value!.name;
+  }
+
+  @override
+  bool get allowRename {
+    assert(isFinalized, 'value not set for $this');
+    return _value!.allowRename;
+  }
+
+  @override
+  Iterable<js.Node> get containedNodes {
+    return _value != null ? [_value!] : const [];
+  }
+
+  @override
+  int get hashCode {
+    return Hashing.setHash(set, Hashing.objectsHash(kind, data));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ModularName &&
+        kind == other.kind &&
+        data == other.data &&
+        equalSets(set, other.set);
+  }
+
+  @override
+  String toString() =>
+      'ModularName(kind=$kind, data=$data, value=${_value?.key})';
+
+  @override
+  String nonfinalizedDebugText() {
+    switch (kind) {
+      case ModularNameKind.rtiField:
+        return r'ModularName"$ti"';
+      case ModularNameKind.instanceField:
+        return 'ModularName"field:${(data as Entity).name}"';
+      case ModularNameKind.instanceMethod:
+        return 'ModularName"${_instanceMethodName(data as MemberEntity)}"';
+      case ModularNameKind.methodProperty:
+        return 'ModularName"methodProperty:${(data as Entity).name}"';
+      case ModularNameKind.operatorIs:
+        return 'ModularName"is:${_className(data as ClassEntity)}"';
+      case ModularNameKind.className:
+        return 'ModularName"class:${_className(data as ClassEntity)}"';
+      case ModularNameKind.globalPropertyNameForClass:
+        return 'ModularName"classref:${_className(data as ClassEntity)}"';
+      case ModularNameKind.aliasedSuperMember:
+        MemberEntity member = (data as MemberEntity);
+        String className = _className(member.enclosingClass!);
+        String invocationName = operatorNameToIdentifier(member.name)!;
+        final description = "$className.$invocationName";
+        return 'ModularName"alias:$description"';
+      case ModularNameKind.staticClosure:
+        return 'ModularName"closure:${_qualifiedStaticName(data as MemberEntity)}"';
+      case ModularNameKind.lazyInitializer:
+        return 'ModularName"lazy:${(data as MemberEntity).name}"';
+      case ModularNameKind.globalPropertyNameForMember:
+        MemberEntity member = data as MemberEntity;
+        return 'ModularName"ref:${_qualifiedStaticName(member)}"';
+      case ModularNameKind.invocation:
+        return 'ModularName"selector:${_selectorText(data as Selector)}"';
+      case ModularNameKind.nameForOneShotInterceptor:
+        return 'ModularName"oneshot:${_selectorText(data as Selector)}"';
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        break;
+      case ModularNameKind.nameForGetInterceptor:
+        return 'ModularName"getInterceptor"';
+      case ModularNameKind.asName:
+        return 'ModularName"asName:$data"';
+    }
+    return super.nonfinalizedDebugText();
+  }
+
+  String _className(ClassEntity cls) {
+    return cls.name.replaceAll('&', '_');
+  }
+
+  String _qualifiedStaticName(MemberEntity member) {
+    if (member is ConstructorEntity || member.isStatic) {
+      return '${_className(member.enclosingClass!)}.${member.name!}';
+    }
+    return member.name!;
+  }
+
+  String _instanceMethodInvocationName(MemberEntity member) {
+    String invocationName = operatorNameToIdentifier(member.name)!;
+    if (member.isGetter) invocationName = r'get$' + invocationName;
+    if (member.isSetter) invocationName = r'set$' + invocationName;
+    return invocationName;
+  }
+
+  String _instanceMethodName(MemberEntity member) {
+    if (member is ConstructorBodyEntity) {
+      return 'constructorBody:${_qualifiedStaticName(member.constructor)}';
+    }
+    if (member is JGeneratorBody) {
+      MemberEntity function = member.function;
+      return 'generatorBody:'
+          '${_className(function.enclosingClass!)}.'
+          '${_instanceMethodInvocationName(function)}';
+    }
+    return 'instanceMethod:${_instanceMethodInvocationName(member)}';
+  }
+
+  String _selectorText(Selector selector) {
+    // Approximation to unminified selector.
+    if (selector.isGetter) return r'get$' + selector.name;
+    if (selector.isSetter) return r'set$' + selector.name;
+    if (selector.isOperator || selector.isIndex || selector.isIndexSet) {
+      return operatorNameToIdentifier(selector.name)!;
+    }
+    List<String> parts = [
+      selector.name,
+      if (selector.callStructure.typeArgumentCount > 0)
+        '${selector.callStructure.typeArgumentCount}',
+      '${selector.callStructure.argumentCount}',
+      ...selector.callStructure.getOrderedNamedArguments()
+    ];
+    return parts.join(r'$');
+  }
+}
+
+/// Interface for reading the code generation results for all [MemberEntity]s.
+abstract class CodegenResults {
+  GlobalTypeInferenceResults get globalTypeInferenceResults;
+  CodegenInputs get codegenInputs;
+  CodegenResult getCodegenResults(MemberEntity member);
+}
+
+/// Deserialized code generation results.
+///
+/// This is used for modular code generation.
+class DeserializedCodegenResults extends CodegenResults {
+  @override
+  final GlobalTypeInferenceResults globalTypeInferenceResults;
+  @override
+  final CodegenInputs codegenInputs;
+
+  final Map<MemberEntity, CodegenResult> _map;
+
+  DeserializedCodegenResults(
+      this.globalTypeInferenceResults, this.codegenInputs, this._map);
+
+  @override
+  CodegenResult getCodegenResults(MemberEntity member) {
+    return _map[member]!;
   }
 }

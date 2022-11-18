@@ -11,7 +11,7 @@ import '../common.dart';
 import '../common/elements.dart' show JCommonElements;
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../common/codegen_interfaces.dart' show CodegenRegistry;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';

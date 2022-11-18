@@ -5,7 +5,7 @@
 library js_backend.backend.impact_transformer;
 
 import '../common/elements.dart';
-import '../common/codegen_interfaces.dart' show CodegenImpact;
+import '../common/codegen.dart' show CodegenImpact;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';

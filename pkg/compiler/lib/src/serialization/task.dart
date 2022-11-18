@@ -11,9 +11,7 @@ import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import 'package:front_end/src/fasta/util/bytes_sink.dart';
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart' show Flags;
-import '../common/codegen_migrated.dart';
-import '../common/codegen.dart'
-    show CodegenWriterImpl, CodegenReaderImpl, CodegenResult, ModularExpression;
+import '../common/codegen.dart';
 import '../common/tasks.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';

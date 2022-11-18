@@ -11,8 +11,7 @@ import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/codegen_interfaces.dart';
-import '../common/codegen_migrated.dart';
+import '../common/codegen.dart';
 import '../common/elements.dart' show JElementEnvironment;
 import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/constant_system.dart' as constant_system;

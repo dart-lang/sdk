@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/codegen_interfaces.dart' show CodegenResult;
+import '../common/codegen.dart' show CodegenResult;
 import '../elements/entities.dart';
 import '../js_backend/backend.dart' show FunctionCompiler;
 
