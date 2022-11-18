@@ -4,13 +4,19 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
-// Error when we try to construct a sealed class because they should
-// be implicitly abstract.
+// Error when we try to construct a sealed class or mixin because they should
+// both be implicitly abstract.
 
 sealed class NotConstructable {}
+
+sealed mixin AlsoNotConstructable {}
 
 main() {
   var error = NotConstructable();
   //          ^
   // [cfe] The class 'NotConstructable' is abstract and can't be instantiated.
+  var error2 = AlsoNotConstructable();
+  //           ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MIXIN_INSTANTIATE
+  // [cfe] Couldn't find constructor 'AlsoNotConstructable'.
 }

@@ -728,10 +728,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(Token? augmentToken, Token mixinKeyword) {
-    doPrint('parseMixin(' '$augmentToken, ' '$mixinKeyword)');
+  Token parseMixin(
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
+    doPrint('parseMixin(' '$augmentToken, ' '$sealedToken, ' '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(augmentToken, mixinKeyword);
+    var result = super.parseMixin(augmentToken, sealedToken, mixinKeyword);
     indent--;
     return result;
   }

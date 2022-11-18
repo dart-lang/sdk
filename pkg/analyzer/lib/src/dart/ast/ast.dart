@@ -2050,6 +2050,10 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// view class.
   final Token? viewKeyword;
 
+  /// The token for the 'sealed' keyword, or `null` if this is not defining a
+  /// sealed class.
+  final Token? sealedKeyword;
+
   /// The token for the 'augment' keyword, or `null` if this is not defining an
   /// augmentation class.
   final Token? augmentKeyword;
@@ -2083,6 +2087,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.abstractKeyword,
     required this.macroKeyword,
     required this.viewKeyword,
+    required this.sealedKeyword,
     required this.augmentKeyword,
     required NamedTypeImpl superclass,
     required WithClauseImpl withClause,
@@ -2107,6 +2112,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     return abstractKeyword ??
         macroKeyword ??
         viewKeyword ??
+        sealedKeyword ??
         augmentKeyword ??
         typedefKeyword;
   }
@@ -2148,6 +2154,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('viewKeyword', viewKeyword)
     ..addToken('macroKeyword', macroKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addNode('superclass', superclass)
     ..addNode('withClause', withClause)
@@ -8657,6 +8664,9 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
 
+  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  final Token? sealedKeyword;
+
   @override
   final Token mixinKeyword;
 
@@ -8697,6 +8707,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
+    required this.sealedKeyword,
     required this.mixinKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -8723,7 +8734,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return mixinKeyword;
+    return sealedKeyword ?? mixinKeyword;
   }
 
   @override
@@ -8752,6 +8763,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)

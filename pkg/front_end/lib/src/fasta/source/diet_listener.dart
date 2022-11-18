@@ -953,7 +953,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     push(mixinKeyword);
   }

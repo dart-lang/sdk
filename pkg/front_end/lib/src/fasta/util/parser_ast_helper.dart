@@ -245,9 +245,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
-        augmentToken: augmentToken, mixinKeyword: mixinKeyword, name: name);
+        augmentToken: augmentToken,
+        sealedToken: sealedToken,
+        mixinKeyword: mixinKeyword,
+        name: name);
     seen(data);
   }
 
@@ -950,14 +953,21 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
         viewToken: viewToken,
+        sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -3230,16 +3240,21 @@ class ClassDeclarationEnd extends ParserAstNode {
 
 class MixinDeclarationBegin extends ParserAstNode {
   final Token? augmentToken;
+  final Token? sealedToken;
   final Token mixinKeyword;
   final Token name;
 
   MixinDeclarationBegin(ParserAstType type,
-      {this.augmentToken, required this.mixinKeyword, required this.name})
+      {this.augmentToken,
+      this.sealedToken,
+      required this.mixinKeyword,
+      required this.name})
       : super("MixinDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "augmentToken": augmentToken,
+        "sealedToken": sealedToken,
         "mixinKeyword": mixinKeyword,
         "name": name,
       };
@@ -4501,6 +4516,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token? abstractToken;
   final Token? macroToken;
   final Token? viewToken;
+  final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
 
@@ -4509,6 +4525,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       this.abstractToken,
       this.macroToken,
       this.viewToken,
+      this.sealedToken,
       this.augmentToken,
       required this.name})
       : super("NamedMixinApplication", type);
@@ -4519,6 +4536,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "abstractToken": abstractToken,
         "macroToken": macroToken,
         "viewToken": viewToken,
+        "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,
       };

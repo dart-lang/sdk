@@ -388,8 +388,8 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
-    super.beginMixinDeclaration(augmentToken, mixinKeyword, name);
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(augmentToken, sealedToken, mixinKeyword, name);
     begin('MixinDeclaration');
   }
 
@@ -400,10 +400,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
-    super.beginNamedMixinApplication(
-        beginToken, abstractToken, macroToken, viewToken, augmentToken, name);
+  void beginNamedMixinApplication(
+      Token beginToken,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    super.beginNamedMixinApplication(beginToken, abstractToken, macroToken,
+        viewToken, sealedToken, augmentToken, name);
     begin('NamedMixinApplication');
   }
 
