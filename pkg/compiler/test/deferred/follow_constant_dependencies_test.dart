@@ -11,7 +11,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   runTest() async {

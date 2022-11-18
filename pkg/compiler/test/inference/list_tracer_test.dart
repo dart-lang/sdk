@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 import 'type_mask_test_helper.dart';
 import '../helpers/element_lookup.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 String generateTest(String listAllocation) {
   return """

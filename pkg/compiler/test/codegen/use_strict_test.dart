@@ -7,7 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 // Use strict does not allow parameters or locals named "arguments" or "eval".
 

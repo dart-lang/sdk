@@ -9,7 +9,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const TEST_SOURCE = const {
   "main.dart": r"""

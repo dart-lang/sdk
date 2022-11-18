@@ -19,7 +19,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
-import 'memory_compiler.dart' as memory;
+import 'package:compiler/src/util/memory_compiler.dart' as memory;
 
 extension DartTypeHelpers on DartType {
   T withoutNullabilityAs<T extends DartType>() => withoutNullability as T;

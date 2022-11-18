@@ -12,7 +12,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../inference/type_mask_test_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""

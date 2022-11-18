@@ -14,7 +14,7 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import 'analysis_helper.dart';
 
 const String source = '''

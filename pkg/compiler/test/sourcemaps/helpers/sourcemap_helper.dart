@@ -22,7 +22,7 @@ import 'package:compiler/src/js/js_source_mapping.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 class SourceFileSink implements api.OutputSink {
   final String filename;

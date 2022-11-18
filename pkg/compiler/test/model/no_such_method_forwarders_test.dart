@@ -11,7 +11,7 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String source = '''
 abstract class I<T> {
