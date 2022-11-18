@@ -60,10 +60,13 @@ api.CompilerDiagnostics createCompilerDiagnostics(
   api.CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
-      handler = new FormattingDiagnosticHandler(provider)..verbose = verbose;
+      handler = new FormattingDiagnosticHandler()
+        ..verbose = verbose
+        ..registerFileProvider(provider);
     } else {
-      var formattingHandler = new FormattingDiagnosticHandler(provider)
-        ..verbose = verbose;
+      var formattingHandler = new FormattingDiagnosticHandler()
+        ..verbose = verbose
+        ..registerFileProvider(provider);
       handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
