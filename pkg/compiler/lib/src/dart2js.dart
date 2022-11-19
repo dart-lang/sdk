@@ -17,6 +17,7 @@ import '../compiler_api.dart' as api;
 import '../compiler_api_unmigrated.dart' as api_unmigrated;
 import 'commandline_options.dart';
 import 'common/ram_usage.dart';
+import 'io/mapped_file.dart';
 import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
@@ -562,6 +563,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         setWriteModularAnalysis),
     OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
+    OptionHandler(Flags.memoryMappedFiles, passThrough),
     OptionHandler(Flags.noClosedWorldInData, ignoreOption),
     OptionHandler('${Flags.readClosedWorld}|${Flags.readClosedWorld}=.+',
         setReadClosedWorld),
@@ -718,22 +720,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     print("Compiler invoked from: '$invoker'");
   }
 
-  // TODO(johnniwinther): Measure time for reading files.
-  SourceFileProvider inputProvider;
-  if (bazelPaths != null) {
-    if (multiRoots != null) {
-      helpAndFail(
-          'The options --bazel-root and --multi-root cannot be supplied '
-          'together, please choose one or the other.');
-    }
-    inputProvider = BazelInputProvider(bazelPaths);
-  } else if (multiRoots != null) {
-    inputProvider = MultiRootInputProvider(multiRootScheme, multiRoots);
-  } else {
-    inputProvider = CompilerSourceFileProvider();
-  }
-
-  diagnosticHandler = FormattingDiagnosticHandler(inputProvider);
+  diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
     diagnosticHandler.verbose = verbose;
   }
@@ -932,6 +919,41 @@ Future<api.CompilationResult> compile(List<String> argv,
     options.add('--source-map=${sourceMapOut}');
   }
 
+  CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      featureOptions: features,
+      librariesSpecificationUri: librariesSpecificationUri,
+      platformBinaries: platformBinaries,
+      onError: (String message) => fail(message),
+      onWarning: (String message) => print(message))
+    ..entryUri = entryUri
+    ..inputDillUri = inputDillUri
+    ..packageConfig = packageConfig
+    ..environment = environment
+    ..kernelInitializedCompilerState = kernelInitializedCompilerState
+    ..optimizationLevel = optimizationLevel;
+
+  // TODO(johnniwinther): Measure time for reading files.
+  SourceFileByteReader byteReader = compilerOptions.memoryMappedFiles
+      ? const MemoryMapSourceFileByteReader()
+      : const MemoryCopySourceFileByteReader();
+
+  SourceFileProvider inputProvider;
+  if (bazelPaths != null) {
+    if (multiRoots != null) {
+      helpAndFail(
+          'The options --bazel-root and --multi-root cannot be supplied '
+          'together, please choose one or the other.');
+    }
+    inputProvider = BazelInputProvider(bazelPaths, byteReader);
+  } else if (multiRoots != null) {
+    inputProvider =
+        MultiRootInputProvider(multiRootScheme, multiRoots, byteReader);
+  } else {
+    inputProvider = CompilerSourceFileProvider(byteReader: byteReader);
+  }
+
+  diagnosticHandler.registerFileProvider(inputProvider);
+
   RandomAccessFileOutputProvider outputProvider =
       RandomAccessFileOutputProvider(out, sourceMapOut,
           onInfo: diagnosticHandler.info, onFailure: fail);
@@ -1087,18 +1109,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     return result;
   }
 
-  CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      featureOptions: features,
-      librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries,
-      onError: (String message) => fail(message),
-      onWarning: (String message) => print(message))
-    ..entryUri = entryUri
-    ..inputDillUri = inputDillUri
-    ..packageConfig = packageConfig
-    ..environment = environment
-    ..kernelInitializedCompilerState = kernelInitializedCompilerState
-    ..optimizationLevel = optimizationLevel;
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)
       .then(compilationDone);

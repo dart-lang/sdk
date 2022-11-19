@@ -1873,15 +1873,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     ASSERT(isolate_lib.ptr() == Library::IsolateLibrary());
 
     cls = Class::New<Capability, RTN::Capability>(isolate_group);
-    RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
+    RegisterPrivateClass(cls, Symbols::_Capability(), isolate_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate_group);
-    RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
+    RegisterPrivateClass(cls, Symbols::_RawReceivePort(), isolate_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<SendPort, RTN::SendPort>(isolate_group);
-    RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
+    RegisterPrivateClass(cls, Symbols::_SendPort(), isolate_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<TransferableTypedData, RTN::TransferableTypedData>(
@@ -2007,7 +2007,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
         RTN::WeakReference::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(1);
     object_store->set_weak_reference_class(cls);
-    RegisterPrivateClass(cls, Symbols::_WeakReferenceImpl(), core_lib);
+    RegisterPrivateClass(cls, Symbols::_WeakReference(), core_lib);
 
     // Pre-register the mirrors library so we can place the vm class
     // MirrorReference there rather than the core library.

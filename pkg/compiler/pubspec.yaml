@@ -13,6 +13,7 @@ dependencies:
   collection: any
   crypto: any
   dart2js_info: any
+  ffi: any
   front_end: any
   js_ast: any
   js_runtime: any

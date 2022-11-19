@@ -221,6 +221,9 @@ class CompilerOptions implements DiagnosticOptions {
 
   bool get hasModularAnalysisInputs => modularAnalysisInputs != null;
 
+  /// Uses a memory mapped view of files for I/O.
+  bool memoryMappedFiles = false;
+
   /// Location from which serialized inference data is read.
   ///
   /// If this is set, the [entryUri] is expected to be a .dill file and the
@@ -710,6 +713,7 @@ class CompilerOptions implements DiagnosticOptions {
           _extractUriListOption(options, '${Flags.readModularAnalysis}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..memoryMappedFiles = _hasOption(options, Flags.memoryMappedFiles)
       ..noClosedWorldInData = _hasOption(options, Flags.noClosedWorldInData)
       ..readClosedWorldUri =
           _extractUriOption(options, '${Flags.readClosedWorld}=')

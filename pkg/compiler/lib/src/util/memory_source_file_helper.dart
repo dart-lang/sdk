@@ -14,12 +14,13 @@ import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/io/source_file.dart'
     show Binary, StringSourceFile, Utf8BytesSourceFile;
 
-import 'package:compiler/src/source_file_provider.dart' show SourceFileProvider;
+import 'package:compiler/src/source_file_provider.dart'
+    show CompilerSourceFileProvider;
 
 export 'package:compiler/src/source_file_provider.dart'
     show SourceFileProvider, FormattingDiagnosticHandler;
 
-class MemorySourceFileProvider extends SourceFileProvider {
+class MemorySourceFileProvider extends CompilerSourceFileProvider {
   Map<String, dynamic> memorySourceFiles;
 
   /// MemorySourceFiles can contain maps of file names to string contents or

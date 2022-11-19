@@ -11,6 +11,12 @@ import '../compiler/js_names.dart';
 import 'kernel_helpers.dart';
 import 'type_environment.dart';
 
+/// Generates type recipe `String`s that can be used to produce Rti objects
+/// in the dart:_rti library.
+///
+/// This class is intended to be instantiated once and reused by the
+/// `ProgramCompiler`. It provides the API to interact with the DartType visitor
+/// that generates the type recipes.
 class TypeRecipeGenerator {
   final _TypeRecipeVisitor _recipeVisitor;
 
@@ -18,34 +24,55 @@ class TypeRecipeGenerator {
       : _recipeVisitor =
             _TypeRecipeVisitor(const EmptyTypeEnvironment(), coreTypes);
 
+  /// Returns a recipe for the provided [type] packaged with an environment with
+  /// which to evaluate the recipe in.
+  ///
+  /// The returned environment will be a subset of the provided [environment]
+  /// that includes only the necessary types to evaluate the recipe.
   GeneratedRecipe recipeInEnvironment(
       DartType type, DDCTypeEnvironment environment) {
-    var typeParameterFinder = TypeParameterTypeFinder();
-    type.accept(typeParameterFinder);
-    _recipeVisitor._typeEnvironment =
-        environment.prune(typeParameterFinder.found);
-    return GeneratedRecipe(
-        type.accept(_recipeVisitor), _recipeVisitor._typeEnvironment);
+    // Reduce the provided environment down to the parameters that are present.
+    var parametersInType = TypeParameterFinder.instance().find(type);
+    var minimalEnvironment = environment.prune(parametersInType);
+    // Set the visitor state, generate the recipe, and package it with the
+    // environment required to evaluate it.
+    _recipeVisitor.setState(environment: minimalEnvironment);
+    var recipe = type.accept(_recipeVisitor);
+    return GeneratedRecipe(recipe, minimalEnvironment);
   }
 
   String interfaceTypeRecipe(Class node) =>
-      _recipeVisitor._interfaceTypeRecipe(node);
+      _recipeVisitor.interfaceTypeRecipe(node);
 }
 
 /// A visitor to generate type recipe strings from a [DartType].
 ///
 /// The recipes are used by the 'dart:_rti' library while running the compiled
 /// application.
+///
+/// This visitor should be considered an implementation detail of
+/// [TypeRecipeGenerator] and all interactions with it should be through that
+/// class. It contains state that needs to be correctly set before visiting a
+/// type to produce valid recipes in a given type environment context.
 class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   /// The type environment to evaluate recipes in.
   ///
+  /// Part of the state that should be set before visiting a type.
   /// Used to determine the indices for type variables.
   DDCTypeEnvironment _typeEnvironment;
   var _unboundTypeParameters = <String>[];
-
   final CoreTypes _coreTypes;
 
   _TypeRecipeVisitor(this._typeEnvironment, this._coreTypes);
+
+  /// Set the state of this visitor.
+  ///
+  /// Generally this should be called before visiting a type, but the visitor
+  /// does not modify the state so if many types need to be evaluated in the
+  /// same state it can be set once before visiting all of them.
+  void setState({DDCTypeEnvironment? environment}) {
+    if (environment != null) _typeEnvironment = environment;
+  }
 
   @override
   String defaultDartType(DartType node) {
@@ -61,7 +88,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   @override
   String visitInterfaceType(InterfaceType node) {
     // Generate the interface type recipe.
-    var recipeBuffer = StringBuffer(_interfaceTypeRecipe(node.classNode));
+    var recipeBuffer = StringBuffer(interfaceTypeRecipe(node.classNode));
     // Generate the recipes for all type arguments.
     if (node.typeArguments.isNotEmpty) {
       recipeBuffer.write(Recipe.startTypeArgumentsString);
@@ -184,7 +211,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
 
   @override
   String visitNullType(NullType node) =>
-      _interfaceTypeRecipe(_coreTypes.deprecatedNullClass);
+      interfaceTypeRecipe(_coreTypes.deprecatedNullClass);
 
   @override
   String visitExtensionType(ExtensionType node) => defaultDartType(node);
@@ -194,7 +221,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       visitTypeParameterType(node.left);
 
   /// Returns the recipe for the interface type introduced by [cls].
-  String _interfaceTypeRecipe(Class cls) {
+  String interfaceTypeRecipe(Class cls) {
     var path = p.withoutExtension(cls.enclosingLibrary.importUri.path);
     var library = pathToJSIdentifier(path);
     return '$library${Recipe.librarySeparatorString}${cls.name}';

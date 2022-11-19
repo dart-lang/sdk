@@ -69,7 +69,7 @@ application_snapshot("dart2js") {
     # Specifying the platform explicitly elides running the CFE on the sdk
     # sources.
     "--platform-binaries=" + rebase_path("$root_out_dir/"),
-    rebase_path("$target_gen_dir/dart2js.dart"),
+    rebase_path("../../pkg/compiler/lib/src/util/memory_compiler.dart"),
   ]
 }
 

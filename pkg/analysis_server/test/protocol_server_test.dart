@@ -8,7 +8,6 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide DiagnosticMessage;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -368,17 +367,6 @@ class MockAnalysisError implements engine.AnalysisError {
 
   @override
   engine.Source get source => _source!;
-}
-
-class MockAnalysisSession implements AnalysisSession {
-  Map<String, FileResult> fileResults = {};
-
-  void addFileResult(FileResult result) {
-    fileResults[result.path] = result;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockErrorCode implements engine.ErrorCode {
