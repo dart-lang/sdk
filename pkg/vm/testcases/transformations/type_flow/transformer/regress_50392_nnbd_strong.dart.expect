@@ -1,0 +1,20 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Model<T extends core::num> extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Smi?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  final field self::Model::T? value;
+  constructor _([@vm.inferred-type.metadata=dart.core::_Smi?] self::Model::T? value) → self::Model<self::Model::T>
+    : self::Model::value = value, super core::Object::•()
+    ;
+  static factory •<T extends core::num>() → self::Model<self::Model::•::T> {
+    core::Object? value = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1 ?{core::int?} null : 42;
+    return new self::Model::_<self::Model::•::T>(_in::unsafeCast<self::Model::•::T?>(value));
+  }
+}
+static method main(core::List<core::String> arguments) → void {
+  final self::Model<core::num> model = [@vm.inferred-type.metadata=#lib::Model<dart.core::num>] self::Model::•<core::num>();
+  core::print([@vm.direct-call.metadata=#lib::Model.value] [@vm.inferred-type.metadata=dart.core::_Smi?] model.{self::Model::value}{core::num?});
+  core::print([@vm.direct-call.metadata=#lib::Model.value] [@vm.inferred-type.metadata=dart.core::_Smi?] model.{self::Model::value}{core::num?} == null);
+}

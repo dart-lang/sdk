@@ -225,6 +225,11 @@ class _SummaryNormalizer extends StatementVisitor {
   void visitExtract(Extract expr) {
     expr.arg = _normalizeExpr(expr.arg, true);
   }
+
+  @override
+  void visitApplyNullability(ApplyNullability expr) {
+    expr.arg = _normalizeExpr(expr.arg, true);
+  }
 }
 
 /// Detects whether the control flow can pass through the function body and
@@ -2445,7 +2450,16 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     final functionTypeVariables = this.functionTypeVariables;
     if (functionTypeVariables != null) {
       final result = functionTypeVariables[type.parameter];
-      if (result != null) return result;
+      if (result != null) {
+        final nullability = type.nullability;
+        if (nullability != Nullability.nonNullable &&
+            nullability != Nullability.undetermined) {
+          final applyNullability = ApplyNullability(result, nullability);
+          summary!.add(applyNullability);
+          return applyNullability;
+        }
+        return result;
+      }
     }
     if (type.parameter.parent is! Class) return const UnknownType();
     final interfaceClass = type.parameter.parent as Class;
