@@ -10,7 +10,6 @@ import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/translator.dart';
 import 'package:kernel/ast.dart';
-import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 enum DynamicSelectorType {
@@ -31,15 +30,6 @@ class DynamicDispatcher {
   DynamicDispatcher(this.translator);
 
   TranslatorOptions get options => translator.options;
-
-  /// Returns true if there is a chance that [member] may be invoked
-  /// dynamically. We err on the side of caution because it is not always
-  /// possible to tell statically when a given class may flow to dynamic.
-  bool maybeCalledDynamically(
-          Member member, ProcedureAttributesMetadata metadata) =>
-      metadata.getterCalledDynamically ||
-      metadata.methodOrSetterCalledDynamically ||
-      member == translator.objectNoSuchMethod;
 
   w.ValueType _callDynamic(CodeGenerator codeGen, DynamicInvocation node) {
     // Handle general dynamic invocation.
