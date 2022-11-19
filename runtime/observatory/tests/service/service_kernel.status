@@ -200,7 +200,7 @@ step_through_switch_with_continue_test: SkipByDesign # Debugger is disabled in A
 valid_source_locations_test: SkipByDesign # Debugger is disabled in AOT mode.
 validate_timer_port_behavior_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_timeline_flags_test: SkipByDesign # Debugger is disabled in AOT mode.
-weak_properties_test: CompileTimeError
+weak_properties_test: SkipByDesign # Uses 'dart:mirrors' library
 yield_positions_with_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
 
 [ $arch == arm64 && $compiler == dartk ]
