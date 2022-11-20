@@ -12451,6 +12451,10 @@ class SwitchStatementCaseGroup {
   final bool hasLabels;
 
   SwitchStatementCaseGroup(this.members, this.hasLabels);
+
+  NodeListImpl<StatementImpl> get statements {
+    return members.last.statements;
+  }
 }
 
 /// A switch statement.
