@@ -135,6 +135,12 @@ class DecoratedTypeOperations
   }
 
   @override
+  DecoratedType? matchIterableType(DecoratedType type) {
+    // TODO: implement matchIterableType
+    throw UnimplementedError();
+  }
+
+  @override
   DecoratedType? matchListType(DecoratedType type) {
     // TODO: implement matchListType
     throw UnimplementedError();

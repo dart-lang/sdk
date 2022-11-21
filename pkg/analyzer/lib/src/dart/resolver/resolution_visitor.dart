@@ -91,7 +91,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
-  _VariableBinder? _variableBinder;
+  /// Data structure for tracking declared pattern variables.
+  late final _VariableBinder _patternVariables = _VariableBinder(
+    errors: _VariableBinderErrors(this),
+  );
 
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
@@ -179,12 +182,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitBinaryPattern(covariant BinaryPatternImpl node) {
     final isOr = node.operator.type == TokenType.BAR;
     if (isOr) {
-      final binder = _variableBinder!;
-      binder.logicalOrPatternStart();
+      _patternVariables.logicalOrPatternStart();
       node.leftOperand.accept(this);
-      binder.logicalOrPatternFinishLeft();
+      _patternVariables.logicalOrPatternFinishLeft();
       node.rightOperand.accept(this);
-      binder.logicalOrPatternFinish(node);
+      _patternVariables.logicalOrPatternFinish(node);
     } else {
       node.leftOperand.accept(this);
       node.rightOperand.accept(this);
@@ -203,13 +205,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _nameScope = outerScope;
     }
-  }
-
-  @override
-  void visitCaseClause(CaseClause node) {
-    _withPatternContext(() {
-      super.visitCaseClause(node);
-    });
   }
 
   @override
@@ -809,23 +804,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitIfStatement(covariant IfStatementImpl node) {
     var caseClause = node.caseClause;
     if (caseClause != null) {
+      node.expression.accept(this);
+      _patternVariables.casePatternStart();
       var guardedPattern = caseClause.guardedPattern;
-      _withPatternContext(() {
-        var variableBinder = _variableBinder!; // TODO(scheglov) bad
-        node.expression.accept(this);
-        variableBinder.casePatternStart();
-        guardedPattern.pattern.accept(this);
-        var variables = variableBinder.casePatternFinish();
-        _withNameScope(() {
-          guardedPattern.variables = variables;
-          for (var variable in variables.values) {
-            _define(variable);
-          }
-          guardedPattern.whenClause?.accept(this);
-          node.thenStatement.accept(this);
-        });
-        node.elseStatement?.accept(this);
+      guardedPattern.pattern.accept(this);
+      var variables = _patternVariables.casePatternFinish();
+      _withNameScope(() {
+        guardedPattern.variables = variables;
+        // TODO(scheglov) Use `_defineVariables`.
+        for (var variable in variables.values) {
+          _define(variable);
+        }
+        guardedPattern.whenClause?.accept(this);
+        node.thenStatement.accept(this);
       });
+      node.elseStatement?.accept(this);
     } else {
       node.visitChildren(this);
     }
@@ -1134,50 +1127,55 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _buildLabelElements(node.labels, false, true);
-
-    node.expression.accept(this);
-
-    _withNameScope(() {
-      var statements = node.statements;
-      _buildLocalElements(statements);
-      statements.accept(this);
-    });
+    throw StateError('Should not be invoked');
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    _buildLabelElements(node.labels, false, true);
-
-    _withNameScope(() {
-      var statements = node.statements;
-      _buildLocalElements(statements);
-      statements.accept(this);
-    });
+    throw StateError('Should not be invoked');
   }
 
   @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
-    final patternContext = _variableBinder!;
-    patternContext.casePatternStart();
-    super.visitSwitchPatternCase(node);
-    patternContext.casePatternFinish(); // TODO(scheglov)
+    throw StateError('Should not be invoked');
   }
 
   @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
     node.expression.accept(this);
 
-    _withPatternContext(() {
-      final patternContext = _variableBinder!;
-      for (var group in node.memberGroups) {
-        patternContext.switchStatementSharedCaseScopeStart(node);
-        for (var member in group.members) {
-          member.accept(this);
+    for (var group in node.memberGroups) {
+      _patternVariables.switchStatementSharedCaseScopeStart(node);
+      for (var member in group.members) {
+        _buildLabelElements(member.labels, false, true);
+        if (member is SwitchCaseImpl) {
+          member.expression.accept(this);
+        } else if (member is SwitchDefaultImpl) {
+          _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+        } else if (member is SwitchPatternCaseImpl) {
+          _patternVariables.casePatternStart();
+          var guardedPattern = member.guardedPattern;
+          guardedPattern.pattern.accept(this);
+          // TODO(scheglov) use variables
+          _patternVariables.casePatternFinish(
+            sharedCaseScopeKey: node,
+          );
+          guardedPattern.whenClause?.accept(this);
+        } else {
+          throw UnimplementedError('(${member.runtimeType}) $member');
         }
-        patternContext.switchStatementSharedCaseScopeFinish(node);
       }
-    });
+      if (group.hasLabels) {
+        _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+      }
+      // TODO(scheglov) use variables
+      _patternVariables.switchStatementSharedCaseScopeFinish(node);
+      _withNameScope(() {
+        var statements = group.statements;
+        _buildLocalElements(statements);
+        statements.accept(this);
+      });
+    }
   }
 
   @override
@@ -1261,13 +1259,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     final name = node.name.lexeme;
     if (name != '_') {
-      final patternContext = _variableBinder!;
       var element = VariablePatternElementImpl(
         node,
         name,
         node.name.offset,
       );
-      patternContext.add(name, element);
+      _patternVariables.add(name, element);
       _elementHolder.enclose(element);
       _define(element);
       element.isFinal = node.keyword?.keyword == Keyword.FINAL;
@@ -1555,21 +1552,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       f();
     } finally {
       _nameScope = current;
-    }
-  }
-
-  /// Run [f] with a new pattern variable binder.
-  void _withPatternContext(void Function() f) {
-    final saved = _variableBinder;
-    try {
-      final patternContext = _VariableBinder(
-        errors: _VariableBinderErrors(this),
-      );
-      _variableBinder = patternContext;
-      f();
-      patternContext.finish();
-    } finally {
-      _variableBinder = saved;
     }
   }
 

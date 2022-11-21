@@ -551,20 +551,33 @@ mixin TypeAnalyzer<
       Pattern node,
       {Type? elementType,
       required List<Node> elements}) {
-    // Stack: ()
-    Type? matchedElementType = typeOperations.matchListType(matchedType);
-    if (matchedElementType == null) {
-      if (typeOperations.isDynamic(matchedType)) {
-        matchedElementType = dynamicType;
+    Type valueType;
+    if (elementType != null) {
+      valueType = elementType;
+    } else {
+      Type? listElementType = typeOperations.matchListType(matchedType);
+      if (listElementType != null) {
+        valueType = listElementType;
+      } else if (typeOperations.isDynamic(matchedType)) {
+        valueType = dynamicType;
       } else {
-        matchedElementType = objectQuestionType;
+        valueType = objectQuestionType;
       }
     }
+    // Stack: ()
     for (Node element in elements) {
-      dispatchPattern(matchedElementType, context, element);
+      if (isRestPatternElement(element)) {
+        Pattern? subPattern = getRestPatternElementPattern(element);
+        if (subPattern != null) {
+          dispatchPattern(listType(valueType), context, subPattern);
+        }
+        handleRestPatternElement(node, element);
+      } else {
+        dispatchPattern(valueType, context, element);
+      }
     }
     // Stack: (n * Pattern) where n = elements.length
-    Type requiredType = listType(elementType ?? matchedElementType);
+    Type requiredType = listType(valueType);
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null &&
         !typeOperations.isAssignableTo(matchedType, requiredType)) {
@@ -582,19 +595,40 @@ mixin TypeAnalyzer<
   /// subpatterns.
   ///
   /// Stack effect: none.
-  Type analyzeListPatternSchema(
-      {Type? elementType, required List<Node> elements}) {
-    if (elementType == null) {
-      if (elements.isEmpty) {
-        return objectQuestionType;
+  Type analyzeListPatternSchema({
+    required Type? elementType,
+    required List<Node> elements,
+  }) {
+    if (elementType != null) {
+      return listType(elementType);
+    }
+
+    if (elements.isEmpty) {
+      return listType(unknownType);
+    }
+
+    Type? currentGLB;
+    for (Node element in elements) {
+      Type? typeToAdd;
+      if (isRestPatternElement(element)) {
+        Pattern? subPattern = getRestPatternElementPattern(element);
+        if (subPattern != null) {
+          Type subPatternType = dispatchPatternSchema(subPattern);
+          typeToAdd = typeOperations.matchIterableType(subPatternType);
+        }
+      } else {
+        typeToAdd = dispatchPatternSchema(element);
       }
-      elementType = dispatchPatternSchema(elements[0]);
-      for (int i = 1; i < elements.length; i++) {
-        elementType = typeOperations.glb(
-            elementType!, dispatchPatternSchema(elements[i]));
+      if (typeToAdd != null) {
+        if (currentGLB == null) {
+          currentGLB = typeToAdd;
+        } else {
+          currentGLB = typeOperations.glb(currentGLB, typeToAdd);
+        }
       }
     }
-    return listType(elementType!);
+    currentGLB ??= unknownType;
+    return listType(currentGLB);
   }
 
   /// Analyzes a logical-or or logical-and pattern.  [node] is the pattern
@@ -1213,6 +1247,9 @@ mixin TypeAnalyzer<
 
   List<Variable>? getJoinedVariableComponents(Variable variable);
 
+  /// If [node] is [isRestPatternElement], returns its optional pattern.
+  Pattern? getRestPatternElementPattern(Node node);
+
   /// Returns an [ExpressionCaseInfo] object describing the [index]th `case` or
   /// `default` clause in the switch expression [node].
   ///
@@ -1331,6 +1368,11 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Statement).
   void handleNoStatement(Statement node);
 
+  /// Called after visiting a rest element in a list or map pattern.
+  ///
+  /// Stack effect: pushes (Pattern).
+  void handleRestPatternElement(Pattern container, Node restElement);
+
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
   /// analysis.
@@ -1342,6 +1384,9 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   void handleSwitchScrutinee(Type type);
+
+  /// Returns whether [node] is a rest element in a list or map pattern.
+  bool isRestPatternElement(Node node);
 
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.

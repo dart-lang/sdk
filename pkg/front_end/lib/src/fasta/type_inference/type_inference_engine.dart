@@ -451,6 +451,12 @@ class OperationsCfe
     // TODO(scheglov): implement normalize
     throw new UnimplementedError('TODO(scheglov)');
   }
+
+  @override
+  DartType? matchIterableType(DartType type) {
+    // TODO(scheglov): implement matchIterableType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
 }
 
 /// Type inference results used for testing.
