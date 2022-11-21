@@ -1,0 +1,9 @@
+void f(x) {
+var _.Future() = x;
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] _[StringToken].[SimpleToken]Future[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

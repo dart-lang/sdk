@@ -7393,7 +7393,11 @@ class Parser {
         onlyParseVariableDeclarationStart);
   }
 
-  /// See [parseExpressionStatementOrDeclaration]
+  /// See [parseExpressionStatementOrDeclaration].
+  ///
+  /// If `start.next` is an `@` token (i.e. this is a declaration with metadata)
+  /// then the caller should parse it before calling this method; otherwise,
+  /// this method will handle the lack of metadata appropriately.
   Token parseExpressionStatementOrDeclarationAfterModifiers(
       Token beforeType,
       Token start,
@@ -7418,6 +7422,26 @@ class Parser {
           start = context.parseVariableDeclarationModifiers(beforeType);
       varFinalOrConst = context.varFinalOrConst;
     }
+
+    // TODO(paulberry): maybe some of the conditions in this `if` test should be
+    // removed to allow for better error recovery.
+    if (allowPatterns &&
+        lateToken == null &&
+        varFinalOrConst != null &&
+        (optional('var', varFinalOrConst) ||
+            optional('final', varFinalOrConst)) &&
+        !onlyParseVariableDeclarationStart &&
+        looksLikePatternVariableDeclaration(beforeType)) {
+      // If there was any metadata, then the caller was responsible for parsing
+      // it; if not, then we need to let the listener know there wasn't any.
+      if (!optional('@', start.next!)) {
+        listener.beginMetadataStar(start.next!);
+        listener.endMetadataStar(/* count = */ 0);
+      }
+      return parsePatternVariableDeclarationStatement(
+          beforeType, start, varFinalOrConst);
+    }
+
     typeInfo ??= computeType(beforeType, /* required = */ false);
 
     Token token = typeInfo.skipType(beforeType);
@@ -7438,6 +7462,9 @@ class Parser {
           reportRecoverableErrorWithToken(
               lateToken, codes.templateExtraneousModifier);
         }
+        // If there was any metadata, then the caller was responsible for
+        // parsing it; if not, then we need to let the listener know there
+        // wasn't any.
         if (!optional('@', start.next!)) {
           listener.beginMetadataStar(start.next!);
           listener.endMetadataStar(/* count = */ 0);
@@ -7551,6 +7578,8 @@ class Parser {
       }
     }
 
+    // If there was any metadata, then the caller was responsible for parsing
+    // it; if not, then we need to let the listener know there wasn't any.
     if (!optional('@', start.next!)) {
       listener.beginMetadataStar(start.next!);
       listener.endMetadataStar(/* count = */ 0);
@@ -9208,7 +9237,8 @@ class Parser {
           listener.endBinaryPattern(next);
           break;
         default:
-          throw new UnimplementedError('TODO(paulberry): ${next.lexeme}');
+          // Some other operator that doesn't belong in a pattern
+          return token;
       }
     }
   }
@@ -9355,10 +9385,15 @@ class Parser {
             isRefutableContext: isRefutableContext);
         listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
         return token;
-      } else if (firstIdentifier.lexeme == '_' && dot == null) {
-        // It's a wildcard pattern with no preceding type, so parse it as a
-        // variable pattern.
-        return parseVariablePattern(beforeFirstIdentifier, typeInfo: typeInfo);
+      } else if (dot == null) {
+        // It's a single identifier.  If it's a wildcard pattern or we're in an
+        // irrefutable context, parse it as a variable pattern.
+        if (!isRefutableContext || firstIdentifier.lexeme == '_') {
+          // It's a wildcard pattern with no preceding type, so parse it as a
+          // variable pattern.
+          return parseVariablePattern(beforeFirstIdentifier,
+              typeInfo: typeInfo);
+        }
       }
       // It's not an extractor pattern so parse it as an expression.
       token = beforeFirstIdentifier;
@@ -9389,8 +9424,7 @@ class Parser {
         typeInfo = computeVariablePatternType(token);
         token = typeInfo.parseType(token, this);
       } else {
-        // Bare wildcard pattern
-        assert(next.lexeme == '_');
+        // Bare identifier pattern
         listener.handleNoType(token);
       }
     }
@@ -9665,6 +9699,88 @@ class Parser {
     mayParseFunctionExpressions = old;
     listener.handleExtractorPatternFields(argumentCount, begin, token);
     return token;
+  }
+
+  /// Returns `true` if the given [token] should be treated like the start of
+  /// a pattern variable declaration.
+  ///
+  /// patternVariableDeclaration ::= ( 'final' | 'var' ) outerPattern '='
+  ///                                expression
+  bool looksLikePatternVariableDeclaration(Token token) {
+    Token? afterOuterPattern = skipOuterPattern(token);
+    if (afterOuterPattern == null) return false;
+    return optional('=', afterOuterPattern.next!);
+  }
+
+  /// Tries to advance beyond an "outer pattern" starting from [token].  If the
+  /// next construct after [token] is not an outer pattern, returns `null`.
+  ///
+  /// outerPattern ::= parenthesizedPattern
+  ///                | listPattern
+  ///                | mapPattern
+  ///                | recordPattern
+  ///                | extractorPattern
+  Token? skipOuterPattern(Token token) {
+    Token next = token.next!;
+    if (next.isIdentifier) {
+      token = next;
+      next = token.next!;
+      if (!optional('.', next)) {
+        return skipExtractorPatternRest(token);
+      }
+      token = next;
+      next = token.next!;
+      if (next.isIdentifier) {
+        return skipExtractorPatternRest(next);
+      } else {
+        throw new UnimplementedError('TODO(paulberry)');
+      }
+    }
+    TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
+    token = typeParamOrArg.skip(token);
+    next = token.next!;
+    if (optional('[]', next)) {
+      // Empty list pattern
+      return next;
+    }
+    if (optional('[', next) || optional('{', next)) {
+      // List or map pattern
+      return next.endGroup;
+    }
+    if (typeParamOrArg == noTypeParamOrArg && optional('(', next)) {
+      // Record or parenthesized pattern
+      return next.endGroup;
+    }
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  /// Tries to advance through an extractor pattern, where [token] is the last
+  /// token of the extractor pattern's type name.  If the tokens following
+  /// [token] don't look like the rest of an extractor pattern, returns `null`.
+  ///
+  /// extractorPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token? skipExtractorPatternRest(Token token) {
+    TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
+    token = typeParamOrArg.skip(token);
+    Token? next = token.next;
+    if (next == null) return null;
+    if (!optional('(', next)) return null;
+    return next.endGroup;
+  }
+
+  /// patternVariableDeclaration ::= ( 'final' | 'var' ) outerPattern '='
+  ///                                expression
+  Token parsePatternVariableDeclarationStatement(
+      Token keyword, Token start, Token varOrFinal) {
+    Token token = parsePattern(keyword, isRefutableContext: false);
+    Token equals = token.next!;
+    // Caller should have assured that the pattern was followed by an `=`.
+    assert(optional('=', equals));
+    token = parseExpression(equals);
+    Token semicolon = ensureSemicolon(token);
+    listener.handlePatternVariableDeclarationStatement(
+        keyword, equals, semicolon);
+    return semicolon;
   }
 }
 

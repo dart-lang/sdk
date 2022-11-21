@@ -2861,6 +2861,15 @@ abstract class AbstractParserAstListener implements Listener {
         new NewAsIdentifierHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
+
+  @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    PatternVariableDeclarationStatementHandle data =
+        new PatternVariableDeclarationStatementHandle(ParserAstType.HANDLE,
+            keyword: keyword, equals: equals, semicolon: semicolon);
+    seen(data);
+  }
 }
 
 class ArgumentsBegin extends ParserAstNode {
@@ -7919,5 +7928,22 @@ class NewAsIdentifierHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+      };
+}
+
+class PatternVariableDeclarationStatementHandle extends ParserAstNode {
+  final Token keyword;
+  final Token equals;
+  final Token semicolon;
+
+  PatternVariableDeclarationStatementHandle(ParserAstType type,
+      {required this.keyword, required this.equals, required this.semicolon})
+      : super("PatternVariableDeclarationStatement", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "keyword": keyword,
+        "equals": equals,
+        "semicolon": semicolon,
       };
 }

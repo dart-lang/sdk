@@ -2984,4 +2984,16 @@ class ParserTestListener implements Listener {
     seen(token);
     doPrint('handleNewAsIdentifier(' '$token)');
   }
+
+  @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    seen(keyword);
+    seen(equals);
+    seen(semicolon);
+    doPrint('handlePatternVariableDeclarationStatement('
+        '$keyword, '
+        '$equals, '
+        '$semicolon)');
+  }
 }
