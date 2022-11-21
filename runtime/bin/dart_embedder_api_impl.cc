@@ -108,7 +108,8 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
                              config.write_service_info_filename,
                              /*trace_loading=*/false, config.deterministic,
                              /*enable_service_port_fallback=*/false,
-                             /*wait_for_dds_to_advertise_service=*/false)) {
+                             /*wait_for_dds_to_advertise_service=*/false,
+                             /*serve_observatory=*/true)) {
     *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
@@ -144,7 +145,8 @@ Dart_Isolate CreateVmServiceIsolateFromKernel(
                              config.write_service_info_filename,
                              /*trace_loading=*/false, config.deterministic,
                              /*enable_service_port_fallback=*/false,
-                             /*wait_for_dds_to_advertise_service=*/false)) {
+                             /*wait_for_dds_to_advertise_service=*/false,
+                             /*serve_observatory*/ true)) {
     *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
