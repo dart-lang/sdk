@@ -3885,7 +3885,7 @@ name: example
 
 _'{0}' is deprecated and shouldn't be used._
 
-_'{0}' is deprecated and shouldn't be used. {1}._
+_'{0}' is deprecated and shouldn't be used. {1}_
 
 #### Description
 
@@ -3912,7 +3912,7 @@ should indicate what code to use in place of the deprecated code.
 
 _'{0}' is deprecated and shouldn't be used._
 
-_'{0}' is deprecated and shouldn't be used. {1}._
+_'{0}' is deprecated and shouldn't be used. {1}_
 
 #### Description
 
