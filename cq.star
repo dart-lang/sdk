@@ -23,17 +23,21 @@ def default_verifiers():
 
 DART_GERRIT = "https://dart-review.googlesource.com/"
 
-luci.cq_group(
-    name = "sdk",
-    watch = cq.refset(
-        DART_GERRIT + "sdk",
-        refs = ["refs/heads/%s" % branch for branch in dart.branches],
-    ),
-    allow_submit_with_open_deps = True,
-    tree_status_host = "dart-status.appspot.com",
-    retry_config = cq.RETRY_NONE,
-    verifiers = None,
-)
+def sdk_cq_groups():
+    for branch in dart.branches:
+        luci.cq_group(
+            name = "sdk-%s" % branch,
+            watch = cq.refset(
+                DART_GERRIT + "sdk",
+                refs = ["refs/heads/%s" % branch],
+            ),
+            allow_submit_with_open_deps = True,
+            tree_status_host = "dart-status.appspot.com",
+            retry_config = cq.RETRY_NONE,
+            verifiers = None,
+        )
+
+sdk_cq_groups()
 
 luci.cq_group(
     name = "sdk-infra-config",

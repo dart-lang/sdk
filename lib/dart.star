@@ -80,6 +80,7 @@ def _try_builder(
         name,
         recipe = "dart/neo",
         bucket = "try",
+        cq_branches = _BRANCHES,
         dimensions = None,
         execution_timeout = None,
         experiment_percentage = None,
@@ -94,6 +95,7 @@ def _try_builder(
         name: The builder name.
         recipe: The recipe to use (defaults to "dart/neo").
         bucket: The bucket to use (defaults to "try").
+        cq_branches: Make try builder on these branches (defaults to _BRANCHES).
         dimensions: Extra swarming dimensions required by this builder.
         execution_timeout: Time to allow for the build to run.
         experiment_percentage: What experiment percentage to use.
@@ -125,13 +127,14 @@ def _try_builder(
     )
     includable_only = (not on_cq and not experiment_percentage and
                        not location_filters)
-    luci.cq_tryjob_verifier(
-        builder = builder,
-        cq_group = "sdk",
-        experiment_percentage = experiment_percentage,
-        location_filters = location_filters,
-        includable_only = includable_only,
-    )
+    for branch in cq_branches:
+        luci.cq_tryjob_verifier(
+            builder = builder,
+            cq_group = "sdk-%s" % branch,
+            experiment_percentage = experiment_percentage,
+            location_filters = location_filters,
+            includable_only = includable_only,
+        )
     luci.list_view_entry(list_view = "cq", builder = builder)
 
 def _builder(
@@ -141,6 +144,7 @@ def _builder(
         enabled = True,
         category = None,
         channels = [],
+        cq_branches = _BRANCHES,
         dimensions = None,
         executable = None,
         execution_timeout = None,
@@ -170,6 +174,7 @@ def _builder(
         enabled: Whether this builder is currently running or not.
         category: Where to show the builder on the console.
         channels: Which other channels the builder should be added to.
+        cq_branches: Make try builder on these branches (defaults to _BRANCHES).
         dimensions: Extra swarming dimensions required by this builder.
         executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
@@ -203,11 +208,14 @@ def _builder(
     expect_os("-linux", [linux["os"], focal["os"]])
     expect_os("-mac", mac["os"])
 
+    cq_branches = ["main"] + [branch for branch in channels if branch != "try"]
+
     def builder(channel, notifies, triggered_by):
         if channel == "try":
             _try_builder(
                 name,
                 recipe = recipe,
+                cq_branches = cq_branches,
                 dimensions = dimensions,
                 properties = properties,
                 on_cq = on_cq,
