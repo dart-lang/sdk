@@ -14,9 +14,9 @@ Element? getExportedElement(LibraryElement? library, String name) {
   return _getExportNamespaceForLibrary(library)[name];
 }
 
-/// Return the [LibraryImportElement] that is referenced by [prefixNode], or `null` if
-/// the node does not reference a prefix or if we cannot determine which import
-/// is being referenced.
+/// Return the [LibraryImportElement] that is referenced by [prefixNode], or
+/// `null` if the node does not reference a prefix or if we cannot determine
+/// which import is being referenced.
 LibraryImportElement? getImportElement(SimpleIdentifier prefixNode) {
   var parent = prefixNode.parent;
   if (parent is ImportDirective) {
@@ -36,12 +36,8 @@ Map<String, Element> _getExportNamespaceForLibrary(LibraryElement library) {
 /// [libraryElement] - the [LibraryElement] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
-/// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.
 LibraryImportElement? _getImportElement(
-    LibraryElement libraryElement,
-    String prefix,
-    Element element,
-    Map<LibraryImportElement, Set<Element>> importElementsMap) {
+    LibraryElement libraryElement, String prefix, Element element) {
   if (element.enclosingElement is! CompilationUnitElement) {
     return null;
   }
@@ -77,6 +73,8 @@ LibraryImportElement? _getImportElement(
   if (candidates.length == 1) {
     return candidates[0];
   }
+
+  var importElementsMap = <LibraryImportElement, Set<Element>>{};
   // ensure that each ImportElement has set of elements
   for (var importElement in candidates) {
     if (importElementsMap.containsKey(importElement)) {
@@ -127,7 +125,5 @@ LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   }
   // find ImportElement
   var prefix = prefixNode.name;
-  var importElementsMap = <LibraryImportElement, Set<Element>>{};
-  return _getImportElement(
-      libraryElement, prefix, usedElement, importElementsMap);
+  return _getImportElement(libraryElement, prefix, usedElement);
 }
