@@ -1008,7 +1008,7 @@ class MiniAstOperations
 
   @override
   bool isDynamic(Type type) =>
-      type is NonFunctionType && type.name == 'dynamic' && type.args.isEmpty;
+      type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
 
   @override
   bool isNever(Type type) {
@@ -1048,7 +1048,7 @@ class MiniAstOperations
 
   @override
   Type? matchIterableType(Type type) {
-    if (type is NonFunctionType &&
+    if (type is PrimaryType &&
         type.name == 'Iterable' &&
         type.args.length == 1) {
       return type.args[0];
@@ -1058,9 +1058,7 @@ class MiniAstOperations
 
   @override
   Type? matchListType(Type type) {
-    if (type is NonFunctionType &&
-        type.name == 'List' &&
-        type.args.length == 1) {
+    if (type is PrimaryType && type.name == 'List' && type.args.length == 1) {
       return type.args[0];
     }
     return null;
@@ -3483,8 +3481,7 @@ class _MiniAstTypeAnalyzer
   Type leastUpperBound(Type t1, Type t2) => _harness._operations._lub(t1, t2);
 
   @override
-  Type listType(Type elementType) =>
-      NonFunctionType('List', args: [elementType]);
+  Type listType(Type elementType) => PrimaryType('List', args: [elementType]);
 
   _PropertyElement lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
