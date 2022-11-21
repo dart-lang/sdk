@@ -51,3 +51,32 @@ extension StaticJSClassExtension on StaticJSClass {
   set getSet(String val) => this.externalGetSet = val;
   String method() => 'method';
 }
+
+// Abstract classes should behave the same way as concrete classes.
+@JS()
+@staticInterop
+abstract class StaticAbstract {}
+
+// Abstract classes with instance members should be non-static interop. The
+// following have abstract or concrete members, so they're considered non-static
+// interop.
+@JS()
+abstract class NonStaticAbstract {
+  int abstractMethod();
+}
+
+@JS()
+@staticInterop
+abstract class NonStaticAbstractWithAbstractMembers {
+  int abstractMethod();
+  //  ^
+  // [web] JS interop class 'NonStaticAbstractWithAbstractMembers' with `@staticInterop` annotation cannot declare instance members.
+}
+
+@JS()
+@staticInterop
+abstract class NonStaticAbstractWithConcreteMembers {
+  external int instanceMethod();
+  //           ^
+  // [web] JS interop class 'NonStaticAbstractWithConcreteMembers' with `@staticInterop` annotation cannot declare instance members.
+}

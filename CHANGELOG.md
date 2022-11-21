@@ -151,6 +151,8 @@
   - Classes with this annotation should also have the `@JS` annotation. You can
   also have the `@anonymous` annotation with these two annotations for an object
   literal constructor, but it isn't required.
+  - Classes with this annotation can not be implemented by classes without this
+  annotation. This is to avoid confusing type behavior.
 
 [#48730]: https://github.com/dart-lang/sdk/issues/48730
 [#49941]: https://github.com/dart-lang/sdk/issues/49941

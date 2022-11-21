@@ -5288,6 +5288,10 @@ JsInteropOperatorsNotSupported:
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
+JsInteropNonStaticWithStaticInteropSupertype:
+  problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
+  correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
+
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
   correctionMessage: "Try using a Dart extension member if you need type parameters instead."
@@ -5321,7 +5325,7 @@ JsInteropStaticInteropWithInstanceMembers:
   correctionMessage: "Try moving the instance member to a static extension."
 
 JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:

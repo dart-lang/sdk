@@ -25,6 +25,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropStaticInteropGenerativeConstructor,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
@@ -167,15 +168,22 @@ class JsInteropChecks extends RecursiveVisitor {
             cls.fileOffset,
             cls.name.length,
             cls.fileUri);
-      } else if (_classHasStaticInteropAnnotation) {
-        if (!hasStaticInteropAnnotation(superclass)) {
-          _diagnosticsReporter.report(
-              templateJsInteropStaticInteropWithNonStaticSupertype
-                  .withArguments(cls.name, superclass.name),
-              cls.fileOffset,
-              cls.name.length,
-              cls.fileUri);
-        }
+      } else if (_classHasStaticInteropAnnotation &&
+          !hasStaticInteropAnnotation(superclass)) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropWithNonStaticSupertype.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      } else if (!_classHasStaticInteropAnnotation &&
+          hasStaticInteropAnnotation(superclass)) {
+        _diagnosticsReporter.report(
+            templateJsInteropNonStaticWithStaticInteropSupertype.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
       }
     }
     if (_classHasStaticInteropAnnotation) {
@@ -193,6 +201,20 @@ class JsInteropChecks extends RecursiveVisitor {
         if (!hasStaticInteropAnnotation(supertype.classNode)) {
           _diagnosticsReporter.report(
               templateJsInteropStaticInteropWithNonStaticSupertype
+                  .withArguments(cls.name, supertype.classNode.name),
+              cls.fileOffset,
+              cls.name.length,
+              cls.fileUri);
+        }
+      }
+    }
+    // The converse of the above. If the class is not marked as static, it
+    // should not implement a class that is.
+    if (!_classHasStaticInteropAnnotation) {
+      for (var supertype in cls.implementedTypes) {
+        if (hasStaticInteropAnnotation(supertype.classNode)) {
+          _diagnosticsReporter.report(
+              templateJsInteropNonStaticWithStaticInteropSupertype
                   .withArguments(cls.name, supertype.classNode.name),
               cls.fileOffset,
               cls.name.length,
