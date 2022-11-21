@@ -1,3 +1,12 @@
+## 2.18.5 - 2022-11-23
+
+This is a patch release that:
+
+- fixes an error on private variable setters in mixins on dart web
+  (issue [#50119][]).
+- fixes the handling of type parameter nullability in factory constructors
+  (issue [#50392][]).
+
 ## 2.18.4 - 2022-11-02
 
 This is a patch release that fixes crashes during hot reload
