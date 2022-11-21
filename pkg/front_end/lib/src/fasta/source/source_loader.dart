@@ -78,8 +78,6 @@ import '../kernel/kernel_helper.dart'
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro/macro.dart';
 import '../kernel/macro/annotation_parser.dart';
-import '../kernel/transform_collections.dart' show CollectionTransformer;
-import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../loader.dart' show Loader, untranslatableUriScheme;
 import '../problems.dart' show internalProblem;
@@ -159,10 +157,6 @@ class SourceLoader extends Loader {
   TypeInferenceEngineImpl? _typeInferenceEngine;
 
   Instrumentation? instrumentation;
-
-  CollectionTransformer? collectionTransformer;
-
-  SetLiteralTransformer? setLiteralTransformer;
 
   final SourceLoaderDataForTesting? dataForTesting;
 
@@ -2508,47 +2502,6 @@ severity: $severity
     ticker.logMs("Performed top level inference");
   }
 
-  void transformPostInference(TreeNode node, bool transformSetLiterals,
-      bool transformCollections, Library clientLibrary) {
-    if (transformCollections) {
-      collectionTransformer ??= new CollectionTransformer(this);
-      collectionTransformer!.enterLibrary(clientLibrary);
-      node.accept(collectionTransformer!);
-      collectionTransformer!.exitLibrary();
-    }
-    if (transformSetLiterals) {
-      setLiteralTransformer ??= new SetLiteralTransformer(this);
-      setLiteralTransformer!.enterLibrary(clientLibrary);
-      node.accept(setLiteralTransformer!);
-      setLiteralTransformer!.exitLibrary();
-    }
-  }
-
-  void transformListPostInference(
-      List<TreeNode> list,
-      bool transformSetLiterals,
-      bool transformCollections,
-      Library clientLibrary) {
-    if (transformCollections) {
-      CollectionTransformer transformer =
-          collectionTransformer ??= new CollectionTransformer(this);
-      transformer.enterLibrary(clientLibrary);
-      for (int i = 0; i < list.length; ++i) {
-        list[i] = list[i].accept(transformer);
-      }
-      transformer.exitLibrary();
-    }
-    if (transformSetLiterals) {
-      SetLiteralTransformer transformer =
-          setLiteralTransformer ??= new SetLiteralTransformer(this);
-      transformer.enterLibrary(clientLibrary);
-      for (int i = 0; i < list.length; ++i) {
-        list[i] = list[i].accept(transformer);
-      }
-      transformer.exitLibrary();
-    }
-  }
-
   Expression instantiateNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
       {bool isMethod = false,
@@ -2717,8 +2670,6 @@ severity: $severity
     target.releaseAncillaryResources();
     _coreTypes = null;
     instrumentation = null;
-    collectionTransformer = null;
-    setLiteralTransformer = null;
   }
 
   @override

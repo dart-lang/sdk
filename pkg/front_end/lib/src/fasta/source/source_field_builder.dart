@@ -33,7 +33,6 @@ import '../scope.dart' show Scope;
 import '../source/name_scheme.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import '../util/helpers.dart' show DelayedActionPerformer;
@@ -431,16 +430,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           .inferFieldInitializer(bodyBuilder, fieldType,
               bodyBuilder.parseFieldInitializer(_constInitializerToken!))
           .expression;
-      if (bodyBuilder.transformSetLiterals ||
-          bodyBuilder.transformCollections) {
-        // Wrap the initializer in a temporary parent expression; the
-        // transformations need a parent relation.
-        Not wrapper = new Not(initializer);
-        SourceLoader loader = libraryBuilder.loader;
-        loader.transformPostInference(wrapper, bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections, libraryBuilder.library);
-        initializer = wrapper.operand;
-      }
       buildBody(classHierarchy.coreTypes, initializer);
       bodyBuilder.performBacklogComputations(
           delayedActionPerformers: delayedActionPerformers,

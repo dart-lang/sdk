@@ -3638,6 +3638,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
   }
 
+  bool _isLoweredSetLiteral(Expression expression) {
+    if (libraryBuilder.loader.target.backendTarget.supportsSetLiterals) {
+      return false;
+    }
+    if (expression is! BlockExpression) return false;
+    Expression value = expression.value;
+    if (value is! VariableGet) return false;
+    if (expression.body.statements.isEmpty) return false;
+    Statement first = expression.body.statements.first;
+    if (first is! VariableDeclaration) return false;
+    Expression? initializer = first.initializer;
+    if (initializer is! StaticInvocation) return false;
+    if (initializer.target != engine.setFactory) return false;
+    return value.variable == first;
+  }
+
   /// Determines if the given [expression]'s type is precisely known at compile
   /// time.
   ///
@@ -3651,7 +3667,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (expression is MapLiteral) {
       return templateInvalidCastLiteralMap;
     }
-    if (expression is SetLiteral) {
+    if (expression is SetLiteral || _isLoweredSetLiteral(expression)) {
       return templateInvalidCastLiteralSet;
     }
     if (expression is FunctionExpression) {
