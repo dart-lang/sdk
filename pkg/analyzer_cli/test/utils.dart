@@ -39,7 +39,7 @@ String get packageRoot {
 /// to the specified destination path.
 Future<void> recursiveCopy(FileSystemEntity src, String dstPath) async {
   if (src is Directory) {
-    await (Directory(dstPath)).create(recursive: true);
+    await Directory(dstPath).create(recursive: true);
     for (var entity in src.listSync()) {
       await recursiveCopy(
           entity, pathos.join(dstPath, pathos.basename(entity.path)));

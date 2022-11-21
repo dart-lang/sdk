@@ -261,11 +261,9 @@ class CompletionTarget {
 
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
-  CompletionTarget._(this.offset, AstNode containingNode,
-      SyntacticEntity? entity, this.isCommentText)
-      : containingNode = containingNode,
-        entity = entity,
-        argIndex = _computeArgIndex(containingNode, entity),
+  CompletionTarget._(
+      this.offset, this.containingNode, this.entity, this.isCommentText)
+      : argIndex = _computeArgIndex(containingNode, entity),
         droppedToken = _computeDroppedToken(containingNode, entity, offset);
 
   /// Return the expression to the left of the "dot" or "dot dot",
