@@ -2641,19 +2641,27 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parsePattern(Token token, {int precedence = 1}) {
-    doPrint('parsePattern(' '$token, ' 'precedence: $precedence)');
+  Token parsePattern(Token token,
+      {int precedence = 1, required bool isRefutableContext}) {
+    doPrint('parsePattern('
+        '$token, '
+        'precedence: $precedence, '
+        'isRefutableContext: $isRefutableContext)');
     indent++;
-    var result = super.parsePattern(token, precedence: precedence);
+    var result = super.parsePattern(token,
+        precedence: precedence, isRefutableContext: isRefutableContext);
     indent--;
     return result;
   }
 
   @override
-  Token parsePrimaryPattern(Token token) {
-    doPrint('parsePrimaryPattern(' '$token)');
+  Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
+    doPrint('parsePrimaryPattern('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
     indent++;
-    var result = super.parsePrimaryPattern(token);
+    var result = super
+        .parsePrimaryPattern(token, isRefutableContext: isRefutableContext);
     indent--;
     return result;
   }
@@ -2668,37 +2676,52 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseListPatternSuffix(Token token) {
-    doPrint('parseListPatternSuffix(' '$token)');
+  Token parseListPatternSuffix(Token token,
+      {required bool isRefutableContext}) {
+    doPrint('parseListPatternSuffix('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
     indent++;
-    var result = super.parseListPatternSuffix(token);
+    var result = super
+        .parseListPatternSuffix(token, isRefutableContext: isRefutableContext);
     indent--;
     return result;
   }
 
   @override
-  Token parseMapPatternSuffix(Token token) {
-    doPrint('parseMapPatternSuffix(' '$token)');
+  Token parseMapPatternSuffix(Token token, {required bool isRefutableContext}) {
+    doPrint('parseMapPatternSuffix('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
     indent++;
-    var result = super.parseMapPatternSuffix(token);
+    var result = super
+        .parseMapPatternSuffix(token, isRefutableContext: isRefutableContext);
     indent--;
     return result;
   }
 
   @override
-  Token parseParenthesizedPatternOrRecordPattern(Token token) {
-    doPrint('parseParenthesizedPatternOrRecordPattern(' '$token)');
+  Token parseParenthesizedPatternOrRecordPattern(Token token,
+      {required bool isRefutableContext}) {
+    doPrint('parseParenthesizedPatternOrRecordPattern('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
     indent++;
-    var result = super.parseParenthesizedPatternOrRecordPattern(token);
+    var result = super.parseParenthesizedPatternOrRecordPattern(token,
+        isRefutableContext: isRefutableContext);
     indent--;
     return result;
   }
 
   @override
-  Token parseExtractorPatternRest(Token token) {
-    doPrint('parseExtractorPatternRest(' '$token)');
+  Token parseExtractorPatternRest(Token token,
+      {required bool isRefutableContext}) {
+    doPrint('parseExtractorPatternRest('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
     indent++;
-    var result = super.parseExtractorPatternRest(token);
+    var result = super.parseExtractorPatternRest(token,
+        isRefutableContext: isRefutableContext);
     indent--;
     return result;
   }
