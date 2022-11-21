@@ -1540,14 +1540,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     for (Procedure procedure in cls.procedures) {
       // An instance getter makes fields with the same name unpromotable if it's
-      // concrete.
-      if (procedure.isGetter &&
-          procedure.isInstanceMember &&
-          !procedure.isAbstract &&
+      // concrete.  Also, an abstract instance setter that's desugared from an
+      // abstract non-final field makes fields with the same name unpromotable.
+      if (procedure.isInstanceMember &&
           _isPrivateNameInThisLibrary(procedure.name)) {
-        ProcedureStubKind procedureStubKind = procedure.stubKind;
-        if (procedureStubKind == ProcedureStubKind.Regular ||
-            procedureStubKind == ProcedureStubKind.NoSuchMethodForwarder) {
+        if (procedure.isGetter && !procedure.isAbstract) {
+          ProcedureStubKind procedureStubKind = procedure.stubKind;
+          if (procedureStubKind == ProcedureStubKind.Regular ||
+              procedureStubKind == ProcedureStubKind.NoSuchMethodForwarder) {
+            unpromotablePrivateFieldNames.add(procedure.name.text);
+          }
+        } else if (procedure.isSetter && procedure.isAbstractFieldAccessor) {
           unpromotablePrivateFieldNames.add(procedure.name.text);
         }
       }

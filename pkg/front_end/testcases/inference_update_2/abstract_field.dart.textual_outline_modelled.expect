@@ -1,0 +1,19 @@
+abstract class C {
+  abstract final int? _f1;
+  abstract int? _f2;
+}
+
+class D {
+  D(int i)
+      : _f1 = i,
+        _f2 = i;
+  final int? _f1;
+  final int? _f2;
+}
+
+main() {}
+void acceptsInt(int x) {}
+void testAbstractFinalFieldDoesNotBlockPromotionElsewhere(D d) {}
+void testAbstractFinalFieldIsPromotable(C c) {}
+void testAbstractNonFinalFieldBlocksPromotionElsewhere(D d) {}
+void testAbstractNonFinalFieldIsNotPromotable(C c) {}

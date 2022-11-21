@@ -6274,7 +6274,7 @@ class Parser {
     Token next = token.next!;
     if (allowPatterns && optional('case', next)) {
       Token case_ = token = next;
-      token = parsePattern(token);
+      token = parsePattern(token, isRefutableContext: true);
       next = token.next!;
       Token? when;
       if (optional('when', next)) {
@@ -8295,7 +8295,7 @@ class Parser {
           }
           listener.beginCaseExpression(caseKeyword);
           if (allowPatterns) {
-            token = parsePattern(caseKeyword);
+            token = parsePattern(caseKeyword, isRefutableContext: true);
           } else {
             token = parseExpression(caseKeyword);
           }
@@ -9157,10 +9157,21 @@ class Parser {
   /// castPattern ::= primaryPattern 'as' type
   /// nullAssertPattern ::= primaryPattern '!'
   /// nullCheckPattern ::= primaryPattern '?'
-  Token parsePattern(Token token, {int precedence = 1}) {
+  ///
+  /// [isRefutableContext] should be `true` if the pattern occurs in a
+  /// `guardedPattern` or any of its sub-patterns (i.e. in a
+  /// `switchStatementCase`, `switchExpressionCase`, or `ifCondition`); these
+  /// are contexts where a pattern match might be expected to fail, and bare
+  /// identifiers are treated as constant patterns.  It should be `false` if the
+  /// pattern occurs in a `localVariableDeclaration`, `forLoopParts`, or
+  /// `patternAssignment`; these are contexts where a pattern match failure is
+  /// either prohibited statically or causes a runtime exception, and bare
+  /// identifiers are treated as variable patterns.
+  Token parsePattern(Token token,
+      {int precedence = 1, required bool isRefutableContext}) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
-    token = parsePrimaryPattern(token);
+    token = parsePrimaryPattern(token, isRefutableContext: isRefutableContext);
     while (true) {
       Token next = token.next!;
       int tokenLevel = _computePrecedence(next, forPattern: true);
@@ -9191,7 +9202,9 @@ class Parser {
         case '|':
           listener.beginBinaryPattern(next);
           // Left associative so we parse the RHS one precedence level higher
-          token = parsePattern(next, precedence: tokenLevel + 1);
+          token = parsePattern(next,
+              precedence: tokenLevel + 1,
+              isRefutableContext: isRefutableContext);
           listener.endBinaryPattern(next);
           break;
         default:
@@ -9229,7 +9242,7 @@ class Parser {
   /// extractorPattern ::= extractorName typeArguments?
   ///                          '(' patternFields? ')'
   /// extractorName    ::= typeIdentifier | qualifiedName
-  Token parsePrimaryPattern(Token token) {
+  Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
     TypeParamOrArgInfo typeArg =
         computeTypeParamOrArg(token, /* inDeclaration = */ true);
     Token next = typeArg.skip(token).next!;
@@ -9238,13 +9251,15 @@ class Parser {
       case '[':
         // listPattern ::= typeArguments? '[' patterns? ']'
         token = typeArg.parseArguments(token, this);
-        return parseListPatternSuffix(token);
+        return parseListPatternSuffix(token,
+            isRefutableContext: isRefutableContext);
       case '{':
         // mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
         // mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
         // mapPatternEntry   ::= expression ':' pattern
         token = typeArg.parseArguments(token, this);
-        return parseMapPatternSuffix(token);
+        return parseMapPatternSuffix(token,
+            isRefutableContext: isRefutableContext);
     }
     // Whatever was after the optional type arguments didn't parse as a pattern
     // that can start with type arguments, so back up and reparse assuming that
@@ -9265,7 +9280,8 @@ class Parser {
           listener.handleRecordPattern(next, /* count = */ 0);
           return nextNext;
         } else {
-          return parseParenthesizedPatternOrRecordPattern(token);
+          return parseParenthesizedPatternOrRecordPattern(token,
+              isRefutableContext: isRefutableContext);
         }
       case 'const':
         // constantPattern ::= booleanLiteral
@@ -9335,7 +9351,8 @@ class Parser {
       if (optional('(', afterToken) && !potentialTypeArg.recovered) {
         TypeParamOrArgInfo typeArg = potentialTypeArg;
         token = typeArg.parseArguments(token, this);
-        token = parseExtractorPatternRest(token);
+        token = parseExtractorPatternRest(token,
+            isRefutableContext: isRefutableContext);
         listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
         return token;
       } else if (firstIdentifier.lexeme == '_' && dot == null) {
@@ -9393,7 +9410,8 @@ class Parser {
   /// bracket.
   ///
   /// listPattern ::= typeArguments? '[' patterns? ']'
-  Token parseListPatternSuffix(Token token) {
+  Token parseListPatternSuffix(Token token,
+      {required bool isRefutableContext}) {
     Token beforeToken = token;
     Token beginToken = token = token.next!;
     assert(optional('[', token) || optional('[]', token));
@@ -9413,7 +9431,7 @@ class Parser {
         token = next;
         break;
       }
-      token = parsePattern(token);
+      token = parsePattern(token, isRefutableContext: isRefutableContext);
       next = token.next!;
       ++count;
       if (!optional(',', next)) {
@@ -9455,7 +9473,7 @@ class Parser {
   /// mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
   /// mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
   /// mapPatternEntry   ::= expression ':' pattern
-  Token parseMapPatternSuffix(Token token) {
+  Token parseMapPatternSuffix(Token token, {required bool isRefutableContext}) {
     Token leftBrace = token = token.next!;
     assert(optional('{', leftBrace));
     Token next = token.next!;
@@ -9476,7 +9494,7 @@ class Parser {
             codes.templateExpectedButGot.withArguments(':'),
             new SyntheticToken(TokenType.PERIOD, next.charOffset));
       }
-      token = parsePattern(colon);
+      token = parsePattern(colon, isRefutableContext: isRefutableContext);
       listener.handleMapPatternEntry(colon, token.next!);
       ++count;
       next = token.next!;
@@ -9520,7 +9538,8 @@ class Parser {
   /// recordPattern         ::= '(' patternFields? ')'
   /// patternFields         ::= patternField ( ',' patternField )* ','?
   /// patternField          ::= ( identifier? ':' )? pattern
-  Token parseParenthesizedPatternOrRecordPattern(Token token) {
+  Token parseParenthesizedPatternOrRecordPattern(Token token,
+      {required bool isRefutableContext}) {
     Token begin = token.next!;
     assert(optional('(', begin));
 
@@ -9551,7 +9570,7 @@ class Parser {
         colon = token;
         wasValidRecord = true;
       }
-      token = parsePattern(token);
+      token = parsePattern(token, isRefutableContext: isRefutableContext);
       next = token.next!;
       if (wasRecord || colon != null) {
         listener.handlePatternField(colon);
@@ -9594,7 +9613,8 @@ class Parser {
   ///
   /// extractorPattern ::= extractorName typeArguments?
   ///                          '(' patternFields? ')'
-  Token parseExtractorPatternRest(Token token) {
+  Token parseExtractorPatternRest(Token token,
+      {required bool isRefutableContext}) {
     Token begin = token = token.next!;
     assert(optional('(', begin));
     int argumentCount = 0;
@@ -9616,7 +9636,7 @@ class Parser {
                 .next!;
         colon = token;
       }
-      token = parsePattern(token);
+      token = parsePattern(token, isRefutableContext: isRefutableContext);
       next = token.next!;
       listener.handlePatternField(colon);
       ++argumentCount;

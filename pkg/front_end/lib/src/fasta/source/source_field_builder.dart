@@ -1612,6 +1612,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           new FunctionNode(null, positionalParameters: [
             new VariableDeclaration(extensionThisName)..fileOffset
           ]),
+          isAbstractFieldAccessor: isAbstract,
           fileUri: fileUri,
           reference: getterReference)
         ..fileOffset = charOffset
@@ -1636,6 +1637,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
                 returnType: const VoidType())
               ..fileOffset = charOffset
               ..fileEndOffset = charEndOffset,
+            isAbstractFieldAccessor: isAbstract,
             fileUri: fileUri,
             reference: setterReference)
           ..fileOffset = charOffset
@@ -1648,7 +1650,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
     } else {
       _getter = new Procedure(
           dummyName, ProcedureKind.Getter, new FunctionNode(null),
-          fileUri: fileUri, reference: getterReference)
+          isAbstractFieldAccessor: isAbstract,
+          fileUri: fileUri,
+          reference: getterReference)
         ..fileOffset = charOffset
         ..fileEndOffset = charEndOffset
         ..isNonNullableByDefault = isNonNullableByDefault;
@@ -1667,6 +1671,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
                 positionalParameters: [parameter], returnType: const VoidType())
               ..fileOffset = charOffset
               ..fileEndOffset = charEndOffset,
+            isAbstractFieldAccessor: isAbstract,
             fileUri: fileUri,
             reference: setterReference)
           ..fileOffset = charOffset
