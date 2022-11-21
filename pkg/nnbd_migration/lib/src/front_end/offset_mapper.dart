@@ -85,7 +85,7 @@ class _EditMapper implements OffsetMapper {
       var length = edit.length;
       _offsets.add(offset);
       _deltas.add(previousDelta);
-      previousDelta += (edit.replacement.length - length);
+      previousDelta += edit.replacement.length - length;
     }
     _offsets.add(-1);
     _deltas.add(previousDelta);

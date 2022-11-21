@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Abstractions for the different sources of truth for different packages.
+library;
+
 import 'dart:io';
 
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
