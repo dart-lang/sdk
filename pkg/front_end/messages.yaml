@@ -5308,6 +5308,10 @@ JsInteropStaticInteropMockNotStaticInteropType:
   problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
 
+JsInteropStaticInteropNoJSAnnotation:
+  problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
+  correctionMessage: "Add `@JS` to class '#name'."
+
 JsInteropStaticInteropSyntheticConstructor:
   problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
   correctionMessage: "Declare an external factory constructor for this `@staticInterop` class and use that instead."

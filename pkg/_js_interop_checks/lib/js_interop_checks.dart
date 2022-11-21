@@ -25,6 +25,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropStaticInteropGenerativeConstructor,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
         templateJsInteropJSClassExtendsDartClass,
@@ -177,9 +178,17 @@ class JsInteropChecks extends RecursiveVisitor {
         }
       }
     }
-    // Validate that superinterfaces are all annotated as static as well. Note
-    // that mixins are already disallowed and therefore are not checked here.
     if (_classHasStaticInteropAnnotation) {
+      if (!_classHasJSAnnotation) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropNoJSAnnotation
+                .withArguments(cls.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      }
+      // Validate that superinterfaces are all annotated as static as well. Note
+      // that mixins are already disallowed and therefore are not checked here.
       for (var supertype in cls.implementedTypes) {
         if (!hasStaticInteropAnnotation(supertype.classNode)) {
           _diagnosticsReporter.report(

@@ -7503,6 +7503,35 @@ Message _withArgumentsJsInteropStaticInteropMockMissingImplements(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropStaticInteropNoJSAnnotation = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""`@staticInterop` classes should also have the `@JS` annotation.""",
+    correctionMessageTemplate: r"""Add `@JS` to class '#name'.""",
+    withArguments: _withArgumentsJsInteropStaticInteropNoJSAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropNoJSAnnotation =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropNoJSAnnotation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropNoJSAnnotation,
+      problemMessage:
+          """`@staticInterop` classes should also have the `@JS` annotation.""",
+      correctionMessage: """Add `@JS` to class '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropSyntheticConstructor =
     messageJsInteropStaticInteropSyntheticConstructor;
 

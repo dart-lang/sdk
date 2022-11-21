@@ -604,6 +604,8 @@ JsInteropStaticInteropMockMissingImplements/analyzerCode: Fail # Web compiler sp
 JsInteropStaticInteropMockMissingImplements/example: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/example: Fail # Web compiler specific
+JsInteropStaticInteropNoJSAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropNoJSAnnotation/example: Fail # Web compiler specific
 JsInteropStaticInteropSyntheticConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropSyntheticConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
