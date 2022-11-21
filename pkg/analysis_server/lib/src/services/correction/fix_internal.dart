@@ -1117,6 +1117,10 @@ class FixProcessor extends BaseProcessor {
       MakeReturnTypeNullable.new,
       ReplaceReturnType.new,
     ],
+    CompileTimeErrorCode
+        .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED: [
+      RemoveTypeAnnotation.new,
+    ],
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
       ChangeTo.superFormalParameter,
     ],
