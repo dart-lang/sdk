@@ -265,11 +265,15 @@ Statement match(Pattern pattern, Expression initializer,
         isLate: isLate, isFinal: isFinal, location: computeLocation());
 
 Pattern objectPattern({
-  required ObjectPatternRequiredType requiredType,
+  required String requiredType,
   required List<RecordPatternField> fields,
 }) {
+  var parsedType = Type(requiredType);
+  if (parsedType is! PrimaryType) {
+    fail('Expected a primary type, got $parsedType');
+  }
   return _ObjectPattern(
-    requiredType: requiredType,
+    requiredType: parsedType,
     fields: fields,
     location: computeLocation(),
   );
@@ -754,6 +758,7 @@ class MiniAstOperations
     'int? <: Object': false,
     'int? <: Object?': true,
     'List<int> <: Object': true,
+    'Never <: Object': true,
     'Never <: Object?': true,
     'Null <: double?': true,
     'Null <: int': false,
@@ -881,7 +886,11 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreDownwardInferenceResults = {
+    'dynamic <: int': Type('dynamic'),
+    'int <: num': Type('int'),
     'List <: Iterable<int>': Type('List<int>'),
+    'Never <: int': Type('Never'),
+    'num <: int': Type('num'),
   };
 
   static final Map<String, Type> _coreNormalizeResults = {
@@ -1008,7 +1017,7 @@ class MiniAstOperations
 
   @override
   bool isDynamic(Type type) =>
-      type is NonFunctionType && type.name == 'dynamic' && type.args.isEmpty;
+      type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
 
   @override
   bool isNever(Type type) {
@@ -1048,7 +1057,7 @@ class MiniAstOperations
 
   @override
   Type? matchIterableType(Type type) {
-    if (type is NonFunctionType &&
+    if (type is PrimaryType &&
         type.name == 'Iterable' &&
         type.args.length == 1) {
       return type.args[0];
@@ -1058,9 +1067,7 @@ class MiniAstOperations
 
   @override
   Type? matchListType(Type type) {
-    if (type is NonFunctionType &&
-        type.name == 'List' &&
-        type.args.length == 1) {
+    if (type is PrimaryType && type.name == 'List' && type.args.length == 1) {
       return type.args[0];
     }
     return null;
@@ -1155,27 +1162,6 @@ class Node {
 
   @override
   String toString() => 'Node#$id';
-}
-
-/// Either the type, or the name of a type constructor.
-class ObjectPatternRequiredType {
-  final Type? type;
-  final String? name;
-
-  ObjectPatternRequiredType.name(this.name) : type = null;
-
-  ObjectPatternRequiredType.type(String type)
-      : type = Type(type),
-        name = null;
-
-  @override
-  String toString() {
-    if (type != null) {
-      return '(type: $type)';
-    } else {
-      return '(name: $name)';
-    }
-  }
 }
 
 abstract class Pattern extends Node
@@ -2018,7 +2004,7 @@ class _Declare extends Statement {
       irName = 'declare';
       argKinds = [Kind.pattern];
     } else {
-      h.typeAnalyzer.analyzeInitializedVariableDeclaration(
+      h.typeAnalyzer.analyzePatternVariableDeclarationStatement(
           this, pattern, initializer,
           isFinal: isFinal, isLate: isLate);
       irName = 'match';
@@ -3241,11 +3227,12 @@ class _MiniAstTypeAnalyzer
     required Type matchedType,
     required covariant _ObjectPattern pattern,
   }) {
-    var name = pattern.requiredType.name;
-    if (name == null) {
-      fail('Expected type constructor name at ${pattern.location}');
+    var requiredType = pattern.requiredType;
+    if (requiredType.args.isNotEmpty) {
+      return requiredType;
+    } else {
+      return typeOperations.downwardInfer(requiredType.name, matchedType);
     }
-    return typeOperations.downwardInfer(name, matchedType);
   }
 
   void finish() {
@@ -3483,8 +3470,7 @@ class _MiniAstTypeAnalyzer
   Type leastUpperBound(Type t1, Type t2) => _harness._operations._lub(t1, t2);
 
   @override
-  Type listType(Type elementType) =>
-      NonFunctionType('List', args: [elementType]);
+  Type listType(Type elementType) => PrimaryType('List', args: [elementType]);
 
   _PropertyElement lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
@@ -3678,7 +3664,7 @@ class _NullLiteral extends Expression {
 }
 
 class _ObjectPattern extends Pattern {
-  final ObjectPatternRequiredType requiredType;
+  final PrimaryType requiredType;
   final List<RecordPatternField> fields;
 
   _ObjectPattern({
@@ -3689,7 +3675,7 @@ class _ObjectPattern extends Pattern {
 
   @override
   Type computeSchema(Harness h) {
-    return h.typeAnalyzer.analyzeObjectPatternSchema(requiredType.type!);
+    return h.typeAnalyzer.analyzeObjectPatternSchema(requiredType);
   }
 
   @override
@@ -3708,9 +3694,8 @@ class _ObjectPattern extends Pattern {
     Type matchedType,
     SharedMatchContext context,
   ) {
-    var requiredType = h.typeAnalyzer.analyzeObjectPattern(
-        matchedType, context, this,
-        requiredType: this.requiredType.type, fields: fields);
+    var requiredType = h.typeAnalyzer
+        .analyzeObjectPattern(matchedType, context, this, fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(

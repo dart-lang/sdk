@@ -9452,7 +9452,6 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
       matchedType,
       context,
       this,
-      requiredType: null,
       fields: resolverVisitor.buildSharedRecordPatternFields(fields),
     );
   }

@@ -54,25 +54,35 @@ class NamedType {
   String toString() => '$type $name';
 }
 
-/// Representation of a "simple" type suitable for unit testing of code in the
-/// `_fe_analyzer_shared` package.  A "simple" type is either an interface type
+/// Exception thrown if a type fails to parse properly.
+class ParseError extends Error {
+  final String message;
+
+  ParseError(this.message);
+
+  @override
+  String toString() => message;
+}
+
+/// Representation of a primary type suitable for unit testing of code in the
+/// `_fe_analyzer_shared` package.  A primary type is either an interface type
 /// with zero or more type parameters (e.g. `double`, or `Map<int, String>`), a
 /// reference to a type parameter, or one of the special types whose name is a
 /// single word (e.g. `dynamic`).
-class NonFunctionType extends Type {
+class PrimaryType extends Type {
   /// The name of the type.
   final String name;
 
   /// The type arguments, or `const []` if there are no type arguments.
   final List<Type> args;
 
-  NonFunctionType(this.name, {this.args = const []}) : super._();
+  PrimaryType(this.name, {this.args = const []}) : super._();
 
   @override
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newArgs = args.recursivelyDemote(covariant: covariant);
     if (newArgs == null) return null;
-    return NonFunctionType(name, args: newArgs);
+    return PrimaryType(name, args: newArgs);
   }
 
   @override
@@ -83,16 +93,6 @@ class NonFunctionType extends Type {
       return '$name<${args.join(', ')}>';
     }
   }
-}
-
-/// Exception thrown if a type fails to parse properly.
-class ParseError extends Error {
-  final String message;
-
-  ParseError(this.message);
-
-  @override
-  String toString() => message;
 }
 
 /// Representation of a promoted type parameter type suitable for unit testing
@@ -109,7 +109,7 @@ class PromotedTypeVariableType extends Type {
 
   @override
   Type? recursivelyDemote({required bool covariant}) =>
-      covariant ? innerType : new NonFunctionType('Never');
+      covariant ? innerType : new PrimaryType('Never');
 
   @override
   String _toString({required bool allowSuffixes}) {
@@ -493,7 +493,7 @@ class _TypeParser {
     } else {
       typeArgs = const [];
     }
-    return NonFunctionType(typeName, args: typeArgs);
+    return PrimaryType(typeName, args: typeArgs);
   }
 
   static Type parse(String typeStr) {

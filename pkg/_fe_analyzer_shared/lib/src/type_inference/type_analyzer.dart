@@ -484,49 +484,6 @@ mixin TypeAnalyzer<
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 
-  /// Analyzes a variable declaration statement of the form
-  /// `pattern = initializer;`.
-  ///
-  /// [node] should be the AST node for the entire declaration, [pattern] for
-  /// the pattern, and [initializer] for the initializer.  [isFinal] and
-  /// [isLate] indicate whether this is a final declaration and/or a late
-  /// declaration, respectively.
-  ///
-  /// Note that the only kind of pattern allowed in a late declaration is a
-  /// variable pattern; [TypeAnalyzerErrors.patternDoesNotAllowLate] will be
-  /// reported if any other kind of pattern is used.
-  ///
-  /// Stack effect: pushes (Expression, Pattern).
-  void analyzeInitializedVariableDeclaration(
-      Node node, Pattern pattern, Expression initializer,
-      {required bool isFinal, required bool isLate}) {
-    // Stack: ()
-    if (isLate && !isVariablePattern(pattern)) {
-      errors?.patternDoesNotAllowLate(pattern);
-    }
-    if (isLate) {
-      flow?.lateInitializer_begin(node);
-    }
-    Type initializerType =
-        analyzeExpression(initializer, dispatchPatternSchema(pattern));
-    // Stack: (Expression)
-    if (isLate) {
-      flow?.lateInitializer_end();
-    }
-    dispatchPattern(
-      initializerType,
-      new MatchContext<Node, Expression, Pattern, Type, Variable>(
-        isFinal: isFinal,
-        isLate: isLate,
-        initializer: initializer,
-        irrefutableContext: node,
-        topPattern: pattern,
-      ),
-      pattern,
-    );
-    // Stack: (Expression, Pattern)
-  }
-
   /// Analyzes an integer literal, given the type context [context].
   ///
   /// Stack effect: none.
@@ -740,15 +697,22 @@ mixin TypeAnalyzer<
     Type matchedType,
     MatchContext<Node, Expression, Pattern, Type, Variable> context,
     Pattern node, {
-    required Type? requiredType,
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     _reportDuplicateRecordPatternFields(fields);
 
-    requiredType ??= downwardInferObjectPatternRequiredType(
+    Type requiredType = downwardInferObjectPatternRequiredType(
       matchedType: matchedType,
       pattern: node,
     );
+
+    // If the required type is `dynamic` or `Never`, then every getter is
+    // treated as having the same type.
+    Type? overridePropertyGetType;
+    if (typeOperations.isDynamic(requiredType) ||
+        typeOperations.isNever(requiredType)) {
+      overridePropertyGetType = requiredType;
+    }
 
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null &&
@@ -763,10 +727,11 @@ mixin TypeAnalyzer<
 
     // Stack: ()
     for (RecordPatternField<Node, Pattern> field in fields) {
-      Type propertyType = resolveObjectPatternPropertyGet(
-        receiverType: requiredType,
-        field: field,
-      );
+      Type propertyType = overridePropertyGetType ??
+          resolveObjectPatternPropertyGet(
+            receiverType: requiredType,
+            field: field,
+          );
       dispatchPattern(propertyType, context, field.pattern);
     }
     // Stack: (n * Pattern) where n = fields.length
@@ -780,6 +745,49 @@ mixin TypeAnalyzer<
   /// Stack effect: none.
   Type analyzeObjectPatternSchema(Type type) {
     return type;
+  }
+
+  /// Analyzes a patternVariableDeclaration statement of the form
+  /// `var pattern = initializer;` or `final pattern = initializer;.
+  ///
+  /// [node] should be the AST node for the entire declaration, [pattern] for
+  /// the pattern, and [initializer] for the initializer.  [isFinal] and
+  /// [isLate] indicate whether this is a final declaration and/or a late
+  /// declaration, respectively.
+  ///
+  /// Note that the only kind of pattern allowed in a late declaration is a
+  /// variable pattern; [TypeAnalyzerErrors.patternDoesNotAllowLate] will be
+  /// reported if any other kind of pattern is used.
+  ///
+  /// Stack effect: pushes (Expression, Pattern).
+  void analyzePatternVariableDeclarationStatement(
+      Node node, Pattern pattern, Expression initializer,
+      {required bool isFinal, required bool isLate}) {
+    // Stack: ()
+    if (isLate && !isVariablePattern(pattern)) {
+      errors?.patternDoesNotAllowLate(pattern);
+    }
+    if (isLate) {
+      flow?.lateInitializer_begin(node);
+    }
+    Type initializerType =
+        analyzeExpression(initializer, dispatchPatternSchema(pattern));
+    // Stack: (Expression)
+    if (isLate) {
+      flow?.lateInitializer_end();
+    }
+    dispatchPattern(
+      initializerType,
+      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+        isFinal: isFinal,
+        isLate: isLate,
+        initializer: initializer,
+        irrefutableContext: node,
+        topPattern: pattern,
+      ),
+      pattern,
+    );
+    // Stack: (Expression, Pattern)
   }
 
   /// Analyzes a record pattern.  [node] is the pattern itself, and [fields]
