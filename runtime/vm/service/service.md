@@ -2971,7 +2971,7 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   MirrorReference
-  @Instance mirrorReferent [optional];
+  @Object mirrorReferent [optional];
 
   // The pattern of a RegExp instance.
   //
@@ -3007,19 +3007,19 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   WeakProperty
-  @Instance propertyKey [optional];
+  @Object propertyKey [optional];
 
   // The key for a WeakProperty instance.
   //
   // Provided for instance kinds:
   //   WeakProperty
-  @Instance propertyValue [optional];
+  @Object propertyValue [optional];
 
   // The target for a WeakReference instance.
   //
   // Provided for instance kinds:
   //   WeakReference
-  @Instance target [optional];
+  @Object target [optional];
 
   // The type arguments for this type.
   //

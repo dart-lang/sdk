@@ -1,5 +1,9 @@
 # Changelog
 
+## 10.0.0
+- Update to version `3.62` of the spec.
+- Update for incorrectly documented types for WeakReference's target, WeakProperty's key and value, and MirrorReference's mirrorReferent.
+
 ## 9.4.0
 - Update to version `3.61` of the spec.
 - Add `isolateGroupId` property to `@Isolate` and `Isolate`.
