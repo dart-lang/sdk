@@ -322,7 +322,11 @@ class Types {
     _makeTypeList(codeGen, type.typeArguments);
   }
 
-  DartType _normalizeFutureOrType(FutureOrType type) {
+  /// Normalizes a Dart type. Many rules are already applied for us, but we
+  /// still have to manually normalize [FutureOr].
+  DartType normalize(DartType type) {
+    if (type is! FutureOrType) return type;
+
     final s = normalize(type.typeArgument);
 
     // `coreTypes.isTope` and `coreTypes.isObject` take into account the
@@ -343,34 +347,6 @@ class Types {
         ? Nullability.nonNullable
         : type.declaredNullability;
     return FutureOrType(s, declaredNullability);
-  }
-
-  /// Normalizes a Dart type. Many rules are already applied for us, but some we
-  /// have to apply manually, particularly to [FutureOr].
-  DartType normalize(DartType type) {
-    if (type is InterfaceType) {
-      return InterfaceType(type.classNode, type.nullability,
-          type.typeArguments.map(normalize).toList());
-    } else if (type is FunctionType) {
-      return FunctionType(type.positionalParameters.map(normalize).toList(),
-          normalize(type.returnType), type.nullability,
-          namedParameters: type.namedParameters
-              .map((namedType) => NamedType(
-                  namedType.name, normalize(namedType.type),
-                  isRequired: namedType.isRequired))
-              .toList(),
-          typeParameters: type.typeParameters
-              .map((typeParameter) => TypeParameter(
-                  typeParameter.name,
-                  normalize(typeParameter.bound),
-                  normalize(typeParameter.defaultType)))
-              .toList(),
-          requiredParameterCount: type.requiredParameterCount);
-    } else if (type is FutureOrType) {
-      return _normalizeFutureOrType(type);
-    } else {
-      return type;
-    }
   }
 
   void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
