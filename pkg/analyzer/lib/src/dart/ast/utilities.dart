@@ -946,7 +946,7 @@ class AstComparator implements AstVisitor<bool> {
     var other = _other as MapPattern;
     return isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.entries, other.entries) &&
+        _isEqualNodeLists(node.elements, other.elements) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
@@ -1241,6 +1241,13 @@ class AstComparator implements AstVisitor<bool> {
     var other = _other as RelationalPattern;
     return isEqualTokens(node.operator, other.operator) &&
         isEqualNodes(node.operand, other.operand);
+  }
+
+  @override
+  bool visitRestPatternElement(RestPatternElement node) {
+    var other = _other as RestPatternElement;
+    return isEqualTokens(node.operator, other.operator) &&
+        isEqualNodes(node.pattern, other.pattern);
   }
 
   @override

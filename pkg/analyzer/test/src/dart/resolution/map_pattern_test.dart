@@ -28,7 +28,7 @@ void f(x) {
 CastPattern
   pattern: MapPattern
     leftBracket: {
-    entries
+    elements
       MapPatternEntry
         key: SimpleStringLiteral
           literal: 'a'
@@ -84,7 +84,7 @@ MapPattern
           token: int
     rightBracket: >
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
