@@ -2018,7 +2018,7 @@ class _Declare extends Statement {
       irName = 'declare';
       argKinds = [Kind.pattern];
     } else {
-      h.typeAnalyzer.analyzeInitializedVariableDeclaration(
+      h.typeAnalyzer.analyzePatternVariableDeclarationStatement(
           this, pattern, initializer,
           isFinal: isFinal, isLate: isLate);
       irName = 'match';
