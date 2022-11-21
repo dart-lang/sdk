@@ -219,6 +219,25 @@ class Constants {
     if (expectedType == translator.voidMarker) return;
     ConstantInstantiator(this, function, b, expectedType).instantiate(constant);
   }
+
+  /// Emit code to push a constant onto the stack that forms part of a type.
+  ///
+  /// If the constant is part of a generic function type, [env] contains the
+  /// environment that maps the function's type parameters to their runtime
+  /// representation.
+  ///
+  /// It is assumed that constants that form part of a type are never lazy.
+  /// Hitting the forced laziness criterion (a list longer than the maximum
+  /// number of elements allowed by the `array.new_fixed` Wasm instruction)
+  /// would need to involve a function type with this many parameters, but such
+  /// a function would hit the (lower) limit on the maximum number of parameters
+  /// to a Wasm function anyway.
+  void instantiateTypeConstant(w.DefinedFunction? function, w.Instructions b,
+      Constant constant, FunctionTypeEnvironment? env) {
+    ConstantInfo info = ConstantCreator(this, env).ensureConstant(constant)!;
+    assert(!info.isLazy);
+    b.global_get(info.global);
+  }
 }
 
 class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
@@ -324,7 +343,12 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
 class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   final Constants constants;
 
-  ConstantCreator(this.constants);
+  /// Environment that maps function type parameters to their runtime
+  /// representation when inside a generic function type.
+  FunctionTypeEnvironment _env;
+
+  ConstantCreator(this.constants, [FunctionTypeEnvironment? env])
+      : _env = env ?? FunctionTypeEnvironment();
 
   Translator get translator => constants.translator;
   Types get types => translator.types;
@@ -603,7 +627,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
     Procedure member = constant.targetReference.asProcedure;
     Constant functionTypeConstant = TypeLiteralConstant(
-        member.function.computeThisFunctionType(Nullability.nonNullable));
+        member.function.computeFunctionType(Nullability.nonNullable));
     ensureConstant(functionTypeConstant);
     ClosureImplementation closure = translator.getTearOffClosure(member);
     w.StructType struct = closure.representation.closureStruct;
@@ -630,11 +654,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         .map((c) => ensureConstant(TypeLiteralConstant(c))!)
         .toList();
     Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
-    FunctionType tearOffFunctionType = tearOffProcedure.function
-        .computeThisFunctionType(Nullability.nonNullable);
+    FunctionType tearOffFunctionType =
+        tearOffProcedure.function.computeFunctionType(Nullability.nonNullable);
     FunctionType instantiatedFunctionType = Substitution.fromPairs(
-            tearOffFunctionType.typeParameters, constant.types)
-        .substituteType(tearOffFunctionType) as FunctionType;
+                tearOffFunctionType.typeParameters, constant.types)
+            .substituteType(tearOffFunctionType.withoutTypeParameters)
+        as FunctionType;
     Constant functionTypeConstant =
         TypeLiteralConstant(instantiatedFunctionType);
     ensureConstant(functionTypeConstant);
@@ -748,6 +773,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   ConstantInfo? _makeFunctionType(
       TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
+    _env.enterFunctionType(type);
+    ListConstant typeParameterBoundsConstant = constants
+        .makeTypeList(type.typeParameters.map((p) => p.bound).toList());
     TypeLiteralConstant returnTypeConstant =
         TypeLiteralConstant(type.returnType);
     ListConstant positionalParametersConstant =
@@ -756,14 +784,18 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         IntConstant(type.requiredParameterCount);
     ListConstant namedParametersConstant =
         constants.makeNamedParametersList(type);
+    ensureConstant(typeParameterBoundsConstant);
     ensureConstant(returnTypeConstant);
     ensureConstant(positionalParametersConstant);
     ensureConstant(requiredParameterCountConstant);
     ensureConstant(namedParametersConstant);
+    _env.leaveFunctionType();
     return createConstant(constant, info.nonNullableType, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.i32_const(types.encodedNullability(type));
+      constants.instantiateConstant(
+          function, b, typeParameterBoundsConstant, types.typeListExpectedType);
       constants.instantiateConstant(
           function, b, returnTypeConstant, types.nonNullableTypeType);
       constants.instantiateConstant(function, b, positionalParametersConstant,
@@ -787,21 +819,19 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     } else if (type is FutureOrType) {
       return _makeFutureOrType(constant, type, info);
     } else if (type is FunctionType) {
-      if (types.isGenericFunction(type)) {
-        // TODO(joshualitt): implement generic function types and share most of
-        // the logic with _makeFunctionType.
+      return _makeFunctionType(constant, type, info);
+    } else if (type is TypeParameterType) {
+      if (types.isFunctionTypeParameter(type)) {
         return createConstant(constant, info.nonNullableType, (function, b) {
           b.i32_const(info.classId);
           b.i32_const(initialIdentityHash);
           b.i32_const(types.encodedNullability(type));
+          FunctionTypeParameterType param = _env.lookup(type.parameter);
+          b.i64_const(param.depth);
+          b.i64_const(param.index);
           b.struct_new(info.struct);
         });
-      } else {
-        return _makeFunctionType(constant, type, info);
       }
-    } else if (type is TypeParameterType) {
-      // TODO(joshualitt): Handle generic function types.
-      assert(!types.isGenericFunctionTypeParameter(type));
       int environmentIndex =
           types.interfaceTypeEnvironment.lookup(type.parameter);
       return createConstant(constant, info.nonNullableType, (function, b) {
