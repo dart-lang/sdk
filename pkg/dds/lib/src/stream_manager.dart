@@ -12,6 +12,7 @@ import 'dds_impl.dart';
 import 'logging_repository.dart';
 import 'rpc_error_codes.dart';
 import 'utils/mutex.dart';
+import 'dart:developer' as developer;
 
 class StreamManager {
   StreamManager(this.dds);
@@ -29,20 +30,28 @@ class StreamManager {
     data, {
     DartDevelopmentServiceClient? excludedClient,
   }) {
+    print('Dake: 1');
     if (streamListeners.containsKey(streamId)) {
+      print('Dake: 2');
+      print('streamListeners: ${streamListeners}');
+      print('streamListeners[$streamId]: ${streamListeners[streamId]}');
+      print('loggingString: $loggingString');
       final listeners = streamListeners[streamId]!;
       final isBinaryData = data is Uint8List;
       for (final listener in listeners) {
+        print('Dake: 3');
         if (listener == excludedClient) {
           continue;
         }
         if (isBinaryData) {
           listener.connection.sink.add(data);
         } else {
+          print('Dake: 4');
           Map<String, dynamic> processed = data;
           if (streamId == kProfilerStream) {
             processed = _processProfilerEvents(listener, data);
           }
+          print('STREAMNOTIFY, $processed');
           listener.sendNotification('streamNotify', processed);
         }
       }
@@ -121,6 +130,7 @@ class StreamManager {
   /// Start listening for `streamNotify` events from the VM service and forward
   /// them to the clients which have subscribed to the stream.
   Future<void> listen() async {
+    print('Dake: Hey Listen!');
     // The IsolateManager requires information from both the Debug and
     // Isolate streams, so they must always be subscribed to by DDS.
     for (final stream in ddsCoreStreams) {
@@ -136,13 +146,44 @@ class StreamManager {
     if (dds.cachedUserTags.isNotEmpty) {
       await streamListen(null, EventStreams.kProfiler);
     }
+//     {
+    //   "type": "Event",
+    //   "kind": "Extension",
+    //   "extensionKind": "_CustomStream::toolEvent",
+    //   "isolate": {
+    //     "type": "@Isolate",
+    //     "id": "isolates/4337703589288519",
+    //     "name": "main",
+    //     "number": "4337703589288519",
+    //     "isSystemIsolate": false,
+    //     "isolateGroupId": "isolateGroups/4876747048091665006"
+    //   },
+    //   "timestamp": 1667403165004,
+    //   "extensionData": {
+    //     "isCustomStream": true,
+    //     "type": "navigateTo",
+    //     "filename": "TODO",
+    //     "line": "TODO",
+    //     "column": "TODO"
+    //   }
+    // }
     dds.vmServiceClient.registerMethod(
       'streamNotify',
       (json_rpc.Parameters parameters) {
         final streamId = parameters['streamId'].asString;
+        print("Dake: streamNotify(${streamId})");
         final event =
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
-
+        print('DAKE: Event extensionKind: ${event.extensionKind}');
+        if (event.extensionKind?.startsWith('_CustomStream::') == true) {
+          final customStreamId = event.extensionKind!;
+          print('DAKE:GOT IT!!!!');
+          // TODO: create new stream if it doesn't exist
+          final values = parameters.value;
+          values['streamId'] = customStreamId;
+          streamNotify(customStreamId, values);
+          return;
+        }
         // Forward events from the streams IsolateManager subscribes to.
         if (isolateManagerStreams.contains(streamId)) {
           dds.isolateManager.handleIsolateEvent(event);
@@ -173,6 +214,7 @@ class StreamManager {
     String stream, {
     bool? includePrivates,
   }) async {
+    print('DAKE: StreamListen  Called for: ${stream}');
     // Weakly guard stream listening as it's safe to perform multiple listens
     // on a stream concurrently. However, cancelling streams while listening
     // to them concurrently can put things in a bad state. Use weak guarding to
@@ -181,6 +223,7 @@ class StreamManager {
       () async {
         assert(stream.isNotEmpty);
         bool streamNewlySubscribed = false;
+        loggingString += 'DAKE:streamListen($client, $stream) 1\n';
         if (!streamListeners.containsKey(stream)) {
           // Initialize the list of clients for the new stream before we do
           // anything else to ensure multiple clients registering for the same
@@ -188,8 +231,10 @@ class StreamManager {
           // requests being sent to the VM service.
           streamNewlySubscribed = true;
           streamListeners[stream] = <DartDevelopmentServiceClient>[];
-          if ((stream == kDebugStream && client == null) ||
-              stream != kDebugStream) {
+          loggingString += 'DAKE:streamListen($client, $stream) 2\n';
+          if (!stream.startsWith('_CustomStream::') &&
+              ((stream == kDebugStream && client == null) ||
+                  stream != kDebugStream)) {
             // This will return an RPC exception if the stream doesn't exist. This
             // will throw and the exception will be forwarded to the client.
             final result =
@@ -201,9 +246,12 @@ class StreamManager {
             assert(result['type'] == 'Success');
           }
         }
+
+        loggingString += 'DAKE:streamListen($client, $stream) 3\n';
         if (streamListeners[stream]!.contains(client)) {
           throw kStreamAlreadySubscribedException;
         } else if (!streamNewlySubscribed && includePrivates != null) {
+          loggingString += 'DAKE:streamListen($client, $stream) 4\n';
           try {
             await dds.vmServiceClient.sendRequest(
                 '_setStreamIncludePrivateMembers',
@@ -218,7 +266,9 @@ class StreamManager {
             }
           }
         }
+        loggingString += 'DAKE:streamListen($client, $stream) 5\n';
         if (client != null) {
+          loggingString += 'DAKE:streamListen($client, $stream) 6\n';
           streamListeners[stream]!.add(client);
           if (loggingRepositories.containsKey(stream)) {
             loggingRepositories[stream]!.sendHistoricalLogs(client);
@@ -386,6 +436,7 @@ class StreamManager {
 
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
+  var loggingString = '';
   final _profilerUserTagSubscriptions = <String>{};
   final _streamSubscriptionMutex = Mutex();
   final _profilerUserTagSubscriptionsMutex = Mutex();
