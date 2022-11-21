@@ -306,7 +306,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
 }
 
 abstract class AnnotationsData {
-  /// Deserializes a [AnnotationsData] object from [source].
+  /// Deserializes an [AnnotationsData] object from [source].
   factory AnnotationsData.readFromDataSource(
       CompilerOptions options,
       DiagnosticReporter reporter,

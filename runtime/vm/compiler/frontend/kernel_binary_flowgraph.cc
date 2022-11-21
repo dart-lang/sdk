@@ -894,7 +894,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 
   const Function& function = parsed_function()->function();
 
-  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // Setup an [ActiveClassScope] and an [ActiveMemberScope] which will be used
   // e.g. for type translation.
   const Class& klass =
       Class::Handle(zone_, parsed_function()->function().Owner());

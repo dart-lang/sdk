@@ -77,7 +77,7 @@ import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'compiler_migrated.dart';
 
-/// Implementation of the compiler using  a [api.CompilerInput] for supplying
+/// Implementation of the compiler using a [api.CompilerInput] for supplying
 /// the sources.
 class Compiler
     implements

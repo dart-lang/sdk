@@ -37,7 +37,7 @@ class OrderedTypeSet {
 
   OrderedTypeSet._(this._levels, this.types);
 
-  /// Deserializes a [OrderedTypeSet] object from [source].
+  /// Deserializes an [OrderedTypeSet] object from [source].
   factory OrderedTypeSet.readFromDataSource(DataSourceReader source) {
     // TODO(johnniwinther): Make the deserialized type sets share their
     // internal links like the original type sets do?

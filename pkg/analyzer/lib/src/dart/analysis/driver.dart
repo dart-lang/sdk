@@ -252,7 +252,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Create a new instance of [AnalysisDriver].
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
-  /// reference to a [AnalysisContext] in which it could have been used.
+  /// reference to an [AnalysisContext] in which it could have been used.
   AnalysisDriver({
     required AnalysisDriverScheduler scheduler,
     required PerformanceLog logger,
