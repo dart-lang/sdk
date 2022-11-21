@@ -38,8 +38,8 @@ class CompletionResolveHandler
   ) async {
     final resolutionInfo = params.data;
 
-    if (resolutionInfo is DartNotImportedCompletionResolutionInfo) {
-      return resolveDartNotImportedCompletion(params, resolutionInfo, token);
+    if (resolutionInfo is DartCompletionResolutionInfo) {
+      return resolveDartCompletion(params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
       return resolvePubPackageCompletion(params, resolutionInfo, token);
     } else {
@@ -47,9 +47,9 @@ class CompletionResolveHandler
     }
   }
 
-  Future<ErrorOr<CompletionItem>> resolveDartNotImportedCompletion(
+  Future<ErrorOr<CompletionItem>> resolveDartCompletion(
     CompletionItem item,
-    DartNotImportedCompletionResolutionInfo data,
+    DartCompletionResolutionInfo data,
     CancellationToken token,
   ) async {
     final clientCapabilities = server.clientCapabilities;
@@ -60,7 +60,7 @@ class CompletionResolveHandler
     }
 
     final file = data.file;
-    final libraryUri = Uri.parse(data.libraryUri);
+    final importUris = data.importUris.map(Uri.parse).toList();
     final elementLocationReference = data.ref;
     final elementLocation = elementLocationReference != null
         ? ElementLocationImpl.con2(elementLocationReference)
@@ -91,7 +91,9 @@ class CompletionResolveHandler
 
         final builder = ChangeBuilder(session: session);
         await builder.addDartFileEdit(file, (builder) {
-          builder.importLibraryElement(libraryUri);
+          for (final uri in importUris) {
+            builder.importLibraryElement(uri);
+          }
         });
 
         if (token.isCancellationRequested) {
@@ -136,26 +138,35 @@ class CompletionResolveHandler
               : null;
         }
 
-        // If the only URI we have is a file:// URI, display it as relative to
-        // the file we're importing into, rather than the full URI.
-        final pathContext = server.resourceProvider.pathContext;
-        final autoImportDisplayUri = libraryUri.isScheme('file')
-            // Compute the relative path and then put into a URI so the display
-            // always uses forward slashes (as a URI) regardless of platform.
-            ? Uri.file(pathContext.relative(
-                libraryUri.toFilePath(),
-                from: pathContext.dirname(file),
-              ))
-            : libraryUri;
+        String? detail = item.detail;
+        if (changes.edits.isNotEmpty && importUris.isNotEmpty) {
+          if (importUris.length == 1) {
+            // If the only URI we have is a file:// URI, display it as relative to
+            // the file we're importing into, rather than the full URI.
+            final pathContext = server.resourceProvider.pathContext;
+            final libraryUri = importUris.first;
+            final autoImportDisplayUri = libraryUri.isScheme('file')
+                // Compute the relative path and then put into a URI so the display
+                // always uses forward slashes (as a URI) regardless of platform.
+                ? Uri.file(pathContext.relative(
+                    libraryUri.toFilePath(),
+                    from: pathContext.dirname(file),
+                  ))
+                : libraryUri;
+
+            detail =
+                "Auto import from '$autoImportDisplayUri'\n\n${item.detail ?? ''}"
+                    .trim();
+          } else {
+            detail = "Auto import required URIs\n\n${item.detail ?? ''}".trim();
+          }
+        }
 
         return success(CompletionItem(
           label: item.label,
           kind: item.kind,
           tags: item.tags,
-          detail: changes.edits.isNotEmpty
-              ? "Auto import from '$autoImportDisplayUri'\n\n${item.detail ?? ''}"
-                  .trim()
-              : item.detail,
+          detail: detail,
           documentation: documentation,
           deprecated: item.deprecated,
           preselect: item.preselect,

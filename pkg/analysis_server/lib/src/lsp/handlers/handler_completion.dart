@@ -451,23 +451,21 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         final insertionRange =
             toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
 
-        // For not-imported items, we need to include the file+uri to be able
-        // to compute the import-inserting edits in the `completionItem/resolve`
-        // call later.
+        // For items that need imports, we'll round-trip some additional info
+        // to allow their additional edits (and documentation) to be handled
+        // lazily to reduce the payload.
         CompletionItemResolutionInfo? resolutionInfo;
-        final libraryUri = item.libraryUri;
+        if (item is DartCompletionSuggestion) {
+          final dartElement = item.dartElement;
+          final importUris = item.requiredImports;
 
-        if (useNotImportedCompletions &&
-            libraryUri != null &&
-            (item.isNotImported ?? false)) {
-          final dartElement =
-              item is DartCompletionSuggestion ? item.dartElement : null;
-
-          resolutionInfo = DartNotImportedCompletionResolutionInfo(
-            file: unit.path,
-            libraryUri: libraryUri,
-            ref: dartElement?.location?.encoding,
-          );
+          if (importUris.isNotEmpty) {
+            resolutionInfo = DartCompletionResolutionInfo(
+              file: unit.path,
+              importUris: importUris.map((uri) => uri.toString()).toList(),
+              ref: dartElement?.location?.encoding,
+            );
+          }
         }
 
         return toCompletionItem(
