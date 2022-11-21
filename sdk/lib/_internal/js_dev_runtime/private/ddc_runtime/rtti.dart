@@ -83,6 +83,33 @@ getFunctionType(obj) {
   return fnType(bottom, args, JS('', 'void 0'));
 }
 
+// Compute and cache reified record type.
+RecordType getRecordType(obj) {
+  var type = JS<RecordType?>('', '#[#]', obj, _runtimeType);
+  if (type == null) {
+    var shape = JS<Shape>('', '#[#]', obj, _shape);
+    var named = JS<List<String>?>('', '#.named', shape);
+    var positionals = JS<int>('', '#.positionals', shape);
+    var types = [];
+    var count = 0;
+    while (count < positionals) {
+      var name = '\$$count';
+      var field = JS('', '#[#]', obj, name);
+      types.add(getReifiedType(field));
+      count++;
+    }
+    if (named != null) {
+      for (final name in named) {
+        var field = JS('', '#[#]', obj, name);
+        types.add(getReifiedType(field));
+      }
+    }
+    type = recordType(shape, types);
+    JS('', '#[#] = #', obj, _runtimeType, type);
+  }
+  return type;
+}
+
 /// Returns the runtime representation of the type of obj.
 ///
 /// The resulting object is used internally for runtime type checking. This is
@@ -124,6 +151,13 @@ getReifiedType(obj) {
     switch (JS<String>('!', 'typeof #', obj)) {
       case "object":
         if (obj == null) return JS('', '#', Null);
+        // TODO(annagrin): Replace the check with
+        //` _jsInstanceOf(obj, _RecordImpl)`
+        // after _RecordImpl inherits from Object.
+        var shape = JS('', '#[#]', obj, _shape);
+        if (shape != null) {
+          return getRecordType(obj);
+        }
         if (_jsInstanceOf(obj, Object)) {
           return JS('', '#.constructor', obj);
         }

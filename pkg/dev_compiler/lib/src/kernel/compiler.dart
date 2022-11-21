@@ -3392,10 +3392,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitRecordType(
-          RecordType type,
-          Iterable<js_ast.Expression> positionalTypeReps,
-          Iterable<js_ast.Expression> namedTypeReps) =>
-      _emitInvalidNode(type);
+      RecordType type,
+      Iterable<js_ast.Expression> positionalTypeReps,
+      Iterable<js_ast.Expression> namedTypeReps) {
+    // RecordType names are already sorted alphabetically in kernel.
+    var positionals = positionalTypeReps.length;
+    var names = type.named.map((e) => e.name);
+    var shape = '$positionals ${names.join(" ")}';
+
+    return runtimeCall('recordTypeLiteral(#, #, #, [#])', [
+      js.string(shape),
+      js.number(positionals),
+      names.isEmpty ? js.call('void 0') : js.stringArray(names),
+      [
+        ...positionalTypeReps,
+        ...namedTypeReps,
+      ]
+    ]);
+  }
 
   /// Emits an expression that lets you access statics on a [type] from code.
   js_ast.Expression _emitConstructorAccess(InterfaceType type) {
