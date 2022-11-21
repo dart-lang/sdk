@@ -347,7 +347,10 @@ class OperationsCfe
     Set<String>? unpromotablePrivateFieldNames =
         this.unpromotablePrivateFieldNames;
     if (unpromotablePrivateFieldNames == null) return false;
-    if (property is! Field) return false;
+    if (property is Procedure && !property.isAbstractFieldAccessor) {
+      // We don't promote methods or explicit abstract getters.
+      return false;
+    }
     String name = property.name.text;
     if (!name.startsWith('_')) return false;
     return !unpromotablePrivateFieldNames.contains(name);

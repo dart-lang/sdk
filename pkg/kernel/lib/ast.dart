@@ -3215,6 +3215,7 @@ class Procedure extends Member {
       bool isConst = false,
       bool isExtensionMember = false,
       bool isSynthetic = false,
+      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -3227,6 +3228,7 @@ class Procedure extends Member {
             isConst: isConst,
             isExtensionMember: isExtensionMember,
             isSynthetic: isSynthetic,
+            isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -3241,6 +3243,7 @@ class Procedure extends Member {
       bool isConst = false,
       bool isExtensionMember = false,
       bool isSynthetic = false,
+      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -3258,6 +3261,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
     this.isSynthetic = isSynthetic;
+    this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
     assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
@@ -3308,6 +3312,7 @@ class Procedure extends Member {
   static const int FlagNonNullableByDefault = 1 << 6;
   static const int FlagSynthetic = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
+  static const int FlagIsAbstractFieldAccessor = 1 << 9;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3373,6 +3378,15 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagInternalImplementation)
         : (flags & ~FlagInternalImplementation);
+  }
+
+  /// If `true` this procedure was generated from an abstract field.
+  bool get isAbstractFieldAccessor => flags & FlagIsAbstractFieldAccessor != 0;
+
+  void set isAbstractFieldAccessor(bool value) {
+    flags = value
+        ? (flags | FlagIsAbstractFieldAccessor)
+        : (flags & ~FlagIsAbstractFieldAccessor);
   }
 
   @override
