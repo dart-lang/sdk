@@ -697,15 +697,22 @@ mixin TypeAnalyzer<
     Type matchedType,
     MatchContext<Node, Expression, Pattern, Type, Variable> context,
     Pattern node, {
-    required Type? requiredType,
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     _reportDuplicateRecordPatternFields(fields);
 
-    requiredType ??= downwardInferObjectPatternRequiredType(
+    Type requiredType = downwardInferObjectPatternRequiredType(
       matchedType: matchedType,
       pattern: node,
     );
+
+    // If the required type is `dynamic` or `Never`, then every getter is
+    // treated as having the same type.
+    Type? overridePropertyGetType;
+    if (typeOperations.isDynamic(requiredType) ||
+        typeOperations.isNever(requiredType)) {
+      overridePropertyGetType = requiredType;
+    }
 
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null &&
@@ -720,10 +727,11 @@ mixin TypeAnalyzer<
 
     // Stack: ()
     for (RecordPatternField<Node, Pattern> field in fields) {
-      Type propertyType = resolveObjectPatternPropertyGet(
-        receiverType: requiredType,
-        field: field,
-      );
+      Type propertyType = overridePropertyGetType ??
+          resolveObjectPatternPropertyGet(
+            receiverType: requiredType,
+            field: field,
+          );
       dispatchPattern(propertyType, context, field.pattern);
     }
     // Stack: (n * Pattern) where n = fields.length

@@ -2090,7 +2090,7 @@ main() {
             ifCase(
               expr('A<int>').checkContext('?'),
               objectPattern(
-                requiredType: ObjectPatternRequiredType.name('B'),
+                requiredType: 'B',
                 fields: [
                   Var('foo', errorId: 'foo').pattern().recordField('foo'),
                 ],
@@ -2100,13 +2100,46 @@ main() {
                 'requiredType: B<int>), variables(foo), true, block(), noop)'),
           ]);
         });
+
+        test('dynamic type', () {
+          h.run([
+            ifCase(
+              expr('int').checkContext('?'),
+              objectPattern(
+                requiredType: 'dynamic',
+                fields: [
+                  Var('foo', errorId: 'foo').pattern().recordField('foo'),
+                ],
+              ),
+            ).checkIr('ifCase(expr(int), objectPattern(varPattern(foo, '
+                'matchedType: dynamic, staticType: dynamic), matchedType: int, '
+                'requiredType: dynamic), variables(foo), true, block(), noop)'),
+          ]);
+        });
+
+        test('Never type', () {
+          h.run([
+            ifCase(
+              expr('int').checkContext('?'),
+              objectPattern(
+                requiredType: 'Never',
+                fields: [
+                  Var('foo', errorId: 'foo').pattern().recordField('foo'),
+                ],
+              ),
+            ).checkIr('ifCase(expr(int), objectPattern(varPattern(foo, '
+                'matchedType: Never, staticType: Never), matchedType: int, '
+                'requiredType: Never), variables(foo), true, block(), noop)'),
+          ]);
+        });
+
         test('duplicate field name', () {
           h.addMember('A<int>', 'foo', 'int');
           h.run([
             ifCase(
               expr('A<int>'),
               objectPattern(
-                requiredType: ObjectPatternRequiredType.type('A<int>'),
+                requiredType: 'A<int>',
                 fields: [
                   Var('a', errorId: 'a').pattern().recordField('foo')
                     ..errorId = 'ORIGINAL',
@@ -2128,7 +2161,7 @@ main() {
           h.run([
             match(
               objectPattern(
-                requiredType: ObjectPatternRequiredType.type('num'),
+                requiredType: 'num',
                 fields: [
                   Var('foo').pattern().recordField('foo'),
                 ],
@@ -2145,7 +2178,7 @@ main() {
           h.run([
             (match(
               objectPattern(
-                requiredType: ObjectPatternRequiredType.type('int'),
+                requiredType: 'int',
                 fields: [
                   Var('foo').pattern().recordField('foo'),
                 ],
