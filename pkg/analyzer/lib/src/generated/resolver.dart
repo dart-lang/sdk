@@ -904,6 +904,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  DartPattern? getRestPatternElementPattern(covariant DartPatternImpl node) {
+    // TODO(scheglov): implement getRestPatternElementPattern
+    throw UnimplementedError();
+  }
+
+  @override
   SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement>
       getSwitchExpressionMemberInfo(Expression node, int index) {
     throw UnimplementedError('TODO(paulberry)');
@@ -1047,6 +1053,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleNoStatement(Statement node) {}
 
   @override
+  void handleRestPatternElement(
+    DartPattern container,
+    covariant DartPattern restElement,
+  ) {
+    // TODO(scheglov): implement handleRestPatternElement
+    throw UnimplementedError();
+  }
+
+  @override
   void handleSwitchScrutinee(DartType type) {
     switchExhaustiveness = SwitchExhaustiveness(type);
   }
@@ -1105,6 +1120,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     genericFunctionInstantiation.staticType = staticType;
 
     return genericFunctionInstantiation;
+  }
+
+  @override
+  bool isRestPatternElement(covariant DartPatternImpl node) {
+    // TODO(scheglov): implement isRestPatternElement
+    return false;
   }
 
   @override

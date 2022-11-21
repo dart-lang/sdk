@@ -1490,13 +1490,13 @@ main() {
         });
 
         group('Implicit element type:', () {
-          test('Empty', () {
+          test('No elements', () {
             h.run([
-              match(listPattern([]), expr('dynamic').checkContext('Object?')),
+              match(listPattern([]), expr('dynamic').checkContext('List<?>')),
             ]);
           });
 
-          test('Non-empty', () {
+          test('Variable patterns', () {
             var x = Var('x');
             var y = Var('y');
             h.run([
@@ -1505,6 +1505,61 @@ main() {
                       [x.pattern(type: 'int?'), y.pattern(type: 'num')]),
                   expr('dynamic').checkContext('List<int>')),
             ]);
+          });
+
+          group('Rest pattern:', () {
+            group('With pattern:', () {
+              test('Iterable', () {
+                var x = Var('x');
+                h.run([
+                  match(
+                    listPattern([
+                      listPatternRestElement(x.pattern(type: 'Iterable<int>')),
+                    ]),
+                    expr('List<int>').checkContext('List<int>'),
+                  ),
+                ]);
+              });
+              test('Not Iterable', () {
+                var x = Var('x');
+                h.run([
+                  match(
+                    listPattern([
+                      listPatternRestElement(
+                        x.pattern(type: 'String')..errorId = 'VAR(x)',
+                      )
+                    ]),
+                    expr('List<int>').checkContext('List<?>'),
+                  )..errorId = 'CONTEXT',
+                ], expectedErrors: {
+                  'patternTypeMismatchInIrrefutableContext('
+                      'pattern: VAR(x), context: CONTEXT, matchedType: '
+                      'List<int>, requiredType: String)'
+                });
+              });
+            });
+            group('Without pattern:', () {
+              test('No other elements', () {
+                h.run([
+                  match(
+                    listPattern([listPatternRestElement()]),
+                    expr('dynamic').checkContext('List<?>'),
+                  ),
+                ]);
+              });
+              test('Has other elements', () {
+                var x = Var('x');
+                h.run([
+                  match(
+                    listPattern([
+                      x.pattern(type: 'int'),
+                      listPatternRestElement(),
+                    ]),
+                    expr('dynamic').checkContext('List<int>'),
+                  ),
+                ]);
+              });
+            });
           });
         });
       });
@@ -1516,7 +1571,7 @@ main() {
             match(listPattern([x.pattern(type: 'num')], elementType: 'int'),
                     expr('dynamic'))
                 .checkIr('match(expr(dynamic), '
-                    'listPattern(varPattern(x, matchedType: dynamic, '
+                    'listPattern(varPattern(x, matchedType: int, '
                     'staticType: num), '
                     'matchedType: dynamic, requiredType: List<int>))'),
           ]);
@@ -1524,41 +1579,81 @@ main() {
 
         test('Matched type is a list', () {
           var x = Var('x');
+          var y = Var('y');
           h.run([
-            match(listPattern([x.pattern(expectInferredType: 'int')]),
-                    expr('List<int>'))
-                .checkIr('match(expr(List<int>), '
-                    'listPattern(varPattern(x, matchedType: int, '
-                    'staticType: int), matchedType: List<int>, '
-                    'requiredType: List<int>))'),
+            match(
+              listPattern([
+                x.pattern(expectInferredType: 'int'),
+                listPatternRestElement(
+                  y.pattern(expectInferredType: 'List<int>'),
+                ),
+              ]),
+              expr('List<int>'),
+            ).checkIr('match(expr(List<int>), listPattern(varPattern(x, '
+                'matchedType: int, staticType: int), ...(varPattern(y, '
+                'matchedType: List<int>, staticType: List<int>)), '
+                'matchedType: List<int>, requiredType: List<int>))'),
           ]);
         });
 
         test('Matched type is dynamic', () {
           var x = Var('x');
+          var y = Var('y');
           h.run([
-            match(listPattern([x.pattern(expectInferredType: 'dynamic')]),
-                    expr('dynamic'))
-                .checkIr('match(expr(dynamic), '
-                    'listPattern(varPattern(x, matchedType: dynamic, '
-                    'staticType: dynamic), matchedType: dynamic, '
-                    'requiredType: List<dynamic>))'),
+            match(
+              listPattern([
+                x.pattern(expectInferredType: 'dynamic'),
+                listPatternRestElement(
+                    y.pattern(expectInferredType: 'List<dynamic>')),
+              ]),
+              expr('dynamic'),
+            ).checkIr('match(expr(dynamic), listPattern(varPattern(x, '
+                'matchedType: dynamic, staticType: dynamic), ...(varPattern(y, '
+                'matchedType: List<dynamic>, staticType: List<dynamic>)), '
+                'matchedType: dynamic, requiredType: List<dynamic>))'),
           ]);
         });
 
         test('Matched type is other', () {
           var x = Var('x')..errorId = 'x';
+          var y = Var('y')..errorId = 'y';
           h.run([
             ifCase(
               expr('Object'),
               listPattern([
                 x.pattern(expectInferredType: 'Object?'),
+                listPatternRestElement(
+                    y.pattern(expectInferredType: 'List<Object?>')),
               ]),
             ).checkIr('ifCase(expr(Object), listPattern(varPattern(x, '
-                'matchedType: Object?, staticType: Object?), matchedType: '
-                'Object, requiredType: List<Object?>), variables(x), '
-                'true, block(), noop)'),
+                'matchedType: Object?, staticType: Object?), ...(varPattern(y, '
+                'matchedType: List<Object?>, staticType: List<Object?>)), '
+                'matchedType: Object, requiredType: List<Object?>), '
+                'variables(x, y), true, block(), noop)'),
           ]);
+        });
+
+        group('Rest pattern:', () {
+          test('With pattern', () {
+            var x = Var('x')..errorId = 'x';
+            h.run([
+              match(
+                listPattern([listPatternRestElement(x.pattern())]),
+                expr('List<int>'),
+              ).checkIr('match(expr(List<int>), listPattern(...(varPattern(x, '
+                  'matchedType: List<int>, staticType: List<int>)), '
+                  'matchedType: List<int>, requiredType: List<int>))'),
+            ]);
+          });
+          test('Without pattern', () {
+            h.run([
+              match(
+                listPattern([listPatternRestElement()]),
+                expr('List<int>'),
+              ).checkIr('match(expr(List<int>), listPattern(..., '
+                  'matchedType: List<int>, requiredType: List<int>))'),
+            ]);
+          });
         });
       });
 
@@ -1569,7 +1664,7 @@ main() {
               listPattern([wildcard()], elementType: 'num'),
               expr('List<int>'),
             ).checkIr('match(expr(List<int>), '
-                'listPattern(varPattern(_, matchedType: int, staticType: int), '
+                'listPattern(varPattern(_, matchedType: num, staticType: num), '
                 'matchedType: List<int>, requiredType: List<num>))'),
           ]);
         });
@@ -1579,8 +1674,8 @@ main() {
             match(listPattern([wildcard()], elementType: 'num'),
                     expr('dynamic'))
                 .checkIr('match(expr(dynamic), '
-                    'listPattern(varPattern(_, matchedType: dynamic, '
-                    'staticType: dynamic), matchedType: dynamic, '
+                    'listPattern(varPattern(_, matchedType: num, '
+                    'staticType: num), matchedType: dynamic, '
                     'requiredType: List<num>))'),
           ]);
         });

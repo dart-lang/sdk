@@ -75,6 +75,10 @@ mixin TypeOperations<Type extends Object> {
   /// of [type] and `Null`.
   Type makeNullable(Type type);
 
+  /// If [type] is a subtype of the type `Iterable<T>` for some `T`, returns
+  /// the type `T`.  Otherwise returns `null`.
+  Type? matchIterableType(Type type);
+
   /// If [type] is a subtype of the type `List<T>` for some `T`, returns the
   /// type `T`.  Otherwise returns `null`.
   Type? matchListType(Type type);

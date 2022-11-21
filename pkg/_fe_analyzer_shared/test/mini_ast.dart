@@ -247,9 +247,12 @@ Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
         expectConversionToDouble: expectConversionToDouble,
         location: computeLocation());
 
-Pattern listPattern(List<Pattern> elements, {String? elementType}) =>
+Pattern listPattern(List<ListPatternElement> elements, {String? elementType}) =>
     _ListPattern(elementType == null ? null : Type(elementType), elements,
         location: computeLocation());
+
+ListPatternElement listPatternRestElement([Pattern? pattern]) =>
+    _RestPatternElement(pattern, location: computeLocation());
 
 Statement localFunction(List<Statement> body) {
   var location = computeLocation();
@@ -685,6 +688,12 @@ class Label extends Node {
   String toString() => _name;
 }
 
+abstract class ListPatternElement implements Node {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder);
+
+  String _debugString({required bool needsKeywordOrType});
+}
+
 /// Representation of an expression that can appear on the left hand side of an
 /// assignment (or as the target of `++` or `--`).  Methods in this class may be
 /// used to create more complex expressions based on this one.
@@ -775,7 +784,13 @@ class MiniAstOperations
     'List <: int': false,
     'List <: Iterable': true,
     'List <: Object': true,
+    'List<dynamic> <: Object': true,
+    'List<Object?> <: Object': true,
+    'List<int> <: dynamic': true,
+    'List<int> <: Iterable<double>': false,
+    'List<int> <: Iterable<int>': true,
     'List<int> <: List<num>': true,
+    'List<int> <: String': false,
     'Never <: int': true,
     'Never <: int?': true,
     'Never <: Null': true,
@@ -847,6 +862,8 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreGlbs = {
+    'Object?, double': Type('double'),
+    'Object?, int': Type('int'),
     'double, int': Type('Never'),
     'double?, int?': Type('Null'),
     'int?, num': Type('int'),
@@ -1030,11 +1047,21 @@ class MiniAstOperations
   Type makeNullable(Type type) => lub(type, Type('Null'));
 
   @override
+  Type? matchIterableType(Type type) {
+    if (type is NonFunctionType &&
+        type.name == 'Iterable' &&
+        type.args.length == 1) {
+      return type.args[0];
+    }
+    return null;
+  }
+
+  @override
   Type? matchListType(Type type) {
-    if (type is NonFunctionType) {
-      if (type.args.length == 1) {
-        return type.args[0];
-      }
+    if (type is NonFunctionType &&
+        type.name == 'List' &&
+        type.args.length == 1) {
+      return type.args[0];
     }
     return null;
   }
@@ -1151,7 +1178,9 @@ class ObjectPatternRequiredType {
   }
 }
 
-abstract class Pattern extends Node with PossiblyGuardedPattern {
+abstract class Pattern extends Node
+    with PossiblyGuardedPattern
+    implements ListPatternElement {
   Pattern._({required super.location}) : super._();
 
   Pattern get nullAssert =>
@@ -1180,8 +1209,6 @@ abstract class Pattern extends Node with PossiblyGuardedPattern {
   Pattern or(Pattern other) =>
       _LogicalPattern(this, other, isAnd: false, location: computeLocation());
 
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder);
-
   RecordPatternField recordField([String? name]) {
     return RecordPatternField(
       name: name,
@@ -1206,8 +1233,6 @@ abstract class Pattern extends Node with PossiblyGuardedPattern {
       location: location,
     );
   }
-
-  String _debugString({required bool needsKeywordOrType});
 }
 
 class PatternVariableJoin extends Var {
@@ -2554,7 +2579,7 @@ class _LabeledStatement extends Statement {
 class _ListPattern extends Pattern {
   final Type? _elementType;
 
-  final List<Pattern> _elements;
+  final List<ListPatternElement> _elements;
 
   _ListPattern(this._elementType, this._elements, {required super.location})
       : super._();
@@ -3257,6 +3282,11 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  Pattern? getRestPatternElementPattern(Node element) {
+    return element is _RestPatternElement ? element._pattern : null;
+  }
+
+  @override
   SwitchExpressionMemberInfo<Node, Expression, Var>
       getSwitchExpressionMemberInfo(
           covariant _SwitchExpression node, int index) {
@@ -3401,6 +3431,19 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  void handleRestPatternElement(
+    Pattern container,
+    covariant _RestPatternElement restElement,
+  ) {
+    if (restElement._pattern != null) {
+      _irBuilder.apply('...', [Kind.pattern], Kind.pattern,
+          location: restElement.location);
+    } else {
+      _irBuilder.atom('...', Kind.pattern, location: restElement.location);
+    }
+  }
+
+  @override
   void handleSwitchScrutinee(Type type) {}
 
   void handleVariablePattern(covariant _VariablePattern node,
@@ -3416,6 +3459,11 @@ class _MiniAstTypeAnalyzer
     if (expectInferredType != null) {
       expect(staticType.type, expectInferredType);
     }
+  }
+
+  @override
+  bool isRestPatternElement(Node element) {
+    return element is _RestPatternElement;
   }
 
   @override
@@ -3850,6 +3898,27 @@ class _RelationalPattern extends Pattern {
 
   @override
   _debugString({required bool needsKeywordOrType}) => '$operator $operand';
+}
+
+class _RestPatternElement extends Node implements ListPatternElement {
+  final Pattern? _pattern;
+
+  _RestPatternElement(this._pattern, {required super.location}) : super._();
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    _pattern?.preVisit(visitor, variableBinder);
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var pattern = _pattern;
+    if (pattern == null) {
+      return '...';
+    } else {
+      return '...${pattern._debugString(needsKeywordOrType: false)}';
+    }
+  }
 }
 
 class _Return extends Statement {

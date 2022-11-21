@@ -95,7 +95,7 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@46
-        type: dynamic
+        type: int
   rightBracket: ]
   requiredType: List<int>
 ''');
@@ -153,7 +153,7 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@56
-        type: num
+        type: int
   rightBracket: ]
   requiredType: List<int>
 ''');
@@ -353,7 +353,7 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@53
-        type: Object?
+        type: int
   rightBracket: ]
   requiredType: List<int>
 ''');

@@ -456,6 +456,13 @@ class TypeSystemOperations
   }
 
   @override
+  DartType? matchIterableType(DartType type) {
+    var iterableElement = typeSystem.typeProvider.iterableElement;
+    var listType = type.asInstanceOf(iterableElement);
+    return listType?.typeArguments[0];
+  }
+
+  @override
   DartType? matchListType(DartType type) {
     var listElement = typeSystem.typeProvider.listElement;
     var listType = type.asInstanceOf(listElement);

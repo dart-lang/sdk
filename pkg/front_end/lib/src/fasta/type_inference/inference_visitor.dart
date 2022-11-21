@@ -7820,6 +7820,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(scheglov): implement getJoinedVariableComponents
     throw new UnimplementedError('TODO(scheglov)');
   }
+
+  @override
+  bool isRestPatternElement(Node node) {
+    // TODO(scheglov): implement isRestPatternElement
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  Pattern? getRestPatternElementPattern(Node node) {
+    // TODO(scheglov): implement getRestPatternElementPattern
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void handleRestPatternElement(Pattern container, Node restElement) {
+    // TODO(scheglov): implement handleRestPatternElement
+    throw new UnimplementedError('TODO(scheglov)');
+  }
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].
