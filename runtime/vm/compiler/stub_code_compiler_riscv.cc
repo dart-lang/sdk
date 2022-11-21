@@ -1330,11 +1330,11 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
-  __ EnterFrame(0);
+  __ EnterFrame(1 * target::kWordSize);
 
   // Push code object to PC marker slot.
   __ lx(TMP2, Address(A3, target::Thread::invoke_dart_code_stub_offset()));
-  __ PushRegister(TMP2);
+  __ sx(TMP2, Address(SP, 0 * target::kWordSize));
 
 #if defined(DART_TARGET_OS_FUCHSIA)
   __ sx(S2, Address(A3, target::Thread::saved_shadow_call_stack_offset()));
@@ -1354,23 +1354,20 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Refresh pinned registers values (inc. write barrier mask and null object).
   __ RestorePinnedRegisters();
 
-  // Save the current VMTag on the stack.
-  __ LoadFromOffset(TMP, THR, target::Thread::vm_tag_offset());
-  __ PushRegister(TMP);
-
-  // Save top resource and top exit frame info. Use R6 as a temporary register.
+  // Save the current VMTag, top resource and top exit frame info on the stack.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(TMP, THR, target::Thread::top_resource_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_resource_offset());
-  __ PushRegister(TMP);
-
-  __ LoadFromOffset(TMP, THR, target::Thread::exit_through_ffi_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
-  __ PushRegister(TMP);
-
-  __ LoadFromOffset(TMP, THR, target::Thread::top_exit_frame_info_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
-  __ PushRegister(TMP);
+  __ subi(SP, SP, 4 * target::kWordSize);
+  __ lx(TMP, Address(THR, target::Thread::vm_tag_offset()));
+  __ sx(TMP, Address(SP, 3 * target::kWordSize));
+  __ lx(TMP, Address(THR, target::Thread::top_resource_offset()));
+  __ sx(ZR, Address(THR, target::Thread::top_resource_offset()));
+  __ sx(TMP, Address(SP, 2 * target::kWordSize));
+  __ lx(TMP, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ sx(ZR, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ sx(TMP, Address(SP, 1 * target::kWordSize));
+  __ lx(TMP, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ sx(ZR, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ sx(TMP, Address(SP, 0 * target::kWordSize));
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
 #if XLEN == 32
@@ -1437,18 +1434,17 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
       SP, FP,
       target::frame_layout.exit_link_slot_from_entry_fp * target::kWordSize);
 
-  // Restore the saved top exit frame info and top resource back into the
-  // Isolate structure. Uses R6 as a temporary register for this.
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::top_exit_frame_info_offset());
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::exit_through_ffi_offset());
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::top_resource_offset());
-
-  // Restore the current VMTag from the stack.
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::vm_tag_offset());
+  // Restore the current VMTag, the saved top exit frame info and top resource
+  // back into the Thread structure.
+  __ lx(TMP, Address(SP, 0 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ lx(TMP, Address(SP, 1 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ lx(TMP, Address(SP, 2 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::top_resource_offset()));
+  __ lx(TMP, Address(SP, 3 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::vm_tag_offset()));
+  __ addi(SP, SP, 4 * target::kWordSize);
 
   __ PopNativeCalleeSavedRegisters();
 

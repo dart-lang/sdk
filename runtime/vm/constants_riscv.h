@@ -326,8 +326,8 @@ struct RangeErrorABI {
 // ABI for AllocateObjectStub.
 struct AllocateObjectABI {
   static constexpr Register kResultReg = A0;
-  static constexpr Register kTypeArgumentsReg = T1;
-  static const Register kTagsReg = T2;
+  static constexpr Register kTypeArgumentsReg = A1;
+  static constexpr Register kTagsReg = T2;
 };
 
 // ABI for AllocateClosureStub.
@@ -457,7 +457,7 @@ struct CloneSuspendStateStubABI {
 // register). This ABI is added to distinguish memory corruption errors from
 // null errors.
 struct DispatchTableNullErrorABI {
-  static constexpr Register kClassIdReg = T1;
+  static constexpr Register kClassIdReg = A2;
 };
 
 typedef uint32_t RegList;
