@@ -192,11 +192,10 @@ class DdcModuleBuilder extends _ModuleBuilder {
     for (var importName in import.namedImports!) {
       // import * is not emitted by the compiler, so we don't handle it here.
       assert(!importName.isStar);
-
-      var fromName = importName.name!.name;
       var asName = importName.asName ?? importName.name;
+      var fromName = importName.name!.name;
+      // Load non-SDK modules on demand (i.e., deferred).
       if (deferModules && import.from.valueWithoutQuotes != dartSdkModule) {
-        // Load non-SDK modules on demand (i.e., deferred).
         items.add(js.statement(
             'let # = dart_library.defer(#, #, function (mod, lib) {'
             '  # = mod;'
@@ -324,11 +323,9 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       for (var importName in import.namedImports!) {
         // import * is not emitted by the compiler, so we don't support it here.
         assert(!importName.isStar);
-
-        var libraryName = importName.name!.name;
         var asName = importName.asName ?? importName.name;
-        importStatements.add(
-            js.statement('const # = #.#', [asName, moduleVar, libraryName]));
+        importStatements.add(js.statement(
+            'const # = #.#', [asName, moduleVar, importName.name!.name]));
       }
     }
     statements.insertAll(0, importStatements);
@@ -372,11 +369,9 @@ class AmdModuleBuilder extends _ModuleBuilder {
     for (var importName in import.namedImports!) {
       // import * is not emitted by the compiler, so we don't handle it here.
       assert(!importName.isStar);
-
-      var libraryName = importName.name!.name;
       var asName = importName.asName ?? importName.name;
-      items
-          .add(js.statement('const # = #.#', [asName, moduleVar, libraryName]));
+      items.add(js.statement(
+          'const # = #.#', [asName, moduleVar, importName.name!.name]));
     }
     return items;
   }
