@@ -706,11 +706,15 @@ class Compiler
 
   bool get shouldStopAfterCodegen => options.writeCodegenUri != null;
 
+  // Only use deferred reads for linker phase where we are not creating an info
+  // dump. Creating an info dump ends up hitting all the deferred entities
+  // anyway.
   bool get useDeferredSourceReads =>
       !shouldStopAfterClosedWorldFromFlags &&
       !shouldStopAfterGlobalTypeInference &&
       !shouldStopAfterCodegen &&
-      !shouldStopAfterModularAnalysis;
+      !shouldStopAfterModularAnalysis &&
+      !options.dumpInfo;
 
   void runSequentialPhases() async {
     // Load kernel.
