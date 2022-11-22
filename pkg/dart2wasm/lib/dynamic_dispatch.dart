@@ -216,19 +216,19 @@ class DynamicDispatcher {
     Class cls = translator.fixedLengthListClass;
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
+    w.ArrayType arrayType = translator.listArrayType;
 
     // Initialize array struct.
-    w.Label arrayFillBlock = b.block();
     b.local_get(currentParameterCountLocal);
     b.array_new_default(arrayType);
-    w.Local arrayLocal = function.addLocal(refType);
+    w.Local arrayLocal =
+        function.addLocal(w.RefType.def(arrayType, nullable: false));
     b.local_set(arrayLocal);
 
     // Fill the array up to min(maxParameterCount, currentParameterCountLocal).
     // Furthermore, currentParameterCountLocal should be < maxParameterCount
     // based on how maxParameterCount is computed.
+    w.Label arrayFillBlock = b.block();
     b.local_get(currentParameterCountLocal);
     b.i32_eqz();
     b.br_if(arrayFillBlock);
@@ -255,9 +255,6 @@ class DynamicDispatcher {
     b.local_get(currentParameterCountLocal);
     b.i64_extend_i32_u();
     b.local_get(arrayLocal);
-    if (arrayLocal.type.nullable) {
-      b.ref_as_non_null();
-    }
     b.struct_new(info.struct);
   }
 

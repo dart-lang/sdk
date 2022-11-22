@@ -49,45 +49,20 @@ class Constants {
   final Map<Constant, ConstantInfo> constantInfo = {};
   w.DataSegment? oneByteStringSegment;
   w.DataSegment? twoByteStringSegment;
-  late final w.DefinedGlobal emptyString;
   late final w.DefinedGlobal emptyTypeList;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
   bool currentlyCreating = false;
 
   Constants(this.translator) {
-    _initEmptyString();
     _initEmptyTypeList();
   }
 
   w.Module get m => translator.m;
-  bool get stringDataSegments => translator.options.stringDataSegments;
-
-  void _initEmptyString() {
-    ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
-    translator.functions.allocateClass(info.classId);
-    w.ArrayType arrayType =
-        (info.struct.fields.last.type as w.RefType).heapType as w.ArrayType;
-
-    w.RefType emptyStringType = info.nonNullableType;
-    emptyString = m.addGlobal(w.GlobalType(emptyStringType, mutable: false));
-    w.Instructions ib = emptyString.initializer;
-    ib.i32_const(info.classId);
-    ib.i32_const(initialIdentityHash);
-    ib.array_new_fixed(arrayType, 0);
-    ib.struct_new(info.struct);
-    ib.end(); // end of global initializer expression
-
-    Constant emptyStringConstant = StringConstant("");
-    constantInfo[emptyStringConstant] =
-        ConstantInfo(emptyStringConstant, emptyString, null);
-  }
 
   void _initEmptyTypeList() {
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
 
     // Create the empty type list with its type parameter uninitialized for now.
     w.RefType emptyListType = info.nonNullableType;
@@ -97,7 +72,7 @@ class Constants {
     ib.i32_const(initialIdentityHash);
     ib.ref_null(w.HeapType.none); // Initialized later
     ib.i64_const(0);
-    ib.array_new_fixed(arrayType, 0);
+    ib.array_new_fixed(translator.listArrayType, 0);
     ib.struct_new(info.struct);
     ib.end(); // end of global initializer expression
 
@@ -118,63 +93,6 @@ class Constants {
         typeInfo.nullableType);
     b.struct_set(info.struct,
         translator.typeParameterIndex[info.cls!.typeParameters.single]!);
-  }
-
-  /// Create one of the two Wasm functions (one for each string type) called
-  /// from every lazily initialized string constant (of that type) to create and
-  /// initialize the string.
-  ///
-  /// The function signature is (i32 offset, i32 length) -> (ref stringClass)
-  /// where offset and length are measured in characters and indicate the place
-  /// in the corresponding string data segment from which to copy this string.
-  w.DefinedFunction makeStringFunction(Class cls) {
-    ClassInfo info = translator.classInfo[cls]!;
-    w.FunctionType ftype = m.addFunctionType(
-        const [w.NumType.i32, w.NumType.i32], [info.nonNullableType]);
-    return m.addFunction(ftype, "makeString ${cls.name}");
-  }
-
-  void makeStringFunctionBody(Class cls, w.DefinedFunction function,
-      void Function(w.Instructions) emitLoad) {
-    ClassInfo info = translator.classInfo[cls]!;
-    w.ArrayType arrayType =
-        (info.struct.fields.last.type as w.RefType).heapType as w.ArrayType;
-
-    w.Local offset = function.locals[0];
-    w.Local length = function.locals[1];
-    w.Local array =
-        function.addLocal(w.RefType.def(arrayType, nullable: false));
-    w.Local index = function.addLocal(w.NumType.i32);
-
-    w.Instructions b = function.body;
-    b.local_get(length);
-    b.array_new_default(arrayType);
-    b.local_set(array);
-
-    b.i32_const(0);
-    b.local_set(index);
-    w.Label loop = b.loop();
-    b.local_get(array);
-    b.local_get(index);
-    b.local_get(offset);
-    b.local_get(index);
-    b.i32_add();
-    emitLoad(b);
-    b.array_set(arrayType);
-    b.local_get(index);
-    b.i32_const(1);
-    b.i32_add();
-    b.local_tee(index);
-    b.local_get(length);
-    b.i32_lt_u();
-    b.br_if(loop);
-    b.end();
-
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
-    b.local_get(array);
-    b.struct_new(info.struct);
-    b.end();
   }
 
   /// Makes a type list [ListConstant].
@@ -413,11 +331,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     bool lazy = constant.value.length > maxArrayNewFixedLength;
     return createConstant(constant, type, lazy: lazy, (function, b) {
       w.ArrayType arrayType =
-          (info.struct.fields.last.type as w.RefType).heapType as w.ArrayType;
+          (info.struct.fields[FieldIndex.stringArray].type as w.RefType)
+              .heapType as w.ArrayType;
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      if (lazy || constants.stringDataSegments) {
+      if (lazy) {
         // Initialize string contents from passive data segment.
         w.DataSegment segment;
         Uint8List bytes;
@@ -510,8 +429,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
     return createConstant(constant, type, lazy: lazy, (function, b) {
-      w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-      w.ArrayType arrayType = refType.heapType as w.ArrayType;
+      w.ArrayType arrayType = translator.listArrayType;
       w.ValueType elementType = arrayType.elementType.type.unpacked;
       int length = constant.entries.length;
       b.i32_const(info.classId);
@@ -521,7 +439,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(length);
       if (lazy) {
         // Allocate array and set each entry to the corresponding sub-constant.
-        w.Local arrayLocal = function!.addLocal(refType.withNullability(false));
+        w.Local arrayLocal =
+            function!.addLocal(w.RefType.def(arrayType, nullable: false));
         b.i32_const(length);
         b.array_new_default(arrayType);
         b.local_set(arrayLocal);

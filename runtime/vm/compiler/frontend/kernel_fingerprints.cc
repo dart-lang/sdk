@@ -672,6 +672,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kAwaitExpression:
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
+      if (ReadTag() == kSomething) {
+        SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:

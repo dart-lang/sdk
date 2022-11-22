@@ -3,6 +3,6 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  if(invalid-expression "Unimplemented MapPattern.makeCondition") {
+  if(invalid-expression "Unimplemented MapPattern.transform") {
   }
 }

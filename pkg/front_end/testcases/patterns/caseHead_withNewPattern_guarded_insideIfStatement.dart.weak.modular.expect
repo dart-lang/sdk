@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 static method f(dynamic x) → void {
   final dynamic #t1 = x;
-  if(let final core::int #t2 = #t1 as{ForNonNullableByDefault} core::int in #t2.{core::num::==}(0){(core::Object) → core::bool}) {
+  final core::int #t2 = #t1 as{ForNonNullableByDefault} core::int;
+  if(#t2 =={core::num::==}{(core::Object) → core::bool} 0) {
   }
 }

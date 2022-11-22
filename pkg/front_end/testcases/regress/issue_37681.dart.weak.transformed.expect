@@ -22,7 +22,7 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
   function f_async() → core::int async /* futureValueType= core::Object? */ {
     return 42;
   }
-  core::print(await f_async(){() → core::int});
+  core::print(await f_async(){() → core::int} /* runtimeCheckType= asy::Future<core::int> */ );
   function f_async_star() → core::int async* {
     yield 42;
   }

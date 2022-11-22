@@ -722,10 +722,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult operandResult = inferExpression(
         node.operand, typeContext,
         isVoidAllowed: !isNonNullableByDefault);
-    DartType inferredType =
-        typeSchemaEnvironment.flatten(operandResult.inferredType);
+    DartType operandType = operandResult.inferredType;
+    DartType flattenType = typeSchemaEnvironment.flatten(operandType);
     node.operand = operandResult.expression..parent = node;
-    return new ExpressionInferenceResult(inferredType, node);
+    DartType runtimeCheckType = new InterfaceType(
+        coreTypes.futureClass, libraryBuilder.nonNullable, [flattenType]);
+    if (!typeSchemaEnvironment.isSubtypeOf(
+        operandType, runtimeCheckType, SubtypeCheckMode.withNullabilities)) {
+      node.runtimeCheckType = runtimeCheckType;
+    }
+    return new ExpressionInferenceResult(flattenType, node);
   }
 
   List<Statement>? _visitStatements<T extends Statement>(List<T> statements) {
@@ -1765,32 +1771,89 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (!identical(node.expression, rewrite)) {
       node.expression = (rewrite as Expression)..parent = node;
     }
+
     VariableDeclaration matchedExpressionVariable = engine.forest
         .createVariableDeclarationForValue(node.expression,
             type: scrutineeType);
-    Expression? matchCondition =
-        node.pattern.makeCondition(matchedExpressionVariable, this);
-    node.pattern.createDeclaredVariableInitializers(
+    PatternTransformationResult transformationResult = node.pattern.transform(
         engine.forest
             .createVariableGet(node.fileOffset, matchedExpressionVariable),
-        matchedExpressionVariable.type,
+        scrutineeType,
+        engine.forest
+            .createVariableGet(node.fileOffset, matchedExpressionVariable),
         this);
 
-    List<Statement> replacementStatements = [matchedExpressionVariable];
-    if (matchCondition == null) {
-      replacementStatements.addAll(node.pattern.declaredVariableInitializers);
-      replacementStatements.add(then);
-    } else {
-      if (node.pattern.declaredVariableInitializers.isNotEmpty) {
-        List<Statement> thenBodyStatements = [];
-        thenBodyStatements.addAll(node.pattern.declaredVariableInitializers);
-        thenBodyStatements.add(then);
-        then = engine.forest
-            .createBlock(then.fileOffset, then.fileOffset, thenBodyStatements);
-      }
-      replacementStatements
-          .add(new IfStatement(matchCondition, then, otherwise));
+    // isPatternMatchingFailed: bool VAR = true;
+    VariableDeclaration isPatternMatchingFailed = engine.forest
+        .createVariableDeclarationForValue(
+            engine.forest.createBoolLiteral(node.fileOffset, true),
+            type: coreTypes.boolNonNullableRawType);
+
+    // patternMatchedSet: `isPatternMatchingFailed` = false;
+    //   ==> VAR = true;
+    Statement patternMatchedSet = engine.forest.createExpressionStatement(
+        node.fileOffset,
+        engine.forest.createVariableSet(
+            node.fileOffset,
+            isPatternMatchingFailed,
+            engine.forest.createBoolLiteral(node.fileOffset, false)));
+
+    Statement? otherwiseBranchAsStatement;
+    if (otherwise != null) {
+      // otherwiseBranchAsStatement: if (`isPatternMatchingFailed`) `otherwise`
+      //   ==> if (VAR) `otherwise`
+      otherwiseBranchAsStatement = engine.forest.createIfStatement(
+          node.fileOffset,
+          engine.forest
+              .createVariableGet(node.fileOffset, isPatternMatchingFailed),
+          otherwise,
+          null);
     }
+
+    List<Statement> replacementStatements;
+    if (node.pattern.declaredVariables.isEmpty) {
+      replacementStatements = [
+        if (otherwise != null) patternMatchedSet,
+        if (then is! Block || then.statements.isNotEmpty) then
+      ];
+    } else {
+      replacementStatements = [
+        if (otherwise != null) patternMatchedSet,
+
+        // The block is created to avoid having variables with the same name in
+        // the same scope.
+        engine.forest.createBlock(node.fileOffset, node.fileOffset, [
+          ...node.pattern.declaredVariables,
+          if (then is! Block || then.statements.isNotEmpty) then
+        ])
+      ];
+    }
+    for (int i = transformationResult.elements.length - 1; i >= 0; i--) {
+      PatternTransformationElement transformationElement =
+          transformationResult.elements[i];
+      replacementStatements = [
+        ...transformationElement.variableInitializers,
+        ...replacementStatements
+      ];
+      Expression? condition = transformationElement.condition;
+      if (condition != null) {
+        replacementStatements = [
+          engine.forest.createIfStatement(
+              node.fileOffset,
+              condition,
+              engine.forest.createBlock(
+                  node.fileOffset, node.fileOffset, replacementStatements),
+              null)
+        ];
+      }
+    }
+    replacementStatements = [
+      matchedExpressionVariable,
+      if (otherwise != null) isPatternMatchingFailed,
+      ...replacementStatements,
+      if (otherwiseBranchAsStatement != null) otherwiseBranchAsStatement
+    ];
+
     return new StatementInferenceResult.multiple(
         node.fileOffset, replacementStatements);
   }

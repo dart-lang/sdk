@@ -1992,6 +1992,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitAwaitExpression(AwaitExpression node) {
     writeWord('await');
     writeExpression(node.operand);
+    if (node.runtimeCheckType != null) {
+      writeSpaced("/* runtimeCheckType=");
+      writeNode(node.runtimeCheckType);
+      writeSpaced("*/");
+    }
   }
 
   @override

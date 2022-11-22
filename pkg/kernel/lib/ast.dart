@@ -8923,6 +8923,34 @@ class RecordLiteral extends Expression {
 class AwaitExpression extends Expression {
   Expression operand;
 
+  /// If non-null, the runtime should check whether the value of [operand] is a
+  /// subtype of [runtimeCheckType], and if _not_ so, wrap the value in a call
+  /// to the `Future.value()` constructor.
+  ///
+  /// For instance
+  ///
+  ///     FutureOr<Object> future1 = Future<Object?>.value();
+  ///     var x = await future1; // Check against `Future<Object>`.
+  ///
+  ///     Object object = Future<Object?>.value();
+  ///     var y = await object; // Check against `Future<Object>`.
+  ///
+  ///     Future<Object?> future2 = Future<Object?>.value();
+  ///     var z = await future2; // No check.
+  ///
+  /// This runtime checks is necessary to ensure that we don't evaluate the
+  /// await expression to `null` when the static type of the expression is
+  /// non-nullable.
+  ///
+  /// The [runtimeCheckType] is computed as `Future<T>` where `T = flatten(S)`
+  /// and `S` is the static type of [operand]. To avoid unnecessary runtime
+  /// checks, the [runtimeCheckType] is not set if the static type of the
+  /// [operand] is a subtype of `Future<T>`.
+  ///
+  /// See https://github.com/dart-lang/sdk/issues/49396 for further discussion
+  /// of which the check is needed.
+  DartType? runtimeCheckType;
+
   AwaitExpression(this.operand) {
     operand.parent = this;
   }
@@ -8951,6 +8979,9 @@ class AwaitExpression extends Expression {
       operand = v.transform(operand);
       operand.parent = this;
     }
+    if (runtimeCheckType != null) {
+      runtimeCheckType = v.visitDartType(runtimeCheckType!);
+    }
   }
 
   @override
@@ -8959,6 +8990,9 @@ class AwaitExpression extends Expression {
     if (operand != null) {
       operand = v.transform(operand);
       operand.parent = this;
+    }
+    if (runtimeCheckType != null) {
+      runtimeCheckType = v.visitDartType(runtimeCheckType!, null);
     }
   }
 

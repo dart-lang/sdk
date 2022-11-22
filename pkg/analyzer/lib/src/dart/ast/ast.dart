@@ -9898,7 +9898,7 @@ class PatternAssignmentStatementImpl extends StatementImpl
 ///    patternDeclaration ::=
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
 @experimental
-class PatternVariableDeclarationImpl extends AstNodeImpl
+class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     implements PatternVariableDeclaration {
   @override
   final Token equals;
@@ -9917,16 +9917,18 @@ class PatternVariableDeclarationImpl extends AstNodeImpl
     required this.pattern,
     required this.equals,
     required this.expression,
+    required super.comment,
+    required super.metadata,
   }) {
     _becomeParentOf(pattern);
     _becomeParentOf(expression);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get endToken => expression.endToken;
 
   @override
-  Token get endToken => expression.endToken;
+  Token get firstTokenAfterCommentAndMetadata => keyword;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -9941,6 +9943,7 @@ class PatternVariableDeclarationImpl extends AstNodeImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
     pattern.accept(visitor);
     expression.accept(visitor);
   }

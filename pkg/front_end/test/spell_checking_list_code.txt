@@ -470,6 +470,7 @@ establishes
 estimate
 et
 eval
+evar
 exchanging
 execute
 executor
@@ -826,6 +827,7 @@ lu
 lub
 lv
 lvalue
+lvar
 lx
 ly
 lz

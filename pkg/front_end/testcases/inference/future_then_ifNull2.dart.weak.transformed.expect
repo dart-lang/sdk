@@ -65,7 +65,7 @@ static method test(self::MyFuture<core::int> f) → void {
  - 'Object' is from 'dart:core'.
  - 'Future' is from 'dart:async'.
     return /*info:DOWN_CAST_COMPOSITE*/ await x ?? new Future<int>.value(3);
-                                                ^" in (let final core::int #t2 = await x in #t2 == null ?{core::Object} asy::Future::value<core::int>(3) : #t2) as{TypeError,ForNonNullableByDefault} core::int;
+                                                ^" in (let final core::int #t2 = await x /* runtimeCheckType= asy::Future<core::int> */ in #t2 == null ?{core::Object} asy::Future::value<core::int>(3) : #t2) as{TypeError,ForNonNullableByDefault} core::int;
   }){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
   asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::int x) → FutureOr<core::int> => invalid-expression "pkg/front_end/testcases/inference/future_then_ifNull2.dart:28:13: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
  - 'Object' is from 'dart:core'.

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 88;
+  UInt32 formatVersion = 89;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1158,6 +1158,7 @@ type AwaitExpression extends Expression {
   Byte tag = 51;
   FileOffset fileOffset;
   Expression operand;
+  Option<DartType> runtimeCheckType;
 }
 
 type FunctionExpression extends Expression {

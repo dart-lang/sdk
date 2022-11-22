@@ -129,7 +129,7 @@ static method fisk() → dynamic async /* futureValueType= dynamic */ {
   late core::String s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/nnbd/later.dart:39:30: Error: `await` expressions are not supported in late local initializers.
   late String s2 = '\${fisk}\${await hest()}\${fisk}';
                              ^^^^^"}${#C1}";
-  late core::Function f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest();
+  late core::Function f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() /* runtimeCheckType= asy::Future<dynamic> */ ;
 }
 static method main() → dynamic {}
 
