@@ -939,33 +939,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// in a compile-time error, but is used to provide a better message than just
   /// reporting that the receiver does not have a member by the given name.
   ObjectAccessTarget? _findExtensionMember(
-      DartType receiverType, Class classNode, Name name, int fileOffset,
+      DartType receiverType,
+      Class classNode,
+      Name name,
+      _ObjectAccessDescriptor descriptor,
+      int fileOffset,
       {bool setter = false,
       ObjectAccessTarget? defaultTarget,
       bool isPotentiallyNullableAccess = false}) {
-    Name otherName = name;
-    bool otherIsSetter;
-    if (name == indexGetName) {
-      // [] must be checked against []=.
-      otherName = indexSetName;
-      otherIsSetter = false;
-    } else if (name == indexSetName) {
-      // []= must be checked against [].
-      otherName = indexGetName;
-      otherIsSetter = false;
-    } else {
-      otherName = name;
-      otherIsSetter = !setter;
-    }
-
-    Member? otherMember =
-        _getInterfaceMember(classNode, otherName, otherIsSetter, fileOffset);
-    if (otherMember != null) {
+    if (descriptor.hasComplementaryTarget(this)) {
       // If we're looking for `foo` and `foo=` can be found or vice-versa then
       // extension methods should not be found.
       return defaultTarget;
     }
 
+    Name otherName = descriptor.complementaryName;
+    bool otherIsSetter = descriptor.complementaryIsSetter;
     ExtensionAccessCandidate? bestSoFar;
     List<ExtensionAccessCandidate> noneMoreSpecific = [];
     libraryBuilder.forEachExtensionInScope((ExtensionBuilder extensionBuilder) {
@@ -1117,6 +1106,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ? receiverBound.classNode
         : coreTypes.objectClass;
 
+    _ObjectAccessDescriptor objectAccessDescriptor =
+        new _ObjectAccessDescriptor(
+            receiverType: receiverType,
+            name: name,
+            classNode: classNode,
+            receiverBound: receiverBound,
+            isReceiverTypePotentiallyNullable:
+                isReceiverTypePotentiallyNullable,
+            callSiteAccessKind: callSiteAccessKind,
+            fileOffset: fileOffset);
+
     if (isReceiverTypePotentiallyNullable) {
       Member? member = _getInterfaceMember(
           coreTypes.objectClass, name, isSetter, fileOffset);
@@ -1130,6 +1130,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isNonNullableByDefault ? receiverType : receiverBound,
             coreTypes.objectClass,
             name,
+            objectAccessDescriptor,
             fileOffset,
             setter: isSetter);
         if (target != null) {
@@ -1138,61 +1139,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    if (receiverBound is FunctionType && name == callName) {
-      return isReceiverTypePotentiallyNullable
-          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
-          : new ObjectAccessTarget.callFunction(receiverType);
-    } else if (receiverBound is NeverType) {
-      switch (receiverBound.nullability) {
-        case Nullability.nonNullable:
-          return const ObjectAccessTarget.never();
-        case Nullability.nullable:
-        case Nullability.legacy:
-          // Never? and Never* are equivalent to Null.
-          return findInterfaceMember(const NullType(), name, fileOffset,
-              callSiteAccessKind: callSiteAccessKind);
-        case Nullability.undetermined:
-          return internalProblem(
-              templateInternalProblemUnsupportedNullability.withArguments(
-                  "${receiverBound.nullability}",
-                  receiverBound,
-                  isNonNullableByDefault),
-              fileOffset,
-              libraryBuilder.fileUri);
-      }
-    }
-
-    ObjectAccessTarget? target;
-    Member? interfaceMember =
-        _getInterfaceMember(classNode, name, isSetter, fileOffset);
-    if (interfaceMember != null) {
-      target = new ObjectAccessTarget.interfaceMember(
-          receiverType, interfaceMember,
-          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
-    } else if (receiverBound is DynamicType) {
-      target = const ObjectAccessTarget.dynamic();
-    } else if (receiverBound is InvalidType) {
-      target = const ObjectAccessTarget.invalid();
-    } else if (receiverBound is InterfaceType &&
-        receiverBound.classNode == coreTypes.functionClass &&
-        name == callName) {
-      target = isReceiverTypePotentiallyNullable
-          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
-          : new ObjectAccessTarget.callFunction(receiverType);
-    } else if (libraryFeatures.extensionTypes.isEnabled &&
-        receiverBound is ExtensionType) {
-      target = _findDirectExtensionTypeMember(receiverBound, name, fileOffset,
-          isSetter: isSetter,
-          defaultTarget: const ObjectAccessTarget.missing());
-      if (target.kind == ObjectAccessTargetKind.missing) {
-        target = _findShownExtensionTypeMember(receiverBound, name, fileOffset,
-            callSiteAccessKind: callSiteAccessKind,
-            isPotentiallyNullable: isReceiverTypePotentiallyNullable,
-            defaultTarget: const ObjectAccessTarget.missing());
-      }
-    } else {
-      target = const ObjectAccessTarget.missing();
-    }
+    ObjectAccessTarget target =
+        objectAccessDescriptor.findNonExtensionTarget(this);
     if (instrumented &&
         receiverBound != const DynamicType() &&
         (target.isInstanceMember || target.isObjectMember)) {
@@ -1215,6 +1163,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 : receiverBound.toNonNull(),
             classNode,
             name,
+            objectAccessDescriptor,
             fileOffset,
             setter: isSetter,
             defaultTarget: target,
@@ -1224,6 +1173,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isNonNullableByDefault ? receiverType : receiverBound,
             classNode,
             name,
+            objectAccessDescriptor,
             fileOffset,
             setter: isSetter,
             defaultTarget: target)!;
@@ -3131,26 +3081,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
 
-    ExpressionInferenceResult? recordFieldAccessResult =
-        resolveRecordFieldAccess(receiver, receiverType, name, fileOffset);
-    if (recordFieldAccessResult != null) {
-      // TODO(johnniwinther,paulberry): Should we call
-      //  `flowAnalysis.propertyGet` for record field access?
-      // This is a record field access followed by a function invocation.
-      return inferMethodInvocation(
-          visitor,
-          arguments.fileOffset,
-          nullAwareGuards,
-          recordFieldAccessResult.expression,
-          recordFieldAccessResult.inferredType,
-          callName,
-          arguments,
-          typeContext,
-          isExpressionInvocation: false,
-          isImplicitCall: true,
-          hoistedExpressions: hoistedExpressions);
-    }
-
     target ??= findInterfaceMember(receiverType, name, fileOffset,
         instrumented: true,
         includeExtensionMethods: true,
@@ -3266,6 +3196,78 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             typeContext,
             hoistedExpressions,
             isImplicitCall: isImplicitCall);
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+        DartType type = target.getGetterType(this);
+        Expression read = new RecordIndexGet(receiver,
+            target.receiverType as RecordType, target.recordFieldIndex!)
+          ..fileOffset = fileOffset;
+        ExpressionInferenceResult readResult =
+            new ExpressionInferenceResult(type, read);
+        if (target.isNullable) {
+          // Handles cases like:
+          //   (void Function())? r;
+          //   r.$0();
+          List<LocatedMessage>? context = getWhyNotPromotedContext(
+              flowAnalysis.whyNotPromoted(receiver)(),
+              receiver,
+              (type) => !type.isPotentiallyNullable);
+          readResult = wrapExpressionInferenceResultInProblem(
+              readResult,
+              templateNullableExpressionCallError.withArguments(
+                  receiverType, isNonNullableByDefault),
+              fileOffset,
+              noLength,
+              context: context);
+        }
+        return inferMethodInvocation(
+            visitor,
+            arguments.fileOffset,
+            nullAwareGuards,
+            readResult.expression,
+            readResult.inferredType,
+            callName,
+            arguments,
+            typeContext,
+            isExpressionInvocation: false,
+            isImplicitCall: true,
+            hoistedExpressions: hoistedExpressions);
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        DartType type = target.getGetterType(this);
+        Expression read = new RecordNameGet(receiver,
+            target.receiverType as RecordType, target.recordFieldName!)
+          ..fileOffset = fileOffset;
+        ExpressionInferenceResult readResult =
+            new ExpressionInferenceResult(type, read);
+        if (target.isNullable) {
+          // Handles cases like:
+          //   ({void Function() foo})? r;
+          //   r.foo();
+          List<LocatedMessage>? context = getWhyNotPromotedContext(
+              flowAnalysis.whyNotPromoted(receiver)(),
+              receiver,
+              (type) => !type.isPotentiallyNullable);
+          readResult = wrapExpressionInferenceResultInProblem(
+              readResult,
+              templateNullableExpressionCallError.withArguments(
+                  receiverType, isNonNullableByDefault),
+              fileOffset,
+              noLength,
+              context: context);
+        }
+        return inferMethodInvocation(
+            visitor,
+            arguments.fileOffset,
+            nullAwareGuards,
+            readResult.expression,
+            readResult.inferredType,
+            callName,
+            arguments,
+            typeContext,
+            isExpressionInvocation: false,
+            isImplicitCall: true,
+            hoistedExpressions: hoistedExpressions);
     }
   }
 
@@ -4006,64 +4008,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         length);
   }
 
-  /// Resolve access of [name] on [receiver] with the given receiver type, if
-  /// it is either an indexed or named record access, and returns the
-  /// corresponding [ExpressionInferenceResult]. Otherwise returns `null`.
-  ExpressionInferenceResult? resolveRecordFieldAccess(
-      Expression receiver, DartType receiverType, Name name, int fileOffset) {
-    ExpressionInferenceResult? result;
-    DartType recordType = resolveTypeParameter(receiverType);
-    if (recordType is RecordType) {
-      // TODO(johnniwinther): Handle nullable record types and null shorting.
-      String text = name.text;
-      if (text.startsWith('\$')) {
-        int? index = int.tryParse(text.substring(1));
-        if (index != null) {
-          if (index < recordType.positional.length) {
-            DartType fieldType = recordType.positional[index];
-            result = new ExpressionInferenceResult(
-                fieldType,
-                new RecordIndexGet(receiver, recordType, index)
-                  ..fileOffset = fileOffset);
-          }
-        }
-      }
-      int? index = tryParseRecordPositionalGetterName(
-          text, recordType.positional.length);
-      if (index != null) {
-        DartType fieldType = recordType.positional[index];
-        result = new ExpressionInferenceResult(
-            fieldType,
-            new RecordIndexGet(receiver, recordType, index)
-              ..fileOffset = fileOffset);
-      }
-      if (result == null) {
-        for (NamedType field in recordType.named) {
-          if (field.name == text) {
-            result = new ExpressionInferenceResult(
-                field.type,
-                new RecordNameGet(receiver, recordType, text)
-                  ..fileOffset = fileOffset);
-            break;
-          }
-        }
-      }
-    }
-    if (result != null && receiverType.isPotentiallyNullable) {
-      result = wrapExpressionInferenceResultInProblem(
-          result,
-          templateNullablePropertyAccessError.withArguments(
-              name.text, receiverType, isNonNullableByDefault),
-          fileOffset,
-          name.text.length,
-          context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(receiver)(),
-              result.expression,
-              (type) => !type.isPotentiallyNullable));
-    }
-    return result;
-  }
-
   /// The client of type inference should call this method after asking
   /// inference to visit a node.  This performs assertions to make sure that
   /// temporary type inference state has been properly cleaned up.
@@ -4279,4 +4223,201 @@ class _ParamInfo {
   final DartType formalType;
 
   _ParamInfo(this.formalType);
+}
+
+class _ObjectAccessDescriptor {
+  final DartType receiverType;
+  final Name name;
+  final DartType receiverBound;
+  final Class classNode;
+  final bool isReceiverTypePotentiallyNullable;
+  final CallSiteAccessKind callSiteAccessKind;
+  final int fileOffset;
+
+  _ObjectAccessDescriptor(
+      {required this.receiverType,
+      required this.name,
+      required this.receiverBound,
+      required this.classNode,
+      required this.isReceiverTypePotentiallyNullable,
+      required this.callSiteAccessKind,
+      required this.fileOffset});
+
+  /// Returns the [ObjectAccessTarget] corresponding to this descriptor.
+  ObjectAccessTarget findNonExtensionTarget(InferenceVisitorBase visitor) {
+    return _findNonExtensionTargetInternal(visitor, name, callSiteAccessKind);
+  }
+
+  ObjectAccessTarget _findNonExtensionTargetInternal(
+      InferenceVisitorBase visitor,
+      Name name,
+      CallSiteAccessKind callSiteAccessKind) {
+    bool isSetter = callSiteAccessKind == CallSiteAccessKind.setterInvocation;
+    final DartType receiverBound = this.receiverBound;
+
+    if (receiverBound is FunctionType && name == callName && !isSetter) {
+      return isReceiverTypePotentiallyNullable
+          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
+          : new ObjectAccessTarget.callFunction(receiverType);
+    } else if (receiverBound is NeverType) {
+      switch (receiverBound.nullability) {
+        case Nullability.nonNullable:
+          return const ObjectAccessTarget.never();
+        case Nullability.nullable:
+        case Nullability.legacy:
+          // Never? and Never* are equivalent to Null.
+          return visitor.findInterfaceMember(const NullType(), name, fileOffset,
+              callSiteAccessKind: callSiteAccessKind);
+        case Nullability.undetermined:
+          return internalProblem(
+              templateInternalProblemUnsupportedNullability.withArguments(
+                  "${receiverBound.nullability}",
+                  receiverBound,
+                  visitor.isNonNullableByDefault),
+              fileOffset,
+              visitor.libraryBuilder.fileUri);
+      }
+    }
+
+    if (receiverBound is RecordType && !isSetter) {
+      String text = name.text;
+      int? index = tryParseRecordPositionalGetterName(
+          text, receiverBound.positional.length);
+      if (index != null) {
+        DartType fieldType = receiverBound.positional[index];
+        return isReceiverTypePotentiallyNullable
+            ? new RecordIndexTarget.nullable(receiverBound, fieldType, index)
+            : new RecordIndexTarget.nonNullable(
+                receiverBound, fieldType, index);
+      }
+      for (NamedType field in receiverBound.named) {
+        if (field.name == text) {
+          return isReceiverTypePotentiallyNullable
+              ? new RecordNameTarget.nullable(
+                  receiverBound, field.type, field.name)
+              : new RecordNameTarget.nonNullable(
+                  receiverBound, field.type, field.name);
+        }
+      }
+    }
+
+    ObjectAccessTarget? target;
+    Member? interfaceMember =
+        visitor._getInterfaceMember(classNode, name, isSetter, fileOffset);
+    if (interfaceMember != null) {
+      target = new ObjectAccessTarget.interfaceMember(
+          receiverType, interfaceMember,
+          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+    } else if (receiverBound is DynamicType) {
+      target = const ObjectAccessTarget.dynamic();
+    } else if (receiverBound is InvalidType) {
+      target = const ObjectAccessTarget.invalid();
+    } else if (receiverBound is InterfaceType &&
+        receiverBound.classNode == visitor.coreTypes.functionClass &&
+        name == callName &&
+        !isSetter) {
+      target = isReceiverTypePotentiallyNullable
+          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
+          : new ObjectAccessTarget.callFunction(receiverType);
+    } else if (visitor.libraryFeatures.extensionTypes.isEnabled &&
+        receiverBound is ExtensionType) {
+      target = visitor._findDirectExtensionTypeMember(
+          receiverBound, name, fileOffset,
+          isSetter: isSetter,
+          defaultTarget: const ObjectAccessTarget.missing());
+      if (target.kind == ObjectAccessTargetKind.missing) {
+        target = visitor._findShownExtensionTypeMember(
+            receiverBound, name, fileOffset,
+            callSiteAccessKind: callSiteAccessKind,
+            isPotentiallyNullable: isReceiverTypePotentiallyNullable,
+            defaultTarget: const ObjectAccessTarget.missing());
+      }
+    } else {
+      target = const ObjectAccessTarget.missing();
+    }
+    return target;
+  }
+
+  Name? _complementaryName;
+
+  /// Returns the name of the complementary getter/setter access corresponding
+  /// to this descriptor.
+  Name get complementaryName {
+    _computeComplementaryNameAndKind();
+    return _complementaryName!;
+  }
+
+  CallSiteAccessKind? _complementaryCallSiteAccessKind;
+
+  /// Returns `true` if the complementary getter/setter access corresponding to
+  /// this descriptor is a setter access.
+  bool get complementaryIsSetter {
+    _computeComplementaryNameAndKind();
+    return _complementaryCallSiteAccessKind ==
+        CallSiteAccessKind.setterInvocation;
+  }
+
+  void _computeComplementaryNameAndKind() {
+    if (_complementaryName == null) {
+      Name otherName = name;
+      CallSiteAccessKind otherCallSiteAccessKind;
+      if (name == indexGetName) {
+        // [] must be checked against []=.
+        otherName = indexSetName;
+        otherCallSiteAccessKind = CallSiteAccessKind.operatorInvocation;
+      } else if (name == indexSetName) {
+        // []= must be checked against [].
+        otherName = indexGetName;
+        otherCallSiteAccessKind = CallSiteAccessKind.operatorInvocation;
+      } else {
+        otherName = name;
+        switch (callSiteAccessKind) {
+          case CallSiteAccessKind.methodInvocation:
+          case CallSiteAccessKind.getterInvocation:
+            otherCallSiteAccessKind = CallSiteAccessKind.setterInvocation;
+            break;
+          case CallSiteAccessKind.setterInvocation:
+            otherCallSiteAccessKind = CallSiteAccessKind.getterInvocation;
+            break;
+          case CallSiteAccessKind.operatorInvocation:
+            otherCallSiteAccessKind = CallSiteAccessKind.operatorInvocation;
+            break;
+        }
+      }
+      _complementaryName = otherName;
+      _complementaryCallSiteAccessKind = otherCallSiteAccessKind;
+    }
+  }
+
+  /// Returns `true` if this descriptor has a valid target for the complementary
+  /// getter/setter access corresponding to this descriptor.
+  bool hasComplementaryTarget(InferenceVisitorBase visitor) {
+    _computeComplementaryNameAndKind();
+    Name otherName = _complementaryName!;
+    CallSiteAccessKind otherCallSiteAccessKind =
+        _complementaryCallSiteAccessKind!;
+    ObjectAccessTarget other = _findNonExtensionTargetInternal(
+        visitor, otherName, otherCallSiteAccessKind);
+    switch (other.kind) {
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.superMember:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.ambiguous:
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+        return true;
+      case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.nullableCallFunction:
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        return false;
+    }
+  }
 }

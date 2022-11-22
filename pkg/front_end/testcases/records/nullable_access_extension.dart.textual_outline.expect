@@ -1,0 +1,5 @@
+method((int,{String a})? r) {}
+extension on (int, {String a})? {
+  int get $0 => 0;
+  String get a => '';
+}

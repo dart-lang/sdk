@@ -244,6 +244,7 @@ compared
 compares
 compilations
 complement
+complementary
 completers
 completes
 complicating
