@@ -2686,6 +2686,9 @@ void KernelReaderHelper::SkipExpression() {
     case kAwaitExpression:
       ReadPosition();    // read position.
       SkipExpression();  // read operand.
+      if (ReadTag() == kSomething) {
+        SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:

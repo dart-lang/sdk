@@ -6,7 +6,7 @@ static method returnFutureOfVoid() → asy::Future<void>* async /* futureValueTy
 static method returnVoid() → void {}
 static method returnVoidAsync() → void async /* futureValueType= void */ {}
 static method main() → dynamic async /* futureValueType= dynamic */ {
-  await self::returnVoid();
+  await self::returnVoid() /* runtimeCheckType= asy::Future<void>* */ ;
   await self::returnFutureOfVoid();
-  await self::returnVoidAsync();
+  await self::returnVoidAsync() /* runtimeCheckType= asy::Future<void>* */ ;
 }

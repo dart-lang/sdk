@@ -722,10 +722,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult operandResult = inferExpression(
         node.operand, typeContext,
         isVoidAllowed: !isNonNullableByDefault);
-    DartType inferredType =
-        typeSchemaEnvironment.flatten(operandResult.inferredType);
+    DartType operandType = operandResult.inferredType;
+    DartType flattenType = typeSchemaEnvironment.flatten(operandType);
     node.operand = operandResult.expression..parent = node;
-    return new ExpressionInferenceResult(inferredType, node);
+    DartType runtimeCheckType = new InterfaceType(
+        coreTypes.futureClass, libraryBuilder.nonNullable, [flattenType]);
+    if (!typeSchemaEnvironment.isSubtypeOf(
+        operandType, runtimeCheckType, SubtypeCheckMode.withNullabilities)) {
+      node.runtimeCheckType = runtimeCheckType;
+    }
+    return new ExpressionInferenceResult(flattenType, node);
   }
 
   List<Statement>? _visitStatements<T extends Statement>(List<T> statements) {

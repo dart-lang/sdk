@@ -982,6 +982,9 @@ void ScopeBuilder::VisitExpression() {
     case kAwaitExpression:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read operand.
+      if (helper_.ReadTag() == kSomething) {
+        helper_.SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:

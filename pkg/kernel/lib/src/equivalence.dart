@@ -3432,6 +3432,9 @@ class EquivalenceStrategy {
     if (!checkAwaitExpression_operand(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkAwaitExpression_runtimeCheckType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkAwaitExpression_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6932,6 +6935,12 @@ class EquivalenceStrategy {
   bool checkAwaitExpression_operand(
       EquivalenceVisitor visitor, AwaitExpression node, AwaitExpression other) {
     return visitor.checkNodes(node.operand, other.operand, 'operand');
+  }
+
+  bool checkAwaitExpression_runtimeCheckType(
+      EquivalenceVisitor visitor, AwaitExpression node, AwaitExpression other) {
+    return visitor.checkNodes(
+        node.runtimeCheckType, other.runtimeCheckType, 'runtimeCheckType');
   }
 
   bool checkAwaitExpression_fileOffset(

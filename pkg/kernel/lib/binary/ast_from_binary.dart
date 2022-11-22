@@ -2873,7 +2873,9 @@ class BinaryBuilder {
 
   Expression _readAwaitExpression() {
     int offset = readOffset();
-    return new AwaitExpression(readExpression())..fileOffset = offset;
+    return new AwaitExpression(readExpression())
+      ..fileOffset = offset
+      ..runtimeCheckType = readDartTypeOption();
   }
 
   Expression _readFunctionExpression() {

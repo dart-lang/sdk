@@ -56,6 +56,6 @@ static method f3() → invalid-type async /* futureValueType= invalid-type */ {
 }
 static method main() → dynamic async /* futureValueType= dynamic */ {
   core::print(self::f1());
-  core::print(await self::f2());
+  core::print(await self::f2() /* runtimeCheckType= dart.async::Future<dynamic> */ );
   core::print(await self::f3());
 }

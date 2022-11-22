@@ -56,16 +56,16 @@ static method returnFutureClassFromFutureOrClass() → asy::Future<self::Class> 
 static method returnFutureOrClassFromFutureOrClass() → FutureOr<self::Class> async /* futureValueType= self::Class */ 
   return self::returnFutureOrClass();
 static method main() → dynamic async /* futureValueType= dynamic */ {
-  await self::returnClass();
+  await self::returnClass() /* runtimeCheckType= asy::Future<self::Class> */ ;
   await self::returnFutureClass();
-  await self::returnFutureOrClass();
-  await self::returnClassFromDynamic();
+  await self::returnFutureOrClass() /* runtimeCheckType= asy::Future<self::Class> */ ;
+  await self::returnClassFromDynamic() /* runtimeCheckType= asy::Future<self::Class> */ ;
   await self::returnFutureClassDynamic();
-  await self::returnFutureOrClassDynamic();
-  await self::returnClassFromFutureClass();
+  await self::returnFutureOrClassDynamic() /* runtimeCheckType= asy::Future<self::Class> */ ;
+  await self::returnClassFromFutureClass() /* runtimeCheckType= asy::Future<self::Class> */ ;
   await self::returnFutureClassFromFutureClass();
-  await self::returnFutureOrClassFromFutureClass();
-  await self::returnClassFromFutureOrClass();
+  await self::returnFutureOrClassFromFutureClass() /* runtimeCheckType= asy::Future<self::Class> */ ;
+  await self::returnClassFromFutureOrClass() /* runtimeCheckType= asy::Future<self::Class> */ ;
   await self::returnFutureClassFromFutureOrClass();
-  await self::returnFutureOrClassFromFutureOrClass();
+  await self::returnFutureOrClassFromFutureOrClass() /* runtimeCheckType= asy::Future<self::Class> */ ;
 }

@@ -20,5 +20,5 @@ static method foo() → dynamic
 static method baz() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
   return new self::B::•();
 static method main() → dynamic async /* futureValueType= dynamic */ {
-  await [@vm.direct-call.metadata=#lib::A.bar] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::A] self::foo(){dynamic}.bar(await self::baz());
+  await [@vm.direct-call.metadata=#lib::A.bar] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::A] self::foo(){dynamic}.bar(await self::baz()) /* runtimeCheckType= asy::Future<dynamic> */ ;
 }

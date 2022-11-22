@@ -4484,6 +4484,11 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
 
   instructions += BuildExpression();  // read operand.
 
+  if (ReadTag() == kSomething) {
+    // TODO(50529): Use runtime check type when present.
+    SkipDartType();  // read runtime check type.
+  }
+
   if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
     instructions += DebugStepCheck(pos);
   }
