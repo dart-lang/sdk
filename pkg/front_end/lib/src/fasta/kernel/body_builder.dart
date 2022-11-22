@@ -8160,9 +8160,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    debugEvent("ExtractorPattern");
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    debugEvent("ObjectPattern");
     assert(checkState(
         beginToken,
         repeatedKinds(
@@ -8183,9 +8182,9 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    debugEvent("ExtractorPattern");
+    debugEvent("ObjectPattern");
     assert(checkState(firstIdentifier, [
       ValueKinds.PatternListOrNull,
       ValueKinds.TypeArgumentsOrNull,
@@ -8199,7 +8198,7 @@ class BodyBuilder extends StackListenerImpl
     // ignore: unused_local_variable
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    // TODO(johnniwinther): Create extractor pattern.
+    // TODO(johnniwinther): Create object pattern.
     push(new DummyPattern(firstIdentifier.charOffset));
   }
 

@@ -55,9 +55,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    ExtractorPatternFieldsHandle data = new ExtractorPatternFieldsHandle(
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    ObjectPatternFieldsHandle data = new ObjectPatternFieldsHandle(
         ParserAstType.HANDLE,
         count: count,
         beginToken: beginToken,
@@ -2577,10 +2576,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    ExtractorPatternHandle data = new ExtractorPatternHandle(
-        ParserAstType.HANDLE,
+    ObjectPatternHandle data = new ObjectPatternHandle(ParserAstType.HANDLE,
         firstIdentifier: firstIdentifier,
         dot: dot,
         secondIdentifier: secondIdentifier);
@@ -2901,14 +2899,14 @@ class ArgumentsEnd extends ParserAstNode {
       };
 }
 
-class ExtractorPatternFieldsHandle extends ParserAstNode {
+class ObjectPatternFieldsHandle extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  ExtractorPatternFieldsHandle(ParserAstType type,
+  ObjectPatternFieldsHandle(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
-      : super("ExtractorPatternFields", type);
+      : super("ObjectPatternFields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7450,14 +7448,14 @@ class ConstantPatternHandle extends ParserAstNode {
       };
 }
 
-class ExtractorPatternHandle extends ParserAstNode {
+class ObjectPatternHandle extends ParserAstNode {
   final Token firstIdentifier;
   final Token? dot;
   final Token? secondIdentifier;
 
-  ExtractorPatternHandle(ParserAstType type,
+  ObjectPatternHandle(ParserAstType type,
       {required this.firstIdentifier, this.dot, this.secondIdentifier})
-      : super("ExtractorPattern", type);
+      : super("ObjectPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {

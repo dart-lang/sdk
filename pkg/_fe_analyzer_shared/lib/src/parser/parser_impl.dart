@@ -9249,7 +9249,7 @@ class Parser {
   ///                         | listPattern
   ///                         | mapPattern
   ///                         | recordPattern
-  ///                         | extractorPattern
+  ///                         | objectPattern
   /// listPattern ::= typeArguments? '[' patterns? ']'
   /// mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
   /// mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
@@ -9269,9 +9269,7 @@ class Parser {
   ///                   | 'const' typeArguments? '[' elements? ']'
   ///                   | 'const' typeArguments? '{' elements? '}'
   ///                   | 'const' '(' expression ')'
-  /// extractorPattern ::= extractorName typeArguments?
-  ///                          '(' patternFields? ')'
-  /// extractorName    ::= typeIdentifier | qualifiedName
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
   Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
     TypeParamOrArgInfo typeArg =
         computeTypeParamOrArg(token, /* inDeclaration = */ true);
@@ -9352,9 +9350,7 @@ class Parser {
     if (typeInfo != noType) {
       return parseVariablePattern(token, typeInfo: typeInfo);
     }
-    // extractorPattern ::= extractorName typeArguments?
-    //                          '(' patternFields? ')'
-    // extractorName    ::= typeIdentifier | qualifiedName
+    // objectPattern ::= typeName typeArguments? '(' patternFields? ')'
     // TODO(paulberry): Make sure OTHER_IDENTIFIER is handled
     // TODO(paulberry): Technically `dynamic` is valid for
     // `typeIdentifier`--file an issue
@@ -9381,9 +9377,9 @@ class Parser {
       if (optional('(', afterToken) && !potentialTypeArg.recovered) {
         TypeParamOrArgInfo typeArg = potentialTypeArg;
         token = typeArg.parseArguments(token, this);
-        token = parseExtractorPatternRest(token,
+        token = parseObjectPatternRest(token,
             isRefutableContext: isRefutableContext);
-        listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
+        listener.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
         return token;
       } else if (dot == null) {
         // It's a single identifier.  If it's a wildcard pattern or we're in an
@@ -9395,7 +9391,7 @@ class Parser {
               typeInfo: typeInfo);
         }
       }
-      // It's not an extractor pattern so parse it as an expression.
+      // It's not an object pattern so parse it as an expression.
       token = beforeFirstIdentifier;
     }
     // TODO(paulberry): report error if this constant is not permitted by the
@@ -9642,12 +9638,11 @@ class Parser {
     return token;
   }
 
-  /// Parses the rest of an extractorPattern, where [token] is the token before
-  /// the `(`.
+  /// Parses the rest of an objectPattern, where [token] is the token before the
+  /// `(`.
   ///
-  /// extractorPattern ::= extractorName typeArguments?
-  ///                          '(' patternFields? ')'
-  Token parseExtractorPatternRest(Token token,
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token parseObjectPatternRest(Token token,
       {required bool isRefutableContext}) {
     Token begin = token = token.next!;
     assert(optional('(', begin));
@@ -9697,7 +9692,7 @@ class Parser {
     }
     assert(optional(')', token));
     mayParseFunctionExpressions = old;
-    listener.handleExtractorPatternFields(argumentCount, begin, token);
+    listener.handleObjectPatternFields(argumentCount, begin, token);
     return token;
   }
 
@@ -9719,19 +9714,19 @@ class Parser {
   ///                | listPattern
   ///                | mapPattern
   ///                | recordPattern
-  ///                | extractorPattern
+  ///                | objectPattern
   Token? skipOuterPattern(Token token) {
     Token next = token.next!;
     if (next.isIdentifier) {
       token = next;
       next = token.next!;
       if (!optional('.', next)) {
-        return skipExtractorPatternRest(token);
+        return skipObjectPatternRest(token);
       }
       token = next;
       next = token.next!;
       if (next.isIdentifier) {
-        return skipExtractorPatternRest(next);
+        return skipObjectPatternRest(next);
       } else {
         throw new UnimplementedError('TODO(paulberry)');
       }
@@ -9754,12 +9749,12 @@ class Parser {
     throw new UnimplementedError('TODO(paulberry)');
   }
 
-  /// Tries to advance through an extractor pattern, where [token] is the last
-  /// token of the extractor pattern's type name.  If the tokens following
-  /// [token] don't look like the rest of an extractor pattern, returns `null`.
+  /// Tries to advance through an object pattern, where [token] is the last
+  /// token of the object pattern's type name.  If the tokens following
+  /// [token] don't look like the rest of an object pattern, returns `null`.
   ///
-  /// extractorPattern ::= typeName typeArguments? '(' patternFields? ')'
-  Token? skipExtractorPatternRest(Token token) {
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token? skipObjectPatternRest(Token token) {
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
     token = typeParamOrArg.skip(token);
     Token? next = token.next;

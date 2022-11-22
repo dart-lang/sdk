@@ -90,14 +90,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
     seen(beginToken);
     seen(endToken);
-    doPrint('handleExtractorPatternFields('
-        '$count, '
-        '$beginToken, '
-        '$endToken)');
+    doPrint(
+        'handleObjectPatternFields(' '$count, ' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -2720,12 +2717,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
     seen(firstIdentifier);
     seen(dot);
     seen(secondIdentifier);
-    doPrint('handleExtractorPattern('
+    doPrint('handleObjectPattern('
         '$firstIdentifier, '
         '$dot, '
         '$secondIdentifier)');

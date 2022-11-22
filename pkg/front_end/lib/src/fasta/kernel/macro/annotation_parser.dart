@@ -288,8 +288,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -2046,7 +2045,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
     _unsupported();
   }

@@ -2714,14 +2714,14 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtractorPatternRest(Token token,
+  Token parseObjectPatternRest(Token token,
       {required bool isRefutableContext}) {
-    doPrint('parseExtractorPatternRest('
+    doPrint('parseObjectPatternRest('
         '$token, '
         'isRefutableContext: $isRefutableContext)');
     indent++;
-    var result = super.parseExtractorPatternRest(token,
-        isRefutableContext: isRefutableContext);
+    var result = super
+        .parseObjectPatternRest(token, isRefutableContext: isRefutableContext);
     indent--;
     return result;
   }
@@ -2745,10 +2745,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token? skipExtractorPatternRest(Token token) {
-    doPrint('skipExtractorPatternRest(' '$token)');
+  Token? skipObjectPatternRest(Token token) {
+    doPrint('skipObjectPatternRest(' '$token)');
     indent++;
-    var result = super.skipExtractorPatternRest(token);
+    var result = super.skipObjectPatternRest(token);
     indent--;
     return result;
   }
