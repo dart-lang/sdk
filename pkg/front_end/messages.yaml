@@ -5316,10 +5316,6 @@ JsInteropStaticInteropNoJSAnnotation:
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
   correctionMessage: "Add `@JS` to class '#name'."
 
-JsInteropStaticInteropSyntheticConstructor:
-  problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
-  correctionMessage: "Declare an external factory constructor for this `@staticInterop` class and use that instead."
-
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."

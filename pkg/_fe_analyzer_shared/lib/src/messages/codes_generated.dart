@@ -7564,18 +7564,6 @@ Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropStaticInteropSyntheticConstructor =
-    messageJsInteropStaticInteropSyntheticConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropStaticInteropSyntheticConstructor = const MessageCode(
-    "JsInteropStaticInteropSyntheticConstructor",
-    problemMessage:
-        r"""Synthetic constructors on `@staticInterop` classes can not be used.""",
-    correctionMessage:
-        r"""Declare an external factory constructor for this `@staticInterop` class and use that instead.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
     const Template<Message Function(String name)>(
