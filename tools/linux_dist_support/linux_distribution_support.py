@@ -74,14 +74,14 @@ def SrcSteps():
     tarfilename = 'dart-%s.tar.gz' % version
     tarfile = os.path.join(builddir, tarfilename)
 
-    print('Validating that we are on debian jessie')
+    print('Validating that we are on debian bullseye')
     args = ['cat', '/etc/os-release']
     (stdout, stderr, exitcode) = bot_utils.run(args)
     if exitcode != 0:
         print("Could not find linux system, exiting")
         sys.exit(1)
-    if not "jessie" in stdout:
-        print("Trying to build debian bits but not on debian Jessie")
+    if not "bullseye" in stdout:
+        print("Trying to build Debian bits but not on Debian Bullseye")
         print("You can't fix this, please contact dart-engprod@")
         sys.exit(1)
 
