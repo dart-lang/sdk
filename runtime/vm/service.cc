@@ -4822,13 +4822,17 @@ void Service::SendLogEvent(Isolate* isolate,
 
 void Service::SendExtensionEvent(Isolate* isolate,
                                  const String& event_kind,
-                                 const String& event_data) {
+                                 const String& event_data,
+                                 const String& event_stream) {
+  // Events for all streams are sent over the extension stream.
+  // They will be forwarded to the proper stream from DDS.
   if (!Service::extension_stream.enabled()) {
     return;
   }
   ServiceEvent::ExtensionEvent extension_event;
   extension_event.event_kind = &event_kind;
   extension_event.event_data = &event_data;
+  extension_event.event_stream = &event_stream;
   ServiceEvent event(isolate, ServiceEvent::kExtension);
   event.set_extension_event(extension_event);
   Service::HandleEvent(&event);

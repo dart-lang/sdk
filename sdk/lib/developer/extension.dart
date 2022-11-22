@@ -146,18 +146,19 @@ external bool get extensionStreamHasListener;
 /// event stream.
 ///
 /// If [extensionStreamHasListener] is false, this method is a no-op.
-void postEvent(String eventKind, Map eventData) {
+void postEvent(String eventKind, Map eventData, { String stream = 'Extension'}) {
   if (!extensionStreamHasListener) {
     return;
   }
   // TODO: When NNBD is complete, delete the following two lines.
   checkNotNullable(eventKind, 'eventKind');
   checkNotNullable(eventData, 'eventData');
+  checkNotNullable(stream, 'stream');
   String eventDataAsString = json.encode(eventData);
-  _postEvent(eventKind, eventDataAsString);
+  _postEvent(eventKind, eventDataAsString, stream: stream);
 }
 
-external void _postEvent(String eventKind, String eventData);
+external void _postEvent(String eventKind, String eventData, { String stream = 'Extension'});
 
 // Both of these functions are written inside C++ to avoid updating the data
 // structures in Dart, getting an OOB, and observing stale state. Do not move

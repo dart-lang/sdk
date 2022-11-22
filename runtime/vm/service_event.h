@@ -82,6 +82,7 @@ class ServiceEvent {
   struct ExtensionEvent {
     const String* event_kind;
     const String* event_data;
+    const String* event_stream;
   };
 
   explicit ServiceEvent(EventKind event_kind);

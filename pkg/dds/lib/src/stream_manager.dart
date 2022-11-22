@@ -31,11 +31,11 @@ class StreamManager {
     DartDevelopmentServiceClient? excludedClient,
   }) {
     print('Dake: 1');
+    print('loggingString: $loggingString');
     if (streamListeners.containsKey(streamId)) {
       print('Dake: 2');
       print('streamListeners: ${streamListeners}');
       print('streamListeners[$streamId]: ${streamListeners[streamId]}');
-      print('loggingString: $loggingString');
       final listeners = streamListeners[streamId]!;
       final isBinaryData = data is Uint8List;
       for (final listener in listeners) {
@@ -172,15 +172,21 @@ class StreamManager {
       (json_rpc.Parameters parameters) {
         final streamId = parameters['streamId'].asString;
         print("Dake: streamNotify(${streamId})");
+        // print("Parameters list: ${parameters.asList}");
+        print("Parameters mapkeys: ${parameters.asMap.keys}");
         final event =
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
+        print('event.extensionStream!! ${event.extensionStream}');
         print('DAKE: Event extensionKind: ${event.extensionKind}');
-        if (event.extensionKind?.startsWith('_CustomStream::') == true) {
-          final customStreamId = event.extensionKind!;
-          print('DAKE:GOT IT!!!!');
+        if (event.extensionStream != null &&
+            event.extensionStream != 'Extension') {
+          final customStreamId = event.extensionStream!;
+          print('DAKE:GOT IT stream($customStreamId)!!!!');
           // TODO: create new stream if it doesn't exist
           final values = parameters.value;
+          print("Dake: values!!: $values");
           values['streamId'] = customStreamId;
+          // print('DAKE: WOULD HAVE streamNotify($customStreamId, $values)');
           streamNotify(customStreamId, values);
           return;
         }
@@ -224,75 +230,80 @@ class StreamManager {
         assert(stream.isNotEmpty);
         bool streamNewlySubscribed = false;
         loggingString += 'DAKE:streamListen($client, $stream) 1\n';
-        if (!streamListeners.containsKey(stream)) {
-          // Initialize the list of clients for the new stream before we do
-          // anything else to ensure multiple clients registering for the same
-          // stream in quick succession doesn't result in multiple streamListen
-          // requests being sent to the VM service.
-          streamNewlySubscribed = true;
-          streamListeners[stream] = <DartDevelopmentServiceClient>[];
-          loggingString += 'DAKE:streamListen($client, $stream) 2\n';
-          if (!stream.startsWith('_CustomStream::') &&
-              ((stream == kDebugStream && client == null) ||
-                  stream != kDebugStream)) {
-            // This will return an RPC exception if the stream doesn't exist. This
-            // will throw and the exception will be forwarded to the client.
-            final result =
-                await dds.vmServiceClient.sendRequest('streamListen', {
-              'streamId': stream,
-              if (includePrivates != null)
-                '_includePrivateMembers': includePrivates,
-            });
-            assert(result['type'] == 'Success');
+        try {
+          if (!streamListeners.containsKey(stream)) {
+            // Initialize the list of clients for the new stream before we do
+            // anything else to ensure multiple clients registering for the same
+            // stream in quick succession doesn't result in multiple streamListen
+            // requests being sent to the VM service.
+            streamNewlySubscribed = true;
+            streamListeners[stream] = <DartDevelopmentServiceClient>[];
+            loggingString += 'DAKE:streamListen($client, $stream) 2\n';
+            if (allStandardStreams
+                    .contains(stream) && //check if this is a std stream
+                ((stream == kDebugStream && client == null) ||
+                    stream != kDebugStream)) {
+              // This will return an RPC exception if the stream doesn't exist. This
+              // will throw and the exception will be forwarded to the client.
+              final result =
+                  await dds.vmServiceClient.sendRequest('streamListen', {
+                'streamId': stream,
+                if (includePrivates != null)
+                  '_includePrivateMembers': includePrivates,
+              });
+              assert(result['type'] == 'Success');
+            }
           }
-        }
 
-        loggingString += 'DAKE:streamListen($client, $stream) 3\n';
-        if (streamListeners[stream]!.contains(client)) {
-          throw kStreamAlreadySubscribedException;
-        } else if (!streamNewlySubscribed && includePrivates != null) {
-          loggingString += 'DAKE:streamListen($client, $stream) 4\n';
-          try {
-            await dds.vmServiceClient.sendRequest(
-                '_setStreamIncludePrivateMembers',
-                {'streamId': stream, 'includePrivateMembers': includePrivates});
-          } on json_rpc.RpcException catch (e) {
-            // This private RPC might not be present. If it's not, we're communicating with an older
-            // VM that doesn't support filtering private members, so they will always be included in
-            // responses. Handle the method not found exception so the streamListen call doesn't
-            // fail for older VMs.
-            if (e.code != RpcErrorCodes.kMethodNotFound) {
-              rethrow;
-            }
-          }
-        }
-        loggingString += 'DAKE:streamListen($client, $stream) 5\n';
-        if (client != null) {
-          loggingString += 'DAKE:streamListen($client, $stream) 6\n';
-          streamListeners[stream]!.add(client);
-          if (loggingRepositories.containsKey(stream)) {
-            loggingRepositories[stream]!.sendHistoricalLogs(client);
-          } else if (stream == kServiceStream) {
-            // Send all previously registered service extensions when a client
-            // subscribes to the Service stream.
-            for (final c in dds.clientManager.clients) {
-              if (c == client) {
-                continue;
-              }
-              final namespace = dds.getNamespace(c);
-              for (final service in c.services.keys) {
-                client.sendNotification(
-                  'streamNotify',
-                  _buildStreamRegisteredEvent(
-                    namespace!,
-                    service,
-                    c.services[service]!,
-                  ),
-                );
+          loggingString += 'DAKE:streamListen($client, $stream) 3\n';
+          if (streamListeners[stream]!.contains(client)) {
+            throw kStreamAlreadySubscribedException;
+          } else if (!streamNewlySubscribed && includePrivates != null) {
+            loggingString += 'DAKE:streamListen($client, $stream) 4\n';
+            try {
+              await dds.vmServiceClient.sendRequest(
+                  '_setStreamIncludePrivateMembers', {
+                'streamId': stream,
+                'includePrivateMembers': includePrivates
+              });
+            } on json_rpc.RpcException catch (e) {
+              // This private RPC might not be present. If it's not, we're communicating with an older
+              // VM that doesn't support filtering private members, so they will always be included in
+              // responses. Handle the method not found exception so the streamListen call doesn't
+              // fail for older VMs.
+              if (e.code != RpcErrorCodes.kMethodNotFound) {
+                rethrow;
               }
             }
           }
-        }
+          loggingString += 'DAKE:streamListen($client, $stream) 5\n';
+          if (client != null) {
+            loggingString += 'DAKE:streamListen($client, $stream) 6\n';
+            streamListeners[stream]!.add(client);
+            if (loggingRepositories.containsKey(stream)) {
+              loggingRepositories[stream]!.sendHistoricalLogs(client);
+            } else if (stream == kServiceStream) {
+              // Send all previously registered service extensions when a client
+              // subscribes to the Service stream.
+              for (final c in dds.clientManager.clients) {
+                if (c == client) {
+                  continue;
+                }
+                final namespace = dds.getNamespace(c);
+                for (final service in c.services.keys) {
+                  client.sendNotification(
+                    'streamNotify',
+                    _buildStreamRegisteredEvent(
+                      namespace!,
+                      service,
+                      c.services[service]!,
+                    ),
+                  );
+                }
+              }
+            }
+          }
+        } finally {}
       },
     );
   }
@@ -434,6 +445,11 @@ class StreamManager {
     ...loggingRepositoryStreams,
   };
 
+  static final allStandardStreams = <String>{
+    ...isolateManagerStreams,
+    ...loggingRepositoryStreams,
+    ...cpuSampleRepositoryStreams,
+  };
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
   var loggingString = '';

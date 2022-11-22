@@ -4098,6 +4098,12 @@ class Event extends Response {
   @optional
   ExtensionData? extensionData;
 
+  /// The extension event alternate destination stream.
+  ///
+  /// This is provided for the Extension event.
+  @optional
+  String? extensionStream;
+
   /// An array of TimelineEvents
   ///
   /// This is provided for the TimelineEvents event.
@@ -4248,6 +4254,7 @@ class Event extends Response {
     extensionRPC = json['extensionRPC'];
     extensionKind = json['extensionKind'];
     extensionData = ExtensionData.parse(json['extensionData']);
+    extensionStream = json['extensionStream'];
     timelineEvents = json['timelineEvents'] == null
         ? null
         : List<TimelineEvent>.from(createServiceObject(
@@ -4297,6 +4304,7 @@ class Event extends Response {
     _setIfNotNull(json, 'extensionRPC', extensionRPC);
     _setIfNotNull(json, 'extensionKind', extensionKind);
     _setIfNotNull(json, 'extensionData', extensionData?.data);
+    _setIfNotNull(json, 'extensionStream', extensionStream);
     _setIfNotNull(json, 'timelineEvents',
         timelineEvents?.map((f) => f.toJson()).toList());
     _setIfNotNull(
