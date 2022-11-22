@@ -6534,23 +6534,25 @@ abstract class VariableElementImpl extends ElementImpl
   DartObject? computeConstantValue() => null;
 }
 
-class VariablePatternElementImpl extends LocalVariableElementImpl
-    implements VariablePatternElement {
+class VariablePatternBindElementImpl extends VariablePatternElementImpl
+    implements VariablePatternBindElement {
   final VariablePatternImpl node;
 
-  @override
-  final List<VariablePatternElementImpl> aliases = [];
-
-  VariablePatternElementImpl(this.node, super.name, super.offset);
+  VariablePatternBindElementImpl(this.node, super.name, super.offset);
 }
 
-class VariablePatternJoinElementImpl extends LocalVariableElementImpl
+class VariablePatternElementImpl extends LocalVariableElementImpl
     implements VariablePatternElement {
-  final List<LocalVariableElementImpl> components;
-  bool isConsistent;
+  VariablePatternElementImpl(super.name, super.offset);
+}
+
+class VariablePatternJoinElementImpl extends VariablePatternElementImpl
+    implements VariablePatternJoinElement {
+  @override
+  final List<VariablePatternElementImpl> components;
 
   @override
-  final List<VariablePatternElementImpl> aliases = [];
+  bool isConsistent;
 
   VariablePatternJoinElementImpl(
     super.name,

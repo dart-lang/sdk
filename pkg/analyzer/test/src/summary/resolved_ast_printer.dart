@@ -1438,14 +1438,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitVariablePattern(VariablePattern node) {
+  void visitVariablePattern(covariant VariablePatternImpl node) {
     _writeln('VariablePattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         final element = node.declaredElement;
         if (element != null) {
-          element as VariablePatternElementImpl;
           _sink.write(_indent);
           _sink.write('declaredElement: ');
           _writeIf(element.hasImplicitType, 'hasImplicitType ');

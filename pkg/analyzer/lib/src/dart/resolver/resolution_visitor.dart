@@ -1245,7 +1245,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     final name = node.name.lexeme;
     if (name != '_') {
-      var element = VariablePatternElementImpl(
+      var element = VariablePatternBindElementImpl(
         node,
         name,
         node.name.offset,
@@ -1594,14 +1594,14 @@ class _VariableBinder
   _VariableBinder({required super.errors});
 
   @override
-  LocalVariableElementImpl joinPatternVariables({
+  VariablePatternJoinElementImpl joinPatternVariables({
     required Object key,
     required List<PromotableElement> components,
     required bool isConsistent,
   }) {
     var first = components.first;
     var expandedComponents = components.expand((component) {
-      component as LocalVariableElementImpl;
+      component as VariablePatternElementImpl;
       if (component is VariablePatternJoinElementImpl) {
         return component.components;
       } else {
@@ -1635,8 +1635,8 @@ class _VariableBinderErrors
   @override
   void duplicateVariablePattern({
     required String name,
-    required covariant VariablePatternElementImpl original,
-    required covariant VariablePatternElementImpl duplicate,
+    required covariant VariablePatternBindElementImpl original,
+    required covariant VariablePatternBindElementImpl duplicate,
   }) {
     visitor._errorReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(
