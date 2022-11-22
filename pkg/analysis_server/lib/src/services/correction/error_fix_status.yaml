@@ -24,11 +24,12 @@
 #   issue created for it.
 #
 # Stats:
-# - 717 "needsEvaluation"
-#   - 220 for ParserErrorCodes.
-# -  72 "needsFix"
-# - 296 "hasFix"
-# -  57 "noFix"
+# - 710 "needsEvaluation"
+#   - 282 for CompileTimeErrorCodes
+#   - 220 for ParserErrorCodes
+# -  70 "needsFix"
+# - 298 "hasFix"
+# -  64 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -146,19 +147,34 @@ CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY:
 CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER:
   status: needsEvaluation
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The typical fix, when someone thought a termination was not needed, is to
+    add a break.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
   status: needsEvaluation
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
@@ -363,9 +379,13 @@ CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
-  status: needsFix
+  status: noFix
   since: 2.17
-  notes: Use AddConst.new
+  notes: |-
+    This is only reported on enum constant declarations calling a factory
+    constructor. No enum factory constructor can be const. The correction is to
+    call a different constructor, or refactor the factory constructor to be
+    const and generative.
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
   status: noFix
   since: 2.17
