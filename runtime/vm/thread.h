@@ -21,6 +21,7 @@
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
+#include "vm/heap/sampler.h"
 #include "vm/os_thread.h"
 #include "vm/pending_deopts.h"
 #include "vm/random.h"
@@ -660,10 +661,20 @@ class Thread : public ThreadState {
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
+  // The TLAB memory boundaries.
+  //
+  // When the heap sampling profiler is enabled, we use the TLAB boundary to
+  // trigger slow path allocations so we can take a sample. This means that
+  // true_end() >= end(), where true_end() is the actual end address of the
+  // TLAB and end() is the chosen sampling boundary for the thread.
+  //
+  // When the heap sampling profiler is disabled, true_end() == end().
   uword top() const { return top_; }
   uword end() const { return end_; }
+  uword true_end() const { return true_end_; }
   void set_top(uword top) { top_ = top; }
   void set_end(uword end) { end_ = end; }
+  void set_true_end(uword true_end) { true_end_ = true_end; }
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
@@ -1120,6 +1131,7 @@ class Thread : public ThreadState {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
+  HeapProfileSampler& heap_sampler() { return heap_sampler_; }
 #endif
 
   PendingDeopts& pending_deopts() { return pending_deopts_; }
@@ -1165,6 +1177,7 @@ class Thread : public ThreadState {
   // Offsets up to this point can all fit in a byte on X64. All of the above
   // fields are very abundantly accessed from code. Thus, keeping them first
   // is important for code size (although code size on X64 is not a priority).
+  uword true_end_ = 0;
   uword saved_stack_limit_;
   uword stack_overflow_flags_;
   ObjectPtr* field_table_values_;
@@ -1314,6 +1327,10 @@ class Thread : public ThreadState {
 
 #if defined(DEBUG)
   bool inside_compiler_ = false;
+#endif
+
+#if !defined(PRODUCT)
+  HeapProfileSampler heap_sampler_;
 #endif
 
   explicit Thread(bool is_vm_isolate);

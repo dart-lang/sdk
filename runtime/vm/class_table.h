@@ -32,6 +32,7 @@ class JSONStream;
 template <typename T>
 class MallocGrowableArray;
 class ObjectPointerVisitor;
+class PersistentHandle;
 
 // A 64-bit bitmap describing unboxed fields in a class.
 //
@@ -424,6 +425,13 @@ class ClassTable : public MallocAllocated {
         classes_.GetColumn<kAllocationTracingStateIndex>());
   }
 
+  PersistentHandle* UserVisibleNameFor(intptr_t cid) {
+    return classes_.At<kClassNameIndex>(cid);
+  }
+
+  void SetUserVisibleNameFor(intptr_t cid, PersistentHandle* name) {
+    classes_.At<kClassNameIndex>(cid) = name;
+  }
 #else
   void UpdateCachedAllocationTracingStateTablePointer() {}
 #endif  // !defined(PRODUCT)
@@ -542,7 +550,8 @@ class ClassTable : public MallocAllocated {
     kSizeIndex,
     kUnboxedFieldBitmapIndex,
 #if !defined(PRODUCT)
-    kAllocationTracingStateIndex
+    kAllocationTracingStateIndex,
+    kClassNameIndex,
 #endif
   };
 
@@ -551,7 +560,8 @@ class ClassTable : public MallocAllocated {
                   ClassPtr,
                   uint32_t,
                   UnboxedFieldBitmap,
-                  uint8_t>
+                  uint8_t,
+                  PersistentHandle*>
       classes_;
 #else
   CidIndexedTable<ClassIdTagType, ClassPtr, uint32_t, UnboxedFieldBitmap>
