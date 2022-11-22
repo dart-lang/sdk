@@ -39,7 +39,6 @@ class TranslatorOptions {
   bool printKernel = false;
   bool printWasm = false;
   int? sharedMemoryMaxPages;
-  bool stringDataSegments = false;
   List<int>? watchPoints = null;
 }
 
