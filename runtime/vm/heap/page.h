@@ -248,6 +248,7 @@ class Page {
     owner_ = thread;
     thread->set_top(top_);
     thread->set_end(end_);
+    thread->set_true_end(end_);
   }
   void Release(Thread* thread) {
     ASSERT(owner_ == thread);
@@ -255,6 +256,7 @@ class Page {
     top_ = thread->top();
     thread->set_top(0);
     thread->set_end(0);
+    thread->set_true_end(0);
   }
   void Release() {
     if (owner_ != nullptr) {

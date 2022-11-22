@@ -1580,8 +1580,19 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   ASSERT(heap_ != Dart::vm_isolate_group()->heap());
   ASSERT(!scavenging_);
 
-  AbandonRemainingTLAB(thread);
+#if !defined(PRODUCT)
+  // Find the remaining space available in the TLAB before abandoning it so we
+  // can reset the heap sampling offset in the new TLAB.
+  intptr_t remaining = thread->true_end() - thread->top();
+  const bool heap_sampling_enabled = thread->end() != thread->true_end();
+  if (heap_sampling_enabled && remaining > min_size) {
+    // This is a sampling point and the TLAB isn't actually full.
+    thread->heap_sampler().SampleSize(min_size);
+    return;
+  }
+#endif
 
+  AbandonRemainingTLAB(thread);
   if (can_safepoint && !thread->force_growth()) {
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace, kPageSize);
@@ -1594,6 +1605,9 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
         (page->end() - kAllocationRedZoneSize) - page->object_end();
     if (available >= min_size) {
       page->Acquire(thread);
+#if !defined(PRODUCT)
+      thread->heap_sampler().HandleNewTLAB(remaining);
+#endif
       return;
     }
   }
@@ -1603,6 +1617,9 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
     return;
   }
   page->Acquire(thread);
+#if !defined(PRODUCT)
+  thread->heap_sampler().HandleNewTLAB(remaining);
+#endif
 }
 
 void Scavenger::AbandonRemainingTLABForDebugging(Thread* thread) {

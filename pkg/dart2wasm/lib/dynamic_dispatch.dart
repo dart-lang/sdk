@@ -113,7 +113,6 @@ class DynamicDispatcher {
     // all we care about is code size, we might do best to use constant maps or
     // one function per selector. On the other hand, we could also try a hybrid
     // IC like approach using globals, rewiring logic, and a state machine.
-    // TODO(joshualitt): Handle the case of a null receiver.
     w.Local cidLocal = addLocal(w.NumType.i32);
 
     // Outer block searches through the methods and invokes the method if it
@@ -155,28 +154,26 @@ class DynamicDispatcher {
       }
       translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
+        final Reference target = selector.targets[classID]!;
+        if (target.asMember.isAbstract) {
+          continue;
+        }
+
         b.local_get(cidLocal);
         b.i32_const(classID);
         b.i32_eq();
         b.if_();
 
-        // TODO(joshualitt): We should be able to make this a direct
-        // invocation. However, there appear to be corner cases today where we
-        // still need to do the actual invocation as an indirect call, for
-        // example if the procedure we are invoking is abstract.
         b.comment("Dynamic invocation of '${selector.name}'");
         b.local_get(receiverVar);
         translator.convertType(function, translator.topInfo.nullableType,
             selector.signature.inputs[0]);
 
         pushArguments(selector);
-        b.local_get(cidLocal);
-        int offset = selector.offset!;
-        if (offset != 0) {
-          b.i32_const(offset);
-          b.i32_add();
-        }
-        b.call_indirect(selector.signature);
+
+        final w.BaseFunction targetFunction =
+            translator.functions.getFunction(target);
+        b.call(targetFunction);
 
         w.ValueType result =
             translator.outputOrVoid(selector.signature.outputs);

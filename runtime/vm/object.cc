@@ -40,6 +40,7 @@
 #include "vm/hash_table.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
+#include "vm/heap/sampler.h"
 #include "vm/heap/weak_code.h"
 #include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
@@ -2750,6 +2751,10 @@ void Object::CheckHandle() const {
 #endif
 }
 
+#if !defined(PRODUCT)
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
+#endif
+
 ObjectPtr Object::Allocate(intptr_t cls_id,
                            intptr_t size,
                            Heap::Space space,
@@ -2779,8 +2784,9 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       OUT_OF_MEMORY();
     }
   }
-  NoSafepointScope no_safepoint(thread);
+
   ObjectPtr raw_obj;
+  NoSafepointScope no_safepoint(thread);
   InitializeObject(address, cls_id, size, compressed);
   raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
   ASSERT(cls_id == UntaggedObject::ClassIdTag::decode(raw_obj->untag()->tags_));
@@ -2794,14 +2800,38 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     raw_obj->untag()->SetMarkBitRelease();
     heap->old_space()->AllocateBlack(size);
   }
-#ifndef PRODUCT
+
+#if !defined(PRODUCT)
+  HeapProfileSampler& heap_sampler = thread->heap_sampler();
   auto class_table = thread->isolate_group()->class_table();
+  if (heap_sampler.HasOutstandingSample()) {
+    IsolateGroup* isolate_group = thread->isolate_group();
+    Api::Scope api_scope(thread);
+    PersistentHandle* type_name = class_table->UserVisibleNameFor(cls_id);
+    if (type_name == nullptr) {
+      // Try the vm-isolate's class table for core types.
+      type_name =
+          Dart::vm_isolate_group()->class_table()->UserVisibleNameFor(cls_id);
+    }
+    // If type_name is still null, then we haven't finished initializing yet and
+    // should drop the sample.
+    if (type_name != nullptr) {
+      thread->IncrementNoCallbackScopeDepth();
+      Object& obj = Object::Handle(raw_obj);
+      auto weak_obj = FinalizablePersistentHandle::New(
+          isolate_group, obj, nullptr, NoopFinalizer, 0, /*auto_delete=*/false);
+      heap_sampler.InvokeCallbackForLastSample(
+          type_name->apiHandle(), weak_obj->ApiWeakPersistentHandle());
+      thread->DecrementNoCallbackScopeDepth();
+    }
+  }
+
   if (class_table->ShouldTraceAllocationFor(cls_id)) {
     uint32_t hash =
         HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
     Profiler::SampleAllocation(thread, cls_id, hash);
   }
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
   return raw_obj;
 }
 
@@ -5129,6 +5159,11 @@ void Class::set_name(const String& value) const {
     const String& user_name = String::Handle(
         Symbols::New(Thread::Current(), GenerateUserVisibleName()));
     set_user_name(user_name);
+    IsolateGroup* isolate_group = IsolateGroup::Current();
+    PersistentHandle* type_name =
+        isolate_group->api_state()->AllocatePersistentHandle();
+    type_name->set_ptr(UserVisibleName());
+    isolate_group->class_table()->SetUserVisibleNameFor(id(), type_name);
   }
 #endif  // !defined(PRODUCT)
 }
