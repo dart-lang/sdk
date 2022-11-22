@@ -33,7 +33,7 @@ class AlgorithmState {
       this.importSets, this.registry)
       : queue = WorkQueue(importSets, registry);
 
-  /// Factory function to create and initialize a [AlgorithmState].
+  /// Factory function to create and initialize an [AlgorithmState].
   factory AlgorithmState.create(
       FunctionEntity main,
       Compiler compiler,

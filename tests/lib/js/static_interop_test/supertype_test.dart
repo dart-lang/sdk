@@ -10,12 +10,12 @@ library supertype_test;
 
 import 'package:js/js.dart';
 
-// Static base interop class.
+// Base static interop class.
 @JS()
 @staticInterop
 class Static {}
 
-// Non-static base interop class.
+// Base non-static interop class.
 @JS()
 class NonStatic {
   external int instanceMethod();
@@ -41,74 +41,32 @@ class StaticExtendsStatic extends Static {}
 @staticInterop
 class StaticExtendsNonStatic extends NonStatic {}
 //    ^
-// [web] JS interop class 'StaticExtendsNonStatic' has an `@staticInterop` annotation, but has supertype 'NonStatic', which is non-static.
+// [web] JS interop class 'StaticExtendsNonStatic' has an `@staticInterop` annotation, but has supertype 'NonStatic', which does not.
+
+// Non-static interop classes are disallowed from extending static interop
+// classes.
+@JS()
+class NonStaticExtendsStatic extends Static {}
+//    ^
+// [web] Class 'NonStaticExtendsStatic' does not have an `@staticInterop` annotation, but has supertype 'Static', which does.
 
 // Static interop classes can implement each other in order to inherit extension
-// methods. Note that a non-abstract static interop class can not implement a
-// non-static class by definition, as it would need to contain an
-// implementation.
+// methods. They cannot implement or be implemented by non-static interop
+// classes.
 @JS()
 @staticInterop
 class StaticImplementsStatic implements Static {}
 
-// Abstract classes should behave the same way as concrete classes.
 @JS()
-@staticInterop
-abstract class StaticAbstract {}
+class NonStaticImplementsStatic implements Static {}
+//    ^
+// [web] Class 'NonStaticImplementsStatic' does not have an `@staticInterop` annotation, but has supertype 'Static', which does.
 
-// Abstract classes with instance members should be non-static. The following
-// have abstract or concrete members, so they're considered non-static.
 @JS()
-abstract class NonStaticAbstract {
-  int abstractMethod();
-}
+class EmptyNonStatic {}
 
 @JS()
 @staticInterop
-abstract class NonStaticAbstractWithAbstractMembers {
-  int abstractMethod();
-  //  ^
-  // [web] JS interop class 'NonStaticAbstractWithAbstractMembers' with `@staticInterop` annotation cannot declare instance members.
-}
-
-@JS()
-@staticInterop
-abstract class NonStaticAbstractWithConcreteMembers {
-  external int instanceMethod();
-  //           ^
-  // [web] JS interop class 'NonStaticAbstractWithConcreteMembers' with `@staticInterop` annotation cannot declare instance members.
-}
-
-@JS()
-@staticInterop
-abstract class StaticAbstractImplementsStaticAbstract
-    implements StaticAbstract {}
-
-@JS()
-@staticInterop
-abstract class StaticAbstractExtendsStaticAbstract extends StaticAbstract {}
-
-@JS()
-@staticInterop
-abstract class StaticAbstractImplementsNonStaticAbstract
-//             ^
-// [web] JS interop class 'StaticAbstractImplementsNonStaticAbstract' has an `@staticInterop` annotation, but has supertype 'NonStaticAbstract', which is non-static.
-    implements
-        NonStaticAbstract {}
-
-@JS()
-@staticInterop
-abstract class StaticAbstractImplementsMultipleNonStatic
-//             ^
-// [web] JS interop class 'StaticAbstractImplementsMultipleNonStatic' has an `@staticInterop` annotation, but has supertype 'NonStatic', which is non-static.
-// [web] JS interop class 'StaticAbstractImplementsMultipleNonStatic' has an `@staticInterop` annotation, but has supertype 'NonStaticAbstract', which is non-static.
-    implements
-        NonStaticAbstract,
-        NonStatic {}
-
-@JS()
-@staticInterop
-abstract class StaticAbstractExtendsNonStaticAbstract
-//             ^
-// [web] JS interop class 'StaticAbstractExtendsNonStaticAbstract' has an `@staticInterop` annotation, but has supertype 'NonStaticAbstract', which is non-static.
-    extends NonStaticAbstract {}
+class StaticImplementsNonStatic implements EmptyNonStatic {}
+//    ^
+// [web] JS interop class 'StaticImplementsNonStatic' has an `@staticInterop` annotation, but has supertype 'EmptyNonStatic', which does not.

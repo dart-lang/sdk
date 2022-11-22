@@ -118,7 +118,7 @@ function selectEntryGroup(pageStart) {
       id = 'req$entryId';
       clickHandler = 'highlight(\'req$entryId\', \'res$entryId\')';
       icon = '&rarr;';
-      description = entry.method;
+      description = entry.method ?? '<no method>';
     } else if (entry is ResponseEntry) {
       var entryId = entry.id;
       var request = log.requestFor(entry);

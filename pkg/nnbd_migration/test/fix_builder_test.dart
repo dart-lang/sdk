@@ -3735,7 +3735,7 @@ void _f() {
 }
 ''');
     var intAnnotation = findNode.typeAnnotation('int');
-    visitTypeAnnotation((intAnnotation), 'int?',
+    visitTypeAnnotation(intAnnotation, 'int?',
         changes: {intAnnotation: isMakeNullable});
   }
 

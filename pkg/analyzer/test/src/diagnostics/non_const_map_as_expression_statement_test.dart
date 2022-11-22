@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class NonConstMapAsExpressionStatementTest extends PubPackageResolutionTest {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42850')
-  test_beginningOfExpressiontatement() async {
+  test_beginningOfExpressionStatement() async {
     // TODO(srawlins) Fasta is not recovering well.
     // Ideally we would produce a single diagnostic:
     // CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT

@@ -35,13 +35,6 @@ void CPU::FlushICache(uword start, uword size) {
     return;
   }
 
-// ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
-//
-// https://community.arm.com/developer/ip-products/processors/b/processors-ip-blog/posts/caches-and-self-modifying-code
-//
-// On iOS we use sys_icache_invalidate from Darwin. See:
-//
-// https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sys_icache_invalidate.3.html
 #if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
   sys_icache_invalidate(reinterpret_cast<void*>(start), size);
 #elif defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)

@@ -80,7 +80,7 @@ abstract class AugmentationImportElement implements _ExistingElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedClassElement implements AugmentedInterfaceElement {}
 
-/// The result of applying augmentations to a [EnumElement].
+/// The result of applying augmentations to an [EnumElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedEnumElement implements AugmentedInterfaceElement {}
@@ -1092,7 +1092,7 @@ abstract class ElementVisitor<R> {
 abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
   /// Returns the element that is augmented by this augmentation; or `null` if
   /// there is no corresponding element to be augmented. The chain of
-  /// augmentations should normally end with a [EnumElement], but might end
+  /// augmentations should normally end with an [EnumElement], but might end
   /// with `null` immediately or after a few intermediate
   /// [EnumAugmentationElement]s in case of invalid code when an augmentation
   /// is declared without the corresponding enum declaration.

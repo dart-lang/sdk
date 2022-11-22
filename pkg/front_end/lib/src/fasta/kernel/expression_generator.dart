@@ -98,20 +98,20 @@ abstract class Generator {
   /// The source uri for use in error messaging.
   Uri get _uri => _helper.uri;
 
-  /// Builds a [Expression] representing a read from the generator.
+  /// Builds an [Expression] representing a read from the generator.
   ///
   /// The read of this subexpression does _not_ need to support a simultaneous
   /// write of the same subexpression.
   Expression buildSimpleRead();
 
-  /// Builds a [Expression] representing an assignment with the generator on
+  /// Builds an [Expression] representing an assignment with the generator on
   /// the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
   Expression buildAssignment(Expression value, {bool voidContext = false});
 
-  /// Returns a [Expression] representing a null-aware assignment (`??=`) with
+  /// Returns an [Expression] representing a null-aware assignment (`??=`) with
   /// the generator on the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
@@ -121,7 +121,7 @@ abstract class Generator {
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false});
 
-  /// Returns a [Expression] representing a compound assignment (e.g. `+=`)
+  /// Returns an [Expression] representing a compound assignment (e.g. `+=`)
   /// with the generator on the LHS and [value] on the RHS.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
@@ -129,7 +129,7 @@ abstract class Generator {
       bool isPreIncDec = false,
       bool isPostIncDec = false});
 
-  /// Returns a [Expression] representing a pre-increment or pre-decrement of
+  /// Returns an [Expression] representing a pre-increment or pre-decrement of
   /// the generator.
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
@@ -143,7 +143,7 @@ abstract class Generator {
         isPreIncDec: true);
   }
 
-  /// Returns a [Expression] representing a post-increment or post-decrement of
+  /// Returns an [Expression] representing a post-increment or post-decrement of
   /// the generator.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false});
@@ -154,7 +154,7 @@ abstract class Generator {
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware});
 
-  /// Returns a [Expression] representing a compile-time error.
+  /// Returns an [Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
   Expression _makeInvalidRead(UnresolvedKind unresolvedKind) {
@@ -162,7 +162,7 @@ abstract class Generator {
         kind: unresolvedKind);
   }
 
-  /// Returns a [Expression] representing a compile-time error wrapping
+  /// Returns an [Expression] representing a compile-time error wrapping
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
@@ -1844,7 +1844,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 }
 
-/// A [ExplicitExtensionInstanceAccessGenerator] represents a subexpression
+/// An [ExplicitExtensionInstanceAccessGenerator] represents a subexpression
 /// whose prefix is a forced extension instance member access.
 ///
 /// For instance
@@ -2556,7 +2556,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 }
 
-/// A [ExplicitExtensionAccessGenerator] represents a subexpression whose
+/// An [ExplicitExtensionAccessGenerator] represents a subexpression whose
 /// prefix is an explicit extension application.
 ///
 /// For instance

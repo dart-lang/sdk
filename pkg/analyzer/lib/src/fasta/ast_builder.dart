@@ -4341,13 +4341,16 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("ListPattern");
 
-    var elements = popTypedList2<DartPatternImpl>(count);
+    var elements = popTypedList2<ListPatternElementImpl>(count);
     var typeArguments = pop() as TypeArgumentListImpl?;
-    push(ListPatternImpl(
+    push(
+      ListPatternImpl(
         typeArguments: typeArguments,
         leftBracket: leftBracket,
         elements: elements,
-        rightBracket: rightBracket));
+        rightBracket: rightBracket,
+      ),
+    );
   }
 
   @override
@@ -4469,13 +4472,16 @@ class AstBuilder extends StackListener {
   void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
     debugEvent('MapPattern');
 
-    var entries = popTypedList2<MapPatternEntryImpl>(count);
+    var elements = popTypedList2<MapPatternElementImpl>(count);
     var typeArguments = pop() as TypeArgumentListImpl?;
-    push(MapPatternImpl(
+    push(
+      MapPatternImpl(
         typeArguments: typeArguments,
         leftBracket: leftBrace,
-        entries: entries,
-        rightBracket: rightBrace));
+        elements: elements,
+        rightBracket: rightBrace,
+      ),
+    );
   }
 
   @override

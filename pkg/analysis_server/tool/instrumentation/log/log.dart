@@ -78,8 +78,7 @@ class EntryRange {
 /// A log entry representing an Err entry.
 class ErrorEntry extends GenericEntry {
   /// Initialize a newly created log entry.
-  ErrorEntry(
-      super.index, super.timeStamp, super.entryKind, super.components);
+  ErrorEntry(super.index, super.timeStamp, super.entryKind, super.components);
 }
 
 /// A log entry representing an Ex entry.
@@ -296,9 +295,11 @@ class InstrumentationLog {
           _requestMap[entry.id] = entry;
         } else if (entry is ResponseEntry) {
           _responseMap[entry.id] = entry;
-          var request = _requestMap[entry.id]!;
-          _pairedEntries[entry] = request;
-          _pairedEntries[request] = entry;
+          var request = _requestMap[entry.id];
+          if (request != null) {
+            _pairedEntries[entry] = request;
+            _pairedEntries[request] = entry;
+          }
         } else if (entry is NotificationEntry) {
           if (entry.isServerStatus) {
             var analysisStatus = entry.param('analysis');
@@ -379,7 +380,7 @@ abstract class JsonBasedEntry extends LogEntry {
   static const String singleIndent = '&nbsp;&nbsp;&nbsp;';
 
   /// The decoded form of the JSON encoded component.
-  final Map data;
+  final Map<Object?, Object?> data;
 
   /// Initialize a newly created log entry to have the given [timeStamp] and
   /// [data].
@@ -432,14 +433,14 @@ abstract class JsonBasedEntry extends LogEntry {
       buffer.write('"');
     } else if (object is int || object is bool) {
       buffer.write(object);
-    } else if (object is Map) {
+    } else if (object is Map<Object?, Object?>) {
       buffer.write('{<br>');
       object.forEach((key, value) {
         var newIndent = indent + singleIndent;
         buffer.write(newIndent);
         _format(buffer, newIndent, key as Object);
         buffer.write(' : ');
-        _format(buffer, newIndent, value as Object);
+        _format(buffer, newIndent, value ?? '');
         buffer.write('<br>');
       });
       buffer.write(indent);
@@ -818,13 +819,13 @@ class RequestEntry extends JsonBasedEntry {
   int get clientRequestTime => data['clientRequestTime'] as int;
 
   /// Return the id field of the request.
-  String get id => data['id'] as String;
+  String get id => '${data['id']}';
 
   @override
   String get kind => 'Req';
 
   /// Return the method field of the request.
-  String get method => data['method'] as String;
+  String? get method => data['method'] as String?;
 
   /// Return the value of the parameter with the given [parameterName], or
   /// `null` if there is no such parameter.
@@ -845,7 +846,7 @@ class ResponseEntry extends JsonBasedEntry {
   ResponseEntry(super.index, super.timeStamp, super.responseData);
 
   /// Return the id field of the response.
-  String get id => data['id'] as String;
+  String get id => '${data['id']}';
 
   @override
   String get kind => 'Res';

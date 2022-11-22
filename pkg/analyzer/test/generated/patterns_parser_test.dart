@@ -763,7 +763,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -3803,7 +3803,7 @@ MapPattern
           token: int
     rightBracket: >
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -3852,7 +3852,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -3885,7 +3885,7 @@ void f(x) {
 CastPattern
   pattern: MapPattern
     leftBracket: {
-    entries
+    elements
       MapPatternEntry
         key: SimpleStringLiteral
           literal: 'a'
@@ -3921,7 +3921,7 @@ MapPattern
           token: int
     rightBracket: >
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -3962,7 +3962,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -3993,7 +3993,7 @@ void f(x) {
 PostfixPattern
   operand: MapPattern
     leftBracket: {
-    entries
+    elements
       MapPatternEntry
         key: SimpleStringLiteral
           literal: 'a'
@@ -4020,7 +4020,7 @@ void f(x) {
 PostfixPattern
   operand: MapPattern
     leftBracket: {
-    entries
+    elements
       MapPatternEntry
         key: SimpleStringLiteral
           literal: 'a'
@@ -4204,7 +4204,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -4565,7 +4565,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -5487,7 +5487,7 @@ PatternVariableDeclarationStatement
     keyword: final
     pattern: MapPattern
       leftBracket: {
-      entries
+      elements
         MapPatternEntry
           key: SimpleStringLiteral
             literal: 'a'
@@ -5618,7 +5618,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: MapPattern
       leftBracket: {
-      entries
+      elements
         MapPatternEntry
           key: SimpleStringLiteral
             literal: 'a'
@@ -5752,7 +5752,7 @@ PatternVariableDeclarationStatement
     keyword: final
     pattern: MapPattern
       leftBracket: {
-      entries
+      elements
         MapPatternEntry
           key: SimpleStringLiteral
             literal: 'a'
@@ -5888,7 +5888,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: MapPattern
       leftBracket: {
-      entries
+      elements
         MapPatternEntry
           key: SimpleStringLiteral
             literal: 'a'
@@ -6435,7 +6435,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'
@@ -7098,7 +7098,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 MapPattern
   leftBracket: {
-  entries
+  elements
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'a'

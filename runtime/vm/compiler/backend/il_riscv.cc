@@ -922,23 +922,20 @@ static Condition FlipCondition(Condition condition) {
   }
 }
 
-static void EmitBranchOnCondition(
-    FlowGraphCompiler* compiler,
-    Condition true_condition,
-    BranchLabels labels,
-    compiler::Assembler::JumpDistance jump_distance =
-        compiler::Assembler::kFarJump) {
+static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                  Condition true_condition,
+                                  BranchLabels labels) {
   if (labels.fall_through == labels.false_label) {
     // If the next block is the false successor we will fall through to it.
-    __ BranchIf(true_condition, labels.true_label, jump_distance);
+    __ BranchIf(true_condition, labels.true_label);
   } else {
     // If the next block is not the false successor we will branch to it.
     Condition false_condition = InvertCondition(true_condition);
-    __ BranchIf(false_condition, labels.false_label, jump_distance);
+    __ BranchIf(false_condition, labels.false_label);
 
     // Fall through or jump to the true successor.
     if (labels.fall_through != labels.true_label) {
-      __ j(labels.true_label, jump_distance);
+      __ j(labels.true_label);
     }
   }
 }
@@ -2579,7 +2576,8 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   if (value_is_smi == NULL) {
     __ LoadImmediate(value_cid_reg, kSmiCid);
   }
-  __ BranchIfSmi(value_reg, value_is_smi == NULL ? &done : value_is_smi);
+  __ BranchIfSmi(value_reg, value_is_smi == NULL ? &done : value_is_smi,
+                 compiler::Assembler::kNearJump);
   __ LoadClassId(value_cid_reg, value_reg);
   __ Bind(&done);
 }
@@ -2672,7 +2670,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler::Label skip_length_check;
       __ lw(TMP, field_cid_operand);
       __ CompareRegisters(value_cid_reg, TMP);
-      __ BranchIf(EQ, &ok);
+      __ BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
       __ lw(TMP, field_nullability_operand);
       __ CompareRegisters(value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
@@ -2683,7 +2681,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ lw(value_cid_reg, field_cid_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     }
-    __ BranchIf(EQ, &ok);
+    __ BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
 
     // Check if the tracked state of the guarded field can be initialized
     // inline. If the field needs length check we fall through to runtime
@@ -2707,7 +2705,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ sw(TMP, field_nullability_operand);
       }
 
-      __ j(&ok);
+      __ j(&ok, compiler::Assembler::kNearJump);
     }
 
     if (deopt == NULL) {
@@ -2716,7 +2714,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadFieldFromOffset(TMP, field_reg, Field::guarded_cid_offset(),
                              compiler::kUnsignedTwoBytes);
       __ CompareImmediate(TMP, kDynamicCid);
-      __ BranchIf(EQ, &ok);
+      __ BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
 
       __ PushRegisterPair(value_reg, field_reg);
       ASSERT(!compiler->is_optimizing());  // No deopt info needed.
@@ -2741,7 +2739,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
 
       if (field().is_nullable() && (field_cid != kNullCid)) {
-        __ BranchIf(EQ, &ok);
+        __ BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
         __ CompareObject(value_reg, Object::null_object());
       }
 
@@ -2820,7 +2818,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CompareObjectRegisters(length_reg, TMP);
 
     if (deopt == NULL) {
-      __ BranchIf(EQ, &ok);
+      __ BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
 
       __ PushRegisterPair(value_reg, field_reg);
       ASSERT(!compiler->is_optimizing());  // No deopt info needed.
@@ -3728,7 +3726,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ li(result, 0);
           __ CompareImmediate(TMP, kBitsPerInt64);
           // If shift amount >= 64, then result is 0.
-          __ BranchIf(GE, &done);
+          __ BranchIf(GE, &done, compiler::Assembler::kNearJump);
         }
         __ CompareImmediate(TMP, 64 - compiler::target::kSmiBits);
         // Shift amount >= 64 - kSmiBits > 32, but < 64.
@@ -3736,12 +3734,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Low (Smi) part of the left operand is shifted out.
         // High part is filled with sign bits.
         compiler::Label next;
-        __ BranchIf(LT, &next);
+        __ BranchIf(LT, &next, compiler::Assembler::kNearJump);
         __ subi(TMP, TMP, 32);
         __ srai(result, left, 31);
         __ srl(result, result, TMP);
         __ SmiTag(result);
-        __ j(&done);
+        __ j(&done, compiler::Assembler::kNearJump);
         __ Bind(&next);
       }
       // Shift amount < 64 - kSmiBits.
@@ -3762,7 +3760,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ li(result, 0);
         __ CompareImmediate(TMP, compiler::target::kSmiBits);
         // Left operand >= 0, shift amount >= kSmiBits. Result is 0.
-        __ BranchIf(GE, &done);
+        __ BranchIf(GE, &done, compiler::Assembler::kNearJump);
       }
       // Left operand >= 0, shift amount < kSmiBits < 32.
       const Register temp = locs()->temp(0).reg();
@@ -5994,7 +5992,7 @@ static void EmitShiftInt64ByRegister(FlowGraphCompiler* compiler,
       __ sub(TMP, TMP, right);
       __ sll(TMP2, left_hi, TMP);
       __ or_(out_lo, out_lo, TMP2);
-      __ j(&done);
+      __ j(&done, compiler::Assembler::kNearJump);
 
       // 32 <= right < 64
       __ Bind(&big_shift);
@@ -6016,7 +6014,7 @@ static void EmitShiftInt64ByRegister(FlowGraphCompiler* compiler,
       __ sub(TMP, TMP, right);
       __ sll(TMP2, left_hi, TMP);
       __ or_(out_lo, out_lo, TMP2);
-      __ j(&done);
+      __ j(&done, compiler::Assembler::kNearJump);
 
       // 32 <= right < 64
       __ Bind(&big_shift);
@@ -6038,7 +6036,7 @@ static void EmitShiftInt64ByRegister(FlowGraphCompiler* compiler,
       __ sub(TMP, TMP, right);
       __ srl(TMP2, left_lo, TMP);
       __ or_(out_hi, out_hi, TMP2);
-      __ j(&done);
+      __ j(&done, compiler::Assembler::kNearJump);
 
       // 32 <= right < 64
       __ Bind(&big_shift);

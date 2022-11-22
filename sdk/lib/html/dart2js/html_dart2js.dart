@@ -18599,7 +18599,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * Length of time in milliseconds before a request is automatically
    * terminated.
    *
-   * When the time has passed, a [HttpRequestEventTarget.timeoutEvent] is
+   * When the time has passed, an [HttpRequestEventTarget.timeoutEvent] is
    * dispatched.
    *
    * If [timeout] is set to 0, then the request will not time out.

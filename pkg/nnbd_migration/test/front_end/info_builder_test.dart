@@ -1253,11 +1253,11 @@ int  f(String/*!*/ s) => s?.length;
         explanation: 'Accepted a null check hint',
         kind: NullabilityFixKind.checkExpressionDueToHint,
         traces: isNotEmpty,
-        edits: ((List<EditDetail> edits) => assertEdit(
+        edits: (List<EditDetail> edits) => assertEdit(
             edit: edits.single,
             offset: content.indexOf(hintText),
             length: hintText.length,
-            replacement: '')));
+            replacement: ''));
   }
 
   Future<void> test_nullCheck_onMemberAccess() async {

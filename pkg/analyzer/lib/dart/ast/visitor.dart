@@ -616,6 +616,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => visitDartPattern(node);
 
   @override
+  R? visitRestPatternElement(RestPatternElement node) => visitNode(node);
+
+  @override
   R? visitRethrowExpression(RethrowExpression node) => visitExpression(node);
 
   @override
@@ -1525,6 +1528,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitRestPatternElement(RestPatternElement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitRethrowExpression(RethrowExpression node) {
     node.visitChildren(this);
     return null;
@@ -2144,6 +2153,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => null;
 
   @override
+  R? visitRestPatternElement(RestPatternElement node) => null;
+
+  @override
   R? visitRethrowExpression(RethrowExpression node) => null;
 
   @override
@@ -2663,6 +2675,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => _throw(node);
+
+  @override
+  R? visitRestPatternElement(RestPatternElement node) => _throw(node);
 
   @override
   R? visitRethrowExpression(RethrowExpression node) => _throw(node);
@@ -3808,6 +3823,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitRestPatternElement(RestPatternElement node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRestPatternElement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitRethrowExpression(RethrowExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRethrowExpression(node);
@@ -4524,6 +4547,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => visitNode(node);
+
+  @override
+  R? visitRestPatternElement(RestPatternElement node) => visitNode(node);
 
   @override
   R? visitRethrowExpression(RethrowExpression node) => visitNode(node);

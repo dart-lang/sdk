@@ -216,10 +216,6 @@ String md5String(String str) {
   return md5.convert(str.codeUnits).toString();
 }
 
-String md5StringFromBytes(List<int> bytes) {
-  return md5.convert(bytes).toString();
-}
-
 List<FileSystemEntity> sortDir(Iterable<FileSystemEntity> entities) {
   var result = entities.toList();
   result.sort((a, b) => a.path.compareTo(b.path));

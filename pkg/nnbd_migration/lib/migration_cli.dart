@@ -1008,7 +1008,7 @@ class _FixCodeProcessor extends Object {
   Future<void> processResources(
       Future<void> Function(ResolvedUnitResult result) process) async {
     var driver = context.currentSession;
-    var pathsProcessed = <String?>{};
+    var pathsProcessed = <String>{};
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
       var result = await driver.getResolvedLibrary(path);

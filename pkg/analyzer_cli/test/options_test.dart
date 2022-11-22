@@ -118,47 +118,47 @@ void main() {
         };
 
         test('no values', () {
-          var options = overrideKnownFeatures(
-              knownFeatures, (() => parse(['foo.dart'])!));
+          var options =
+              overrideKnownFeatures(knownFeatures, () => parse(['foo.dart'])!);
           expect(options.enabledExperiments, isEmpty);
         });
 
         test('single value', () {
           var options = overrideKnownFeatures(knownFeatures,
-              (() => parse(['--enable-experiment', 'a', 'foo.dart'])!));
+              () => parse(['--enable-experiment', 'a', 'foo.dart'])!);
           expect(options.enabledExperiments, ['a']);
         });
 
         group('multiple values', () {
           test('single flag', () {
             var options = overrideKnownFeatures(knownFeatures,
-                (() => parse(['--enable-experiment', 'a,b', 'foo.dart'])!));
+                () => parse(['--enable-experiment', 'a,b', 'foo.dart'])!);
             expect(options.enabledExperiments, ['a', 'b']);
           });
 
           test('mixed single and multiple flags', () {
             var options = overrideKnownFeatures(
                 knownFeatures,
-                (() => parse([
+                () => parse([
                       '--enable-experiment',
                       'a,b',
                       '--enable-experiment',
                       'c',
                       'foo.dart'
-                    ])!));
+                    ])!);
             expect(options.enabledExperiments, ['a', 'b', 'c']);
           });
 
           test('multiple flags', () {
             var options = overrideKnownFeatures(
                 knownFeatures,
-                (() => parse([
+                () => parse([
                       '--enable-experiment',
                       'a',
                       '--enable-experiment',
                       'b',
                       'foo.dart'
-                    ])!));
+                    ])!);
             expect(options.enabledExperiments, ['a', 'b']);
           });
         });

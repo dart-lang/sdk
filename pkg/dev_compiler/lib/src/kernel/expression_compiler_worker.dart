@@ -293,13 +293,7 @@ class ExpressionCompilerWorker {
     _processedOptions.ticker.logMs('Stopped expression compiler worker.');
   }
 
-  void close() {
-    var fullModules = _moduleCache.fullyLoadedModules.toList();
-    for (var module in fullModules) {
-      _clearCache(module);
-    }
-    onDone?.call();
-  }
+  void close() => onDone?.call();
 
   /// Handles a `CompileExpression` request.
   Future<Map<String, dynamic>> _compileExpression(
@@ -334,51 +328,6 @@ class ExpressionCompilerWorker {
           '${_fullModules[moduleName]}');
     }
 
-    errors.clear();
-    warnings.clear();
-    infos.clear();
-
-    var expressionCompiler =
-        await _createExpressionCompiler(libraryUri, moduleName);
-
-    // Failed to compile component, report compilation errors.
-    if (expressionCompiler == null) {
-      return {
-        'errors': errors,
-        'warnings': warnings,
-        'infos': infos,
-        'compiledProcedure': null,
-        'succeeded': false,
-      };
-    }
-
-    var compiledProcedure = await expressionCompiler.compileExpressionToJs(
-        request.libraryUri,
-        request.line,
-        request.column,
-        request.jsScope,
-        request.expression);
-
-    _processedOptions.ticker.logMs('Compiled expression to JavaScript');
-
-    // Return result or expression compilation errors.
-    return {
-      'errors': errors,
-      'warnings': warnings,
-      'infos': infos,
-      'compiledProcedure': compiledProcedure,
-      'succeeded': errors.isEmpty,
-    };
-  }
-
-  Future<ExpressionCompiler?> _createExpressionCompiler(
-      Uri libraryUri, String moduleName) async {
-    var expressionCompiler = _moduleCache.expressionCompilers[moduleName];
-    if (expressionCompiler != null) return expressionCompiler;
-
-    _processedOptions.ticker
-        .logMs('Creating expression compiler for $moduleName');
-
     var originalComponent = _moduleCache.componentForModuleName[moduleName];
     if (originalComponent == null) {
       throw StateError('No Component found for module named: $moduleName');
@@ -399,24 +348,34 @@ class ExpressionCompilerWorker {
         uriToSource: originalComponent.uriToSource,
       )..setMainMethodAndMode(
           originalComponent.mainMethodName, true, originalComponent.mode);
-      _processedOptions.ticker.logMs('Collected libraries for $moduleName');
     }
 
-    var entryPoints = originalComponent.libraries
-        .map((e) => e.importUri)
-        .where((uri) => !uri.isScheme('dart'));
+    _processedOptions.ticker.logMs('Collected libraries for $moduleName');
+
+    errors.clear();
+    warnings.clear();
+    infos.clear();
+
     var incrementalCompiler = IncrementalCompiler.forExpressionCompilationOnly(
         CompilerContext(_processedOptions), component, /*resetTicker*/ false);
 
-    var incrementalCompilerResult = await incrementalCompiler.computeDelta(
-        entryPoints: entryPoints.toList(), fullComponent: true);
+    var incrementalCompilerResult = await incrementalCompiler
+        .computeDelta(entryPoints: [libraryUri], fullComponent: true);
     var finalComponent = incrementalCompilerResult.component;
     assert(!duplicateLibrariesReachable(finalComponent.libraries));
     assert(_canSerialize(finalComponent));
 
     _processedOptions.ticker.logMs('Computed delta for expression');
 
-    if (errors.isNotEmpty) return null;
+    if (errors.isNotEmpty) {
+      return {
+        'errors': errors,
+        'warnings': warnings,
+        'infos': infos,
+        'compiledProcedure': null,
+        'succeeded': errors.isEmpty,
+      };
+    }
 
     var coreTypes = incrementalCompilerResult.coreTypes;
     var hierarchy = incrementalCompilerResult.classHierarchy!;
@@ -436,7 +395,6 @@ class ExpressionCompilerWorker {
       _moduleCache.componentForLibrary,
       _moduleCache.moduleNameForComponent,
       coreTypes: coreTypes,
-      ticker: _processedOptions.ticker,
     );
 
     assert(originalComponent.libraries.toSet().length ==
@@ -461,7 +419,7 @@ class ExpressionCompilerWorker {
     kernel2jsCompiler.emitModule(componentToEmit);
     _processedOptions.ticker.logMs('Emitted module for expression');
 
-    expressionCompiler = ExpressionCompiler(
+    var expressionCompiler = ExpressionCompiler(
       _compilerOptions,
       _moduleFormat,
       errors,
@@ -469,10 +427,23 @@ class ExpressionCompilerWorker {
       kernel2jsCompiler,
       finalComponent,
     );
-    _moduleCache.expressionCompilers[moduleName] = expressionCompiler;
-    _processedOptions.ticker
-        .logMs('Created expression compiler for $moduleName');
-    return expressionCompiler;
+
+    var compiledProcedure = await expressionCompiler.compileExpressionToJs(
+        request.libraryUri,
+        request.line,
+        request.column,
+        request.jsScope,
+        request.expression);
+
+    _processedOptions.ticker.logMs('Compiled expression to JavaScript');
+
+    return {
+      'errors': errors,
+      'warnings': warnings,
+      'infos': infos,
+      'compiledProcedure': compiledProcedure,
+      'succeeded': errors.isEmpty,
+    };
   }
 
   /// Collect libraries reachable from component.
@@ -558,11 +529,10 @@ class ExpressionCompilerWorker {
       Uri uri, String moduleName, bool isSummary) async {
     if (isSummary && _moduleCache.isModuleLoaded(moduleName)) return true;
     if (!isSummary && _moduleCache.isModuleFullyLoaded(moduleName)) return true;
-    var componentKind = isSummary ? 'summary' : 'full kernel';
 
-    _processedOptions.ticker.logMs('Loading $componentKind for $moduleName');
     var component = await _loadComponent(uri);
     if (component == null) {
+      var componentKind = isSummary ? 'summary' : 'full kernel';
       _processedOptions.ticker
           .logMs('Failed to load $componentKind for $moduleName');
       return false;
@@ -588,8 +558,6 @@ class ExpressionCompilerWorker {
         _moduleCache.isModuleLoaded(moduleName)) {
       return;
     }
-    var componentKind = isSummary ? 'summary' : 'full kernel';
-    _processedOptions.ticker.logMs('Updating $componentKind for $moduleName');
     _moduleCache.addModule(moduleName, component, isSummary);
   }
 
@@ -637,7 +605,6 @@ class ModuleCache {
   final Map<String, Component> componentForModuleName = {};
   final Map<Component, String> moduleNameForComponent = {};
   final Set<String> fullyLoadedModules = {};
-  final Map<String, ExpressionCompiler> expressionCompilers = {};
 
   bool isModuleLoaded(String moduleName) =>
       componentForModuleName.containsKey(moduleName);
@@ -674,7 +641,6 @@ class ModuleCache {
       moduleNameForComponent.remove(oldComponent);
       componentForModuleName.remove(moduleName);
       fullyLoadedModules.remove(moduleName);
-      expressionCompilers.remove(moduleName);
     }
   }
 }

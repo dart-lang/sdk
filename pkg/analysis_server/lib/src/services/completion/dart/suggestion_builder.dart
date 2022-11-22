@@ -581,7 +581,7 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [element]. If the class can only be
+  /// Add a suggestion for an [element]. If the class can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestInterface(InterfaceElement element, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(element,

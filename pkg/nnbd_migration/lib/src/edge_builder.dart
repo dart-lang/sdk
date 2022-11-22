@@ -704,7 +704,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               _variables.getLateHint(source, member.fields) == null)
             for (var field in member.fields.variables)
               if (!field.declaredElement!.isStatic && field.initializer == null)
-                (field.declaredElement as FieldElement?)
+                field.declaredElement as FieldElement?
       };
       if (_currentInterfaceOrExtension is ClassElement &&
           (_currentInterfaceOrExtension as ClassElement)

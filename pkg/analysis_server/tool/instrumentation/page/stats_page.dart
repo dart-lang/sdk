@@ -82,7 +82,9 @@ class StatsPage extends PageWriter {
       } else if (entry is RequestEntry) {
         var method = entry.method;
         var latency = entry.timeStamp - entry.clientRequestTime;
-        latencyData.putIfAbsent(method, () => <int>[]).add(latency);
+        if (method != null) {
+          latencyData.putIfAbsent(method, () => <int>[]).add(latency);
+        }
         if (method == 'completion.getSuggestions') {
           var response = log.responseFor(entry);
           if (response != null) {

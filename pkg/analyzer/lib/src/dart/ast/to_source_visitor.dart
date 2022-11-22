@@ -818,7 +818,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitMapPattern(MapPattern node) {
     _visitNode(node.typeArguments);
     sink.write('{');
-    _visitNodeList(node.entries, separator: ', ');
+    _visitNodeList(node.elements, separator: ', ');
     sink.write('}');
   }
 
@@ -1098,6 +1098,12 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(node.operator.lexeme);
     sink.write(' ');
     _visitNode(node.operand);
+  }
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    sink.write(node.operator.lexeme);
+    _visitNode(node.pattern);
   }
 
   @override

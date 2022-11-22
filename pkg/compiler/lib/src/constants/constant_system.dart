@@ -197,7 +197,6 @@ abstract class UnaryOperation extends Operation {
 abstract class BinaryOperation extends Operation {
   /// Returns [:null:] if it was unable to fold the operation.
   ConstantValue? fold(ConstantValue left, ConstantValue right);
-  apply(left, right);
 }
 
 class BitNotOperation implements UnaryOperation {
@@ -305,10 +304,6 @@ class BitAndOperation extends BinaryBitOperation {
 
   @override
   BigInt foldInts(BigInt left, BigInt right) => left & right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left & right;
 }
 
 class BitOrOperation extends BinaryBitOperation {
@@ -319,10 +314,6 @@ class BitOrOperation extends BinaryBitOperation {
 
   @override
   BigInt foldInts(BigInt left, BigInt right) => left | right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left | right;
 }
 
 class BitXorOperation extends BinaryBitOperation {
@@ -333,10 +324,6 @@ class BitXorOperation extends BinaryBitOperation {
 
   @override
   BigInt foldInts(BigInt left, BigInt right) => left ^ right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left ^ right;
 }
 
 class ShiftLeftOperation extends BinaryBitOperation {
@@ -352,10 +339,6 @@ class ShiftLeftOperation extends BinaryBitOperation {
     if (right > BigInt.from(100) || right < BigInt.zero) return null;
     return left << right.toInt();
   }
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left << right;
 }
 
 class ShiftRightOperation extends BinaryBitOperation {
@@ -386,10 +369,6 @@ class ShiftRightOperation extends BinaryBitOperation {
     if (right < BigInt.zero) return null;
     return left >> right.toInt();
   }
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left >> right;
 }
 
 class ShiftRightUnsignedOperation extends BinaryBitOperation {
@@ -402,11 +381,6 @@ class ShiftRightUnsignedOperation extends BinaryBitOperation {
   BigInt? foldInts(BigInt left, BigInt right) {
     if (right < BigInt.zero) return null;
     return left.toUnsigned(32) >> right.toInt();
-  }
-
-  @override
-  apply(left, right) {
-    throw UnimplementedError('ShiftRightUnsignedOperation.apply');
   }
 }
 
@@ -433,9 +407,6 @@ class BooleanAndOperation extends BinaryBoolOperation {
 
   @override
   bool foldBools(bool left, bool right) => left && right;
-
-  @override
-  apply(left, right) => left && right;
 }
 
 class BooleanOrOperation extends BinaryBoolOperation {
@@ -446,9 +417,6 @@ class BooleanOrOperation extends BinaryBoolOperation {
 
   @override
   bool foldBools(bool left, bool right) => left || right;
-
-  @override
-  apply(left, right) => left || right;
 }
 
 abstract class ArithmeticNumOperation implements BinaryOperation {
@@ -501,10 +469,6 @@ class SubtractOperation extends ArithmeticNumOperation {
 
   @override
   num foldNums(num left, num right) => left - right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left - right;
 }
 
 class MultiplyOperation extends ArithmeticNumOperation {
@@ -518,10 +482,6 @@ class MultiplyOperation extends ArithmeticNumOperation {
 
   @override
   num foldNums(num left, num right) => left * right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left * right;
 }
 
 class ModuloOperation extends ArithmeticNumOperation {
@@ -538,10 +498,6 @@ class ModuloOperation extends ArithmeticNumOperation {
 
   @override
   num foldNums(num left, num right) => left % right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left % right;
 }
 
 class RemainderOperation extends ArithmeticNumOperation {
@@ -558,10 +514,6 @@ class RemainderOperation extends ArithmeticNumOperation {
 
   @override
   num foldNums(num left, num right) => left.remainder(right);
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left.remainder(right);
 }
 
 class TruncatingDivideOperation extends ArithmeticNumOperation {
@@ -584,10 +536,6 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
   }
 
   @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left ~/ right;
-
-  @override
   bool isTruncatingDivide() => true;
 }
 
@@ -605,10 +553,6 @@ class DivideOperation extends ArithmeticNumOperation {
 
   @override
   bool isDivide() => true;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left / right;
 }
 
 class AddOperation implements BinaryOperation {
@@ -640,10 +584,6 @@ class AddOperation implements BinaryOperation {
     }
     return result;
   }
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left + right;
 }
 
 abstract class RelationalNumOperation implements BinaryOperation {
@@ -679,10 +619,6 @@ class LessOperation extends RelationalNumOperation {
 
   @override
   bool foldNums(num left, num right) => left < right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left < right;
 }
 
 class LessEqualOperation extends RelationalNumOperation {
@@ -696,10 +632,6 @@ class LessEqualOperation extends RelationalNumOperation {
 
   @override
   bool foldNums(num left, num right) => left <= right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left <= right;
 }
 
 class GreaterOperation extends RelationalNumOperation {
@@ -713,10 +645,6 @@ class GreaterOperation extends RelationalNumOperation {
 
   @override
   bool foldNums(num left, num right) => left > right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left > right;
 }
 
 class GreaterEqualOperation extends RelationalNumOperation {
@@ -730,10 +658,6 @@ class GreaterEqualOperation extends RelationalNumOperation {
 
   @override
   bool foldNums(num left, num right) => left >= right;
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left >= right;
 }
 
 class EqualsOperation implements BinaryOperation {
@@ -767,9 +691,6 @@ class EqualsOperation implements BinaryOperation {
 
     return createBool(left == right);
   }
-
-  @override
-  apply(left, right) => left == right;
 }
 
 class IdentityOperation implements BinaryOperation {
@@ -799,9 +720,6 @@ class IdentityOperation implements BinaryOperation {
     // identical, otherwise not.
     return createBool(left == right);
   }
-
-  @override
-  apply(left, right) => identical(left, right);
 }
 
 class IfNullOperation implements BinaryOperation {
@@ -815,9 +733,6 @@ class IfNullOperation implements BinaryOperation {
     if (left is NullConstantValue) return right;
     return left;
   }
-
-  @override
-  apply(left, right) => left ?? right;
 }
 
 class CodeUnitAtOperation implements BinaryOperation {
@@ -837,10 +752,6 @@ class CodeUnitAtOperation implements BinaryOperation {
     }
     return null;
   }
-
-  @override
-  // ignore: avoid_dynamic_calls
-  apply(left, right) => left.codeUnitAt(right);
 }
 
 class RoundOperation implements UnaryOperation {
@@ -937,9 +848,6 @@ class _IndexOperation implements BinaryOperation {
 
     return null;
   }
-
-  @override
-  apply(left, right) => throw UnsupportedError('punned indexing');
 }
 
 class UnfoldedUnaryOperation implements UnaryOperation {

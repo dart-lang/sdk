@@ -290,8 +290,8 @@ abstract class _State extends Response {
   final String _type;
 }
 
-/// A [HttpTimelineLoggingState] provides information about the current state of HTTP
-/// request logging for a given isolate.
+/// An [HttpTimelineLoggingState] provides information about the current state
+/// of HTTP request logging for a given isolate.
 class HttpTimelineLoggingState extends _State {
   static HttpTimelineLoggingState? parse(Map<String, dynamic>? json) =>
       json == null ? null : HttpTimelineLoggingState._fromJson(json);
@@ -499,7 +499,8 @@ class HttpProfileRequestData {
 
   /// Returns `true` if an error has occurred while issuing the request.
   ///
-  /// If `true`, attempting to access some fields will throw a [HttpProfileRequestError].
+  /// If `true`, attempting to access some fields will throw an
+  /// [HttpProfileRequestError].
   bool get hasError => error != null;
 
   /// Information about the client connection.
@@ -586,7 +587,7 @@ class HttpProfileRequestError implements Error {
   String toString() => 'HttpProfileRequestError: $error.';
 }
 
-/// Proxy authentication details associated with a [HttpProfileRequest].
+/// Proxy authentication details associated with an [HttpProfileRequest].
 class HttpProfileProxyData {
   static HttpProfileProxyData? parse(Map<String, dynamic>? json) =>
       json == null ? null : HttpProfileProxyData._fromJson(json);
@@ -738,7 +739,8 @@ class SocketProfilingState extends _State {
       : super._fromJson(json);
 }
 
-/// A [SpawnedProcessRef] contains identifying information about a spawned process.
+/// A [SpawnedProcessRef] contains identifying information about a spawned
+/// process.
 class SpawnedProcessRef {
   static SpawnedProcessRef? parse(Map<String, dynamic>? json) =>
       json == null ? null : SpawnedProcessRef._fromJson(json);
@@ -836,7 +838,8 @@ class SpawnedProcessList extends Response {
   final List<SpawnedProcessRef> _processes;
 }
 
-/// A [OpenFileRef] contains identifying information about a currently opened file.
+/// An [OpenFileRef] contains identifying information about a currently opened
+/// file.
 class OpenFileRef {
   static OpenFileRef? parse(Map<String, dynamic>? json) =>
       json == null ? null : OpenFileRef._fromJson(json);

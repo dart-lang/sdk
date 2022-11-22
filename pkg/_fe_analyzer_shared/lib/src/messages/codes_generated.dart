@@ -7381,6 +7381,38 @@ const MessageCode messageJsInteropNonExternalMember = const MessageCode(
     correctionMessage: r"""Try annotating the member with `external`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateJsInteropNonStaticWithStaticInteropSupertype =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does.""",
+        correctionMessageTemplate:
+            r"""Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'.""",
+        withArguments:
+            _withArgumentsJsInteropNonStaticWithStaticInteropSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropNonStaticWithStaticInteropSupertype =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropNonStaticWithStaticInteropSupertype",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropNonStaticWithStaticInteropSupertype,
+      problemMessage:
+          """Class '${name}' does not have an `@staticInterop` annotation, but has supertype '${name2}', which does.""",
+      correctionMessage: """Try marking '${name}' as a `@staticInterop` class, or don't inherit '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropOperatorsNotSupported =
     messageJsInteropOperatorsNotSupported;
 
@@ -7503,6 +7535,47 @@ Message _withArgumentsJsInteropStaticInteropMockMissingImplements(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropStaticInteropNoJSAnnotation = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""`@staticInterop` classes should also have the `@JS` annotation.""",
+    correctionMessageTemplate: r"""Add `@JS` to class '#name'.""",
+    withArguments: _withArgumentsJsInteropStaticInteropNoJSAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropNoJSAnnotation =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropNoJSAnnotation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropNoJSAnnotation,
+      problemMessage:
+          """`@staticInterop` classes should also have the `@JS` annotation.""",
+      correctionMessage: """Add `@JS` to class '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropStaticInteropSyntheticConstructor =
+    messageJsInteropStaticInteropSyntheticConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropSyntheticConstructor = const MessageCode(
+    "JsInteropStaticInteropSyntheticConstructor",
+    problemMessage:
+        r"""Synthetic constructors on `@staticInterop` classes can not be used.""",
+    correctionMessage:
+        r"""Declare an external factory constructor for this `@staticInterop` class and use that instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
     const Template<Message Function(String name)>(
@@ -7596,7 +7669,7 @@ const Template<Message Function(String name, String name2)>
     templateJsInteropStaticInteropWithNonStaticSupertype =
     const Template<Message Function(String name, String name2)>(
         problemMessageTemplate:
-            r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static.""",
+            r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not.""",
         correctionMessageTemplate:
             r"""Try marking the supertype as a static interop class using `@staticInterop`.""",
         withArguments:
@@ -7618,7 +7691,7 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
   name2 = demangleMixinApplicationName(name2);
   return new Message(codeJsInteropStaticInteropWithNonStaticSupertype,
       problemMessage:
-          """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which is non-static.""",
+          """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which does not.""",
       correctionMessage: """Try marking the supertype as a static interop class using `@staticInterop`.""",
       arguments: {'name': name, 'name2': name2});
 }

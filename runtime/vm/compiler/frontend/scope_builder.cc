@@ -52,7 +52,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   const Function& function = parsed_function_->function();
 
-  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // Setup an [ActiveClassScope] and an [ActiveMemberScope] which will be used
   // e.g. for type translation.
   const Class& klass = Class::Handle(Z, function.Owner());
 

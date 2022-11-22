@@ -227,6 +227,7 @@ class TestDriver {
   late TestCompiler compiler;
   late Uri htmlBootstrapper;
   late Uri input;
+  late String moduleFormatString;
   late Uri output;
   late Uri packagesFile;
   late String preemptiveBp;
@@ -340,6 +341,7 @@ class TestDriver {
 
     switch (setup.moduleFormat) {
       case ModuleFormat.ddc:
+        moduleFormatString = 'ddc';
         var dartSdkPath = escaped(p.join(
             buildDir,
             'gen',
@@ -375,6 +377,7 @@ class TestDriver {
 ''');
         break;
       case ModuleFormat.amd:
+        moduleFormatString = 'amd';
         var dartSdkPath = escaped(p.join(buildDir, 'gen', 'utils', 'dartdevc',
             setup.soundNullSafety ? 'sound' : 'kernel', 'amd', 'dart_sdk'));
         if (!File('$dartSdkPath.js').existsSync()) {

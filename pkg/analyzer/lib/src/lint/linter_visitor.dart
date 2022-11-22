@@ -785,6 +785,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _runSubscriptions(node, registry._forRestPatternElement);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRethrowExpression(RethrowExpression node) {
     _runSubscriptions(node, registry._forRethrowExpression);
     node.visitChildren(this);
@@ -1177,6 +1183,7 @@ class NodeLintRegistry {
   final List<_Subscription<RedirectingConstructorInvocation>>
       _forRedirectingConstructorInvocation = [];
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
+  final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
   final List<_Subscription<ScriptTag>> _forScriptTag = [];
@@ -1770,6 +1777,11 @@ class NodeLintRegistry {
 
   void addRelationalPattern(LintRule linter, AstVisitor visitor) {
     _forRelationalPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRestPatternElement(LintRule linter, AstVisitor visitor) {
+    _forRestPatternElement
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 

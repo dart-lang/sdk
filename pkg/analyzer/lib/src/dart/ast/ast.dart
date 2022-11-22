@@ -3351,7 +3351,8 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///      | [RelationalPattern]
 ///      | [VariablePattern]
 @experimental
-abstract class DartPatternImpl extends AstNodeImpl implements DartPattern {
+abstract class DartPatternImpl extends AstNodeImpl
+    implements DartPattern, ListPatternElementImpl {
   DartPatternImpl();
 
   @override
@@ -8030,22 +8031,26 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 }
 
+@experimental
+abstract class ListPatternElementImpl
+    implements AstNodeImpl, ListPatternElement {}
+
 /// A list pattern.
 ///
 ///    listPattern ::=
 ///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
 @experimental
 class ListPatternImpl extends DartPatternImpl implements ListPattern {
-  final NodeListImpl<DartPatternImpl> _elements = NodeListImpl._();
+  @override
+  final TypeArgumentListImpl? typeArguments;
 
   @override
   final Token leftBracket;
 
-  @override
-  final Token rightBracket;
+  final NodeListImpl<ListPatternElementImpl> _elements = NodeListImpl._();
 
   @override
-  final TypeArgumentListImpl? typeArguments;
+  final Token rightBracket;
 
   @override
   DartType? requiredType;
@@ -8053,7 +8058,7 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   ListPatternImpl({
     required this.typeArguments,
     required this.leftBracket,
-    required List<DartPatternImpl> elements,
+    required List<ListPatternElementImpl> elements,
     required this.rightBracket,
   }) {
     _becomeParentOf(typeArguments);
@@ -8064,7 +8069,7 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   Token get beginToken => typeArguments?.beginToken ?? leftBracket;
 
   @override
-  NodeList<DartPattern> get elements => _elements;
+  NodeList<ListPatternElementImpl> get elements => _elements;
 
   @override
   Token get endToken => rightBracket;
@@ -8201,12 +8206,17 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   }
 }
 
+@experimental
+abstract class MapPatternElementImpl
+    implements AstNodeImpl, MapPatternElement {}
+
 /// An entry in a map pattern.
 ///
 ///    mapPatternEntry ::=
 ///        [Expression] ':' [DartPattern]
 @experimental
-class MapPatternEntryImpl extends AstNodeImpl implements MapPatternEntry {
+class MapPatternEntryImpl extends AstNodeImpl
+    implements MapPatternEntry, MapPatternElementImpl {
   @override
   final ExpressionImpl key;
 
@@ -8254,41 +8264,41 @@ class MapPatternEntryImpl extends AstNodeImpl implements MapPatternEntry {
 ///        ','? '}'
 @experimental
 class MapPatternImpl extends DartPatternImpl implements MapPattern {
-  final NodeListImpl<MapPatternEntryImpl> _entries = NodeListImpl._();
+  @override
+  final TypeArgumentListImpl? typeArguments;
 
   @override
   final Token leftBracket;
 
-  @override
-  final Token rightBracket;
+  final NodeListImpl<MapPatternElementImpl> _elements = NodeListImpl._();
 
   @override
-  final TypeArgumentListImpl? typeArguments;
+  final Token rightBracket;
 
   MapPatternImpl({
     required this.typeArguments,
     required this.leftBracket,
-    required List<MapPatternEntryImpl> entries,
+    required List<MapPatternElementImpl> elements,
     required this.rightBracket,
   }) {
     _becomeParentOf(typeArguments);
-    _entries._initialize(this, entries);
+    _elements._initialize(this, elements);
   }
 
   @override
   Token get beginToken => typeArguments?.beginToken ?? leftBracket;
 
   @override
-  Token get endToken => rightBracket;
+  NodeList<MapPatternElementImpl> get elements => _elements;
 
   @override
-  NodeList<MapPatternEntry> get entries => _entries;
+  Token get endToken => rightBracket;
 
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addNode('typeArguments', typeArguments)
     ..addToken('leftBracket', leftBracket)
-    ..addNodeList('entries', entries)
+    ..addNodeList('elements', elements)
     ..addToken('rightBracket', rightBracket);
 
   @override
@@ -8310,7 +8320,7 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
-    entries.accept(visitor);
+    elements.accept(visitor);
   }
 }
 
@@ -10936,6 +10946,40 @@ class RelationalPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+}
+
+@experimental
+class RestPatternElementImpl extends AstNodeImpl
+    implements
+        RestPatternElement,
+        ListPatternElementImpl,
+        MapPatternElementImpl {
+  @override
+  final Token operator;
+
+  @override
+  final DartPatternImpl? pattern;
+
+  RestPatternElementImpl({
+    required this.operator,
+    required this.pattern,
+  });
+
+  @override
+  Token get beginToken => operator;
+
+  @override
+  Token get endToken => pattern?.endToken ?? operator;
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitRestPatternElement(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern?.accept(visitor);
   }
 }
 

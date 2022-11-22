@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Used for importing CFE utility functions for constructor tear-offs.
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -21,7 +23,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropOperatorsNotSupported,
         messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
         messageJsInteropStaticInteropGenerativeConstructor,
+        messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropNonStaticWithStaticInteropSupertype,
+        templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
         templateJsInteropJSClassExtendsDartClass,
@@ -41,6 +46,7 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _classHasStaticInteropAnnotation = false;
+  bool _inTearoff = false;
   bool _libraryHasJSAnnotation = false;
   Map<Reference, Extension>? _libraryExtensionsIndex;
   // TODO(joshualitt): These checks add value for our users, but unfortunately
@@ -162,24 +168,53 @@ class JsInteropChecks extends RecursiveVisitor {
             cls.fileOffset,
             cls.name.length,
             cls.fileUri);
-      } else if (_classHasStaticInteropAnnotation) {
-        if (!hasStaticInteropAnnotation(superclass)) {
+      } else if (_classHasStaticInteropAnnotation &&
+          !hasStaticInteropAnnotation(superclass)) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropWithNonStaticSupertype.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      } else if (!_classHasStaticInteropAnnotation &&
+          hasStaticInteropAnnotation(superclass)) {
+        _diagnosticsReporter.report(
+            templateJsInteropNonStaticWithStaticInteropSupertype.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      }
+    }
+    if (_classHasStaticInteropAnnotation) {
+      if (!_classHasJSAnnotation) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropNoJSAnnotation
+                .withArguments(cls.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      }
+      // Validate that superinterfaces are all annotated as static as well. Note
+      // that mixins are already disallowed and therefore are not checked here.
+      for (var supertype in cls.implementedTypes) {
+        if (!hasStaticInteropAnnotation(supertype.classNode)) {
           _diagnosticsReporter.report(
               templateJsInteropStaticInteropWithNonStaticSupertype
-                  .withArguments(cls.name, superclass.name),
+                  .withArguments(cls.name, supertype.classNode.name),
               cls.fileOffset,
               cls.name.length,
               cls.fileUri);
         }
       }
     }
-    // Validate that superinterfaces are all annotated as static as well. Note
-    // that mixins are already disallowed and therefore are not checked here.
-    if (_classHasStaticInteropAnnotation) {
+    // The converse of the above. If the class is not marked as static, it
+    // should not implement a class that is.
+    if (!_classHasStaticInteropAnnotation) {
       for (var supertype in cls.implementedTypes) {
-        if (!hasStaticInteropAnnotation(supertype.classNode)) {
+        if (hasStaticInteropAnnotation(supertype.classNode)) {
           _diagnosticsReporter.report(
-              templateJsInteropStaticInteropWithNonStaticSupertype
+              templateJsInteropNonStaticWithStaticInteropSupertype
                   .withArguments(cls.name, supertype.classNode.name),
               cls.fileOffset,
               cls.name.length,
@@ -338,7 +373,9 @@ class JsInteropChecks extends RecursiveVisitor {
             procedure.fileUri);
       }
     }
+    _inTearoff = isTearOffLowering(procedure);
     super.visitProcedure(procedure);
+    _inTearoff = false;
   }
 
   @override
@@ -380,6 +417,30 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkNoNamedParameters(constructor.function);
     }
+  }
+
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    var constructor = node.target;
+    if (constructor.isSynthetic &&
+        // Synthetic tear-offs are created for synthetic constructors by
+        // invoking them, so they need to be excluded here.
+        !_inTearoff &&
+        hasStaticInteropAnnotation(constructor.enclosingClass)) {
+      // TODO(srujzs): This is insufficient to disallow use of synthetic
+      // constructors, as tear-offs may be used. However, use of such tear-offs
+      // are lowered as a StaticTearOffConstant. This means that we'll need a
+      // constant visitor in order to handle that correctly. It should be rare
+      // for users to use those tear-offs in favor of just invocation, but it's
+      // plausible. For now, in order to avoid the complexity and the extra
+      // visiting, we don't check tear-off usage.
+      _diagnosticsReporter.report(
+          messageJsInteropStaticInteropSyntheticConstructor,
+          node.fileOffset,
+          node.name.text.length,
+          node.location?.file);
+    }
+    super.visitConstructorInvocation(node);
   }
 
   /// Reports an error if [functionNode] has named parameters.

@@ -606,6 +606,8 @@ abstract class AstVisitor<R> {
 
   R? visitRelationalPattern(RelationalPattern node);
 
+  R? visitRestPatternElement(RestPatternElement node);
+
   R? visitRethrowExpression(RethrowExpression node);
 
   R? visitReturnStatement(ReturnStatement node);
@@ -1659,7 +1661,7 @@ abstract class ContinueStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class DartPattern implements AstNode {
+abstract class DartPattern implements AstNode, ListPatternElement {
   /// Return the precedence of this pattern.
   ///
   /// The precedence is a positive integer value that defines how the source
@@ -3436,7 +3438,7 @@ abstract class ListPattern implements DartPattern {
   DartType? requiredType;
 
   /// Return the elements in this pattern.
-  NodeList<DartPattern> get elements;
+  NodeList<ListPatternElement> get elements;
 
   /// Return the left square bracket.
   Token get leftBracket;
@@ -3448,6 +3450,12 @@ abstract class ListPattern implements DartPattern {
   /// type arguments were declared.
   TypeArgumentList? get typeArguments;
 }
+
+/// An element of a list pattern.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ListPatternElement implements AstNode {}
 
 /// A node that represents a literal expression.
 ///
@@ -3491,8 +3499,8 @@ abstract class MapLiteralEntry implements CollectionElement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class MapPattern implements DartPattern {
-  /// Return the entries in this pattern.
-  NodeList<MapPatternEntry> get entries;
+  /// Return the elements in this pattern.
+  NodeList<MapPatternElement> get elements;
 
   /// Return the left curly bracket.
   Token get leftBracket;
@@ -3505,6 +3513,12 @@ abstract class MapPattern implements DartPattern {
   TypeArgumentList? get typeArguments;
 }
 
+/// An element of a map pattern.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class MapPatternElement implements AstNode {}
+
 /// An entry in a map pattern.
 ///
 ///    mapPatternEntry ::=
@@ -3512,7 +3526,7 @@ abstract class MapPattern implements DartPattern {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class MapPatternEntry implements AstNode {
+abstract class MapPatternEntry implements AstNode, MapPatternElement {
   /// Return the expression computing the key of the entry to be matched.
   Expression get key;
 
@@ -4471,6 +4485,21 @@ abstract class RelationalPattern implements DartPattern {
 
   /// Return the relational operator being applied.
   Token get operator;
+}
+
+/// A rest pattern element.
+///
+///    restPatternElement ::= '...' [DartPattern]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RestPatternElement
+    implements ListPatternElement, MapPatternElement {
+  /// The operator token '...'.
+  Token get operator;
+
+  /// The optional pattern.
+  DartPattern? get pattern;
 }
 
 /// A rethrow expression.

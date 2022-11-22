@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 
-import 'package:compiler/src/dart2js.dart' as dart2js_main;
+import '../../../pkg/vm/bin/gen_kernel.dart' as gen_kernel;
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 
@@ -65,7 +65,7 @@ class SpawnMemory {
     final readyRss = ProcessInfo.currentRss;
     final readyHeap = await currentHeapUsage(wsUri);
 
-    // Let all isolates do the dart2js compilation.
+    // Let all isolates do the gen_kernel compilation.
     for (int i = 0; i < numberOfBenchmarks; i++) {
       final iterator = iterators[i];
       final continuation = continuations[i];
@@ -116,9 +116,9 @@ Future<void> isolateCompiler(StartMessage startMessage) async {
   await iterator.moveNext();
 
   await runZoned(
-      () => dart2js_main.internalMain(<String>[
-            'benchmarks/IsolateSpawnMemory/dart/helloworld.dart',
-            '--libraries-spec=sdk/lib/libraries.json'
+      () => gen_kernel.compile(<String>[
+            'benchmarks/IsolateSpawn/dart/helloworld.dart',
+            'benchmarks/IsolateSpawn/dart/helloworld.dart.dill',
           ]),
       zoneSpecification: ZoneSpecification(
           print: (Zone self, ZoneDelegate parent, Zone zone, String line) {}));
@@ -138,7 +138,7 @@ Future<int> currentHeapUsage(String wsUri) async {
   int sum = 0;
   for (final groupId in groupIds) {
     final usage = await vmService.getIsolateGroupMemoryUsage(groupId);
-    sum += usage.heapUsage + usage.externalUsage;
+    sum += usage.heapUsage! + usage.externalUsage!;
   }
   vmService.dispose();
   return sum;
@@ -161,12 +161,12 @@ Future<void> main() async {
 Future<List<String>> getGroupIds(vm_service.VmService vmService) async {
   final groupIds = <String>{};
   final vm = await vmService.getVM();
-  for (final groupRef in vm.isolateGroups) {
-    final group = await vmService.getIsolateGroup(groupRef.id);
-    for (final isolateRef in group.isolates) {
-      final isolateOrSentinel = await vmService.getIsolate(isolateRef.id);
+  for (final groupRef in vm.isolateGroups!) {
+    final group = await vmService.getIsolateGroup(groupRef.id!);
+    for (final isolateRef in group.isolates!) {
+      final isolateOrSentinel = await vmService.getIsolate(isolateRef.id!);
       if (isolateOrSentinel is vm_service.Isolate) {
-        groupIds.add(groupRef.id);
+        groupIds.add(groupRef.id!);
       }
     }
   }

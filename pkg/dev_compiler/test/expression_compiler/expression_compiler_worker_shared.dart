@@ -10,7 +10,6 @@ import 'dart:isolate';
 
 import 'package:browser_launcher/browser_launcher.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/kernel/asset_file_system.dart';
 import 'package:dev_compiler/src/kernel/expression_compiler_worker.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
@@ -22,11 +21,10 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:test/test.dart';
 
-void runTests({
-  required ModuleFormat moduleFormat,
-  required bool soundNullSafety,
-  bool verbose = false,
-}) {
+/// Verbose mode for debugging
+bool get verbose => false;
+
+void runTests(String moduleFormat, bool soundNullSafety) {
   group('expression compiler worker on startup', () {
     late Directory tempDir;
     late ReceivePort receivePort;
@@ -62,7 +60,7 @@ void runTests({
             '--dart-sdk-summary',
             badPath,
             '--module-format',
-            moduleFormat.name,
+            moduleFormat,
             soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
             if (verbose) '--verbose',
           ],
@@ -76,17 +74,17 @@ void runTests({
 
   group('reading assets using standard file system - ', () {
     runExpressionCompilationTests(
-        StandardFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
+        StandardFileSystemTestDriver(soundNullSafety, moduleFormat));
   });
 
   group('reading assets using multiroot file system - ', () {
     runExpressionCompilationTests(
-        MultiRootFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
+        MultiRootFileSystemTestDriver(soundNullSafety, moduleFormat));
   });
 
   group('reading assets using asset file system -', () {
     runExpressionCompilationTests(
-        AssetFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
+        AssetFileSystemTestDriver(soundNullSafety, moduleFormat));
   });
 }
 
@@ -302,8 +300,8 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': matches(
-                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
+              'compiledProcedure':
+                  contains('new test_library.B.new().c().getNumber()'),
             })
           ]));
     });
@@ -380,8 +378,8 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': matches(
-                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
+              'compiledProcedure':
+                  contains('new test_library.B.new().c().getNumber()'),
             }),
             equals({
               'succeeded': true,
@@ -410,7 +408,7 @@ void runExpressionCompilationTests(TestDriver driver) {
               'warnings': isEmpty,
               'infos': isEmpty,
               'compiledProcedure':
-                  matches(r'test_library[\$]?\.B\.new\(\)\.printNumber\(\)'),
+                  contains('test_library.B.new().printNumber()'),
             })
           ]));
     });
@@ -492,8 +490,8 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': matches(
-                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
+              'compiledProcedure':
+                  contains('new test_library.B.new().c().getNumber()'),
             }),
             equals({
               'succeeded': true,
@@ -508,7 +506,7 @@ void runExpressionCompilationTests(TestDriver driver) {
               'warnings': isEmpty,
               'infos': isEmpty,
               'compiledProcedure':
-                  matches(r'test_library[\$]?\.B\.new\(\)\.printNumber\(\)'),
+                  contains('test_library.B.new().printNumber()'),
             }),
             equals({
               'succeeded': true,
@@ -518,8 +516,8 @@ void runExpressionCompilationTests(TestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': matches(
-                  r'new test_library[\$]?\.B\.new\(\)\.c\(\)\.getNumber\(\)'),
+              'compiledProcedure':
+                  contains('new test_library.B.new().c().getNumber()'),
             }),
             equals({
               'succeeded': true,
@@ -569,7 +567,7 @@ class TestProjectConfiguration {
   final Directory rootDirectory;
   final String outputDir = 'out';
   final bool soundNullSafety;
-  final ModuleFormat moduleFormat;
+  final String moduleFormat;
 
   TestProjectConfiguration(
       this.rootDirectory, this.soundNullSafety, this.moduleFormat);
@@ -804,8 +802,7 @@ int testLibraryFunction3(int formal) {
 
 abstract class TestDriver {
   final bool soundNullSafety;
-  final ModuleFormat moduleFormat;
-  final bool verbose;
+  final String moduleFormat;
 
   late FileSystem fileSystem;
   late FileSystem assetFileSystem;
@@ -819,7 +816,7 @@ abstract class TestDriver {
   ExpressionCompilerWorker? worker;
   Future<void>? workerDone;
 
-  TestDriver(this.soundNullSafety, this.moduleFormat, this.verbose);
+  TestDriver(this.soundNullSafety, this.moduleFormat);
 
   /// Initialize file systems, inputs, and start servers if needed.
   Future<void> start();
@@ -834,7 +831,7 @@ abstract class TestDriver {
 
     // Build the project.
     config.createTestProject();
-    var kernelGenerator = DDCKernelGenerator(config, verbose);
+    var kernelGenerator = DDCKernelGenerator(config);
     await kernelGenerator.generate();
   }
 
@@ -858,7 +855,6 @@ abstract class TestDriver {
       requestStream: requestController.stream,
       sendResponse: responseController.add,
       soundNullSafety: soundNullSafety,
-      moduleFormat: moduleFormat,
       verbose: verbose,
     );
     workerDone = worker?.run();
@@ -868,16 +864,13 @@ abstract class TestDriver {
     unawaited(requestController.close());
     await workerDone;
     unawaited(responseController.close());
-    //worker?.close();
+    worker?.close();
   }
 }
 
 class StandardFileSystemTestDriver extends TestDriver {
-  StandardFileSystemTestDriver(
-    bool soundNullSafety,
-    ModuleFormat moduleFormat,
-    bool verbose,
-  ) : super(soundNullSafety, moduleFormat, verbose);
+  StandardFileSystemTestDriver(bool soundNullSafety, String moduleFormat)
+      : super(soundNullSafety, moduleFormat);
 
   @override
   Future<void> start() async {
@@ -889,11 +882,8 @@ class StandardFileSystemTestDriver extends TestDriver {
 }
 
 class MultiRootFileSystemTestDriver extends TestDriver {
-  MultiRootFileSystemTestDriver(
-    bool soundNullSafety,
-    ModuleFormat moduleFormat,
-    bool verbose,
-  ) : super(soundNullSafety, moduleFormat, verbose);
+  MultiRootFileSystemTestDriver(bool soundNullSafety, String moduleFormat)
+      : super(soundNullSafety, moduleFormat);
 
   @override
   Future<void> start() async {
@@ -908,11 +898,8 @@ class AssetFileSystemTestDriver extends TestDriver {
   late TestAssetServer server;
   late int port;
 
-  AssetFileSystemTestDriver(
-    bool soundNullSafety,
-    ModuleFormat moduleFormat,
-    bool verbose,
-  ) : super(soundNullSafety, moduleFormat, verbose);
+  AssetFileSystemTestDriver(bool soundNullSafety, String moduleFormat)
+      : super(soundNullSafety, moduleFormat);
 
   @override
   Future<void> start() async {
@@ -980,9 +967,8 @@ class TestAssetServer {
 /// in order to simulate webdev environment
 class DDCKernelGenerator {
   final TestProjectConfiguration config;
-  final bool verbose;
 
-  DDCKernelGenerator(this.config, this.verbose);
+  DDCKernelGenerator(this.config);
 
   Future<int> generate() async {
     var dart = Platform.resolvedExecutable;
@@ -1012,10 +998,10 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      config.moduleFormat.name,
+      config.moduleFormat,
     ];
 
-    var exitCode = await runProcess(dart, args, config.rootPath, verbose);
+    var exitCode = await runProcess(dart, args, config.rootPath);
     if (exitCode != 0) {
       return exitCode;
     }
@@ -1041,10 +1027,10 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      config.moduleFormat.name,
+      config.moduleFormat,
     ];
 
-    exitCode = await runProcess(dart, args, config.rootPath, verbose);
+    exitCode = await runProcess(dart, args, config.rootPath);
     if (exitCode != 0) {
       return exitCode;
     }
@@ -1073,10 +1059,10 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      config.moduleFormat.name,
+      config.moduleFormat,
     ];
 
-    exitCode = await runProcess(dart, args, config.rootPath, verbose);
+    exitCode = await runProcess(dart, args, config.rootPath);
     if (exitCode != 0) {
       return exitCode;
     }
@@ -1108,15 +1094,15 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      config.moduleFormat.name,
+      config.moduleFormat,
     ];
 
-    return await runProcess(dart, args, config.rootPath, verbose);
+    return await runProcess(dart, args, config.rootPath);
   }
 }
 
-Future<int> runProcess(String command, List<String> args,
-    String workingDirectory, bool verbose) async {
+Future<int> runProcess(
+    String command, List<String> args, String workingDirectory) async {
   if (verbose) {
     print('Running command in $workingDirectory:'
         '\n\t $command ${args.join(' ')}, ');
