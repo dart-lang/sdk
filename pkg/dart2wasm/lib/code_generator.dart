@@ -2401,8 +2401,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         : translator.fixedLengthListClass;
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
+    w.ArrayType arrayType = translator.listArrayType;
     w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     b.i32_const(info.classId);
@@ -2414,7 +2413,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        w.Local arrayLocal = addLocal(refType.withNullability(false));
+        w.Local arrayLocal =
+            addLocal(w.RefType.def(arrayType, nullable: false));
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);

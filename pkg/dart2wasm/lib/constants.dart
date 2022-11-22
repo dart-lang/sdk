@@ -63,8 +63,6 @@ class Constants {
   void _initEmptyTypeList() {
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
 
     // Create the empty type list with its type parameter uninitialized for now.
     w.RefType emptyListType = info.nonNullableType;
@@ -74,7 +72,7 @@ class Constants {
     ib.i32_const(initialIdentityHash);
     ib.ref_null(w.HeapType.none); // Initialized later
     ib.i64_const(0);
-    ib.array_new_fixed(arrayType, 0);
+    ib.array_new_fixed(translator.listArrayType, 0);
     ib.struct_new(info.struct);
     ib.end(); // end of global initializer expression
 
@@ -333,7 +331,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     bool lazy = constant.value.length > maxArrayNewFixedLength;
     return createConstant(constant, type, lazy: lazy, (function, b) {
       w.ArrayType arrayType =
-          (info.struct.fields.last.type as w.RefType).heapType as w.ArrayType;
+          (info.struct.fields[FieldIndex.stringArray].type as w.RefType)
+              .heapType as w.ArrayType;
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
@@ -430,8 +429,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
     return createConstant(constant, type, lazy: lazy, (function, b) {
-      w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-      w.ArrayType arrayType = refType.heapType as w.ArrayType;
+      w.ArrayType arrayType = translator.listArrayType;
       w.ValueType elementType = arrayType.elementType.type.unpacked;
       int length = constant.entries.length;
       b.i32_const(info.classId);
@@ -441,7 +439,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(length);
       if (lazy) {
         // Allocate array and set each entry to the corresponding sub-constant.
-        w.Local arrayLocal = function!.addLocal(refType.withNullability(false));
+        w.Local arrayLocal =
+            function!.addLocal(w.RefType.def(arrayType, nullable: false));
         b.i32_const(length);
         b.array_new_default(arrayType);
         b.local_set(arrayLocal);

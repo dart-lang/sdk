@@ -179,9 +179,15 @@ class Translator {
   final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
   final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
-  ClassInfo get topInfo => classes[0];
-  ClassInfo get objectInfo => classInfo[coreTypes.objectClass]!;
-  ClassInfo get stackTraceInfo => classInfo[stackTraceClass]!;
+  // Some convenience accessors for commonly used values.
+  late final ClassInfo topInfo = classes[0];
+  late final ClassInfo objectInfo = classInfo[coreTypes.objectClass]!;
+  late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
+  late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
+          .struct
+          .fields[FieldIndex.listArray]
+          .type as w.RefType)
+      .heapType as w.ArrayType;
 
   Translator(this.component, this.coreTypes, this.typeEnvironment, this.options)
       : libraries = component.libraries,
