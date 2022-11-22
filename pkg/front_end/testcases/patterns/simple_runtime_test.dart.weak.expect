@@ -4,14 +4,22 @@ import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  if(#t1 is core::List<dynamic> && #t1{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool} && (let final dynamic #t2 = #t1{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in #t2 is core::String)) {
-    final core::List<dynamic> #t3 = #t1 as{ForDynamic} core::List<dynamic>;
-    core::String y = #t3.{core::List::[]}(0){(core::int) → dynamic} as{ForDynamic,ForNonNullableByDefault} core::String;
-    {
-      return y;
+  final core::bool #t2 = true;
+  final dynamic #t3 = #t1;
+  if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
+    final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    final dynamic #t5 = #t4;
+    if(#t5 is core::String) {
+      #t2 = false;
+      {
+        core::String y = #t5{core::String};
+        {
+          return y;
+        }
+      }
     }
   }
-  else {
+  if(#t2) {
     return null;
   }
 }
