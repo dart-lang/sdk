@@ -4770,15 +4770,16 @@ class AstBuilder extends StackListener {
       Token keyword, Token equals, Token semicolon) {
     var expression = pop() as ExpressionImpl;
     var pattern = pop() as DartPatternImpl;
-    // TODO(paulberry): make use of metadata
-    // ignore: unused_local_variable
     var metadata = pop() as List<AnnotationImpl>?;
+    var comment = _findComment(metadata, keyword);
     push(PatternVariableDeclarationStatementImpl(
         declaration: PatternVariableDeclarationImpl(
             keyword: keyword,
             pattern: pattern,
             equals: equals,
-            expression: expression),
+            expression: expression,
+            comment: comment,
+            metadata: metadata),
         semicolon: semicolon));
   }
 

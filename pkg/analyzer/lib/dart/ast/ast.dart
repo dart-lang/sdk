@@ -4134,7 +4134,7 @@ abstract class PatternAssignmentStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class PatternVariableDeclaration implements AstNode {
+abstract class PatternVariableDeclaration implements AnnotatedNode {
   /// Return the equal sign separating the pattern from the expression.
   Token get equals;
 

@@ -5692,6 +5692,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: final
     pattern: ObjectPattern
       type: NamedType
@@ -5724,6 +5729,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: final
     pattern: ListPattern
       leftBracket: [
@@ -5749,6 +5759,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: final
     pattern: MapPattern
       leftBracket: {
@@ -5778,6 +5793,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: final
     pattern: ParenthesizedPattern
       leftParenthesis: (
@@ -5802,6 +5822,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: final
     pattern: RecordPattern
       leftParenthesis: (
@@ -5828,6 +5853,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: var
     pattern: ObjectPattern
       type: NamedType
@@ -5860,6 +5890,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: var
     pattern: ListPattern
       leftBracket: [
@@ -5885,6 +5920,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: var
     pattern: MapPattern
       leftBracket: {
@@ -5914,6 +5954,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
@@ -5938,6 +5983,11 @@ f(x) {
     assertParsedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: var
     pattern: RecordPattern
       leftParenthesis: (
