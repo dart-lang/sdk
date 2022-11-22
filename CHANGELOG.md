@@ -7,6 +7,9 @@ This is a patch release that:
 - fixes the handling of type parameter nullability in factory constructors
   (issue [#50392][]).
 
+[#50119]: https://github.com/dart-lang/sdk/issues/50119
+[#50392]: https://github.com/dart-lang/sdk/issues/50392
+
 ## 2.18.4 - 2022-11-02
 
 This is a patch release that fixes crashes during hot reload
