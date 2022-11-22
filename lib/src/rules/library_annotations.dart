@@ -19,9 +19,10 @@ some other library-level element.
 
 **BAD:**
 ```dart
+@TestOn('browser')
+
 import 'package:test/test.dart';
 
-@TestOn('browser')
 void main() {}
 ```
 
@@ -29,6 +30,7 @@ void main() {}
 ```dart
 @TestOn('browser')
 library;
+
 import 'package:test/test.dart';
 
 void main() {}
