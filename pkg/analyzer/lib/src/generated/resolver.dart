@@ -882,6 +882,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return null;
   }
 
+  @override
+  shared.MapPatternEntry<Expression, DartPattern>? getMapPatternEntry(
+      AstNode element) {
+    // TODO(scheglov): implement getMapPatternEntry
+    throw UnimplementedError();
+  }
+
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
   /// overridden.
@@ -1029,6 +1036,30 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void handleListPatternRestElement(
+    DartPattern container,
+    covariant DartPattern restElement,
+  ) {
+    // TODO(scheglov): implement handleListPatternRestElement
+    throw UnimplementedError();
+  }
+
+  @override
+  void handleMapPatternEntry(DartPattern container, AstNode entryElement) {
+    // TODO(scheglov): implement handleMapPatternEntry
+    throw UnimplementedError();
+  }
+
+  @override
+  void handleMapPatternRestElement(
+    DartPattern container,
+    covariant DartPattern restElement,
+  ) {
+    // TODO(scheglov): implement handleMapPatternRestElement
+    throw UnimplementedError();
+  }
+
+  @override
   void handleMergedStatementCase(
     covariant SwitchStatementImpl node, {
     required int caseIndex,
@@ -1051,15 +1082,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleNoStatement(Statement node) {}
-
-  @override
-  void handleRestPatternElement(
-    DartPattern container,
-    covariant DartPattern restElement,
-  ) {
-    // TODO(scheglov): implement handleRestPatternElement
-    throw UnimplementedError();
-  }
 
   @override
   void handleSwitchScrutinee(DartType type) {
@@ -1143,6 +1165,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType listType(DartType elementType) {
     return typeProvider.listType(elementType);
+  }
+
+  @override
+  DartType mapType({
+    required DartType keyType,
+    required DartType valueType,
+  }) {
+    return typeProvider.mapType(keyType, valueType);
   }
 
   /// If we reached a null-shorting termination, and the [node] has null

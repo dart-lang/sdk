@@ -13,10 +13,12 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordPatternField, RecordType;
+    hide MapPatternEntry, NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
 
@@ -257,6 +259,34 @@ ListPatternElement listPatternRestElement([Pattern? pattern]) =>
 Statement localFunction(List<Statement> body) {
   var location = computeLocation();
   return _LocalFunction(_Block(body, location: location), location: location);
+}
+
+Pattern mapPattern(List<MapPatternElement> elements) {
+  var location = computeLocation();
+  return _MapPattern(null, elements, location: location);
+}
+
+MapPatternElement mapPatternEntry(Expression key, Pattern value) {
+  return _MapPatternEntry(key, value, location: computeLocation());
+}
+
+MapPatternElement mapPatternRestElement([Pattern? pattern]) =>
+    _RestPatternElement(pattern, location: computeLocation());
+
+Pattern mapPatternWithTypeArguments({
+  required String keyType,
+  required String valueType,
+  required List<MapPatternElement> elements,
+}) {
+  var location = computeLocation();
+  return _MapPattern(
+    shared.MapPatternTypeArguments<Type>(
+      keyType: Type(keyType),
+      valueType: Type(valueType),
+    ),
+    elements,
+    location: location,
+  );
 }
 
 Statement match(Pattern pattern, Expression initializer,
@@ -692,11 +722,7 @@ class Label extends Node {
   String toString() => _name;
 }
 
-abstract class ListPatternElement implements Node {
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder);
-
-  String _debugString({required bool needsKeywordOrType});
-}
+abstract class ListPatternElement implements _ListOrMapPatternElement {}
 
 /// Representation of an expression that can appear on the left hand side of an
 /// assignment (or as the target of `++` or `--`).  Methods in this class may be
@@ -714,6 +740,8 @@ abstract class LValue extends Expression {
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs);
 }
+
+abstract class MapPatternElement implements _ListOrMapPatternElement {}
 
 class MiniAstOperations
     with TypeOperations<Type>
@@ -796,6 +824,7 @@ class MiniAstOperations
     'List<int> <: Iterable<int>': true,
     'List<int> <: List<num>': true,
     'List<int> <: String': false,
+    'Map<bool, int> <: Map<Object, num>': true,
     'Never <: int': true,
     'Never <: int?': true,
     'Never <: Null': true,
@@ -820,6 +849,7 @@ class MiniAstOperations
     'String <: int': false,
     'String <: int?': false,
     'String <: List<num>': false,
+    'String <: Map<bool, int>': false,
     'String <: num': false,
     'String <: num?': false,
     'String <: Object': true,
@@ -1069,6 +1099,17 @@ class MiniAstOperations
   Type? matchListType(Type type) {
     if (type is PrimaryType && type.name == 'List' && type.args.length == 1) {
       return type.args[0];
+    }
+    return null;
+  }
+
+  @override
+  shared.MapPatternTypeArguments<Type>? matchMapType(Type type) {
+    if (type is PrimaryType && type.name == 'Map' && type.args.length == 2) {
+      return shared.MapPatternTypeArguments<Type>(
+        keyType: type.args[0],
+        valueType: type.args[1],
+      );
     }
     return null;
   }
@@ -2562,6 +2603,12 @@ class _LabeledStatement extends Statement {
   }
 }
 
+abstract class _ListOrMapPatternElement implements Node {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder);
+
+  String _debugString({required bool needsKeywordOrType});
+}
+
 class _ListPattern extends Pattern {
   final Type? _elementType;
 
@@ -2729,6 +2776,72 @@ enum _LValueDisposition {
   /// appears on the left and side of `op=` (where `op` is some operator), or as
   /// the target of `++` or `--`.
   readWrite,
+}
+
+class _MapPattern extends Pattern {
+  final shared.MapPatternTypeArguments<Type>? _typeArguments;
+
+  final List<MapPatternElement> _elements;
+
+  _MapPattern(this._typeArguments, this._elements, {required super.location})
+      : super._();
+
+  @override
+  Type computeSchema(Harness h) => h.typeAnalyzer.analyzeMapPatternSchema(
+      typeArguments: _typeArguments, elements: _elements);
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    for (var element in _elements) {
+      element.preVisit(visitor, variableBinder);
+    }
+  }
+
+  @override
+  void visit(Harness h, Type matchedType, SharedMatchContext context) {
+    var requiredType = h.typeAnalyzer.analyzeMapPattern(
+        matchedType, context, this,
+        typeArguments: _typeArguments, elements: _elements);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.atom(requiredType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+      'mapPattern',
+      [
+        ...List.filled(_elements.length, Kind.mapPatternElement),
+        Kind.type,
+        Kind.type,
+      ],
+      Kind.pattern,
+      names: ['matchedType', 'requiredType'],
+      location: location,
+    );
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var elements = [
+      for (var element in _elements)
+        element._debugString(needsKeywordOrType: needsKeywordOrType)
+    ];
+    return '[${elements.join(', ')}]';
+  }
+}
+
+class _MapPatternEntry extends Node implements MapPatternElement {
+  final Expression key;
+  final Pattern value;
+
+  _MapPatternEntry(this.key, this.value, {required super.location}) : super._();
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    value.preVisit(visitor, variableBinder);
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    return '$key: $value';
+  }
 }
 
 class _MiniAstErrors
@@ -3269,6 +3382,18 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
+      Node element) {
+    if (element is _MapPatternEntry) {
+      return shared.MapPatternEntry<Expression, Pattern>(
+        key: element.key,
+        value: element.value,
+      );
+    }
+    return null;
+  }
+
+  @override
   Pattern? getRestPatternElementPattern(Node element) {
     return element is _RestPatternElement ? element._pattern : null;
   }
@@ -3377,6 +3502,40 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  void handleListPatternRestElement(
+    Pattern container,
+    covariant _RestPatternElement restElement,
+  ) {
+    if (restElement._pattern != null) {
+      _irBuilder.apply('...', [Kind.pattern], Kind.pattern,
+          location: restElement.location);
+    } else {
+      _irBuilder.atom('...', Kind.pattern, location: restElement.location);
+    }
+  }
+
+  @override
+  void handleMapPatternEntry(Pattern container, Node entryElement) {
+    _irBuilder.apply('mapPatternEntry', [Kind.expression, Kind.pattern],
+        Kind.mapPatternElement,
+        location: entryElement.location);
+  }
+
+  @override
+  void handleMapPatternRestElement(
+    Pattern container,
+    covariant _RestPatternElement restElement,
+  ) {
+    if (restElement._pattern != null) {
+      _irBuilder.apply('...', [Kind.pattern], Kind.mapPatternElement,
+          location: restElement.location);
+    } else {
+      _irBuilder.atom('...', Kind.mapPatternElement,
+          location: restElement.location);
+    }
+  }
+
+  @override
   void handleMergedStatementCase(
     covariant _SwitchStatement node, {
     required int caseIndex,
@@ -3415,19 +3574,6 @@ class _MiniAstTypeAnalyzer
   @override
   void handleNoStatement(Node node) {
     _irBuilder.atom('noop', Kind.statement, location: node.location);
-  }
-
-  @override
-  void handleRestPatternElement(
-    Pattern container,
-    covariant _RestPatternElement restElement,
-  ) {
-    if (restElement._pattern != null) {
-      _irBuilder.apply('...', [Kind.pattern], Kind.pattern,
-          location: restElement.location);
-    } else {
-      _irBuilder.atom('...', Kind.pattern, location: restElement.location);
-    }
   }
 
   @override
@@ -3475,6 +3621,14 @@ class _MiniAstTypeAnalyzer
   _PropertyElement lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
+  }
+
+  @override
+  Type mapType({
+    required Type keyType,
+    required Type valueType,
+  }) {
+    return PrimaryType('Map', args: [keyType, valueType]);
   }
 
   @override
@@ -3885,7 +4039,8 @@ class _RelationalPattern extends Pattern {
   _debugString({required bool needsKeywordOrType}) => '$operator $operand';
 }
 
-class _RestPatternElement extends Node implements ListPatternElement {
+class _RestPatternElement extends Node
+    implements ListPatternElement, MapPatternElement {
   final Pattern? _pattern;
 
   _RestPatternElement(this._pattern, {required super.location}) : super._();
