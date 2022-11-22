@@ -1,0 +1,11 @@
+f(x) {
+@annotation
+var (a,) = x;
+}
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+@[SimpleToken]annotation[StringToken]
+var[KeywordToken] ([BeginToken]a[StringToken],[SimpleToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

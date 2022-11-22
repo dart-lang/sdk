@@ -262,11 +262,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
-        library.loader.transformPostInference(
-            variable!,
-            bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections,
-            library.library);
         initializerWasInferred = true;
         bodyBuilder.performBacklogComputations(
             delayedActionPerformers: delayedActionPerformers,

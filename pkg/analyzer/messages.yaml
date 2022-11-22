@@ -17901,7 +17901,7 @@ HintCode:
       should indicate what code to use in place of the deprecated code.
   DEPRECATED_MEMBER_USE_WITH_MESSAGE:
     sharedName: DEPRECATED_MEMBER_USE
-    problemMessage: "'{0}' is deprecated and shouldn't be used. {1}."
+    problemMessage: "'{0}' is deprecated and shouldn't be used. {1}"
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
     comment: |-
@@ -17938,7 +17938,7 @@ HintCode:
       in place of the deprecated code.
   DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
     sharedName: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-    problemMessage: "'{0}' is deprecated and shouldn't be used. {1}."
+    problemMessage: "'{0}' is deprecated and shouldn't be used. {1}"
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
     comment: |-

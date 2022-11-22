@@ -2180,6 +2180,12 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    _unsupported();
+  }
+
+  @override
   void logEvent(String name) {}
 
   @override

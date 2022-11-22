@@ -211,9 +211,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
   );
 
   static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
-    if (DartNotImportedCompletionResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
-      return DartNotImportedCompletionResolutionInfo.fromJson(json);
+    if (DartCompletionResolutionInfo.canParse(json, nullLspJsonReporter)) {
+      return DartCompletionResolutionInfo.fromJson(json);
     }
     if (PubPackageCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
@@ -242,6 +241,97 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   int get hashCode => 42;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class DartCompletionResolutionInfo
+    implements CompletionItemResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartCompletionResolutionInfo.canParse,
+    DartCompletionResolutionInfo.fromJson,
+  );
+
+  DartCompletionResolutionInfo({
+    required this.file,
+    required this.importUris,
+    this.ref,
+  });
+  static DartCompletionResolutionInfo fromJson(Map<String, Object?> json) {
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    final importUrisJson = json['importUris'];
+    final importUris = (importUrisJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
+    final refJson = json['ref'];
+    final ref = refJson as String?;
+    return DartCompletionResolutionInfo(
+      file: file,
+      importUris: importUris,
+      ref: ref,
+    );
+  }
+
+  /// The file where the completion is being inserted.
+  ///
+  /// This is used to compute where to add the import.
+  final String file;
+
+  /// The URIs to be imported if this completion is selected.
+  final List<String> importUris;
+
+  /// The ElementLocation of the item being completed.
+  ///
+  /// This is used to provide documentation in the resolved response.
+  final String? ref;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['file'] = file;
+    result['importUris'] = importUris;
+    if (ref != null) {
+      result['ref'] = ref;
+    }
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'file',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseListString(obj, reporter, 'importUris',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type DartCompletionResolutionInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartCompletionResolutionInfo &&
+        other.runtimeType == DartCompletionResolutionInfo &&
+        file == other.file &&
+        listEqual(
+            importUris, other.importUris, (String a, String b) => a == b) &&
+        ref == other.ref;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        lspHashCode(importUris),
+        ref,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -292,96 +382,6 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   int get hashCode => port.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class DartNotImportedCompletionResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    DartNotImportedCompletionResolutionInfo.canParse,
-    DartNotImportedCompletionResolutionInfo.fromJson,
-  );
-
-  DartNotImportedCompletionResolutionInfo({
-    required this.file,
-    required this.libraryUri,
-    this.ref,
-  });
-  static DartNotImportedCompletionResolutionInfo fromJson(
-      Map<String, Object?> json) {
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final libraryUriJson = json['libraryUri'];
-    final libraryUri = libraryUriJson as String;
-    final refJson = json['ref'];
-    final ref = refJson as String?;
-    return DartNotImportedCompletionResolutionInfo(
-      file: file,
-      libraryUri: libraryUri,
-      ref: ref,
-    );
-  }
-
-  /// The file where the completion is being inserted.
-  ///
-  /// This is used to compute where to add the import.
-  final String file;
-
-  /// The URI to be imported if this completion is selected.
-  final String libraryUri;
-
-  /// The ElementLocation of the item being completed.
-  ///
-  /// This is used to provide documentation in the resolved response.
-  final String? ref;
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['file'] = file;
-    result['libraryUri'] = libraryUri;
-    if (ref != null) {
-      result['ref'] = ref;
-    }
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'file',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseString(obj, reporter, 'libraryUri',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseString(obj, reporter, 'ref',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type DartNotImportedCompletionResolutionInfo');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DartNotImportedCompletionResolutionInfo &&
-        other.runtimeType == DartNotImportedCompletionResolutionInfo &&
-        file == other.file &&
-        libraryUri == other.libraryUri &&
-        ref == other.ref;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        file,
-        libraryUri,
-        ref,
-      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -2388,6 +2388,32 @@ bool _canParseListOutline(
         (value is! List<Object?> ||
             value.any((item) => !Outline.canParse(item, reporter)))) {
       reporter.reportError('must be of type List<Outline>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListString(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> || value.any((item) => item is! String))) {
+      reporter.reportError('must be of type List<String>');
       return false;
     }
   } finally {

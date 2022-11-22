@@ -4760,6 +4760,23 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    var expression = pop() as ExpressionImpl;
+    var pattern = pop() as DartPatternImpl;
+    // TODO(paulberry): make use of metadata
+    // ignore: unused_local_variable
+    var metadata = pop() as List<AnnotationImpl>?;
+    push(PatternVariableDeclarationStatementImpl(
+        declaration: PatternVariableDeclarationImpl(
+            keyword: keyword,
+            pattern: pattern,
+            equals: equals,
+            expression: expression),
+        semicolon: semicolon));
+  }
+
+  @override
   void handleQualified(Token period) {
     assert(optional('.', period));
 

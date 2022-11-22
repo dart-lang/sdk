@@ -2943,6 +2943,76 @@ void f() {
     '''));
   }
 
+  Future<void> test_unimportedSymbols_overrides() async {
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), 'class A {}');
+    newFile(join(projectFolderPath, 'lib', 'b.dart'), 'class B {}');
+    newFile(join(projectFolderPath, 'lib', 'c.dart'), 'class C {}');
+    newFile(join(projectFolderPath, 'lib', 'd.dart'), 'class D {}');
+
+    newFile(
+      join(projectFolderPath, 'lib', 'base.dart'),
+      '''
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
+
+abstract class Base {
+  D? myMethod(A a, B b, C c) => null;
+}
+      ''',
+    );
+
+    // A will already be imported
+    // B will already be imported but with a prefix
+    // C & D are not imported and need importing (return + parameter types)
+    final content = '''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as b;
+import 'package:test/base.dart';
+
+class BaseImpl extends Base {
+  myMet^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+      workspaceCapabilities:
+          withApplyEditSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion =
+        res.singleWhere((c) => c.label == 'myMethod(A a, b.B b, C c) { … }');
+    final resolved = await resolveCompletion(completion);
+
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+
+    expect(newContent, equals('''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as b;
+import 'package:test/base.dart';
+import 'package:test/c.dart';
+import 'package:test/d.dart';
+
+class BaseImpl extends Base {
+  @override
+  D? myMethod(A a, b.B b, C c) {
+    // TODO: implement myMethod
+    return super.myMethod(a, b, c);
+  }
+}
+    '''));
+  }
+
   Future<void>
       test_unimportedSymbols_preferRelativeImportsLib_insideLib() async {
     _enableLints([LintNames.prefer_relative_imports]);

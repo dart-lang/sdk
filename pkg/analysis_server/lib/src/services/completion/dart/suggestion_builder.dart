@@ -181,6 +181,13 @@ class SuggestionBuilder {
   /// because of exports.
   String? libraryUriStr;
 
+  /// URIs that should be imported (that are not already) for all types in the
+  /// completion.
+  ///
+  /// Includes a [URI] for [libraryUriStr] only if the items being suggested are
+  /// not already imported.
+  Set<Uri> requiredImports = {};
+
   /// This flag is set to `true` while adding suggestions for top-level
   /// elements from not-yet-imported libraries.
   bool isNotImportedLibrary = false;
@@ -881,6 +888,7 @@ class SuggestionBuilder {
   Future<void> suggestOverride(
       Token targetId, ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
+    var overrideImports = <Uri>{};
     var builder = ChangeBuilder(session: request.analysisSession);
     await builder.addDartFileEdit(request.path, createEditsForImports: false,
         (builder) {
@@ -891,6 +899,7 @@ class SuggestionBuilder {
           invokeSuper: invokeSuper,
         );
       });
+      overrideImports.addAll(builder.requiredImports);
     });
 
     var fileEdits = builder.sourceChange.edits;
@@ -930,7 +939,8 @@ class SuggestionBuilder {
         element.hasDeprecated,
         false,
         displayText: displayText,
-        dartElement: element);
+        dartElement: element,
+        requiredImports: overrideImports.toList());
     suggestion.element = protocol.convertElement(element,
         withNullability: _isNonNullableByDefault);
     _addSuggestion(
@@ -1354,6 +1364,7 @@ class SuggestionBuilder {
       completionOverride: completion,
       relevance: relevance,
       libraryUriStr: libraryUriStr,
+      requiredImports: requiredImports.toList(),
       isNotImported: isNotImported,
     );
   }
@@ -1629,6 +1640,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   final String? completionOverride;
   final String? libraryUriStr;
+  final List<Uri> requiredImports;
   final bool isNotImported;
 
   _CompletionSuggestionBuilderImpl({
@@ -1637,6 +1649,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     required this.completionOverride,
     required this.relevance,
     required this.libraryUriStr,
+    required this.requiredImports,
     required this.isNotImported,
   });
 
@@ -1680,6 +1693,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       libraryUri: libraryUriStr,
       isNotImported: isNotImported ? true : null,
       dartElement: element.dartElement,
+      requiredImports: requiredImports,
     );
   }
 }

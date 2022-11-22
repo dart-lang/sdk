@@ -78,6 +78,7 @@ asserting
 assigning
 assigns
 association
+assured
 ast
 asy
 atm
@@ -984,6 +985,7 @@ particularly
 partof
 patchup
 path
+pattern's
 patterns
 paulberry
 pay

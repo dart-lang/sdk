@@ -306,7 +306,7 @@ List<LspEntity> getCustomClasses() {
       [],
     ),
     interface(
-      'DartNotImportedCompletionResolutionInfo',
+      'DartCompletionResolutionInfo',
       [
         field(
           'file',
@@ -315,9 +315,10 @@ List<LspEntity> getCustomClasses() {
               'This is used to compute where to add the import.',
         ),
         field(
-          'libraryUri',
+          'importUris',
           type: 'string',
-          comment: 'The URI to be imported if this completion is selected.',
+          array: true,
+          comment: 'The URIs to be imported if this completion is selected.',
         ),
         field(
           'ref',

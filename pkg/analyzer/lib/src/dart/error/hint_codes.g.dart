@@ -188,7 +188,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
       HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
-    "'{0}' is deprecated and shouldn't be used. {1}.",
+    "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
@@ -200,7 +200,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  1: message details
   static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE',
-    "'{0}' is deprecated and shouldn't be used. {1}.",
+    "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,

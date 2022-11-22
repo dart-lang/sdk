@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// Dart-specific fields that are not part of the JSON protocol.
 class DartCompletionSuggestion extends CompletionSuggestion {
   final Element? dartElement;
+  final List<Uri> requiredImports;
 
   DartCompletionSuggestion(
     super.kind,
@@ -38,5 +39,6 @@ class DartCompletionSuggestion extends CompletionSuggestion {
     super.libraryUri,
     super.isNotImported,
     required this.dartElement,
+    this.requiredImports = const [],
   });
 }

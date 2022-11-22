@@ -3886,7 +3886,7 @@ class Function : public Object {
   //              which have been de-optimized too many times.
   bool is_optimizable() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
+    return false;
 #else
     return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
 #endif

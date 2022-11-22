@@ -1010,6 +1010,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _writeln('PatternVariableDeclaration');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+      PatternVariableDeclarationStatement node) {
+    _writeln('PatternVariableDeclarationStatement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _writeln('PostfixExpression');
     _withIndent(() {

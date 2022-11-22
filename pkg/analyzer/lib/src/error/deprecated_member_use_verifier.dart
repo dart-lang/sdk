@@ -307,7 +307,8 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
       AstNode errorNode, Element element, String displayName, String? message) {
     var library = element is LibraryElement ? element : element.library;
 
-    if (message == null || message.isEmpty) {
+    message = message?.trim();
+    if (message == null || message.isEmpty || message == '.') {
       _errorReporter.reportErrorForNode(
         _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
@@ -316,6 +317,11 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         [displayName],
       );
     } else {
+      if (!message.endsWith('.') &&
+          !message.endsWith('?') &&
+          !message.endsWith('!')) {
+        message = '$message.';
+      }
       _errorReporter.reportErrorForNode(
         _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE

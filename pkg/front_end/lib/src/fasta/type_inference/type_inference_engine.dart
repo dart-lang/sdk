@@ -19,6 +19,7 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/redirecting_factory_body.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'factor_type.dart';
@@ -212,6 +213,118 @@ abstract class TypeInferenceEngine {
       }
     }
     return member;
+  }
+
+  Procedure? _addMethod;
+
+  /// Returns the [Procedure] for the [Set.add] method.
+  ///
+  /// This is used for lowering set literals for targets that don't support the
+  /// [SetLiteral] node.
+  Procedure get setAddMethod => _addMethod ??= _findAddMethod();
+
+  Procedure _findAddMethod() {
+    return coreTypes.index.getProcedure('dart:core', 'Set', 'add');
+  }
+
+  FunctionType? _addMethodFunctionType;
+
+  /// Returns the [FunctionType] for the [Set.add] method.
+  ///
+  /// This is used for lowering set literals for targets that don't support the
+  /// [SetLiteral] node.
+  FunctionType get setAddMethodFunctionType =>
+      _addMethodFunctionType ??= setAddMethod.getterType as FunctionType;
+
+  Procedure? _listAdd;
+  Procedure get listAdd =>
+      _listAdd ??= coreTypes.index.getProcedure('dart:core', 'List', 'add');
+
+  FunctionType? _listAddFunctionType;
+  FunctionType get listAddFunctionType =>
+      _listAddFunctionType ??= listAdd.getterType as FunctionType;
+
+  Procedure? _listAddAll;
+  Procedure get listAddAll => _listAddAll ??=
+      coreTypes.index.getProcedure('dart:core', 'List', 'addAll');
+
+  FunctionType? _listAddAllFunctionType;
+  FunctionType get listAddAllFunctionType =>
+      _listAddAllFunctionType ??= listAddAll.getterType as FunctionType;
+
+  Procedure? _listOf;
+  Procedure get listOf =>
+      _listOf ??= coreTypes.index.getProcedure('dart:core', 'List', 'of');
+
+  Procedure? _setFactory;
+  Procedure get setFactory => _setFactory ??= _findSetFactory(coreTypes, '');
+
+  Procedure? _setAdd;
+  Procedure get setAdd =>
+      _setAdd ??= coreTypes.index.getProcedure('dart:core', 'Set', 'add');
+
+  FunctionType? _setAddFunctionType;
+  FunctionType get setAddFunctionType =>
+      _setAddFunctionType ??= setAdd.getterType as FunctionType;
+
+  Procedure? _setAddAll;
+  Procedure get setAddAll =>
+      _setAddAll ??= coreTypes.index.getProcedure('dart:core', 'Set', 'addAll');
+
+  FunctionType? _setAddAllFunctionType;
+  FunctionType get setAddAllFunctionType =>
+      _setAddAllFunctionType ??= setAddAll.getterType as FunctionType;
+
+  Procedure? _setOf;
+  Procedure get setOf => _setOf ??= _findSetFactory(coreTypes, 'of');
+
+  Procedure? _mapEntries;
+  Procedure get mapEntries => _mapEntries ??=
+      coreTypes.index.getProcedure('dart:core', 'Map', 'get:entries');
+
+  Procedure? _mapPut;
+  Procedure get mapPut =>
+      _mapPut ??= coreTypes.index.getProcedure('dart:core', 'Map', '[]=');
+
+  FunctionType? _mapPutFunctionType;
+  FunctionType get mapPutFunctionType =>
+      _mapPutFunctionType ??= mapPut.getterType as FunctionType;
+
+  Class? _mapEntryClass;
+  Class get mapEntryClass =>
+      _mapEntryClass ??= coreTypes.index.getClass('dart:core', 'MapEntry');
+
+  Field? _mapEntryKey;
+  Field get mapEntryKey =>
+      _mapEntryKey ??= coreTypes.index.getField('dart:core', 'MapEntry', 'key');
+
+  Field? _mapEntryValue;
+  Field get mapEntryValue => _mapEntryValue ??=
+      coreTypes.index.getField('dart:core', 'MapEntry', 'value');
+
+  Procedure? _mapAddAll;
+  Procedure get mapAddAll =>
+      _mapAddAll ??= coreTypes.index.getProcedure('dart:core', 'Map', 'addAll');
+
+  FunctionType? _mapAddAllFunctionType;
+  FunctionType get mapAddAllFunctionType =>
+      _mapAddAllFunctionType ??= mapAddAll.getterType as FunctionType;
+
+  Procedure? _mapOf;
+  Procedure get mapOf => _mapOf ??= _findMapFactory(coreTypes, 'of');
+
+  static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', name);
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
+  }
+
+  static Procedure _findMapFactory(CoreTypes coreTypes, String name) {
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Map', name);
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
   }
 }
 

@@ -212,6 +212,10 @@ class RunCommand extends DartdevCommand {
                 'functionality. Note: Disabling DDS may break some '
                 'functionality in IDEs and other tooling.',
             defaultsTo: true)
+        ..addFlag('serve-observatory',
+            hide: !verbose,
+            help: 'Enable hosting Observatory through the VM Service.',
+            defaultsTo: true)
         ..addFlag(
           'debug-dds',
           hide: true,

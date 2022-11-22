@@ -2725,4 +2725,45 @@ class TestParser extends Parser {
     indent--;
     return result;
   }
+
+  @override
+  bool looksLikePatternVariableDeclaration(Token token) {
+    doPrint('looksLikePatternVariableDeclaration(' '$token)');
+    indent++;
+    var result = super.looksLikePatternVariableDeclaration(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? skipOuterPattern(Token token) {
+    doPrint('skipOuterPattern(' '$token)');
+    indent++;
+    var result = super.skipOuterPattern(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? skipExtractorPatternRest(Token token) {
+    doPrint('skipExtractorPatternRest(' '$token)');
+    indent++;
+    var result = super.skipExtractorPatternRest(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePatternVariableDeclarationStatement(
+      Token keyword, Token start, Token varOrFinal) {
+    doPrint('parsePatternVariableDeclarationStatement('
+        '$keyword, '
+        '$start, '
+        '$varOrFinal)');
+    indent++;
+    var result = super
+        .parsePatternVariableDeclarationStatement(keyword, start, varOrFinal);
+    indent--;
+    return result;
+  }
 }

@@ -1953,6 +1953,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    listener?.handlePatternVariableDeclarationStatement(
+        keyword, equals, semicolon);
+  }
+
+  @override
   void logEvent(String name) {
     listener?.logEvent(name);
   }

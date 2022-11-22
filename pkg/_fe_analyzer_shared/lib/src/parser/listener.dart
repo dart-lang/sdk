@@ -2103,4 +2103,13 @@ class Listener implements UnescapeErrorListener {
   /// identifier name.  It is the client's responsibility to report an
   /// appropriate error if the "constructor tearoffs" feature is not enabled.
   void handleNewAsIdentifier(Token token) {}
+
+  /// Called after the parser has processed a variable declaration statement,
+  /// consisting of `METADATA KEYWORD PATTERN EQUALS EXPRESSION SEMICOLON`.
+  ///
+  /// KEYWORD is either `var` or `final`, and PATTERN may only be one of the
+  /// patterns accepted by the `outerPattern` grammar rule defined in the
+  /// patterns spec.
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {}
 }
