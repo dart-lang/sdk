@@ -48,9 +48,6 @@ class PredefinedCObjects {
   static Dart_CObject* cobj_empty_array() {
     return &getInstance().cobj_empty_array_;
   }
-  static Dart_CObject* cobj_zero_array() {
-    return &getInstance().cobj_zero_array_;
-  }
 
  private:
   PredefinedCObjects() {
@@ -58,18 +55,10 @@ class PredefinedCObjects {
     cobj_null_.value.as_int64 = 0;
     cobj_empty_array_.type = Dart_CObject_kArray;
     cobj_empty_array_.value.as_array = {0, nullptr};
-    cobj_zero_array_element.type = Dart_CObject_kInt32;
-    cobj_zero_array_element.value.as_int32 = 0;
-    cobj_zero_array_values[0] = {&cobj_zero_array_element};
-    cobj_zero_array_.type = Dart_CObject_kArray;
-    cobj_zero_array_.value.as_array = {1, &cobj_zero_array_values[0]};
   }
 
   Dart_CObject cobj_null_;
   Dart_CObject cobj_empty_array_;
-  Dart_CObject* cobj_zero_array_values[1];
-  Dart_CObject cobj_zero_array_element;
-  Dart_CObject cobj_zero_array_;
 
   DISALLOW_COPY_AND_ASSIGN(PredefinedCObjects);
 };
@@ -3280,7 +3269,6 @@ void MessageSerializer::AddBaseObjects() {
   AddBaseObject(Object::sentinel().ptr());
   AddBaseObject(Object::transition_sentinel().ptr());
   AddBaseObject(Object::empty_array().ptr());
-  AddBaseObject(Object::zero_array().ptr());
   AddBaseObject(Object::dynamic_type().ptr());
   AddBaseObject(Object::void_type().ptr());
   AddBaseObject(Object::empty_type_arguments().ptr());
@@ -3293,7 +3281,6 @@ void MessageDeserializer::AddBaseObjects() {
   AddBaseObject(Object::sentinel().ptr());
   AddBaseObject(Object::transition_sentinel().ptr());
   AddBaseObject(Object::empty_array().ptr());
-  AddBaseObject(Object::zero_array().ptr());
   AddBaseObject(Object::dynamic_type().ptr());
   AddBaseObject(Object::void_type().ptr());
   AddBaseObject(Object::empty_type_arguments().ptr());
@@ -3306,7 +3293,6 @@ void ApiMessageSerializer::AddBaseObjects() {
   AddBaseObject(&cobj_sentinel);
   AddBaseObject(&cobj_transition_sentinel);
   AddBaseObject(PredefinedCObjects::cobj_empty_array());
-  AddBaseObject(PredefinedCObjects::cobj_zero_array());
   AddBaseObject(&cobj_dynamic_type);
   AddBaseObject(&cobj_void_type);
   AddBaseObject(&cobj_empty_type_arguments);
@@ -3319,7 +3305,6 @@ void ApiMessageDeserializer::AddBaseObjects() {
   AddBaseObject(&cobj_sentinel);
   AddBaseObject(&cobj_transition_sentinel);
   AddBaseObject(PredefinedCObjects::cobj_empty_array());
-  AddBaseObject(PredefinedCObjects::cobj_zero_array());
   AddBaseObject(&cobj_dynamic_type);
   AddBaseObject(&cobj_void_type);
   AddBaseObject(&cobj_empty_type_arguments);
