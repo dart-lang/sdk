@@ -1138,17 +1138,17 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
     case FCVTSint:
       switch (static_cast<FcvtRs2>(instr.rs2())) {
         case W:
-          Print("fcvt.s.w 'frd, 'rs1", instr, RV_F);
+          Print("fcvt.s.w 'frd, 'rs1'round", instr, RV_F);
           break;
         case WU:
-          Print("fcvt.s.wu 'frd, 'rs1", instr, RV_F);
+          Print("fcvt.s.wu 'frd, 'rs1'round", instr, RV_F);
           break;
 #if XLEN >= 64
         case L:
-          Print("fcvt.s.l 'frd, 'rs1", instr, RV_F);
+          Print("fcvt.s.l 'frd, 'rs1'round", instr, RV_F);
           break;
         case LU:
-          Print("fcvt.s.lu 'frd, 'rs1", instr, RV_F);
+          Print("fcvt.s.lu 'frd, 'rs1'round", instr, RV_F);
           break;
 #endif
         default:
@@ -1227,7 +1227,7 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
     case FCVTD: {
       switch (instr.rs2()) {
         case 0:
-          Print("fcvt.d.s 'frd, 'frs1", instr, RV_D);
+          Print("fcvt.d.s 'frd, 'frs1'round", instr, RV_D);
           break;
         default:
           UnknownInstruction(instr);
@@ -1287,17 +1287,17 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
     case FCVTDint:
       switch (static_cast<FcvtRs2>(instr.rs2())) {
         case W:
-          Print("fcvt.d.w 'frd, 'rs1", instr, RV_D);
+          Print("fcvt.d.w 'frd, 'rs1'round", instr, RV_D);
           break;
         case WU:
-          Print("fcvt.d.wu 'frd, 'rs1", instr, RV_D);
+          Print("fcvt.d.wu 'frd, 'rs1'round", instr, RV_D);
           break;
 #if XLEN >= 64
         case L:
-          Print("fcvt.d.l 'frd, 'rs1", instr, RV_D);
+          Print("fcvt.d.l 'frd, 'rs1'round", instr, RV_D);
           break;
         case LU:
-          Print("fcvt.d.lu 'frd, 'rs1", instr, RV_D);
+          Print("fcvt.d.lu 'frd, 'rs1'round", instr, RV_D);
           break;
 #endif
         default:

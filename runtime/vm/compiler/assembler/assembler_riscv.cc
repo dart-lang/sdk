@@ -1311,9 +1311,11 @@ void MicroAssembler::fcvtsd(FRegister rd,
   EmitRType(FCVTS, FRegister(1), rs1, rounding, rd, OPFP);
 }
 
-void MicroAssembler::fcvtds(FRegister rd, FRegister rs1) {
+void MicroAssembler::fcvtds(FRegister rd,
+                            FRegister rs1,
+                            RoundingMode rounding) {
   ASSERT(Supports(RV_D));
-  EmitRType(FCVTD, FRegister(0), rs1, F3_0, rd, OPFP);
+  EmitRType(FCVTD, FRegister(0), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::feqd(Register rd, FRegister rs1, FRegister rs2) {
