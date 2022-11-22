@@ -606,6 +606,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.missing:
         case ObjectAccessTargetKind.ambiguous:
         case ObjectAccessTargetKind.callFunction:
+        case ObjectAccessTargetKind.recordIndexed:
+        case ObjectAccessTargetKind.nullableRecordIndexed:
+        case ObjectAccessTargetKind.nullableRecordNamed:
+        case ObjectAccessTargetKind.recordNamed:
           break;
       }
     }
@@ -5521,6 +5525,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = fileOffset;
         }
         break;
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        throw new UnsupportedError('Unexpected binary target ${binaryTarget}');
     }
 
     if (binaryTarget.isNullable) {
@@ -5632,6 +5641,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = fileOffset;
         }
         break;
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        throw new UnsupportedError('Unexpected unary target ${unaryTarget}');
     }
 
     if (!isNonNullableByDefault) {
@@ -5770,6 +5784,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = fileOffset;
         }
         break;
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        throw new UnsupportedError('Unexpected index get target ${readTarget}');
     }
 
     if (!isNonNullableByDefault) {
@@ -5877,6 +5896,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             interfaceTarget: writeTarget.member as Procedure)
           ..fileOffset = fileOffset;
         break;
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        throw new UnsupportedError(
+            'Unexpected index set target ${writeTarget}');
     }
     if (writeTarget.isNullable) {
       return helper.wrapInProblem(
@@ -6044,6 +6069,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readResult = instantiateTearOff(readType, typeContext, read);
         }
         break;
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+        read = new RecordIndexGet(receiver,
+            readTarget.receiverType as RecordType, readTarget.recordFieldIndex!)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        read = new RecordNameGet(receiver,
+            readTarget.receiverType as RecordType, readTarget.recordFieldName!)
+          ..fileOffset = fileOffset;
+        break;
     }
 
     if (!isNonNullableByDefault) {
@@ -6171,6 +6208,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             interfaceTarget: writeTarget.member!)
           ..fileOffset = fileOffset;
         break;
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+        throw new UnsupportedError('Unexpected write target ${writeTarget}');
     }
     Expression result;
     if (writeTarget.isNullable) {
@@ -7044,28 +7086,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.receiver = receiver..parent = node;
 
-    ExpressionInferenceResult? recordFieldAccessResult =
-        resolveRecordFieldAccess(
-            receiver, receiverType, node.name, node.fileOffset);
-
-    ExpressionInferenceResult readResult;
-    if (recordFieldAccessResult != null) {
-      readResult = recordFieldAccessResult;
-      // TODO(johnniwinther,paulberry): Should we call
-      //  `flowAnalysis.propertyGet` for record field access?
-    } else {
-      PropertyGetInferenceResult propertyGetInferenceResult =
-          _computePropertyGet(
-              node.fileOffset, receiver, receiverType, node.name, typeContext,
-              isThisReceiver: node.receiver is ThisExpression,
-              propertyGetNode: node);
-      readResult = propertyGetInferenceResult.expressionInferenceResult;
-      // TODO(johnniwinther,paulberry): Should the we pass the resulting node
-      // as the "whole-expression" instead of [node] ? (We do this for field
-      // invocation).
-      flowAnalysis.propertyGet(node, node.receiver, node.name.text,
-          propertyGetInferenceResult.member, readResult.inferredType);
-    }
+    PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
+        node.fileOffset, receiver, receiverType, node.name, typeContext,
+        isThisReceiver: node.receiver is ThisExpression, propertyGetNode: node);
+    ExpressionInferenceResult readResult =
+        propertyGetInferenceResult.expressionInferenceResult;
+    // TODO(johnniwinther,paulberry): Should the we pass the resulting node
+    // as the "whole-expression" instead of [node] ? (We do this for field
+    // invocation).
+    flowAnalysis.propertyGet(node, node.receiver, node.name.text,
+        propertyGetInferenceResult.member, readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
