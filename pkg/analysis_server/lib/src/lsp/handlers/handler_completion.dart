@@ -335,6 +335,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       isIncomplete: false,
       items: _pluginResultsToItems(
         capabilities,
+        path,
         lineInfo,
         offset,
         pluginResults,
@@ -639,6 +640,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
   Iterable<CompletionItem> _pluginResultsToItems(
     LspClientCapabilities capabilities,
+    String path,
     LineInfo lineInfo,
     int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
@@ -654,8 +656,19 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       final insertionRange =
           toRange(lineInfo, result.replacementOffset, insertLength);
 
-      return result.results.map(
-        (item) => toCompletionItem(
+      return result.results.map((item) {
+        final isNotImported = item.isNotImported ?? false;
+        final importUri = item.libraryUri;
+
+        DartCompletionResolutionInfo? resolutionInfo;
+        if (isNotImported && importUri != null) {
+          resolutionInfo = DartCompletionResolutionInfo(
+            file: path,
+            importUris: [importUri],
+          );
+        }
+
+        return toCompletionItem(
           capabilities,
           lineInfo,
           item,
@@ -668,8 +681,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           // completions.
           commitCharactersEnabled: false,
           completeFunctionCalls: false,
-        ),
-      );
+          resolutionData: resolutionInfo,
+        );
+      });
     });
   }
 

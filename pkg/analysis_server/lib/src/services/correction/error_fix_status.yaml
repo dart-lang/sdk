@@ -24,11 +24,11 @@
 #   issue created for it.
 #
 # Stats:
-# - 710 "needsEvaluation"
+# - 698 "needsEvaluation"
 #   - 282 for CompileTimeErrorCodes
 #   - 220 for ParserErrorCodes
-# -  69 "needsFix"
-# - 299 "hasFix"
+# -  73 "needsFix"
+# - 310 "hasFix"
 # -  64 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -427,11 +427,17 @@ CompileTimeErrorCode.EXPRESSION_IN_MAP:
 CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS:
   status: needsEvaluation
 CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.EXTENDS_NON_CLASS:
   status: hasFix
+  notes: |-
+    Additionally: use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
   status: needsEvaluation
 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
@@ -540,15 +546,15 @@ CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
 CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS:
   status: needsEvaluation
 CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_NON_CLASS:
   status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_REPEATED:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
   status: needsEvaluation
 CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
@@ -724,7 +730,7 @@ CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT:
 CompileTimeErrorCode.MIXIN_INSTANTIATE:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.MIXIN_OF_NON_CLASS:
   status: hasFix
 CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
@@ -734,9 +740,11 @@ CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
   status: needsEvaluation
 CompileTimeErrorCode.MIXINS_SUPER_CLASS:
@@ -1274,17 +1282,21 @@ FfiCode.PACKED_ANNOTATION_ALIGNMENT:
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: needsEvaluation
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-  status: needsEvaluation
+  status: hasFix
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
-  status: needsEvaluation
+  status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
-  status: needsEvaluation
+  status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
-  status: needsEvaluation
+  status: hasFix
 HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
   status: noFix
   notes: |-
@@ -1318,9 +1330,7 @@ HintCode.DEPRECATED_EXTENDS_FUNCTION:
   notes: |-
     The fix is to remove `Function` from where it's referenced.
 HintCode.DEPRECATED_IMPLEMENTS_FUNCTION:
-  status: needsFix
-  notes: |-
-    The fix is to remove `Function` from where it's referenced.
+  status: hasFix
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
@@ -1549,6 +1559,7 @@ HintCode.SUBTYPE_OF_SEALED_CLASS:
   status: needsFix
   notes: |-
     Remove the sealed class in the `extends` or `implements` clause.
+    Use RemoveNameFromDeclarationClause.
 HintCode.TYPE_CHECK_IS_NOT_NULL:
   status: hasFix
 HintCode.TYPE_CHECK_IS_NULL:

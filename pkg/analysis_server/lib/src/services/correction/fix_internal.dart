@@ -134,6 +134,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_interpolatio
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_name_from_declaration_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
@@ -210,6 +211,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -997,9 +999,24 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: [
       ReplaceReturnTypeIterable.new,
     ],
+    CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.new,
+    ],
+    CompileTimeErrorCode.IMPLEMENTS_REPEATED: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
       AddSuperParameter.new,
@@ -1042,6 +1059,9 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
       ExtendClassForMixin.new,
+    ],
+    CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ChangeTo.classOrMixin,
@@ -1266,6 +1286,19 @@ class FixProcessor extends BaseProcessor {
       MakeReturnTypeNullable.new,
     ],
 
+    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+
     HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
       AddReturnNull.new,
     ],
@@ -1287,6 +1320,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
+    ],
+    HintCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
+      RemoveNameFromDeclarationClause.new,
     ],
     HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
       RemoveDeprecatedNewInCommentReference.new,

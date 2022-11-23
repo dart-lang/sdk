@@ -1160,6 +1160,57 @@ final a = Stri^
     expect(fromPlugin.kind, equals(CompletionItemKind.Method));
   }
 
+  Future<void> test_fromPlugin_dartFile_withImports() async {
+    final content = '''
+void f() {
+  ^
+}
+    ''';
+
+    final pluginResult = plugin.CompletionGetSuggestionsResult(
+      content.indexOf('^'),
+      0,
+      [
+        plugin.CompletionSuggestion(
+          plugin.CompletionSuggestionKind.IDENTIFIER,
+          100,
+          'fooFromDartIO',
+          -1,
+          -1,
+          false,
+          false,
+          libraryUri: 'dart:io',
+          isNotImported: true,
+        ),
+      ],
+    );
+    configureTestPlugin(respondWith: pluginResult);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final items = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = items.singleWhere((c) => c.label == 'fooFromDartIO');
+    final resolved = await resolveCompletion(item);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+
+    // Ensure the plugin-supplied import was added.
+    expect(newContent, equals('''
+import 'dart:io';
+
+void f() {
+  fooFromDartIO
+}
+    '''));
+  }
+
   Future<void> test_fromPlugin_nonDartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);

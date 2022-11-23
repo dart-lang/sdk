@@ -1068,6 +1068,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Remove name from '{0}'",
   );
+  static const REMOVE_NAME_FROM_DECLARATION_CLAUSE = FixKind(
+    'dart.fix.remove.nameFromDeclarationClause',
+    DartFixKindPriority.DEFAULT,
+    '{0}',
+  );
   static const REMOVE_NON_NULL_ASSERTION = FixKind(
     'dart.fix.remove.nonNullAssertion',
     DartFixKindPriority.DEFAULT,
