@@ -335,6 +335,17 @@ class Parser {
       {this.useImplicitCreationExpression = true, this.allowPatterns = false})
       : assert(listener != null); // ignore:unnecessary_null_comparison
 
+  /// Executes [callback]; however if `this` is the `TestParser` (from
+  /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
+  /// during its execution.
+  ///
+  /// This is sometimes necessary inside `assert` statements, to ensure that the
+  /// output of `TestParser` is the same regardless of whether assertions are
+  /// enabled.
+  T inhibitPrinting<T>(T Function() callback) {
+    return callback();
+  }
+
   bool get inGenerator {
     return asyncState == AsyncModifier.AsyncStar ||
         asyncState == AsyncModifier.SyncStar;
@@ -9249,7 +9260,7 @@ class Parser {
   ///                         | listPattern
   ///                         | mapPattern
   ///                         | recordPattern
-  ///                         | extractorPattern
+  ///                         | objectPattern
   /// listPattern ::= typeArguments? '[' patterns? ']'
   /// mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
   /// mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
@@ -9269,10 +9280,9 @@ class Parser {
   ///                   | 'const' typeArguments? '[' elements? ']'
   ///                   | 'const' typeArguments? '{' elements? '}'
   ///                   | 'const' '(' expression ')'
-  /// extractorPattern ::= extractorName typeArguments?
-  ///                          '(' patternFields? ')'
-  /// extractorName    ::= typeIdentifier | qualifiedName
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
   Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
+    Token start = token;
     TypeParamOrArgInfo typeArg =
         computeTypeParamOrArg(token, /* inDeclaration = */ true);
     Token next = typeArg.skip(token).next!;
@@ -9281,15 +9291,25 @@ class Parser {
       case '[':
         // listPattern ::= typeArguments? '[' patterns? ']'
         token = typeArg.parseArguments(token, this);
-        return parseListPatternSuffix(token,
+        token = parseListPatternSuffix(token,
             isRefutableContext: isRefutableContext);
+        // A list pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
       case '{':
         // mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
         // mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
         // mapPatternEntry   ::= expression ':' pattern
         token = typeArg.parseArguments(token, this);
-        return parseMapPatternSuffix(token,
+        token = parseMapPatternSuffix(token,
             isRefutableContext: isRefutableContext);
+        // A map pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
     }
     // Whatever was after the optional type arguments didn't parse as a pattern
     // that can start with type arguments, so back up and reparse assuming that
@@ -9308,11 +9328,17 @@ class Parser {
         Token nextNext = next.next!;
         if (optional(')', nextNext)) {
           listener.handleRecordPattern(next, /* count = */ 0);
-          return nextNext;
+          token = nextNext;
         } else {
-          return parseParenthesizedPatternOrRecordPattern(token,
+          token = parseParenthesizedPatternOrRecordPattern(token,
               isRefutableContext: isRefutableContext);
         }
+        // A record or parenthesized pattern is a valid form of outerPattern, so
+        // verify that skipOuterPattern would have skipped this pattern
+        // properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
       case 'const':
         // constantPattern ::= booleanLiteral
         //                   | nullLiteral
@@ -9352,9 +9378,7 @@ class Parser {
     if (typeInfo != noType) {
       return parseVariablePattern(token, typeInfo: typeInfo);
     }
-    // extractorPattern ::= extractorName typeArguments?
-    //                          '(' patternFields? ')'
-    // extractorName    ::= typeIdentifier | qualifiedName
+    // objectPattern ::= typeName typeArguments? '(' patternFields? ')'
     // TODO(paulberry): Make sure OTHER_IDENTIFIER is handled
     // TODO(paulberry): Technically `dynamic` is valid for
     // `typeIdentifier`--file an issue
@@ -9381,9 +9405,13 @@ class Parser {
       if (optional('(', afterToken) && !potentialTypeArg.recovered) {
         TypeParamOrArgInfo typeArg = potentialTypeArg;
         token = typeArg.parseArguments(token, this);
-        token = parseExtractorPatternRest(token,
+        token = parseObjectPatternRest(token,
             isRefutableContext: isRefutableContext);
-        listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
+        listener.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
+        // An object pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
         return token;
       } else if (dot == null) {
         // It's a single identifier.  If it's a wildcard pattern or we're in an
@@ -9395,7 +9423,7 @@ class Parser {
               typeInfo: typeInfo);
         }
       }
-      // It's not an extractor pattern so parse it as an expression.
+      // It's not an object pattern so parse it as an expression.
       token = beforeFirstIdentifier;
     }
     // TODO(paulberry): report error if this constant is not permitted by the
@@ -9642,12 +9670,11 @@ class Parser {
     return token;
   }
 
-  /// Parses the rest of an extractorPattern, where [token] is the token before
-  /// the `(`.
+  /// Parses the rest of an objectPattern, where [token] is the token before the
+  /// `(`.
   ///
-  /// extractorPattern ::= extractorName typeArguments?
-  ///                          '(' patternFields? ')'
-  Token parseExtractorPatternRest(Token token,
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token parseObjectPatternRest(Token token,
       {required bool isRefutableContext}) {
     Token begin = token = token.next!;
     assert(optional('(', begin));
@@ -9697,7 +9724,7 @@ class Parser {
     }
     assert(optional(')', token));
     mayParseFunctionExpressions = old;
-    listener.handleExtractorPatternFields(argumentCount, begin, token);
+    listener.handleObjectPatternFields(argumentCount, begin, token);
     return token;
   }
 
@@ -9719,19 +9746,19 @@ class Parser {
   ///                | listPattern
   ///                | mapPattern
   ///                | recordPattern
-  ///                | extractorPattern
+  ///                | objectPattern
   Token? skipOuterPattern(Token token) {
     Token next = token.next!;
     if (next.isIdentifier) {
       token = next;
       next = token.next!;
       if (!optional('.', next)) {
-        return skipExtractorPatternRest(token);
+        return skipObjectPatternRest(token);
       }
       token = next;
       next = token.next!;
       if (next.isIdentifier) {
-        return skipExtractorPatternRest(next);
+        return skipObjectPatternRest(next);
       } else {
         throw new UnimplementedError('TODO(paulberry)');
       }
@@ -9754,12 +9781,12 @@ class Parser {
     throw new UnimplementedError('TODO(paulberry)');
   }
 
-  /// Tries to advance through an extractor pattern, where [token] is the last
-  /// token of the extractor pattern's type name.  If the tokens following
-  /// [token] don't look like the rest of an extractor pattern, returns `null`.
+  /// Tries to advance through an object pattern, where [token] is the last
+  /// token of the object pattern's type name.  If the tokens following
+  /// [token] don't look like the rest of an object pattern, returns `null`.
   ///
-  /// extractorPattern ::= typeName typeArguments? '(' patternFields? ')'
-  Token? skipExtractorPatternRest(Token token) {
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token? skipObjectPatternRest(Token token) {
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
     token = typeParamOrArg.skip(token);
     Token? next = token.next;

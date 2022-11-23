@@ -542,9 +542,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    listener?.handleExtractorPatternFields(count, beginToken, endToken);
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    listener?.handleObjectPatternFields(count, beginToken, endToken);
   }
 
   @override
@@ -1817,9 +1816,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    listener?.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
+    listener?.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
   }
 
   @override

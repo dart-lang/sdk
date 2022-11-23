@@ -172,7 +172,7 @@ class _Group {
   /// Name of the group. May be null if the name is derived from the matcher. In
   /// that case, the name would be group(1) of the matched expression if it
   /// exist, or group(0) otherwise.
-  final String name;
+  final String? name;
 
   /// Regular expression matching members of the group.
   final RegExp matcher;

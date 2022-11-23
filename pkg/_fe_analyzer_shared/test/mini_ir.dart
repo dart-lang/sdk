@@ -50,6 +50,9 @@ enum Kind {
   /// A label for `break` or `continue` to branch to.
   label,
 
+  /// A map pattern element.
+  mapPatternElement,
+
   /// A pattern.
   pattern,
 

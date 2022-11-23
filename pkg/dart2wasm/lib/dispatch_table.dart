@@ -362,7 +362,7 @@ class DispatchTable {
       /// for the class. Override that target if [reference] is a not abstract.
       /// If it's abstract, then the superclass's method will be called, so do
       /// not update the target.
-      SelectorInfo addMember(Reference reference) {
+      void addMember(Reference reference) {
         SelectorInfo selector = _createSelectorForTarget(reference);
         if (reference.asMember.isAbstract) {
           // Reference is abstract, do not override inherited concrete member
@@ -372,7 +372,6 @@ class DispatchTable {
           selector.targets[info.classId] = reference;
         }
         selectorIds.add(selector.id);
-        return selector;
       }
 
       // Add the class to its non-static members' selectors. If `info.cls` is
@@ -388,9 +387,8 @@ class DispatchTable {
           addMember(member.getterReference);
           if (member.hasSetter) addMember(member.setterReference!);
         } else if (member is Procedure) {
-          SelectorInfo method = addMember(member.reference);
-          if (_selectorMetadata[method.id].tornOff &&
-              _procedureAttributeMetadata[member]!.hasTearOffUses) {
+          addMember(member.reference);
+          if (_procedureAttributeMetadata[member]!.hasTearOffUses) {
             addMember(member.tearOffReference);
           }
         }

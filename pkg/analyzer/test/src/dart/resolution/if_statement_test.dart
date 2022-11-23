@@ -9,12 +9,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IfStatementTest);
+    defineReflectiveTests(IfStatementResolutionTest);
   });
 }
 
 @reflectiveTest
-class IfStatementTest extends PatternsResolutionTest {
+class IfStatementResolutionTest extends PatternsResolutionTest {
   test_caseClause() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

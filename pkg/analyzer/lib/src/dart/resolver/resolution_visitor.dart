@@ -805,17 +805,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var caseClause = node.caseClause;
     if (caseClause != null) {
       node.expression.accept(this);
-      _patternVariables.casePatternStart();
-      var guardedPattern = caseClause.guardedPattern;
-      guardedPattern.pattern.accept(this);
-      var variables = _patternVariables.casePatternFinish();
-      _withNameScope(() {
-        guardedPattern.variables = variables;
-        // TODO(scheglov) Use `_defineVariables`.
-        for (var variable in variables.values) {
-          _define(variable);
-        }
-        guardedPattern.whenClause?.accept(this);
+      _resolveGuardedPattern(caseClause.guardedPattern, then: () {
         node.thenStatement.accept(this);
       });
       node.elseStatement?.accept(this);
@@ -1153,14 +1143,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         } else if (member is SwitchDefaultImpl) {
           _patternVariables.switchStatementSharedCaseScopeEmpty(node);
         } else if (member is SwitchPatternCaseImpl) {
-          _patternVariables.casePatternStart();
-          var guardedPattern = member.guardedPattern;
-          guardedPattern.pattern.accept(this);
-          // TODO(scheglov) use variables
-          _patternVariables.casePatternFinish(
+          _resolveGuardedPattern(
+            member.guardedPattern,
             sharedCaseScopeKey: node,
           );
-          guardedPattern.whenClause?.accept(this);
         } else {
           throw UnimplementedError('(${member.runtimeType}) $member');
         }
@@ -1259,7 +1245,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     final name = node.name.lexeme;
     if (name != '_') {
-      var element = VariablePatternElementImpl(
+      var element = VariablePatternBindElementImpl(
         node,
         name,
         node.name.offset,
@@ -1406,6 +1392,29 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
     return NullabilitySuffix.star;
+  }
+
+  void _resolveGuardedPattern(
+    GuardedPatternImpl guardedPattern, {
+    Object? sharedCaseScopeKey,
+    void Function()? then,
+  }) {
+    _patternVariables.casePatternStart();
+    guardedPattern.pattern.accept(this);
+    var variables = _patternVariables.casePatternFinish(
+      sharedCaseScopeKey: sharedCaseScopeKey,
+    );
+    // Matched variables are available in `whenClause`.
+    _withNameScope(() {
+      for (var variable in variables.values) {
+        _define(variable);
+      }
+      guardedPattern.variables = variables;
+      guardedPattern.whenClause?.accept(this);
+      if (then != null) {
+        then();
+      }
+    });
   }
 
   void _resolveImplementsClause(ImplementsClause? clause) {
@@ -1585,14 +1594,14 @@ class _VariableBinder
   _VariableBinder({required super.errors});
 
   @override
-  LocalVariableElementImpl joinPatternVariables({
+  VariablePatternJoinElementImpl joinPatternVariables({
     required Object key,
     required List<PromotableElement> components,
     required bool isConsistent,
   }) {
     var first = components.first;
     var expandedComponents = components.expand((component) {
-      component as LocalVariableElementImpl;
+      component as VariablePatternElementImpl;
       if (component is VariablePatternJoinElementImpl) {
         return component.components;
       } else {
@@ -1626,8 +1635,8 @@ class _VariableBinderErrors
   @override
   void duplicateVariablePattern({
     required String name,
-    required covariant VariablePatternElementImpl original,
-    required covariant VariablePatternElementImpl duplicate,
+    required covariant VariablePatternBindElementImpl original,
+    required covariant VariablePatternBindElementImpl duplicate,
   }) {
     visitor._errorReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(

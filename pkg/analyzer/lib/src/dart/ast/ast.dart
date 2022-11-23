@@ -13590,7 +13590,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
 @experimental
 class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   @override
-  VariablePatternElementImpl? declaredElement;
+  VariablePatternBindElementImpl? declaredElement;
 
   @override
   final Token? keyword;

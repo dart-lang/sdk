@@ -54,10 +54,9 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Called after the parser has consumed a sequence of patternFields that
-  /// forms the arguments to an extractorPattern
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    logEvent("ExtractorPatternFields");
+  /// forms the arguments to an objectPattern
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    logEvent("ObjectPatternFields");
   }
 
   /// Handle async modifiers `async`, `async*`, `sync`.
@@ -1900,13 +1899,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstantPattern");
   }
 
-  /// Called after the parser has consumed an extractor pattern, consisting of
+  /// Called after the parser has consumed an object pattern, consisting of
   /// an identifier, optional dot and second identifier, optional type
-  /// arguments, and a parenthesized list of extractor pattern fields (see
-  /// [handleExtractorPatternFields]).
-  void handleExtractorPattern(
+  /// arguments, and a parenthesized list of object pattern fields (see
+  /// [handleObjectPatternFields]).
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    logEvent("ExtractorPattern");
+    logEvent("ObjectPattern");
   }
 
   /// Handle a construct of the form "identifier.identifier" occurring in a part

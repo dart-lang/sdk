@@ -557,6 +557,12 @@ class OperationsCfe
   }
 
   @override
+  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+    // TODO: implement matchMapType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
     // TODO(scheglov): implement areStructurallyEqual
     throw new UnimplementedError('TODO(scheglov)');

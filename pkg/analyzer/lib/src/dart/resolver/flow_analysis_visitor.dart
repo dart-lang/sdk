@@ -470,6 +470,19 @@ class TypeSystemOperations
   }
 
   @override
+  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+    var mapElement = typeSystem.typeProvider.mapElement;
+    var mapType = type.asInstanceOf(mapElement);
+    if (mapType != null) {
+      return MapPatternTypeArguments<DartType>(
+        keyType: mapType.typeArguments[0],
+        valueType: mapType.typeArguments[1],
+      );
+    }
+    return null;
+  }
+
+  @override
   DartType normalize(DartType type) {
     return typeSystem.normalize(type);
   }

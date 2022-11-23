@@ -3946,43 +3946,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleExtractorPattern(
-      Token firstIdentifierToken, Token? dot, Token? secondIdentifierToken) {
-    debugEvent("ExtractorPattern");
-
-    var arguments = pop() as _ObjectPatternFields;
-    var typeArguments = pop() as TypeArgumentListImpl?;
-    var firstIdentifier = SimpleIdentifierImpl(firstIdentifierToken);
-    var typeName = dot == null
-        ? firstIdentifier
-        : PrefixedIdentifierImpl(
-            prefix: firstIdentifier,
-            period: dot,
-            identifier: SimpleIdentifierImpl(secondIdentifierToken!),
-          );
-    push(
-      ObjectPatternImpl(
-        type: NamedTypeImpl(
-          name: typeName,
-          typeArguments: typeArguments,
-          question: null,
-        ),
-        leftParenthesis: arguments.leftParenthesis,
-        fields: arguments.fields,
-        rightParenthesis: arguments.rightParenthesis,
-      ),
-    );
-  }
-
-  @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    debugEvent("ExtractorPatternFields");
-    var fields = popTypedList2<RecordPatternFieldImpl>(count);
-    push(_ObjectPatternFields(beginToken, endToken, fields));
-  }
-
-  @override
   void handleFinallyBlock(Token finallyKeyword) {
     debugEvent("FinallyBlock");
     // The finally block is popped in "endTryStatement".
@@ -4696,6 +4659,42 @@ class AstBuilder extends StackListener {
     }
     push(PostfixPatternImpl(
         operand: pop() as DartPatternImpl, operator: question));
+  }
+
+  @override
+  void handleObjectPattern(
+      Token firstIdentifierToken, Token? dot, Token? secondIdentifierToken) {
+    debugEvent("ExtractorPattern");
+
+    var arguments = pop() as _ObjectPatternFields;
+    var typeArguments = pop() as TypeArgumentListImpl?;
+    var firstIdentifier = SimpleIdentifierImpl(firstIdentifierToken);
+    var typeName = dot == null
+        ? firstIdentifier
+        : PrefixedIdentifierImpl(
+            prefix: firstIdentifier,
+            period: dot,
+            identifier: SimpleIdentifierImpl(secondIdentifierToken!),
+          );
+    push(
+      ObjectPatternImpl(
+        type: NamedTypeImpl(
+          name: typeName,
+          typeArguments: typeArguments,
+          question: null,
+        ),
+        leftParenthesis: arguments.leftParenthesis,
+        fields: arguments.fields,
+        rightParenthesis: arguments.rightParenthesis,
+      ),
+    );
+  }
+
+  @override
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    debugEvent("ExtractorPatternFields");
+    var fields = popTypedList2<RecordPatternFieldImpl>(count);
+    push(_ObjectPatternFields(beginToken, endToken, fields));
   }
 
   @override

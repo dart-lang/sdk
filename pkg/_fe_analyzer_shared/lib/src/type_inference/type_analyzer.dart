@@ -33,6 +33,16 @@ class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node,
   });
 }
 
+class MapPatternEntry<Expression extends Object, Pattern extends Object> {
+  final Expression key;
+  final Pattern value;
+
+  MapPatternEntry({
+    required this.key,
+    required this.value,
+  });
+}
+
 class NamedType<Type extends Object> {
   final String name;
   final Type type;
@@ -528,7 +538,7 @@ mixin TypeAnalyzer<
         if (subPattern != null) {
           dispatchPattern(listType(valueType), context, subPattern);
         }
-        handleRestPatternElement(node, element);
+        handleListPatternRestElement(node, element);
       } else {
         dispatchPattern(valueType, context, element);
       }
@@ -640,6 +650,107 @@ mixin TypeAnalyzer<
       errors?.assertInErrorRecovery();
       return unknownType;
     }
+  }
+
+  /// Analyzes a map pattern.  [node] is the pattern itself, [typeArguments]
+  /// contain explicit type arguments (if specified), and [elements] is the
+  /// list of subpatterns.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType] and [context].
+  ///
+  /// Stack effect: pushes (n * MapPatternElement) where n = elements.length.
+  Type analyzeMapPattern(
+    Type matchedType,
+    MatchContext<Node, Expression, Pattern, Type, Variable> context,
+    Pattern node, {
+    required MapPatternTypeArguments<Type>? typeArguments,
+    required List<Node> elements,
+  }) {
+    Type keyType;
+    Type valueType;
+    Type keyContext;
+    if (typeArguments != null) {
+      keyType = typeArguments.keyType;
+      valueType = typeArguments.valueType;
+      keyContext = keyType;
+    } else {
+      typeArguments = typeOperations.matchMapType(matchedType);
+      if (typeArguments != null) {
+        keyType = typeArguments.keyType;
+        valueType = typeArguments.valueType;
+        keyContext = keyType;
+      } else if (typeOperations.isDynamic(matchedType)) {
+        keyType = dynamicType;
+        valueType = dynamicType;
+        keyContext = unknownType;
+      } else {
+        keyType = objectQuestionType;
+        valueType = objectQuestionType;
+        keyContext = unknownType;
+      }
+    }
+    // Stack: ()
+    for (Node element in elements) {
+      MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
+      if (entry != null) {
+        analyzeExpression(entry.key, keyContext);
+        dispatchPattern(valueType, context, entry.value);
+        handleMapPatternEntry(node, element);
+      } else {
+        assert(isRestPatternElement(element));
+        handleMapPatternRestElement(node, element);
+      }
+    }
+    // Stack: (n * MapPatternElement) where n = elements.length
+    Type requiredType = mapType(
+      keyType: keyType,
+      valueType: valueType,
+    );
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null &&
+        !typeOperations.isAssignableTo(matchedType, requiredType)) {
+      errors?.patternTypeMismatchInIrrefutableContext(
+        pattern: node,
+        context: irrefutableContext,
+        matchedType: matchedType,
+        requiredType: requiredType,
+      );
+    }
+    return requiredType;
+  }
+
+  /// Computes the type schema for a map pattern.  [typeArguments] contain
+  /// explicit type arguments (if specified), and [elements] is the list of
+  /// subpatterns.
+  ///
+  /// Stack effect: none.
+  Type analyzeMapPatternSchema({
+    required MapPatternTypeArguments<Type>? typeArguments,
+    required List<Node> elements,
+  }) {
+    if (typeArguments != null) {
+      return mapType(
+        keyType: typeArguments.keyType,
+        valueType: typeArguments.valueType,
+      );
+    }
+
+    Type? valueType;
+    for (Node element in elements) {
+      MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
+      if (entry != null) {
+        Type entryValueType = dispatchPatternSchema(entry.value);
+        if (valueType == null) {
+          valueType = entryValueType;
+        } else {
+          valueType = typeOperations.glb(valueType, entryValueType);
+        }
+      }
+    }
+    return mapType(
+      keyType: unknownType,
+      valueType: valueType ?? unknownType,
+    );
   }
 
   /// Analyzes a null-check or null-assert pattern.  [node] is the pattern
@@ -1255,6 +1366,9 @@ mixin TypeAnalyzer<
 
   List<Variable>? getJoinedVariableComponents(Variable variable);
 
+  /// If the [element] is a map pattern entry, returns it.
+  MapPatternEntry<Expression, Pattern>? getMapPatternEntry(Node element);
+
   /// If [node] is [isRestPatternElement], returns its optional pattern.
   Pattern? getRestPatternElementPattern(Node node);
 
@@ -1340,6 +1454,21 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (CaseHead).
   void handleDefault(Node node, int caseIndex);
 
+  /// Called after visiting a rest element in a list pattern.
+  ///
+  /// Stack effect: pushes (Pattern).
+  void handleListPatternRestElement(Pattern container, Node restElement);
+
+  /// Called after visiting an entry element in a map pattern.
+  ///
+  /// Stack effect: pushes (MapPatternElement).
+  void handleMapPatternEntry(Pattern container, Node entryElement);
+
+  /// Called after visiting a rest element in a map pattern.
+  ///
+  /// Stack effect: pushes (MapPatternElement).
+  void handleMapPatternRestElement(Pattern container, Node restElement);
+
   /// Called after visiting a merged statement case.
   ///
   /// [node] is enclosing switch statement, [caseIndex] is the index of the
@@ -1376,11 +1505,6 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Statement).
   void handleNoStatement(Statement node);
 
-  /// Called after visiting a rest element in a list or map pattern.
-  ///
-  /// Stack effect: pushes (Pattern).
-  void handleRestPatternElement(Pattern container, Node restElement);
-
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
   /// analysis.
@@ -1409,8 +1533,14 @@ mixin TypeAnalyzer<
   /// Queries whether [pattern] is a variable pattern.
   bool isVariablePattern(Node pattern);
 
-  /// Returns the type `List`, with type parameter [elementType].
+  /// Returns the type `List`, with type argument [elementType].
   Type listType(Type elementType);
+
+  /// Returns the type `Map`, with type arguments.
+  Type mapType({
+    required Type keyType,
+    required Type valueType,
+  });
 
   /// Builds the client specific record type.
   Type recordType(

@@ -2429,13 +2429,31 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   DartObject? computeConstantValue();
 }
 
+/// A pattern variable that is explicitly declared.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class VariablePatternBindElement implements VariablePatternElement {}
+
 /// A pattern variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class VariablePatternElement implements LocalVariableElement {
-  /// Aliases of this variable in logical-or patterns.
-  List<VariablePatternElement> get aliases;
+abstract class VariablePatternElement implements LocalVariableElement {}
+
+/// A pattern variable that is a join of other pattern variables, created
+/// for a logical-or patterns, or shared `case` bodies in `switch` statements
+/// or expressions.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class VariablePatternJoinElement implements VariablePatternElement {
+  /// Returns the variables that join into this variable.
+  List<VariablePatternElement> get components;
+
+  /// Returns `true` if [components] are consistent, present in all branches,
+  /// and have the same type and finality.
+  bool get isConsistent;
 }
 
 /// This class exists to provide non-nullable overrides for existing elements,

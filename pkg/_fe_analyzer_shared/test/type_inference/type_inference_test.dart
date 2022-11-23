@@ -1479,6 +1479,189 @@ main() {
       });
     });
 
+    group('Map:', () {
+      group('Type schema:', () {
+        test('Explicit type arguments', () {
+          var x = Var('x');
+          h.run([
+            match(
+              mapPatternWithTypeArguments(
+                keyType: 'bool',
+                valueType: 'int',
+                elements: [
+                  mapPatternEntry(expr('int'), x.pattern()),
+                ],
+              ),
+              expr('dynamic').checkContext('Map<bool, int>'),
+            ),
+          ]);
+        });
+        group('Implicit element type:', () {
+          test('No elements', () {
+            h.run([
+              match(
+                mapPattern([]),
+                expr('dynamic').checkContext('Map<?, ?>'),
+              ),
+            ]);
+          });
+
+          test('Variable patterns', () {
+            var x = Var('x');
+            var y = Var('y');
+            h.run([
+              match(
+                mapPattern([
+                  mapPatternEntry(expr('bool'), x.pattern(type: 'int?')),
+                  mapPatternEntry(expr('bool'), y.pattern(type: 'num')),
+                ]),
+                expr('dynamic').checkContext('Map<?, int>'),
+              ),
+            ]);
+          });
+
+          test('Rest pattern', () {
+            var x = Var('x');
+            h.run([
+              match(
+                mapPattern([
+                  mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
+                  mapPatternRestElement(),
+                ]),
+                expr('dynamic').checkContext('Map<?, int>'),
+              ),
+            ]);
+          });
+        });
+      });
+
+      group('Static type', () {
+        test('Explicit type arguments', () {
+          var x = Var('x', errorId: 'x');
+          h.run([
+            ifCase(
+              expr('dynamic'),
+              mapPatternWithTypeArguments(
+                keyType: 'bool',
+                valueType: 'int',
+                elements: [
+                  mapPatternEntry(
+                    expr('Object').checkContext('bool'),
+                    x.pattern(),
+                  ),
+                ],
+              ),
+            ).checkIr('ifCase(expr(dynamic), mapPattern(mapPatternEntry('
+                'expr(Object), varPattern(x, matchedType: int, staticType: '
+                'int)), matchedType: dynamic, requiredType: Map<bool, int>), '
+                'variables(x), true, block(), noop)'),
+          ]);
+        });
+
+        test('Matched type is a map', () {
+          var x = Var('x', errorId: 'x');
+          h.run([
+            ifCase(
+              expr('Map<bool, int>'),
+              mapPattern([
+                mapPatternEntry(
+                  expr('Object').checkContext('bool'),
+                  x.pattern(),
+                ),
+              ]),
+            ).checkIr('ifCase(expr(Map<bool, int>), mapPattern(mapPatternEntry('
+                'expr(Object), varPattern(x, matchedType: int, staticType: '
+                'int)), matchedType: Map<bool, int>, requiredType: '
+                'Map<bool, int>), variables(x), true, block(), noop)'),
+          ]);
+        });
+
+        test('Matched type is dynamic', () {
+          var x = Var('x', errorId: 'x');
+          h.run([
+            ifCase(
+              expr('dynamic'),
+              mapPattern([
+                mapPatternEntry(
+                  expr('Object').checkContext('?'),
+                  x.pattern(),
+                ),
+              ]),
+            ).checkIr('ifCase(expr(dynamic), mapPattern(mapPatternEntry('
+                'expr(Object), varPattern(x, matchedType: dynamic, staticType: '
+                'dynamic)), matchedType: dynamic, requiredType: '
+                'Map<dynamic, dynamic>), variables(x), true, block(), noop)'),
+          ]);
+        });
+
+        test('Matched type is other', () {
+          var x = Var('x', errorId: 'x');
+          h.run([
+            ifCase(
+              expr('String'),
+              mapPattern([
+                mapPatternEntry(
+                  expr('Object').checkContext('?'),
+                  x.pattern(),
+                ),
+              ]),
+            ).checkIr('ifCase(expr(String), mapPattern(mapPatternEntry('
+                'expr(Object), varPattern(x, matchedType: Object?, staticType: '
+                'Object?)), matchedType: String, requiredType: '
+                'Map<Object?, Object?>), variables(x), true, block(), noop)'),
+          ]);
+        });
+      });
+
+      group('Refutable context:', () {
+        test('When matched type is a subtype of required type', () {
+          h.run([
+            match(
+              mapPatternWithTypeArguments(
+                keyType: 'Object',
+                valueType: 'num',
+                elements: [],
+              ),
+              expr('Map<bool, int>'),
+            ).checkIr('match(expr(Map<bool, int>), mapPattern('
+                'matchedType: Map<bool, int>, requiredType: '
+                'Map<Object, num>))'),
+          ]);
+        });
+
+        test('When matched type is dynamic', () {
+          h.run([
+            match(
+              mapPatternWithTypeArguments(
+                keyType: 'Object',
+                valueType: 'num',
+                elements: [],
+              ),
+              expr('dynamic'),
+            ).checkIr('match(expr(dynamic), mapPattern(matchedType: '
+                'dynamic, requiredType: Map<Object, num>))'),
+          ]);
+        });
+
+        test('When matched type is not a subtype of required type', () {
+          h.run([
+            match(
+              mapPatternWithTypeArguments(
+                keyType: 'bool',
+                valueType: 'int',
+                elements: [],
+              )..errorId = 'PATTERN',
+              expr('String'),
+            )..errorId = 'CONTEXT',
+          ], expectedErrors: {
+            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT, matchedType: String, '
+                'requiredType: Map<bool, int>)'
+          });
+        });
+      });
+    });
+
     group('List:', () {
       group('Type schema:', () {
         test('Explicit element type', () {

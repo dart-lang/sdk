@@ -8992,8 +8992,33 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleRestPatternElement(Pattern container, Node restElement) {
-    // TODO(scheglov): implement handleRestPatternElement
+  void handleListPatternRestElement(Pattern container, Node restElement) {
+    // TODO(scheglov): implement handleListPatternRestElement
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void handleMapPatternRestElement(Pattern container, Node restElement) {
+    // TODO(scheglov): implement handleMapPatternRestElement
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
+      Node element) {
+    // TODO(scheglov): implement getMapPatternEntry
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void handleMapPatternEntry(Pattern container, Node entryElement) {
+    // TODO(scheglov): implement handleMapPatternEntry
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType mapType({required DartType keyType, required DartType valueType}) {
+    // TODO(scheglov): implement mapType
     throw new UnimplementedError('TODO(scheglov)');
   }
 }

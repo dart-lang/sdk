@@ -147,6 +147,12 @@ class DecoratedTypeOperations
   }
 
   @override
+  MapPatternTypeArguments<DecoratedType>? matchMapType(DecoratedType type) {
+    // TODO: implement matchMapType
+    throw UnimplementedError();
+  }
+
+  @override
   DecoratedType normalize(DecoratedType type) {
     // TODO(scheglov): implement normalize
     throw UnimplementedError('TODO(scheglov)');

@@ -513,7 +513,7 @@ class MicroAssembler : public AssemblerBase {
   void fmind(FRegister rd, FRegister rs1, FRegister rs2);
   void fmaxd(FRegister rd, FRegister rs1, FRegister rs2);
   void fcvtsd(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
-  void fcvtds(FRegister rd, FRegister rs1);
+  void fcvtds(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
   void feqd(Register rd, FRegister rs1, FRegister rs2);
   void fltd(Register rd, FRegister rs1, FRegister rs2);
   void fled(Register rd, FRegister rs1, FRegister rs2);
