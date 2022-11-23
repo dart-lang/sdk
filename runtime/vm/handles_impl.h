@@ -207,32 +207,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   zone_blocks_ = new HandlesBlock(zone_blocks_);
 }
 
-#if defined(DEBUG)
-template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
-void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
-    VerifyScopedHandleState() {
-  HandlesBlock* block = &first_scoped_block_;
-  const intptr_t end_index = (kHandleSizeInWords * kHandlesPerChunk);
-  do {
-    if (scoped_blocks_ == block && block->next_handle_slot() <= end_index) {
-      return;
-    }
-    block = block->next_block();
-  } while (block != NULL);
-  ASSERT(false);
-}
-
-template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
-void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
-    ZapFreeScopedHandles() {
-  HandlesBlock* block = scoped_blocks_;
-  while (block != NULL) {
-    block->ZapFreeHandles();
-    block = block->next_block();
-  }
-}
-#endif
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     CountScopedHandles() const {

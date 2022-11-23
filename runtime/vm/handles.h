@@ -218,14 +218,6 @@ class Handles {
   // Allocates a new handle block and links it up.
   void SetupNextZoneBlock();
 
-#if defined(DEBUG)
-  // Verifies consistency of handle blocks after a scope is destroyed.
-  void VerifyScopedHandleState();
-
-  // Zaps the free scoped handles to an uninitialized value.
-  void ZapFreeScopedHandles();
-#endif
-
   HandlesBlock* zone_blocks_;        // List of zone handles.
   HandlesBlock first_scoped_block_;  // First block of scoped handles.
   HandlesBlock* scoped_blocks_;      // List of scoped handles.
