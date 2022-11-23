@@ -62,7 +62,8 @@ external _log(String message, int timestamp, int sequenceNumber, int level,
 
 @patch
 @pragma("vm:external-name", "Developer_postEvent")
-external void _postEvent(String eventKind, String eventData, { String stream = 'Extension' });
+external void _postEvent(String eventKind, String eventData,
+    {String stream = 'Extension'});
 
 @patch
 @pragma("vm:external-name", "Developer_lookupExtension")
