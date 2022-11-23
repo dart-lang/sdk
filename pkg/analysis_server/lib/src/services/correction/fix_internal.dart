@@ -106,6 +106,7 @@ import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
+import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
@@ -492,6 +493,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.leading_newlines_in_multiline_strings: [
       AddLeadingNewlineToString.new,
+    ],
+    LintNames.library_annotations: [
+      MoveAnnotationToLibraryDirective.new,
     ],
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.new,

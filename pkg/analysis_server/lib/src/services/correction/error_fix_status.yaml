@@ -27,8 +27,8 @@
 # - 710 "needsEvaluation"
 #   - 282 for CompileTimeErrorCodes
 #   - 220 for ParserErrorCodes
-# -  70 "needsFix"
-# - 298 "hasFix"
+# -  69 "needsFix"
+# - 299 "hasFix"
 # -  64 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -1854,7 +1854,7 @@ LintCode.join_return_with_assignment:
 LintCode.leading_newlines_in_multiline_strings:
   status: hasFix
 LintCode.library_annotations:
-  status: needsFix
+  status: hasFix
 LintCode.library_names:
   status: needsEvaluation
 LintCode.library_prefixes:

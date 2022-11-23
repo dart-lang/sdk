@@ -847,6 +847,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Make '{0}' nullable",
   );
+  static const MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE = FixKind(
+    'dart.fix.moveAnnotationToLibraryDirective',
+    DartFixKindPriority.DEFAULT,
+    "Move this annotation to a library directive",
+  );
   static const ORGANIZE_IMPORTS = FixKind(
     'dart.fix.organize.imports',
     DartFixKindPriority.DEFAULT,
