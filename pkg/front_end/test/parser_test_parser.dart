@@ -30,6 +30,7 @@ class TestParser extends Parser {
   int indent = 0;
   StringBuffer sb = new StringBuffer();
   final bool trace;
+  bool _inhibitPrinting = false;
 
   TestParser(Listener listener, this.trace, {required bool allowPatterns})
       : super(listener,
@@ -51,9 +52,21 @@ class TestParser extends Parser {
   }
 
   void doPrint(String s) {
+    if (_inhibitPrinting) return;
     String traceString = "";
     if (trace) traceString = " (${createTrace()})";
     sb.writeln(("  " * indent) + s + traceString);
+  }
+
+  @override
+  T inhibitPrinting<T>(T Function() callback) {
+    bool previousInhibitPrinting = _inhibitPrinting;
+    _inhibitPrinting = true;
+    try {
+      return callback();
+    } finally {
+      _inhibitPrinting = previousInhibitPrinting;
+    }
   }
 
   @override

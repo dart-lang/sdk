@@ -335,6 +335,17 @@ class Parser {
       {this.useImplicitCreationExpression = true, this.allowPatterns = false})
       : assert(listener != null); // ignore:unnecessary_null_comparison
 
+  /// Executes [callback]; however if `this` is the `TestParser` (from
+  /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
+  /// during its execution.
+  ///
+  /// This is sometimes necessary inside `assert` statements, to ensure that the
+  /// output of `TestParser` is the same regardless of whether assertions are
+  /// enabled.
+  T inhibitPrinting<T>(T Function() callback) {
+    return callback();
+  }
+
   bool get inGenerator {
     return asyncState == AsyncModifier.AsyncStar ||
         asyncState == AsyncModifier.SyncStar;
@@ -9271,6 +9282,7 @@ class Parser {
   ///                   | 'const' '(' expression ')'
   /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
   Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
+    Token start = token;
     TypeParamOrArgInfo typeArg =
         computeTypeParamOrArg(token, /* inDeclaration = */ true);
     Token next = typeArg.skip(token).next!;
@@ -9279,15 +9291,25 @@ class Parser {
       case '[':
         // listPattern ::= typeArguments? '[' patterns? ']'
         token = typeArg.parseArguments(token, this);
-        return parseListPatternSuffix(token,
+        token = parseListPatternSuffix(token,
             isRefutableContext: isRefutableContext);
+        // A list pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
       case '{':
         // mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
         // mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
         // mapPatternEntry   ::= expression ':' pattern
         token = typeArg.parseArguments(token, this);
-        return parseMapPatternSuffix(token,
+        token = parseMapPatternSuffix(token,
             isRefutableContext: isRefutableContext);
+        // A map pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
     }
     // Whatever was after the optional type arguments didn't parse as a pattern
     // that can start with type arguments, so back up and reparse assuming that
@@ -9306,11 +9328,17 @@ class Parser {
         Token nextNext = next.next!;
         if (optional(')', nextNext)) {
           listener.handleRecordPattern(next, /* count = */ 0);
-          return nextNext;
+          token = nextNext;
         } else {
-          return parseParenthesizedPatternOrRecordPattern(token,
+          token = parseParenthesizedPatternOrRecordPattern(token,
               isRefutableContext: isRefutableContext);
         }
+        // A record or parenthesized pattern is a valid form of outerPattern, so
+        // verify that skipOuterPattern would have skipped this pattern
+        // properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
       case 'const':
         // constantPattern ::= booleanLiteral
         //                   | nullLiteral
@@ -9380,6 +9408,10 @@ class Parser {
         token = parseObjectPatternRest(token,
             isRefutableContext: isRefutableContext);
         listener.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
+        // An object pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
         return token;
       } else if (dot == null) {
         // It's a single identifier.  If it's a wildcard pattern or we're in an
