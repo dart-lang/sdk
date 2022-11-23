@@ -1180,6 +1180,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _writeln('RestPatternElement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     _writeln('ReturnStatement');
     _withIndent(() {

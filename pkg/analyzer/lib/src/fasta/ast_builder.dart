@@ -4973,6 +4973,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    var subPattern = hasSubPattern ? pop() as DartPatternImpl : null;
+    push(RestPatternElementImpl(operator: dots, pattern: subPattern));
+  }
+
+  @override
   void handleScript(Token token) {
     assert(identical(token.type, TokenType.SCRIPT_TAG));
     debugEvent("Script");

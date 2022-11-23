@@ -2394,6 +2394,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    seen(dots);
+    doPrint('handleRestPattern(' '$dots, ' '$hasSubPattern)');
+  }
+
+  @override
   void beginFunctionTypedFormalParameter(Token token) {
     seen(token);
     doPrint('beginFunctionTypedFormalParameter(' '$token)');

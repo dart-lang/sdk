@@ -1865,6 +1865,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    listener?.handleRestPattern(dots, hasSubPattern: hasSubPattern);
+  }
+
+  @override
   void handleStringJuxtaposition(Token startToken, int literalCount) {
     listener?.handleStringJuxtaposition(startToken, literalCount);
   }

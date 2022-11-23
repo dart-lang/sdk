@@ -75,6 +75,7 @@ import 'identifier_context.dart'
     show
         IdentifierContext,
         looksLikeExpressionStart,
+        looksLikePatternStart,
         okNextValueInFormalParameter;
 
 import 'identifier_context_impl.dart'
@@ -9493,7 +9494,18 @@ class Parser {
         token = next;
         break;
       }
-      token = parsePattern(token, isRefutableContext: isRefutableContext);
+      if (optional('...', next)) {
+        Token dots = next;
+        token = next;
+        next = token.next!;
+        bool hasSubPattern = looksLikePatternStart(next);
+        if (hasSubPattern) {
+          token = parsePattern(token, isRefutableContext: isRefutableContext);
+        }
+        listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
+      } else {
+        token = parsePattern(token, isRefutableContext: isRefutableContext);
+      }
       next = token.next!;
       ++count;
       if (!optional(',', next)) {

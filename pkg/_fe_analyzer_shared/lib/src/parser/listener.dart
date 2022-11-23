@@ -1673,6 +1673,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("SpreadExpression");
   }
 
+  /// Called after parsing an element of a list or map pattern that starts with
+  /// `...`.  Substructures:
+  /// - pattern (if hasSubPattern is `true`)
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    logEvent('RestPattern');
+  }
+
   /// Handle the start of a function typed formal parameter.  Substructures:
   /// - type variables
   void beginFunctionTypedFormalParameter(Token token) {}

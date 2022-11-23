@@ -2092,6 +2092,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    _unsupported();
+  }
+
+  @override
   void handleSuperExpression(Token token, IdentifierContext context) {
     _unsupported();
   }
