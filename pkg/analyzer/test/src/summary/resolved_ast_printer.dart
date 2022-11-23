@@ -1318,6 +1318,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    _writeln('SwitchExpression');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    _writeln('SwitchExpressionCase');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _writeln('SwitchPatternCase');
     _withIndent(() {

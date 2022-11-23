@@ -16,6 +16,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(Label)? label;
   final void Function(MethodInvocation)? methodInvocation;
   final void Function(SimpleIdentifier)? simpleIdentifier;
+  final void Function(SwitchExpressionCase)? switchExpressionCase;
   final void Function(SwitchPatternCase)? switchPatternCase;
   final void Function(VariableDeclaration)? variableDeclaration;
 
@@ -28,6 +29,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
     this.label,
     this.methodInvocation,
     this.simpleIdentifier,
+    this.switchExpressionCase,
     this.switchPatternCase,
     this.variableDeclaration,
   });
@@ -92,6 +94,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
       simpleIdentifier!(node);
     }
     super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    switchExpressionCase?.call(node);
+    super.visitSwitchExpressionCase(node);
   }
 
   @override

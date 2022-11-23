@@ -3958,6 +3958,17 @@ class Parser {
     return rewriteAndRecover(token, message, newToken);
   }
 
+  /// If the next token is a function arrow (`=>`), return it.  Otherwise report
+  /// an error, insert a synthetic function arrow, and return the inserted
+  /// function arrow.
+  Token ensureFunctionArrow(Token token) {
+    Token next = token.next!;
+    if (optional('=>', next)) return next;
+    codes.Message message = codes.templateExpectedButGot.withArguments('=>');
+    Token newToken = new SyntheticToken(TokenType.FUNCTION, next.charOffset);
+    return rewriteAndRecover(token, message, newToken);
+  }
+
   /// If the token after [token] is a not literal string,
   /// then insert a synthetic literal string.
   /// Call `parseLiteralString` and return the result.
@@ -6106,6 +6117,8 @@ class Parser {
         // Fall through to the recovery code.
       } else if (identical(value, "assert")) {
         return parseAssert(token, Assert.Expression);
+      } else if (allowPatterns && identical(value, "switch")) {
+        return parseSwitchExpression(token);
       } else if (token.next!.isIdentifier) {
         return parseSendOrFunctionLiteral(token, context);
       } else if (identical(value, "return")) {
@@ -9820,6 +9833,73 @@ class Parser {
     listener.handlePatternVariableDeclarationStatement(
         keyword, equals, semicolon);
     return semicolon;
+  }
+
+  /// switchExpression    ::= 'switch' '(' expression ')' '{'
+  ///                         switchExpressionCase ( ',' switchExpressionCase )*
+  ///                             ','? '}'
+  /// switchExpressionCase    ::= guardedPattern '=>' expression
+  Token parseSwitchExpression(Token token) {
+    Token switchKeyword = token.next!;
+    assert(optional('switch', switchKeyword));
+    listener.beginSwitchExpression(switchKeyword);
+    token = ensureParenthesizedCondition(switchKeyword, allowCase: false);
+    Token beginSwitch =
+        token = ensureBlock(token, /* template = */ null, 'switch expression');
+    listener.beginSwitchExpressionBlock(beginSwitch);
+    Token next = token.next!;
+    int caseCount = 0;
+    if (!optional('}', next)) {
+      while (true) {
+        listener.beginSwitchExpressionCase();
+        token = parsePattern(token, isRefutableContext: true);
+        Token? when;
+        next = token.next!;
+        if (optional('when', next)) {
+          when = token = next;
+          token = parseExpression(token);
+        }
+        Token arrow = token = ensureFunctionArrow(token);
+        token = parseExpression(token);
+        listener.endSwitchExpressionCase(when, arrow, token);
+        ++caseCount;
+        next = token.next!;
+
+        Token? comma;
+        if (optional(',', next)) {
+          comma = token = next;
+          next = token.next!;
+        }
+        if (optional('}', next)) {
+          break;
+        }
+
+        if (comma == null) {
+          // TODO(paulberry): test this error recovery logic
+          // Recovery
+          if (looksLikePatternStart(next)) {
+            // If this looks like the start of a pattern, then report an error,
+            // insert the comma, and continue parsing.
+            SyntheticToken comma =
+                new SyntheticToken(TokenType.COMMA, next.offset);
+            codes.Message message =
+                codes.templateExpectedButGot.withArguments(',');
+            token = rewriteAndRecover(token, message, comma);
+          } else {
+            reportRecoverableError(
+                next, codes.templateExpectedButGot.withArguments('}'));
+            // Scanner guarantees a closing curly bracket
+            next = beginSwitch.endGroup!;
+            break;
+          }
+        }
+      }
+    }
+    listener.endSwitchExpressionBlock(caseCount, beginSwitch, next);
+    token = next;
+    assert(token.isEof || optional('}', token));
+    listener.endSwitchExpression(switchKeyword, token);
+    return token;
   }
 }
 

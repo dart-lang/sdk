@@ -1658,6 +1658,20 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginSwitchExpression(Token token) {
+    SwitchExpressionBegin data =
+        new SwitchExpressionBegin(ParserAstType.BEGIN, token: token);
+    seen(data);
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    SwitchExpressionEnd data = new SwitchExpressionEnd(ParserAstType.END,
+        switchKeyword: switchKeyword, endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void beginSwitchBlock(Token token) {
     SwitchBlockBegin data =
         new SwitchBlockBegin(ParserAstType.BEGIN, token: token);
@@ -1668,6 +1682,24 @@ abstract class AbstractParserAstListener implements Listener {
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     SwitchBlockEnd data = new SwitchBlockEnd(ParserAstType.END,
         caseCount: caseCount, beginToken: beginToken, endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void beginSwitchExpressionBlock(Token token) {
+    SwitchExpressionBlockBegin data =
+        new SwitchExpressionBlockBegin(ParserAstType.BEGIN, token: token);
+    seen(data);
+  }
+
+  @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    SwitchExpressionBlockEnd data = new SwitchExpressionBlockEnd(
+        ParserAstType.END,
+        caseCount: caseCount,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
@@ -2649,6 +2681,23 @@ abstract class AbstractParserAstListener implements Listener {
         colonAfterDefault: colonAfterDefault,
         statementCount: statementCount,
         firstToken: firstToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void beginSwitchExpressionCase() {
+    SwitchExpressionCaseBegin data =
+        new SwitchExpressionCaseBegin(ParserAstType.BEGIN);
+    seen(data);
+  }
+
+  @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    SwitchExpressionCaseEnd data = new SwitchExpressionCaseEnd(
+        ParserAstType.END,
+        when: when,
+        arrow: arrow,
         endToken: endToken);
     seen(data);
   }
@@ -5811,6 +5860,33 @@ class SwitchStatementEnd extends ParserAstNode {
       };
 }
 
+class SwitchExpressionBegin extends ParserAstNode {
+  final Token token;
+
+  SwitchExpressionBegin(ParserAstType type, {required this.token})
+      : super("SwitchExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchExpressionEnd extends ParserAstNode {
+  final Token switchKeyword;
+  final Token endToken;
+
+  SwitchExpressionEnd(ParserAstType type,
+      {required this.switchKeyword, required this.endToken})
+      : super("SwitchExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "switchKeyword": switchKeyword,
+        "endToken": endToken,
+      };
+}
+
 class SwitchBlockBegin extends ParserAstNode {
   final Token token;
 
@@ -5833,6 +5909,37 @@ class SwitchBlockEnd extends ParserAstNode {
       required this.beginToken,
       required this.endToken})
       : super("SwitchBlock", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "caseCount": caseCount,
+        "beginToken": beginToken,
+        "endToken": endToken,
+      };
+}
+
+class SwitchExpressionBlockBegin extends ParserAstNode {
+  final Token token;
+
+  SwitchExpressionBlockBegin(ParserAstType type, {required this.token})
+      : super("SwitchExpressionBlock", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchExpressionBlockEnd extends ParserAstNode {
+  final int caseCount;
+  final Token beginToken;
+  final Token endToken;
+
+  SwitchExpressionBlockEnd(ParserAstType type,
+      {required this.caseCount,
+      required this.beginToken,
+      required this.endToken})
+      : super("SwitchExpressionBlock", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7591,6 +7698,31 @@ class SwitchCaseEnd extends ParserAstNode {
         "colonAfterDefault": colonAfterDefault,
         "statementCount": statementCount,
         "firstToken": firstToken,
+        "endToken": endToken,
+      };
+}
+
+class SwitchExpressionCaseBegin extends ParserAstNode {
+  SwitchExpressionCaseBegin(ParserAstType type)
+      : super("SwitchExpressionCase", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {};
+}
+
+class SwitchExpressionCaseEnd extends ParserAstNode {
+  final Token? when;
+  final Token arrow;
+  final Token endToken;
+
+  SwitchExpressionCaseEnd(ParserAstType type,
+      {this.when, required this.arrow, required this.endToken})
+      : super("SwitchExpressionCase", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "when": when,
+        "arrow": arrow,
         "endToken": endToken,
       };
 }

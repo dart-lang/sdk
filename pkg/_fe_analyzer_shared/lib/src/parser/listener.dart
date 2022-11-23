@@ -1254,10 +1254,23 @@ class Listener implements UnescapeErrorListener {
     logEvent("SwitchStatement");
   }
 
+  void beginSwitchExpression(Token token) {}
+
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    logEvent("SwitchExpression");
+  }
+
   void beginSwitchBlock(Token token) {}
 
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     logEvent("SwitchBlock");
+  }
+
+  void beginSwitchExpressionBlock(Token token) {}
+
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    logEvent("SwitchExpressionBlock");
   }
 
   void beginLiteralSymbol(Token token) {}
@@ -1948,6 +1961,12 @@ class Listener implements UnescapeErrorListener {
       Token firstToken,
       Token endToken) {
     logEvent("SwitchCase");
+  }
+
+  void beginSwitchExpressionCase() {}
+
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    logEvent("SwitchExpressionCase");
   }
 
   void handleThisExpression(Token token, IdentifierContext context) {

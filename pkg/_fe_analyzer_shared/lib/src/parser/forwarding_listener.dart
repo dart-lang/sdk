@@ -455,13 +455,28 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginSwitchExpressionBlock(Token token) {
+    listener?.beginSwitchExpressionBlock(token);
+  }
+
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     listener?.beginSwitchCase(labelCount, expressionCount, firstToken);
   }
 
   @override
+  void beginSwitchExpressionCase() {
+    listener?.beginSwitchExpressionCase();
+  }
+
+  @override
   void beginSwitchStatement(Token token) {
     listener?.beginSwitchStatement(token);
+  }
+
+  @override
+  void beginSwitchExpression(Token token) {
+    listener?.beginSwitchExpression(token);
   }
 
   @override
@@ -1147,6 +1162,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    listener?.endSwitchExpressionBlock(caseCount, beginToken, endToken);
+  }
+
+  @override
   void endSwitchCase(
       int labelCount,
       int expressionCount,
@@ -1160,8 +1181,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    listener?.endSwitchExpressionCase(when, arrow, endToken);
+  }
+
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     listener?.endSwitchStatement(switchKeyword, endToken);
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    listener?.endSwitchExpression(switchKeyword, endToken);
   }
 
   @override

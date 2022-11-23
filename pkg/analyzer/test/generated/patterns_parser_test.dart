@@ -1480,6 +1480,20 @@ PostfixPattern
 ''');
   }
 
+  test_constant_identifier_unprefixed_insideSwitchExpression() {
+    _parse('''
+f(x) => switch (x) {
+  y => 0
+};
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
   test_constant_identifier_unprefixed_pseudoKeyword() {
     _parse('''
 void f(x) {
@@ -6712,6 +6726,149 @@ ListPattern
   elements
     RestPatternElement
   rightBracket: ]
+''');
+  }
+
+  test_switchExpression_empty() {
+    // Even though an empty switch expression is illegal (because it's not
+    // exhaustive), it should be accepted by the parser to enable analyzer code
+    // completions.
+    _parse('''
+f(x) => switch(x) {};
+''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, '''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_onePattern_guarded() {
+    _parse('''
+f(x) => switch(x) {
+  _ when true => 0
+};
+''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, '''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: VariablePattern
+          name: _
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BooleanLiteral
+            literal: true
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_onePattern_noTrailingComma() {
+    _parse('''
+f(x) => switch(x) {
+  _ => 0
+};
+''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, '''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: VariablePattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_onePattern_trailingComma() {
+    _parse('''
+f(x) => switch(x) {
+  _ => 0,
+};
+''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, '''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: VariablePattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_twoPatterns() {
+    _parse('''
+f(x) => switch(x) {
+  int _ => 0,
+  _ => 1
+};
+''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, '''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: VariablePattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 1
+  rightBracket: }
 ''');
   }
 
