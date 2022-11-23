@@ -1340,6 +1340,29 @@ ConstantPattern
 ''');
   }
 
+  test_constant_identifier_unprefixed_beforeWhen() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y when true:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: y
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
   test_constant_identifier_unprefixed_builtin() {
     _parse('''
 void f(x) {
@@ -6608,6 +6631,90 @@ RecordPattern
 ''');
   }
 
+  test_rest_subpatternStartingTokens() {
+    // Test a wide variety of rest subpatterns to make sure the parser properly
+    // identifies each as a subpattern.  (The logic for deciding if a rest
+    // pattern has a subpattern is based on the token that follows the `..`, so
+    // we test every kind of token that can legally follow `...`).  Note that
+    // not all of these are semantically meaningful, but they should all be
+    // parseable.
+    // TODO(paulberry): if support for symbol literal patterns is added (see
+    // https://github.com/dart-lang/language/issues/2636), adjust this test
+    // accordingly.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [...== null]:
+    case [...!= null]:
+    case [...< 0]:
+    case [...> 0]:
+    case [...<= 0]:
+    case [...>= 0]:
+    case [...0]:
+    case [...0.0]:
+    case [...0x0]:
+    case [...null]:
+    case [...false]:
+    case [...true]:
+    case [...'foo']:
+    case [...x]:
+    case [...const List()]:
+    case [...var x]:
+    case [...final x]:
+    case [...List x]:
+    case [..._]:
+    case [...(_)]:
+    case [...[_]]:
+    case [...[]]:
+    case [...<int>[]]:
+    case [...{}]:
+    case [...List()]:
+      break;
+  }
+}
+''');
+    // No assertions; it's sufficient to make sure the parse succeeds without
+    // errors.
+  }
+
+  test_rest_withoutSubpattern_insideList() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [...]:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    RestPatternElement
+  rightBracket: ]
+''');
+  }
+
+  test_rest_withSubpattern_insideList() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [...var y]:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    RestPatternElement
+  rightBracket: ]
+''');
+  }
+
   test_variable_bare_insideCast() {
     _parse('''
 void f(x) {
@@ -6951,6 +7058,73 @@ PostfixPattern
         token: int
     name: y
   operator: ?
+''');
+  }
+
+  test_variable_typedNamedAs_absurd() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case when as as when when as as when == as as when:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: VariablePattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: when
+      name: as
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: when
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BinaryExpression
+      leftOperand: AsExpression
+        expression: SimpleIdentifier
+          token: as
+        asOperator: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: when
+      operator: ==
+      rightOperand: AsExpression
+        expression: SimpleIdentifier
+          token: as
+        asOperator: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: when
+''');
+  }
+
+  test_variable_typedNamedAs_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int as when true:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: as
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
 ''');
   }
 
@@ -7400,6 +7574,101 @@ VariablePattern
 ''');
   }
 
+  test_variable_typedNamedWhen_absurd() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int when when when > 0:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: when
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: when
+      operator: >
+      rightOperand: IntegerLiteral
+        literal: 0
+''');
+  }
+
+  test_variable_typedNamedWhen_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int when when true:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: when
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
+''');
+  }
+
+  test_variable_typedNamedWhen_insideCase() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int when:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+VariablePattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+  name: when
+''');
+  }
+
+  test_variable_typedNamedWhen_insideCast() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case int when as Object:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: VariablePattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: when
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+''');
+  }
+
   test_variable_var_insideCase() {
     _parse('''
 void f(x) {
@@ -7491,6 +7760,27 @@ PostfixPattern
     keyword: var
     name: y
   operator: ?
+''');
+  }
+
+  test_wildcard_bare_beforeWhen() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _ when true:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: VariablePattern
+    name: _
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BooleanLiteral
+      literal: true
 ''');
   }
 

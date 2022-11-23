@@ -370,6 +370,36 @@ bool looksLikeExpressionStart(Token next) =>
     optional('++', next) ||
     optional('--', next);
 
+/// Returns `true` if the given [token] should be treated like the start of a
+/// pattern for the purposes of recovery.
+///
+/// Note: since the syntax for patterns is very similar to that for expressions,
+/// we mostly re-use [looksLikeExpressionStart].
+bool looksLikePatternStart(Token next) =>
+    next.isIdentifier ||
+    next.type == TokenType.DOUBLE ||
+    next.type == TokenType.HASH ||
+    next.type == TokenType.HEXADECIMAL ||
+    next.type == TokenType.IDENTIFIER ||
+    next.type == TokenType.INT ||
+    next.type == TokenType.STRING ||
+    optional('null', next) ||
+    optional('false', next) ||
+    optional('true', next) ||
+    optional('{', next) ||
+    optional('(', next) ||
+    optional('[', next) ||
+    optional('[]', next) ||
+    optional('<', next) ||
+    optional('<=', next) ||
+    optional('>', next) ||
+    optional('>=', next) ||
+    optional('!=', next) ||
+    optional('==', next) ||
+    optional('var', next) ||
+    optional('final', next) ||
+    optional('const', next);
+
 /// Return `true` if the given [token] should be treated like the start of
 /// a new statement for the purposes of recovery.
 bool looksLikeStatementStart(Token token) => isOneOfOrEof(token, const [

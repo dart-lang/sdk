@@ -99,6 +99,7 @@ class ParserCreatorListener extends Listener {
   String? latestSeenParameterTypeToken;
   String? latestSeenParameterTypeTokenQuestion;
   final List<Parameter> parameters = <Parameter>[];
+  Token? formalParametersEnd;
   final StringBuffer newClasses = new StringBuffer();
 
   ParserCreatorListener(this.out);
@@ -134,11 +135,18 @@ class ParserCreatorListener extends Listener {
   }
 
   @override
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
+    formalParametersEnd = endToken;
+  }
+
+  @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     void end() {
       parameters.clear();
       currentMethodName = null;
+      formalParametersEnd = null;
     }
 
     if (insideListenerClass &&
@@ -150,16 +158,16 @@ class ParserCreatorListener extends Listener {
       sb.write("  ");
       Token token = beginToken;
       Token? latestToken;
+      if (formalParametersEnd == null) {
+        // getter, so just copy through the getter name.
+        formalParametersEnd = getOrSet!.next;
+      }
       while (true) {
         if (latestToken != null && latestToken.charEnd < token.charOffset) {
           sb.write(" ");
         }
         sb.write(token.lexeme);
-        if ((token is BeginToken &&
-                token.type == TokenType.OPEN_CURLY_BRACKET) ||
-            token is SimpleToken && token.type == TokenType.FUNCTION) {
-          break;
-        }
+        if (latestToken == formalParametersEnd) break;
         if (token == endToken) {
           throw token.runtimeType;
         }

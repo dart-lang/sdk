@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 
 export 'package:analyzer/src/context/packages.dart' show Packages, Package;
+export 'package:analyzer/src/dart/analysis/byte_store.dart' show ByteStore;
 export 'package:analyzer/src/dart/analysis/experiments.dart'
     show ExperimentStatus;
 export 'package:analyzer/src/generated/engine.dart'
@@ -37,6 +38,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
   required AnalysisOptions analysisOptions,
   required List<UriResolver> uriResolvers,
   required Packages packages,
+  ByteStore? byteStore,
 }) {
   var sdkBundle = PackageBundleReader(sdkSummaryBytes);
   var sdk = SummaryBasedDartSdk.forBundle(sdkBundle);
@@ -55,7 +57,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
-    byteStore: MemoryByteStore(),
+    byteStore: byteStore ?? MemoryByteStore(),
     sourceFactory: sourceFactory,
     analysisOptions: analysisOptions as AnalysisOptionsImpl,
     externalSummaries: dataStore,

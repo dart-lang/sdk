@@ -2233,6 +2233,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    RestPatternHandle data = new RestPatternHandle(ParserAstType.HANDLE,
+        dots: dots, hasSubPattern: hasSubPattern);
+    seen(data);
+  }
+
+  @override
   void beginFunctionTypedFormalParameter(Token token) {
     FunctionTypedFormalParameterBegin data =
         new FunctionTypedFormalParameterBegin(ParserAstType.BEGIN,
@@ -6820,6 +6827,21 @@ class SpreadExpressionHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "spreadToken": spreadToken,
+      };
+}
+
+class RestPatternHandle extends ParserAstNode {
+  final Token dots;
+  final bool hasSubPattern;
+
+  RestPatternHandle(ParserAstType type,
+      {required this.dots, required this.hasSubPattern})
+      : super("RestPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "dots": dots,
+        "hasSubPattern": hasSubPattern,
       };
 }
 
