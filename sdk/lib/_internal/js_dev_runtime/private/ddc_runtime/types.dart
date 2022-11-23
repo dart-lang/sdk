@@ -2264,56 +2264,61 @@ class Shape {
   }
 }
 
-final _shape = JS('', 'Symbol("shape")');
+/// Internal base class for all concrete records.
+class _RecordImpl implements Record {
+  Shape shape;
+  List values;
 
-final Object _RecordImpl = JS(
-    '!',
-    '''
-class _RecordImpl {
-  constructor(values) {
-    this.values = values;
-  }
+  int? _hashCode;
+  String? _printed;
 
-  [#](other) {
-    if (!(other instanceof #)) return false;
-    if (this.# !== other.#) return false;
-    if (this.values.length !== other.values.length) return false;
-    for (let i = 0; i < this.values.length; i++)
-      if (!#(this.values[i], other.values[i]))
+  _RecordImpl(this.shape, this.values);
+
+  @override
+  bool operator ==(Object? other) {
+    if (!(other is _RecordImpl)) return false;
+    if (shape != other.shape) return false;
+    if (values.length != other.values.length) {
+      return false;
+    }
+    for (var i = 0; i < values.length; i++) {
+      if (values[i] != other.values[i]) {
         return false;
+      }
+    }
     return true;
   }
 
-  get [#]() {
-    return #([this.#].concat(this.values));
+  @override
+  int get hashCode {
+    if (_hashCode == null) {
+      _hashCode = Object.hashAll([shape, ...values]);
+    }
+    return _hashCode!;
   }
 
-  [#]() {
-    let shape = this.#;
-    let s = '(';
-    for (let i = 0; i < this.values.length; i++) {
-      if (i >= shape.positionals) {
-        s += shape.named[i - shape.positionals] + ': '
+  @override
+  String toString() {
+    if (_printed == null) {
+      var buffer = StringBuffer();
+      var posCount = shape.positionals;
+      var count = values.length;
+
+      buffer.write('(');
+      for (var i = 0; i < count; i++) {
+        if (i >= posCount) {
+          buffer.write('${shape.named![i - posCount]}');
+          buffer.write(': ');
+        }
+        buffer.write('${values[i]}');
+        if (i < count - 1) buffer.write(', ');
       }
-      s += #(this.values[i]);
-      if (i < this.values.length - 1) s += ', ';
+      buffer.write(')');
+      _printed = buffer.toString();
     }
-    s += ')';
-    return s;
+    return _printed!;
   }
 }
-''',
-    extensionSymbol('_equals'),
-    _RecordImpl,
-    _shape,
-    _shape,
-    equals,
-    extensionSymbol('hashCode'),
-    Object.hashAll,
-    _shape,
-    extensionSymbol('toString'),
-    _shape,
-    _toString);
 
 /// Cache for Record shapes. These are keyed by a distinct shape recipe,
 /// which consists of an integer followed by space-separated named labels.
@@ -2339,20 +2344,21 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
     return cached;
   }
 
-  Object recordClass = JS(
+  Object recordClass = JS('!', 'class _Record extends # {}', _RecordImpl);
+  // Add a 'new' function to be used instead of a constructor
+  // (which is disallowed on dart objects).
+  Object newRecord = JS(
       '!',
       '''
-  class _Record extends # {
-    constructor(values) {
-      super(values);
+    #.new = function (shape, values) {
+      #.__proto__.new.call(this, shape, values);
     }
-  }
   ''',
-      _RecordImpl);
+      recordClass,
+      recordClass);
 
-  var shape = registerShape(shapeRecipe, positionals, named);
+  JS('!', '#.prototype = #.prototype', newRecord, recordClass);
   var recordPrototype = JS('', '#.prototype', recordClass);
-  JS('', '#[#] = #', recordPrototype, _shape, shape);
 
   _recordGet(@notNull int index) =>
       JS('!', 'function recordGet() {return this.values[#];}', index);
@@ -2373,8 +2379,8 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
     }
   }
 
-  JS('', '#.set(#, #)', _records, shapeRecipe, recordClass);
-  return recordClass;
+  JS('', '#.set(#, #)', _records, shapeRecipe, newRecord);
+  return newRecord;
 }
 
 /// Creates a record type.
@@ -2388,8 +2394,9 @@ RecordType recordType(@notNull Shape shape, @notNull List types) =>
 /// named element in sorted order.
 Object recordLiteral(@notNull String shapeRecipe, @notNull int positionals,
     List<String>? named, @notNull List values) {
+  var shape = registerShape(shapeRecipe, positionals, named);
   var record = registerRecord(shapeRecipe, positionals, named);
-  return JS('!', 'new #(#)', record, values);
+  return JS('!', 'new #(#, #)', record, shape, values);
 }
 
 /// Creates a shape and binds it to [types].
