@@ -162,6 +162,8 @@ import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
+import 'remove_name_from_declaration_clause_test.dart'
+    as remove_name_from_declaration_clause;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
 import 'remove_operator_test.dart' as remove_operator;
 import 'remove_parameters_in_getter_declaration_test.dart'
@@ -389,6 +391,7 @@ void main() {
     remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
+    remove_name_from_declaration_clause.main();
     remove_non_null_assertion_test.main();
     remove_operator.main();
     remove_parameters_in_getter_declaration.main();
