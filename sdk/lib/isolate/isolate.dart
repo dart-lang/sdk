@@ -674,7 +674,7 @@ class Isolate {
   ///
   /// If successful, a call to this method does not return. Pending `finally`
   /// blocks are not executed, control flow will not go back to the event loop,
-  /// scheduled asynchronous asks will never run, and even pending isolate
+  /// scheduled asynchronous tasks will never run, and even pending isolate
   /// control commands may be ignored. (The isolate will send messages to ports
   /// already registered using [Isolate.addOnExitListener], but no further Dart
   /// code will run in the isolate.)
