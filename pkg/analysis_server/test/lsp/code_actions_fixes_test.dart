@@ -142,7 +142,12 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     Future foo;
     ''';
     newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+        emptyTextDocumentClientCapabilities,
+        [CodeActionKind.QuickFix, CodeActionKind.Refactor],
+      ),
+    );
 
     ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri,
