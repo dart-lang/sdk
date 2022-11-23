@@ -178,7 +178,7 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
 
 /// A Wasm table.
 @pragma("wasm:entry-point")
-class WasmTable<T> {
+class WasmTable<T> extends _WasmBase {
   /// Declare a table with the given size.
   ///
   /// Must be an initializer for a static field. The [size] argument must be
