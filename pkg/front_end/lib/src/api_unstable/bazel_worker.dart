@@ -107,7 +107,7 @@ InitializedCompilerState initializeCompiler(
   Target target,
   FileSystem fileSystem,
   Iterable<String> experiments,
-  Map<String, String> environmentDefines, {
+  Map<String, String>? environmentDefines, {
   bool verbose = false,
   NnbdMode nnbdMode = NnbdMode.Weak,
 }) {
