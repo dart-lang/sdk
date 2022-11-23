@@ -9,14 +9,14 @@
 import 'sealed_mixin_with_lib.dart';
 
 abstract class OutsideA with SealedMixin {}
-// ^
+//             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
 
 class OutsideB with SealedMixin {
-// ^
+//    ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
   @override
   int foo = 2;
 
@@ -25,6 +25,6 @@ class OutsideB with SealedMixin {
 }
 
 abstract class OutsideC = Object with SealedMixin;
-// ^
+//             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.

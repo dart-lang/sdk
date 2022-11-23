@@ -2069,6 +2069,22 @@ severity: $severity
               cls.charOffset,
               noLength);
         }
+      } else if (supertype is ClassBuilder &&
+          supertype.isSealed &&
+          supertype.libraryBuilder.origin != cls.libraryBuilder.origin) {
+        if (supertype.isMixinDeclaration) {
+          cls.addProblem(
+              templateSealedMixinSubtypeOutsideOfLibrary
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        } else {
+          cls.addProblem(
+              templateSealedClassSubtypeOutsideOfLibrary
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        }
       }
     }
 

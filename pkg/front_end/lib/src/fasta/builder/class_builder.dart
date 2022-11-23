@@ -74,6 +74,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isMixin;
 
+  bool get isMixinDeclaration;
+
   bool get isMixinApplication;
 
   bool get isAnonymousMixinApplication;
