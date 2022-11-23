@@ -134,7 +134,9 @@ wasm:
       - _internal/wasm/lib/hash_factories.dart
     convert:
       uri: convert/convert.dart
-      patches: _internal/vm_shared/lib/convert_patch.dart
+      patches:
+      - _internal/vm_shared/lib/convert_patch.dart
+      - _internal/wasm/lib/convert_patch.dart
     core:
       uri: core/core.dart
       patches:
@@ -181,6 +183,7 @@ wasm:
       uri: typed_data/typed_data.dart
       patches:
         - _internal/vm/lib/typed_data_patch.dart
+        - _internal/wasm/lib/typed_data_patch.dart
         - _internal/wasm/lib/simd_patch.dart
     wasm:
       uri: wasm/wasm_types.dart
@@ -315,6 +318,9 @@ _dart2js_common:
 
     _async_await_error_codes:
       uri: "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
+
+    _load_library_priority:
+      uri: "_internal/js_runtime/lib/synced/load_library_priority.dart"
 
     _recipe_syntax:
       uri: "_internal/js_shared/lib/synced/recipe_syntax.dart"

@@ -201,6 +201,104 @@ void functionToMove() { }
         newFileContent: newFileContent);
   }
 
+  Future<void> test_imports_referenceFromMovingToImported() async {
+    var originalSource = '''
+// File header.
+
+import 'dart:io';
+
+class A {}
+
+class B^ {
+  File? f;
+}
+''';
+    var modifiedSource = '''
+// File header.
+
+import 'dart:io';
+
+class A {}
+''';
+    var declarationName = 'B';
+    var newFileName = 'b.dart';
+    var newFileContent = '''
+import 'dart:io';
+
+// File header.
+
+class B {
+  File? f;
+}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_imports_referenceFromMovingToStaying() async {
+    var originalSource = '''
+// File header.
+
+class A {}
+
+class ClassToMove^ extends A {}
+''';
+    var modifiedSource = '''
+// File header.
+
+class A {}
+''';
+    var declarationName = 'ClassToMove';
+    var newFileName = 'class_to_move.dart';
+    var newFileContent = '''
+import 'package:test/main.dart';
+
+// File header.
+
+class ClassToMove extends A {}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_imports_referenceFromStayingToMoving() async {
+    var originalSource = '''
+// File header.
+
+class A extends B {}
+
+class B^ {}
+''';
+    var modifiedSource = '''
+// File header.
+
+import 'package:test/b.dart';
+
+class A extends B {}
+''';
+    var declarationName = 'B';
+    var newFileName = 'b.dart';
+    var newFileContent = '''
+// File header.
+
+class B {}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
   Future<void> test_mixin() async {
     var originalSource = '''
 class A {}

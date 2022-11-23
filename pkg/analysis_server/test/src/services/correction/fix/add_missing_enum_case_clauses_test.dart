@@ -126,6 +126,126 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_import_prefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+      break;
+    case my.E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_import_prefix_hideDefault() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart' hide E;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+import 'a.dart' hide E;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+      break;
+    case my.E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_import_prefix_multiple() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart' as dream;
+import 'a.dart' as big;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+import 'a.dart' as dream;
+import 'a.dart' as big;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+      break;
+    case my.E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_import_prefix_twice() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+import 'a.dart';
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
   Future<void> test_incomplete_switchStatement() async {
     await resolveTestCode(r'''
 enum E {a, b, c}

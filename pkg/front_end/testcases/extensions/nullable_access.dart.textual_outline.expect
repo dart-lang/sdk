@@ -1,0 +1,10 @@
+class Class {
+  int get property => 42;
+  void set property(int value) {}
+}
+
+extension on Class? {
+  int get property => 42;
+}
+
+void test(Class? c) {}

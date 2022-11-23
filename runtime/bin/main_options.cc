@@ -483,6 +483,11 @@ bool Options::ParseArguments(int argc,
         // a VM flag as disabling DDS changes how we configure the VM service,
         // so we don't need to handle that case here.
         skipVmOption = true;
+      } else if (IsOption(argv[i], "serve-observatory")) {
+        // This flag is currently set by default in vmservice_io.dart, so we
+        // ignore it. --no-serve-observatory is a VM flag so we don't need to
+        // handle that case here.
+        skipVmOption = true;
       }
       if (!skipVmOption) {
         temp_vm_options.AddArgument(argv[i]);

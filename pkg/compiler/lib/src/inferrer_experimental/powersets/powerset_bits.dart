@@ -8,8 +8,8 @@ import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
 import '../../ir/class_relation.dart';
+import '../../js_model/js_world.dart';
 import '../../universe/selector.dart';
-import '../../world_interfaces.dart';
 import '../../inferrer/abstract_value_domain.dart';
 
 /// This class is used to store bits information about class entities.

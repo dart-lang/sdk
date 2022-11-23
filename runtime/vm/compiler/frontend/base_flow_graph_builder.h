@@ -302,9 +302,7 @@ class BaseFlowGraphBuilder {
                          bool negate = false);
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
-  Fragment Return(
-      TokenPosition position,
-      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(TokenPosition position);
   Fragment CheckStackOverflow(TokenPosition position,
                               intptr_t stack_depth,
                               intptr_t loop_depth);
@@ -354,6 +352,9 @@ class BaseFlowGraphBuilder {
   Fragment AllocateClosure(TokenPosition position = TokenPosition::kNoSource);
   Fragment CreateArray();
   Fragment AllocateRecord(TokenPosition position, intptr_t num_fields);
+  Fragment AllocateSmallRecord(TokenPosition position,
+                               intptr_t num_fields,
+                               bool has_named_fields);
   Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);

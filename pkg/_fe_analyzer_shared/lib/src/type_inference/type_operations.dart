@@ -2,6 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Type arguments for a map pattern, which exist or not exist only together.
+class MapPatternTypeArguments<Type extends Object> {
+  final Type keyType;
+  final Type valueType;
+
+  MapPatternTypeArguments({
+    required this.keyType,
+    required this.valueType,
+  });
+}
+
 /// Enum representing the different classifications of types that can be
 /// returned by [TypeOperations.classifyType].
 enum TypeClassification {
@@ -21,6 +32,9 @@ enum TypeClassification {
 /// This mixin provides default implementations for some members that won't need
 /// to be overridden very frequently.
 mixin TypeOperations<Type extends Object> {
+  /// Returns `true` if [type1] and [type2] are structurally equal.
+  bool areStructurallyEqual(Type type1, Type type2);
+
   /// Classifies the given type into one of the three categories defined by
   /// the [TypeClassification] enum.
   TypeClassification classifyType(Type type);
@@ -39,6 +53,15 @@ mixin TypeOperations<Type extends Object> {
           List<Type>? newPromotedTypes) =>
       false;
 
+  /// Computes the greatest lower bound of [type1] and [type2].
+  Type glb(Type type1, Type type2);
+
+  /// Returns `true` if [fromType] is assignable to [toType].
+  bool isAssignableTo(Type fromType, Type toType);
+
+  /// Returns `true` if [type] is the type `dynamic`.
+  bool isDynamic(Type type);
+
   /// Determines whether the given [type] is equivalent to the `Never` type.
   ///
   /// A type is equivalent to `Never` if it:
@@ -55,6 +78,30 @@ mixin TypeOperations<Type extends Object> {
 
   /// Returns `true` if [type] is a reference to a type parameter.
   bool isTypeParameterType(Type type);
+
+  /// Computes the least upper bound of [type1] and [type2].
+  Type lub(Type type1, Type type2);
+
+  /// Computes the nullable form of [type], in other words the least upper bound
+  /// of [type] and `Null`.
+  Type makeNullable(Type type);
+
+  /// If [type] is a subtype of the type `Iterable<T>` for some `T`, returns
+  /// the type `T`.  Otherwise returns `null`.
+  Type? matchIterableType(Type type);
+
+  /// If [type] is a subtype of the type `List<T>` for some `T`, returns the
+  /// type `T`.  Otherwise returns `null`.
+  Type? matchListType(Type type);
+
+  /// If [type] is a subtype of the type `Map<K, V>` for some `K` and `V`,
+  /// returns these `K` and `V`.  Otherwise returns `null`.
+  MapPatternTypeArguments<Type>? matchMapType(Type type);
+
+  /// Computes `NORM` of [type].
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/normalization.md`
+  Type normalize(Type type);
 
   /// Returns the non-null promoted version of [type].
   ///
@@ -74,33 +121,4 @@ mixin TypeOperations<Type extends Object> {
   /// Tries to promote to the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.
   Type? tryPromoteToType(Type to, Type from);
-}
-
-/// Interface used by [TypeAnalyzer] as a replacement for [TypeOperations].
-///
-/// This interface includes additional methods that are not needed by flow
-/// analysis.
-///
-/// TODO(paulberry): once the analyzer and front end both use [TypeAnalyzer],
-/// combine this mixin with [TypeOperations].
-mixin TypeOperations2<Type extends Object> implements TypeOperations<Type> {
-  /// Computes the greatest lower bound of [type1] and [type2].
-  Type glb(Type type1, Type type2);
-
-  /// Returns `true` if [fromType] is assignable to [toType].
-  bool isAssignableTo(Type fromType, Type toType);
-
-  /// Returns `true` if [type] is the type `dynamic`.
-  bool isDynamic(Type type);
-
-  /// Computes the least upper bound of [type1] and [type2].
-  Type lub(Type type1, Type type2);
-
-  /// Computes the nullable form of [type], in other words the least upper bound
-  /// of [type] and `Null`.
-  Type makeNullable(Type type);
-
-  /// If [type] is a subtype of the type `List<T>` for some `T`, returns the
-  /// type `T`.  Otherwise returns `null`.
-  Type? matchListType(Type type);
 }

@@ -7261,7 +7261,12 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_ThrowException) {
-  const char* kScriptChars = "int test() native \"ThrowException_native\";";
+  const char* kScriptChars =
+      R"(
+      @pragma('vm:external-name', 'ThrowException_native')
+      external int test();
+    )";
+
   Dart_Handle result;
   intptr_t size = thread->ZoneSizeInBytes();
   Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
@@ -7902,11 +7907,18 @@ static Dart_NativeFunction MyNativeResolver2(Dart_Handle name,
 
 TEST_CASE(DartAPI_SetNativeResolver) {
   const char* kScriptChars =
-      "class Test {"
-      "  static foo() native \"SomeNativeFunction\";\n"
-      "  static bar() native \"SomeNativeFunction2\";\n"
-      "  static baz() native \"SomeNativeFunction3\";\n"
-      "}";
+      R"(
+      class Test {
+        @pragma('vm:external-name', 'SomeNativeFunction')
+        external static foo();
+
+        @pragma('vm:external-name', 'SomeNativeFunction2')
+        external static bar();
+
+        @pragma('vm:external-name', 'SomeNativeFunction3')
+        external static baz();
+      }
+  )";
   Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
@@ -8964,55 +8976,64 @@ static Dart_NativeFunction MyNativeClosureResolver(Dart_Handle name,
 
 TEST_CASE(DartAPI_NativeFunctionClosure) {
   const char* kScriptChars =
-      "class Test {"
-      "  int foo1() native \"NativeFoo1\";\n"
-      "  int foo2(int i) native \"NativeFoo2\";\n"
-      "  int foo3([int k = 10000, int l = 1]) native \"NativeFoo3\";\n"
-      "  int foo4(int i,"
-      "           [int j = 10, int k = 1]) native \"NativeFoo4\";\n"
-      "  int bar1() { var func = foo1; return func(); }\n"
-      "  int bar2(int i) { var func = foo2; return func(i); }\n"
-      "  int bar30() { var func = foo3; return func(); }\n"
-      "  int bar31(int i) { var func = foo3; return func(i); }\n"
-      "  int bar32(int i, int j) { var func = foo3; return func(i, j); }\n"
-      "  int bar41(int i) {\n"
-      "    var func = foo4; return func(i); }\n"
-      "  int bar42(int i, int j) {\n"
-      "    var func = foo4; return func(i, j); }\n"
-      "  int bar43(int i, int j, int k) {\n"
-      "    var func = foo4; return func(i, j, k); }\n"
-      "}\n"
-      "class Expect {\n"
-      "  static equals(a, b) {\n"
-      "    if (a != b) {\n"
-      "      throw 'not equal. expected: $a, got: $b';\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "int testMain() {\n"
-      "  Test obj = new Test();\n"
-      "  Expect.equals(1, obj.foo1());\n"
-      "  Expect.equals(1, obj.bar1());\n"
-      "\n"
-      "  Expect.equals(10, obj.foo2(10));\n"
-      "  Expect.equals(10, obj.bar2(10));\n"
-      "\n"
-      "  Expect.equals(10001, obj.foo3());\n"
-      "  Expect.equals(10001, obj.bar30());\n"
-      "  Expect.equals(2, obj.foo3(1));\n"
-      "  Expect.equals(2, obj.bar31(1));\n"
-      "  Expect.equals(4, obj.foo3(2, 2));\n"
-      "  Expect.equals(4, obj.bar32(2, 2));\n"
-      "\n"
-      "  Expect.equals(12, obj.foo4(1));\n"
-      "  Expect.equals(12, obj.bar41(1));\n"
-      "  Expect.equals(3, obj.foo4(1, 1));\n"
-      "  Expect.equals(3, obj.bar42(1, 1));\n"
-      "  Expect.equals(6, obj.foo4(2, 2, 2));\n"
-      "  Expect.equals(6, obj.bar43(2, 2, 2));\n"
-      "\n"
-      "  return 0;\n"
-      "}\n";
+      R"(
+      class Test {
+        @pragma('vm:external-name', 'NativeFoo1')
+        external int foo1();
+
+        @pragma('vm:external-name', 'NativeFoo2')
+        external int foo2(int i);
+
+        @pragma('vm:external-name', 'NativeFoo3')
+        external int foo3([int k = 10000, int l = 1]);
+
+        @pragma('vm:external-name', 'NativeFoo4')
+        external int foo4(int i, [int j = 10, int k = 1]);
+
+        int bar1() { var func = foo1; return func(); }
+        int bar2(int i) { var func = foo2; return func(i); }
+        int bar30() { var func = foo3; return func(); }
+        int bar31(int i) { var func = foo3; return func(i); }
+        int bar32(int i, int j) { var func = foo3; return func(i, j); }
+        int bar41(int i) {
+          var func = foo4; return func(i); }
+        int bar42(int i, int j) {
+          var func = foo4; return func(i, j); }
+        int bar43(int i, int j, int k) {
+          var func = foo4; return func(i, j, k); }
+      }
+      class Expect {
+        static equals(a, b) {
+          if (a != b) {
+            throw 'not equal. expected: $a, got: $b';
+          }
+        }
+      }
+      int testMain() {
+        Test obj = new Test();
+        Expect.equals(1, obj.foo1());
+        Expect.equals(1, obj.bar1());
+
+        Expect.equals(10, obj.foo2(10));
+        Expect.equals(10, obj.bar2(10));
+
+        Expect.equals(10001, obj.foo3());
+        Expect.equals(10001, obj.bar30());
+        Expect.equals(2, obj.foo3(1));
+        Expect.equals(2, obj.bar31(1));
+        Expect.equals(4, obj.foo3(2, 2));
+        Expect.equals(4, obj.bar32(2, 2));
+
+        Expect.equals(12, obj.foo4(1));
+        Expect.equals(12, obj.bar41(1));
+        Expect.equals(3, obj.foo4(1, 1));
+        Expect.equals(3, obj.bar42(1, 1));
+        Expect.equals(6, obj.foo4(2, 2, 2));
+        Expect.equals(6, obj.bar43(2, 2, 2));
+
+        return 0;
+      }
+  )";
 
   Dart_Handle result;
 
@@ -9104,56 +9125,64 @@ static Dart_NativeFunction MyStaticNativeClosureResolver(
 
 TEST_CASE(DartAPI_NativeStaticFunctionClosure) {
   const char* kScriptChars =
-      "class Test {"
-      "  static int foo1() native \"StaticNativeFoo1\";\n"
-      "  static int foo2(int i) native \"StaticNativeFoo2\";\n"
-      "  static int foo3([int k = 10000, int l = 1])"
-      " native \"StaticNativeFoo3\";\n"
-      "  static int foo4(int i, [int j = 10, int k = 1])"
-      " native \"StaticNativeFoo4\";\n"
-      "  int bar1() { var func = foo1; return func(); }\n"
-      "  int bar2(int i) { var func = foo2; return func(i); }\n"
-      "  int bar30() { var func = foo3; return func(); }\n"
-      "  int bar31(int i) { var func = foo3; return func(i); }\n"
-      "  int bar32(int i, int j) { var func = foo3; return func(i, j); }\n"
-      "  int bar41(int i) {\n"
-      "    var func = foo4; return func(i); }\n"
-      "  int bar42(int i, int j) {\n"
-      "    var func = foo4; return func(i, j); }\n"
-      "  int bar43(int i, int j, int k) {\n"
-      "    var func = foo4; return func(i, j, k); }\n"
-      "}\n"
-      "class Expect {\n"
-      "  static equals(a, b) {\n"
-      "    if (a != b) {\n"
-      "      throw 'not equal. expected: $a, got: $b';\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "int testMain() {\n"
-      "  Test obj = new Test();\n"
-      "  Expect.equals(0, Test.foo1());\n"
-      "  Expect.equals(0, obj.bar1());\n"
-      "\n"
-      "  Expect.equals(10, Test.foo2(10));\n"
-      "  Expect.equals(10, obj.bar2(10));\n"
-      "\n"
-      "  Expect.equals(10001, Test.foo3());\n"
-      "  Expect.equals(10001, obj.bar30());\n"
-      "  Expect.equals(2, Test.foo3(1));\n"
-      "  Expect.equals(2, obj.bar31(1));\n"
-      "  Expect.equals(4, Test.foo3(2, 2));\n"
-      "  Expect.equals(4, obj.bar32(2, 2));\n"
-      "\n"
-      "  Expect.equals(12, Test.foo4(1));\n"
-      "  Expect.equals(12, obj.bar41(1));\n"
-      "  Expect.equals(3, Test.foo4(1, 1));\n"
-      "  Expect.equals(3, obj.bar42(1, 1));\n"
-      "  Expect.equals(6, Test.foo4(2, 2, 2));\n"
-      "  Expect.equals(6, obj.bar43(2, 2, 2));\n"
-      "\n"
-      "  return 0;\n"
-      "}\n";
+      R"(
+      class Test {
+        @pragma('vm:external-name', 'StaticNativeFoo1')
+        external static int foo1();
+
+        @pragma('vm:external-name', 'StaticNativeFoo2')
+        external static int foo2(int i);
+
+        @pragma('vm:external-name', 'StaticNativeFoo3')
+        external static int foo3([int k = 10000, int l = 1]);
+
+        @pragma('vm:external-name', 'StaticNativeFoo4')
+        external static int foo4(int i, [int j = 10, int k = 1]);
+
+        int bar1() { var func = foo1; return func(); }
+        int bar2(int i) { var func = foo2; return func(i); }
+        int bar30() { var func = foo3; return func(); }
+        int bar31(int i) { var func = foo3; return func(i); }
+        int bar32(int i, int j) { var func = foo3; return func(i, j); }
+        int bar41(int i) {
+          var func = foo4; return func(i); }
+        int bar42(int i, int j) {
+          var func = foo4; return func(i, j); }
+        int bar43(int i, int j, int k) {
+          var func = foo4; return func(i, j, k); }
+      }
+      class Expect {
+        static equals(a, b) {
+          if (a != b) {
+            throw 'not equal. expected: $a, got: $b';
+          }
+        }
+      }
+      int testMain() {
+        Test obj = new Test();
+        Expect.equals(0, Test.foo1());
+        Expect.equals(0, obj.bar1());
+
+        Expect.equals(10, Test.foo2(10));
+        Expect.equals(10, obj.bar2(10));
+
+        Expect.equals(10001, Test.foo3());
+        Expect.equals(10001, obj.bar30());
+        Expect.equals(2, Test.foo3(1));
+        Expect.equals(2, obj.bar31(1));
+        Expect.equals(4, Test.foo3(2, 2));
+        Expect.equals(4, obj.bar32(2, 2));
+
+        Expect.equals(12, Test.foo4(1));
+        Expect.equals(12, obj.bar41(1));
+        Expect.equals(3, Test.foo4(1, 1));
+        Expect.equals(3, obj.bar42(1, 1));
+        Expect.equals(6, Test.foo4(2, 2, 2));
+        Expect.equals(6, obj.bar43(2, 2, 2));
+
+        return 0;
+      }
+  )";
 
   Dart_Handle result;
 
@@ -10463,6 +10492,96 @@ TEST_CASE(DartAPI_UserTags) {
   EXPECT_ERROR(
       Dart_SetCurrentUserTag(Dart_Null()),
       "Dart_SetCurrentUserTag expects argument 'user_tag' to be non-null");
+}
+
+void* last_isolate_group_data = nullptr;
+Dart_PersistentHandle last_allocation_cls = nullptr;
+intptr_t heap_samples = 0;
+
+void HeapSamplingCallback(void* isolate_group_data,
+                          Dart_PersistentHandle cls_type,
+                          Dart_WeakPersistentHandle obj,
+                          uintptr_t size) {
+  last_isolate_group_data = isolate_group_data;
+  last_allocation_cls = cls_type;
+  heap_samples++;
+}
+
+TEST_CASE(DartAPI_HeapSampling) {
+  Dart_RegisterHeapSamplingCallback(HeapSamplingCallback);
+
+  Dart_EnableHeapSampling();
+  // Start with sampling on every byte allocated.
+  Dart_SetHeapSamplingPeriod(1);
+
+  auto isolate_group_data = Dart_CurrentIsolateGroupData();
+  // Some simple allocations
+  USE(Dart_NewList(100));
+
+  const char* name = nullptr;
+  Dart_Handle result = Dart_StringToCString(last_allocation_cls, &name);
+  EXPECT_VALID(result);
+
+  EXPECT(heap_samples > 0);
+  EXPECT_STREQ("List", name);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  heap_samples = 0;
+  USE(Dart_NewStringFromCString("Foo"));
+  result = Dart_StringToCString(last_allocation_cls, &name);
+  EXPECT_VALID(result);
+  EXPECT(heap_samples > 0);
+  EXPECT_STREQ("String", name);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  // Increase the sampling period and check that we don't sample each
+  // allocation. This should cause samples to be collected for approximately
+  // every 1KiB allocated.
+  Dart_SetHeapSamplingPeriod(1 << 10);
+  heap_samples = 0;
+
+  const intptr_t kNumAllocations = 1000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    USE(Dart_NewList(10));
+  }
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < kNumAllocations);
+
+  heap_samples = 0;
+  last_allocation_cls = nullptr;
+  const char* kScriptChars = R"(
+    foo() {
+      final list = [];
+      for (int i = 0; i < 1000; ++i) {
+        list.add(List.filled(100, 0));
+      }
+    }
+    )";
+  Dart_DisableHeapSampling();
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+  Dart_EnableHeapSampling();
+  result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(result);
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < kNumAllocations);
+
+  Dart_DisableHeapSampling();
+
+  // Sampling on every byte allocated.
+  Dart_SetHeapSamplingPeriod(1);
+
+  // Ensure no more samples are collected.
+  heap_samples = 0;
+  last_allocation_cls = nullptr;
+  last_isolate_group_data = nullptr;
+  USE(Dart_NewList(10));
+  EXPECT_EQ(heap_samples, 0);
+  EXPECT_EQ(last_allocation_cls, nullptr);
+  EXPECT_EQ(last_isolate_group_data, nullptr);
+
+  // Clear heap sampling callback state.
+  Dart_RegisterHeapSamplingCallback(nullptr);
 }
 
 #endif  // !PRODUCT

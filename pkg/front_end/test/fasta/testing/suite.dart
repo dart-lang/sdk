@@ -763,6 +763,7 @@ class FastaContext extends ChainContext with MatchContext {
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
       // Force enable features in development.
       ExperimentalFlag.records: true,
+      ExperimentalFlag.patterns: true,
     };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
@@ -1125,6 +1126,7 @@ CompilationSetup createCompilationSetup(
       ..experimentReleasedVersionForTesting = experimentReleasedVersion
       ..skipPlatformVerification = true
       ..omitPlatform = true
+      ..omitOsMessageForTesting = true
       ..target = createTarget(folderOptions, context);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
@@ -1491,7 +1493,11 @@ class FuzzCompiles
         print("Skipping $uri -- couldn't find builder for it.");
         continue;
       }
-      Uint8List orgData = fs.data[uri] as Uint8List;
+      Uint8List? orgData = fs.data[uri];
+      if (orgData == null) {
+        print("Skipping $uri -- couldn't find source for it.");
+        continue;
+      }
       FuzzAstVisitorSorter fuzzAstVisitorSorter;
       try {
         fuzzAstVisitorSorter =

@@ -4,8 +4,9 @@
 
 library _fe_analyzer_shared.parser.listener;
 
-import '../messages/codes.dart'
-    show Message, MessageCode, templateExperimentNotEnabled;
+import '../experiments/errors.dart';
+import '../experiments/flags.dart';
+import '../messages/codes.dart' show Message, MessageCode;
 
 import '../scanner/token.dart' show Token;
 
@@ -53,10 +54,9 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Called after the parser has consumed a sequence of patternFields that
-  /// forms the arguments to an extractorPattern
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    logEvent("ExtractorPatternFields");
+  /// forms the arguments to an objectPattern
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    logEvent("ObjectPatternFields");
   }
 
   /// Handle async modifiers `async`, `async*`, `sync`.
@@ -133,8 +133,14 @@ class Listener implements UnescapeErrorListener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -193,8 +199,8 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token mixinKeyword, Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -759,8 +765,14 @@ class Listener implements UnescapeErrorListener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").
   /// Substructures:
@@ -1501,10 +1513,7 @@ class Listener implements UnescapeErrorListener {
 
   void reportVarianceModifierNotEnabled(Token? variance) {
     if (variance != null) {
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('variance', '2.9'),
-          variance,
-          variance);
+      handleExperimentNotEnabled(ExperimentalFlag.variance, variance, variance);
     }
   }
 
@@ -1890,13 +1899,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstantPattern");
   }
 
-  /// Called after the parser has consumed an extractor pattern, consisting of
+  /// Called after the parser has consumed an object pattern, consisting of
   /// an identifier, optional dot and second identifier, optional type
-  /// arguments, and a parenthesized list of extractor pattern fields (see
-  /// [handleExtractorPatternFields]).
-  void handleExtractorPattern(
+  /// arguments, and a parenthesized list of object pattern fields (see
+  /// [handleObjectPatternFields]).
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    logEvent("ExtractorPattern");
+    logEvent("ObjectPattern");
   }
 
   /// Handle a construct of the form "identifier.identifier" occurring in a part
@@ -2003,6 +2012,17 @@ class Listener implements UnescapeErrorListener {
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {}
 
+  /// The parser noticed a use of the experimental feature by the flag
+  /// [experimentalFlag] that was not enabled, but was able to recover from it.
+  /// The error should be reported and the code between the beginning of the
+  /// [startToken] and the end of the [endToken] should be highlighted. The
+  /// [startToken] and [endToken] can be the same token.
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    handleRecoverableError(
+        getExperimentNotEnabledMessage(experimentalFlag), startToken, endToken);
+  }
+
   /// The parser encountered an [ErrorToken] representing an error
   /// from the scanner but recovered from it. By default, the error is reported
   /// by calling [handleRecoverableError] with the message associated
@@ -2082,4 +2102,13 @@ class Listener implements UnescapeErrorListener {
   /// identifier name.  It is the client's responsibility to report an
   /// appropriate error if the "constructor tearoffs" feature is not enabled.
   void handleNewAsIdentifier(Token token) {}
+
+  /// Called after the parser has processed a variable declaration statement,
+  /// consisting of `METADATA KEYWORD PATTERN EQUALS EXPRESSION SEMICOLON`.
+  ///
+  /// KEYWORD is either `var` or `final`, and PATTERN may only be one of the
+  /// patterns accepted by the `outerPattern` grammar rule defined in the
+  /// patterns spec.
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {}
 }

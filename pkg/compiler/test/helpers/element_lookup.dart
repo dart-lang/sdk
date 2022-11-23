@@ -8,7 +8,7 @@ import 'package:compiler/src/common/elements.dart' show JElementEnvironment;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 
 ClassEntity findClass(JClosedWorld closedWorld, String name) {
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;

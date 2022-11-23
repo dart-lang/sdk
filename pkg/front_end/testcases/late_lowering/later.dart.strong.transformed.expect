@@ -170,7 +170,7 @@ static method fisk() → dynamic async /* futureValueType= dynamic */ {
     return #s2 = s2#param;
   lowered has-declared-initializer core::Function? #f;
   function #f#get() → core::Function
-    return let final core::Function? #t9 = #f in #t9 == null ?{core::Function} #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() : #t9{core::Function};
+    return let final core::Function? #t9 = #f in #t9 == null ?{core::Function} #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() /* runtimeCheckType= asy::Future<dynamic> */ : #t9{core::Function};
   function #f#set(core::Function f#param) → dynamic
     return #f = f#param;
 }

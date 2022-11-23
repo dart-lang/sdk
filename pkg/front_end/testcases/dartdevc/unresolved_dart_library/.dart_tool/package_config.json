@@ -1,0 +1,25 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "vm_package",
+      "rootUri": "../vm_package/",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "web_package",
+      "rootUri": "../web_package/",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "flutter_package",
+      "rootUri": "../flutter_package/",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "user_package",
+      "rootUri": "../user_package/",
+      "packageUri": "lib/"
+    }
+  ]
+}

@@ -35,6 +35,9 @@ void log(String message,
   // TODO.
 }
 
+@patch
+int get reachabilityBarrier => 0;
+
 final _extensions = <String, ServiceExtensionHandler>{};
 
 @patch

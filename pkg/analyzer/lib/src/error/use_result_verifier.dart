@@ -73,6 +73,9 @@ class UseResultVerifier {
       // Don't flag references in comments.
       return;
     }
+    if (parent is ShowCombinator || parent is HideCombinator) {
+      return;
+    }
 
     var annotation = _getUseResultMetadata(element);
     if (annotation == null) {

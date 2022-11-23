@@ -5,8 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object that can compute a refactoring in a Dart file.
@@ -92,28 +94,27 @@ class MoveTopLevelToFile extends RefactoringProducer {
     var destinationUri = Uri.parse(commandArguments[0] as String);
     var destinationFilePath = destinationUri.toFilePath();
 
-    var importUri = result.session.uriConverter
-        .pathToUri(destinationFilePath, containingPath: sourcePath);
-    if (importUri == null) {
+    var destinationImportUri =
+        unitResult.session.uriConverter.pathToUri(destinationFilePath);
+    if (destinationImportUri == null) {
       return;
     }
     var destinationExists =
-        result.session.resourceProvider.getFile(destinationFilePath).exists;
+        unitResult.session.resourceProvider.getFile(destinationFilePath).exists;
     String? fileHeader;
     if (!destinationExists) {
-      var headerTokens = result.unit.fileHeader;
+      var headerTokens = unitResult.unit.fileHeader;
       if (headerTokens.isNotEmpty) {
         var offset = headerTokens.first.offset;
         var end = headerTokens.last.end;
         fileHeader = utils.getText(offset, end - offset);
       }
     }
+
+    var analyzer =
+        ImportAnalyzer(libraryResult, sourcePath, range.node(member.node));
+
     await builder.addDartFileEdit(destinationFilePath, (builder) {
-      // TODO(brianwilkerson) Use `ImportedElementsComputer` to add imports
-      //  required by the newly copied code. Better yet, combine that with the
-      //  import analysis used to find unused and unnecessary imports so that we
-      //  can also remove any unused or unnecessary imports from the source
-      //  library.
       // TODO(dantup): Ensure the range inserted and deleted match (allowing for
       //  whitespace), including handling of leading/trailing comments etc.
       builder.addInsertion(0, (builder) {
@@ -123,11 +124,18 @@ class MoveTopLevelToFile extends RefactoringProducer {
         }
         builder.writeln(utils.getNodeText(member.node));
       });
+      // TODO(brianwilkerson) Imports are added before the file header, which
+      //  isn't what most users want.
+      // TODO(brianwilkerson) Add imports required by the moved code.
+      if (analyzer.hasMovingReferenceToStayingDeclaration) {
+        builder.importLibrary(unitResult.uri);
+      }
+      _addImportsForMovingDeclarations(builder, analyzer);
     });
     await builder.addDartFileEdit(sourcePath, (builder) {
-      // TODO(brianwilkerson) Only add an import for the new file if the
-      //  remaining code references the moved code.
-      // builder.importLibrary(destinationUri);
+      if (analyzer.hasStayingReferenceToMovingDeclaration) {
+        builder.importLibrary(destinationImportUri);
+      }
       builder.addDeletion(range.deletionRange(member.node));
     });
     // TODO(brianwilkerson) Find references to the moved declaration(s) outside
@@ -136,6 +144,22 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
   @override
   bool isAvailable() => supportsFileCreation && _memberToMove != null;
+
+  /// Use the [builder] to add the imports that need to be added to the library
+  /// to which the code is being moved based on the information in the import
+  /// [analyzer].
+  void _addImportsForMovingDeclarations(
+      DartFileEditBuilder builder, ImportAnalyzer analyzer) {
+    for (var entry in analyzer.movingReferences.entries) {
+      var library = entry.key.library;
+      if (library != null && !library.isDartCore) {
+        var uri = library.source.uri;
+        for (var prefix in entry.value) {
+          builder.importLibrary(uri, prefix: prefix.isEmpty ? null : prefix);
+        }
+      }
+    }
+  }
 
   /// Computes a filename for a given class name (convert from PascalCase to
   /// snake_case).
@@ -152,11 +176,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
   _MemberToMove? _memberFor(CompilationUnitMember declaration, String name) {
     // TODO(brianwilkeson) Handle other top-level members, including
     //  augmentations.
-    var unitPath = result.unit.declaredElement?.source.fullName;
+    var unitPath = unitResult.unit.declaredElement?.source.fullName;
     if (unitPath == null) {
       return null;
     }
-    var context = result.session.resourceProvider.pathContext;
+    var context = unitResult.session.resourceProvider.pathContext;
 
     title = "Move '$name' to file";
     defaultFilePath =

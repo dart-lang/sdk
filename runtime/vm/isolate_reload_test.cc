@@ -4076,10 +4076,8 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
   EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances and
   // correct type arguments were used.
-  EXPECT_STREQ(
-      "List<String> _InternalLinkedHashMap<String, String> List<int> "
-      "_InternalLinkedHashMap<int, int>",
-      SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("List<String> _Map<String, String> List<int> _Map<int, int>",
+               SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_AddNewStaticField) {

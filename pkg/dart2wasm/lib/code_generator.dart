@@ -189,7 +189,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void generateTearOffGetter(Procedure procedure) {
     _initializeThis(member);
     DartType functionType =
-        procedure.function.computeThisFunctionType(Nullability.nonNullable);
+        procedure.function.computeFunctionType(Nullability.nonNullable);
     ClosureImplementation closure = translator.getTearOffClosure(procedure);
     w.StructType struct = closure.representation.closureStruct;
 
@@ -198,7 +198,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    b.local_get(paramLocals[0]);
+    b.local_get(paramLocals[0]); // `this` as context
     b.global_get(closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);
@@ -547,7 +547,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.ValueType returnType = function.type.outputs[0];
       if (returnType is w.RefType && returnType.nullable) {
         // Dart body may have an implicit return null.
-        b.ref_null(returnType.heapType);
+        b.ref_null(returnType.heapType.bottomType);
       } else {
         // This point is unreachable, but the Wasm validator still expects the
         // stack to contain a value matching the Wasm function return type.
@@ -761,17 +761,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       local = addLocal(type);
       locals[node] = local;
     }
-    if (node.initializer != null) {
+
+    // Handle variable initialization. Nullable variables have an implicit
+    // initializer.
+    if (node.initializer != null ||
+        node.type.nullability == Nullability.nullable) {
+      Expression initializer =
+          node.initializer ?? ConstantExpression(NullConstant());
       if (capture != null) {
         w.ValueType expectedType = capture.written ? capture.type : local!.type;
         b.local_get(capture.context.currentLocal);
-        wrap(node.initializer!, expectedType);
+        wrap(initializer, expectedType);
         if (!capture.written) {
           b.local_tee(local!);
         }
         b.struct_set(capture.context.struct, capture.fieldIndex);
       } else {
-        wrap(node.initializer!, local!.type);
+        wrap(initializer, local!.type);
         b.local_set(local);
       }
     } else if (local != null && !local.type.defaultable) {
@@ -1449,14 +1455,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       switch (target.name.text) {
         case "toString":
           late w.Label done;
-          w.ValueType resultType = _virtualCall(node, target, (signature) {
+          w.ValueType resultType =
+              _virtualCall(node, target, _VirtualCallKind.Call, (signature) {
             done = b.block(const [], signature.outputs);
             w.Label nullString = b.block();
             wrap(node.receiver, translator.topInfo.nullableType);
             b.br_on_null(nullString);
           }, (_) {
             _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-          }, getter: false, setter: false);
+          });
           b.br(done);
           b.end();
           wrap(StringLiteral("null"), resultType);
@@ -1476,10 +1483,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
       return call(singleTarget.reference);
     }
-    return _virtualCall(node, target,
+    return _virtualCall(node, target, _VirtualCallKind.Call,
         (signature) => wrap(node.receiver, signature.inputs.first), (_) {
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-    }, getter: false, setter: false);
+    });
   }
 
   @override
@@ -1548,8 +1555,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         right();
         call(singleTarget.reference);
       } else {
-        _virtualCall(node, node.interfaceTarget, left, right,
-            getter: false, setter: false);
+        _virtualCall(
+          node,
+          node.interfaceTarget,
+          _VirtualCallKind.Call,
+          left,
+          right,
+        );
       }
       if (leftNullable || rightNullable) {
         b.br(done!);
@@ -1579,32 +1591,32 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType _virtualCall(
       TreeNode node,
       Member interfaceTarget,
+      _VirtualCallKind kind,
       void pushReceiver(w.FunctionType signature),
-      void pushArguments(w.FunctionType signature),
-      {required bool getter,
-      required bool setter}) {
+      void pushArguments(w.FunctionType signature)) {
     SelectorInfo selector = translator.dispatchTable.selectorForTarget(
-        interfaceTarget.referenceAs(getter: getter, setter: setter));
+        interfaceTarget.referenceAs(
+            getter: kind.isGetter, setter: kind.isSetter));
     assert(selector.name == interfaceTarget.name.text);
 
     pushReceiver(selector.signature);
 
+    if (selector.targetCount == 1) {
+      pushArguments(selector.signature);
+      return call(selector.singularTarget!);
+    }
+
     int? offset = selector.offset;
     if (offset == null) {
-      // Singular target or unreachable call
-      assert(selector.targetCount <= 1);
-      if (selector.targetCount == 1) {
-        pushArguments(selector.signature);
-        return call(selector.singularTarget!);
-      } else {
-        b.comment("Virtual call of ${selector.name} with no targets"
-            " at ${node.location}");
-        b.drop();
-        b.block(const [], selector.signature.outputs);
-        b.unreachable();
-        b.end();
-        return translator.outputOrVoid(selector.signature.outputs);
-      }
+      // Unreachable call
+      assert(selector.targetCount == 0);
+      b.comment("Virtual call of ${selector.name} with no targets"
+          " at ${node.location}");
+      b.drop();
+      b.block(const [], selector.signature.outputs);
+      b.unreachable();
+      b.end();
+      return translator.outputOrVoid(selector.signature.outputs);
     }
 
     // Receiver is already on stack.
@@ -1616,8 +1628,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (options.polymorphicSpecialization) {
       _polymorphicSpecialization(selector, receiverVar);
     } else {
-      String access = getter ? "get" : (setter ? "set" : "call");
-      b.comment("Instance $access of '${selector.name}'");
+      b.comment("Instance $kind of '${selector.name}'");
       b.local_get(receiverVar);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       if (offset != 0) {
@@ -1815,7 +1826,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Super tear-off
       w.StructType closureStruct = _pushClosure(
           translator.getTearOffClosure(target),
-          target.function.computeThisFunctionType(Nullability.nonNullable),
+          target.function.computeFunctionType(Nullability.nonNullable),
           () => visitThis(w.RefType.data(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
     }
@@ -1835,12 +1846,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Member target = node.interfaceTarget;
     if (node.kind == InstanceAccessKind.Object) {
       late w.Label doneLabel;
-      w.ValueType resultType = _virtualCall(node, target, (signature) {
+      w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Get, (signature) {
         doneLabel = b.block(const [], signature.outputs);
         w.Label nullLabel = b.block();
         wrap(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
-      }, (_) {}, getter: true, setter: false);
+      }, (_) {});
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -1864,9 +1876,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return _directGet(singleTarget, node.receiver,
           () => intrinsifier.generateInstanceGetterIntrinsic(node));
     } else {
-      return _virtualCall(node, target,
-          (signature) => wrap(node.receiver, signature.inputs.first), (_) {},
-          getter: true, setter: false);
+      return _virtualCall(node, target, _VirtualCallKind.Get,
+          (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
     }
   }
 
@@ -1904,20 +1915,26 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
+  w.ValueType visitFunctionTearOff(
+          FunctionTearOff node, w.ValueType expectedType) =>
+      wrap(node.receiver, expectedType);
+
+  @override
   w.ValueType visitInstanceTearOff(
       InstanceTearOff node, w.ValueType expectedType) {
     Member target = node.interfaceTarget;
 
     if (node.kind == InstanceAccessKind.Object) {
       late w.Label doneLabel;
-      w.ValueType resultType = _virtualCall(node, target, (signature) {
+      w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Get, (signature) {
         doneLabel = b.block(const [], signature.outputs);
         w.Label nullLabel = b.block();
         wrap(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
         translator.convertType(
             function, translator.topInfo.nullableType, signature.inputs[0]);
-      }, (_) {}, getter: true, setter: false);
+      }, (_) {});
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -1942,9 +1959,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return resultType;
     }
 
-    return _virtualCall(node, target,
-        (signature) => wrap(node.receiver, signature.inputs.first), (_) {},
-        getter: true, setter: false);
+    return _virtualCall(node, target, _VirtualCallKind.Get,
+        (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
   }
 
   @override
@@ -1956,7 +1972,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return _directSet(singleTarget, node.receiver, node.value,
           preserved: preserved);
     } else {
-      _virtualCall(node, node.interfaceTarget,
+      _virtualCall(node, node.interfaceTarget, _VirtualCallKind.Set,
           (signature) => wrap(node.receiver, signature.inputs.first),
           (signature) {
         w.ValueType paramType = signature.inputs.last;
@@ -1965,7 +1981,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           temp = addLocal(paramType);
           b.local_tee(temp!);
         }
-      }, getter: false, setter: true);
+      });
       if (preserved) {
         b.local_get(temp!);
         return temp!.type;
@@ -2050,7 +2066,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         "closure wrapper at ${functionNode.location}");
     return _pushClosure(
         closure,
-        functionNode.computeThisFunctionType(Nullability.nonNullable),
+        functionNode.computeFunctionType(Nullability.nonNullable),
         () => _pushContext(functionNode));
   }
 
@@ -2385,8 +2401,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         : translator.fixedLengthListClass;
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
+    w.ArrayType arrayType = translator.listArrayType;
     w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     b.i32_const(info.classId);
@@ -2398,7 +2413,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        w.Local arrayLocal = addLocal(refType.withNullability(false));
+        w.Local arrayLocal =
+            addLocal(w.RefType.def(arrayType, nullable: false));
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -2585,4 +2601,25 @@ class SwitchBackwardJumpInfo {
 
   SwitchBackwardJumpInfo(this.switchValueLocal, this.loopLabel)
       : defaultLoopLabel = null;
+}
+
+enum _VirtualCallKind {
+  Get,
+  Set,
+  Call;
+
+  String toString() {
+    switch (this) {
+      case _VirtualCallKind.Get:
+        return "get";
+      case _VirtualCallKind.Set:
+        return "set";
+      case _VirtualCallKind.Call:
+        return "call";
+    }
+  }
+
+  bool get isGetter => this == _VirtualCallKind.Get;
+
+  bool get isSetter => this == _VirtualCallKind.Set;
 }

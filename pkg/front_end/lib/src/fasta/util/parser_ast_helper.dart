@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
@@ -54,9 +55,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    ExtractorPatternFieldsHandle data = new ExtractorPatternFieldsHandle(
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    ObjectPatternFieldsHandle data = new ObjectPatternFieldsHandle(
         ParserAstType.HANDLE,
         count: count,
         beginToken: beginToken,
@@ -176,12 +176,20 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
+        viewToken: viewToken,
+        sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -236,9 +244,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
-        augmentToken: augmentToken, mixinKeyword: mixinKeyword, name: name);
+        augmentToken: augmentToken,
+        sealedToken: sealedToken,
+        mixinKeyword: mixinKeyword,
+        name: name);
     seen(data);
   }
 
@@ -941,13 +952,21 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
+        viewToken: viewToken,
+        sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -2557,10 +2576,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    ExtractorPatternHandle data = new ExtractorPatternHandle(
-        ParserAstType.HANDLE,
+    ObjectPatternHandle data = new ObjectPatternHandle(ParserAstType.HANDLE,
         firstIdentifier: firstIdentifier,
         dot: dot,
         secondIdentifier: secondIdentifier);
@@ -2749,6 +2767,17 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    ExperimentNotEnabledHandle data = new ExperimentNotEnabledHandle(
+        ParserAstType.HANDLE,
+        experimentalFlag: experimentalFlag,
+        startToken: startToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void handleErrorToken(ErrorToken token) {
     ErrorTokenHandle data =
         new ErrorTokenHandle(ParserAstType.HANDLE, token: token);
@@ -2830,6 +2859,15 @@ abstract class AbstractParserAstListener implements Listener {
         new NewAsIdentifierHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
+
+  @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    PatternVariableDeclarationStatementHandle data =
+        new PatternVariableDeclarationStatementHandle(ParserAstType.HANDLE,
+            keyword: keyword, equals: equals, semicolon: semicolon);
+    seen(data);
+  }
 }
 
 class ArgumentsBegin extends ParserAstNode {
@@ -2861,14 +2899,14 @@ class ArgumentsEnd extends ParserAstNode {
       };
 }
 
-class ExtractorPatternFieldsHandle extends ParserAstNode {
+class ObjectPatternFieldsHandle extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  ExtractorPatternFieldsHandle(ParserAstType type,
+  ObjectPatternFieldsHandle(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
-      : super("ExtractorPatternFields", type);
+      : super("ObjectPatternFields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -3088,6 +3126,8 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
+  final Token? viewToken;
+  final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
 
@@ -3095,6 +3135,8 @@ class ClassDeclarationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
+      this.viewToken,
+      this.sealedToken,
       this.augmentToken,
       required this.name})
       : super("ClassDeclaration", type);
@@ -3104,6 +3146,8 @@ class ClassDeclarationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
+        "viewToken": viewToken,
+        "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,
       };
@@ -3203,16 +3247,21 @@ class ClassDeclarationEnd extends ParserAstNode {
 
 class MixinDeclarationBegin extends ParserAstNode {
   final Token? augmentToken;
+  final Token? sealedToken;
   final Token mixinKeyword;
   final Token name;
 
   MixinDeclarationBegin(ParserAstType type,
-      {this.augmentToken, required this.mixinKeyword, required this.name})
+      {this.augmentToken,
+      this.sealedToken,
+      required this.mixinKeyword,
+      required this.name})
       : super("MixinDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "augmentToken": augmentToken,
+        "sealedToken": sealedToken,
         "mixinKeyword": mixinKeyword,
         "name": name,
       };
@@ -4473,6 +4522,8 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
+  final Token? viewToken;
+  final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
 
@@ -4480,6 +4531,8 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
+      this.viewToken,
+      this.sealedToken,
       this.augmentToken,
       required this.name})
       : super("NamedMixinApplication", type);
@@ -4489,6 +4542,8 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
+        "viewToken": viewToken,
+        "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,
       };
@@ -7393,14 +7448,14 @@ class ConstantPatternHandle extends ParserAstNode {
       };
 }
 
-class ExtractorPatternHandle extends ParserAstNode {
+class ObjectPatternHandle extends ParserAstNode {
   final Token firstIdentifier;
   final Token? dot;
   final Token? secondIdentifier;
 
-  ExtractorPatternHandle(ParserAstType type,
+  ObjectPatternHandle(ParserAstType type,
       {required this.firstIdentifier, this.dot, this.secondIdentifier})
-      : super("ExtractorPattern", type);
+      : super("ObjectPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7718,6 +7773,25 @@ class RecoverableErrorHandle extends ParserAstNode {
       };
 }
 
+class ExperimentNotEnabledHandle extends ParserAstNode {
+  final ExperimentalFlag experimentalFlag;
+  final Token startToken;
+  final Token endToken;
+
+  ExperimentNotEnabledHandle(ParserAstType type,
+      {required this.experimentalFlag,
+      required this.startToken,
+      required this.endToken})
+      : super("ExperimentNotEnabled", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "experimentalFlag": experimentalFlag,
+        "startToken": startToken,
+        "endToken": endToken,
+      };
+}
+
 class ErrorTokenHandle extends ParserAstNode {
   final ErrorToken token;
 
@@ -7852,5 +7926,22 @@ class NewAsIdentifierHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+      };
+}
+
+class PatternVariableDeclarationStatementHandle extends ParserAstNode {
+  final Token keyword;
+  final Token equals;
+  final Token semicolon;
+
+  PatternVariableDeclarationStatementHandle(ParserAstType type,
+      {required this.keyword, required this.equals, required this.semicolon})
+      : super("PatternVariableDeclarationStatement", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "keyword": keyword,
+        "equals": equals,
+        "semicolon": semicolon,
       };
 }

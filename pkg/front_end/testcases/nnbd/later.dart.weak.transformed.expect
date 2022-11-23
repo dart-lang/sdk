@@ -151,7 +151,7 @@ static method fisk() → dynamic async /* futureValueType= dynamic */ {
                              ^^^^^"}${#C1}";
   late core::String s2 = #s2#initializer(){() → core::String};
   function #f#initializer() → core::Function
-    return () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest();
+    return () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() /* runtimeCheckType= asy::Future<dynamic> */ ;
   late core::Function f = #f#initializer(){() → core::Function};
 }
 static method main() → dynamic {}

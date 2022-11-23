@@ -1869,18 +1869,23 @@ main() {
       var x = Var('x');
       var y = Var('y');
       var z = Var('z');
-      var w = Var('w');
+      var w = Var('w', errorId: 'w');
       h.run([
         declare(x, type: 'int'),
         declare(y, type: 'int'),
         declare(z, type: 'int'),
-        ifCase(expr('num'), w.pattern(type: 'int'), [
-          x.write(expr('int')).stmt,
-          y.write(expr('int')).stmt,
-        ], else_: [
-          y.write(expr('int')).stmt,
-          z.write(expr('int')).stmt,
-        ]),
+        ifCase(
+          expr('num'),
+          w.pattern(type: 'int'),
+          ifTrue: [
+            x.write(expr('int')).stmt,
+            y.write(expr('int')).stmt,
+          ],
+          ifFalse: [
+            y.write(expr('int')).stmt,
+            z.write(expr('int')).stmt,
+          ],
+        ),
         checkAssigned(x, false),
         checkAssigned(y, true),
         checkAssigned(z, false),
@@ -1891,9 +1896,13 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        ifCase(x.expr.notEq(nullLiteral), intLiteral(0).pattern, [
-          checkNotPromoted(x),
-        ]),
+        ifCase(
+          x.expr.notEq(nullLiteral),
+          intLiteral(0).pattern,
+          ifTrue: [
+            checkNotPromoted(x),
+          ],
+        ),
       ]);
     });
 
@@ -2007,7 +2016,7 @@ main() {
     });
 
     test('switchStatement var promotes', () {
-      var x = Var('x');
+      var x = Var('x')..errorId = 'x';
       h.run([
         switch_(
             expr('int'),
@@ -2021,7 +2030,7 @@ main() {
     });
 
     test('switchStatement_afterWhen() promotes', () {
-      var x = Var('x');
+      var x = Var('x')..errorId = 'x';
       h.run([
         switch_(
             expr('num'),
@@ -2094,64 +2103,68 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                checkPromoted(x, 'int'),
-                localFunction([
-                  x.write(expr('int?')).stmt,
-                ]),
-                checkNotPromoted(x),
+          expr('int'),
+          [
+            intLiteral(0).pattern.then([
+              checkPromoted(x, 'int'),
+              localFunction([
+                x.write(expr('int?')).stmt,
               ]),
-            ],
-            isExhaustive: false),
+              checkNotPromoted(x),
+            ]),
+          ],
+          isExhaustive: false,
+        ),
       ]);
     });
 
     test('switchStatement_beginCase(true) un-promotes', () {
       var x = Var('x');
-      var l = Label('l');
       late SsaNode<Type> ssaBeforeSwitch;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('int').thenStmt(block([
-              checkPromoted(x, 'int'),
-              getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
-            ])),
-            [
-              l.then(intLiteral(0).pattern).then([
-                checkNotPromoted(x),
-                getSsaNodes(
-                    (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ]),
-            ],
-            isExhaustive: false),
+          expr('int').thenStmt(block([
+            checkPromoted(x, 'int'),
+            getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
+          ])),
+          [
+            switchStatementMember([
+              intLiteral(0).pattern.switchCase,
+            ], [
+              checkNotPromoted(x),
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
+              x.write(expr('int?')).stmt,
+              checkNotPromoted(x),
+            ], hasLabels: true),
+          ],
+          isExhaustive: false,
+        ),
       ]);
     });
 
     test('switchStatement_beginCase(true) handles write captures in cases', () {
       var x = Var('x');
-      var l = Label('l');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('int'),
-            [
-              l.then(intLiteral(0).pattern).then([
-                x.expr.as_('int').stmt,
-                checkNotPromoted(x),
-                localFunction([
-                  x.write(expr('int?')).stmt,
-                ]),
-                checkNotPromoted(x),
+          expr('int'),
+          [
+            switchStatementMember([
+              intLiteral(0).pattern.switchCase,
+            ], [
+              x.expr.as_('int').stmt,
+              checkNotPromoted(x),
+              localFunction([
+                x.write(expr('int?')).stmt,
               ]),
-            ],
-            isExhaustive: false),
+              checkNotPromoted(x),
+            ], hasLabels: true),
+          ],
+          isExhaustive: false,
+        ),
       ]);
     });
 
@@ -2237,26 +2250,33 @@ main() {
     });
 
     test('switchStatement_endAlternative() joins branches', () {
-      var x = Var('x');
+      var x1 = Var('x')..errorId = 'x1';
+      var x2 = Var('x')..errorId = 'x2';
       var y = Var('y');
       var z = Var('z');
       h.run([
         declare(y, type: 'num'),
         declare(z, type: 'num'),
         switch_(
-            expr('num'),
-            [
-              x
+          expr('num'),
+          [
+            switchStatementMember([
+              x1
                   .pattern()
-                  .when(x.expr.is_('int').and(y.expr.is_('int')))
-                  .then([]),
-              x.pattern().when(y.expr.is_('int').and(z.expr.is_('int'))).then([
-                checkNotPromoted(x),
-                checkPromoted(y, 'int'),
-                checkNotPromoted(z),
-              ]),
-            ],
-            isExhaustive: true),
+                  .when(x1.expr.is_('int').and(y.expr.is_('int')))
+                  .switchCase,
+              x2
+                  .pattern()
+                  .when(y.expr.is_('int').and(z.expr.is_('int')))
+                  .switchCase,
+            ], [
+              checkNotPromoted(x2),
+              checkPromoted(y, 'int'),
+              checkNotPromoted(z),
+            ]),
+          ],
+          isExhaustive: true,
+        ),
       ]);
     });
 
@@ -6428,8 +6448,10 @@ class _MockNonPromotionReason extends NonPromotionReason {
   @override
   String get documentationLink => fail('Unexpected call to documentationLink');
 
+  @override
   String get shortName => fail('Unexpected call to shortName');
 
+  @override
   R accept<R, Node extends Object, Variable extends Object,
               Type extends Object>(
           NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>

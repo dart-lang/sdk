@@ -272,6 +272,14 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       }
       break;
     }
+    case kViewType: {
+      // We skip the view type and only use the representation type.
+      ReadNullability();
+      SkipCanonicalNameReference();    // read index for canonical name.
+      SkipListOfDartTypes();           // read type arguments
+      CalculateDartTypeFingerprint();  // read representation type.
+      break;
+    }
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -547,9 +555,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kIsExpression:
       ReadPosition();                    // read position.
-      if (translation_helper_.info().kernel_binary_version() >= 38) {
-        BuildHash(ReadFlags());  // read flags.
-      }
+      BuildHash(ReadFlags());            // read flags.
       CalculateExpressionFingerprint();  // read operand.
       CalculateDartTypeFingerprint();    // read type.
       return;
@@ -666,6 +672,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kAwaitExpression:
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
+      if (ReadTag() == kSomething) {
+        SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:

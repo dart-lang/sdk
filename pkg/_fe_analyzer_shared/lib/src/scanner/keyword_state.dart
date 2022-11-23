@@ -87,15 +87,19 @@ abstract class KeywordState {
  */
 abstract class ArrayKeywordState implements KeywordState {
   final List<KeywordState?> table;
+  @override
   final analyzer.Keyword? keyword;
 
   ArrayKeywordState(this.table, String? syntax)
       : keyword = ((syntax == null) ? null : analyzer.Keyword.keywords[syntax]);
 
+  @override
   KeywordState? next(int c);
 
+  @override
   KeywordState? nextCapital(int c);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("[");
@@ -122,8 +126,10 @@ class LowerCaseArrayKeywordState extends ArrayKeywordState {
     assert(table.length == $z - $a + 1);
   }
 
+  @override
   KeywordState? next(int c) => table[c - $a];
 
+  @override
   KeywordState? nextCapital(int c) => null;
 }
 
@@ -133,8 +139,10 @@ class UpperCaseArrayKeywordState extends ArrayKeywordState {
     assert(table.length == $z - $A + 1);
   }
 
+  @override
   KeywordState? next(int c) => table[c - $A];
 
+  @override
   KeywordState? nextCapital(int c) => table[c - $A];
 }
 
@@ -142,13 +150,17 @@ class UpperCaseArrayKeywordState extends ArrayKeywordState {
  * A state that has no outgoing transitions.
  */
 class LeafKeywordState implements KeywordState {
+  @override
   final analyzer.Keyword keyword;
 
   LeafKeywordState(String syntax)
       : keyword = analyzer.Keyword.keywords[syntax]!;
 
+  @override
   KeywordState? next(int c) => null;
+  @override
   KeywordState? nextCapital(int c) => null;
 
+  @override
   String toString() => keyword.lexeme;
 }

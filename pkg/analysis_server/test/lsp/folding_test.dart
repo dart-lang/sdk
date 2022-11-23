@@ -75,9 +75,9 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class() async {
     final content = '''
-    class MyClass2 {/*[0*/
+    class MyClass2/*[0*/ {
       // Class content
-    /*0]*/}
+    }/*0]*/
     ''';
 
     await computeRanges(content);
@@ -101,7 +101,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_doLoop() async {
     final content = '''
-    f(int i) {/*[0*/
+    f/*[0*/(int i) {
       do {/*[1*/
         print('with statements');/*1]*/
       } while (i == 0)
@@ -116,7 +116,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
       // no body
       do;
-    /*0]*/}
+    }/*0]*/
     ''';
 
     await computeRanges(content);
@@ -149,9 +149,9 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     const content = '''
     // /*[0*/contributed by fake plugin/*0]*/
 
-    class AnnotatedDartClass {/*[1*/
+    class AnnotatedDartClass/*[1*/ {
       // content of dart class, contributed by server
-    /*1]*/}
+    }/*1]*/
     ''';
 
     final pluginResult = plugin.AnalysisFoldingParams(
@@ -242,6 +242,45 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     });
   }
 
+  Future<void> test_nested() async {
+    final content = '''
+    class MyClass2/*[0*/ {
+      void f/*[1*/() {
+        void g/*[2*/() {
+          //
+        }/*2]*/
+      }/*1]*/
+    }/*0]*/
+    ''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
+  }
+
+  Future<void> test_nested_lineFoldingOnly() async {
+    lineFoldingOnly = true;
+    final content = '''
+    class MyClass2 {/*[0*/
+      void f() {/*[1*/
+        void g() {/*[2*/
+          //
+        /*2]*/}
+      /*1]*/}
+    /*0]*/}
+    ''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
+  }
+
   Future<void> test_nonDartFile() async {
     await computeRanges(simplePubspecContent, uri: pubspecFileUri);
     expectNoRanges();
@@ -251,11 +290,11 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   /// one range on the same line as the next one starts.
   Future<void> test_overlapLines_columnsSupported() async {
     final content = '''
-void f(/*[0*/[
-  String? a,
-]/*0]*/) {/*[1*/
-  f('');
-/*1]*/}
+void f/*[0*/() {
+  //
+}/*0]*/ void g/*[1*/() {
+  //
+}/*1]*/
     ''';
 
     await computeRanges(content);
@@ -271,10 +310,10 @@ void f(/*[0*/[
   Future<void> test_overlapLines_lineFoldingOnly() async {
     lineFoldingOnly = true;
     final content = '''
-void f([/*[0*/
-  String? a,/*0]*/
-]) {/*[1*/
-  f('');
+void f/*[0*/() {
+  ///*0]*/
+} void g/*[1*/() {
+  //
 }/*1]*/
     ''';
 

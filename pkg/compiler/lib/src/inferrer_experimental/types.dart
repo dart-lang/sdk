@@ -12,16 +12,15 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler_interfaces.dart' show CompilerTypeInferenceFacade;
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../inferrer_experimental/engine_migrated.dart'
+import '../inferrer_experimental/engine.dart'
     show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_world_migrated.dart' show LocalLookupImpl;
+import '../js_model/js_world.dart' show JClosedWorld, LocalLookupImpl;
 import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
-import '../world_interfaces.dart' show JClosedWorld;
 import '../inferrer/types.dart' as base
     show GlobalTypeInferenceResults, GlobalTypeInferenceMemberResult;
 
@@ -422,7 +421,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       if (element.isFunction) {
         // [functionType] is null if the inferrer did not run.
         return closedWorld.abstractValueDomain.functionType;
-      } else if (element.isField) {
+      } else if (element is FieldEntity) {
         return resultOfMember(element).type;
       } else if (element.isGetter) {
         return resultOfMember(element).returnType;
@@ -430,7 +429,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         assert(false, failedAt(element, "Unexpected member $element"));
         return closedWorld.abstractValueDomain.dynamicType;
       }
-    } else if (element.isGetter || element.isField) {
+    } else if (element.isGetter || element is FieldEntity) {
       assert(selector.isCall || selector.isSetter);
       return closedWorld.abstractValueDomain.dynamicType;
     } else {

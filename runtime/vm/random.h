@@ -32,6 +32,9 @@ class Random {
   static void Init();
   static void Cleanup();
 
+  // Generates a uniform random variable in the range [0,1].
+  double NextDouble();
+
  private:
   uint64_t NextState();
   void Initialize(uint64_t seed);

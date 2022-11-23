@@ -156,10 +156,12 @@ abstract class _Part {
 }
 
 class _SynthesizedNamePart implements _Part {
+  @override
   late String text;
 }
 
 class _StringPart implements _Part {
+  @override
   final String text;
 
   _StringPart(this.text);

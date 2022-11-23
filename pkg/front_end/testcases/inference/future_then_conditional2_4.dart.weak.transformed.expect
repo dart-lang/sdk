@@ -49,7 +49,7 @@ static method test(self::MyFuture<core::bool> f) → void {
  - 'Object' is from 'dart:core'.
  - 'Future' is from 'dart:async'.
         ? 2
-        ^" in (await x ?{core::Object} 2 : new self::MyFuture::value<core::int>(3)) as{TypeError,ForNonNullableByDefault} core::int;
+        ^" in (await x /* runtimeCheckType= asy::Future<core::bool> */ ?{core::Object} 2 : new self::MyFuture::value<core::int>(3)) as{TypeError,ForNonNullableByDefault} core::int;
   }){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
   self::MyFuture<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::bool x) → FutureOr<core::int> => invalid-expression "pkg/front_end/testcases/inference/future_then_conditional2_4.dart:30:13: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
  - 'Object' is from 'dart:core'.

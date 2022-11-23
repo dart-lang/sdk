@@ -384,6 +384,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  void writeViewNodeList(List<View> nodes) {
+    final int len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final View node = nodes[i];
+      writeViewNode(node);
+    }
+  }
+
   void writeConstructorNodeList(List<Constructor> nodes) {
     final int len = nodes.length;
     writeUInt30(len);
@@ -480,6 +489,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeExtensionNode(Extension node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeViewNode(View node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -1110,6 +1126,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeExtensionNodeList(node.extensions);
+    writeViewNodeList(node.views);
     writeFieldNodeList(node.fields);
     procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
@@ -2102,6 +2119,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.AwaitExpression);
     writeOffset(node.fileOffset);
     writeNode(node.operand);
+    writeOptionalNode(node.runtimeCheckType);
   }
 
   @override
@@ -2448,6 +2466,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitViewType(ViewType node) {
+    writeByte(Tag.ViewType);
+    writeByte(node.nullability.index);
+    writeNonNullReference(node.viewReference);
+    writeNodeList(node.typeArguments);
+    writeNode(node.representationType);
+  }
+
+  @override
   void visitFutureOrType(FutureOrType node) {
     // TODO(cstefantsova): Remove special treatment of FutureOr when the VM
     // supports the new encoding: just write the tag.
@@ -2628,6 +2655,38 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitView(View node) {
+    CanonicalName? canonicalName = node.reference.canonicalName;
+    if (canonicalName == null) {
+      throw new ArgumentError('Missing canonical name for $node');
+    }
+    writeByte(Tag.View);
+    _writeNonNullCanonicalName(canonicalName);
+    writeStringReference(node.name);
+    writeAnnotationList(node.annotations);
+    writeUriReference(node.fileUri);
+    writeOffset(node.fileOffset);
+    writeByte(node.flags);
+
+    enterScope(typeParameters: node.typeParameters);
+    writeNodeList(node.typeParameters);
+    writeDartType(node.representationType);
+    leaveScope(typeParameters: node.typeParameters);
+
+    final int len = node.members.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final ViewMemberDescriptor descriptor = node.members[i];
+      writeName(descriptor.name);
+      writeByte(descriptor.kind.index);
+      writeByte(descriptor.flags);
+      assert(descriptor.member.canonicalName != null,
+          "No canonical name for ${descriptor}.");
+      writeNonNullCanonicalNameReference(descriptor.member);
+    }
+  }
+
+  @override
   void visitFunctionTearOff(FunctionTearOff node) {
     writeByte(Tag.FunctionTearOff);
     writeOffset(node.fileOffset);
@@ -2720,7 +2779,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitExtensionReference(Extension node) {
-    throw new UnsupportedError('serialization of Class references');
+    throw new UnsupportedError('serialization of Extension references');
+  }
+
+  @override
+  void visitViewReference(View node) {
+    throw new UnsupportedError('serialization of View references');
   }
 
   @override

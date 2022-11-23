@@ -147,9 +147,11 @@ bool IsBoolType(const AbstractType& type);
 // Returns true if [type] is the "_Smi" type.
 bool IsSmiType(const AbstractType& type);
 
+#if defined(DEBUG)
 // Returns true if the given handle is a zone handle or one of the global
 // cached handles.
 bool IsNotTemporaryScopedHandle(const Object& obj);
+#endif
 
 // Returns true if [obj] resides in old space.
 bool IsInOldSpace(const Object& obj);
@@ -597,9 +599,12 @@ class Record : public AllStatic {
   static word num_fields_offset();
   static word field_names_offset();
   static word field_offset(intptr_t index);
+  static intptr_t field_index_at_offset(intptr_t offset_in_bytes);
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kMaxElements;
 };
 
 class PointerBase : public AllStatic {
@@ -654,12 +659,12 @@ class ImmutableLinkedHashBase : public LinkedHashBase {
   static word data_offset();
 };
 
-class LinkedHashMap : public LinkedHashBase {
+class Map : public LinkedHashBase {
  public:
   FINAL_CLASS();
 };
 
-class LinkedHashSet : public LinkedHashBase {
+class Set : public LinkedHashBase {
  public:
   FINAL_CLASS();
 };

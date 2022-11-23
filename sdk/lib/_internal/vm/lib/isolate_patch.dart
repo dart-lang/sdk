@@ -34,25 +34,25 @@ class ReceivePort {
 @pragma("vm:entry-point")
 class Capability {
   @patch
-  factory Capability() => new _CapabilityImpl();
+  factory Capability() => new _Capability();
 }
 
 @pragma("vm:entry-point")
-class _CapabilityImpl implements Capability {
-  @pragma("vm:external-name", "CapabilityImpl_factory")
-  external factory _CapabilityImpl();
+class _Capability implements Capability {
+  @pragma("vm:external-name", "Capability_factory")
+  external factory _Capability();
 
   bool operator ==(Object other) {
-    return (other is _CapabilityImpl) && _equals(other);
+    return (other is _Capability) && _equals(other);
   }
 
   int get hashCode {
     return _get_hashcode();
   }
 
-  @pragma("vm:external-name", "CapabilityImpl_equals")
+  @pragma("vm:external-name", "Capability_equals")
   external bool _equals(Object other);
-  @pragma("vm:external-name", "CapabilityImpl_get_hashcode")
+  @pragma("vm:external-name", "Capability_get_hashcode")
   external int _get_hashcode();
 }
 
@@ -67,7 +67,7 @@ class RawReceivePort {
    */
   @patch
   factory RawReceivePort([Function? handler, String debugName = '']) {
-    _RawReceivePortImpl result = new _RawReceivePortImpl(debugName);
+    _RawReceivePort result = new _RawReceivePort(debugName);
     result.handler = handler;
     return result;
   }
@@ -132,17 +132,17 @@ Function _getIsolateScheduleImmediateClosure() {
 }
 
 @pragma("vm:entry-point")
-class _RawReceivePortImpl implements RawReceivePort {
-  factory _RawReceivePortImpl(String debugName) {
-    final port = _RawReceivePortImpl._(debugName);
+class _RawReceivePort implements RawReceivePort {
+  factory _RawReceivePort(String debugName) {
+    final port = _RawReceivePort._(debugName);
     _portMap[port._get_id()] = <String, dynamic>{
       'port': port,
     };
     return port;
   }
 
-  @pragma("vm:external-name", "RawReceivePortImpl_factory")
-  external factory _RawReceivePortImpl._(String debugName);
+  @pragma("vm:external-name", "RawReceivePort_factory")
+  external factory _RawReceivePort._(String debugName);
 
   close() {
     // Close the port and remove it from the handler map.
@@ -154,8 +154,7 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   bool operator ==(var other) {
-    return (other is _RawReceivePortImpl) &&
-        (this._get_id() == other._get_id());
+    return (other is _RawReceivePort) && (this._get_id() == other._get_id());
   }
 
   int get hashCode {
@@ -163,9 +162,9 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   /**** Internal implementation details ****/
-  @pragma("vm:external-name", "RawReceivePortImpl_get_id")
+  @pragma("vm:external-name", "RawReceivePort_get_id")
   external int _get_id();
-  @pragma("vm:external-name", "RawReceivePortImpl_get_sendport")
+  @pragma("vm:external-name", "RawReceivePort_get_sendport")
   external SendPort _get_sendport();
 
   // Called from the VM to retrieve the handler for a message.
@@ -190,20 +189,20 @@ class _RawReceivePortImpl implements RawReceivePort {
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
-    handler(message);
+    (handler as Function)(message);
     _runPendingImmediateCallback();
     return handler;
   }
 
   // Call into the VM to close the VM maintained mappings.
-  @pragma("vm:external-name", "RawReceivePortImpl_closeInternal")
+  @pragma("vm:external-name", "RawReceivePort_closeInternal")
   external int _closeInternal();
 
   // Set this port as active or inactive in the VM. If inactive, this port
   // will not be considered live even if it hasn't been explicitly closed.
   // TODO(bkonyi): determine if we want to expose this as an option through
   // RawReceivePort.
-  @pragma("vm:external-name", "RawReceivePortImpl_setActive")
+  @pragma("vm:external-name", "RawReceivePort_setActive")
   external _setActive(bool active);
 
   void set handler(Function? value) {
@@ -220,8 +219,8 @@ class _RawReceivePortImpl implements RawReceivePort {
 }
 
 @pragma("vm:entry-point")
-class _SendPortImpl implements SendPort {
-  factory _SendPortImpl._uninstantiable() {
+class _SendPort implements SendPort {
+  factory _SendPort._uninstantiable() {
     throw "Unreachable";
   }
 
@@ -232,7 +231,7 @@ class _SendPortImpl implements SendPort {
   }
 
   bool operator ==(var other) {
-    return (other is _SendPortImpl) && (this._get_id() == other._get_id());
+    return (other is _SendPort) && (this._get_id() == other._get_id());
   }
 
   int get hashCode {
@@ -240,13 +239,13 @@ class _SendPortImpl implements SendPort {
   }
 
   /*--- private implementation ---*/
-  @pragma("vm:external-name", "SendPortImpl_get_id")
+  @pragma("vm:external-name", "SendPort_get_id")
   external _get_id();
-  @pragma("vm:external-name", "SendPortImpl_get_hashcode")
+  @pragma("vm:external-name", "SendPort_get_hashcode")
   external _get_hashcode();
 
   // Forward the implementation of sending messages to the VM.
-  @pragma("vm:external-name", "SendPortImpl_sendInternal_")
+  @pragma("vm:external-name", "SendPort_sendInternal_")
   external void _sendInternal(var message);
 }
 
@@ -291,9 +290,9 @@ void _delayEntrypointInvocation(Function entryPoint, List<String>? args,
     port.close();
     if (allowZeroOneOrTwoArgs) {
       if (entryPoint is _BinaryFunction) {
-        (entryPoint as dynamic)(args, message);
+        (entryPoint as Function)(args, message);
       } else if (entryPoint is _UnaryFunction) {
-        (entryPoint as dynamic)(args);
+        (entryPoint as Function)(args);
       } else {
         entryPoint();
       }

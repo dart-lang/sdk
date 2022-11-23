@@ -383,7 +383,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER = CompileTimeErrorCode(
     'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    "The class '{0} doesn't have a constructor named '{1}.",
+    "The class '{0}' doesn't have a constructor named '{1}'.",
     correctionMessage:
         "Try invoking a different constructor, or defining a constructor named "
         "'{1}'.",
@@ -1168,6 +1168,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing all except one of the duplicated part directives.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the field
+  static const CompileTimeErrorCode DUPLICATE_RECORD_PATTERN_FIELD =
+      CompileTimeErrorCode(
+    'DUPLICATE_RECORD_PATTERN_FIELD',
+    "The field '{0}' is already matched in this pattern.",
+    correctionMessage: "Try removing the duplicate field.",
   );
 
   ///  Parameters:
@@ -2327,8 +2336,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_FIELD_NAME_POSITIONAL =
       CompileTimeErrorCode(
     'INVALID_FIELD_NAME',
-    "Record field names can't be a dollar sign followed by an integer when "
-        "the\ninteger is the index of a positional field.",
+    "Record field names can't be a dollar sign followed by an integer when the "
+        "integer is the index of a positional field.",
     correctionMessage: "Try using a different name for the field.",
     uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
   );
@@ -2732,9 +2741,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
   );
 
-  static const CompileTimeErrorCode MISSING_EXTRACTOR_PATTERN_GETTER_NAME =
+  static const CompileTimeErrorCode MISSING_OBJECT_PATTERN_GETTER_NAME =
       CompileTimeErrorCode(
-    'MISSING_EXTRACTOR_PATTERN_GETTER_NAME',
+    'MISSING_OBJECT_PATTERN_GETTER_NAME',
     "The getter name is not specified explicitly, and the pattern is not a "
         "variable.",
     correctionMessage:
@@ -3360,6 +3369,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the variable pattern
+  static const CompileTimeErrorCode NOT_CONSISTENT_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'NOT_CONSISTENT_VARIABLE_PATTERN',
+    "Variable pattern '{0}' has a different type or finality in this branch of "
+        "the logical-or pattern.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "both branches.",
+  );
+
+  ///  Parameters:
   ///  0: the expected number of required arguments
   ///  1: the actual number of positional arguments given
   ///  2: name of the function or method
@@ -3577,6 +3598,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
     "The class 'Object' can't extend any other class.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode OBSOLETE_COLON_FOR_DEFAULT_VALUE =
+      CompileTimeErrorCode(
+    'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+    "Using a colon as a separator before a default value is no longer "
+        "supported.",
+    correctionMessage: "Try replacing the colon with an equal sign.",
   );
 
   ///  Parameters:

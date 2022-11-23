@@ -11,11 +11,15 @@
 // for these classes.
 
 #include "platform/assert.h"
+#include "vm/globals.h"
 
 namespace dart {
 
-// Size of the class-id part of the object header. See UntaggedObject.
-typedef uint16_t ClassIdTagType;
+// Large enough to contain the class-id part of the object header. See
+// UntaggedObject. Signed to be comparable to intptr_t.
+typedef int32_t ClassIdTagType;
+
+static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
 
 // Classes that are not subclasses of Instance and only handled by the VM,
 // but do not require any special handling other than being a predefined class.
@@ -110,12 +114,12 @@ typedef uint16_t ClassIdTagType;
   CLASS_LIST_INTERNAL_ONLY(V) CLASS_LIST_INSTANCE_SINGLETONS(V)
 
 #define CLASS_LIST_MAPS(V)                                                     \
-  V(LinkedHashMap)                                                             \
-  V(ImmutableLinkedHashMap)
+  V(Map)                                                                       \
+  V(ConstMap)
 
 #define CLASS_LIST_SETS(V)                                                     \
-  V(LinkedHashSet)                                                             \
-  V(ImmutableLinkedHashSet)
+  V(Set)                                                                       \
+  V(ConstSet)
 
 #define CLASS_LIST_FIXED_LENGTH_ARRAYS(V)                                      \
   V(Array)                                                                     \
@@ -190,8 +194,8 @@ typedef uint16_t ClassIdTagType;
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                         \
-  V(LinkedHashMap)                                                             \
-  V(LinkedHashSet)                                                             \
+  V(Map)                                                                       \
+  V(Set)                                                                       \
   V(Array)                                                                     \
   V(GrowableObjectArray)                                                       \
   V(String)

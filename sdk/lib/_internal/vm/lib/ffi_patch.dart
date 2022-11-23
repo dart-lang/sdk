@@ -1030,7 +1030,7 @@ extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
 
 extension NativePort on SendPort {
   @patch
-  @pragma("vm:external-name", "SendPortImpl_get_id")
+  @pragma("vm:external-name", "SendPort_get_id")
   external int get nativePort;
 }
 

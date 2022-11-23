@@ -83,6 +83,30 @@
   "size": 59,
   "outputUnit": "outputUnit/main",
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
+},
+  {
+  "id": "constant/B.List_gQW = A._setArrayType(makeConstList([B.LoadLibraryPriority_0, B.LoadLibraryPriority_1]), A.findType(\"JSArray<LoadLibraryPriority*>\"));\n",
+  "kind": "constant",
+  "name": "",
+  "size": 142,
+  "outputUnit": "outputUnit/main",
+  "code": "B.List_gQW = A._setArrayType(makeConstList([B.LoadLibraryPriority_0, B.LoadLibraryPriority_1]), A.findType(\"JSArray<LoadLibraryPriority*>\"));\n"
+},
+  {
+  "id": "constant/B.LoadLibraryPriority_0 = new A.LoadLibraryPriority(0, \"normal\");\n",
+  "kind": "constant",
+  "name": "",
+  "size": 66,
+  "outputUnit": "outputUnit/main",
+  "code": "B.LoadLibraryPriority_0 = new A.LoadLibraryPriority(0, \"normal\");\n"
+},
+  {
+  "id": "constant/B.LoadLibraryPriority_1 = new A.LoadLibraryPriority(1, \"high\");\n",
+  "kind": "constant",
+  "name": "",
+  "size": 64,
+  "outputUnit": "outputUnit/main",
+  "code": "B.LoadLibraryPriority_1 = new A.LoadLibraryPriority(1, \"high\");\n"
 }],
  deferredFiles=[{
   "main.dart": {
@@ -99,7 +123,7 @@
   "id": "library/memory:sdk/tests/web/native/main.dart::",
   "kind": "library",
   "name": "<unnamed>",
-  "size": 857,
+  "size": 860,
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::main"
   ],
@@ -254,7 +278,45 @@ import 'dart:async';
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib2;
 
-/*member: main:
+/*spec.member: main:
+ function=[{
+  "id": "function/memory:sdk/tests/web/native/main.dart::main",
+  "kind": "function",
+  "name": "main",
+  "size": 860,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::",
+  "children": [],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "dynamic",
+  "inferredReturnType": "[exact=_Future]",
+  "parameters": [],
+  "sideEffects": "SideEffects(reads nothing; writes nothing)",
+  "inlinedCount": 0,
+  "code": "main() {\n      var $async$goto = 0,\n        $async$completer = A._makeAsyncAwaitCompleter(type$.dynamic);\n      var $async$main = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {\n        if ($async$errorCode === 1)\n          return A._asyncRethrow($async$result, $async$completer);\n        while (true)\n          switch ($async$goto) {\n            case 0:\n              // Function start\n              $async$goto = 2;\n              return A._asyncAwait(A.loadDeferredLibrary(\"lib1\", 0), $async$main);\n            case 2:\n              // returning from await.\n              A.checkDeferredIsLoaded(\"lib1\");\n              A.checkDeferredIsLoaded(\"lib1\");\n              // implicit return\n              return A._asyncReturn(null, $async$completer);\n          }\n      });\n      return A._asyncStartSync($async$main, $async$completer);\n    }",
+  "type": "dynamic Function()",
+  "functionKind": 0
+}],
+ holding=[
+  {"id":"function/dart:_js_helper::checkDeferredIsLoaded","mask":null},
+  {"id":"function/dart:_js_helper::loadDeferredLibrary","mask":null},
+  {"id":"function/dart:_rti::findType","mask":null},
+  {"id":"function/dart:async::StreamIterator.StreamIterator","mask":null},
+  {"id":"function/dart:async::_asyncAwait","mask":null},
+  {"id":"function/dart:async::_asyncRethrow","mask":null},
+  {"id":"function/dart:async::_asyncReturn","mask":null},
+  {"id":"function/dart:async::_asyncStartSync","mask":null},
+  {"id":"function/dart:async::_makeAsyncAwaitCompleter","mask":null},
+  {"id":"function/dart:async::_wrapJsFunctionForAsync","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/lib2.dart::A.method","mask":"inlined"},
+  {"id":"function/memory:sdk/tests/web/native/lib2.dart::A.method","mask":null}]
+*/
+/*canary.member: main:
  function=[{
   "id": "function/memory:sdk/tests/web/native/main.dart::main",
   "kind": "function",

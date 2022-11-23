@@ -326,8 +326,8 @@ struct RangeErrorABI {
 // ABI for AllocateObjectStub.
 struct AllocateObjectABI {
   static constexpr Register kResultReg = A0;
-  static constexpr Register kTypeArgumentsReg = T1;
-  static const Register kTagsReg = T2;
+  static constexpr Register kTypeArgumentsReg = A1;
+  static constexpr Register kTagsReg = T2;
 };
 
 // ABI for AllocateClosureStub.
@@ -364,6 +364,17 @@ struct AllocateRecordABI {
   static const Register kFieldNamesReg = T1;
   static const Register kTemp1Reg = T3;
   static const Register kTemp2Reg = T4;
+};
+
+// ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
+// AllocateRecord3, AllocateRecord3Named).
+struct AllocateSmallRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFieldNamesReg = T2;
+  static const Register kValue0Reg = T3;
+  static const Register kValue1Reg = T4;
+  static const Register kValue2Reg = A1;
+  static const Register kTempReg = T1;
 };
 
 // ABI for AllocateTypedDataArrayStub.
@@ -446,7 +457,7 @@ struct CloneSuspendStateStubABI {
 // register). This ABI is added to distinguish memory corruption errors from
 // null errors.
 struct DispatchTableNullErrorABI {
-  static constexpr Register kClassIdReg = T1;
+  static constexpr Register kClassIdReg = A2;
 };
 
 typedef uint32_t RegList;
@@ -641,6 +652,8 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 const uword kBreakInstructionFiller = 0;  // trap or c.trap

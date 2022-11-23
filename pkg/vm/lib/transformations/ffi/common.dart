@@ -924,14 +924,21 @@ class FfiTransformer extends Transformer {
         functionType: numMultiplication.getterType as FunctionType);
   }
 
-  Iterable<MapConstant> getAbiSpecificIntegerMappingAnnotations(Class node) {
-    return node.annotations
+  MapConstant? getAbiSpecificIntegerMappingAnnotation(Class node) {
+    final annotations = node.annotations
         .whereType<ConstantExpression>()
         .map((e) => e.constant)
         .whereType<InstanceConstant>()
         .where((e) => e.classNode == abiSpecificIntegerMappingClass)
         .map((instanceConstant) =>
-            instanceConstant.fieldValues.values.single as MapConstant);
+            instanceConstant.fieldValues.values.single as MapConstant)
+        .toList();
+
+    // There can be at most one annotation (checked by `_FfiDefinitionTransformer`)
+    if (annotations.length == 1) {
+      return annotations[0];
+    }
+    return null;
   }
 
   /// Generates an expression performing an Abi specific integer load or store.

@@ -146,6 +146,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST,
   ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA,
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
+  ParserErrorCode.ABSTRACT_SEALED_CLASS,
+  ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -173,6 +175,12 @@ class ParserErrorCode extends ErrorCode {
     'ABSTRACT_LATE_FIELD',
     "Abstract fields cannot be late.",
     correctionMessage: "Try removing the 'abstract' or 'late' keyword.",
+  );
+
+  static const ParserErrorCode ABSTRACT_SEALED_CLASS = ParserErrorCode(
+    'ABSTRACT_SEALED_CLASS',
+    "A class can't be declared both 'sealed' and 'abstract'.",
+    correctionMessage: "Try removing the 'abstract' or 'sealed' keyword.",
   );
 
   static const ParserErrorCode ABSTRACT_STATIC_FIELD = ParserErrorCode(
@@ -573,6 +581,14 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage:
         "Try updating your pubspec.yaml to set the minimum SDK constraint to "
         "{1} or higher, and running 'pub get'.",
+  );
+
+  static const ParserErrorCode EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT =
+      ParserErrorCode(
+    'EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT',
+    "This requires the experimental '{0}' language feature to be enabled.",
+    correctionMessage:
+        "Try passing the '--enable-experiment={0}' command line option.",
   );
 
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =

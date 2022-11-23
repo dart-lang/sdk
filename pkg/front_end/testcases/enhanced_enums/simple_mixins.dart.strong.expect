@@ -35,7 +35,7 @@ class E1 extends self::_E1&_Enum&A /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E1
     : super self::_E1&_Enum&A::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E2&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
@@ -59,7 +59,7 @@ class E2 extends self::_E2&_Enum&A&B /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E2
     : super self::_E2&_Enum&A&B::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E3&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
@@ -76,7 +76,7 @@ class E3 extends self::_E3&_Enum&M /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E3
     : super self::_E3&_Enum&M::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {

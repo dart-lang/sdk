@@ -1971,7 +1971,7 @@ void Assembler::LoadObject(Register dst,
       !movable_referent) {
     movl(dst, Immediate(target::ToRawPointer(object)));
   } else {
-    ASSERT(IsNotTemporaryScopedHandle(object));
+    DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
     ASSERT(IsInOldSpace(object));
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0xB8 + dst);
@@ -1995,7 +1995,7 @@ void Assembler::PushObject(const Object& object) {
   if (target::CanEmbedAsRawPointerInGeneratedCode(object)) {
     pushl(Immediate(target::ToRawPointer(object)));
   } else {
-    ASSERT(IsNotTemporaryScopedHandle(object));
+    DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
     ASSERT(IsInOldSpace(object));
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0x68);
@@ -2008,7 +2008,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   if (target::CanEmbedAsRawPointerInGeneratedCode(object)) {
     cmpl(reg, Immediate(target::ToRawPointer(object)));
   } else {
-    ASSERT(IsNotTemporaryScopedHandle(object));
+    DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
     ASSERT(IsInOldSpace(object));
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     if (reg == EAX) {
@@ -2757,7 +2757,7 @@ void Assembler::CopyMemoryWords(Register src,
 }
 
 void Assembler::PushCodeObject() {
-  ASSERT(IsNotTemporaryScopedHandle(code_));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(code_));
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x68);
   buffer_.EmitObject(code_);
@@ -2897,12 +2897,10 @@ void Assembler::EmitGenericShift(int rm,
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  movzxw(result, FieldAddress(object, class_id_offset));
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+  movl(result, FieldAddress(object, target::Object::tags_offset()));
+  shrl(result, Immediate(target::UntaggedObject::kClassIdTagPos));
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
@@ -2927,18 +2925,16 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      Register scratch,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
   j(NOT_CARRY, is_smi, kNearJump);
   // Load cid: can't use LoadClassId, object is untagged. Use TIMES_2 scale
   // factor in the addressing mode to compensate for this.
-  movzxw(scratch, Address(object, TIMES_2, class_id_offset));
+  movl(scratch, Address(object, TIMES_2,
+                        target::Object::tags_offset() + kHeapObjectTag));
+  shrl(scratch, Immediate(target::UntaggedObject::kClassIdTagPos));
   cmpl(scratch, Immediate(class_id));
 }
 

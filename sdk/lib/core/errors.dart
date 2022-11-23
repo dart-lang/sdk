@@ -313,7 +313,7 @@ class RangeError extends ArgumentError {
   ///
   /// Throws if [index] is not a valid index into [indexable].
   ///
-  /// An indexable object is one that has a `length` and a and index-operator
+  /// An indexable object is one that has a `length` and an index-operator
   /// `[]` that accepts an index if `0 <= index < length`.
   ///
   /// If [name] or [message] are provided, they are used as the parameter
@@ -327,12 +327,8 @@ class RangeError extends ArgumentError {
   static int checkValidIndex(int index, dynamic indexable,
       [String? name, int? length, String? message]) {
     length ??= (indexable.length as int);
-    // Comparing with `0` as receiver produces better dart2js type inference.
-    if (0 > index || index >= length) {
-      name ??= "index";
-      throw RangeError.index(index, indexable, name, message, length);
-    }
-    return index;
+    return IndexError.check(index, length,
+        indexable: indexable, name: name, message: message);
   }
 
   /// Check that a range represents a slice of an indexable object.
@@ -415,7 +411,7 @@ class RangeError extends ArgumentError {
 /// and the invalid index itself.
 class IndexError extends ArgumentError implements RangeError {
   /// The indexable object that [invalidValue] was not a valid index into.
-  final indexable;
+  final Object? indexable;
 
   /// The length of [indexable] at the time of the error.
   final int length;
@@ -427,11 +423,54 @@ class IndexError extends ArgumentError implements RangeError {
   /// If `length` is omitted, it defaults to `indexable.length`.
   ///
   /// The message is used as part of the string representation of the error.
+  @Deprecated("Use IndexError.withLength instead.")
   IndexError(int invalidValue, dynamic indexable,
       [String? name, String? message, int? length])
       : this.indexable = indexable,
+        // ignore: avoid_dynamic_calls
         this.length = length ?? indexable.length,
         super.value(invalidValue, name, message ?? "Index out of range");
+
+  /// Creates a new [IndexError] stating that [invalidValue] is not a valid index
+  /// into [indexable].
+  ///
+  /// The [length] is the length of [indexable] at the time of the error.
+  ///
+  /// The message is used as part of the string representation of the error.
+  @Since("2.19")
+  IndexError.withLength(int invalidValue, this.length,
+      {this.indexable, String? name, String? message})
+      : super.value(invalidValue, name, message ?? "Index out of range");
+
+  /// Check that [index] is a valid index into an indexable object.
+  ///
+  /// Throws if [index] is not a valid index.
+  ///
+  /// An indexable object is one that has a `length` and an index-operator
+  /// `[]` that accepts an index if `0 <= index < length`.
+  ///
+  /// The [length] is the length of the indexable object.
+  ///
+  /// The [indexable], if provided, is the indexable object.
+  ///
+  /// The [name] is the parameter name of the index value. Defaults to "index",
+  /// and can be set to null to omit a name from the error string,
+  /// if the invalid index was not a parameter.
+  ///
+  /// The [message], if provided, is included in the error string.
+  ///
+  /// Returns [index] if it is a valid index.
+  @Since("2.19")
+  static int check(int index, int length,
+      {Object? indexable, String? name, String? message}) {
+    // Comparing with `0` as receiver produces better dart2js type inference.
+    if (0 > index || index >= length) {
+      name ??= "index";
+      throw IndexError.withLength(index, length,
+          indexable: indexable, name: name, message: message);
+    }
+    return index;
+  }
 
   // Getters inherited from RangeError.
   int get start => 0;

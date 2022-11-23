@@ -24,13 +24,10 @@ import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../universe/member_usage.dart';
-import 'element_map_interfaces.dart'
-    show memberIsIgnorable, KernelToElementMapForEnv;
-
-import 'env_interfaces.dart' as interfaces;
+import 'element_map.dart' show memberIsIgnorable, KernelToElementMap;
 
 /// Environment for fast lookup of component libraries.
-class KProgramEnv implements interfaces.KProgramEnv {
+class KProgramEnv {
   final Set<ir.Component> _components = {};
 
   late final Map<Uri, KLibraryEnv> _libraryMap = {
@@ -64,13 +61,11 @@ class KProgramEnv implements interfaces.KProgramEnv {
   int get length => _libraryMap.length;
 
   /// Convert this [KProgramEnv] to the corresponding [JProgramEnv].
-  @override
   JProgramEnv convert() => JProgramEnv(_components);
 }
 
 /// Environment for fast lookup of library classes and members.
-class KLibraryEnv implements interfaces.KLibraryEnv {
-  @override
+class KLibraryEnv {
   final ir.Library library;
 
   late final Map<String, KClassEnv> _classMap = {
@@ -137,7 +132,6 @@ class KLibraryEnv implements interfaces.KLibraryEnv {
 
   /// Convert this [KLibraryEnv] to a corresponding [JLibraryEnv] containing
   /// only the members in [liveMembers].
-  @override
   JLibraryEnv convert(IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> memberMap;
@@ -168,7 +162,7 @@ class KLibraryEnv implements interfaces.KLibraryEnv {
   }
 }
 
-class KLibraryData implements interfaces.KLibraryData {
+class KLibraryData {
   final ir.Library library;
   Iterable<ConstantValue>? _metadata;
   // TODO(johnniwinther): Avoid direct access to [imports].
@@ -176,14 +170,14 @@ class KLibraryData implements interfaces.KLibraryData {
 
   KLibraryData(this.library);
 
-  Iterable<ConstantValue> getMetadata(KernelToElementMapForEnv elementMap) {
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext.forAnnotations(
             library, elementMap.typeEnvironment),
         library.annotations);
   }
 
-  Iterable<ImportEntity> getImports(KernelToElementMapForEnv elementMap) {
+  Iterable<ImportEntity> getImports(KernelToElementMap elementMap) {
     if (imports == null) {
       List<ir.LibraryDependency> dependencies = library.dependencies;
       if (dependencies.isEmpty) {
@@ -205,16 +199,14 @@ class KLibraryData implements interfaces.KLibraryData {
 
   /// Convert this [KLibraryData] to the corresponding [JLibraryData].
   // TODO(johnniwinther): Why isn't [imports] ensured to be non-null here?
-  @override
   JLibraryData convert() {
     return JLibraryData(library, imports ?? const {});
   }
 }
 
 /// Member data for a class.
-abstract class KClassEnv implements interfaces.KClassEnv {
+abstract class KClassEnv {
   /// The [ir.Class] that defined the class, if any.
-  @override
   ir.Class get cls;
 
   /// Whether the class is an unnamed mixin application.
@@ -227,7 +219,7 @@ abstract class KClassEnv implements interfaces.KClassEnv {
   bool get isMixinApplicationWithMembers;
 
   /// Ensures that all members have been computed for [cls].
-  void ensureMembers(KernelToElementMapForEnv elementMap);
+  void ensureMembers(KernelToElementMap elementMap);
 
   /// Return the [MemberEntity] for the member [name] in the class.
   MemberEntity? lookupMember(IrToElementMap elementMap, Name name);
@@ -251,10 +243,10 @@ abstract class KClassEnv implements interfaces.KClassEnv {
   ///
   /// [getJLibrary] returns the [LibraryEntity] in the J-model corresponding to
   /// a [ir.Library] node.
-  @override
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
+      Set<MemberEntity> liveAbstractMembers,
       LibraryEntity Function(ir.Library library) getJLibrary);
 
   /// Returns `true` if [node] is a known member of this class.
@@ -303,11 +295,11 @@ class KClassEnvImpl implements KClassEnv {
   }
 
   @override
-  void ensureMembers(KernelToElementMapForEnv elementMap) {
+  void ensureMembers(KernelToElementMap elementMap) {
     _ensureMaps(elementMap);
   }
 
-  void _ensureMaps(KernelToElementMapForEnv elementMap) {
+  void _ensureMaps(KernelToElementMap elementMap) {
     if (_memberMap != null) return;
 
     _memberMap = <Name, ir.Member>{};
@@ -399,7 +391,7 @@ class KClassEnvImpl implements KClassEnv {
 
   @override
   MemberEntity? lookupMember(
-      covariant KernelToElementMapForEnv elementMap, Name name) {
+      covariant KernelToElementMap elementMap, Name name) {
     _ensureMaps(elementMap);
     ir.Member? member = _memberMap![name];
     return member != null ? elementMap.getMember(member) : null;
@@ -407,7 +399,7 @@ class KClassEnvImpl implements KClassEnv {
 
   @override
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
-    _ensureMaps(elementMap as KernelToElementMapForEnv);
+    _ensureMaps(elementMap as KernelToElementMap);
     _members!.forEach((ir.Member member) {
       f(elementMap.getMember(member));
     });
@@ -416,7 +408,7 @@ class KClassEnvImpl implements KClassEnv {
   @override
   ConstructorEntity? lookupConstructor(
       IrToElementMap elementMap, String? name) {
-    _ensureMaps(elementMap as KernelToElementMapForEnv);
+    _ensureMaps(elementMap as KernelToElementMap);
     ir.Member? constructor = _constructorMap![name!];
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
@@ -424,7 +416,7 @@ class KClassEnvImpl implements KClassEnv {
   @override
   void forEachConstructor(
       IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
-    _ensureMaps(elementMap as KernelToElementMapForEnv);
+    _ensureMaps(elementMap as KernelToElementMap);
     _constructorMap!.values.forEach((ir.Member constructor) {
       f(elementMap.getConstructor(constructor));
     });
@@ -444,6 +436,7 @@ class KClassEnvImpl implements KClassEnv {
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
+      Set<MemberEntity> liveAbstractMembers,
       LibraryEntity Function(ir.Library library) getJLibrary) {
     Map<String, ir.Member> constructorMap;
     Map<Name, ir.Member> memberMap;
@@ -454,7 +447,8 @@ class KClassEnvImpl implements KClassEnv {
       constructorMap = <String, ir.Member>{};
       _constructorMap!.forEach((String name, ir.Member node) {
         MemberEntity member = kElementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           constructorMap[name] = node;
         }
       });
@@ -465,7 +459,8 @@ class KClassEnvImpl implements KClassEnv {
       memberMap = <Name, ir.Member>{};
       _memberMap!.forEach((Name name, ir.Member node) {
         MemberEntity member = kElementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           memberMap[name] = node;
         }
       });
@@ -476,7 +471,8 @@ class KClassEnvImpl implements KClassEnv {
       members = <ir.Member>[];
       _members!.forEach((ir.Member node) {
         MemberEntity member = kElementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           members.add(node);
         }
       });
@@ -486,7 +482,7 @@ class KClassEnvImpl implements KClassEnv {
   }
 }
 
-abstract class KClassData implements interfaces.KClassData {
+abstract class KClassData {
   ir.Class get node;
 
   InterfaceType? get thisType;
@@ -506,7 +502,6 @@ abstract class KClassData implements interfaces.KClassData {
   List<Variance> getVariances();
 
   /// Convert this [KClassData] to the corresponding [JClassData].
-  @override
   JClassData convert();
 }
 
@@ -546,8 +541,7 @@ class KClassDataImpl implements KClassData {
   bool isCallTypeComputed = false;
 
   @override
-  Iterable<ConstantValue> getMetadata(
-      covariant KernelToElementMapForEnv elementMap) {
+  Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext.forAnnotations(
             node.enclosingLibrary, elementMap.typeEnvironment),
@@ -564,8 +558,7 @@ class KClassDataImpl implements KClassData {
   }
 }
 
-abstract class KMemberData implements interfaces.KMemberData {
-  @override
+abstract class KMemberData {
   ir.Member get node;
 
   StaticTypeCache? staticTypes;
@@ -577,7 +570,6 @@ abstract class KMemberData implements interfaces.KMemberData {
   ClassTypeVariableAccess get classTypeVariableAccess;
 
   /// Convert this [KMemberData] to the corresponding [JMemberData].
-  @override
   JMemberData convert();
 }
 
@@ -593,8 +585,7 @@ abstract class KMemberDataImpl implements KMemberData {
   KMemberDataImpl(this.node);
 
   @override
-  Iterable<ConstantValue> getMetadata(
-      covariant KernelToElementMapForEnv elementMap) {
+  Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext(node, elementMap.typeEnvironment),
         node.annotations);
@@ -626,7 +617,7 @@ abstract class KFunctionDataMixin implements KFunctionData {
 
   @override
   List<TypeVariableType> getFunctionTypeVariables(
-      covariant KernelToElementMapForEnv elementMap) {
+      covariant KernelToElementMap elementMap) {
     if (_typeVariables == null) {
       if (functionNode.typeParameters.isEmpty) {
         _typeVariables = const <TypeVariableType>[];
@@ -661,7 +652,7 @@ class KFunctionDataImpl extends KMemberDataImpl
   KFunctionDataImpl(super.node, this.functionNode);
 
   @override
-  FunctionType getFunctionType(covariant KernelToElementMapForEnv elementMap) {
+  FunctionType getFunctionType(covariant KernelToElementMap elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
@@ -696,7 +687,12 @@ class KFunctionDataImpl extends KMemberDataImpl
   @override
   FunctionData convert() {
     return FunctionDataImpl(
-        node, functionNode, RegularMemberDefinition(node), staticTypes!);
+        node,
+        functionNode,
+        RegularMemberDefinition(node),
+        // Abstract members without bodies will not have expressions so we use
+        // an empty cache.
+        staticTypes ?? const StaticTypeCache());
   }
 
   @override
@@ -759,7 +755,7 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   ir.Field get node => super.node as ir.Field;
 
   @override
-  DartType getFieldType(covariant KernelToElementMapForEnv elementMap) {
+  DartType getFieldType(covariant KernelToElementMap elementMap) {
     return _type ??= elementMap.getDartType(node.type);
   }
 
@@ -771,12 +767,16 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
 
   @override
   JFieldData convert() {
-    return JFieldDataImpl(node, RegularMemberDefinition(node), staticTypes!);
+    return JFieldDataImpl(
+        node,
+        RegularMemberDefinition(node),
+        // Late fields in abstract classes won't have initializers so we use an
+        // empty cache.
+        staticTypes ?? const StaticTypeCache());
   }
 }
 
-class KTypeVariableData implements interfaces.KTypeVariableData {
-  @override
+class KTypeVariableData {
   final ir.TypeParameter node;
   DartType? _bound;
   DartType? _defaultType;
@@ -791,7 +791,6 @@ class KTypeVariableData implements interfaces.KTypeVariableData {
     return _defaultType ??= elementMap.getDartType(node.defaultType);
   }
 
-  @override
   JTypeVariableData copy() {
     return JTypeVariableData(node);
   }

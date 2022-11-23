@@ -130,6 +130,11 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitViewType(ir.ViewType node, StringBuffer sb) {
+    writeType(node.representationType, sb);
+  }
+
+  @override
   void visitFutureOrType(ir.FutureOrType node, StringBuffer sb) {
     sb.write('FutureOr<');
     writeType(node.typeArgument, sb);

@@ -97,4 +97,11 @@ uint64_t Random::GlobalNextUInt64() {
   return global_random->NextUInt64();
 }
 
+double Random::NextDouble() {
+  uint64_t mantissa = NextUInt64() & 0xFFFFFFFFFFFFF;
+  // The exponent value 0 in biased form.
+  const uint64_t exp = 1023;
+  return bit_cast<double>(exp << 52 | mantissa) - 1.0;
+}
+
 }  // namespace dart

@@ -14,7 +14,6 @@
 namespace dart {
 
 enum class ExperimentalFeature {
-  unnamed_libraries,
   nonfunction_type_aliases,
   non_nullable,
   extension_methods,
@@ -29,6 +28,7 @@ enum class ExperimentalFeature {
   named_arguments_anywhere,
   super_parameters,
   inference_update_1,
+  unnamed_libraries,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

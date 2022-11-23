@@ -27,6 +27,23 @@ class FindNode {
     return result;
   }
 
+  /// Returns the [GuardedPattern], there must be only one.
+  GuardedPattern get singleGuardedPattern {
+    var nodes = <GuardedPattern>[];
+    unit.accept(
+      FunctionAstVisitor(
+        ifStatement: (node) {
+          var caseClause = node.caseClause;
+          if (caseClause != null) {
+            nodes.add(caseClause.guardedPattern);
+          }
+        },
+        switchPatternCase: (node) => nodes.add(node.guardedPattern),
+      ),
+    );
+    return nodes.single;
+  }
+
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
   }
@@ -221,10 +238,6 @@ class FindNode {
 
   ExtensionOverride extensionOverride(String search) {
     return _node(search, (n) => n is ExtensionOverride);
-  }
-
-  ExtractorPattern extractorPattern(String search) {
-    return _node(search, (n) => n is ExtractorPattern);
   }
 
   FieldDeclaration fieldDeclaration(String search) {
@@ -439,6 +452,10 @@ class FindNode {
     return _node(search, (n) => n is NullLiteral);
   }
 
+  ObjectPattern objectPattern(String search) {
+    return _node(search, (n) => n is ObjectPattern);
+  }
+
   /// Return the unique offset where the [search] string occurs in [content].
   /// Throws if not found, or if not unique.
   int offset(String search) {
@@ -608,10 +625,6 @@ class FindNode {
 
   SwitchExpressionCase switchExpressionCase(String search) {
     return _node(search, (n) => n is SwitchExpressionCase);
-  }
-
-  SwitchExpressionDefault switchExpressionDefault(String search) {
-    return _node(search, (n) => n is SwitchExpressionDefault);
   }
 
   SwitchPatternCase switchPatternCase(String search) {

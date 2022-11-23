@@ -418,6 +418,8 @@ abstract class File implements FileSystemEntity {
   ///
   /// * [FileMode.append]: same as [FileMode.write] except that the file is
   /// not truncated.
+  ///
+  /// Throws a [FileSystemException] if the operation fails.
   Future<RandomAccessFile> open({FileMode mode = FileMode.read});
 
   /// Synchronously opens the file for random access operations.
@@ -890,12 +892,42 @@ class FileSystemException implements IOException {
   ///
   /// The [message] and [path] path defaults to empty strings if omitted,
   /// and [osError] defaults to `null`.
-  @pragma("vm:entry-point")
   const FileSystemException([this.message = "", this.path = "", this.osError]);
 
-  String toString() {
+  /// Create a new file system exception based on an [OSError.errorCode].
+  ///
+  /// For example, if `errorCode == 2` then a [PathNotFoundException]
+  /// will be returned.
+  @pragma("vm:entry-point")
+  factory FileSystemException._fromOSError(
+      OSError err, String message, String? path) {
+    if (Platform.isWindows) {
+      switch (err.errorCode) {
+        case _errorFileNotFound:
+        case _errorPathNotFound:
+        case _errorInvalidDrive:
+        case _errorNoMoreFiles:
+        case _errorBadNetpath:
+        case _errorBadNetName:
+        case _errorBadPathName:
+        case _errorFilenameExedRange:
+          return PathNotFoundException(path!, err, message);
+        default:
+          return FileSystemException(message, path, err);
+      }
+    } else {
+      switch (err.errorCode) {
+        case _eNoEnt:
+          return PathNotFoundException(path!, err, message);
+        default:
+          return FileSystemException(message, path, err);
+      }
+    }
+  }
+
+  String _toStringHelper(String className) {
     StringBuffer sb = new StringBuffer();
-    sb.write("FileSystemException");
+    sb.write(className);
     if (message.isNotEmpty) {
       sb.write(": $message");
       if (path != null) {
@@ -913,6 +945,22 @@ class FileSystemException implements IOException {
       sb.write(": $path");
     }
     return sb.toString();
+  }
+
+  String toString() {
+    return _toStringHelper("FileSystemException");
+  }
+}
+
+/// Exception thrown when a file operation fails because a file or
+/// directory does not exist.
+class PathNotFoundException extends FileSystemException {
+  const PathNotFoundException(String path, OSError osError,
+      [String message = ""])
+      : super(message, path, osError);
+
+  String toString() {
+    return _toStringHelper("PathNotFoundException");
   }
 }
 

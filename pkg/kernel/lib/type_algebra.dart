@@ -341,6 +341,13 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
   }
 
   @override
+  void visitViewType(ViewType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
   void visitFutureOrType(FutureOrType node) {
     node.typeArgument.accept(this);
   }
@@ -725,6 +732,15 @@ abstract class _TypeSubstitutor implements DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitViewType(ViewType node) {
+    if (node.typeArguments.isEmpty) return node;
+    int before = useCounter;
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
+    if (useCounter == before) return node;
+    return new ViewType(node.view, node.nullability, typeArguments);
+  }
+
+  @override
   DartType visitRecordType(RecordType node) {
     int before = useCounter;
     List<DartType> positional = node.positional.map(visit).toList();
@@ -933,6 +949,11 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
@@ -1008,6 +1029,11 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -1091,6 +1117,11 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -1218,6 +1249,11 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    return node.typeArguments.isEmpty;
+  }
+
+  @override
   bool visitInvalidType(InvalidType node) {
     throw new UnsupportedError(
         "Unsupported operation: _PrimitiveTypeVerifier(InvalidType).");
@@ -1294,6 +1330,11 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitExtensionType(ExtensionType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitViewType(ViewType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
@@ -1612,6 +1653,13 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
     assert(node.declaredNullability != Nullability.undetermined);
     return node.declaredNullability == Nullability.nullable ||
         node.declaredNullability == Nullability.legacy;

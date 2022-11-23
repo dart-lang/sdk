@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:collection/collection.dart';
 
 typedef _CatchClausesVerifierReporter = void Function(
   CatchClause first,
@@ -581,11 +583,34 @@ class NullSafetyDeadCodeVerifier {
     _catchClausesVerifiers.removeLast();
   }
 
+  void verifyCascadeExpression(CascadeExpression node) {
+    var first = node.cascadeSections.firstOrNull;
+    if (first is PropertyAccess) {
+      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
+    } else if (first is MethodInvocation) {
+      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
+    } else if (first is IndexExpression) {
+      _verifyUnassignedSimpleIdentifier(node, node.target, first.period);
+    }
+  }
+
   void verifyCatchClause(CatchClause node) {
     var verifier = _catchClausesVerifiers.last;
     if (verifier._done) return;
 
     verifier.nextCatchClause(node);
+  }
+
+  void verifyIndexExpression(IndexExpression node) {
+    _verifyUnassignedSimpleIdentifier(node, node.target, node.question);
+  }
+
+  void verifyMethodInvocation(MethodInvocation node) {
+    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
+  }
+
+  void verifyPropertyAccess(PropertyAccess node) {
+    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
   }
 
   void visitNode(AstNode node) {
@@ -633,6 +658,38 @@ class NullSafetyDeadCodeVerifier {
       if (beginToken != null && endToken != null) {
         _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE,
             beginToken.offset, endToken.end - beginToken.offset);
+      }
+    }
+  }
+
+  void _verifyUnassignedSimpleIdentifier(
+      AstNode node, Expression? target, Token? operator) {
+    var flowAnalysis = _flowAnalysis;
+    if (flowAnalysis == null) return;
+
+    var operatorType = operator?.type;
+    if (operatorType != TokenType.QUESTION &&
+        operatorType != TokenType.QUESTION_PERIOD &&
+        operatorType != TokenType.QUESTION_PERIOD_PERIOD) {
+      return;
+    }
+    if (target?.staticType?.nullabilitySuffix != NullabilitySuffix.question) {
+      return;
+    }
+
+    target = target?.unParenthesized;
+    if (target is SimpleIdentifier) {
+      var element = target.staticElement;
+      if (element is PromotableElement &&
+          flowAnalysis.isDefinitelyUnassigned(target, element)) {
+        var parent = node.parent;
+        while (parent is MethodInvocation ||
+            parent is PropertyAccess ||
+            parent is IndexExpression) {
+          node = parent!;
+          parent = node.parent;
+        }
+        _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node);
       }
     }
   }

@@ -3063,13 +3063,13 @@ class _AssertContext<Type extends Object> extends _SimpleContext<Type> {
 /// condition, such as an `if` statement, conditional expression, or a logical
 /// binary operator.
 class _BranchContext<Type extends Object> extends _FlowContext {
-  /// Flow models associated with the condition being branched on.
-  final ExpressionInfo<Type>? _conditionInfo;
+  /// Flow model if the branch is taken.
+  final FlowModel<Type> _branchModel;
 
-  _BranchContext(this._conditionInfo);
+  _BranchContext(this._branchModel);
 
   @override
-  String toString() => '_BranchContext(conditionInfo: $_conditionInfo)';
+  String toString() => '_BranchContext(branchModel: $_branchModel)';
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
@@ -3102,10 +3102,10 @@ class _ConditionalContext<Type extends Object> extends _BranchContext<Type> {
   /// circumstance where the "then" branch is taken.
   ExpressionInfo<Type>? _thenInfo;
 
-  _ConditionalContext(ExpressionInfo<Type> super.conditionInfo);
+  _ConditionalContext(super._branchModel);
 
   @override
-  String toString() => '_ConditionalContext(conditionInfo: $_conditionInfo, '
+  String toString() => '_ConditionalContext(branchModel: $_branchModel, '
       'thenInfo: $_thenInfo)';
 }
 
@@ -3242,7 +3242,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _ConditionalContext<Type> context =
         _stack.last as _ConditionalContext<Type>;
     context._thenInfo = _expressionEnd(thenExpression);
-    _current = context._conditionInfo!.ifFalse;
+    _current = context._branchModel;
   }
 
   @override
@@ -3263,7 +3263,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void conditional_thenBegin(Expression condition, Node conditionalExpression) {
     ExpressionInfo<Type> conditionInfo = _expressionEnd(condition);
-    _stack.add(new _ConditionalContext(conditionInfo));
+    _stack.add(new _ConditionalContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
 
@@ -3517,7 +3517,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void ifStatement_elseBegin() {
     _IfContext<Type> context = _stack.last as _IfContext<Type>;
     context._afterThen = _current;
-    _current = context._conditionInfo!.ifFalse;
+    _current = context._branchModel;
   }
 
   @override
@@ -3530,7 +3530,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       afterElse = _current;
     } else {
       afterThen = _current; // no `else`, so `then` is still current
-      afterElse = context._conditionInfo!.ifFalse;
+      afterElse = context._branchModel;
     }
     _current = _merge(afterThen, afterElse);
   }
@@ -3538,7 +3538,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void ifStatement_thenBegin(Expression? condition, Node ifNode) {
     ExpressionInfo<Type> conditionInfo = _expressionEnd(condition);
-    _stack.add(new _IfContext(conditionInfo));
+    _stack.add(new _IfContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
 
@@ -3656,9 +3656,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     FlowModel<Type> falseResult;
     if (isAnd) {
       trueResult = rhsInfo.ifTrue;
-      falseResult = _join(context._conditionInfo!.ifFalse, rhsInfo.ifFalse);
+      falseResult = _join(context._branchModel, rhsInfo.ifFalse);
     } else {
-      trueResult = _join(context._conditionInfo!.ifTrue, rhsInfo.ifTrue);
+      trueResult = _join(context._branchModel, rhsInfo.ifTrue);
       falseResult = rhsInfo.ifFalse;
     }
     _storeExpressionInfo(
@@ -3673,7 +3673,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void logicalBinaryOp_rightBegin(Expression leftOperand, Node wholeExpression,
       {required bool isAnd}) {
     ExpressionInfo<Type> conditionInfo = _expressionEnd(leftOperand);
-    _stack.add(new _BranchContext<Type>(conditionInfo));
+    _stack.add(new _BranchContext<Type>(
+        isAnd ? conditionInfo.ifFalse : conditionInfo.ifTrue));
     _current = isAnd ? conditionInfo.ifTrue : conditionInfo.ifFalse;
   }
 
@@ -4194,11 +4195,11 @@ class _IfContext<Type extends Object> extends _BranchContext<Type> {
   /// statement executes, in the circumstance where the "then" branch is taken.
   FlowModel<Type>? _afterThen;
 
-  _IfContext(ExpressionInfo<Type> super.conditionInfo);
+  _IfContext(super._branchModel);
 
   @override
   String toString() =>
-      '_IfContext(conditionInfo: $_conditionInfo, afterThen: $_afterThen)';
+      '_IfContext(branchModel: $_branchModel, afterThen: $_afterThen)';
 }
 
 /// [_FlowContext] representing an "if-null" (`??`) expression.

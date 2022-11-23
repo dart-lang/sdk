@@ -309,7 +309,8 @@ class BinaryReader {
     info.outputUnits.addAll(source.readList(readOutput));
 
     Map<String, Map<String, dynamic>> map =
-        jsonDecode(source.readString()).cast<String, Map<String, dynamic>>();
+        (jsonDecode(source.readString()) as Map)
+            .cast<String, Map<String, dynamic>>();
     for (final library in map.values) {
       if (library['imports'] != null) {
         // The importMap needs to be typed as <String, List<String>>, but the

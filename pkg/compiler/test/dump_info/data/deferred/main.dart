@@ -77,6 +77,30 @@
   "size": 59,
   "outputUnit": "outputUnit/main",
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
+},
+  {
+  "id": "constant/B.List_gQW = A._setArrayType(makeConstList([B.LoadLibraryPriority_0, B.LoadLibraryPriority_1]), A.findType(\"JSArray<LoadLibraryPriority*>\"));\n",
+  "kind": "constant",
+  "name": "",
+  "size": 142,
+  "outputUnit": "outputUnit/main",
+  "code": "B.List_gQW = A._setArrayType(makeConstList([B.LoadLibraryPriority_0, B.LoadLibraryPriority_1]), A.findType(\"JSArray<LoadLibraryPriority*>\"));\n"
+},
+  {
+  "id": "constant/B.LoadLibraryPriority_0 = new A.LoadLibraryPriority(0, \"normal\");\n",
+  "kind": "constant",
+  "name": "",
+  "size": 66,
+  "outputUnit": "outputUnit/main",
+  "code": "B.LoadLibraryPriority_0 = new A.LoadLibraryPriority(0, \"normal\");\n"
+},
+  {
+  "id": "constant/B.LoadLibraryPriority_1 = new A.LoadLibraryPriority(1, \"high\");\n",
+  "kind": "constant",
+  "name": "",
+  "size": 64,
+  "outputUnit": "outputUnit/main",
+  "code": "B.LoadLibraryPriority_1 = new A.LoadLibraryPriority(1, \"high\");\n"
 }],
  deferredFiles=[{
   "main.dart": {
@@ -93,7 +117,7 @@
   "id": "library/memory:sdk/tests/web/native/main.dart::",
   "kind": "library",
   "name": "<unnamed>",
-  "size": 301,
+  "size": 304,
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::main"
   ],
@@ -236,7 +260,80 @@
 
 import 'lib.dart' deferred as lib;
 
-/*member: main:
+/*spec.member: main:
+ closure=[{
+  "id": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
+  "kind": "closure",
+  "name": "main_closure",
+  "size": 201,
+  "outputUnit": "outputUnit/main",
+  "parent": "function/memory:sdk/tests/web/native/main.dart::main",
+  "function": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"
+}],
+ function=[
+  {
+  "id": "function/memory:sdk/tests/web/native/main.dart::main",
+  "kind": "function",
+  "name": "main",
+  "size": 304,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::",
+  "children": [
+    "closure/memory:sdk/tests/web/native/main.dart::main.main_closure"
+  ],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "dynamic",
+  "inferredReturnType": "[exact=_Future]",
+  "parameters": [],
+  "sideEffects": "SideEffects(reads anything; writes anything)",
+  "inlinedCount": 0,
+  "code": "main() {\n      return A.loadDeferredLibrary(\"lib\", 0).then$1$1(new A.main_closure(), type$.Null);\n    }",
+  "type": "dynamic Function()",
+  "functionKind": 0
+},
+  {
+  "id": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call",
+  "kind": "function",
+  "name": "call",
+  "size": 84,
+  "outputUnit": "outputUnit/main",
+  "parent": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
+  "children": [],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "Null",
+  "inferredReturnType": "[null]",
+  "parameters": [
+    {
+      "name": "_",
+      "type": "[null|subclass=Object]",
+      "declaredType": "dynamic"
+    }
+  ],
+  "sideEffects": "SideEffects(reads anything; writes anything)",
+  "inlinedCount": 0,
+  "code": "call$1(_) {\n      A.checkDeferredIsLoaded(\"lib\");\n      C.C_Deferred.call$0();\n    }",
+  "type": "Null Function(dynamic)",
+  "functionKind": 2
+}],
+ holding=[
+  {"id":"function/dart:_js_helper::loadDeferredLibrary","mask":null},
+  {"id":"function/dart:_rti::_setArrayType","mask":null},
+  {"id":"function/dart:_rti::findType","mask":null},
+  {"id":"function/dart:async::_Future.then","mask":"[exact=_Future]"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null}]
+*/
+/*canary.member: main:
  closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
   "kind": "closure",

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--old_gen_heap_size=20
-// VMOptions=--old_gen_heap_size=20 --enable_vm_service --pause_isolates_on_unhandled_exceptions
+// VMOptions=--old_gen_heap_size=20 --enable_vm_service=0 --pause_isolates_on_unhandled_exceptions
 
 import "package:expect/expect.dart";
 

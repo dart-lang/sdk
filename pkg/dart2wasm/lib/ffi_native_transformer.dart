@@ -8,8 +8,10 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:vm/transformations/ffi/abi.dart' show Abi;
 import 'package:vm/transformations/ffi/common.dart' show NativeType;
 import 'package:vm/transformations/ffi/native.dart' show FfiNativeTransformer;
+import 'abi.dart' show kWasmAbiEnumIndex;
 
 /// Transform `@FfiNative`-annotated functions to convert Dart arguments to
 /// Wasm arguments expected by the FFI functions, and convert the Wasm function
@@ -236,7 +238,8 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
   ///
   /// Returns `null` for [Void] values.
   Expression? _dartValueToFfiValue(DartType ffiType, Expression expr) {
-    final InterfaceType abiType_ = ffiType as InterfaceType;
+    final InterfaceType abiType_ =
+        _getFixedWidthIntegerFromAbiSpecificInteger(ffiType as InterfaceType);
     final NativeType abiTypeNativeType = getType(abiType_.classNode)!;
 
     switch (abiTypeNativeType) {
@@ -292,7 +295,8 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
   /// For example, converts an `Bool` native type to Dart bool by checking the
   /// Wasm I32 value for the bool: 0 means `false`, non-0 means `true`.
   Expression _ffiValueToDartValue(DartType ffiType, Expression expr) {
-    final InterfaceType ffiType_ = ffiType as InterfaceType;
+    final InterfaceType ffiType_ =
+        _getFixedWidthIntegerFromAbiSpecificInteger(ffiType as InterfaceType);
     final NativeType nativeType = getType(ffiType_.classNode)!;
 
     Expression instanceInvocation(Procedure converter, Expression receiver) =>
@@ -344,6 +348,22 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     }
   }
 
+  InterfaceType _getFixedWidthIntegerFromAbiSpecificInteger(
+      InterfaceType ffiType) {
+    final MapConstant? abiIntegerMapping =
+        getAbiSpecificIntegerMappingAnnotation(ffiType.classNode);
+    if (abiIntegerMapping == null) {
+      // This isn't an ABI specific integer. Just return the type itself
+      return ffiType;
+    }
+    final Abi wasmAbi = Abi.values[kWasmAbiEnumIndex];
+    final entry = abiIntegerMapping.entries
+        .firstWhere((e) => constantAbis[e.key] == wasmAbi);
+    return (entry.value as InstanceConstant)
+        .classNode
+        .getThisType(coreTypes, Nullability.nonNullable);
+  }
+
   /// Converts an FFI type like `InterfaceType(Int8)` to the corresponding Wasm
   /// type (`InterfaceType(WasmI32)`) according to emscripten Wasm ABI.
   ///
@@ -353,8 +373,8 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     if (ffiType is! InterfaceType) {
       throw 'Native type is not an interface type: $ffiType';
     }
-    final Class nativeClass = ffiType.classNode;
-    final NativeType nativeType_ = getType(nativeClass)!;
+    ffiType = _getFixedWidthIntegerFromAbiSpecificInteger(ffiType);
+    final NativeType nativeType_ = getType(ffiType.classNode)!;
 
     switch (nativeType_) {
       case NativeType.kInt8:

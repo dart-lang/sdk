@@ -43,28 +43,16 @@ void applyCheckElementTextReplacements() {
 }
 
 /// Write the given [library] elements into the canonical text presentation
-/// taking into account the specified 'withX' options. Then compare the
-/// actual text with the given [expected] one.
-void checkElementText(
+/// taking into account the [configuration]. Then compare the actual text with
+/// the given [expected] one.
+void checkElementTextWithConfiguration(
   LibraryElement library,
   String expected, {
   ElementTextConfiguration? configuration,
-  bool withCodeRanges = false,
-  bool withDisplayName = false,
-  bool withExportScope = false,
-  bool withNonSynthetic = false,
-  bool withPropertyLinking = false,
-  bool withSyntheticDartCoreImport = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
     configuration: configuration ?? ElementTextConfiguration(),
-    withCodeRanges: withCodeRanges,
-    withDisplayName: withDisplayName,
-    withExportScope: withExportScope,
-    withNonSynthetic: withNonSynthetic,
-    withPropertyLinking: withPropertyLinking,
-    withSyntheticDartCoreImport: withSyntheticDartCoreImport,
   );
   writer.writeLibraryElement(library);
 
@@ -125,6 +113,12 @@ void checkElementText(
 
 class ElementTextConfiguration {
   bool Function(Object) filter;
+  bool withCodeRanges = false;
+  bool withDisplayName = false;
+  bool withExportScope = false;
+  bool withNonSynthetic = false;
+  bool withPropertyLinking = false;
+  bool withSyntheticDartCoreImport = false;
 
   ElementTextConfiguration({
     this.filter = _filterTrue,
@@ -137,12 +131,6 @@ class ElementTextConfiguration {
 class _ElementWriter {
   final String? selfUriStr;
   final ElementTextConfiguration configuration;
-  final bool withCodeRanges;
-  final bool withDisplayName;
-  final bool withExportScope;
-  final bool withNonSynthetic;
-  final bool withPropertyLinking;
-  final bool withSyntheticDartCoreImport;
   final StringBuffer buffer = StringBuffer();
   final _IdMap _idMap = _IdMap();
 
@@ -151,12 +139,6 @@ class _ElementWriter {
   _ElementWriter({
     this.selfUriStr,
     required this.configuration,
-    required this.withCodeRanges,
-    required this.withDisplayName,
-    required this.withExportScope,
-    required this.withNonSynthetic,
-    required this.withPropertyLinking,
-    required this.withSyntheticDartCoreImport,
   });
 
   void writeLibraryElement(LibraryElement e) {
@@ -178,7 +160,7 @@ class _ElementWriter {
 
       _writeElements('parts', e.parts, _writePartElement);
 
-      if (withExportScope) {
+      if (configuration.withExportScope) {
         _writelnWithIndent('exportedReferences');
         _withIndent(() {
           _writeExportedReferences(e);
@@ -366,7 +348,7 @@ class _ElementWriter {
   }
 
   void _writeCodeRange(Element e) {
-    if (withCodeRanges && !e.isSynthetic) {
+    if (configuration.withCodeRanges && !e.isSynthetic) {
       e as ElementImpl;
       _writelnWithIndent('codeOffset: ${e.codeOffset}');
       _writelnWithIndent('codeLength: ${e.codeLength}');
@@ -480,7 +462,7 @@ class _ElementWriter {
   }
 
   void _writeDisplayName(Element e) {
-    if (withDisplayName) {
+    if (configuration.withDisplayName) {
       _writelnWithIndent('displayName: ${e.displayName}');
     }
   }
@@ -651,9 +633,9 @@ class _ElementWriter {
     _writeDocumentation(e);
     _writeMetadata(e);
 
-    var imports = e.libraryImports
-        .where((import) => withSyntheticDartCoreImport || !import.isSynthetic)
-        .toList();
+    var imports = e.libraryImports.where((import) {
+      return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
+    }).toList();
     _writeElements('imports', imports, _writeImportElement);
 
     _writeElements('exports', e.libraryExports, _writeExportElement);
@@ -748,7 +730,7 @@ class _ElementWriter {
   }
 
   void _writeNonSyntheticElement(Element e) {
-    if (withNonSynthetic) {
+    if (configuration.withNonSynthetic) {
       _writeElementReference('nonSynthetic', e.nonSynthetic);
     }
   }
@@ -860,7 +842,7 @@ class _ElementWriter {
     });
 
     void writeLinking() {
-      if (withPropertyLinking) {
+      if (configuration.withPropertyLinking) {
         _writelnWithIndent('id: ${_idMap[e]}');
         _writelnWithIndent('variable: ${_idMap[e.variable]}');
       }
@@ -919,7 +901,7 @@ class _ElementWriter {
     });
 
     void writeLinking() {
-      if (withPropertyLinking) {
+      if (configuration.withPropertyLinking) {
         _writelnWithIndent('id: ${_idMap[e]}');
 
         final getter = e.getter;
@@ -1007,6 +989,11 @@ class _ElementWriter {
         kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
       }
       _writelnWithIndent('typeInferenceError: $kindName');
+      _withIndent(() {
+        if (kindName == 'dependencyCycle') {
+          _writelnWithIndent('arguments: ${inferenceError?.arguments}');
+        }
+      });
     }
   }
 

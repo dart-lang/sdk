@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
@@ -287,8 +288,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -488,8 +488,14 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     _unexpected();
   }
 
@@ -796,7 +802,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -806,8 +812,14 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     _unexpected();
   }
 
@@ -2033,7 +2045,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
     _unsupported();
   }
@@ -2167,10 +2179,22 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    _unsupported();
+  }
+
+  @override
   void logEvent(String name) {}
 
   @override
   void reportVarianceModifierNotEnabled(Token? variance) {
+    _unsupported();
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     _unsupported();
   }
 }

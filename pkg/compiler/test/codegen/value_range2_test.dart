@@ -143,16 +143,15 @@ testNegate() {
 bits32(value) => value & 0xFFFFFFFF;
 
 testAnd() {
-  checkAndRange(
-      instruction, instruction, const MinIntValue(), const MaxIntValue());
+  checkAndRange(instruction, instruction, info.minIntValue, info.maxIntValue);
   checkAndRange(instruction, FF, 0, 0xFF);
   checkAndRange(instruction, FA, 0, 0xFA);
-  checkAndRange(instruction, nFF, const MinIntValue(), const MaxIntValue());
+  checkAndRange(instruction, nFF, info.minIntValue, info.maxIntValue);
   checkAndRange(instruction, length, 0, length.upper);
   checkAndRange(instruction, _FA_FF, 0, 0xFF);
   checkAndRange(instruction, _0_FF, 0, 0xFF);
-  checkAndRange(instruction, _nFF_FF, const MinIntValue(), const MaxIntValue());
-  checkAndRange(instruction, _nFF_0, const MinIntValue(), const MaxIntValue());
+  checkAndRange(instruction, _nFF_FF, info.minIntValue, info.maxIntValue);
+  checkAndRange(instruction, _nFF_0, info.minIntValue, info.maxIntValue);
   checkAndRange(instruction, _0_length, 0, _0_length.upper);
   checkAndRange(instruction, _0_instruction, 0, _0_instruction.upper);
 
@@ -165,7 +164,7 @@ testAnd() {
   checkAndRange(length, _nFF_FF, 0, length.upper);
   checkAndRange(length, _nFF_0, 0, length.upper);
   checkAndRange(length, _0_length, 0, length.upper);
-  checkAndRange(length, _0_instruction, 0, const MaxIntValue());
+  checkAndRange(length, _0_instruction, 0, info.maxIntValue);
 
   checkAndRange(FF, FF, 0xFF, 0xFF);
   checkAndRange(FF, FA, 0xFA, 0xFA);
@@ -195,8 +194,8 @@ testAnd() {
   checkAndRange(nFF, length, 0, length.upper);
   checkAndRange(nFF, _FA_FF, 0, 0xFF);
   checkAndRange(nFF, _0_FF, 0, 0xFF);
-  checkAndRange(nFF, _nFF_FF, const MinIntValue(), const MaxIntValue());
-  checkAndRange(nFF, _nFF_0, const MinIntValue(), const MaxIntValue());
+  checkAndRange(nFF, _nFF_FF, info.minIntValue, info.maxIntValue);
+  checkAndRange(nFF, _nFF_0, info.minIntValue, info.maxIntValue);
   checkAndRange(nFF, _0_length, 0, _0_length.upper);
   checkAndRange(nFF, _0_instruction, 0, _0_instruction.upper);
 
@@ -224,23 +223,23 @@ testAnd() {
 
   checkAndRange(_nFF_FF, FF, 0, 0xFF);
   checkAndRange(_nFF_FF, FA, 0, 0xFA);
-  checkAndRange(_nFF_FF, nFF, const MinIntValue(), const MaxIntValue());
+  checkAndRange(_nFF_FF, nFF, info.minIntValue, info.maxIntValue);
   checkAndRange(_nFF_FF, length, 0, length.upper);
   checkAndRange(_nFF_FF, _FA_FF, 0, 0xFF);
   checkAndRange(_nFF_FF, _0_FF, 0, 0xFF);
-  checkAndRange(_nFF_FF, _nFF_FF, const MinIntValue(), const MaxIntValue());
-  checkAndRange(_nFF_FF, _nFF_0, const MinIntValue(), const MaxIntValue());
+  checkAndRange(_nFF_FF, _nFF_FF, info.minIntValue, info.maxIntValue);
+  checkAndRange(_nFF_FF, _nFF_0, info.minIntValue, info.maxIntValue);
   checkAndRange(_nFF_FF, _0_length, 0, _0_length.upper);
   checkAndRange(_nFF_FF, _0_instruction, 0, _0_instruction.upper);
 
   checkAndRange(_nFF_0, FF, 0, 0xFF);
   checkAndRange(_nFF_0, FA, 0, 0xFA);
-  checkAndRange(_nFF_0, nFF, const MinIntValue(), const MaxIntValue());
+  checkAndRange(_nFF_0, nFF, info.minIntValue, info.maxIntValue);
   checkAndRange(_nFF_0, length, 0, length.upper);
   checkAndRange(_nFF_0, _FA_FF, 0, 0xFF);
   checkAndRange(_nFF_0, _0_FF, 0, 0xFF);
-  checkAndRange(_nFF_0, _nFF_FF, const MinIntValue(), const MaxIntValue());
-  checkAndRange(_nFF_0, _nFF_0, const MinIntValue(), const MaxIntValue());
+  checkAndRange(_nFF_0, _nFF_FF, info.minIntValue, info.maxIntValue);
+  checkAndRange(_nFF_0, _nFF_0, info.minIntValue, info.maxIntValue);
   checkAndRange(_nFF_0, _0_length, 0, _0_length.upper);
   checkAndRange(_nFF_0, _0_instruction, 0, _0_instruction.upper);
 
@@ -253,17 +252,17 @@ testAnd() {
   checkAndRange(_0_length, _nFF_FF, 0, _0_length.upper);
   checkAndRange(_0_length, _nFF_0, 0, _0_length.upper);
   checkAndRange(_0_length, _0_length, 0, _0_length.upper);
-  checkAndRange(_0_length, _0_instruction, 0, const MaxIntValue());
+  checkAndRange(_0_length, _0_instruction, 0, info.maxIntValue);
 
   checkAndRange(_0_instruction, FF, 0, 0xFF);
   checkAndRange(_0_instruction, FA, 0, 0xFA);
   checkAndRange(_0_instruction, nFF, 0, _0_instruction.upper);
-  checkAndRange(_0_instruction, length, 0, const MaxIntValue());
+  checkAndRange(_0_instruction, length, 0, info.maxIntValue);
   checkAndRange(_0_instruction, _FA_FF, 0, 0xFF);
   checkAndRange(_0_instruction, _0_FF, 0, 0xFF);
   checkAndRange(_0_instruction, _nFF_FF, 0, _0_instruction.upper);
   checkAndRange(_0_instruction, _nFF_0, 0, _0_instruction.upper);
-  checkAndRange(_0_instruction, _0_length, 0, const MaxIntValue());
+  checkAndRange(_0_instruction, _0_length, 0, info.maxIntValue);
   checkAndRange(_0_instruction, _0_instruction, 0, _0_instruction.upper);
 }
 

@@ -343,6 +343,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     return node.name;
   }
 
+  String getViewName(View node) {
+    return node.name;
+  }
+
   String getClassReference(Class node) {
     // ignore: unnecessary_null_comparison
     if (node == null) return '<No Class>';
@@ -355,6 +359,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     // ignore: unnecessary_null_comparison
     if (node == null) return '<No Extension>';
     String name = getExtensionName(node);
+    String library = getLibraryReference(node.enclosingLibrary);
+    return '$library::$name';
+  }
+
+  String getViewReference(View node) {
+    // ignore: unnecessary_null_comparison
+    if (node == null) return '<No View>';
+    String name = getViewName(node);
     String library = getLibraryReference(node.enclosingLibrary);
     return '$library::$name';
   }
@@ -504,6 +516,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     library.typedefs.forEach(writeNode);
     library.classes.forEach(writeNode);
     library.extensions.forEach(writeNode);
+    library.views.forEach(writeNode);
     library.fields.forEach(writeNode);
     library.procedures.forEach(writeNode);
   }
@@ -984,6 +997,22 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     throw "Neither node nor canonical name found";
   }
 
+  void writeViewReferenceFromReference(Reference reference) {
+    writeWord(getViewReferenceFromReference(reference));
+  }
+
+  String getViewReferenceFromReference(Reference reference) {
+    // ignore: unnecessary_null_comparison
+    if (reference == null) return '<No Extension>';
+    if (reference.node != null) {
+      return getViewReference(reference.asView);
+    }
+    if (reference.canonicalName != null) {
+      return getCanonicalNameString(reference.canonicalName!);
+    }
+    throw "Neither node nor canonical name found";
+  }
+
   void writeMemberReferenceFromReference(Reference? reference) {
     writeWord(getMemberReferenceFromReference(reference));
   }
@@ -1277,6 +1306,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isMacro, 'macro');
+    writeModifier(node.isSealed, 'sealed');
     writeWord('class');
     writeWord(getClassName(node));
     writeTypeParameterList(node.typeParameters);
@@ -1425,6 +1455,71 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
           writeWord('field');
           break;
         case ExtensionMemberKind.TearOff:
+          writeWord('tearoff');
+          break;
+      }
+      writeName(descriptor.name);
+      writeSpaced('=');
+      Member member = descriptor.member.asMember;
+      if (member is Procedure) {
+        if (member.isGetter) {
+          writeWord('get');
+        } else if (member.isSetter) {
+          writeWord('set');
+        }
+      }
+      writeMemberReferenceFromReference(descriptor.member);
+      endLine(';');
+    });
+    --indentation;
+    writeIndentation();
+    endLine('}');
+  }
+
+  @override
+  void visitView(View node) {
+    writeAnnotationList(node.annotations);
+    writeIndentation();
+    writeWord('view');
+    writeWord(getViewName(node));
+    writeTypeParameterList(node.typeParameters);
+    writeWord('/* representationType =');
+    writeType(node.representationType);
+    writeWord('*/');
+
+    String endLineString = ' {';
+    if (node.enclosingLibrary.fileUri != node.fileUri) {
+      endLineString += ' // from ${node.fileUri}';
+    }
+
+    endLine(endLineString);
+    ++indentation;
+    node.members.forEach((ViewMemberDescriptor descriptor) {
+      writeIndentation();
+      writeModifier(descriptor.isStatic, 'static');
+      switch (descriptor.kind) {
+        case ViewMemberKind.Constructor:
+          writeWord('constructor');
+          break;
+        case ViewMemberKind.Factory:
+          writeWord('factory');
+          break;
+        case ViewMemberKind.Method:
+          writeWord('method');
+          break;
+        case ViewMemberKind.Getter:
+          writeWord('get');
+          break;
+        case ViewMemberKind.Setter:
+          writeWord('set');
+          break;
+        case ViewMemberKind.Operator:
+          writeWord('operator');
+          break;
+        case ViewMemberKind.Field:
+          writeWord('field');
+          break;
+        case ViewMemberKind.TearOff:
           writeWord('tearoff');
           break;
       }
@@ -1897,6 +1992,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitAwaitExpression(AwaitExpression node) {
     writeWord('await');
     writeExpression(node.operand);
+    if (node.runtimeCheckType != null) {
+      writeSpaced("/* runtimeCheckType=");
+      writeNode(node.runtimeCheckType);
+      writeSpaced("*/");
+    }
   }
 
   @override
@@ -2668,6 +2768,18 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   @override
   void visitExtensionType(ExtensionType node) {
     writeExtensionReferenceFromReference(node.extensionReference);
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+      state = Printer.WORD;
+    }
+    writeNullability(node.declaredNullability);
+  }
+
+  @override
+  void visitViewType(ViewType node) {
+    writeViewReferenceFromReference(node.viewReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);

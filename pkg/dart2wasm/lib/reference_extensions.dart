@@ -63,6 +63,7 @@ extension IsCustomReference on Reference {
 
 extension ReferenceAs on Member {
   Reference referenceAs({required bool getter, required bool setter}) {
+    assert(!getter || !setter); // members cannot be both setter and getter
     Member member = this;
     return member is Field
         ? setter

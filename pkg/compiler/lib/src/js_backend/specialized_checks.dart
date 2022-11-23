@@ -7,8 +7,8 @@ import '../deferred_load/output_unit.dart' show OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
-import '../world_interfaces.dart' show JClosedWorld;
 
 enum IsTestSpecialization {
   isNull,
@@ -106,7 +106,7 @@ class SpecializedChecks {
     return null;
   }
 
-  static MemberEntity? findAsCheck(DartType dartType,
+  static FunctionEntity? findAsCheck(DartType dartType,
       JCommonElements commonElements, bool useLegacySubtyping) {
     if (dartType is InterfaceType) {
       if (dartType.typeArguments.isNotEmpty) return null;
@@ -147,7 +147,7 @@ class SpecializedChecks {
   ///     String    nullable: false  legacy: true     String    yes
   ///     String    nullable: false  legacy: false    String    no
   ///
-  static MemberEntity? _findAsCheck(
+  static FunctionEntity? _findAsCheck(
       ClassEntity element, JCommonElements commonElements,
       {required bool nullable, required bool legacy}) {
     if (element == commonElements.jsStringClass ||

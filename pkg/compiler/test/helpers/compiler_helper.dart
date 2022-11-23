@@ -13,16 +13,16 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
-import 'memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
 export 'package:compiler/src/diagnostics/spannable.dart';
+export 'package:compiler/src/util/output_collector.dart';
 export 'package:compiler/src/util/util.dart';
-export 'output_collector.dart';
 
 String _commonTestPath(bool soundNullSafety) {
   // Pretend this is a web/native test to allow use of 'native' keyword

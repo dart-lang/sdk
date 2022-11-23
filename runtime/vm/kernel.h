@@ -85,7 +85,6 @@ class Program {
       const ExternalTypedData& typed_data, const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
-  uint32_t binary_version() { return binary_version_; }
   NameIndex main_method() { return main_method_reference_; }
   intptr_t source_table_offset() const { return source_table_offset_; }
   intptr_t string_table_offset() const { return string_table_offset_; }
@@ -110,7 +109,6 @@ class Program {
   Program() : binary_() {}
 
   bool single_program_;
-  uint32_t binary_version_;
   NameIndex main_method_reference_;  // Procedure.
   NNBDCompiledMode compilation_mode_;
   intptr_t library_count_;
@@ -148,11 +146,11 @@ class KernelLineStartsReader {
 
   ~KernelLineStartsReader() { delete helper_; }
 
-  int32_t DeltaAt(intptr_t index) const {
+  uint32_t At(intptr_t index) const {
     return helper_->At(line_starts_data_, index);
   }
 
-  int32_t MaxPosition() const;
+  uint32_t MaxPosition() const;
 
   // Returns whether the given offset corresponds to a valid source offset
   // If it does, then *line and *column (if column is not nullptr) are set
@@ -175,37 +173,28 @@ class KernelLineStartsReader {
    public:
     KernelLineStartsHelper() {}
     virtual ~KernelLineStartsHelper() {}
-    virtual int32_t At(const dart::TypedData& data, intptr_t index) const = 0;
+    virtual uint32_t At(const dart::TypedData& data, intptr_t index) const = 0;
 
    private:
     DISALLOW_COPY_AND_ASSIGN(KernelLineStartsHelper);
   };
 
-  class KernelInt8LineStartsHelper : public KernelLineStartsHelper {
+  class KernelUint16LineStartsHelper : public KernelLineStartsHelper {
    public:
-    KernelInt8LineStartsHelper() {}
-    virtual int32_t At(const dart::TypedData& data, intptr_t index) const;
+    KernelUint16LineStartsHelper() {}
+    virtual uint32_t At(const dart::TypedData& data, intptr_t index) const;
 
    private:
-    DISALLOW_COPY_AND_ASSIGN(KernelInt8LineStartsHelper);
+    DISALLOW_COPY_AND_ASSIGN(KernelUint16LineStartsHelper);
   };
 
-  class KernelInt16LineStartsHelper : public KernelLineStartsHelper {
+  class KernelUint32LineStartsHelper : public KernelLineStartsHelper {
    public:
-    KernelInt16LineStartsHelper() {}
-    virtual int32_t At(const dart::TypedData& data, intptr_t index) const;
+    KernelUint32LineStartsHelper() {}
+    virtual uint32_t At(const dart::TypedData& data, intptr_t index) const;
 
    private:
-    DISALLOW_COPY_AND_ASSIGN(KernelInt16LineStartsHelper);
-  };
-
-  class KernelInt32LineStartsHelper : public KernelLineStartsHelper {
-   public:
-    KernelInt32LineStartsHelper() {}
-    virtual int32_t At(const dart::TypedData& data, intptr_t index) const;
-
-   private:
-    DISALLOW_COPY_AND_ASSIGN(KernelInt32LineStartsHelper);
+    DISALLOW_COPY_AND_ASSIGN(KernelUint32LineStartsHelper);
   };
 
   const dart::TypedData& line_starts_data_;

@@ -295,9 +295,10 @@ ExperimentNotEnabled:
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 ExperimentNotEnabledOffByDefault:
+  index: 133
   problemMessage: "This requires the experimental '#string' language feature to be enabled."
   correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT
 
 ExperimentDisabled:
   problemMessage: "This requires the '#string' language feature to be enabled."
@@ -787,6 +788,16 @@ AbstractLateField:
   configuration: nnbd-strong
   script:
     - "abstract class C {abstract late var f;}"
+
+AbstractSealedClass:
+  index: 132
+  problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
+  correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
+  experiments: sealed-class
+  script:
+    - "sealed abstract class C {}"
+    - "abstract sealed class C {}"
 
 ClassInClass:
   index: 53
@@ -3192,18 +3203,6 @@ DuplicatedDeclarationUse:
         class C {}
       lib2.dart: |
         class C {}
-    - main.dart: |
-        class C {
-          method() {}
-          method() {}
-        }
-        main() => new C().method();
-    - main.dart: |
-        class C {
-          method() {}
-          method() {}
-        }
-        var f = new C().method();
 
 DuplicatedNamePreviouslyUsed:
   problemMessage: "Can't declare '#name' because it was already used in this scope."
@@ -3818,8 +3817,8 @@ PatchDeclarationOrigin:
   severity: CONTEXT
 
 PatchInjectionFailed:
-  problemMessage: "Can't inject '#name' into '#uri'."
-  correctionMessage: "Try adding '@patch'."
+  problemMessage: "Can't inject public '#name' into '#uri'."
+  correctionMessage: "Make '#name' private, or make sure injected library has \"dart\" scheme and is private (e.g. \"dart:_internal\")."
 
 PatchNonExternal:
   problemMessage: "Can't apply this patch as its origin declaration isn't external."
@@ -4436,11 +4435,32 @@ DefaultValueInRedirectingFactoryConstructor:
 UntranslatableUri:
   problemMessage: "Not found: '#uri'"
   analyzerCode: URI_DOES_NOT_EXIST
+  exampleAllowMoreCodes: true # PackageNotFound will precede this message.
+  script: |
+    import "package:expect/non_existing_file";
+
+UnavailableDartLibrary:
+  problemMessage: "Dart library '#uri' is not available on this platform."
+  analyzerCode: URI_DOES_NOT_EXIST
   script: |
     import "dart:non_existing_library";
 
-    main() {
-    }
+ImportChainContext:
+  problemMessage: |
+    The unavailable library '#uri' is imported through these packages:
+
+    #string
+    Detailed import paths for (some of) the these imports:
+    
+    #string2
+  severity: CONTEXT
+
+ImportChainContextSimple:
+  problemMessage: |
+    The unavailable library '#uri' is imported through these paths:
+
+    #string
+  severity: CONTEXT
 
 CantReadFile:
   problemMessage: "Error when reading '#uri': #string"
@@ -4448,9 +4468,6 @@ CantReadFile:
   external: test/packages_format_error_test.dart
   script: |
     import "non_existing_file.dart";
-
-    main() {
-    }
 
 ExceptionReadingFile:
   problemMessage: "Exception when reading '#uri': #string"
@@ -5271,6 +5288,10 @@ JsInteropOperatorsNotSupported:
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
+JsInteropNonStaticWithStaticInteropSupertype:
+  problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
+  correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
+
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
   correctionMessage: "Try using a Dart extension member if you need type parameters instead."
@@ -5291,12 +5312,16 @@ JsInteropStaticInteropMockNotStaticInteropType:
   problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
 
+JsInteropStaticInteropNoJSAnnotation:
+  problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
+  correctionMessage: "Add `@JS` to class '#name'."
+
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
 JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
@@ -5954,3 +5979,21 @@ RecordFieldsCantBePrivate:
   experiments: records
   script: |
     foo() => (_bar: 1);
+
+NamedFieldClashesWithPositionalFieldInRecord:
+  problemMessage: "Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field."
+  analyzerCode: INVALID_FIELD_NAME
+  experiments: records
+  script: |
+    foo() => (0, $0: 0);
+
+EnumWithNameValues:
+  problemMessage: "The name 'values' is not a valid name for an enum. Try using a different name."
+  analyzerCode: ENUM_WITH_NAME_VALUES
+
+InheritedRestrictedMemberOfEnumImplementer:
+  problemMessage: "A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'."
+  analyzerCode: ILLEGAL_CONCRETE_ENUM_MEMBER
+  script: |
+    abstract class A { int get hashCode => 0; }
+    abstract class B extends A implements Enum {}

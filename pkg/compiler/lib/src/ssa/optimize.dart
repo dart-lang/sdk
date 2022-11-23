@@ -21,6 +21,7 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart'
     show
         TypeRecipe,
@@ -35,24 +36,18 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
-import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'interceptor_finalizer.dart';
 import 'late_field_optimizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
 import 'metrics.dart';
+import 'optimize_interfaces.dart' show OptimizationPhase;
 import 'types.dart';
 import 'types_propagation.dart';
 import 'validate.dart' show NoUnusedPhiValidator;
 import 'value_range_analyzer.dart';
 import 'value_set.dart';
-
-abstract class OptimizationPhase {
-  String get name;
-  void visitGraph(HGraph graph);
-  bool validPostcondition(HGraph graph);
-}
 
 class SsaOptimizerTask extends CompilerTask {
   final CompilerOptions _options;
@@ -221,7 +216,7 @@ bool hasUnreachableExit(HBasicBlock block) {
 
 /// If both inputs to known operations are available execute the operation at
 /// compile-time.
-class SsaInstructionSimplifier extends HBaseVisitor
+class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     implements OptimizationPhase {
   // We don't produce constant-folded strings longer than this unless they have
   // a single use.  This protects against exponentially large constant folded
@@ -237,7 +232,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final CodegenRegistry _registry;
   final OptimizationTestLog _log;
   final SsaMetrics _metrics;
-  HGraph _graph;
+  /*late final*/ HGraph _graph;
 
   SsaInstructionSimplifier(
       this._globalInferenceResults,
@@ -265,7 +260,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   bool validPostcondition(HGraph graph) => true;
 
   @override
-  visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock block) {
     simplifyPhis(block);
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -840,7 +835,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // the field. This usually removes the demand for the call-through stub and
     // makes the field load available to further optimization, e.g. LICM.
 
-    if (element.isField && element.name == node.selector.name) {
+    if (element is FieldEntity && element.name == node.selector.name) {
       FieldEntity field = element;
       if (!_nativeData.isNativeMember(field) &&
           !node.isCallOnInterceptor(_closedWorld)) {
@@ -870,7 +865,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else {
           AbstractValue type = AbstractValueFactory.inferredTypeForMember(
               field, _globalInferenceResults);
-          load = HFieldGet(field, receiver, type, node.sourceInformation);
+          load = HFieldGet(field, receiver, type, node.sourceInformation,
+              isAssignable: field.isAssignable);
           _log?.registerFieldCall(node, load);
           node.block.addBefore(node, load);
           insertionPoint = load;
@@ -2774,7 +2770,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 }
 
-class SsaLiveBlockAnalyzer extends HBaseVisitor {
+class SsaLiveBlockAnalyzer extends HBaseVisitor<void> {
   final HGraph graph;
   final Set<HBasicBlock> live = {};
   final List<HBasicBlock> worklist = [];
@@ -3213,7 +3209,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 // A basic block looks at its sucessors and finds the intersection of
 // these computed ValueSet. It moves all instructions of the
 // intersection into its own list of instructions.
-class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
+class SsaCodeMotion extends HBaseVisitor<void> implements OptimizationPhase {
   final AbstractValueDomain _abstractValueDomain;
 
   @override
@@ -3324,7 +3320,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   }
 }
 
-class SsaTypeConversionInserter extends HBaseVisitor
+class SsaTypeConversionInserter extends HBaseVisitor<void>
     implements OptimizationPhase {
   @override
   final String name = "SsaTypeconversionInserter";
@@ -3482,7 +3478,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 /// Optimization phase that tries to eliminate memory loads (for example
 /// [HFieldGet]), when it knows the value stored in that memory location, and
 /// stores that overwrite with the same value.
-class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
+class SsaLoadElimination extends HBaseVisitor<void>
+    implements OptimizationPhase {
   final JClosedWorld _closedWorld;
   final JFieldAnalysis _fieldAnalysis;
   @override

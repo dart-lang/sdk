@@ -111,6 +111,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   final bool isMacro;
 
   @override
+  final bool isSealed;
+
+  @override
   final bool isAugmentation;
 
   bool? _isConflictingAugmentationMember;
@@ -151,6 +154,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
       this.isMacro = false,
+      this.isSealed = false,
       this.isAugmentation = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
@@ -268,6 +272,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // compile-time error.
     cls.isAbstract = isAbstract;
     cls.isMacro = isMacro;
+    cls.isSealed = isSealed;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
@@ -374,14 +379,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  void forEach(void f(String name, Builder builder)) {
-    new ClassMemberNameIterator(this, includeDuplicates: false).forEach(f);
-  }
+  Iterator<Builder> get fullMemberIterator =>
+      new ClassMemberIterator(this, includeDuplicates: false);
 
   @override
-  void forEachConstructor(void Function(String, MemberBuilder) f) {
-    new ClassConstructorNameIterator(this, includeDuplicates: false).forEach(f);
-  }
+  NameIterator<Builder> get fullMemberNameIterator =>
+      new ClassMemberNameIterator(this, includeDuplicates: false);
+
+  @override
+  Iterator<MemberBuilder> get fullConstructorIterator =>
+      new ClassConstructorIterator(this, includeDuplicates: false);
+
+  @override
+  NameIterator<MemberBuilder> get fullConstructorNameIterator =>
+      new ClassConstructorNameIterator(this, includeDuplicates: false);
 
   void forEachDeclaredField(
       void Function(String name, SourceFieldBuilder fieldBuilder) callback) {
@@ -631,10 +642,35 @@ class SourceClassBuilder extends ClassBuilderImpl
         hierarchyBuilder.getNodeFromClass(cls);
     if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled && !isEnum) {
       bool hasEnumSuperinterface = false;
+      const List<String> restrictedNames = ["index", "hashCode", "=="];
+      Map<String, ClassBuilder> restrictedMembersInSuperclasses = {};
+      ClassBuilder? superclassDeclaringConcreteValues;
       List<Supertype> interfaces = classHierarchyNode.superclasses;
       for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
-        if (interfaces[i].classNode == enumClass) {
+        Class interfaceClass = interfaces[i].classNode;
+        if (interfaceClass == enumClass) {
           hasEnumSuperinterface = true;
+        }
+
+        if (!interfaceClass.isEnum &&
+            interfaceClass != objectClass &&
+            interfaceClass != underscoreEnumClass) {
+          ClassHierarchyNode superclassHierarchyNode =
+              hierarchyBuilder.getNodeFromClass(interfaceClass);
+          for (String restrictedMemberName in restrictedNames) {
+            // TODO(johnniwinther): Handle injected members.
+            Builder? member = superclassHierarchyNode.classBuilder.scope
+                .lookupLocalMember(restrictedMemberName, setter: false);
+            if (member is MemberBuilder && !member.isAbstract) {
+              restrictedMembersInSuperclasses[restrictedMemberName] ??=
+                  superclassHierarchyNode.classBuilder;
+            }
+          }
+          Builder? member = superclassHierarchyNode.classBuilder.scope
+              .lookupLocalMember("values", setter: false);
+          if (member is MemberBuilder && !member.isAbstract) {
+            superclassDeclaringConcreteValues ??= member.classBuilder;
+          }
         }
       }
       interfaces = classHierarchyNode.interfaces;
@@ -680,10 +716,18 @@ class SourceClassBuilder extends ClassBuilderImpl
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
+        if (superclassDeclaringConcreteValues != null) {
+          libraryBuilder.addProblem(
+              templateInheritedRestrictedMemberOfEnumImplementer.withArguments(
+                  "values", superclassDeclaringConcreteValues.name),
+              charOffset,
+              noLength,
+              fileUri);
+        }
 
         // Non-setter concrete instance members named `index` and hashCode and
         // operator == are restricted.
-        for (String restrictedMemberName in const ["index", "hashCode", "=="]) {
+        for (String restrictedMemberName in restrictedNames) {
           Builder? member =
               scope.lookupLocalMember(restrictedMemberName, setter: false);
           if (member is MemberBuilder && !member.isAbstract) {
@@ -692,6 +736,19 @@ class SourceClassBuilder extends ClassBuilderImpl
                     .withArguments(this.name, restrictedMemberName),
                 member.charOffset,
                 member.fullNameForErrors.length,
+                fileUri);
+          }
+
+          if (restrictedMembersInSuperclasses
+              .containsKey(restrictedMemberName)) {
+            ClassBuilder restrictedNameMemberProvider =
+                restrictedMembersInSuperclasses[restrictedMemberName]!;
+            libraryBuilder.addProblem(
+                templateInheritedRestrictedMemberOfEnumImplementer
+                    .withArguments(restrictedMemberName,
+                        restrictedNameMemberProvider.name),
+                charOffset,
+                noLength,
                 fileUri);
           }
         }
@@ -867,140 +924,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  // Computes the function type of a given redirection target. Returns [null] if
-  // the type of the target could not be computed.
-  FunctionType? _computeRedirecteeType(
-      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
-    ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
-    Builder? targetBuilder = redirectionTarget.target;
-    FunctionNode targetNode;
-    if (targetBuilder == null) return null;
-    if (targetBuilder is FunctionBuilder) {
-      targetNode = targetBuilder.function;
-    } else if (targetBuilder is AmbiguousBuilder) {
-      // Multiple definitions with the same name: An error has already been
-      // issued.
-      // TODO(http://dartbug.com/35294): Unfortunate error; see also
-      // https://dart-review.googlesource.com/c/sdk/+/85390/.
-      return null;
-    } else {
-      unhandled("${redirectionTarget.target}", "computeRedirecteeType",
-          charOffset, fileUri);
-    }
-
-    List<DartType>? typeArguments = factory.getTypeArguments();
-    FunctionType targetFunctionType =
-        targetNode.computeFunctionType(libraryBuilder.nonNullable);
-    if (typeArguments != null &&
-        targetFunctionType.typeParameters.length != typeArguments.length) {
-      _addProblemForRedirectingFactory(
-          factory,
-          templateTypeArgumentMismatch
-              .withArguments(targetFunctionType.typeParameters.length),
-          redirectionTarget.charOffset,
-          noLength);
-      return null;
-    }
-
-    // Compute the substitution of the target class type parameters if
-    // [redirectionTarget] has any type arguments.
-    Substitution? substitution;
-    bool hasProblem = false;
-    if (typeArguments != null && typeArguments.length > 0) {
-      substitution = Substitution.fromPairs(
-          targetFunctionType.typeParameters, typeArguments);
-      for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
-        TypeParameter typeParameter = targetFunctionType.typeParameters[i];
-        DartType typeParameterBound =
-            substitution.substituteType(typeParameter.bound);
-        DartType typeArgument = typeArguments[i];
-        // Check whether the [typeArgument] respects the bounds of
-        // [typeParameter].
-        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
-            SubtypeCheckMode.ignoringNullabilities)) {
-          _addProblemForRedirectingFactory(
-              factory,
-              templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
-                  typeArgument,
-                  typeParameterBound,
-                  libraryBuilder.isNonNullableByDefault),
-              redirectionTarget.charOffset,
-              noLength);
-          hasProblem = true;
-        } else if (libraryBuilder.isNonNullableByDefault) {
-          if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
-              SubtypeCheckMode.withNullabilities)) {
-            _addProblemForRedirectingFactory(
-                factory,
-                templateRedirectingFactoryIncompatibleTypeArgument
-                    .withArguments(typeArgument, typeParameterBound,
-                        libraryBuilder.isNonNullableByDefault),
-                redirectionTarget.charOffset,
-                noLength);
-            hasProblem = true;
-          }
-        }
-      }
-    } else if (typeArguments == null &&
-        targetFunctionType.typeParameters.length > 0) {
-      // TODO(hillerstrom): In this case, we need to perform type inference on
-      // the redirectee to obtain actual type arguments which would allow the
-      // following program to type check:
-      //
-      //    class A<T> {
-      //       factory A() = B;
-      //    }
-      //    class B<T> implements A<T> {
-      //       B();
-      //    }
-      //
-      return null;
-    }
-
-    // Substitute if necessary.
-    targetFunctionType = substitution == null
-        ? targetFunctionType
-        : (substitution.substituteType(targetFunctionType.withoutTypeParameters)
-            as FunctionType);
-
-    return hasProblem ? null : targetFunctionType;
-  }
-
-  bool _isCyclicRedirectingFactory(RedirectingFactoryBuilder factory) {
-    // We use the [tortoise and hare algorithm]
-    // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
-    // handle cycles.
-    Builder? tortoise = factory;
-    Builder? hare = factory.redirectionTarget.target;
-    if (hare == factory) {
-      return true;
-    }
-    while (tortoise != hare) {
-      // Hare moves 2 steps forward.
-      if (hare is! RedirectingFactoryBuilder) {
-        return false;
-      }
-      hare = hare.redirectionTarget.target;
-      if (hare == factory) {
-        return true;
-      }
-      if (hare is! RedirectingFactoryBuilder) {
-        return false;
-      }
-      hare = hare.redirectionTarget.target;
-      if (hare == factory) {
-        return true;
-      }
-      // Tortoise moves one step forward. No need to test type of tortoise
-      // as it follows hare which already checked types.
-      tortoise =
-          (tortoise as RedirectingFactoryBuilder).redirectionTarget.target;
-    }
-    // Cycle found, but original factory doesn't belong to a cycle.
-    return false;
-  }
-
-  void _addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
       Message message, int charOffset, int length) {
     addProblem(message, charOffset, length);
     String text = libraryBuilder.loader.target.context
@@ -1010,74 +934,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     factory.body = new RedirectingFactoryBody.error(text);
   }
 
-  void _checkRedirectingFactory(
-      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
-    // Check that factory declaration is not cyclic.
-    if (_isCyclicRedirectingFactory(factory)) {
-      _addProblemForRedirectingFactory(
-          factory,
-          templateCyclicRedirectingFactoryConstructors
-              .withArguments("${factory.member.enclosingClass!.name}"
-                  "${factory.name == '' ? '' : '.${factory.name}'}"),
-          factory.charOffset,
-          noLength);
-      return;
-    }
-
-    // The factory type cannot contain any type parameters other than those of
-    // its enclosing class, because constructors cannot specify type parameters
-    // of their own.
-    FunctionType factoryType = factory.function
-        .computeThisFunctionType(libraryBuilder.nonNullable)
-        .withoutTypeParameters;
-    FunctionType? redirecteeType =
-        _computeRedirecteeType(factory, typeEnvironment);
-
-    // TODO(hillerstrom): It would be preferable to know whether a failure
-    // happened during [_computeRedirecteeType].
-    if (redirecteeType == null) {
-      return;
-    }
-
-    // Redirection to generative enum constructors is forbidden and is reported
-    // as an error elsewhere.
-    if (!(cls.isEnum &&
-        (factory.redirectionTarget.target?.isConstructor ?? false))) {
-      // Check whether [redirecteeType] <: [factoryType].
-      if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType,
-          SubtypeCheckMode.ignoringNullabilities)) {
-        _addProblemForRedirectingFactory(
-            factory,
-            templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType,
-                factoryType,
-                libraryBuilder.isNonNullableByDefault),
-            factory.redirectionTarget.charOffset,
-            noLength);
-      } else if (libraryBuilder.isNonNullableByDefault) {
-        if (!typeEnvironment.isSubtypeOf(
-            redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
-          _addProblemForRedirectingFactory(
-              factory,
-              templateIncompatibleRedirecteeFunctionType.withArguments(
-                  redirecteeType,
-                  factoryType,
-                  libraryBuilder.isNonNullableByDefault),
-              factory.redirectionTarget.charOffset,
-              noLength);
-        }
-      }
-    }
-  }
-
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator =
+        constructorScope.filteredIterator<SourceFactoryBuilder>(
+            parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
-      Builder constructor = iterator.current;
-      if (constructor is RedirectingFactoryBuilder) {
-        _checkRedirectingFactory(constructor, typeEnvironment);
-      }
+      iterator.current.checkRedirectingFactories(typeEnvironment);
     }
   }
 
@@ -1237,7 +1099,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    forEach((String name, Builder builder) {
+    Iterator<Builder> memberIterator = fullMemberIterator;
+    while (memberIterator.moveNext()) {
+      Builder builder = memberIterator.current;
       if (builder is SourceMemberBuilder) {
         builder.checkVariance(this, typeEnvironment);
         builder.checkTypes(libraryBuilder, typeEnvironment);
@@ -1247,16 +1111,18 @@ class SourceClassBuilder extends ClassBuilderImpl
             "Unexpected class member builder $builder "
             "(${builder.runtimeType})");
       }
-    });
+    }
 
-    forEachConstructor((String name, MemberBuilder builder) {
+    Iterator<MemberBuilder> constructorIterator = fullConstructorIterator;
+    while (constructorIterator.moveNext()) {
+      MemberBuilder builder = constructorIterator.current;
       if (builder is SourceMemberBuilder) {
         builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
         assert(false,
             "Unexpected constructor builder $builder (${builder.runtimeType})");
       }
-    });
+    }
   }
 
   void addSyntheticConstructor(
@@ -1674,12 +1540,19 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     for (Procedure procedure in cls.procedures) {
       // An instance getter makes fields with the same name unpromotable if it's
-      // concrete.
-      if (procedure.isGetter &&
-          procedure.isInstanceMember &&
-          !procedure.isAbstract &&
+      // concrete.  Also, an abstract instance setter that's desugared from an
+      // abstract non-final field makes fields with the same name unpromotable.
+      if (procedure.isInstanceMember &&
           _isPrivateNameInThisLibrary(procedure.name)) {
-        unpromotablePrivateFieldNames.add(procedure.name.text);
+        if (procedure.isGetter && !procedure.isAbstract) {
+          ProcedureStubKind procedureStubKind = procedure.stubKind;
+          if (procedureStubKind == ProcedureStubKind.Regular ||
+              procedureStubKind == ProcedureStubKind.NoSuchMethodForwarder) {
+            unpromotablePrivateFieldNames.add(procedure.name.text);
+          }
+        } else if (procedure.isSetter && procedure.isAbstractFieldAccessor) {
+          unpromotablePrivateFieldNames.add(procedure.name.text);
+        }
       }
     }
   }
@@ -1810,14 +1683,14 @@ class SourceClassBuilder extends ClassBuilderImpl
             } else if (targetBuilder is DillMemberBuilder) {
               targetNode = targetBuilder.member;
             } else if (targetBuilder is AmbiguousBuilder) {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   templateDuplicatedDeclarationUse
                       .withArguments(redirectionTarget.fullNameForErrors),
                   redirectionTarget.charOffset,
                   noLength);
             } else {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   templateRedirectionTargetNotFound
                       .withArguments(redirectionTarget.fullNameForErrors),
@@ -1827,7 +1700,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             if (targetNode != null &&
                 targetNode is Constructor &&
                 targetNode.enclosingClass.isAbstract) {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   templateAbstractRedirectedClassInstantiation
                       .withArguments(redirectionTarget.fullNameForErrors),
@@ -1838,7 +1711,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             if (targetNode != null &&
                 targetNode is Constructor &&
                 targetNode.enclosingClass.isEnum) {
-              _addProblemForRedirectingFactory(
+              addProblemForRedirectingFactory(
                   declaration,
                   messageEnumFactoryRedirectsToConstructor,
                   redirectionTarget.charOffset,
@@ -2808,6 +2681,52 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }
 
+class ClassMemberIterator<T extends Builder> implements Iterator<T> {
+  Iterator<T>? _iterator;
+  Iterator<SourceClassBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory ClassMemberIterator(SourceClassBuilder classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassMemberIterator._(classBuilder.origin,
+        includeDuplicates: includeDuplicates);
+  }
+
+  ClassMemberIterator._(SourceClassBuilder classBuilder,
+      {required this.includeDuplicates})
+      : _iterator = classBuilder.scope.filteredIterator<T>(
+            parent: classBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false),
+        augmentationBuilders = classBuilder._patches?.iterator;
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceClassBuilder augmentationClassBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationClassBuilder.scope.filteredIterator<T>(
+          parent: augmentationClassBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+}
+
 class ClassMemberNameIterator<T extends Builder> implements NameIterator<T> {
   NameIterator<T>? _iterator;
   Iterator<SourceClassBuilder>? augmentationBuilders;
@@ -2855,6 +2774,52 @@ class ClassMemberNameIterator<T extends Builder> implements NameIterator<T> {
 
   @override
   String get name => _iterator?.name ?? (throw new StateError('No element'));
+}
+
+class ClassConstructorIterator<T extends MemberBuilder> implements Iterator<T> {
+  Iterator<T>? _iterator;
+  Iterator<SourceClassBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory ClassConstructorIterator(SourceClassBuilder classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassConstructorIterator._(classBuilder.origin,
+        includeDuplicates: includeDuplicates);
+  }
+
+  ClassConstructorIterator._(SourceClassBuilder classBuilder,
+      {required this.includeDuplicates})
+      : _iterator = classBuilder.constructorScope.filteredIterator<T>(
+            parent: classBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false),
+        augmentationBuilders = classBuilder._patches?.iterator;
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceClassBuilder augmentationClassBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationClassBuilder.constructorScope.filteredIterator<T>(
+          parent: augmentationClassBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
 }
 
 class ClassConstructorNameIterator<T extends MemberBuilder>

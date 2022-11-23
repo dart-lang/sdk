@@ -97,7 +97,6 @@ class ObjectPointerVisitor;
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
-  V(ExternalName, "ExternalName")                                              \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FallThroughError, "FallThroughError")                                      \
@@ -278,12 +277,14 @@ class ObjectPointerVisitor;
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(_CapabilityImpl, "_CapabilityImpl")                                        \
+  V(_Capability, "_Capability")                                                \
   V(_ClassMirror, "_ClassMirror")                                              \
   V(_Closure, "_Closure")                                                      \
   V(_ClosureCall, "_Closure.call")                                             \
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
+  V(_ConstMap, "_ConstMap")                                                    \
+  V(_ConstSet, "_ConstSet")                                                    \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
@@ -327,8 +328,6 @@ class ObjectPointerVisitor;
   V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
   V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
-  V(_ImmutableLinkedHashMap, "_InternalImmutableLinkedHashMap")                \
-  V(_ImmutableLinkedHashSet, "_InternalImmutableLinkedHashSet")                \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \
@@ -351,23 +350,23 @@ class ObjectPointerVisitor;
   V(_LibraryDependencyMirror, "_LibraryDependencyMirror")                      \
   V(_LibraryMirror, "_LibraryMirror")                                          \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
-  V(_LinkedHashMap, "_InternalLinkedHashMap")                                  \
-  V(_LinkedHashSet, "_InternalLinkedHashSet")                                  \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
   V(_ListFilledFactory, "_List.filled")                                        \
   V(_ListGenerateFactory, "_List.generate")                                    \
+  V(_Map, "_Map")                                                              \
   V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
   V(_NativeFinalizer, "_NativeFinalizer")                                      \
   V(_ParameterMirror, "_ParameterMirror")                                      \
   V(_Random, "_Random")                                                        \
-  V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
+  V(_RawReceivePort, "_RawReceivePort")                                        \
   V(_Record, "_Record")                                                        \
   V(_RecordType, "_RecordType")                                                \
   V(_RegExp, "_RegExp")                                                        \
-  V(_SendPortImpl, "_SendPortImpl")                                            \
+  V(_SendPort, "_SendPort")                                                    \
+  V(_Set, "_Set")                                                              \
   V(_Smi, "_Smi")                                                              \
   V(_SourceLocation, "_SourceLocation")                                        \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
@@ -417,7 +416,7 @@ class ObjectPointerVisitor;
   V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
-  V(_WeakReferenceImpl, "_WeakReferenceImpl")                                  \
+  V(_WeakReference, "_WeakReference")                                          \
   V(_await, "_await")                                                          \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \

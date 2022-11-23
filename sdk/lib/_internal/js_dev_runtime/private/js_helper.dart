@@ -478,9 +478,11 @@ class Primitives {
 Error diagnoseIndexError(indexable, int index) {
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
-  // [RangeError.checkValidIndex] with no optional parameters provided.
+  // [IndexError.check] with no optional parameters
+  // provided.
   if (index < 0 || index >= length) {
-    return RangeError.index(index, indexable, 'index', null, length);
+    return IndexError.withLength(index, length,
+        indexable: indexable, name: 'index');
   }
   // The above should always match, but if it does not, use the following.
   return RangeError.value(index, 'index');

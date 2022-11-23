@@ -20,12 +20,11 @@ where *options* include:
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
 | `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
-| `--`[`no-`]`string-data-segments`       | no      | Use experimental array init from data segment for string constants.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.
 
 The resulting `.wasm` file can be run with:
 
-`d8 --experimental-wasm-gc --wasm-gc-js-interop --experimental-wasm-stack-switching --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
+`d8 --experimental-wasm-gc --experimental-wasm-stack-switching --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
 
 ## Imports and exports
 

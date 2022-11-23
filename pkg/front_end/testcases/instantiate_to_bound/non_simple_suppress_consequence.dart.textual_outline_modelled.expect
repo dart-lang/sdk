@@ -1,7 +1,13 @@
-class Fisk<TypeY extends Hest> {}
+class A<TypeX extends A<TypeX>> {}
 
-class Hest<TypeX extends Hest<TypeX>> {}
+class B<TypeY extends A> {}
 
-class Naebdyr<TypeZ extends Fisk> {}
+class C<TypeZ extends B> {}
+
+extension D<TypeY extends A> on int {}
+
+extension E<TypeZ extends B> on int {}
 
 main() {}
+typedef F<TypeY extends A> = int;
+typedef G<TypeZ extends B> = int;

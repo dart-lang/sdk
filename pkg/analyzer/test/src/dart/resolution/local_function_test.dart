@@ -45,6 +45,7 @@ f() {
     expect(element.nameOffset, 23);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_element_switchCase() async {
     await assertNoErrorsInCode(r'''
 f(int a) {
@@ -59,6 +60,25 @@ f(int a) {
     var element = findElement.localFunction('g');
     expect(element.name, 'g');
     expect(element.nameOffset, 44);
+
+    assertElement(findNode.methodInvocation('g();'), element);
+  }
+
+  test_element_switchCase_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+f(int a) {
+  switch (a) {
+    case 1:
+      g() {}
+      g();
+      break;
+  }
+}
+''');
+    var element = findElement.localFunction('g');
+    expect(element.name, 'g');
+    expect(element.nameOffset, 60);
 
     assertElement(findNode.methodInvocation('g();'), element);
   }

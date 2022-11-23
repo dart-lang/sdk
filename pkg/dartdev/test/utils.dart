@@ -209,3 +209,21 @@ Future<void> deleteDirectory(Directory dir) async {
     }
   }
 }
+
+/// Checks that this is the `dart` executable in the bin folder rather than the
+/// `dart` in the root of the build folder.
+///
+/// Many of this package tests rely on having the SDK folder layout.
+void ensureRunFromSdkBinDart() {
+  final uri = Uri(path: Platform.resolvedExecutable);
+  final pathReversed = uri.pathSegments.reversed.toList();
+  if (!pathReversed[0].startsWith('dart')) {
+    throw StateError('Main executable is not Dart: ${uri.toFilePath()}.');
+  }
+  if (pathReversed.length < 2 || pathReversed[1] != 'bin') {
+    throw StateError(
+        '''Main executable is not from an SDK build: ${uri.toFilePath()}.
+The `pkg/dartdev` tests must be run with the `dart` executable in the `bin` folder.
+''');
+  }
+}

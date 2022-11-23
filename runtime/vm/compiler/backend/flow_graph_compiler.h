@@ -870,12 +870,7 @@ class FlowGraphCompiler : public ValueObject {
   // Return true-, false- and fall-through label for a branch instruction.
   BranchLabels CreateBranchLabels(BranchInstr* branch) const;
 
-  void AddExceptionHandler(intptr_t try_index,
-                           intptr_t outer_try_index,
-                           intptr_t pc_offset,
-                           bool is_generated,
-                           const Array& handler_types,
-                           bool needs_stacktrace);
+  void AddExceptionHandler(CatchBlockEntryInstr* entry);
   void SetNeedsStackTrace(intptr_t try_index);
   void AddCurrentDescriptor(UntaggedPcDescriptors::Kind kind,
                             intptr_t deopt_id,
@@ -1218,11 +1213,11 @@ class FlowGraphCompiler : public ValueObject {
           function(function_arg),
           code(code_arg),
           dst_type(dst_type) {
-      ASSERT(function == nullptr || function->IsZoneHandle());
-      ASSERT(code == nullptr || code->IsZoneHandle() ||
-             code->IsReadOnlyHandle());
-      ASSERT(dst_type == nullptr || dst_type->IsZoneHandle() ||
-             dst_type->IsReadOnlyHandle());
+      DEBUG_ASSERT(function == nullptr ||
+                   function->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(code == nullptr || code->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(dst_type == nullptr ||
+                   dst_type->IsNotTemporaryScopedHandle());
       ASSERT(code == nullptr || dst_type == nullptr);
     }
 

@@ -52,7 +52,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   const Function& function = parsed_function_->function();
 
-  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // Setup an [ActiveClassScope] and an [ActiveMemberScope] which will be used
   // e.g. for type translation.
   const Class& klass = Class::Handle(Z, function.Owner());
 
@@ -837,10 +837,9 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kIsExpression:
+      needs_expr_temp_ = true;
       helper_.ReadPosition();  // read position.
-      if (translation_helper_.info().kernel_binary_version() >= 38) {
-        helper_.ReadFlags();  // read flags.
-      }
+      helper_.ReadFlags();     // read flags.
       VisitExpression();  // read operand.
       VisitDartType();    // read type.
       return;
@@ -983,6 +982,9 @@ void ScopeBuilder::VisitExpression() {
     case kAwaitExpression:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read operand.
+      if (helper_.ReadTag() == kSomething) {
+        helper_.SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
@@ -1388,6 +1390,9 @@ void ScopeBuilder::VisitDartType() {
     case kIntersectionType:
       VisitIntersectionType();
       return;
+    case kViewType:
+      VisitViewType();
+      return;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -1498,6 +1503,14 @@ void ScopeBuilder::VisitTypeParameterType() {
 void ScopeBuilder::VisitIntersectionType() {
   VisitDartType();         // read left.
   helper_.SkipDartType();  // read right.
+}
+
+void ScopeBuilder::VisitViewType() {
+  // We skip the view type and only use the representation type.
+  helper_.ReadNullability();
+  helper_.SkipCanonicalNameReference();  // read index for canonical name.
+  helper_.SkipListOfDartTypes();         // read type arguments
+  VisitDartType();                       // read representation type.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {

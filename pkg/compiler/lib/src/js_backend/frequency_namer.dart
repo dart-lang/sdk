@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of js_backend.namer;
 
 class FrequencyBasedNamer extends Namer
     with _MinifiedFieldNamer, _MinifiedOneShotInterceptorNamer
     implements jsAst.TokenFinalizer {
   @override
-  _FieldNamingRegistry fieldRegistry;
+  late final _FieldNamingRegistry fieldRegistry = _FieldNamingRegistry(this);
   List<TokenName> tokens = [];
 
   final Map<NamingScope, TokenScope> _tokenScopes = {};
@@ -18,17 +16,14 @@ class FrequencyBasedNamer extends Namer
   @override
   String get genericInstantiationPrefix => r'$I';
 
-  FrequencyBasedNamer(JClosedWorld closedWorld, FixedNames fixedNames)
-      : super(closedWorld, fixedNames) {
-    fieldRegistry = _FieldNamingRegistry(this);
-  }
+  FrequencyBasedNamer(super.closedWorld, super.fixedNames);
 
   TokenScope newScopeFor(NamingScope scope) {
     if (scope == instanceScope) {
       Set<String> illegalNames = Set<String>.from(jsReserved);
       for (String illegal in MinifyNamer._reservedNativeProperties) {
         illegalNames.add(illegal);
-        if (MinifyNamer._hasBannedPrefix(illegal)) {
+        if (hasBannedMinifiedPrefix(illegal)) {
           illegalNames.add(illegal.substring(1));
         }
       }
@@ -57,7 +52,7 @@ class FrequencyBasedNamer extends Namer
 
   @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
-    jsAst.Name proposed = _minifiedInstanceFieldPropertyName(element);
+    jsAst.Name? proposed = _minifiedInstanceFieldPropertyName(element);
     if (proposed != null) {
       return proposed;
     }
@@ -76,62 +71,5 @@ class FrequencyBasedNamer extends Namer
         tokens.where((TokenName a) => a._rc > 0).toList();
     usedNames.sort(compareReferenceCount);
     usedNames.forEach((TokenName token) => token.finalize());
-  }
-}
-
-class TokenScope {
-  int initialChar;
-  List<int> _nextName;
-  final Set<String> illegalNames;
-
-  TokenScope({this.illegalNames = const {}, this.initialChar = $a}) {
-    _nextName = [initialChar];
-  }
-
-  /// Increments the letter at [pos] in the current name. Also takes care of
-  /// overflows to the left. Returns the carry bit, i.e., it returns `true`
-  /// if all positions to the left have wrapped around.
-  ///
-  /// If [_nextName] is initially 'a', this will generate the sequence
-  ///
-  /// [a-zA-Z]
-  /// [a-zA-Z][_0-9a-zA-Z]
-  /// [a-zA-Z][_0-9a-zA-Z][_0-9a-zA-Z]
-  /// ...
-  bool _incrementPosition(int pos) {
-    bool overflow = false;
-    if (pos < 0) return true;
-    int value = _nextName[pos];
-    if (value == $_) {
-      value = $0;
-    } else if (value == $9) {
-      value = $a;
-    } else if (value == $z) {
-      value = $A;
-    } else if (value == $Z) {
-      overflow = _incrementPosition(pos - 1);
-      value = (pos > 0) ? $_ : initialChar;
-    } else {
-      value++;
-    }
-    _nextName[pos] = value;
-    return overflow;
-  }
-
-  _incrementName() {
-    if (_incrementPosition(_nextName.length - 1)) {
-      _nextName.add($_);
-    }
-  }
-
-  String getNextName() {
-    String proposal;
-    do {
-      proposal = String.fromCharCodes(_nextName);
-      _incrementName();
-    } while (MinifyNamer._hasBannedPrefix(proposal) ||
-        illegalNames.contains(proposal));
-
-    return proposal;
   }
 }

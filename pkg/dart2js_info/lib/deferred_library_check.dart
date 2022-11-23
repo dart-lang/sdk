@@ -45,9 +45,11 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
   var includedPackages = <String, Set<String>>{};
   var excludedPackages = <String, Set<String>>{};
   for (var part in manifest.keys) {
+    // ignore: avoid_dynamic_calls
     for (var package in manifest[part]['include'] ?? []) {
       (includedPackages[part] ??= {}).add(package);
     }
+    // ignore: avoid_dynamic_calls
     for (var package in manifest[part]['exclude'] ?? []) {
       (excludedPackages[part] ??= {}).add(package);
     }

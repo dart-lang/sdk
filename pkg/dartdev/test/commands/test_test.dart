@@ -12,6 +12,8 @@ import '../experiment_util.dart';
 import '../utils.dart';
 
 Future<void> main() async {
+  ensureRunFromSdkBinDart();
+
   final experiments = await experimentsWithValidation();
   group('test', () => defineTest(experiments), timeout: longTimeout);
 }

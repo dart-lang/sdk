@@ -285,14 +285,12 @@ import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../kernel/element_map_interfaces.dart'
-    show KernelToElementMapForDeferredLoading;
-import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
+import '../kernel/element_map.dart';
+import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../util/util.dart' show makeUnique;
 
 // TODO(48820): delete typedef after the migration is complete.
 typedef Compiler = CompilerDeferredLoadingFacade;
-typedef KernelToElementMap = KernelToElementMapForDeferredLoading;
 
 class _DeferredLoadTaskMetrics implements Metrics {
   @override
@@ -587,6 +585,7 @@ class DeferredLoadTask extends CompilerTask {
         var element = d.entity;
         var elements = elementMap.putIfAbsent(importSet.unit!, () => []);
         var id = element.name ?? '$element';
+        // ignore: avoid_dynamic_calls
         var context = (element as dynamic).memberContext.name;
         id = element.name == null || element.name == '' ? '<anonymous>' : id;
         id = '$context.$id';

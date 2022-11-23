@@ -19,10 +19,6 @@ abstract class FixedNames {
   static const operatorIsPrefix = r'$is_';
   static const operatorSignature = r'$signature';
   static const rtiName = r'$ti';
-  // TODO(48585) Fix this name.
-  static const futureClassName = 'TODO';
-  // TODO(48585) Fix this name.
-  static const listClassName = 'TODO';
   static const rtiAsField = '_as';
   static const rtiIsField = '_is';
 }

@@ -27,7 +27,7 @@ class EA extends self::_EA&_Enum&A /*isEnum*/  {
   enum-element static const field self::EA element = const self::EA::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EA
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EA.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class B extends core::Object implements core::Enum {
@@ -48,7 +48,7 @@ class EB extends self::_EB&_Enum&B /*isEnum*/  {
   enum-element static const field self::EB element = const self::EB::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EB
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EB.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M extends core::Enum /*isMixinDeclaration*/  {
@@ -67,7 +67,7 @@ class EM extends self::_EM&_Enum&M /*isEnum*/  {
   enum-element static const field self::EM element = const self::EM::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EM
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EM.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class N extends core::Object implements core::Enum /*isMixinDeclaration*/  {
@@ -86,7 +86,7 @@ class EN extends self::_EN&_Enum&N /*isEnum*/  {
   enum-element static const field self::EN element = const self::EN::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EN
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EN.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic

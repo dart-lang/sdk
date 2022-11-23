@@ -114,6 +114,7 @@ class Flags {
   static const String sources = '--sources';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String memoryMappedFiles = '--memory-map-files';
   static const String noClosedWorldInData = '--no-closed-world-in-data';
   static const String writeClosedWorld = '--write-closed-world';
   static const String readClosedWorld = '--read-closed-world';

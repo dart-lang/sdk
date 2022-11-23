@@ -52,6 +52,9 @@ abstract class Feature {
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
 
+  // Feature information for sealed classes.
+  static final sealed_class = ExperimentalFeatures.sealed_class;
+
   /// Feature information for set literals.
   static final set_literals = ExperimentalFeatures.set_literals;
 
@@ -71,6 +74,9 @@ abstract class Feature {
 
   /// Feature information for unnamed libraries.
   static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
+
+  /// Feature information for views.
+  static final views = ExperimentalFeatures.views;
 
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;

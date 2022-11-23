@@ -21,7 +21,7 @@
 # e.g. if adding a new flag that doesn't happen to be lexicographically last.
 #
 # kernel:
-#   pkg/front_end/tool/fasta generate-experimental-flags
+#   dart pkg/front_end/tool/fasta.dart generate-experimental-flags
 #
 # vm:
 #   dart tools/generate_experimental_flags.dart
@@ -134,6 +134,12 @@ features:
 
   patterns:
     help: "Patterns"
+
+  views:
+    help: "Views"
+
+  sealed-class:
+    help: "Sealed class"
 
 # Experiment flag only used for testing.
   test-experiment:

@@ -103,9 +103,7 @@ void f(int p) {
 ''');
   }
 
-  @failingTest
   Future<void> test_do_returnInBody() async {
-    // https://github.com/dart-lang/sdk/issues/43511
     await resolveTestCode('''
 void f(bool c) {
   do {
@@ -116,9 +114,10 @@ void f(bool c) {
 ''');
     await assertHasFix('''
 void f(bool c) {
-  print(c);
+    print(c);
+    return;
 }
-''');
+''', errorFilter: (error) => error.length == 4);
   }
 
   Future<void> test_doWhile_atDo() async {
@@ -342,12 +341,10 @@ void f() {
     await assertNoFix();
   }
 
-  @failingTest
   Future<void> test_for_returnInBody() async {
-    // https://github.com/dart-lang/sdk/issues/43511
     await resolveTestCode('''
 void f() {
-  for (int i = 0; i < 2; i++) {
+  for (var i = 0; i < 2; i++) {
     print(i);
     return;
   }
@@ -355,7 +352,62 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  print(0);
+  for (var i = 0; i < 2; ) {
+    print(i);
+    return;
+  }
+}
+''');
+  }
+
+  Future<void> test_forParts_updaters_multiple() async {
+    await resolveTestCode('''
+void f() {
+  for (; false; 1, 2) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (; false; ) {}
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_forParts_updaters_multiple_comma() async {
+    await resolveTestCode('''
+void f() {
+  for (; false; 1, 2,) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (; false; ) {}
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_forParts_updaters_throw() async {
+    await resolveTestCode('''
+void f() {
+  for (;; 0, throw 1, 2) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (;; 0, throw 1) {}
+}
+''');
+  }
+
+  Future<void> test_forParts_updaters_throw_comma() async {
+    await resolveTestCode('''
+void f() {
+  for (;; 0, throw 1, 2,) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (;; 0, throw 1,) {}
 }
 ''');
   }

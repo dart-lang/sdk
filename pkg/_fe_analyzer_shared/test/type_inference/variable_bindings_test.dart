@@ -12,121 +12,220 @@ main() {
     h = _Harness();
   });
 
-  test('Variable overlap', () {
-    h.run(_And([_VarPattern('x')..id = 1, _VarPattern('x')..id = 2]),
+  group('Duplicate variable', () {
+    test('In logical-and', () {
+      h.runPattern(
+        _And(
+          _VarPattern('x', 1),
+          _VarPattern('x', 2),
+        ),
+        expectedVariables: {'x: 1'},
         expectErrors: [
-          'matchVarOverlap(pattern: 2: x, previousPattern: 1: x)'
-        ]);
-  });
-
-  group('Alternative:', () {
-    test('Consistent', () {
-      h.run(_Or([
-        _VarPattern('x', expectNew: true),
-        _VarPattern('x', expectNew: false)
-      ]));
-    });
-
-    test('Does not bind unmentioned variables', () {
-      // Even though the variable 'y' has already been seen at the time the
-      // nested `_Or` is visited, it's important that the nested `_Or` not be
-      // construed to bind the variable 'y'.  Otherwise the variable pattern for
-      // `y` that follows would be incorrectly considered an error.
-      h.run(_Or([
-        _And([_VarPattern('x'), _VarPattern('y')]),
-        _And([
-          _Or([_VarPattern('x'), _VarPattern('x')]),
-          _VarPattern('y')
-        ])
-      ]));
-    });
-
-    group('Missing var:', () {
-      test('On left', () {
-        h.run(_Or([_Empty(), _VarPattern('x')]),
-            expectErrors: ['missingMatchVar((), x)']);
-      });
-
-      test('On right', () {
-        h.run(_Or([_VarPattern('x'), _Empty()]),
-            expectErrors: ['missingMatchVar((), x)']);
-      });
-
-      test('Middle of three', () {
-        h.run(_Or([_VarPattern('x'), _Empty(), _VarPattern('x')]),
-            expectErrors: ['missingMatchVar((), x)']);
-      });
+          'duplicateVariablePattern(name: x, original: 1, duplicate: 2)'
+        ],
+      );
     });
   });
 
-  group('Recovery:', () {
-    test('Overlap after missing', () {
-      h.run(
-          _And([
-            _Or([_VarPattern('x')..id = 1, _Empty()]),
-            _VarPattern('x')..id = 2
-          ]),
+  group('Logical-or:', () {
+    group('Variable should be present in both branches:', () {
+      test('Both have', () {
+        h.runPattern(
+          _Or(
+            _VarPattern('x', 1),
+            _VarPattern('x', 2),
+          ),
+          expectedVariables: {'x: [1, 2]'},
+        );
+      });
+      test('Left has', () {
+        h.runPattern(
+          _Or(
+            _VarPattern('x', 1),
+            _Empty(),
+            id: 2,
+          ),
+          expectedVariables: {'x: notConsistent [1]'},
           expectErrors: [
-            'missingMatchVar((), x)',
-            'matchVarOverlap(pattern: 2: x, previousPattern: 1: x)'
-          ]);
+            'logicalOrPatternBranchMissingVariable(node: 2, '
+                'hasInLeft: true, name: x, variable: 1)'
+          ],
+        );
+      });
+      test('Right has', () {
+        h.runPattern(
+          _Or(
+            _Empty(),
+            _VarPattern('x', 1),
+            id: 2,
+          ),
+          expectedVariables: {'x: notConsistent [1]'},
+          expectErrors: [
+            'logicalOrPatternBranchMissingVariable(node: 2, '
+                'hasInLeft: false, name: x, variable: 1)'
+          ],
+        );
+      });
     });
+  });
 
-    test('Missing after overlap after missing', () {
-      h.run(
-          _Or([
-            _And([
-              _Or([_VarPattern('x')..id = 1, _Empty()..id = 2]),
-              _VarPattern('x')..id = 3
-            ]),
-            _Empty()..id = 4
-          ]),
+  group('Switch statement:', () {
+    test('Both have', () {
+      h.runSwitchStatementSharedBody(
+        sharedCaseScopeKey: 0,
+        casePatterns: [
+          _VarPattern('x', 1),
+          _VarPattern('x', 2),
+        ],
+        expectedVariables: {'x: [1, 2]'},
+      );
+    });
+    test('First has', () {
+      h.runSwitchStatementSharedBody(
+        sharedCaseScopeKey: 0,
+        casePatterns: [
+          _VarPattern('x', 1),
+          _Empty(),
+        ],
+        expectedVariables: {'x: notConsistent [1]'},
+      );
+    });
+    test('Second has', () {
+      h.runSwitchStatementSharedBody(
+        sharedCaseScopeKey: 0,
+        casePatterns: [
+          _Empty(),
+          _VarPattern('x', 1),
+        ],
+        expectedVariables: {'x: notConsistent [1]'},
+      );
+    });
+    test('Partial intersection', () {
+      h.runSwitchStatementSharedBody(
+        sharedCaseScopeKey: 0,
+        casePatterns: [
+          _And(
+            _VarPattern('x', 1),
+            _VarPattern('y', 2),
+          ),
+          _VarPattern('x', 3),
+        ],
+        expectedVariables: {'x: [1, 3]', 'y: notConsistent [2]'},
+      );
+    });
+    test('Has default', () {
+      h.runSwitchStatementSharedBody(
+        sharedCaseScopeKey: 0,
+        casePatterns: [
+          _VarPattern('x', 1),
+        ],
+        hasDefault: true,
+        expectedVariables: {'x: notConsistent [1]'},
+      );
+    });
+    group('With logical-or', () {
+      test('Both have', () {
+        h.runSwitchStatementSharedBody(
+          sharedCaseScopeKey: 0,
+          casePatterns: [
+            _Or(
+              _VarPattern('x', 1),
+              _VarPattern('x', 2),
+            ),
+            _VarPattern('x', 3),
+          ],
+          expectedVariables: {'x: [[1, 2], 3]'},
+        );
+      });
+      test('Both have, inconsistent', () {
+        h.runSwitchStatementSharedBody(
+          sharedCaseScopeKey: 0,
+          casePatterns: [
+            _Or(
+              _VarPattern('x', 1),
+              _Empty(),
+            ),
+            _VarPattern('x', 2),
+          ],
+          expectedVariables: {'x: notConsistent [notConsistent [1], 2]'},
           expectErrors: [
-            'missingMatchVar(2: (), x)',
-            'matchVarOverlap(pattern: 3: x, previousPattern: 1: x)',
-            'missingMatchVar(4: (), x)'
-          ]);
+            'logicalOrPatternBranchMissingVariable(node: null, '
+                'hasInLeft: true, name: x, variable: 1)',
+          ],
+        );
+      });
+      test('First has', () {
+        h.runSwitchStatementSharedBody(
+          sharedCaseScopeKey: 0,
+          casePatterns: [
+            _Or(
+              _VarPattern('x', 1),
+              _VarPattern('x', 2),
+            ),
+            _Empty(),
+          ],
+          expectedVariables: {'x: notConsistent [[1, 2]]'},
+        );
+      });
+      test('Second has', () {
+        h.runSwitchStatementSharedBody(
+          sharedCaseScopeKey: 0,
+          casePatterns: [
+            _Empty(),
+            _Or(
+              _VarPattern('x', 1),
+              _VarPattern('x', 2),
+            ),
+          ],
+          expectedVariables: {'x: notConsistent [[1, 2]]'},
+        );
+      });
     });
   });
 }
 
 class _And extends _Node {
-  final List<_Node> _nodes;
+  final _Node left;
+  final _Node right;
 
-  _And(this._nodes);
-
-  @override
-  String _toDebugString() => '(${_nodes.join(' & ')})';
+  _And(this.left, this.right);
 
   @override
   void _visit(_Harness h) {
-    for (var node in _nodes) {
-      node._visit(h);
-    }
+    left._visit(h);
+    right._visit(h);
   }
 }
 
 class _Empty extends _Node {
-  @override
-  String _toDebugString() => '()';
+  _Empty();
 
   @override
   void _visit(_Harness h) {}
 }
 
-class _Errors implements VariableBinderErrors<_Node, Never> {
+class _Errors implements VariableBinderErrors<_Node, _VariableElement> {
   final List<String> _errors = [];
 
   @override
-  void matchVarOverlap(
-      {required _Node pattern, required _Node previousPattern}) {
-    _errors.add('matchVarOverlap(pattern: $pattern, '
-        'previousPattern: $previousPattern)');
+  void duplicateVariablePattern({
+    required String name,
+    required _VariableElement original,
+    required _VariableElement duplicate,
+  }) {
+    _errors.add('duplicateVariablePattern(name: $name, '
+        'original: $original, duplicate: $duplicate)');
   }
 
   @override
-  void missingMatchVar(_Node alternative, String variable) {
-    _errors.add('missingMatchVar($alternative, $variable)');
+  void logicalOrPatternBranchMissingVariable({
+    required _Node node,
+    required bool hasInLeft,
+    required String name,
+    required _VariableElement variable,
+  }) {
+    _errors.add('logicalOrPatternBranchMissingVariable(node: $node, '
+        'hasInLeft: $hasInLeft, name: $name, variable: $variable)');
   }
 
   @override
@@ -135,71 +234,153 @@ class _Errors implements VariableBinderErrors<_Node, Never> {
   }
 }
 
-class _Harness implements VariableBindingCallbacks<_Node, String, String> {
-  late final _binder = VariableBinder<_Node, String, String>(this);
-
-  @override
+class _Harness {
   final _Errors errors = _Errors();
+  late final _binder = _VariableBinder(errors: errors);
 
-  void run(_Node node, {List<String> expectErrors = const []}) {
+  void runPattern(
+    _Node node, {
+    List<String> expectErrors = const [],
+    required Set<String> expectedVariables,
+  }) {
+    _binder.casePatternStart();
     node._visit(this);
+    var variables = _binder.casePatternFinish();
+    _binder.finish();
+    _assertVariables(variables, expectedVariables);
     expect(errors._errors, expectErrors);
+  }
+
+  void runSwitchStatementSharedBody({
+    required Object sharedCaseScopeKey,
+    required List<_Node> casePatterns,
+    bool hasDefault = false,
+    List<String> expectErrors = const [],
+    required Set<String> expectedVariables,
+  }) {
+    _binder.switchStatementSharedCaseScopeStart(sharedCaseScopeKey);
+    for (var casePattern in casePatterns) {
+      _binder.casePatternStart();
+      casePattern._visit(this);
+      _binder.casePatternFinish(
+        sharedCaseScopeKey: sharedCaseScopeKey,
+      );
+    }
+    if (hasDefault) {
+      _binder.switchStatementSharedCaseScopeEmpty(sharedCaseScopeKey);
+    }
+    var variables =
+        _binder.switchStatementSharedCaseScopeFinish(sharedCaseScopeKey);
+    _binder.finish();
+    _assertVariables(variables, expectedVariables);
+    expect(errors._errors, expectErrors);
+  }
+
+  void _assertVariables(
+    Map<String, _VariableElement> variables,
+    Set<String> expected,
+  ) {
+    expect(
+      variables.entries.map((e) => '${e.key}: ${e.value}').toSet(),
+      expected,
+    );
   }
 }
 
 abstract class _Node {
   int? id;
 
+  _Node({this.id});
+
   @override
-  String toString() {
-    var debugString = _toDebugString();
-    if (id != null) {
-      return '$id: $debugString';
-    } else {
-      return debugString;
-    }
-  }
+  String toString() => '$id';
 
-  String _toDebugString();
-
-  void _visit(_Harness h);
+  void _visit(_Harness h) {}
 }
 
 class _Or extends _Node {
-  final List<_Node> _alternatives;
+  final _Node left;
+  final _Node right;
 
-  _Or(this._alternatives);
-
-  @override
-  String _toDebugString() => '(${_alternatives.join(' | ')})';
+  _Or(this.left, this.right, {super.id});
 
   @override
   void _visit(_Harness h) {
-    h._binder.startAlternatives();
-    for (var node in _alternatives) {
-      h._binder.startAlternative(node);
-      node._visit(h);
-      h._binder.finishAlternative();
-    }
-    h._binder.finishAlternatives();
+    h._binder.logicalOrPatternStart();
+    left._visit(h);
+    h._binder.logicalOrPatternFinishLeft();
+    right._visit(h);
+    h._binder.logicalOrPatternFinish(this);
+  }
+}
+
+class _VariableBindElement extends _VariableElement {
+  final String id;
+
+  _VariableBindElement(this.id);
+
+  @override
+  String toString() => id;
+}
+
+class _VariableBinder extends VariableBinder<_Node, _VariableElement> {
+  _VariableBinder({
+    required super.errors,
+  });
+
+  @override
+  _VariableElement joinPatternVariables({
+    required Object? key,
+    required List<_VariableElement> components,
+    required bool isConsistent,
+  }) {
+    return _VariableJoinElement(
+      components: [
+        for (var variable in components)
+          if (key is _Or && variable is _VariableJoinElement)
+            ...variable.components
+          else
+            variable
+      ],
+      isConsistent: isConsistent && components.every((e) => e.isConsistent),
+    );
+  }
+}
+
+class _VariableElement {
+  bool get isConsistent => true;
+}
+
+class _VariableJoinElement extends _VariableElement {
+  final List<_VariableElement> components;
+
+  @override
+  final bool isConsistent;
+
+  _VariableJoinElement({
+    required this.components,
+    required this.isConsistent,
+  });
+
+  @override
+  String toString() {
+    return [
+      if (!isConsistent) 'notConsistent',
+      components,
+    ].join(' ');
   }
 }
 
 class _VarPattern extends _Node {
-  final String variable;
-  final bool? expectNew;
+  final String name;
+  final _VariableBindElement element;
 
-  _VarPattern(this.variable, {this.expectNew});
-
-  @override
-  String _toDebugString() =>
-      [variable, if (expectNew != null) '(expectNew: $expectNew)'].join(' ');
+  _VarPattern(this.name, int id)
+      : element = _VariableBindElement('$id'),
+        super(id: id);
 
   @override
   void _visit(_Harness h) {
-    var isNew = h._binder.add(this, variable);
-    if (expectNew != null) {
-      expect(isNew, expectNew);
-    }
+    h._binder.add(name, element);
   }
 }

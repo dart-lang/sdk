@@ -12,6 +12,7 @@ import "dart:_internal"
         doubleToIntBits,
         EfficientLengthIterable,
         FixedLengthListMixin,
+        intBitsToDouble,
         IterableElementError,
         jsonEncode,
         ListIterator,

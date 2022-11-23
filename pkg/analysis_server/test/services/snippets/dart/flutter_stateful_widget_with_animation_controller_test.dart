@@ -41,8 +41,8 @@ class FlutterStatefulWidgetWithAnimationControllerTest
     expect(code, '''
 import 'package:flutter/src/animation/animation_controller.dart';
 import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter/src/widgets/ticker_provider.dart';
 
 class MyWidget extends StatefulWidget {
@@ -70,7 +70,7 @@ class _MyWidgetState extends State<MyWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return const Placeholder();
   }
 }''');
   }
@@ -94,8 +94,8 @@ class _MyWidgetState extends State<MyWidget>
     }
     expect(code, '''
 import 'package:flutter/src/animation/animation_controller.dart';
-import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter/src/widgets/ticker_provider.dart';
 
 class MyWidget extends StatefulWidget {
@@ -123,21 +123,21 @@ class _MyWidgetState extends State<MyWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return const Placeholder();
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 759);
-    expect(snippet.change.selectionLength, 11);
+    expect(snippet.change.selection!.offset, 761);
+    expect(snippet.change.selectionLength, 19);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 238},
-          {'file': testFile, 'offset': 280},
-          {'file': testFile, 'offset': 324},
-          {'file': testFile, 'offset': 352},
-          {'file': testFile, 'offset': 379},
-          {'file': testFile, 'offset': 407},
+          {'file': testFile, 'offset': 240},
+          {'file': testFile, 'offset': 282},
+          {'file': testFile, 'offset': 326},
+          {'file': testFile, 'offset': 354},
+          {'file': testFile, 'offset': 381},
+          {'file': testFile, 'offset': 409},
         ],
         'length': 8,
         'suggestions': []

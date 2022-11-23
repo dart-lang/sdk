@@ -166,30 +166,30 @@ namespace dart {
   F(GrowableObjectArray, type_arguments_)                                      \
   F(GrowableObjectArray, length_)                                              \
   F(GrowableObjectArray, data_)                                                \
-  F(LinkedHashMap, type_arguments_)                                            \
-  F(LinkedHashMap, index_)                                                     \
-  F(LinkedHashMap, hash_mask_)                                                 \
-  F(LinkedHashMap, data_)                                                      \
-  F(LinkedHashMap, used_data_)                                                 \
-  F(LinkedHashMap, deleted_keys_)                                              \
-  F(ImmutableLinkedHashMap, type_arguments_)                                   \
-  F(ImmutableLinkedHashMap, index_)                                            \
-  F(ImmutableLinkedHashMap, hash_mask_)                                        \
-  F(ImmutableLinkedHashMap, data_)                                             \
-  F(ImmutableLinkedHashMap, used_data_)                                        \
-  F(ImmutableLinkedHashMap, deleted_keys_)                                     \
-  F(LinkedHashSet, type_arguments_)                                            \
-  F(LinkedHashSet, index_)                                                     \
-  F(LinkedHashSet, hash_mask_)                                                 \
-  F(LinkedHashSet, data_)                                                      \
-  F(LinkedHashSet, used_data_)                                                 \
-  F(LinkedHashSet, deleted_keys_)                                              \
-  F(ImmutableLinkedHashSet, type_arguments_)                                   \
-  F(ImmutableLinkedHashSet, index_)                                            \
-  F(ImmutableLinkedHashSet, hash_mask_)                                        \
-  F(ImmutableLinkedHashSet, data_)                                             \
-  F(ImmutableLinkedHashSet, used_data_)                                        \
-  F(ImmutableLinkedHashSet, deleted_keys_)                                     \
+  F(Map, type_arguments_)                                                      \
+  F(Map, index_)                                                               \
+  F(Map, hash_mask_)                                                           \
+  F(Map, data_)                                                                \
+  F(Map, used_data_)                                                           \
+  F(Map, deleted_keys_)                                                        \
+  F(ConstMap, type_arguments_)                                                 \
+  F(ConstMap, index_)                                                          \
+  F(ConstMap, hash_mask_)                                                      \
+  F(ConstMap, data_)                                                           \
+  F(ConstMap, used_data_)                                                      \
+  F(ConstMap, deleted_keys_)                                                   \
+  F(Set, type_arguments_)                                                      \
+  F(Set, index_)                                                               \
+  F(Set, hash_mask_)                                                           \
+  F(Set, data_)                                                                \
+  F(Set, used_data_)                                                           \
+  F(Set, deleted_keys_)                                                        \
+  F(ConstSet, type_arguments_)                                                 \
+  F(ConstSet, index_)                                                          \
+  F(ConstSet, hash_mask_)                                                      \
+  F(ConstSet, data_)                                                           \
+  F(ConstSet, used_data_)                                                      \
+  F(ConstSet, deleted_keys_)                                                   \
   F(TypedData, length_)                                                        \
   F(ExternalTypedData, length_)                                                \
   F(ReceivePort, send_port_)                                                   \

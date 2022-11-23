@@ -12,6 +12,8 @@ import '../ast.dart';
 import '../transformations/flags.dart';
 import 'tag.dart';
 
+const int $_ = 95;
+
 class ParseError {
   final String? filename;
   final int byteIndex;
@@ -129,10 +131,17 @@ class BinaryBuilder {
   final List<int> _bytes;
   int _byteOffset = 0;
   List<String> _stringTable = const [];
+  late Map<int, Name?> _nameCache;
   List<Uri> _sourceUriTable = const [];
   List<Constant> _constantTable = const <Constant>[];
   late List<CanonicalName> _linkTable;
   late Map<int, DartType?> _cachedSimpleInterfaceTypes;
+  List<FunctionType?> _voidFunctionFunctionTypesCache = [
+    null,
+    null,
+    null,
+    null
+  ];
   int _transformerFlags = 0;
   Library? _currentLibrary;
   int _componentStartOffset = 0;
@@ -192,6 +201,7 @@ class BinaryBuilder {
   int get byteOffset => _byteOffset;
 
   int readByte() => _bytes[_byteOffset++];
+  int peekByte() => _bytes[_byteOffset];
 
   int readUInt30() {
     int byte = readByte();
@@ -341,6 +351,10 @@ class BinaryBuilder {
         new List<int>.generate(length, (_) => readUInt30(), growable: false);
     // Read the WTF-8 encoded strings.
     int startOffset = 0;
+
+    // Reset name cache here to make any index into it always
+    // be about the corresponding string table entry.
+    _nameCache = {};
     _stringTable = new List<String>.generate(length, (int index) {
       String result = readStringEntry(endOffsets[index] - startOffset);
       startOffset = endOffsets[index];
@@ -1080,6 +1094,14 @@ class BinaryBuilder {
     return name.reference;
   }
 
+  Reference readNonNullViewReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    if (name == null) {
+      throw 'Expected a view reference to be valid but was `null`.';
+    }
+    return name.reference;
+  }
+
   void skipMemberReference() {
     skipCanonicalNameReference();
   }
@@ -1122,12 +1144,46 @@ class BinaryBuilder {
   }
 
   Name readName() {
-    String text = readStringReference();
-    if (text.isNotEmpty && text[0] == '_') {
-      return new Name.byReference(text, readNonNullLibraryReference());
+    final int stringReference = readUInt30();
+    assert(stringReference < (1 << 30));
+    final String text = _stringTable[stringReference];
+    final bool isPrivate = text.isNotEmpty && text.codeUnitAt(0) == $_;
+    final int libraryReferenceIndex;
+    final int nameCacheIndex;
+
+    if (isPrivate) {
+      // "Raw" reference index of 0 means null which we don't allow.
+      libraryReferenceIndex = readUInt30();
+      if (libraryReferenceIndex == 0) {
+        throw 'Expected a library reference to be valid but was `null`.';
+      }
+
+      // Check cache using the upper bits for the library reference.
+      nameCacheIndex = stringReference | ((libraryReferenceIndex) << 30);
     } else {
-      return new Name(text);
+      // the 0 will be unused but we need to assign it.
+      libraryReferenceIndex = 0;
+      nameCacheIndex = stringReference;
     }
+
+    final Name? cached = _nameCache[nameCacheIndex];
+    if (cached != null) {
+      return cached;
+    }
+
+    // Not in cache. Create it and cache it.
+    final Name name;
+    if (isPrivate) {
+      // libraryReferenceIndex was checked to be > 0 so we get a canonical name.
+      final CanonicalName canonicalName =
+          getNullableCanonicalNameReferenceFromInt(libraryReferenceIndex)!;
+      final Reference libraryReference = canonicalName.reference;
+      name = new Name.byReference(text, libraryReference);
+    } else {
+      name = new Name(text);
+    }
+    _nameCache[nameCacheIndex] = name;
+    return name;
   }
 
   Library readLibrary(Component component, int endOffset) {
@@ -1206,6 +1262,7 @@ class BinaryBuilder {
     _readTypedefList(library);
     _readClassList(library, classOffsets);
     _readExtensionList(library);
+    _readViewList(library);
     library.fieldsInternal = _readFieldList(library);
     library.proceduresInternal = _readProcedureList(library, procedureOffsets);
 
@@ -1251,6 +1308,19 @@ class BinaryBuilder {
     } else {
       library.extensionsInternal = new List<Extension>.generate(
           length, (int index) => readExtension()..parent = library,
+          growable: useGrowableLists);
+    }
+  }
+
+  void _readViewList(Library library) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      library.viewsInternal = emptyListOfView;
+    } else {
+      library.viewsInternal = new List<View>.generate(
+          length, (int index) => readView()..parent = library,
           growable: useGrowableLists);
     }
   }
@@ -1531,6 +1601,74 @@ class BinaryBuilder {
     return new ExtensionMemberDescriptor(
         name: name,
         kind: ExtensionMemberKind.values[kind],
+        member: canonicalName.reference)
+      ..flags = flags;
+  }
+
+  View readView() {
+    int tag = readByte();
+    assert(tag == Tag.View);
+
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
+    Reference reference = canonicalName.reference;
+    View? node = reference.node as View?;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
+
+    String name = readStringReference();
+    assert(() {
+      debugPath.add(name);
+      return true;
+    }());
+
+    List<Expression> annotations = readAnnotationList();
+
+    Uri fileUri = readUriReference();
+
+    if (node == null) {
+      node = new View(name: name, reference: reference, fileUri: fileUri);
+    }
+    node.annotations = annotations;
+    setParents(annotations, node);
+
+    node.fileOffset = readOffset();
+
+    node.flags = readByte();
+
+    readAndPushTypeParameterList(node.typeParameters, node);
+    DartType representationType = readDartType();
+    typeParameterStack.length = 0;
+
+    node.name = name;
+    node.fileUri = fileUri;
+    node.representationType = representationType;
+
+    node.members = _readViewMemberDescriptorList();
+
+    return node;
+  }
+
+  List<ViewMemberDescriptor> _readViewMemberDescriptorList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return emptyListOfViewMemberDescriptor;
+    }
+    return new List<ViewMemberDescriptor>.generate(
+        length, (_) => _readViewMemberDescriptor(),
+        growable: useGrowableLists);
+  }
+
+  ViewMemberDescriptor _readViewMemberDescriptor() {
+    Name name = readName();
+    int kind = readByte();
+    int flags = readByte();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
+    return new ViewMemberDescriptor(
+        name: name,
+        kind: ViewMemberKind.values[kind],
         member: canonicalName.reference)
       ..flags = flags;
   }
@@ -1822,18 +1960,25 @@ class BinaryBuilder {
     int tag = readByte();
     bool isSynthetic = readByte() == 1;
     switch (tag) {
-      case Tag.InvalidInitializer:
-        return _readInvalidInitializer();
+      // 52.71% (43.80% - 59.02%).
       case Tag.FieldInitializer:
         return _readFieldInitializer(isSynthetic);
+
+      // 42.01% (28.38% - 55.93%)
       case Tag.SuperInitializer:
         return _readSuperInitializer(isSynthetic);
+
+      // 4.69% (0.00% - 16.00%).
+      case Tag.AssertInitializer:
+        return _readAssertInitializer();
+
+      // The rest is < 2% on average in sampled dills.
+      case Tag.InvalidInitializer:
+        return _readInvalidInitializer();
       case Tag.RedirectingInitializer:
         return _readRedirectingInitializer();
       case Tag.LocalInitializer:
         return _readLocalInitializer();
-      case Tag.AssertInitializer:
-        return _readAssertInitializer();
       default:
         throw fail('unexpected initializer tag: $tag');
     }
@@ -2009,22 +2154,57 @@ class BinaryBuilder {
         ? tagByte
         : (tagByte & Tag.SpecializedTagMask);
     switch (tag) {
+      // 18.57% (13.56% - 23.28%).
+      case Tag.SpecializedVariableGet:
+        return _readSpecializedVariableGet(tagByte);
+
+      // 12.02% (9.14% - 14.14%).
+      case Tag.InstanceGet:
+        return _readInstanceGet();
+
+      // 10.61% (6.82% - 14.13%).
+      case Tag.ThisExpression:
+        return _readThisLiteral();
+
+      // 10.19% (6.51% - 15.46%).
+      case Tag.ConstantExpression:
+        return _readConstantExpression();
+
+      // 9.95% (5.96% - 13.10%).
+      case Tag.InstanceInvocation:
+        return _readInstanceInvocation();
+
+      // 6.20% (2.67% - 12.88%)
+      case Tag.StringLiteral:
+        return _readStringLiteral();
+
+      // 4.30% (1.89% - 5.58%).
+      case Tag.VariableGet:
+        return _readVariableGet();
+
+      // 3.94% (2.48% - 6.29%).
+      case Tag.StaticInvocation:
+        return _readStaticInvocation();
+
+      // 2.95% (1.58% - 5.31%).
+      case Tag.SpecializedIntLiteral:
+        return _readSpecializedIntLiteral(tagByte);
+
+      // 2.92% (1.76% - 5.21%).
+      case Tag.ConstructorInvocation:
+        return _readConstructorInvocation();
+
+      // The rest is < 2% on average in sampled dills.
       case Tag.LoadLibrary:
         return _readLoadLibrary();
       case Tag.CheckLibraryIsLoaded:
         return _readCheckLibraryIsLoaded();
       case Tag.InvalidExpression:
         return _readInvalidExpression();
-      case Tag.VariableGet:
-        return _readVariableGet();
-      case Tag.SpecializedVariableGet:
-        return _readSpecializedVariableGet(tagByte);
       case Tag.VariableSet:
         return _readVariableSet();
       case Tag.SpecializedVariableSet:
         return _readSpecializedVariableSet(tagByte);
-      case Tag.InstanceGet:
-        return _readInstanceGet();
       case Tag.InstanceTearOff:
         return _readInstanceTearOff();
       case Tag.DynamicGet:
@@ -2057,8 +2237,6 @@ class BinaryBuilder {
         return _readTypedefTearOff();
       case Tag.RedirectingFactoryTearOff:
         return _readRedirectingFactoryTearOff();
-      case Tag.InstanceInvocation:
-        return _readInstanceInvocation();
       case Tag.InstanceGetterInvocation:
         return _readInstanceGetterInvocation();
       case Tag.DynamicInvocation:
@@ -2077,12 +2255,8 @@ class BinaryBuilder {
         return _readAbstractSuperMethodInvocation();
       case Tag.SuperMethodInvocation:
         return _readSuperMethodInvocation();
-      case Tag.StaticInvocation:
-        return _readStaticInvocation();
       case Tag.ConstStaticInvocation:
         return _readConstStaticInvocation();
-      case Tag.ConstructorInvocation:
-        return _readConstructorInvocation();
       case Tag.ConstConstructorInvocation:
         return _readConstConstructorInvocation();
       case Tag.Not:
@@ -2109,10 +2283,6 @@ class BinaryBuilder {
         return _readIsExpression();
       case Tag.AsExpression:
         return _readAsExpression();
-      case Tag.StringLiteral:
-        return _readStringLiteral();
-      case Tag.SpecializedIntLiteral:
-        return _readSpecializedIntLiteral(tagByte);
       case Tag.PositiveIntLiteral:
         return _readPositiveIntLiteral();
       case Tag.NegativeIntLiteral:
@@ -2131,8 +2301,6 @@ class BinaryBuilder {
         return _readSymbolLiteral();
       case Tag.TypeLiteral:
         return _readTypeLiteral();
-      case Tag.ThisExpression:
-        return _readThisLiteral();
       case Tag.Rethrow:
         return _readRethrow();
       case Tag.Throw:
@@ -2163,8 +2331,6 @@ class BinaryBuilder {
         return _readBlockExpression();
       case Tag.Instantiation:
         return _readInstantiation();
-      case Tag.ConstantExpression:
-        return _readConstantExpression();
       default:
         throw fail('unexpected expression tag: $tag');
     }
@@ -2707,7 +2873,9 @@ class BinaryBuilder {
 
   Expression _readAwaitExpression() {
     int offset = readOffset();
-    return new AwaitExpression(readExpression())..fileOffset = offset;
+    return new AwaitExpression(readExpression())
+      ..fileOffset = offset
+      ..runtimeCheckType = readDartTypeOption();
   }
 
   Expression _readFunctionExpression() {
@@ -2794,14 +2962,33 @@ class BinaryBuilder {
   Statement readStatement() {
     int tag = readByte();
     switch (tag) {
+      // 23.90% (14.98% - 41.04%).
+      case Tag.ReturnStatement:
+        return _readReturnStatement();
+
+      // 22.74% (15.27% - 32.36%).
       case Tag.ExpressionStatement:
         return _readExpressionStatement();
+
+      // 21.29% (17.70% - 25.00%).
       case Tag.Block:
         return _readBlock();
-      case Tag.AssertBlock:
-        return _readAssertBlock();
+
+      // 9.62% (6.92% - 12.64%).
+      case Tag.VariableDeclaration:
+        return _readVariableDeclaration();
+
+      // 9.28% (6.69% - 11.18%).
       case Tag.EmptyStatement:
         return _readEmptyStatement();
+
+      // 9.06% (6.03% - 11.58%).
+      case Tag.IfStatement:
+        return _readIfStatement();
+
+      // The rest is < 2% on average in sampled dills.
+      case Tag.AssertBlock:
+        return _readAssertBlock();
       case Tag.AssertStatement:
         return _readAssertStatement();
       case Tag.LabeledStatement:
@@ -2821,18 +3008,12 @@ class BinaryBuilder {
         return _readSwitchStatement();
       case Tag.ContinueSwitchStatement:
         return _readContinueSwitchStatement();
-      case Tag.IfStatement:
-        return _readIfStatement();
-      case Tag.ReturnStatement:
-        return _readReturnStatement();
       case Tag.TryCatch:
         return _readTryCatch();
       case Tag.TryFinally:
         return _readTryFinally();
       case Tag.YieldStatement:
         return _readYieldStatement();
-      case Tag.VariableDeclaration:
-        return _readVariableDeclaration();
       case Tag.FunctionDeclaration:
         return _readFunctionDeclaration();
       default:
@@ -3107,26 +3288,41 @@ class BinaryBuilder {
   DartType readDartType({bool forSupertype = false}) {
     int tag = readByte();
     switch (tag) {
+      // 67.66% (59.53% - 77.94%).
+      case Tag.SimpleInterfaceType:
+        return _readSimpleInterfaceType(forSupertype);
+
+      // 11.64% (9.11% - 15.49%).
+      case Tag.SimpleFunctionType:
+        return _readSimpleFunctionType();
+
+      // 7.33% (5.11% - 8.76%).
+      case Tag.InterfaceType:
+        return _readInterfaceType();
+
+      // 5.84% (4.13% - 8.86%).
+      case Tag.VoidType:
+        return _readVoidType();
+
+      // 3.64% (1.20% - 7.55%).
+      case Tag.TypeParameterType:
+        return _readTypeParameterType();
+
+      // 2.75% (1.03% - 4.13%).
+      case Tag.DynamicType:
+        return _readDynamicType();
+
+      // The rest is < 2% on average in sampled dills.
       case Tag.TypedefType:
         return _readTypedefType();
       case Tag.InvalidType:
         return _readInvalidType();
-      case Tag.DynamicType:
-        return _readDynamicType();
-      case Tag.VoidType:
-        return _readVoidType();
       case Tag.NeverType:
         return _readNeverType();
-      case Tag.InterfaceType:
-        return _readInterfaceType();
-      case Tag.SimpleInterfaceType:
-        return _readSimpleInterfaceType(forSupertype);
+      case Tag.ViewType:
+        return _readViewType();
       case Tag.FunctionType:
         return _readFunctionType();
-      case Tag.SimpleFunctionType:
-        return _readSimpleFunctionType();
-      case Tag.TypeParameterType:
-        return _readTypeParameterType();
       case Tag.IntersectionType:
         return _readIntersectionType();
       case Tag.RecordType:
@@ -3211,6 +3407,18 @@ class BinaryBuilder {
     return result;
   }
 
+  DartType _readViewType() {
+    int nullabilityIndex = readByte();
+    Reference reference = readNonNullViewReference();
+    List<DartType> typeArguments = readDartTypeList();
+    DartType representationType = readDartType();
+    return new ViewType.byReference(
+        reference,
+        Nullability.values[nullabilityIndex],
+        typeArguments,
+        representationType);
+  }
+
   DartType _readFunctionType() {
     int typeParameterStackHeight = typeParameterStack.length;
     int nullabilityIndex = readByte();
@@ -3233,6 +3441,19 @@ class BinaryBuilder {
     int nullabilityIndex = readByte();
     List<DartType> positional = readDartTypeList();
     DartType returnType = readDartType();
+    if (positional.isEmpty && returnType is VoidType) {
+      // "FunctionType(void Function())" with different nullabilities.
+      assert(
+          _voidFunctionFunctionTypesCache.length == Nullability.values.length);
+      FunctionType? cached = _voidFunctionFunctionTypesCache[nullabilityIndex];
+      if (cached != null) {
+        return cached;
+      }
+      FunctionType result = new FunctionType(
+          const [], const VoidType(), Nullability.values[nullabilityIndex]);
+      _voidFunctionFunctionTypesCache[nullabilityIndex] = result;
+      return result;
+    }
     return new FunctionType(
         positional, returnType, Nullability.values[nullabilityIndex]);
   }
@@ -3509,6 +3730,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   Extension readExtension() {
     final int nodeOffset = _byteOffset;
     final Extension result = super.readExtension();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  View readView() {
+    final int nodeOffset = _byteOffset;
+    final View result = super.readView();
     return _associateMetadata(result, nodeOffset);
   }
 

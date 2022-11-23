@@ -11,10 +11,10 @@ import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
+import '../js_model/js_world.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
-import '../world.dart';
 import 'runtime_types_codegen.dart';
 import 'runtime_types_resolution.dart';
 

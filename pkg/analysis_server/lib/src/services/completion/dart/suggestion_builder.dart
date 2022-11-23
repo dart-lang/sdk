@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -179,6 +180,13 @@ class SuggestionBuilder {
   /// This URI is not necessary the same as the URI that declares an element,
   /// because of exports.
   String? libraryUriStr;
+
+  /// URIs that should be imported (that are not already) for all types in the
+  /// completion.
+  ///
+  /// Includes a [URI] for [libraryUriStr] only if the items being suggested are
+  /// not already imported.
+  Set<Uri> requiredImports = {};
 
   /// This flag is set to `true` while adding suggestions for top-level
   /// elements from not-yet-imported libraries.
@@ -350,7 +358,7 @@ class SuggestionBuilder {
       required String displayText,
       required int selectionOffset,
     }) {
-      return CompletionSuggestion(
+      return DartCompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
         Relevance.closure,
         completion,
@@ -359,6 +367,7 @@ class SuggestionBuilder {
         false,
         false,
         displayText: displayText,
+        dartElement: type.element,
       );
     }
 
@@ -572,7 +581,7 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [element]. If the class can only be
+  /// Add a suggestion for an [element]. If the class can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestInterface(InterfaceElement element, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(element,
@@ -724,7 +733,7 @@ class SuggestionBuilder {
       buffer.write('$indent});');
 
       _addSuggestion(
-        CompletionSuggestion(
+        DartCompletionSuggestion(
           kind,
           relevance,
           buffer.toString(),
@@ -734,6 +743,7 @@ class SuggestionBuilder {
           false,
           // Let the user know that we are going to insert a complete statement.
           displayText: 'setState(() {});',
+          dartElement: method,
         ),
         textToMatchOverride: 'setState',
       );
@@ -812,7 +822,7 @@ class SuggestionBuilder {
       relevance = Relevance.namedArgument;
     }
 
-    var suggestion = CompletionSuggestion(
+    var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance,
         completion,
@@ -822,7 +832,8 @@ class SuggestionBuilder {
         false,
         parameterName: name,
         parameterType: type,
-        replacementLength: replacementLength);
+        replacementLength: replacementLength,
+        dartElement: parameter);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
       suggestion.element =
@@ -877,8 +888,10 @@ class SuggestionBuilder {
   Future<void> suggestOverride(
       Token targetId, ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
+    var overrideImports = <Uri>{};
     var builder = ChangeBuilder(session: request.analysisSession);
-    await builder.addDartFileEdit(request.path, (builder) {
+    await builder.addDartFileEdit(request.path, createEditsForImports: false,
+        (builder) {
       builder.addReplacement(range.token(targetId), (builder) {
         builder.writeOverride(
           element,
@@ -886,6 +899,7 @@ class SuggestionBuilder {
           invokeSuper: invokeSuper,
         );
       });
+      overrideImports.addAll(builder.requiredImports);
     });
 
     var fileEdits = builder.sourceChange.edits;
@@ -916,7 +930,7 @@ class SuggestionBuilder {
     var offsetDelta = targetId.offset + replacement.indexOf(completion);
     var displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
-    var suggestion = CompletionSuggestion(
+    var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         Relevance.override,
         completion,
@@ -924,7 +938,9 @@ class SuggestionBuilder {
         selectionRange.length,
         element.hasDeprecated,
         false,
-        displayText: displayText);
+        displayText: displayText,
+        dartElement: element,
+        requiredImports: overrideImports.toList());
     suggestion.element = protocol.convertElement(element,
         withNullability: _isNonNullableByDefault);
     _addSuggestion(
@@ -1348,6 +1364,7 @@ class SuggestionBuilder {
       completionOverride: completion,
       relevance: relevance,
       libraryUriStr: libraryUriStr,
+      requiredImports: requiredImports.toList(),
       isNotImported: isNotImported,
     );
   }
@@ -1418,6 +1435,7 @@ class SuggestionBuilder {
       documentation: documentation,
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
+      dartElement: element,
     );
   }
 
@@ -1622,6 +1640,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   final String? completionOverride;
   final String? libraryUriStr;
+  final List<Uri> requiredImports;
   final bool isNotImported;
 
   _CompletionSuggestionBuilderImpl({
@@ -1630,6 +1649,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     required this.completionOverride,
     required this.relevance,
     required this.libraryUriStr,
+    required this.requiredImports,
     required this.isNotImported,
   });
 
@@ -1651,7 +1671,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   CompletionSuggestion build() {
-    return CompletionSuggestion(
+    return DartCompletionSuggestion(
       kind,
       relevance,
       completion,
@@ -1672,6 +1692,8 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
       libraryUri: libraryUriStr,
       isNotImported: isNotImported ? true : null,
+      dartElement: element.dartElement,
+      requiredImports: requiredImports,
     );
   }
 }
@@ -1691,6 +1713,7 @@ class _ElementCompletionData {
   CompletionDefaultArgumentList? defaultArgumentList;
   final _ElementDocumentation? documentation;
   final protocol.Element element;
+  final Element dartElement;
 
   _ElementCompletionData({
     required this.completion,
@@ -1704,6 +1727,7 @@ class _ElementCompletionData {
     required this.defaultArgumentList,
     required this.documentation,
     required this.element,
+    required this.dartElement,
   });
 }
 

@@ -24,7 +24,7 @@ void main() {
         '--$serverInfoOption=$serverInfoFile',
       ]);
 
-      expect(result.stdout, isEmpty);
+      expect(result.stdout, contains('No server instance running'));
       expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
       expect(File(serverInfoFile).existsSync(), false);
@@ -49,7 +49,7 @@ void main() {
         '--$serverInfoOption=$serverInfoFile',
       ]);
 
-      expect(result.stdout, isEmpty);
+      expect(result.stdout, contains('Server instance shutdown'));
       expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
       expect(File(serverInfoFile).existsSync(), false);

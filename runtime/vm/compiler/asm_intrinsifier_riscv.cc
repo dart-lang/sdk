@@ -1128,90 +1128,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
                                kFClassNegSubnormal | kFClassNegZero);
 }
 
-// Input: untagged integer in A1
-// Output: tagged hash code value in A0
-// Should be kept in sync with
-//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
-//  - asm_intrinsifier(...).cc Multiply64Hash
-//  - integers.cc Multiply64Hash
-static void Multiply64Hash(Assembler* assembler) {
-#if XLEN == 32
-  __ srai(A0, A1, 31);  // sign extend A1 to A0
-
-  __ LoadImmediate(TMP, 0x2d51);
-  __ mulhu(A2, A1, TMP);
-  __ mul(A1, A1, TMP);  // (A2:A1) = lo32 * 0x2d51
-
-  __ mulhu(TMP2, A0, TMP);
-  __ mul(A0, A0, TMP);  // (TMP2:A0) = hi32 * 0x2d51
-
-  __ add(A0, A0, A2);  // (0: TMP2: A0: A1)
-  __ xor_(TMP2, TMP2, A1);
-  __ xor_(A0, A0, TMP2);
-#else
-  __ LoadImmediate(TMP, 0x2d51);
-  __ mul(A0, TMP, A1);
-  __ mulhu(TMP, TMP, A1);
-  __ xor_(A0, A0, TMP);
-  __ srai(A1, A0, 32);
-  __ xor_(A0, A0, A1);
-#endif
-  __ AndImmediate(A0, A0, 0x3fffffff);
-  __ SmiTag(A0);
-}
-
-void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  Label double_hash;
-
-  __ lx(A0, Address(SP, 0 * target::kWordSize));
-  __ LoadDFieldFromOffset(FA0, A0, target::Double::value_offset());
-
-#if XLEN == 32
-  __ fcvtwd(A1, FA0);
-  __ fcvtdw(FA1, A1);
-
-  // Ensure value in Smi range
-  __ SmiTag(TMP, A1);
-  __ SmiUntag(TMP2, TMP);
-  __ bne(TMP2, A1, normal_ir_body, Assembler::kNearJump);
-
-  __ feqd(TMP, FA0, FA1);
-  __ beqz(TMP, &double_hash, Assembler::kNearJump);  // Not integer.
-#else
-  __ fcvtld(A1, FA0);
-  __ fcvtdl(FA1, A1);
-
-  __ feqd(TMP, FA0, FA1);
-  __ beqz(TMP, &double_hash, Assembler::kNearJump);  // Not integer.
-
-  // Ensure value in Smi range
-  __ SmiTag(TMP, A1);
-  __ SmiUntag(TMP2, TMP);
-  __ bne(TMP2, A1, normal_ir_body, Assembler::kNearJump);
-#endif
-
-  Multiply64Hash(assembler);
-  __ ret();
-
-  __ Bind(&double_hash);
-#if XLEN == 32
-  __ lx(A0, Address(SP, 0 * target::kWordSize));
-  __ lw(A1, Address(A0, target::Double::value_offset() + 4));
-  __ lw(A0, Address(A0, target::Double::value_offset() + 0));
-#else
-  __ fmvxd(A0, FA0);
-  __ srli(A1, A0, 32);
-#endif
-
-  __ xor_(A0, A0, A1);
-  __ AndImmediate(A0, A0, target::kSmiMax);
-  __ SmiTag(A0);
-  __ ret();
-
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   Label true_label;
@@ -1293,10 +1209,12 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ LoadClassIdMayBeSmi(A1, A0);
 
   __ CompareImmediate(A1, kClosureCid);
-  __ BranchIf(EQ, normal_ir_body);  // Instance is a closure.
+  __ BranchIf(EQ, normal_ir_body,
+              Assembler::kNearJump);  // Instance is a closure.
 
   __ CompareImmediate(A1, kRecordCid);
-  __ BranchIf(EQ, normal_ir_body);  // Instance is a record.
+  __ BranchIf(EQ, normal_ir_body,
+              Assembler::kNearJump);  // Instance is a record.
 
   __ CompareImmediate(A1, kNumPredefinedCids);
   __ BranchIf(HI, &use_declaration_type, Assembler::kNearJump);
@@ -1354,11 +1272,11 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
-  __ BranchIf(EQ, normal_ir_body);
+  __ BranchIf(EQ, normal_ir_body, Assembler::kNearJump);
 
   // Check if left hand side is a record. Records are handled in the runtime.
   __ CompareImmediate(cid1, kRecordCid);
-  __ BranchIf(EQ, normal_ir_body);
+  __ BranchIf(EQ, normal_ir_body, Assembler::kNearJump);
 
   // Check whether class ids match. If class ids don't match types may still be
   // considered equivalent (e.g. multiple string implementation classes map to a
@@ -1500,7 +1418,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   // since this is a method on the Type class).
   __ LoadClassIdMayBeSmi(T3, A1);
   __ CompareImmediate(T3, kTypeCid);
-  __ BranchIf(NE, normal_ir_body);
+  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
 
   // Check if types are syntactically equal.
   __ LoadTypeClassId(T3, A1);
@@ -1515,7 +1433,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ LoadCompressed(T3, FieldAddress(A1, target::Type::arguments_offset()));
   __ LoadCompressed(T4, FieldAddress(A0, target::Type::arguments_offset()));
   __ CompareObjectRegisters(T3, T4);
-  __ BranchIf(NE, normal_ir_body);
+  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
   // Fall through to check nullability if type arguments are equal.
 
   // Check nullability.
@@ -1693,10 +1611,10 @@ void AsmIntrinsifier::StringBaseSubstringMatches(Assembler* assembler,
   __ BranchIfNotSmi(T0, normal_ir_body);
 
   __ CompareClassId(A1, kOneByteStringCid, TMP);
-  __ BranchIf(NE, normal_ir_body);
+  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
 
   __ CompareClassId(A0, kOneByteStringCid, TMP);
-  __ BranchIf(NE, normal_ir_body);
+  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
 
   GenerateSubstringMatchesSpecialization(assembler, kOneByteStringCid,
                                          kOneByteStringCid, &return_true,
@@ -1704,7 +1622,7 @@ void AsmIntrinsifier::StringBaseSubstringMatches(Assembler* assembler,
 
   __ Bind(&try_two_byte);
   __ CompareClassId(A0, kTwoByteStringCid, TMP);
-  __ BranchIf(NE, normal_ir_body);
+  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
 
   GenerateSubstringMatchesSpecialization(assembler, kTwoByteStringCid,
                                          kOneByteStringCid, &return_true,
@@ -1727,7 +1645,8 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
 
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Index.
   __ lx(A0, Address(SP, 1 * target::kWordSize));  // String.
-  __ BranchIfNotSmi(A1, normal_ir_body);          // Index is not a Smi.
+  __ BranchIfNotSmi(A1, normal_ir_body,
+                    Assembler::kNearJump);  // Index is not a Smi.
   // Range check.
   __ lx(TMP, FieldAddress(A0, target::String::length_offset()));
   __ bgeu(A1, TMP, normal_ir_body);  // Runtime throws exception.
@@ -1738,7 +1657,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ add(A0, A0, A1);
   __ lbu(A1, FieldAddress(A0, target::OneByteString::data_offset()));
   __ CompareImmediate(A1, target::Symbols::kNumberOfOneCharCodeSymbols);
-  __ BranchIf(GE, normal_ir_body);
+  __ BranchIf(GE, normal_ir_body, Assembler::kNearJump);
   __ lx(A0, Address(THR, target::Thread::predefined_symbols_address_offset()));
   __ slli(A1, A1, target::kWordSizeLog2);
   __ add(A0, A0, A1);
@@ -1748,12 +1667,12 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
 
   __ Bind(&try_two_byte_string);
   __ CompareClassId(A0, kTwoByteStringCid, TMP);
-  __ BranchIf(NE, normal_ir_body);
+  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
   ASSERT(kSmiTagShift == 1);
   __ add(A0, A0, A1);
   __ lhu(A1, FieldAddress(A0, target::TwoByteString::data_offset()));
   __ CompareImmediate(A1, target::Symbols::kNumberOfOneCharCodeSymbols);
-  __ BranchIf(GE, normal_ir_body);
+  __ BranchIf(GE, normal_ir_body, Assembler::kNearJump);
   __ lx(A0, Address(THR, target::Thread::predefined_symbols_address_offset()));
   __ slli(A1, A1, target::kWordSizeLog2);
   __ add(A0, A0, A1);

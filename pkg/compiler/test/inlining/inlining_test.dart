@@ -37,7 +37,7 @@ class InliningDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,

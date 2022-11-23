@@ -15,7 +15,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/kernel_source_information.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String SOURCE = '''
 
@@ -83,7 +83,7 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.disableInlining]);
     Compiler compiler = result.compiler;
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JElementEnvironment env = closedWorld.elementEnvironment;
     LibraryEntity mainApp = env.mainLibrary;
 

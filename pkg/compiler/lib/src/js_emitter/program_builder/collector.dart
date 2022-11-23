@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of dart2js.js_emitter.program_builder;
 
 /// Generates the code for all used classes in the program. Static fields (even
@@ -20,7 +18,7 @@ class Collector {
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
   final JClosedWorld _closedWorld;
-  final Set<ClassEntity> _rtiNeededClasses;
+  final Iterable<ClassEntity> _rtiNeededClasses;
   final Map<MemberEntity, js.Expression> _generatedCode;
   final Sorter _sorter;
 
@@ -70,7 +68,8 @@ class Collector {
 
   /// Return a function that returns true if its argument is a class
   /// that needs to be emitted.
-  Function computeClassFilter(Iterable<ClassEntity> backendTypeHelpers) {
+  bool Function(ClassEntity cls) computeClassFilter(
+      Iterable<ClassEntity> backendTypeHelpers) {
     Set<ClassEntity> unneededClasses = {};
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
@@ -125,13 +124,10 @@ class Collector {
 
       if (constant is ListConstantValue) outputContainsConstantList = true;
 
-      OutputUnit constantUnit = _outputUnitData.outputUnitForConstant(constant);
-      if (constantUnit == null) {
-        // The back-end introduces some constants, like "InterceptorConstant" or
-        // some list constants. They are emitted in the main output-unit.
-        // TODO(sigurdm): We should track those constants.
-        constantUnit = _outputUnitData.mainOutputUnit;
-      }
+      // The back-end introduces some constants, like "InterceptorConstant" or
+      // some list constants. They are emitted in the main output-unit.
+      // TODO(sigurdm): We should track those constants.
+      final constantUnit = _outputUnitData.outputUnitForConstant(constant);
       outputConstantLists.putIfAbsent(constantUnit, () => []).add(constant);
     }
   }
@@ -162,8 +158,8 @@ class Collector {
 
     // 2. Add all classes used as mixins.
     Set<ClassEntity> mixinClasses = neededClasses
-        .where(_elementEnvironment.isMixinApplication)
         .map(_elementEnvironment.getEffectiveMixinClass)
+        .whereType<ClassEntity>()
         .toSet();
     neededClasses.addAll(mixinClasses);
 
@@ -208,7 +204,7 @@ class Collector {
 
   void computeNeededStatics() {
     bool isStaticFunction(MemberEntity element) =>
-        !element.isInstanceMember && !element.isField;
+        !element.isInstanceMember && element is! FieldEntity;
 
     Iterable<MemberEntity> elements =
         _generatedCode.keys.where(isStaticFunction);
@@ -229,16 +225,18 @@ class Collector {
 
     List<FieldEntity> eagerFields = [];
     _codegenWorld.forEachStaticField((FieldEntity field) {
-      if (_closedWorld.fieldAnalysis.getFieldData(field).isEager) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field as JField).isEager) {
         eagerFields.add(field);
       }
     });
 
     eagerFields.sort((FieldEntity a, FieldEntity b) {
-      FieldAnalysisData aFieldData = _closedWorld.fieldAnalysis.getFieldData(a);
-      FieldAnalysisData bFieldData = _closedWorld.fieldAnalysis.getFieldData(b);
-      int aIndex = aFieldData.eagerCreationIndex;
-      int bIndex = bFieldData.eagerCreationIndex;
+      FieldAnalysisData aFieldData =
+          _closedWorld.fieldAnalysis.getFieldData(a as JField);
+      FieldAnalysisData bFieldData =
+          _closedWorld.fieldAnalysis.getFieldData(b as JField);
+      final aIndex = aFieldData.eagerCreationIndex;
+      final bIndex = bFieldData.eagerCreationIndex;
       if (aIndex != null && bIndex != null) {
         return aIndex.compareTo(bIndex);
       } else if (aIndex != null) {
@@ -257,7 +255,7 @@ class Collector {
   void computeNeededLazyStaticFields() {
     List<FieldEntity> lazyFields = [];
     _codegenWorld.forEachStaticField((FieldEntity field) {
-      if (_closedWorld.fieldAnalysis.getFieldData(field).isLazy) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field as JField).isLazy) {
         lazyFields.add(field);
       }
     });

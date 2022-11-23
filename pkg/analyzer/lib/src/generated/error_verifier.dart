@@ -1576,13 +1576,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForAmbiguousImport(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element is MultiplyDefinedElementImpl) {
-      String name = element.displayName;
-      List<Element> conflictingMembers = element.conflictingElements;
+      var conflictingMembers = element.conflictingElements;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
       errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-          node, [name, libraryNames.quotedAndCommaSeparatedWithAnd]);
+          node, [node.name, libraryNames.quotedAndCommaSeparatedWithAnd]);
     }
   }
 
@@ -3308,8 +3307,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .toSet();
 
         for (var member in statement.members) {
+          Expression? caseConstant;
           if (member is SwitchCase) {
-            var expression = member.expression.unParenthesized;
+            caseConstant = member.expression;
+          } else if (member is SwitchPatternCase) {
+            var guardedPattern = member.guardedPattern;
+            if (guardedPattern.whenClause == null) {
+              var pattern = guardedPattern.pattern.unParenthesized;
+              if (pattern is ConstantPattern) {
+                caseConstant = pattern.expression;
+              }
+            }
+          }
+          if (caseConstant != null) {
+            var expression = caseConstant.unParenthesized;
             if (expression is NullLiteral) {
               hasCaseNull = true;
             } else {

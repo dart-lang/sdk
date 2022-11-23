@@ -60,6 +60,9 @@ void log(String message,
   JS('', 'console.debug("dart.developer.log", #)', items);
 }
 
+@patch
+int get reachabilityBarrier => 0;
+
 final _extensions = <String, ServiceExtensionHandler>{};
 
 @patch

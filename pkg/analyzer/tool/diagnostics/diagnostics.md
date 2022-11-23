@@ -3885,7 +3885,7 @@ name: example
 
 _'{0}' is deprecated and shouldn't be used._
 
-_'{0}' is deprecated and shouldn't be used. {1}._
+_'{0}' is deprecated and shouldn't be used. {1}_
 
 #### Description
 
@@ -3912,7 +3912,7 @@ should indicate what code to use in place of the deprecated code.
 
 _'{0}' is deprecated and shouldn't be used._
 
-_'{0}' is deprecated and shouldn't be used. {1}._
+_'{0}' is deprecated and shouldn't be used. {1}_
 
 #### Description
 
@@ -9209,7 +9209,7 @@ enum E {
   const E(int x);
 }
 
-E f() => const [!E!](2); 
+E f() => const [!E!](2);
 {% endprettify %}
 
 #### Common fixes
@@ -9224,7 +9224,7 @@ enum E {
   const E(int x);
 }
 
-E f() => E.b; 
+E f() => E.b;
 {% endprettify %}
 
 If you need to use a constructor invocation, then use a factory

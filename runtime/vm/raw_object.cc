@@ -160,7 +160,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     }
     case kRecordCid: {
       const RecordPtr raw_record = static_cast<const RecordPtr>(this);
-      intptr_t num_fields = raw_record->untag()->num_fields_;
+      intptr_t num_fields = Smi::Value(raw_record->untag()->num_fields());
       instance_size = Record::InstanceSize(num_fields);
       break;
     }
@@ -248,12 +248,12 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       auto isolate_group = IsolateGroup::Current();
 #if defined(DEBUG)
       auto class_table = isolate_group->heap_walk_class_table();
-      ASSERT(class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
                class_id, this, static_cast<uint32_t>(tags));
       }
+      ASSERT(class_table->SizeAt(class_id) > 0);
 #endif  // DEBUG
       instance_size = isolate_group->heap_walk_class_table()->SizeAt(class_id);
     }
@@ -374,8 +374,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
-                                          ObjectPointerVisitor* visitor) {
+void UntaggedObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if ((class_id != kInstanceCid) && (class_id < kNumPredefinedCids)) {
     VisitPointersPredefined(visitor, class_id);
@@ -549,8 +548,8 @@ COMPRESSED_VISITOR(UnwindError)
 COMPRESSED_VISITOR(ExternalOneByteString)
 COMPRESSED_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
-COMPRESSED_VISITOR(LinkedHashMap)
-COMPRESSED_VISITOR(LinkedHashSet)
+COMPRESSED_VISITOR(Map)
+COMPRESSED_VISITOR(Set)
 COMPRESSED_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
 COMPRESSED_VISITOR(ReceivePort)
@@ -577,7 +576,7 @@ VARIABLE_COMPRESSED_VISITOR(
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
-VARIABLE_COMPRESSED_VISITOR(Record, raw_obj->untag()->num_fields_)
+VARIABLE_COMPRESSED_VISITOR(Record, Smi::Value(raw_obj->untag()->num_fields()))
 NULL_VISITOR(Sentinel)
 REGULAR_VISITOR(InstructionsTable)
 NULL_VISITOR(Mint)
@@ -747,16 +746,16 @@ intptr_t UntaggedImmutableArray::VisitImmutableArrayPointers(
   return UntaggedArray::VisitArrayPointers(raw_obj, visitor);
 }
 
-intptr_t UntaggedImmutableLinkedHashMap::VisitImmutableLinkedHashMapPointers(
-    ImmutableLinkedHashMapPtr raw_obj,
+intptr_t UntaggedConstMap::VisitConstMapPointers(
+    ConstMapPtr raw_obj,
     ObjectPointerVisitor* visitor) {
-  return UntaggedLinkedHashMap::VisitLinkedHashMapPointers(raw_obj, visitor);
+  return UntaggedMap::VisitMapPointers(raw_obj, visitor);
 }
 
-intptr_t UntaggedImmutableLinkedHashSet::VisitImmutableLinkedHashSetPointers(
-    ImmutableLinkedHashSetPtr raw_obj,
+intptr_t UntaggedConstSet::VisitConstSetPointers(
+    ConstSetPtr raw_obj,
     ObjectPointerVisitor* visitor) {
-  return UntaggedLinkedHashSet::VisitLinkedHashSetPointers(raw_obj, visitor);
+  return UntaggedSet::VisitSetPointers(raw_obj, visitor);
 }
 
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {

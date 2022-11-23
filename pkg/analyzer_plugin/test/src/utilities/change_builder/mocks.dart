@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 
 class MockAnalysisContext implements AnalysisContext {
   @override
@@ -46,6 +47,18 @@ class MockContextRoot implements ContextRoot {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockDartEditBuilderImpl implements DartEditBuilderImpl {
+  @override
+  final bool isNonNullableByDefault;
+
+  MockDartEditBuilderImpl({this.isNonNullableByDefault = true});
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
 }
 
 class MockEditBuilderImpl implements EditBuilderImpl {

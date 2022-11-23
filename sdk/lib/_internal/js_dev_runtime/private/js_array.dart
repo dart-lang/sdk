@@ -626,12 +626,12 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   void set first(E element) {
-    if (this.isEmpty) throw RangeError.index(0, this);
+    if (this.isEmpty) throw IndexError.withLength(0, length, indexable: this);
     this[0] = element;
   }
 
   void set last(E element) {
-    if (this.isEmpty) throw RangeError.index(0, this);
+    if (this.isEmpty) throw IndexError.withLength(0, length, indexable: this);
     this[this.length - 1] = element;
   }
 }

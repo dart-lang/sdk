@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
+import 'package:analysis_server/src/services/correction/dart/add_explicit_call.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_extension_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
@@ -33,6 +34,7 @@ import 'package:analysis_server/src/services/correction/dart/add_return_null.dar
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/add_super_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
@@ -145,6 +147,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_argumen
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
@@ -484,6 +487,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,
     ],
+    LintNames.implicit_call_tearoffs: [
+      AddExplicitCall.new,
+    ],
     LintNames.leading_newlines_in_multiline_strings: [
       AddLeadingNewlineToString.new,
     ],
@@ -663,6 +669,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_late: [
       RemoveUnnecessaryLate.new,
     ],
+    LintNames.unnecessary_library_directive: [
+      RemoveUnnecessaryLibraryDirective.new,
+    ],
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.new,
     ],
@@ -782,7 +791,13 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NOT_A_TYPE: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
@@ -982,6 +997,9 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.classOrMixin,
       CreateClass.new,
     ],
+    CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
+      AddSuperParameter.new,
+    ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
       ChangeTo.field,
       CreateField.new,
@@ -1064,6 +1082,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [
       AddConst.new,
     ],
+    CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM: [
+      MakeFinal.new,
+    ],
     CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
       CreateClass.new,
       CreateMixin.new,
@@ -1095,6 +1116,10 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
       MakeReturnTypeNullable.new,
       ReplaceReturnType.new,
+    ],
+    CompileTimeErrorCode
+        .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED: [
+      RemoveTypeAnnotation.new,
     ],
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
       ChangeTo.superFormalParameter,
@@ -1255,6 +1280,9 @@ class FixProcessor extends BaseProcessor {
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
       RemoveDeadCode.new,
+    ],
+    HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
+      ReplaceColonWithEquals.new,
     ],
     HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
       RemoveDeprecatedNewInCommentReference.new,

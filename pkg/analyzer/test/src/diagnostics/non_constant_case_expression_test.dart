@@ -10,13 +10,24 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionTest);
+    defineReflectiveTests(NonConstantCaseExpressionTest_Language218);
     defineReflectiveTests(NonConstantCaseExpressionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class NonConstantCaseExpressionTest extends PubPackageResolutionTest
-    with NonConstantCaseExpressionTestCases {}
+    with NonConstantCaseExpressionTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_parameter() {
+    return super.test_parameter();
+  }
+}
+
+@reflectiveTest
+class NonConstantCaseExpressionTest_Language218 extends PubPackageResolutionTest
+    with WithLanguage218Mixin, NonConstantCaseExpressionTestCases {}
 
 mixin NonConstantCaseExpressionTestCases on PubPackageResolutionTest {
   test_constField() async {

@@ -7,9 +7,9 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
-import '../world_interfaces.dart' show JClosedWorld;
 
 class AbstractValueFactory {
   static AbstractValue inferredReturnTypeForElement(

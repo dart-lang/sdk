@@ -333,6 +333,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   List<String> get experiments => [
         EnableString.inference_update_2,
         EnableString.macros,
+        EnableString.patterns,
         EnableString.records,
       ];
 
@@ -536,6 +537,11 @@ class PubspecYamlFileDependency {
     required this.name,
     this.version = 'any',
   });
+}
+
+mixin WithLanguage218Mixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.18';
 }
 
 mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {

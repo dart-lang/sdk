@@ -15,12 +15,12 @@ main() {
 
 @reflectiveTest
 class DeferredImportOfExtensionTest extends PubPackageResolutionTest {
-  test_deferredImport_withExtensions() {
+  Future<void> test_deferredImport_withExtensions() async {
     newFile('$testPackageLibPath/foo.dart', '''
 extension E on C {}
 class C {}
 ''');
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 import 'foo.dart' deferred as foo;
 
 void f() {
@@ -31,12 +31,12 @@ void f() {
     ]);
   }
 
-  test_deferredImport_withHiddenExtensions() {
+  Future<void> test_deferredImport_withHiddenExtensions() async {
     newFile('$testPackageLibPath/foo.dart', '''
 extension E on C {}
 class C {}
 ''');
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 import 'foo.dart' deferred as foo hide E;
 
 void f() {
@@ -45,11 +45,11 @@ void f() {
 ''');
   }
 
-  test_deferredImport_withoutExtensions() {
+  Future<void> test_deferredImport_withoutExtensions() async {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 import 'foo.dart' deferred as foo;
 
 void f() {
@@ -58,12 +58,12 @@ void f() {
 ''');
   }
 
-  test_deferredImport_withShownNonExtensions() {
+  Future<void> test_deferredImport_withShownNonExtensions() async {
     newFile('$testPackageLibPath/foo.dart', '''
 extension E on C {}
 class C {}
 ''');
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 import 'foo.dart' deferred as foo show C;
 
 void f() {

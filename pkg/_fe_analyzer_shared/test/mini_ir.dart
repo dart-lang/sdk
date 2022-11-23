@@ -37,6 +37,9 @@ enum Kind {
   /// share the same body.
   caseHeads,
 
+  /// A collection element.
+  collectionElement,
+
   /// An expression.
   expression,
 
@@ -46,6 +49,9 @@ enum Kind {
 
   /// A label for `break` or `continue` to branch to.
   label,
+
+  /// A map pattern element.
+  mapPatternElement,
 
   /// A pattern.
   pattern,
@@ -62,6 +68,9 @@ enum Kind {
 
   /// A local variable.
   variable,
+
+  /// A set of pattern variables.
+  variables,
 }
 
 /// Stack-based builder class allowing construction of a miniature string-based

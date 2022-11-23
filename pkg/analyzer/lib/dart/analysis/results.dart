@@ -37,6 +37,21 @@ class CannotResolveUriResult
         SomeParsedLibraryResult,
         SomeResolvedLibraryResult {}
 
+/// The type of [InvalidResult] returned when the AnalysisContext has been
+/// disposed.
+///
+/// Clients may not extend, implement or mix-in this class.
+class DisposedAnalysisContextResult
+    implements
+        InvalidResult,
+        SomeErrorsResult,
+        SomeFileResult,
+        SomeParsedLibraryResult,
+        SomeParsedUnitResult,
+        SomeResolvedLibraryResult,
+        SomeResolvedUnitResult,
+        SomeUnitElementResult {}
+
 /// The declaration of an [Element].
 abstract class ElementDeclarationResult {
   /// The [Element] that this object describes.

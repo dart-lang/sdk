@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of js_backend.namer;
 
 /// Assigns JavaScript identifiers to Dart variables, class-names and members.
@@ -12,14 +10,12 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(JClosedWorld closedWorld, FixedNames fixedNames)
-      : super(closedWorld, fixedNames) {
+  MinifyNamer(super.closedWorld, super.fixedNames) {
     reserveBackendNames();
-    fieldRegistry = _FieldNamingRegistry(this);
   }
 
   @override
-  _FieldNamingRegistry fieldRegistry;
+  late _FieldNamingRegistry fieldRegistry = _FieldNamingRegistry(this);
 
   @override
   String get genericInstantiationPrefix => r'$I';
@@ -36,7 +32,7 @@ class MinifyNamer extends Namer
   String _generateFreshStringForName(String proposedName, NamingScope scope,
       {bool sanitizeForNatives = false, bool sanitizeForAnnotations = false}) {
     String freshName;
-    String suggestion = scope.suggestName(proposedName);
+    final suggestion = scope.suggestName(proposedName);
     if (suggestion != null && scope.isUnused(suggestion)) {
       freshName = suggestion;
     } else {
@@ -115,7 +111,7 @@ class MinifyNamer extends Namer
       // field names.  Therefore there are some field names we don't want to
       // use.  It is implicit in the next line that the banned prefix is
       // only one character.
-      if (_hasBannedPrefix(name)) {
+      if (hasBannedMinifiedPrefix(name)) {
         instanceScope.registerUse(name.substring(1));
       }
     }
@@ -215,7 +211,7 @@ class MinifyNamer extends Namer
         assert(c != $Z);
         c = (c == $z) ? $A : c + 1;
         letter = String.fromCharCodes([c]);
-      } while (_hasBannedPrefix(letter) || scope.isUsed(letter));
+      } while (hasBannedMinifiedPrefix(letter) || scope.isUsed(letter));
       assert(!scope.hasSuggestion(name));
       scope.addSuggestion(name, letter);
     }
@@ -247,7 +243,7 @@ class MinifyNamer extends Namer
         final candidate = String.fromCharCodes(codes);
         if (scope.isUnused(candidate) &&
             !jsReserved.contains(candidate) &&
-            !_hasBannedPrefix(candidate) &&
+            !hasBannedMinifiedPrefix(candidate) &&
             (n != 1 || scope.isSuggestion(candidate))) {
           return candidate;
         }
@@ -257,13 +253,6 @@ class MinifyNamer extends Namer
       }
     }
     return _badName(hash, scope);
-  }
-
-  /// Instance members starting with g and s are reserved for getters and
-  /// setters.
-  static bool _hasBannedPrefix(String name) {
-    int code = name.codeUnitAt(0);
-    return code == $g || code == $s;
   }
 
   int _calculateHash(String name) {
@@ -315,7 +304,7 @@ class MinifyNamer extends Namer
 
   @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
-    jsAst.Name proposed = _minifiedInstanceFieldPropertyName(element);
+    final proposed = _minifiedInstanceFieldPropertyName(element);
     if (proposed != null) {
       return proposed;
     }
@@ -360,7 +349,7 @@ class _ConstructorBodyNamingScope {
       Map<ClassEntity, _ConstructorBodyNamingScope> registry,
       ElementEnvironment environment) {
     return registry.putIfAbsent(cls, () {
-      ClassEntity superclass = environment.getSuperClass(cls);
+      final superclass = environment.getSuperClass(cls);
       if (superclass == null) {
         return _ConstructorBodyNamingScope.rootScope(cls, environment);
       } else if (environment.isMixinApplication(cls)) {
@@ -396,7 +385,7 @@ abstract class _MinifyConstructorBodyNamer implements Namer {
   @override
   jsAst.Name constructorBodyName(ConstructorBodyEntity method) {
     _ConstructorBodyNamingScope scope = _ConstructorBodyNamingScope(
-        method.enclosingClass, _constructorBodyScopes, _elementEnvironment);
+        method.enclosingClass!, _constructorBodyScopes, _elementEnvironment);
     String key = scope.constructorBodyKeyFor(method);
     return _disambiguateMemberByKey(
         key, () => _proposeNameForConstructorBody(method));
@@ -409,8 +398,8 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
   @override
   jsAst.Name nameForOneShotInterceptor(
       Selector selector, Iterable<ClassEntity> classes) {
-    String root = selector.isOperator
-        ? Namer.operatorNameToIdentifier(selector.name)
+    final root = selector.isOperator
+        ? operatorNameToIdentifier(selector.name)
         : privateName(selector.memberName);
     String prefix = selector.isGetter
         ? r"$get"
@@ -418,7 +407,7 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
             ? r"$set"
             : "";
     String callSuffix = selector.isCall
-        ? Namer.callSuffixForStructure(selector.callStructure).join()
+        ? callSuffixForStructure(selector.callStructure).join()
         : "";
     String suffix =
         suffixForGetInterceptor(_commonElements, _nativeData, classes);

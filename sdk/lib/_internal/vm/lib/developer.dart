@@ -50,6 +50,10 @@ void log(String message,
       error, stackTrace);
 }
 
+@patch
+@pragma("vm:external-name", "Developer_reachability_barrier")
+external int get reachabilityBarrier;
+
 int _nextSequenceNumber = 0;
 
 @pragma("vm:external-name", "Developer_log")

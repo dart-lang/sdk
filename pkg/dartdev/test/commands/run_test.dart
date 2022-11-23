@@ -18,10 +18,14 @@ const devToolsMessagePrefix =
     'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
 const dartVMServiceMessagePrefix =
     'The Dart VM service is listening on http://127.0.0.1:';
+final dartVMServiceRegExp =
+    RegExp(r'The Dart VM service is listening on (http://127.0.0.1:.*)');
 const residentFrontendServerPrefix =
     'The Resident Frontend Compiler is listening at 127.0.0.1:';
 
 void main() async {
+  ensureRunFromSdkBinDart();
+
   group('run', run, timeout: longTimeout);
   group('run --resident', residentRun, timeout: longTimeout);
 }
@@ -574,6 +578,82 @@ void main(List<String> args) => print("$b $args");
       // No support for SIGQUIT on Windows.
       skip: Platform.isWindows,
     );
+  });
+
+  group('Observatory', () {
+    void generateServedTest({
+      required bool serve,
+      required bool enableAuthCodes,
+      required bool explicitRun,
+      required bool withDds,
+    }) {
+      test(
+        '${serve ? 'served by default' : 'not served'} ${enableAuthCodes ? "with" : "without"} '
+        'auth codes, ${explicitRun ? 'explicit' : 'implicit'} run,${withDds ? ' ' : 'no'} DDS',
+        () async {
+          p = project(
+            mainSrc:
+                'void main() { print("ready"); int i = 0; while(true) { i++; } }',
+          );
+          Process process = await p.start([
+            if (explicitRun) 'run',
+            '--enable-vm-service',
+            if (!withDds) '--no-dds',
+            if (!enableAuthCodes) '--disable-service-auth-codes',
+            if (!serve) '--no-serve-observatory',
+            p.relativeFilePath,
+          ]);
+
+          final completer = Completer<void>();
+
+          late StreamSubscription sub;
+          late String uri;
+          sub = process.stdout.transform(utf8.decoder).listen((event) async {
+            if (event.contains(dartVMServiceRegExp)) {
+              uri = dartVMServiceRegExp.firstMatch(event)!.group(1)!;
+              await sub.cancel();
+              completer.complete();
+            }
+          });
+          // Wait for process to start.
+          await completer.future;
+          final client = HttpClient();
+          final request = await client.getUrl(Uri.parse(uri));
+          final response = await request.close();
+          final content = await response.transform(utf8.decoder).join();
+          expect(content.contains('Dart VM Observatory'), serve);
+          if (!serve) {
+            if (withDds) {
+              expect(content.contains('DevTools'), true);
+            } else {
+              expect(
+                content,
+                'This VM does not have a registered Dart '
+                'Development Service (DDS) instance and is not currently serving '
+                'Dart DevTools.',
+              );
+            }
+          }
+          process.kill();
+        },
+      );
+    }
+
+    const flags = <bool>[true, false];
+    for (final serve in flags) {
+      for (final enableAuthCodes in flags) {
+        for (final explicitRun in flags) {
+          for (final withDds in flags) {
+            generateServedTest(
+              serve: serve,
+              enableAuthCodes: enableAuthCodes,
+              explicitRun: explicitRun,
+              withDds: withDds,
+            );
+          }
+        }
+      }
+    }
   });
 }
 

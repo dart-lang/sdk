@@ -25,7 +25,7 @@ import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
 import 'native_data.dart' show NativeBasicData;
-import 'no_such_method_registry_interfaces.dart';
+import 'no_such_method_registry.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.

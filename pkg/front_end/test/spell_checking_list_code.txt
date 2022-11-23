@@ -78,6 +78,7 @@ asserting
 assigning
 assigns
 association
+assured
 ast
 asy
 atm
@@ -93,6 +94,7 @@ augments
 auto
 automagically
 auxiliary
+averages
 awaited
 awaiting
 awaits
@@ -242,6 +244,7 @@ compared
 compares
 compilations
 complement
+complementary
 completers
 completes
 complicating
@@ -396,6 +399,7 @@ dispatched
 distribute
 diverged
 divided
+divides
 dm
 doc
 docs
@@ -466,6 +470,7 @@ establishes
 estimate
 et
 eval
+evar
 exchanging
 execute
 executor
@@ -492,6 +497,7 @@ ext
 extenders
 extracted
 extracts
+extras
 f
 faced
 factor
@@ -521,6 +527,7 @@ fieldformal
 file's
 filenames
 fileuri
+finality
 finally's
 finv
 fire
@@ -607,6 +614,7 @@ harness
 hashes
 hashing
 havoc
+headline
 heads
 heap
 height
@@ -819,6 +827,7 @@ lu
 lub
 lv
 lvalue
+lvar
 lx
 ly
 lz
@@ -979,6 +988,7 @@ particularly
 partof
 patchup
 path
+pattern's
 patterns
 paulberry
 pay
@@ -987,6 +997,7 @@ payloads
 pdf
 pedantic
 per
+percentages
 perf
 permanently
 permit
@@ -1022,6 +1033,7 @@ precompilations
 precompile
 precompiled
 precompiling
+precomputed
 preexisted
 preexisting
 preferably
@@ -1049,6 +1061,7 @@ producers
 product
 profile
 progresses
+prohibited
 promo
 promotability
 proof
@@ -1224,6 +1237,7 @@ rs
 runnable
 s
 safer
+sampled
 sandboxed
 sanitizing
 saw
@@ -1270,6 +1284,7 @@ shas
 shelf
 shifts
 shl
+shortening
 showing
 shr
 shrinking
@@ -1397,6 +1412,7 @@ suggests
 suite
 sum
 summarizing
+summed
 superclasses
 superinitializer
 superinterface
@@ -1447,6 +1463,7 @@ tex
 textualize
 textualized
 th
+thereby
 therein
 thereof
 they'll
@@ -1507,6 +1524,7 @@ un
 unaffected
 unaligned
 unaltered
+unavailable
 unbound
 uncategorized
 uncomment
@@ -1558,6 +1576,7 @@ unreachable
 unregister
 unregistered
 unregisters
+unreversed
 unseen
 unset
 unshadowed

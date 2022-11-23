@@ -140,6 +140,7 @@ abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
   Iterable<NamedTypeAnnotation> get mixins;
 
   /// All the type arguments, if applicable.
+  @override
   Iterable<TypeParameterDeclaration> get typeParameters;
 }
 

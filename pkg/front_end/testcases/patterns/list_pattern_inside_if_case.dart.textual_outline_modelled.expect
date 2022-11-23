@@ -1,0 +1,3 @@
+main() {}
+test1(dynamic x) {}
+test2(List<Object?> x) {}

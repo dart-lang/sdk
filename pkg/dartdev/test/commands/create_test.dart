@@ -101,15 +101,21 @@ void defineCreateTests() {
   });
 
   test('project in current directory', () async {
-    p = project();
-    final projectDir = Directory('foo')..createSync();
-    final result = await p!.run(
-      ['create', '--force', '.'],
-      workingDir: projectDir.path,
-    );
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Created project foo in .!'));
-    expect(result.exitCode, 0);
+    final tempDir = Directory.systemTemp.createTempSync('create_test');
+    try {
+      p = project();
+      final projectDir = Directory.fromUri(tempDir.uri.resolve('foo/'))
+        ..createSync();
+      final result = await p!.run(
+        ['create', '--force', '.'],
+        workingDir: projectDir.path,
+      );
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('Created project foo in .!'));
+      expect(result.exitCode, 0);
+    } finally {
+      tempDir.deleteSync(recursive: true);
+    }
   });
 
   test('project with normalized package name', () async {

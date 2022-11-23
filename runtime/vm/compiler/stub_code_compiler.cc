@@ -650,7 +650,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     __ LoadFieldFromOffset(
         kScratchReg, kCurrentTypeReg,
         target::TypeParameter::parameterized_class_id_offset(),
-        kUnsignedTwoBytes);
+        kUnsignedFourBytes);
     __ CompareImmediate(kScratchReg, kFunctionCid);
     __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
     handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
@@ -767,7 +767,7 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
   Label function_type_param;
   __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
                          target::TypeParameter::parameterized_class_id_offset(),
-                         kUnsignedTwoBytes);
+                         kUnsignedFourBytes);
   __ CompareImmediate(TypeTestABI::kScratchReg, kFunctionCid);
   __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
   handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
@@ -1059,7 +1059,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   const intptr_t fixed_size_plus_alignment_padding =
       (target::Record::field_offset(0) +
        target::ObjectAlignment::kObjectAlignment - 1);
-  __ AddScaled(temp_reg, num_fields_reg, TIMES_COMPRESSED_WORD_SIZE,
+  __ AddScaled(temp_reg, num_fields_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
                fixed_size_plus_alignment_padding);
   __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 
@@ -1099,10 +1099,9 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
         FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
   }
 
-  __ StoreToOffset(
-      num_fields_reg,
-      FieldAddress(result_reg, target::Record::num_fields_offset()),
-      kFourBytes);
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
+      num_fields_reg);
 
   __ StoreCompressedIntoObjectNoBarrier(
       result_reg,
@@ -1145,7 +1144,6 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
 
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
-  __ SmiTag(num_fields_reg);
   __ PushRegistersInOrder({num_fields_reg, field_names_reg});
   __ CallRuntime(kAllocateRecordRuntimeEntry, 2);
   __ Drop(2);
@@ -1154,6 +1152,104 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   __ LeaveStubFrame();
   __ Ret();
+}
+
+void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
+                                                       intptr_t num_fields,
+                                                       bool has_named_fields) {
+  ASSERT(num_fields == 2 || num_fields == 3);
+  const Register result_reg = AllocateSmallRecordABI::kResultReg;
+  const Register field_names_reg = AllocateSmallRecordABI::kFieldNamesReg;
+  const Register value0_reg = AllocateSmallRecordABI::kValue0Reg;
+  const Register value1_reg = AllocateSmallRecordABI::kValue1Reg;
+  const Register value2_reg = AllocateSmallRecordABI::kValue2Reg;
+  const Register temp_reg = AllocateSmallRecordABI::kTempReg;
+  Label slow_case;
+
+  if ((num_fields > 2) && (value2_reg == kNoRegister)) {
+    // Not implemented.
+    __ Breakpoint();
+    return;
+  }
+
+#if defined(DEBUG)
+  // Need to account for the debug checks added by
+  // StoreCompressedIntoObjectNoBarrier.
+  const auto distance = Assembler::kFarJump;
+#else
+  const auto distance = Assembler::kNearJump;
+#endif
+  __ TryAllocateObject(kRecordCid, target::Record::InstanceSize(num_fields),
+                       &slow_case, distance, result_reg, temp_reg);
+
+  __ LoadImmediate(temp_reg, Smi::RawValue(num_fields));
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
+      temp_reg);
+
+  if (!has_named_fields) {
+    __ LoadObject(field_names_reg, Object::empty_array());
+  }
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg,
+      FieldAddress(result_reg, target::Record::field_names_offset()),
+      field_names_reg);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::field_offset(0)),
+      value0_reg);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::field_offset(1)),
+      value1_reg);
+
+  if (num_fields > 2) {
+    __ StoreCompressedIntoObjectNoBarrier(
+        result_reg, FieldAddress(result_reg, target::Record::field_offset(2)),
+        value2_reg);
+  }
+
+  __ Ret();
+
+  __ Bind(&slow_case);
+
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Space on the stack for the return value.
+  __ PushObject(Smi::ZoneHandle(Smi::New(num_fields)));
+  if (has_named_fields) {
+    __ PushRegister(field_names_reg);
+  } else {
+    __ PushObject(Object::empty_array());
+  }
+  __ PushRegistersInOrder({value0_reg, value1_reg});
+  if (num_fields > 2) {
+    __ PushRegister(value2_reg);
+  } else {
+    __ PushObject(NullObject());
+  }
+  __ CallRuntime(kAllocateSmallRecordRuntimeEntry, 5);
+  __ Drop(5);
+  __ PopRegister(result_reg);
+
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateAllocateRecord2Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord2NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/true);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord3Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord3NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/true);
 }
 
 // The UnhandledException class lives in the VM isolate, so it cannot cache

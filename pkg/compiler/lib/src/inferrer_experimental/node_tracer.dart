@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../util/util.dart' show Setlet;
 import '../inferrer/abstract_value_domain.dart';
 import 'debug.dart' as debug;
-import 'engine_interfaces.dart';
+import 'engine.dart';
 import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the
@@ -473,12 +473,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Passed to noSuchMethod');
     }
 
-    Iterable<TypeInformation> inferredTargetTypes =
-        info.concreteTargets.map((MemberEntity entity) {
-      return inferrer.types.getInferredTypeOfMember(entity);
-    });
-    if (inferredTargetTypes.any((user) => user == currentUser)) {
-      addNewEscapeInformation(info);
+    final user = currentUser;
+    if (user is MemberTypeInformation) {
+      if (info.concreteTargets.contains(user.member)) {
+        addNewEscapeInformation(info);
+      }
     }
   }
 

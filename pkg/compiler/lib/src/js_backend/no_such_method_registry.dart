@@ -10,7 +10,6 @@ import '../inferrer/types.dart' show GlobalTypeInferenceResults;
 import '../kernel/kelements.dart' show KFunction;
 import '../kernel/no_such_method_resolver.dart';
 import '../serialization/serialization.dart';
-import 'no_such_method_registry_interfaces.dart' as interfaces;
 
 /// [NoSuchMethodRegistry] and [NoSuchMethodData] categorizes `noSuchMethod`
 /// implementations.
@@ -51,7 +50,7 @@ import 'no_such_method_registry_interfaces.dart' as interfaces;
 
 /// Registry for collecting `noSuchMethod` implementations and categorizing them
 /// into categories `A`, `B`, `C`, `D`.
-class NoSuchMethodRegistry implements interfaces.NoSuchMethodRegistry {
+class NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
   final Set<FunctionEntity> _defaultImpls = {};
 
@@ -81,11 +80,9 @@ class NoSuchMethodRegistry implements interfaces.NoSuchMethodRegistry {
   NoSuchMethodResolver get internalResolverForTesting => _resolver;
 
   /// `true` if a category `B` method has been seen so far.
-  @override
   bool get hasThrowingNoSuchMethod => _throwingImpls.isNotEmpty;
 
   /// `true` if a category `D` method has been seen so far.
-  @override
   bool get hasComplexNoSuchMethod => _otherImpls.isNotEmpty;
 
   Iterable<FunctionEntity> get defaultImpls => _defaultImpls;
@@ -95,13 +92,11 @@ class NoSuchMethodRegistry implements interfaces.NoSuchMethodRegistry {
   Iterable<FunctionEntity> get otherImpls => _otherImpls;
 
   /// Register [noSuchMethodElement].
-  @override
   void registerNoSuchMethod(FunctionEntity noSuchMethodElement) {
     _uncategorizedImpls.add(noSuchMethodElement);
   }
 
   /// Categorizes the registered methods.
-  @override
   void onQueueEmpty() {
     _uncategorizedImpls.forEach(_categorizeImpl);
     _uncategorizedImpls.clear();
@@ -173,7 +168,7 @@ class NoSuchMethodRegistry implements interfaces.NoSuchMethodRegistry {
 ///
 /// Post inference collected category `D` methods are into subcategories `D1`
 /// and `D2`.
-class NoSuchMethodData implements interfaces.NoSuchMethodData {
+class NoSuchMethodData {
   /// Tag used for identifying serialized [NoSuchMethodData] objects in a
   /// debugging data stream.
   static const String tag = 'no-such-method-data';
@@ -238,7 +233,6 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   /// Now that type inference is complete, split category D into two
   /// subcategories: D1, those that have no return type, and D2, those
   /// that have a return type.
-  @override
   void categorizeComplexImplementations(GlobalTypeInferenceResults results) {
     _otherImpls.forEach((FunctionEntity element) {
       if (results.resultOfMember(element).throwsAlways) {
@@ -250,7 +244,6 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   }
 
   /// Emits a diagnostic about methods in categories `B`, `D1` and `D2`.
-  @override
   void emitDiagnostic(DiagnosticReporter reporter) {
     _throwingImpls.forEach((e) {
       if (!_forwardingSyntaxImpls.contains(e)) {
@@ -272,7 +265,6 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
   /// category D, as described above.
-  @override
   bool isComplex(FunctionEntity element) {
     assert(element.name == Identifiers.noSuchMethod_);
     return _otherImpls.contains(element);

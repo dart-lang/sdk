@@ -9151,6 +9151,92 @@ void h() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_testVariable_assignedInjectorGet() async {
+    addAngularPackage();
+    addTestCorePackage();
+    var content = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void main() {
+  late int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_assignedInjectorGet_inDeclaration() async {
+    addAngularPackage();
+    addTestCorePackage();
+    var content = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void main() {
+  setUp(() {
+    var injector = Injector();
+    int i = injector.get(int);
+    i.isEven;
+  });
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void main() {
+  setUp(() {
+    var injector = Injector();
+    int i = injector.get(int);
+    i.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_assignedInjectorGet_outsideSetup() async {
+    addAngularPackage();
+    addTestCorePackage();
+    var content = '''
+import 'package:angular/angular.dart';
+void main() {
+  int i;
+  var injector = Injector();
+  i = injector.get(int);
+  i.isEven;
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+void main() {
+  int? i;
+  var injector = Injector();
+  i = injector.get(int);
+  i!.isEven;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_testVariable_assignedNullableValue() async {
     addTestCorePackage();
     var content = '''

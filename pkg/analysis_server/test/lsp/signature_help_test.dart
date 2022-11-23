@@ -58,6 +58,94 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
 @reflectiveTest
 class SignatureHelpTest extends AbstractLspAnalysisServerTest
     with SignatureHelpMixin {
+  Future<void> assertArgsDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) {
+    final content = '''
+    class A {
+      /// Summary.
+      ///
+      /// Full.
+      A();
+    }
+
+    final a = A(^);
+    ''';
+
+    return assertDocumentation(
+      preference,
+      content,
+      includesSummary: includesSummary,
+      includesFull: includesFull,
+    );
+  }
+
+  /// Checks whether the correct types of documentation are returned in
+  /// signature help for function arguments based on [preference].
+  Future<void> assertDocumentation(
+    String? preference,
+    String content, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) async {
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {
+        if (preference != null) 'documentation': preference,
+      },
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final signatureHelp =
+        await getSignatureHelp(mainFileUri, positionFromMarker(content));
+    final docs = signatureHelp!.signatures.single.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+
+    if (includesSummary) {
+      expect(docs, contains('Summary.'));
+    } else {
+      expect(docs, isNot(contains('Summary.')));
+    }
+
+    if (includesFull) {
+      expect(docs, contains('Full.'));
+    } else {
+      expect(docs, isNot(contains('Full.')));
+    }
+  }
+
+  /// Checks whether the correct types of documentation are returned in
+  /// signature help for type arguments based on [preference].
+  Future<void> assertTypeArgsDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) {
+    final content = '''
+    /// Summary.
+    ///
+    /// Full.
+    class A<T> {}
+
+    A<^>;
+    ''';
+
+    return assertDocumentation(
+      preference,
+      content,
+      includesSummary: includesSummary,
+      includesFull: includesFull,
+    );
+  }
+
   Future<void> test_dartDocMacro() async {
     final content = '''
     /// {@template template_name}
@@ -88,6 +176,20 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
       expectedFormat: null,
     );
   }
+
+  Future<void> test_dartDocPreference_full() => assertArgsDocumentation('full',
+      includesSummary: true, includesFull: true);
+
+  Future<void> test_dartDocPreference_none() => assertArgsDocumentation('none',
+      includesSummary: false, includesFull: false);
+
+  Future<void> test_dartDocPreference_summary() =>
+      assertArgsDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_dartDocPreference_unset() =>
+      assertArgsDocumentation(null, includesSummary: true, includesFull: true);
 
   Future<void> test_error_methodInvocation_importPrefix() async {
     final content = '''
@@ -543,6 +645,22 @@ void f((String, int) r) {
           isRetrigger: false,
         ));
   }
+
+  Future<void> test_typeArgs_dartDocPreference_full() =>
+      assertArgsDocumentation('full',
+          includesSummary: true, includesFull: true);
+
+  Future<void> test_typeArgs_dartDocPreference_none() =>
+      assertArgsDocumentation('none',
+          includesSummary: false, includesFull: false);
+
+  Future<void> test_typeArgs_dartDocPreference_summary() =>
+      assertArgsDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_typeArgs_dartDocPreference_unset() =>
+      assertArgsDocumentation(null, includesSummary: true, includesFull: true);
 
   Future<void> test_typeParams_class() async {
     final content = '''

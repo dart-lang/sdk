@@ -33,6 +33,7 @@ abstract class Request implements Serializable {
   /// The [serializationZoneId] needs to be separately serialized before the
   /// rest of the object. This is not done by the instances themselves but by
   /// the macro implementations.
+  @override
   @mustCallSuper
   void serialize(Serializer serializer) => serializer.addInt(id);
 
@@ -60,10 +61,15 @@ class Response {
 
 /// A serializable [Response], contains the message type as an enum.
 class SerializableResponse implements Response, Serializable {
+  @override
   final Serializable? response;
+  @override
   final MessageType responseType;
+  @override
   final String? error;
+  @override
   final String? stackTrace;
+  @override
   final int requestId;
   final int serializationZoneId;
 
@@ -131,6 +137,7 @@ class SerializableResponse implements Response, Serializable {
         serializationZoneId: serializationZoneId);
   }
 
+  @override
   void serialize(Serializer serializer) {
     serializer
       ..addInt(serializationZoneId)
@@ -269,6 +276,7 @@ class ExecuteTypesPhaseRequest extends Request {
         identifierResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
+  @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeTypesPhaseRequest.index);
     macro.serialize(serializer);
@@ -311,6 +319,7 @@ class ExecuteDeclarationsPhaseRequest extends Request {
         typeIntrospector = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
+  @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeDeclarationsPhaseRequest.index);
     macro.serialize(serializer);
@@ -359,6 +368,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
         typeInferrer = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
+  @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeDefinitionsPhaseRequest.index);
     macro.serialize(serializer);
@@ -392,6 +402,7 @@ class ResolveIdentifierRequest extends Request {
         identifierResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
+  @override
   void serialize(Serializer serializer) {
     serializer
       ..addInt(MessageType.resolveIdentifierRequest.index)
@@ -418,6 +429,7 @@ class ResolveTypeRequest extends Request {
         typeResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
+  @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.resolveTypeRequest.index);
     typeAnnotationCode.serialize(serializer);
@@ -442,6 +454,7 @@ class IsExactlyTypeRequest extends Request {
         rightType = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
+  @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.isExactlyTypeRequest.index);
     leftType.serialize(serializer);
@@ -465,6 +478,7 @@ class IsSubtypeOfRequest extends Request {
         rightType = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
+  @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.isSubtypeOfRequest.index);
     leftType.serialize(serializer);
@@ -764,6 +778,7 @@ class RemoteException implements Exception {
 
   RemoteException(this.error, [this.stackTrace]);
 
+  @override
   String toString() =>
       'RemoteException: $error${stackTrace == null ? '' : '\n\n$stackTrace'}';
 }

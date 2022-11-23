@@ -141,7 +141,7 @@ analyzer:
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
-''').path;
+''');
     newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:

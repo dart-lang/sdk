@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js.size_estimator;
 
 import 'package:js_ast/js_ast.dart';
@@ -118,8 +116,8 @@ class SizeEstimator implements NodeVisitor {
     node.accept(this);
   }
 
-  void visitCommaSeparated(List<Node> nodes, int hasRequiredType,
-      {bool newInForInit, bool newAtStatementBegin}) {
+  void visitCommaSeparated(List<Expression> nodes, int hasRequiredType,
+      {required bool newInForInit, required bool newAtStatementBegin}) {
     for (int i = 0; i < nodes.length; i++) {
       if (i != 0) {
         atStatementBegin = false;
@@ -151,7 +149,7 @@ class SizeEstimator implements NodeVisitor {
     return result;
   }
 
-  bool blockBody(Statement body, {bool needsSeparation}) {
+  bool blockBody(Statement body, {required bool needsSeparation}) {
     if (body is Block) {
       blockOut(body);
       return true;
@@ -228,17 +226,17 @@ class SizeEstimator implements NodeVisitor {
   void visitFor(For loop) {
     out('for('); // 'for('
     if (loop.init != null) {
-      visitNestedExpression(loop.init, EXPRESSION,
+      visitNestedExpression(loop.init!, EXPRESSION,
           newInForInit: true, newAtStatementBegin: false);
     }
     out(';'); // ';'
     if (loop.condition != null) {
-      visitNestedExpression(loop.condition, EXPRESSION,
+      visitNestedExpression(loop.condition!, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
     out(';'); // ';'
     if (loop.update != null) {
-      visitNestedExpression(loop.update, EXPRESSION,
+      visitNestedExpression(loop.update!, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
     out(')'); // ')'
@@ -304,7 +302,7 @@ class SizeEstimator implements NodeVisitor {
     out('return'); // 'return'
     if (node.value != null) {
       pendingSpace = true;
-      visitNestedExpression(node.value, EXPRESSION,
+      visitNestedExpression(node.value!, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
     outSemicolonLn();
@@ -337,11 +335,11 @@ class SizeEstimator implements NodeVisitor {
     out('try'); // 'try'
     blockBody(node.body, needsSeparation: true);
     if (node.catchPart != null) {
-      visit(node.catchPart);
+      visit(node.catchPart!);
     }
     if (node.finallyPart != null) {
       out('finally'); // 'finally'
-      blockBody(node.finallyPart, needsSeparation: true);
+      blockBody(node.finallyPart!, needsSeparation: true);
     }
   }
 
@@ -400,7 +398,7 @@ class SizeEstimator implements NodeVisitor {
     blockBody(body, needsSeparation: false);
   }
 
-  int functionOut(Fun fun, Node name, VarCollector vars) {
+  int functionOut(Fun fun, Expression? name, VarCollector vars) {
     out('function'); // 'function'
     if (name != null) {
       out(' '); // ' '
@@ -409,10 +407,8 @@ class SizeEstimator implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
     }
     out('('); // '('
-    if (fun.params != null) {
-      visitCommaSeparated(fun.params, PRIMARY,
-          newInForInit: false, newAtStatementBegin: false);
-    }
+    visitCommaSeparated(fun.params, PRIMARY,
+        newInForInit: false, newAtStatementBegin: false);
     out(')'); // ')'
     switch (fun.asyncModifier) {
       case AsyncModifier.sync:
@@ -439,7 +435,7 @@ class SizeEstimator implements NodeVisitor {
   }
 
   visitNestedExpression(Expression node, int requiredPrecedence,
-      {bool newInForInit, bool newAtStatementBegin}) {
+      {required bool newInForInit, required bool newAtStatementBegin}) {
     bool needsParentheses = !node.isFinalized ||
         // a - (b + c).
         (requiredPrecedence != EXPRESSION &&
@@ -468,13 +464,13 @@ class SizeEstimator implements NodeVisitor {
   @override
   visitVariableDeclarationList(VariableDeclarationList list) {
     out('var '); // 'var '
-    List<Node> nodes = list.declarations;
+    final nodes = list.declarations;
     if (inForInit) {
       visitCommaSeparated(nodes, ASSIGNMENT,
           newInForInit: inForInit, newAtStatementBegin: false);
     } else {
       for (int i = 0; i < nodes.length; i++) {
-        Node node = nodes[i];
+        final node = nodes[i];
         if (i > 0) {
           atStatementBegin = false;
           out(','); // ','
@@ -485,7 +481,7 @@ class SizeEstimator implements NodeVisitor {
     }
   }
 
-  void _outputIncDec(String op, Expression variable, [Expression alias]) {
+  void _outputIncDec(String op, Expression variable) {
     // We can eliminate the space preceding the inc/dec in some cases,
     // but for estimation purposes we assume the worst case.
     if (op == '+') {
@@ -502,7 +498,7 @@ class SizeEstimator implements NodeVisitor {
     /// To print assignments like `a = a + 1` and `a = a + b` compactly as
     /// `++a` and `a += b` in the face of [DeferredExpression]s we detect the
     /// pattern of the undeferred assignment.
-    String op = assignment.op;
+    final op = assignment.op;
     Node leftHandSide = assignment.leftHandSide;
     Node rightHandSide = assignment.value;
     if ((op == '+' || op == '-') &&
@@ -510,14 +506,14 @@ class SizeEstimator implements NodeVisitor {
         rightHandSide is LiteralNumber &&
         rightHandSide.value == "1") {
       // Output 'a += 1' as '++a' and 'a -= 1' as '--a'.
-      _outputIncDec(op, assignment.leftHandSide);
+      _outputIncDec(op!, assignment.leftHandSide);
       return;
     }
     if (!assignment.isCompound &&
         leftHandSide is VariableUse &&
         rightHandSide is Binary) {
-      Node rLeft = rightHandSide.left;
-      Node rRight = rightHandSide.right;
+      final rLeft = rightHandSide.left;
+      final rRight = rightHandSide.right;
       String op = rightHandSide.op;
       if (op == '+' ||
           op == '-' ||
@@ -532,7 +528,7 @@ class SizeEstimator implements NodeVisitor {
           if ((op == '+' || op == '-') &&
               rRight is LiteralNumber &&
               rRight.value == "1") {
-            _outputIncDec(op, assignment.leftHandSide, rightHandSide.left);
+            _outputIncDec(op, assignment.leftHandSide);
             return;
           }
           // Output 'a = a + b' as 'a += b'.
@@ -548,12 +544,10 @@ class SizeEstimator implements NodeVisitor {
     }
     visitNestedExpression(assignment.leftHandSide, CALL,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
-    if (assignment.value != null) {
-      if (op != null) out(op);
-      out('='); // '='
-      visitNestedExpression(assignment.value, ASSIGNMENT,
-          newInForInit: inForInit, newAtStatementBegin: false);
-    }
+    if (op != null) out(op);
+    out('='); // '='
+    visitNestedExpression(assignment.value, ASSIGNMENT,
+        newInForInit: inForInit, newAtStatementBegin: false);
   }
 
   @override
@@ -562,7 +556,7 @@ class SizeEstimator implements NodeVisitor {
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     if (initialization.value != null) {
       out('=');
-      visitNestedExpression(initialization.value, ASSIGNMENT,
+      visitNestedExpression(initialization.value!, ASSIGNMENT,
           newInForInit: inForInit, newAtStatementBegin: false);
     }
   }
@@ -842,15 +836,14 @@ class SizeEstimator implements NodeVisitor {
 
   int arrowFunctionOut(ArrowFunction fun, VarCollector vars) {
     // TODO: support static, get/set, async, and generators.
-    if (fun.params.length == 1 && fun.params.first is VariableReference) {
+    if (fun.params.length == 1) {
       visitNestedExpression(fun.params.single, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
     } else {
       out("(");
-      if (fun.params != null) {
-        visitCommaSeparated(fun.params, PRIMARY,
-            newInForInit: false, newAtStatementBegin: false);
-      }
+      visitCommaSeparated(fun.params, PRIMARY,
+          newInForInit: false, newAtStatementBegin: false);
+
       out(")");
     }
     out("=>");
@@ -860,7 +853,7 @@ class SizeEstimator implements NodeVisitor {
     if (fun.implicitReturnAllowed && body is Block) {
       final statement = unwrapBlockIfSingleStatement(body);
       if (statement is Return) {
-        body = statement.value;
+        body = statement.value!;
       }
     }
     if (body is Block) {
@@ -871,7 +864,7 @@ class SizeEstimator implements NodeVisitor {
       // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
       bool needsParens = body is ObjectInitializer;
       if (needsParens) out("(");
-      visitNestedExpression(body, ASSIGNMENT,
+      visitNestedExpression(body as Expression, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
       if (needsParens) out(")");
       closingPosition = charCount;
@@ -1011,7 +1004,7 @@ class SizeEstimator implements NodeVisitor {
     List<Property> properties = node.properties;
     out('{'); // '{'
     for (int i = 0; i < properties.length; i++) {
-      Node value = properties[i].value;
+      final value = properties[i].value;
       if (isOneLiner && exitOneLinerMode(value)) isOneLiner = false;
       if (i != 0) {
         out(','); // ','
@@ -1044,10 +1037,8 @@ class SizeEstimator implements NodeVisitor {
     // TODO: support static, get/set, async, and generators.
     Fun fun = node.function;
     out("(");
-    if (fun.params != null) {
-      visitCommaSeparated(fun.params, PRIMARY,
-          newInForInit: false, newAtStatementBegin: false);
-    }
+    visitCommaSeparated(fun.params, PRIMARY,
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     int closingPosition = blockOut(fun.body);
     return closingPosition;
@@ -1071,7 +1062,7 @@ class SizeEstimator implements NodeVisitor {
       out(sizeEstimate(name));
     } else {
       assert(name is LiteralNumber);
-      LiteralNumber nameNumber = node.name;
+      final nameNumber = node.name as LiteralNumber;
       out(nameNumber.value); // '${nameNumber.value}'
     }
   }

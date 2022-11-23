@@ -21,7 +21,7 @@ class Program {
 
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
-  final js.Expression typeToInterceptorMap;
+  final js.Expression? typeToInterceptorMap;
 
   // TODO(floitsch): we should store the metadata directly instead of storing
   // the collector. However, the old emitter still updates the data.
@@ -173,7 +173,8 @@ class StaticField {
   final FieldEntity element;
 
   final js.Name name;
-  final js.Name getterName;
+  // Null for static non-final fields.
+  final js.Name? getterName;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
   final js.Expression code;
@@ -252,7 +253,7 @@ class Class {
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
-  final js.Expression functionTypeIndex;
+  final js.Expression? functionTypeIndex;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
@@ -305,11 +306,11 @@ class MixinApplication extends Class {
       List<StubMethod> checkedSetters,
       List<StubMethod> gettersSetters,
       List<StubMethod> isChecks,
-      js.Expression functionTypeIndex,
-      {required bool hasRtiField,
-      required bool onlyForRti,
-      required bool onlyForConstructor,
-      required bool isDirectlyInstantiated})
+      js.Expression? functionTypeIndex,
+      {required super.hasRtiField,
+      required super.onlyForRti,
+      required super.onlyForConstructor,
+      required super.isDirectlyInstantiated})
       : super(
             element,
             typeData,
@@ -322,10 +323,6 @@ class MixinApplication extends Class {
             gettersSetters,
             isChecks,
             functionTypeIndex,
-            hasRtiField: hasRtiField,
-            onlyForRti: onlyForRti,
-            onlyForConstructor: onlyForConstructor,
-            isDirectlyInstantiated: isDirectlyInstantiated,
             isNative: false,
             isClosureBaseClass: false,
             isMixinApplicationWithMembers: false);
@@ -363,9 +360,9 @@ class Field {
 
   final bool needsCheckedSetter;
 
-  final ConstantValue initializerInAllocator;
+  final ConstantValue? initializerInAllocator;
 
-  final ConstantValue constantValue;
+  final ConstantValue? constantValue;
 
   final bool isElided;
 
@@ -407,7 +404,7 @@ abstract class Method {
   /// The name of the method. If the method is a [ParameterStubMethod] for a
   /// static function, then the name can be `null`. In that case, only the
   /// [ParameterStubMethod.callName] should be used.
-  final js.Name name;
+  final js.Name? name;
   final js.Expression code;
 
   Method(this.element, this.name, this.code);
@@ -488,7 +485,7 @@ class InstanceMethod extends DartMethod {
     super.name,
     super.code,
     super.parameterStubs,
-    js.Name super.callName, {
+    super.callName, {
     required super.needsTearOff,
     super.tearOffName,
     this.aliasName,
@@ -508,7 +505,7 @@ class InstanceMethod extends DartMethod {
 
   @override
   String toString() {
-    return 'InstanceMethod(name=${name.key},element=${element}'
+    return 'InstanceMethod(name=${name!.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -517,12 +514,12 @@ class InstanceMethod extends DartMethod {
 /// to a method in the original Dart program. Examples are getter and setter
 /// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
-  StubMethod(js.Name name, js.Expression code, {MemberEntity? element})
+  StubMethod(js.Name? name, js.Expression code, {MemberEntity? element})
       : super(element, name, code);
 
   @override
   String toString() {
-    return 'StubMethod(name=${name.key},element=${element}'
+    return 'StubMethod(name=${name!.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -544,13 +541,12 @@ class ParameterStubMethod extends StubMethod {
   /// If a stub's member can not be torn off, the [callName] is `null`.
   js.Name? callName;
 
-  ParameterStubMethod(js.Name name, this.callName, js.Expression code,
-      {required MemberEntity element})
-      : super(name, code, element: element);
+  ParameterStubMethod(super.name, this.callName, super.code,
+      {required super.element});
 
   @override
   String toString() {
-    return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'
+    return 'ParameterStubMethod(name=${name!.key}, callName=${callName?.key}'
         ', element=${element}'
         ', code=${js.nodeToString(code)})';
   }
@@ -560,7 +556,7 @@ abstract class StaticMethod implements Method {}
 
 class StaticDartMethod extends DartMethod implements StaticMethod {
   StaticDartMethod(super.element, super.name, super.code, super.parameterStubs,
-      js.Name super.callName,
+      super.callName,
       {required super.needsTearOff,
       super.tearOffName,
       required super.canBeApplied,
@@ -574,7 +570,7 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
   @override
   String toString() {
-    return 'StaticDartMethod(name=${name.key},element=${element}'
+    return 'StaticDartMethod(name=${name!.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -586,7 +582,7 @@ class StaticStubMethod extends StubMethod implements StaticMethod {
 
   @override
   String toString() {
-    return 'StaticStubMethod(name=${name.key},element=${element}}'
+    return 'StaticStubMethod(name=${name!.key},element=${element}}'
         ',code=${js.nodeToString(code)})';
   }
 }

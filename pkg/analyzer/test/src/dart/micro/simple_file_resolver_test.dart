@@ -2533,6 +2533,22 @@ void f(MyEnum myEnum) {
 ''');
   }
 
+  test_switchCase_implementsEquals_enum_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+enum MyEnum {a, b, c}
+
+void f(MyEnum myEnum) {
+  switch (myEnum) {
+    case MyEnum.a:
+      break;
+    default:
+      break;
+  }
+}
+''');
+  }
+
   test_unknown_uri() async {
     await assertErrorsInCode(r'''
 import 'foo:bar';

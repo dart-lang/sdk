@@ -1,0 +1,112 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../sdk_args.gni")
+
+action("generate_needed_files") {
+  script = "generate_needed_files.py"
+
+  inputs = [
+    "src/src/passes/wasm-intrinsics.wat",
+    "src/src/passes/WasmIntrinsics.cpp.in",
+    "src/CMakeLists.txt",
+    "src/config.h.in",
+  ]
+
+  args = [
+    rebase_path("src/src/passes/wasm-intrinsics.wat", root_build_dir),
+    rebase_path("src/src/passes/WasmIntrinsics.cpp.in", root_build_dir),
+    rebase_path("$target_gen_dir/WasmIntrinsics.cpp", root_build_dir),
+
+    rebase_path("src/CMakeLists.txt", root_build_dir),
+    rebase_path("src/config.h.in", root_build_dir),
+    rebase_path("$target_gen_dir/config.h", root_build_dir),
+  ]
+  outputs = [
+    "$target_gen_dir/WasmIntrinsics.cpp",
+    "$target_gen_dir/config.h",
+  ]
+}
+
+source_set("binaryen_sources") {
+  src_dirs = [
+    rebase_path("src/src/ir", root_build_dir),
+    rebase_path("src/src/asmjs", root_build_dir),
+    rebase_path("src/src/cfg", root_build_dir),
+    rebase_path("src/src/passes", root_build_dir),
+    rebase_path("src/src/support", root_build_dir),
+    rebase_path("src/src/wasm", root_build_dir),
+    rebase_path("src/src/tools/fuzzing", root_build_dir),
+    rebase_path("src/src/emscripten-optimizer", root_build_dir),
+  ]
+
+  # We avoid listing all sources manually, this means when updating
+  # binaryen in DEPS (or manually editing) one has to ensure to
+  # re-run GN in DEPS to ensure new dependencies are picked up.
+  # (this lowers the maintainaince burden of GN build support for binaryen)
+  sources = exec_script("list_sources.py",
+                        src_dirs,
+                        "list lines",
+                        [ "$default_git_folder/logs/HEAD" ])
+  include_dirs = [ "src/src" ]
+
+  # Ensure WasmIntrinsics.cpp/config.h files are generated.
+  deps = [ ":generate_needed_files" ]
+
+  # Ensure generated WasmIntrinsics.cpp file is included in build.
+  sources += [ "$target_gen_dir/WasmIntrinsics.cpp" ]
+
+  # Ensure generated config.h file is include path.
+  include_dirs += [ "$target_gen_dir" ]
+}
+
+template("wasm_tool") {
+  executable(target_name) {
+    sources = [ string_join("",
+                            [
+                              "src/src/tools/",
+                              target_name,
+                              ".cpp",
+                            ]) ]
+    include_dirs = [ "src/src" ]
+    deps = [ ":binaryen_sources" ]
+    forward_variables_from(invoker, "*")
+  }
+}
+
+wasm_tool("wasm-opt") {
+}
+wasm_tool("wasm-shell") {
+}
+wasm_tool("wasm-metadce") {
+}
+wasm_tool("wasm-emscripten-finalize") {
+}
+wasm_tool("wasm-as") {
+}
+wasm_tool("wasm-dis") {
+}
+wasm_tool("wasm-ctor-eval") {
+}
+wasm_tool("wasm-reduce") {
+}
+wasm_tool("wasm-fuzz-types") {
+}
+wasm_tool("wasm2js") {
+}
+
+group("binaryen_tools") {
+  deps = [
+    ":wasm-as",
+    ":wasm-ctor-eval",
+    ":wasm-dis",
+    ":wasm-emscripten-finalize",
+    ":wasm-fuzz-types",
+    ":wasm-metadce",
+    ":wasm-opt",
+    ":wasm-reduce",
+    ":wasm-shell",
+    ":wasm2js",
+  ]
+}

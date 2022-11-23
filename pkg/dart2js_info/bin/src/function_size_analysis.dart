@@ -76,7 +76,7 @@ void showCodeDistribution(AllInfo info,
   var mainMethod = info.functions.firstWhere((f) => f.name == 'main');
   var dominatorTree = graph.dominatorTree(mainMethod);
   var dominatedSize = {};
-  int helper(n) {
+  int helper(Info n) {
     int size = n.size;
     assert(!dominatedSize.containsKey(n));
     dominatedSize[n] = 0;
@@ -92,7 +92,9 @@ void showCodeDistribution(AllInfo info,
     dominatedSize.putIfAbsent(n, () => n.size);
   }
   reported.sort((a, b) =>
+      // ignore: avoid_dynamic_calls
       (dominatedSize[b] + nodeData[b].maxSize) -
+      // ignore: avoid_dynamic_calls
       (dominatedSize[a] + nodeData[a].maxSize));
 
   if (showLibrarySizes) {
@@ -124,6 +126,7 @@ void showCodeDistribution(AllInfo info,
   for (var info in reported) {
     var size = info.size;
     var min = dominatedSize[info];
+    // ignore: avoid_dynamic_calls
     var max = nodeData[info].maxSize;
     _showElement(
         longName(info, useLibraryUri: true), size, min, max, realTotal);

@@ -39,8 +39,8 @@ class _Directory extends FileSystemEntity implements Directory {
   static Directory get current {
     var result = _current(_Namespace._namespace);
     if (result is OSError) {
-      throw new FileSystemException(
-          "Getting current working directory failed", "", result);
+      throw FileSystemException._fromOSError(
+          result, "Getting current working directory failed", "");
     }
     return new _Directory(result);
   }
@@ -69,8 +69,8 @@ class _Directory extends FileSystemEntity implements Directory {
     var result = _setCurrent(_Namespace._namespace, _rawPath);
     if (result is ArgumentError) throw result;
     if (result is OSError) {
-      throw new FileSystemException(
-          "Setting current working directory failed", path.toString(), result);
+      throw FileSystemException._fromOSError(
+          result, "Setting current working directory failed", path.toString());
     }
   }
 
@@ -81,7 +81,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Future<bool> exists() {
     return _File._dispatchWithNamespace(
         _IOService.directoryExists, [null, _rawPath]).then((response) {
-      _checkForErrorResponse(response, "Exists failed");
+      _checkForErrorResponse(response, "Exists failed", path);
       return response == 1;
     });
   }
@@ -111,7 +111,7 @@ class _Directory extends FileSystemEntity implements Directory {
     } else {
       return _File._dispatchWithNamespace(
           _IOService.directoryCreate, [null, _rawPath]).then((response) {
-        _checkForErrorResponse(response, "Creation failed");
+        _checkForErrorResponse(response, "Creation failed", path);
         return this;
       });
     }
@@ -126,7 +126,7 @@ class _Directory extends FileSystemEntity implements Directory {
     }
     var result = _create(_Namespace._namespace, _rawPath);
     if (result is OSError) {
-      throw new FileSystemException("Creation failed", path, result);
+      throw FileSystemException._fromOSError(result, "Creation failed", path);
     }
   }
 
@@ -150,7 +150,7 @@ class _Directory extends FileSystemEntity implements Directory {
     return _File._dispatchWithNamespace(_IOService.directoryCreateTemp,
         [null, FileSystemEntity._toUtf8Array(fullPrefix)]).then((response) {
       _checkForErrorResponse(
-          response, "Creation of temporary directory failed");
+          response, "Creation of temporary directory failed", path);
       return Directory(response as String);
     });
   }
@@ -172,8 +172,8 @@ class _Directory extends FileSystemEntity implements Directory {
     var result = _createTemp(
         _Namespace._namespace, FileSystemEntity._toUtf8Array(fullPrefix));
     if (result is OSError) {
-      throw new FileSystemException(
-          "Creation of temporary directory failed", fullPrefix, result);
+      throw new FileSystemException._fromOSError(
+          result, "Creation of temporary directory failed", fullPrefix);
     }
     return new Directory(result);
   }
@@ -182,7 +182,7 @@ class _Directory extends FileSystemEntity implements Directory {
     return _File._dispatchWithNamespace(
             _IOService.directoryDelete, [null, _rawPath, recursive])
         .then((response) {
-      _checkForErrorResponse(response, "Deletion failed");
+      _checkForErrorResponse(response, "Deletion failed", path);
       return this;
     });
   }
@@ -190,14 +190,14 @@ class _Directory extends FileSystemEntity implements Directory {
   void _deleteSync({bool recursive = false}) {
     var result = _deleteNative(_Namespace._namespace, _rawPath, recursive);
     if (result is OSError) {
-      throw new FileSystemException("Deletion failed", path, result);
+      throw FileSystemException._fromOSError(result, "Deletion failed", path);
     }
   }
 
   Future<Directory> rename(String newPath) {
     return _File._dispatchWithNamespace(
         _IOService.directoryRename, [null, _rawPath, newPath]).then((response) {
-      _checkForErrorResponse(response, "Rename failed");
+      _checkForErrorResponse(response, "Rename failed", path);
       return new Directory(newPath);
     });
   }
@@ -207,7 +207,7 @@ class _Directory extends FileSystemEntity implements Directory {
     ArgumentError.checkNotNull(newPath, "newPath");
     var result = _rename(_Namespace._namespace, _rawPath, newPath);
     if (result is OSError) {
-      throw new FileSystemException("Rename failed", path, result);
+      throw FileSystemException._fromOSError(result, "Rename failed", path);
     }
     return new Directory(newPath);
   }
@@ -243,22 +243,6 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   String toString() => "Directory: '$path'";
-
-  /// If the [response] is an error, throws an [Exception] or an [Error].
-  void _checkForErrorResponse(Object? response, String message) {
-    if (response is List<Object?> && response[0] != _successResponse) {
-      switch (response[_errorResponseErrorType]) {
-        case _illegalArgumentResponse:
-          throw ArgumentError();
-        case _osErrorResponse:
-          var err = OSError(response[_osErrorResponseMessage] as String,
-              response[_osErrorResponseErrorCode] as int);
-          throw FileSystemException(message, path, err);
-        default:
-          throw AssertionError("Unknown error");
-      }
-    }
-  }
 
   // TODO(40614): Remove once non-nullability is sound.
   static T _checkNotNull<T>(T t, String name) {
@@ -430,8 +414,8 @@ class _AsyncDirectoryLister {
       } else if (errorPath is Uint8List) {
         errorPath = utf8.decode(errorPath, allowMalformed: true);
       }
-      controller.addError(new FileSystemException(
-          "Directory listing failed", errorPath as String, err));
+      controller.addError(FileSystemException._fromOSError(
+          err, "Directory listing failed", errorPath as String));
     } else {
       controller.addError(new FileSystemException("Internal error"));
     }

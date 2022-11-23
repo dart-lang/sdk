@@ -88,11 +88,6 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Add 'await's everywhere in file",
   );
-  static const ADD_EXPLICIT_CAST = FixKind(
-    'dart.fix.add.explicitCast',
-    DartFixKindPriority.DEFAULT,
-    'Add cast',
-  );
   static const ADD_CALL_SUPER = FixKind(
     'dart.fix.add.callSuper',
     DartFixKindPriority.DEFAULT,
@@ -142,6 +137,16 @@ class DartFixKind {
     'dart.fix.add.extensionOverride',
     DartFixKindPriority.DEFAULT,
     "Add an extension override for '{0}'",
+  );
+  static const ADD_EXPLICIT_CALL = FixKind(
+    'dart.fix.add.explicitCall',
+    DartFixKindPriority.DEFAULT,
+    'Add explicit .call tearoff',
+  );
+  static const ADD_EXPLICIT_CAST = FixKind(
+    'dart.fix.add.explicitCast',
+    DartFixKindPriority.DEFAULT,
+    'Add cast',
   );
   static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
     'dart.fix.add.fieldFormalParameters',
@@ -272,6 +277,11 @@ class DartFixKind {
     'dart.fix.add.superConstructorInvocation',
     DartFixKindPriority.DEFAULT,
     'Add super constructor {0} invocation',
+  );
+  static const ADD_SUPER_PARAMETER = FixKind(
+    'dart.fix.add.superParameter',
+    DartFixKindPriority.DEFAULT,
+    "Add required parameter{0}",
   );
   static const ADD_SWITCH_CASE_BREAK = FixKind(
     'dart.fix.add.switchCaseReturn',
@@ -1203,6 +1213,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Remove unnecessary 'Container's in file",
   );
+  static const REMOVE_UNNECESSARY_LIBRARY_DIRECTIVE = FixKind(
+    'dart.fix.remove.unnecessaryLibraryDirective',
+    DartFixKindPriority.DEFAULT,
+    'Remove unnecessary library directive',
+  );
   static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
     'dart.fix.remove.unnecessaryParentheses',
     DartFixKindPriority.DEFAULT,
@@ -1431,7 +1446,7 @@ class DartFixKind {
   static const REPLACE_RETURN_TYPE_FUTURE_MULTI = FixKind(
     'dart.fix.replace.returnTypeFuture.multi',
     DartFixKindPriority.IN_FILE,
-    "Return a 'Future' where required in file.",
+    "Return a 'Future' where required in file",
   );
   static const REPLACE_RETURN_TYPE_ITERABLE = FixKind(
     'dart.fix.replace.returnTypeIterable',
@@ -1543,12 +1558,12 @@ class DartFixKind {
   static const REPLACE_WITH_NOT_NULL_AWARE_MULTI = FixKind(
     'dart.fix.replace.withNotNullAware.multi',
     DartFixKindPriority.IN_FILE,
-    'Replace with non-null-aware operator everywhere in file.',
+    'Replace with non-null-aware operator everywhere in file',
   );
   static const REPLACE_WITH_NULL_AWARE = FixKind(
     'dart.fix.replace.withNullAware',
     DartFixKindPriority.DEFAULT,
-    "Replace the '.' with a '?.' in the invocation",
+    "Replace the '{0}' with a '{1}' in the invocation",
   );
   static const REPLACE_WITH_TEAR_OFF = FixKind(
     'dart.fix.replace.withTearOff',

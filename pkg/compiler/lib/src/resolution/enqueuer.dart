@@ -122,6 +122,9 @@ class ResolutionEnqueuer extends Enqueuer {
     }
     if (useSet.contains(ClassUse.IMPLEMENTED)) {
       applyImpact(listener.registerImplementedClass(cls));
+      if (cls.isAbstract) {
+        worldBuilder.processAbstractClassMembers(cls, _applyMemberUse);
+      }
     }
   }
 
@@ -163,6 +166,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   @override
   void processTypeUse(MemberEntity? member, TypeUse typeUse) {
+    if (member?.isAbstract ?? false) return;
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:

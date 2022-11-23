@@ -8,7 +8,9 @@ import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
+import '../builder/builtin_type_declaration_builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -22,6 +24,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 
+import '../builder/view_builder.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 
 import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
@@ -38,6 +41,12 @@ import '../fasta_codes.dart'
         templateNonSimpleBoundViaVariable;
 
 import '../kernel/utils.dart';
+
+import '../problems.dart';
+import '../source/source_class_builder.dart';
+import '../source/source_extension_builder.dart';
+import '../source/source_type_alias_builder.dart';
+import '../source/source_view_builder.dart';
 
 /// Initial value for "variance" that is to be computed by the compiler.
 const int pendingVariance = -1;
@@ -720,7 +729,9 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
 List<NonSimplicityIssue> getInboundReferenceIssues(
-    List<TypeVariableBuilder> variables) {
+    List<TypeVariableBuilder>? variables) {
+  if (variables == null) return <NonSimplicityIssue>[];
+
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   for (TypeVariableBuilder variable in variables) {
     if (variable.bound != null) {
@@ -798,62 +809,56 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
     [Set<TypeDeclarationBuilder>? visited]) {
   visited ??= new Set<TypeDeclarationBuilder>.identity();
   List<List<RawTypeCycleElement>> paths = <List<RawTypeCycleElement>>[];
+
   if (start is NamedTypeBuilder) {
-    TypeDeclarationBuilder? declaration = start.declaration;
-    if (start.arguments == null) {
-      if (start.declaration == end) {
-        paths.add(<RawTypeCycleElement>[new RawTypeCycleElement(start, null)]);
-      } else if (visited.add(start.declaration!)) {
-        if (declaration is ClassBuilder && declaration.typeVariables != null) {
-          for (TypeVariableBuilder variable in declaration.typeVariables!) {
-            if (variable.bound != null) {
-              for (List<RawTypeCycleElement> path
-                  in findRawTypePathsToDeclaration(
-                      variable.bound, end, visited)) {
-                if (path.isNotEmpty) {
-                  paths.add(<RawTypeCycleElement>[
-                    new RawTypeCycleElement(start, null)
-                  ]..addAll(path..first.typeVariable = variable));
-                }
-              }
-            }
-          }
-        } else if (declaration is TypeAliasBuilder) {
-          if (declaration.typeVariables != null) {
-            for (TypeVariableBuilder variable in declaration.typeVariables!) {
-              if (variable.bound != null) {
-                for (List<RawTypeCycleElement> dependencyPath
-                    in findRawTypePathsToDeclaration(
-                        variable.bound, end, visited)) {
-                  if (dependencyPath.isNotEmpty) {
-                    paths.add(<RawTypeCycleElement>[
-                      new RawTypeCycleElement(start, null)
-                    ]..addAll(dependencyPath..first.typeVariable = variable));
-                  }
-                }
-              }
-            }
-          }
-          if (declaration.type is FunctionTypeBuilder) {
-            FunctionTypeBuilder type = declaration.type as FunctionTypeBuilder;
-            if (type.typeVariables != null) {
-              for (TypeVariableBuilder variable in type.typeVariables!) {
-                if (variable.bound != null) {
-                  for (List<RawTypeCycleElement> dependencyPath
-                      in findRawTypePathsToDeclaration(
-                          variable.bound, end, visited)) {
-                    if (dependencyPath.isNotEmpty) {
-                      paths.add(<RawTypeCycleElement>[
-                        new RawTypeCycleElement(start, null)
-                      ]..addAll(dependencyPath..first.typeVariable = variable));
-                    }
-                  }
-                }
-              }
+    void visitTypeVariables(List<TypeVariableBuilder>? typeVariables) {
+      if (typeVariables == null) return;
+
+      for (TypeVariableBuilder variable in typeVariables) {
+        if (variable.bound != null) {
+          for (List<RawTypeCycleElement> path
+              in findRawTypePathsToDeclaration(variable.bound, end, visited)) {
+            if (path.isNotEmpty) {
+              paths.add(<RawTypeCycleElement>[
+                new RawTypeCycleElement(start, null)
+              ]..addAll(path..first.typeVariable = variable));
             }
           }
         }
-        visited.remove(start.declaration);
+      }
+    }
+
+    if (start.arguments == null) {
+      TypeDeclarationBuilder? declaration = start.declaration;
+      if (declaration == end) {
+        paths.add(<RawTypeCycleElement>[new RawTypeCycleElement(start, null)]);
+      } else if (visited.add(start.declaration!)) {
+        if (declaration is ClassBuilder) {
+          visitTypeVariables(declaration.typeVariables);
+        } else if (declaration is TypeAliasBuilder) {
+          visitTypeVariables(declaration.typeVariables);
+          if (declaration.type is FunctionTypeBuilder) {
+            FunctionTypeBuilder type = declaration.type as FunctionTypeBuilder;
+            visitTypeVariables(type.typeVariables);
+          }
+        } else if (declaration is ExtensionBuilder) {
+          visitTypeVariables(declaration.typeParameters);
+        } else if (declaration is ViewBuilder) {
+          visitTypeVariables(declaration.typeParameters);
+        } else if (declaration is TypeVariableBuilder) {
+          // Do nothing. The type variable is handled by its parent declaration.
+        } else if (declaration is BuiltinTypeDeclarationBuilder) {
+          // Do nothing.
+        } else if (declaration is InvalidTypeDeclarationBuilder) {
+          // Do nothing.
+        } else {
+          unhandled(
+              '$declaration (${declaration.runtimeType})',
+              'findRawTypePathsToDeclaration',
+              declaration?.charOffset ?? -1,
+              declaration?.fileUri);
+        }
+        visited.remove(declaration);
       }
     } else {
       for (TypeBuilder argument in start.arguments!) {
@@ -883,6 +888,28 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
   return paths;
 }
 
+List<List<RawTypeCycleElement>> _findRawTypeCyclesFromTypeVariables(
+    TypeDeclarationBuilder declaration,
+    List<TypeVariableBuilder>? typeVariables) {
+  if (typeVariables == null) {
+    return const [];
+  }
+
+  List<List<RawTypeCycleElement>> cycles = <List<RawTypeCycleElement>>[];
+  for (TypeVariableBuilder variable in typeVariables) {
+    if (variable.bound != null) {
+      for (List<RawTypeCycleElement> dependencyPath
+          in findRawTypePathsToDeclaration(variable.bound, declaration)) {
+        if (dependencyPath.isNotEmpty) {
+          dependencyPath.first.typeVariable = variable;
+          cycles.add(dependencyPath);
+        }
+      }
+    }
+  }
+  return cycles;
+}
+
 /// Finds raw generic type cycles ending and starting with [declaration].
 ///
 /// Returns list of found cycles consisting of [RawTypeCycleElement]s. The
@@ -893,51 +920,30 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
 /// reporting.
 List<List<RawTypeCycleElement>> findRawTypeCycles(
     TypeDeclarationBuilder declaration) {
-  List<List<RawTypeCycleElement>> cycles = <List<RawTypeCycleElement>>[];
-  if (declaration is ClassBuilder && declaration.typeVariables != null) {
-    for (TypeVariableBuilder variable in declaration.typeVariables!) {
-      if (variable.bound != null) {
-        for (List<RawTypeCycleElement> path
-            in findRawTypePathsToDeclaration(variable.bound, declaration)) {
-          if (path.isNotEmpty) {
-            path.first.typeVariable = variable;
-            cycles.add(path);
-          }
-        }
-      }
-    }
-  } else if (declaration is TypeAliasBuilder) {
-    if (declaration.typeVariables != null) {
-      for (TypeVariableBuilder variable in declaration.typeVariables!) {
-        if (variable.bound != null) {
-          for (List<RawTypeCycleElement> dependencyPath
-              in findRawTypePathsToDeclaration(variable.bound, declaration)) {
-            if (dependencyPath.isNotEmpty) {
-              dependencyPath.first.typeVariable = variable;
-              cycles.add(dependencyPath);
-            }
-          }
-        }
-      }
-    }
+  if (declaration is SourceClassBuilder) {
+    return _findRawTypeCyclesFromTypeVariables(
+        declaration, declaration.typeVariables);
+  } else if (declaration is SourceTypeAliasBuilder) {
+    List<List<RawTypeCycleElement>> cycles = <List<RawTypeCycleElement>>[];
+    cycles.addAll(_findRawTypeCyclesFromTypeVariables(
+        declaration, declaration.typeVariables));
     if (declaration.type is FunctionTypeBuilder) {
       FunctionTypeBuilder type = declaration.type as FunctionTypeBuilder;
-      if (type.typeVariables != null) {
-        for (TypeVariableBuilder variable in type.typeVariables!) {
-          if (variable.bound != null) {
-            for (List<RawTypeCycleElement> dependencyPath
-                in findRawTypePathsToDeclaration(variable.bound, declaration)) {
-              if (dependencyPath.isNotEmpty) {
-                dependencyPath.first.typeVariable = variable;
-                cycles.add(dependencyPath);
-              }
-            }
-          }
-        }
-      }
+      cycles.addAll(
+          _findRawTypeCyclesFromTypeVariables(declaration, type.typeVariables));
+      return cycles;
     }
+  } else if (declaration is SourceExtensionBuilder) {
+    return _findRawTypeCyclesFromTypeVariables(
+        declaration, declaration.typeParameters);
+  } else if (declaration is SourceViewBuilder) {
+    return _findRawTypeCyclesFromTypeVariables(
+        declaration, declaration.typeParameters);
+  } else {
+    unhandled('$declaration (${declaration.runtimeType})', 'findRawTypeCycles',
+        declaration.charOffset, declaration.fileUri);
   }
-  return cycles;
+  return const [];
 }
 
 /// Converts raw generic type [cycles] for [declaration] into reportable issues.
@@ -1012,11 +1018,20 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
     TypeDeclarationBuilder declaration,
     {bool performErrorRecovery = true}) {
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
-  if (declaration is ClassBuilder && declaration.typeVariables != null) {
-    issues.addAll(getInboundReferenceIssues(declaration.typeVariables!));
-  } else if (declaration is TypeAliasBuilder &&
-      declaration.typeVariables != null) {
-    issues.addAll(getInboundReferenceIssues(declaration.typeVariables!));
+  if (declaration is SourceClassBuilder) {
+    issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
+  } else if (declaration is SourceTypeAliasBuilder) {
+    issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
+  } else if (declaration is SourceExtensionBuilder) {
+    issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
+  } else if (declaration is SourceViewBuilder) {
+    issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
+  } else {
+    unhandled(
+        '$declaration (${declaration.runtimeType})',
+        'getNonSimplicityIssuesForDeclaration',
+        declaration.charOffset,
+        declaration.fileUri);
   }
   List<List<RawTypeCycleElement>> cyclesToReport =
       <List<RawTypeCycleElement>>[];
@@ -1181,6 +1196,11 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
+    return anyTypeVariables(node.typeArguments);
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
     return anyTypeVariables(node.typeArguments);
   }
 

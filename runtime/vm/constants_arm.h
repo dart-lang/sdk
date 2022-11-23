@@ -523,6 +523,17 @@ struct AllocateRecordABI {
   static const Register kTemp2Reg = R4;
 };
 
+// ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
+// AllocateRecord3, AllocateRecord3Named).
+struct AllocateSmallRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFieldNamesReg = R1;
+  static const Register kValue0Reg = R2;
+  static const Register kValue1Reg = R3;
+  static const Register kValue2Reg = R4;
+  static const Register kTempReg = R9;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
@@ -920,6 +931,8 @@ enum ScaleFactor {
 #else
 #error Cannot compress ARM32
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 // The class Instr enables access to individual fields defined in the ARM

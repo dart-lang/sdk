@@ -76,6 +76,7 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Message,
         Template,
+        messageNamedFieldClashesWithPositionalFieldInRecord,
         noLength,
         templateDuplicatedRecordLiteralFieldName,
         templateDuplicatedRecordLiteralFieldNameContext,
@@ -274,14 +275,6 @@ class BodyBuilder extends StackListenerImpl
   bool inCatchBlock = false;
 
   int functionNestingLevel = 0;
-
-  // Set when a spread element is encountered in a collection so the collection
-  // needs to be desugared after type inference.
-  bool transformCollections = false;
-
-  // Set by type inference when a set literal is encountered that needs to be
-  // transformed because the backend target does not support set literals.
-  bool transformSetLiterals = false;
 
   Statement? problemInLoopOrSwitch;
 
@@ -805,8 +798,6 @@ class BodyBuilder extends StackListenerImpl
   void inferAnnotations(TreeNode? parent, List<Expression>? annotations) {
     if (annotations != null) {
       typeInferrer.inferMetadata(this, parent, annotations);
-      libraryBuilder.loader.transformListPostInference(annotations,
-          transformSetLiterals, transformCollections, libraryBuilder.library);
     }
   }
 
@@ -1006,18 +997,6 @@ class BodyBuilder extends StackListenerImpl
           initializer = typeInferrer
               .inferFieldInitializer(this, fieldBuilder.builtType, initializer)
               .expression;
-
-          if (transformCollections || transformSetLiterals) {
-            // Wrap the initializer in a temporary parent expression; the
-            // transformations need a parent relation.
-            Not wrapper = new Not(initializer);
-            libraryBuilder.loader.transformPostInference(
-                wrapper,
-                transformSetLiterals,
-                transformCollections,
-                libraryBuilder.library);
-            initializer = wrapper.operand;
-          }
           fieldBuilder.buildBody(coreTypes, initializer);
         }
       } else if (!fieldBuilder.hasBodyBeenBuilt) {
@@ -1298,11 +1277,6 @@ class BodyBuilder extends StackListenerImpl
                 originParameter.type,
                 parameter.hasDeclaredInitializer);
             originParameter.initializer = initializer..parent = originParameter;
-            libraryBuilder.loader.transformPostInference(
-                originParameter,
-                transformSetLiterals,
-                transformCollections,
-                libraryBuilder.library);
           }
 
           VariableDeclaration? tearOffParameter =
@@ -1312,11 +1286,6 @@ class BodyBuilder extends StackListenerImpl
                 _cloner.cloneInContext(initializer!);
             tearOffParameter.initializer = tearOffInitializer
               ..parent = tearOffParameter;
-            libraryBuilder.loader.transformPostInference(
-                tearOffParameter,
-                transformSetLiterals,
-                transformCollections,
-                libraryBuilder.library);
           }
         }
       }
@@ -1347,8 +1316,6 @@ class BodyBuilder extends StackListenerImpl
           !(builder.function.asyncMarker == AsyncMarker.Async &&
               builder.function.futureValueType == null),
           "No future value type computed.");
-      libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
-          transformCollections, libraryBuilder.library);
     }
 
     if (builder.returnType is! OmittedTypeBuilder) {
@@ -1845,8 +1812,6 @@ class BodyBuilder extends StackListenerImpl
         "not returning anything different.");
 
     performBacklogComputations(allowFurtherDelays: false);
-    libraryBuilder.loader.transformPostInference(fakeReturn,
-        transformSetLiterals, transformCollections, libraryBuilder.library);
 
     return fakeReturn.expression!;
   }
@@ -2163,8 +2128,6 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     setParents(constructor.initializers, constructor);
-    libraryBuilder.loader.transformListPostInference(constructor.initializers,
-        transformSetLiterals, transformCollections, libraryBuilder.library);
     if (body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
@@ -2313,11 +2276,6 @@ class BodyBuilder extends StackListenerImpl
           libraryFeatures.patterns, case_.charOffset, case_.charCount);
       Pattern pattern = toPattern(pop());
       Expression expression = popForValue();
-      for (VariableDeclaration variable in pattern.declaredVariables) {
-        // Skip synthetic variables.
-        if (variable.name == null) continue;
-        declareVariable(variable, scope);
-      }
       push(new Condition(expression, pattern, guard));
     } else {
       assert(checkState(token, [
@@ -3459,10 +3417,19 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginThenStatement(Token token) {
     debugEvent("beginThenStatement");
+    assert(checkState(token, [ValueKinds.Condition]));
     // This is matched by the call to [deferNode] in
     // [endThenStatement].
     typeInferrer.assignedVariables.beginNode();
+    Condition condition = peek() as Condition;
     enterLocalScope("then");
+    Pattern? pattern = condition.pattern;
+    if (pattern != null) {
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
+      }
+    }
   }
 
   @override
@@ -3944,7 +3911,6 @@ class BodyBuilder extends StackListenerImpl
     Object? variableOrExpression = pop();
     exitLocalScope();
 
-    transformCollections = true;
     List<VariableDeclaration> variables =
         _buildForLoopVariableDeclarations(variableOrExpression)!;
     typeInferrer.assignedVariables.pushNode(assignedVariablesNodeInfo);
@@ -4256,7 +4222,21 @@ class BodyBuilder extends StackListenerImpl
           originalElementOrder.add(expression);
         }
       }
+      if (namedElements != null) {
+        for (NamedExpression element in namedElements.values) {
+          if (tryParseRecordPositionalGetterName(
+                  element.name, positional.length) !=
+              null) {
+            libraryBuilder.addProblem(
+                messageNamedFieldClashesWithPositionalFieldInRecord,
+                element.fileOffset,
+                element.name.length,
+                uri);
+          }
+        }
+      }
     }
+
     push(new InternalRecordLiteral(
         positional, named, namedElements, originalElementOrder,
         isConst:
@@ -6284,7 +6264,6 @@ class BodyBuilder extends StackListenerImpl
         "Unexpected pattern in control flow if: ${condition.pattern}.");
     Token ifToken = pop() as Token;
 
-    transformCollections = true;
     TreeNode node;
     if (entry is MapLiteralEntry) {
       node = forest.createIfMapEntry(
@@ -6329,7 +6308,6 @@ class BodyBuilder extends StackListenerImpl
         "Unexpected pattern in control flow if: ${condition.pattern}.");
     Token ifToken = pop() as Token;
 
-    transformCollections = true;
     TreeNode node;
     if (thenEntry is MapLiteralEntry) {
       if (elseEntry is MapLiteralEntry) {
@@ -6398,7 +6376,6 @@ class BodyBuilder extends StackListenerImpl
   void handleSpreadExpression(Token spreadToken) {
     debugEvent("SpreadExpression");
     Object? expression = pop();
-    transformCollections = true;
     push(forest.createSpreadElement(
         offsetForToken(spreadToken), toValue(expression),
         isNullAware: spreadToken.lexeme == '...?'));
@@ -6818,7 +6795,6 @@ class BodyBuilder extends StackListenerImpl
     Object? lvalue = pop(); // lvalue
     exitLocalScope();
 
-    transformCollections = true;
     ForInElements elements =
         _computeForInElements(forToken, inToken, lvalue, null);
     typeInferrer.assignedVariables.pushNode(assignedVariablesNodeInfo);
@@ -8184,9 +8160,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    debugEvent("ExtractorPattern");
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    debugEvent("ObjectPattern");
     assert(checkState(
         beginToken,
         repeatedKinds(
@@ -8207,9 +8182,9 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    debugEvent("ExtractorPattern");
+    debugEvent("ObjectPattern");
     assert(checkState(firstIdentifier, [
       ValueKinds.PatternListOrNull,
       ValueKinds.TypeArgumentsOrNull,
@@ -8223,7 +8198,7 @@ class BodyBuilder extends StackListenerImpl
     // ignore: unused_local_variable
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    // TODO(johnniwinther): Create extractor pattern.
+    // TODO(johnniwinther): Create object pattern.
     push(new DummyPattern(firstIdentifier.charOffset));
   }
 

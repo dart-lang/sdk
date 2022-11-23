@@ -9,13 +9,38 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CaseExpressionTypeIsNotSwitchExpressionSubtype);
+    defineReflectiveTests(CaseExpressionTypeIsNotSwitchExpressionSubtypeTest);
+    defineReflectiveTests(
+        CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language218);
   });
 }
 
 @reflectiveTest
-class CaseExpressionTypeIsNotSwitchExpressionSubtype
-    extends PubPackageResolutionTest {
+class CaseExpressionTypeIsNotSwitchExpressionSubtypeTest
+    extends PubPackageResolutionTest
+    with CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_notSubtype() {
+    return super.test_notSubtype();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_subtype() {
+    return super.test_subtype();
+  }
+}
+
+@reflectiveTest
+class CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language218
+    extends PubPackageResolutionTest
+    with
+        WithLanguage218Mixin,
+        CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases {}
+
+mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
+    on PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode {
     return CompileTimeErrorCode
         .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE;

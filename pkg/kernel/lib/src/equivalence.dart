@@ -56,6 +56,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitView(View node, Node other) {
+    return strategy.checkView(this, node, other);
+  }
+
+  @override
   bool defaultMember(Member node, Node other) {
     return false;
   }
@@ -681,6 +686,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitViewType(ViewType node, Node other) {
+    return strategy.checkViewType(this, node, other);
+  }
+
+  @override
   bool visitIntersectionType(IntersectionType node, Node other) {
     return strategy.checkIntersectionType(this, node, other);
   }
@@ -814,6 +824,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitExtensionReference(Extension node, Node other) {
+    return false;
+  }
+
+  @override
+  bool visitViewReference(View node, Node other) {
     return false;
   }
 
@@ -1463,6 +1478,9 @@ class EquivalenceStrategy {
     if (!checkLibrary_extensions(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkLibrary_views(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkLibrary_procedures(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -1676,6 +1694,67 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtension_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkViewMemberDescriptor(
+      EquivalenceVisitor visitor, ViewMemberDescriptor? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! ViewMemberDescriptor) return false;
+    if (other is! ViewMemberDescriptor) return false;
+    bool result = true;
+    if (!checkViewMemberDescriptor_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewMemberDescriptor_kind(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewMemberDescriptor_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewMemberDescriptor_member(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    return result;
+  }
+
+  bool checkView(EquivalenceVisitor visitor, View? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! View) return false;
+    if (other is! View) return false;
+    if (!visitor.matchNamedNodes(node, other)) {
+      return false;
+    }
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkView_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_fileUri(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_typeParameters(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_representationType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_members(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_reference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -3353,6 +3432,9 @@ class EquivalenceStrategy {
     if (!checkAwaitExpression_operand(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkAwaitExpression_runtimeCheckType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkAwaitExpression_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4352,6 +4434,29 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkViewType(
+      EquivalenceVisitor visitor, ViewType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! ViewType) return false;
+    if (other is! ViewType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkViewType_viewReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewType_declaredNullability(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewType_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewType_representationType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkIntersectionType(
       EquivalenceVisitor visitor, IntersectionType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -4822,6 +4927,12 @@ class EquivalenceStrategy {
         node.extensions, other.extensions, visitor.checkNodes, 'extensions');
   }
 
+  bool checkLibrary_views(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    return visitor.checkLists(
+        node.views, other.views, visitor.checkNodes, 'views');
+  }
+
   bool checkLibrary_procedures(
       EquivalenceVisitor visitor, Library node, Library other) {
     return visitor.checkLists(
@@ -5133,6 +5244,73 @@ class EquivalenceStrategy {
 
   bool checkExtension_fileOffset(
       EquivalenceVisitor visitor, Extension node, Extension other) {
+    return checkNamedNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkView_name(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkValues(node.name, other.name, 'name');
+  }
+
+  bool checkView_fileUri(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+  }
+
+  bool checkView_typeParameters(
+      EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkLists(node.typeParameters, other.typeParameters,
+        visitor.checkNodes, 'typeParameters');
+  }
+
+  bool checkView_representationType(
+      EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkNodes(node.representationType, other.representationType,
+        'representationType');
+  }
+
+  bool checkViewMemberDescriptor_name(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkNodes(node.name, other.name, 'name');
+  }
+
+  bool checkViewMemberDescriptor_kind(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkValues(node.kind, other.kind, 'kind');
+  }
+
+  bool checkViewMemberDescriptor_flags(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkViewMemberDescriptor_member(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkReferences(node.member, other.member, 'member');
+  }
+
+  bool checkView_members(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkLists(node.members, other.members, (a, b, _) {
+      if (identical(a, b)) return true;
+      if (a is! ViewMemberDescriptor) return false;
+      if (b is! ViewMemberDescriptor) return false;
+      return checkViewMemberDescriptor(visitor, a, b);
+    }, 'members');
+  }
+
+  bool checkView_annotations(
+      EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkLists(
+        node.annotations, other.annotations, visitor.checkNodes, 'annotations');
+  }
+
+  bool checkView_flags(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkView_reference(EquivalenceVisitor visitor, View node, View other) {
+    return checkNamedNode_reference(visitor, node, other);
+  }
+
+  bool checkView_fileOffset(EquivalenceVisitor visitor, View node, View other) {
     return checkNamedNode_fileOffset(visitor, node, other);
   }
 
@@ -6759,6 +6937,12 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.operand, other.operand, 'operand');
   }
 
+  bool checkAwaitExpression_runtimeCheckType(
+      EquivalenceVisitor visitor, AwaitExpression node, AwaitExpression other) {
+    return visitor.checkNodes(
+        node.runtimeCheckType, other.runtimeCheckType, 'runtimeCheckType');
+  }
+
   bool checkAwaitExpression_fileOffset(
       EquivalenceVisitor visitor, AwaitExpression node, AwaitExpression other) {
     return checkExpression_fileOffset(visitor, node, other);
@@ -7579,6 +7763,30 @@ class EquivalenceStrategy {
   bool checkExtensionType_onType(
       EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
     return visitor.checkNodes(node.onType, other.onType, 'onType');
+  }
+
+  bool checkViewType_viewReference(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkReferences(
+        node.viewReference, other.viewReference, 'viewReference');
+  }
+
+  bool checkViewType_declaredNullability(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
+  }
+
+  bool checkViewType_typeArguments(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkLists(node.typeArguments, other.typeArguments,
+        visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkViewType_representationType(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkNodes(node.representationType, other.representationType,
+        'representationType');
   }
 
   bool checkIntersectionType_left(EquivalenceVisitor visitor,

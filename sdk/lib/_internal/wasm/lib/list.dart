@@ -19,7 +19,7 @@ abstract class _ListBase<E> extends ListBase<E> {
   _ListBase._withData(this._length, this._data);
 
   E operator [](int index) {
-    RangeError.checkValidIndex(index, this, "[]", _length);
+    IndexError.check(index, _length, indexable: this, name: "[]");
     return unsafeCast(_data.read(index));
   }
 
@@ -30,13 +30,14 @@ abstract class _ListBase<E> extends ListBase<E> {
     final int actualEnd = RangeError.checkValidRange(start, end, listLength);
     int length = actualEnd - start;
     if (length == 0) return <E>[];
-    return _GrowableList<E>(length)..setRange(0, length, this);
+    return _GrowableList<E>(length)..setRange(0, length, this, start);
   }
 
   void forEach(f(E element)) {
-    final length = this.length;
-    for (int i = 0; i < length; i++) {
+    final initialLength = length;
+    for (int i = 0; i < initialLength; i++) {
       f(this[i]);
+      if (length != initialLength) throw ConcurrentModificationError(this);
     }
   }
 
@@ -53,7 +54,7 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
       : super._withData(length, data);
 
   void operator []=(int index, E value) {
-    RangeError.checkValidIndex(index, this, "[]=", _length);
+    IndexError.check(index, _length, indexable: this, name: "[]=");
     _data.write(index, value);
   }
 

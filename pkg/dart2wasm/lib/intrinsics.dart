@@ -9,6 +9,7 @@ import 'package:dart2wasm/translator.dart';
 import 'package:kernel/ast.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
+import 'abi.dart' show kWasmAbiEnumIndex;
 
 typedef CodeGenCallback = void Function(w.Instructions);
 
@@ -18,10 +19,6 @@ typedef CodeGenCallback = void Function(w.Instructions);
 /// member in [generateMemberIntrinsic].
 class Intrinsifier {
   final CodeGenerator codeGen;
-
-  // The ABI type sizes are the same for 32-bit Wasm as for 32-bit ARM, so we
-  // can just use an ABI enum index corresponding to a 32-bit ARM platform.
-  static const int abiEnumIndex = 0; // androidArm
 
   static const w.ValueType boolType = w.NumType.i32;
   static const w.ValueType intType = w.NumType.i64;
@@ -37,13 +34,15 @@ class Intrinsifier {
         '&': (b) => b.i64_and(),
         '|': (b) => b.i64_or(),
         '^': (b) => b.i64_xor(),
-        '<<': (b) => b.i64_shl(),
-        '>>': (b) => b.i64_shr_s(),
-        '>>>': (b) => b.i64_shr_u(),
         '<': (b) => b.i64_lt_s(),
         '<=': (b) => b.i64_le_s(),
         '>': (b) => b.i64_gt_s(),
         '>=': (b) => b.i64_ge_s(),
+        '_div_s': (b) => b.i64_div_s(),
+        '_shl': (b) => b.i64_shl(),
+        '_shr_s': (b) => b.i64_shr_s(),
+        '_shr_u': (b) => b.i64_shr_u(),
+        '_lt_u': (b) => b.i64_lt_u(),
       }
     },
     doubleType: {
@@ -78,12 +77,6 @@ class Intrinsifier {
       'unary-': (b) {
         b.f64_neg();
       },
-      'toInt': (b) {
-        b.i64_trunc_sat_f64_s();
-      },
-      'roundToDouble': (b) {
-        b.f64_nearest();
-      },
       'floorToDouble': (b) {
         b.f64_floor();
       },
@@ -93,15 +86,17 @@ class Intrinsifier {
       'truncateToDouble': (b) {
         b.f64_trunc();
       },
+      '_toInt': (b) {
+        b.i64_trunc_sat_f64_s();
+      },
     },
   };
   static final Map<String, w.ValueType> unaryResultMap = {
     'toDouble': w.NumType.f64,
-    'toInt': w.NumType.i64,
-    'roundToDouble': w.NumType.f64,
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
     'truncateToDouble': w.NumType.f64,
+    '_toInt': w.NumType.i64,
   };
 
   Translator get translator => codeGen.translator;
@@ -114,7 +109,7 @@ class Intrinsifier {
   }
 
   static bool isComparison(String op) =>
-      op == '<' || op == '<=' || op == '>' || op == '>=';
+      op == '<' || op == '<=' || op == '>' || op == '>=' || op == '_lt_u';
 
   Intrinsifier(this.codeGen);
 
@@ -214,13 +209,6 @@ class Intrinsifier {
     String name = node.name.text;
     Procedure target = node.interfaceTarget;
     Class cls = target.enclosingClass!;
-
-    // _TypedListBase._setRange
-    if (cls == translator.typedListBaseClass && name == "_setRange") {
-      // Always fall back to alternative implementation.
-      b.i32_const(0);
-      return w.NumType.i32;
-    }
 
     // _TypedList._(get|set)(Int|Uint|Float)(8|16|32|64)
     if (cls == translator.typedListClass) {
@@ -501,7 +489,7 @@ class Intrinsifier {
       } else if (arg is StaticInvocation) {
         if (arg.target.enclosingLibrary.name == "dart.ffi" &&
             arg.name.text == "_abi") {
-          constIndex = abiEnumIndex;
+          constIndex = kWasmAbiEnumIndex;
         }
       }
       if (constIndex != null) {
@@ -736,15 +724,6 @@ class Intrinsifier {
           codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
           b.struct_new(info.struct);
           return info.nonNullableType;
-        case "_div_s":
-          assert(cls == translator.boxedIntClass);
-          assert(node.arguments.positional.length == 2);
-          Expression first = node.arguments.positional[0];
-          Expression second = node.arguments.positional[1];
-          codeGen.wrap(first, w.NumType.i64);
-          codeGen.wrap(second, w.NumType.i64);
-          b.i64_div_s();
-          return w.NumType.i64;
       }
     }
 
@@ -1508,6 +1487,111 @@ class Intrinsifier {
           return true;
         }
       }
+    }
+
+    if (member.enclosingClass == translator.functionClass &&
+        name == "_equals") {
+      // Function equality works like this:
+      //
+      // - Function literals and local functions are only equal if they're the
+      //   same reference.
+      //
+      // - Instance tear-offs are equal if they are tear-offs of the same
+      //   method on the same object.
+      //
+      // - Tear-offs of static methods and top-level functions are identical
+      //   (and thus equal) when they are tear-offs of the same function. Generic
+      //   instantiations of these are identical when the tear-offs are identical
+      //   and they are instantiated with identical types.
+      //
+      // To distinguish a function literal or local function from an instance
+      // tear-off we check type of the context:
+      //
+      // - If context's type is a subtype of the top type for Dart objects then
+      //   the function is a tear-off and we compare the context using the
+      //   `identical` function.
+      //
+      //   The reason why we use `identical` (instead of `ref.eq`) is to handle
+      //   bool, double, and int receivers in code like `1.toString ==
+      //   1.toString`, which should evaluate to `true` even if the receivers
+      //   do not point to the same Wasm object.
+      //
+      // - Otherwise the function is a function literal or local function.
+      //
+      // In pseudo code:
+      //
+      //   bool _equals(f1, f2) {
+      //     if (identical(f1, f2) return true;
+      //     if (f1.vtable == f2.vtable) {
+      //       if (v1.context is #Top && v2.context is #Top) {
+      //         return identical(v1.context, v2.context);
+      //       }
+      //     }
+      //     return false;
+      //   }
+
+      // Check if the arguments are the same
+      b.local_get(function.locals[0]);
+      b.local_get(function.locals[1]);
+      b.ref_eq();
+      b.if_();
+      b.i32_const(1); // true
+      b.return_();
+      b.end();
+
+      // Arguments are different, compare context and vtable references
+      final w.StructType closureBaseStruct =
+          translator.closureLayouter.closureBaseStruct;
+      final w.RefType closureBaseStructRef =
+          w.RefType.def(closureBaseStruct, nullable: false);
+
+      final w.Local fun1 = codeGen.function.addLocal(closureBaseStructRef);
+      b.local_get(function.locals[0]);
+      translator.convertType(
+          function, function.locals[0].type, closureBaseStructRef);
+      b.local_set(fun1);
+
+      final w.Local fun2 = codeGen.function.addLocal(closureBaseStructRef);
+      b.local_get(function.locals[1]);
+      translator.convertType(
+          function, function.locals[1].type, closureBaseStructRef);
+      b.local_set(fun2);
+
+      // Compare vtable references
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.ref_eq();
+
+      b.if_(); // fun1.vtable == fun2.vtable
+
+      // Compare context references. If context of a function has the top type
+      // then the function is an instance tear-off. Otherwise it's a closure.
+      final contextCheckFail = b.block([], [w.RefType.data(nullable: false)]);
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(contextCheckFail, translator.topInfo.struct);
+
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(contextCheckFail, translator.topInfo.struct);
+
+      // Both contexts are objects, compare for equality with `identical`. This
+      // handles identical `this` values in instance tear-offs.
+      b.call(translator.functions
+          .getFunction(translator.coreTypes.identicalProcedure.reference));
+      b.return_();
+      b.end(); // contextCheckFail
+
+      b.i32_const(0); // false
+      b.return_();
+
+      b.end(); // fun1.vtable == fun2.vtable
+
+      b.i32_const(0); // false
+
+      return true;
     }
 
     return false;

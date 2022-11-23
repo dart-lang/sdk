@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -217,17 +216,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     // Build fields for all enum constants.
     var constants = node.constants;
-    var valuesElements = <Expression>[];
+    var valuesElements = <ExpressionImpl>[];
     for (var i = 0; i < constants.length; ++i) {
-      var constant = constants[i] as EnumConstantDeclarationImpl;
+      var constant = constants[i];
       var name = constant.name.lexeme;
       var field = ConstFieldElementImpl(name, constant.name.offset)
         ..hasImplicitType = true
         ..hasInitializer = true
         ..isConst = true
         ..isEnumConstant = true
-        ..isStatic = true
-        ..type = DynamicTypeImpl.instance;
+        ..isStatic = true;
       _setCodeRange(field, constant);
       _setDocumentation(field, constant);
       field.metadata = _buildAnnotationsWithUnit(
@@ -443,7 +441,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
-      variable as VariableDeclarationImpl;
       var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
@@ -470,7 +467,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       if (node.fields.type == null) {
         element.hasImplicitType = true;
-        element.type = DynamicTypeImpl.instance;
       }
 
       _enclosingContext.addNonSyntheticField(element);
@@ -1031,7 +1027,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
-      variable as VariableDeclarationImpl;
       var nameToken = variable.name;
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
@@ -1054,7 +1049,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       if (node.variables.type == null) {
         element.hasImplicitType = true;
-        element.type = DynamicTypeImpl.instance;
       }
 
       element.createImplicitAccessors(enclosingRef, name);

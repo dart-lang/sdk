@@ -246,6 +246,7 @@ EnumNonConstConstructor/analyzerCode: Fail
 EnumNonConstConstructor/example: Fail
 EnumSupertypeOfNonAbstractClass/analyzerCode: Fail
 EnumSupertypeOfNonAbstractClass/example: Fail
+EnumWithNameValues/example: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script1: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script2: Fail
 EqualityCannotBeEqualityOperand/script1: Fail
@@ -593,6 +594,8 @@ JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
+JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropNonStaticWithStaticInteropSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
@@ -603,6 +606,8 @@ JsInteropStaticInteropMockMissingImplements/analyzerCode: Fail # Web compiler sp
 JsInteropStaticInteropMockMissingImplements/example: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/example: Fail # Web compiler specific
+JsInteropStaticInteropNoJSAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropNoJSAnnotation/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
@@ -921,6 +926,7 @@ TypedefNotType/example: Fail # Feature not yet enabled by default.
 TypedefNullableType/analyzerCode: Fail
 TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
 TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
+UnavailableDartLibrary/part_wrapped_script: Fail # Uses imports
 UndefinedExtensionGetter/analyzerCode: Fail
 UndefinedExtensionGetter/example: Fail
 UndefinedExtensionMethod/analyzerCode: Fail
@@ -963,7 +969,6 @@ UnterminatedString/script7: Fail
 UnterminatedString/script8: Fail
 UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
-UntranslatableUri/part_wrapped_script: Fail # Importing file in the (now) part.
 ValueForRequiredParameterNotProvidedError/analyzerCode: Fail
 ValueForRequiredParameterNotProvidedError/example: Fail
 ValueForRequiredParameterNotProvidedWarning/analyzerCode: Fail

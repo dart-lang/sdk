@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const memorySourceFiles = const {
   'main.dart': '''

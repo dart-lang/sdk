@@ -15,6 +15,6 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
   }
 }
 static method main(core::List<core::String> arguments) → asy::Future<void> async /* futureValueType= void */ {
-  final self::MyFinalizable myFinalizable = await new self::MyFinalizable::•();
+  final self::MyFinalizable myFinalizable = await new self::MyFinalizable::•() /* runtimeCheckType= asy::Future<self::MyFinalizable> */ ;
   _in::reachabilityFence(myFinalizable);
 }

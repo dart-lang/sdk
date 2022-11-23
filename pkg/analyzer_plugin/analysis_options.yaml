@@ -8,9 +8,19 @@ linter:
   rules:
     # In addition to lints/recommended:
     always_declare_return_types: true
+    collection_methods_unrelated_type: true
+    # Enable when we require Dart 2.19.0.
+    #dangling_library_doc_comments: true
+    depend_on_referenced_packages: true
+    enable_null_safety: true
+    implicit_call_tearoffs: true
+    library_annotations: true
     omit_local_variable_types: true
     prefer_single_quotes: true
     unawaited_futures: true
+    unnecessary_library_directive: true
+    unnecessary_parenthesis: true
+    unreachable_from_main: true
 
     # Remove from lints/recommended:
     constant_identifier_names: false
@@ -19,5 +29,3 @@ linter:
 
     # Existing violations (3)
     library_private_types_in_public_api: false
-    # Existing violations (3)
-    prefer_initializing_formals: false

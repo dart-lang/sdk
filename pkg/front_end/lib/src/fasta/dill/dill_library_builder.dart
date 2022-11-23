@@ -91,6 +91,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   LibraryBuilder get origin => this;
 
+  @override
+  Iterable<Uri> get dependencies => library.dependencies.map(
+      (LibraryDependency dependency) => dependency.targetLibrary.importUri);
+
   void ensureLoaded() {
     if (!isReadyToBuild) throw new StateError("Not ready to build.");
     if (isBuilt && !isBuiltAndMarked) {

@@ -147,7 +147,7 @@ class _NaiveInt32x4List extends Object
   int get length => _storage.length ~/ 4;
 
   Int32x4 operator [](int index) {
-    RangeError.checkValidIndex(index, this, "[]", length);
+    IndexError.check(index, length, indexable: this, name: "[]");
     int _x = _storage[(index * 4) + 0];
     int _y = _storage[(index * 4) + 1];
     int _z = _storage[(index * 4) + 2];
@@ -156,7 +156,7 @@ class _NaiveInt32x4List extends Object
   }
 
   void operator []=(int index, Int32x4 value) {
-    RangeError.checkValidIndex(index, this, "[]=", length);
+    IndexError.check(index, length, indexable: this, name: "[]=");
     _storage[(index * 4) + 0] = value.x;
     _storage[(index * 4) + 1] = value.y;
     _storage[(index * 4) + 2] = value.z;
@@ -164,7 +164,7 @@ class _NaiveInt32x4List extends Object
   }
 
   Int32x4List sublist(int start, [int? end]) {
-    RangeError.checkValidIndex(start, this, "sublist", length);
+    IndexError.check(start, length, indexable: this, name: "sublist");
     int stop = _checkValidRange(start, end, length);
     return _NaiveInt32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
@@ -211,7 +211,7 @@ class _NaiveFloat32x4List extends Object
   int get length => _storage.length ~/ 4;
 
   Float32x4 operator [](int index) {
-    RangeError.checkValidIndex(index, this, "[]", length);
+    IndexError.check(index, length, indexable: this, name: "[]");
     double _x = _storage[(index * 4) + 0];
     double _y = _storage[(index * 4) + 1];
     double _z = _storage[(index * 4) + 2];
@@ -220,7 +220,7 @@ class _NaiveFloat32x4List extends Object
   }
 
   void operator []=(int index, Float32x4 value) {
-    RangeError.checkValidIndex(index, this, "[]=", length);
+    IndexError.check(index, length, indexable: this, name: "[]=");
     _storage[(index * 4) + 0] = value.x;
     _storage[(index * 4) + 1] = value.y;
     _storage[(index * 4) + 2] = value.z;
@@ -228,7 +228,7 @@ class _NaiveFloat32x4List extends Object
   }
 
   Float32x4List sublist(int start, [int? end]) {
-    RangeError.checkValidIndex(start, this, "sublist", length);
+    IndexError.check(start, length, indexable: this, name: "sublist");
     int stop = _checkValidRange(start, end, length);
     return _NaiveFloat32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
@@ -273,20 +273,20 @@ class _NaiveFloat64x2List extends Object
   int get length => _storage.length ~/ 2;
 
   Float64x2 operator [](int index) {
-    RangeError.checkValidIndex(index, this, "[]", length);
+    IndexError.check(index, length, indexable: this, name: "[]");
     double _x = _storage[(index * 2) + 0];
     double _y = _storage[(index * 2) + 1];
     return Float64x2(_x, _y);
   }
 
   void operator []=(int index, Float64x2 value) {
-    RangeError.checkValidIndex(index, this, "[]=", length);
+    IndexError.check(index, length, indexable: this, name: "[]=");
     _storage[(index * 2) + 0] = value.x;
     _storage[(index * 2) + 1] = value.y;
   }
 
   Float64x2List sublist(int start, [int? end]) {
-    RangeError.checkValidIndex(start, this, "sublist", length);
+    IndexError.check(start, length, indexable: this, name: "sublist");
     int stop = _checkValidRange(start, end, length);
     return _NaiveFloat64x2List._externalStorage(
         _storage.sublist(start * 2, stop * 2));
@@ -860,55 +860,6 @@ class _NaiveInt32x4 implements Int32x4 {
     intView[3] = _w;
     return _NaiveFloat32x4._truncated(
         floatList[0], floatList[1], floatList[2], floatList[3]);
-  }
-}
-
-@patch
-abstract class _TypedList extends _TypedListBase {
-  Float32x4 _getFloat32x4(int offsetInBytes) {
-    ByteData data = buffer.asByteData();
-    return Float32x4(
-        data.getFloat32(offsetInBytes + 0 * 4, Endian.host),
-        data.getFloat32(offsetInBytes + 1 * 4, Endian.host),
-        data.getFloat32(offsetInBytes + 2 * 4, Endian.host),
-        data.getFloat32(offsetInBytes + 3 * 4, Endian.host));
-  }
-
-  void _setFloat32x4(int offsetInBytes, Float32x4 value) {
-    ByteData data = buffer.asByteData();
-    data.setFloat32(offsetInBytes + 0 * 4, value.x, Endian.host);
-    data.setFloat32(offsetInBytes + 1 * 4, value.y, Endian.host);
-    data.setFloat32(offsetInBytes + 2 * 4, value.z, Endian.host);
-    data.setFloat32(offsetInBytes + 3 * 4, value.w, Endian.host);
-  }
-
-  Int32x4 _getInt32x4(int offsetInBytes) {
-    ByteData data = buffer.asByteData();
-    return Int32x4(
-        data.getInt32(offsetInBytes + 0 * 4, Endian.host),
-        data.getInt32(offsetInBytes + 1 * 4, Endian.host),
-        data.getInt32(offsetInBytes + 2 * 4, Endian.host),
-        data.getInt32(offsetInBytes + 3 * 4, Endian.host));
-  }
-
-  void _setInt32x4(int offsetInBytes, Int32x4 value) {
-    ByteData data = buffer.asByteData();
-    data.setInt32(offsetInBytes + 0 * 4, value.x, Endian.host);
-    data.setInt32(offsetInBytes + 1 * 4, value.y, Endian.host);
-    data.setInt32(offsetInBytes + 2 * 4, value.z, Endian.host);
-    data.setInt32(offsetInBytes + 3 * 4, value.w, Endian.host);
-  }
-
-  Float64x2 _getFloat64x2(int offsetInBytes) {
-    ByteData data = buffer.asByteData();
-    return Float64x2(data.getFloat64(offsetInBytes + 0 * 8, Endian.host),
-        data.getFloat64(offsetInBytes + 1 * 8, Endian.host));
-  }
-
-  void _setFloat64x2(int offsetInBytes, Float64x2 value) {
-    ByteData data = buffer.asByteData();
-    data.setFloat64(offsetInBytes + 0 * 8, value.x, Endian.host);
-    data.setFloat64(offsetInBytes + 1 * 8, value.y, Endian.host);
   }
 }
 

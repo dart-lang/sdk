@@ -1,0 +1,13 @@
+extension on dynamic {
+  void set call(_) {}
+}
+
+class Class {
+  void set call(_) {}
+}
+
+extension on Class? {
+  void call() {}
+}
+
+method(Function f1, void Function() f2, Class c1, Class? c2) {}

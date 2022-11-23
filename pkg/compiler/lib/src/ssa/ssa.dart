@@ -21,23 +21,26 @@ import '../js/js.dart' as js;
 import '../js/rewrite_async.dart';
 import '../js_backend/backend.dart' show FunctionCompiler;
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
-import '../js_backend/namer.dart' show ModularNamer, ModularNamerImpl;
+import '../js_backend/namer.dart' show ModularNamer;
+import '../js_backend/namer.dart' show ModularNamerImpl;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/startup_emitter/emitter.dart' show ModularEmitterImpl;
 import '../js_model/elements.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
-import '../world.dart' show JClosedWorld;
 
 import 'codegen.dart';
 import 'nodes.dart';
 import 'optimize.dart';
+import 'ssa_interfaces.dart' as interfaces;
 
-class SsaFunctionCompiler implements FunctionCompiler {
+class SsaFunctionCompiler
+    implements FunctionCompiler, interfaces.SsaFunctionCompiler {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final SsaMetrics _metrics;
@@ -45,7 +48,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
   final SsaBuilderTask _builder;
   final SsaOptimizerTask optimizer;
   final SourceInformationStrategy sourceInformationStrategy;
-  GlobalTypeInferenceResults _globalInferenceResults;
+  /*late*/ GlobalTypeInferenceResults _globalInferenceResults;
   CodegenInputs _codegen;
 
   SsaFunctionCompiler(
@@ -79,7 +82,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     ModularNamer namer = ModularNamerImpl(
         registry, closedWorld.commonElements, _codegen.fixedNames);
     ModularEmitter emitter = ModularEmitterImpl(namer, registry, _options);
-    if (member.isConstructor &&
+    if (member is ConstructorEntity &&
         member.enclosingClass == closedWorld.commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
       return registry.close(null);

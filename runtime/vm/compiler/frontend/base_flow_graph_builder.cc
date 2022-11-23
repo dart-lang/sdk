@@ -202,25 +202,16 @@ Fragment BaseFlowGraphBuilder::BranchIfStrictEqual(
   return Fragment(branch).closed();
 }
 
-Fragment BaseFlowGraphBuilder::Return(TokenPosition position,
-                                      intptr_t yield_index) {
+Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   Fragment instructions;
 
   Value* value = Pop();
   ASSERT(stack_ == nullptr);
   const Function& function = parsed_function_->function();
-  Representation representation;
-  if (function.has_unboxed_integer_return()) {
-    representation = kUnboxedInt64;
-  } else if (function.has_unboxed_double_return()) {
-    representation = kUnboxedDouble;
-  } else {
-    ASSERT(!function.has_unboxed_return());
-    representation = kTagged;
-  }
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(InstructionSource(position), value, GetNextDeoptId(),
-                          yield_index, representation);
+  const Representation representation =
+      FlowGraph::ReturnRepresentationOf(function);
+  ReturnInstr* return_instr = new (Z) ReturnInstr(
+      InstructionSource(position), value, GetNextDeoptId(), representation);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;
@@ -248,7 +239,7 @@ Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
 }
 
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {
-  ASSERT(value.IsNotTemporaryScopedHandle());
+  DEBUG_ASSERT(value.IsNotTemporaryScopedHandle());
   ConstantInstr* constant = new (Z) ConstantInstr(value);
   Push(constant);
   return Fragment(constant);
@@ -510,7 +501,7 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
   if (CompilerState::Current().should_clone_fields() && field.IsOriginal()) {
     return Field::ZoneHandle(zone, field.CloneFromOriginal());
   } else {
-    ASSERT(field.IsZoneHandle());
+    DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
     return field;
   }
 }
@@ -944,6 +935,21 @@ Fragment BaseFlowGraphBuilder::AllocateRecord(TokenPosition position,
   Value* field_names = Pop();
   AllocateRecordInstr* allocate = new (Z) AllocateRecordInstr(
       InstructionSource(position), num_fields, field_names, GetNextDeoptId());
+  Push(allocate);
+  return Fragment(allocate);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateSmallRecord(TokenPosition position,
+                                                   intptr_t num_fields,
+                                                   bool has_named_fields) {
+  ASSERT(num_fields == 2 || num_fields == 3);
+  Value* value2 = (num_fields > 2) ? Pop() : nullptr;
+  Value* value1 = Pop();
+  Value* value0 = Pop();
+  Value* field_names = has_named_fields ? Pop() : nullptr;
+  AllocateSmallRecordInstr* allocate = new (Z) AllocateSmallRecordInstr(
+      InstructionSource(position), num_fields, field_names, value0, value1,
+      value2, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }

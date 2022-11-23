@@ -1132,86 +1132,6 @@ $code
     _assertSource(code, findNode.extensionDeclaration(code));
   }
 
-  void test_visitExtensionDeclarationHideClause_empty() {
-    final code = 'extension E on C hide B {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_ambiguousElement() {
-    final code = 'extension E on C show foo {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_empty() {
-    final code = 'extension E on C show B {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_getterElement() {
-    final code = 'extension E on C show get foo {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_operatorElement() {
-    final code = 'extension E on C show operator * {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_parameters() {
-    final code = 'extension E<T> on C show B {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_qualifiedTypeElement() {
-    final code = 'extension E on C show prefix.B {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_setterElement() {
-    final code = 'extension E on C show set foo {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowClause_typeWithArgumentsElement() {
-    final code = 'extension E on C show B<int, String> {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionDeclarationShowHideClause_empty() {
-    final code = 'extension E on C show A hide B {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
   void test_visitExtensionOverride_prefixedName_noTypeArgs() {
     // TODO(scheglov) restore
     // _assertSource(
@@ -1286,21 +1206,6 @@ $code
 $code
 ''');
     _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtractorPattern() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case C(f: 1):
-      break;
-  }
-}
-''');
-    _assertSource(
-      'C(f: 1)',
-      findNode.extractorPattern('C'),
-    );
   }
 
   void test_visitFieldDeclaration_abstract() {
@@ -2686,6 +2591,21 @@ void foo() $code
 final x = $code;
 ''');
     _assertSource(code, findNode.nullLiteral(code));
+  }
+
+  void test_visitObjectPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case C(f: 1):
+      break;
+  }
+}
+''');
+    _assertSource(
+      'C(f: 1)',
+      findNode.objectPattern('C'),
+    );
   }
 
   void test_visitParenthesizedExpression() {

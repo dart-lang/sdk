@@ -291,6 +291,29 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitViewType(ViewType node) {
+    // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
+    // in the compiler to ensure types in error messages have context.
+    Library? enclosingLibrary = node.view.parent as Library?;
+    result.add(nameForEntity(
+        node.view,
+        node.view.name,
+        enclosingLibrary?.importUri ?? unknownUri,
+        enclosingLibrary?.fileUri ?? unknownUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
+    addNullability(node.declaredNullability);
+  }
+
+  @override
   void visitRecordType(RecordType node) {
     result.add("(");
     bool first = true;

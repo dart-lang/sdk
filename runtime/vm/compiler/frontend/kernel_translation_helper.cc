@@ -2224,6 +2224,13 @@ void KernelReaderHelper::SkipDartType() {
       }
       return;
     }
+    case kViewType: {
+      ReadNullability();
+      SkipCanonicalNameReference();  // read index for canonical name.
+      SkipListOfDartTypes();         // read type arguments
+      SkipDartType();                // read representation type.
+      break;
+    }
     case kTypedefType:
       ReadNullability();      // read nullability.
       ReadUInt();             // read index for canonical name.
@@ -2565,10 +2572,8 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfExpressions();  // read list of expressions.
       return;
     case kIsExpression:
-      ReadPosition();  // read position.
-      if (translation_helper_.info().kernel_binary_version() >= 38) {
-        SkipFlags();  // read flags.
-      }
+      ReadPosition();    // read position.
+      SkipFlags();       // read flags.
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
       return;
@@ -2681,6 +2686,9 @@ void KernelReaderHelper::SkipExpression() {
     case kAwaitExpression:
       ReadPosition();    // read position.
       SkipExpression();  // read operand.
+      if (ReadTag() == kSomething) {
+        SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
@@ -2963,12 +2971,7 @@ TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   return reader_.ReadLineStartsData(line_start_count);
 }
 
-String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index,
-                                                    uint32_t binaryVersion) {
-  if (binaryVersion < 22) {
-    return SourceTableUriFor(index);
-  }
-
+String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());                         // skip uri.
@@ -3192,6 +3195,9 @@ void TypeTranslator::BuildTypeInternal() {
     case kIntersectionType:
       BuildIntersectionType();
       break;
+    case kViewType:
+      BuildViewType();
+      break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -3376,6 +3382,9 @@ void TypeTranslator::BuildRecordType() {
     field_types.SetAt(pos++, result_);
     helper_->ReadFlags();
   }
+  if (named_count != 0) {
+    field_names.MakeImmutable();
+  }
 
   finalize_ = finalize;
 
@@ -3496,6 +3505,14 @@ void TypeTranslator::BuildTypeParameterType() {
 void TypeTranslator::BuildIntersectionType() {
   BuildTypeInternal();      // read left.
   helper_->SkipDartType();  // read right.
+}
+
+void TypeTranslator::BuildViewType() {
+  // We skip the view type and only use the representation type.
+  helper_->ReadNullability();
+  helper_->SkipCanonicalNameReference();  // read index for canonical name.
+  helper_->SkipListOfDartTypes();         // read type arguments
+  BuildTypeInternal();                    // read representation type.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

@@ -270,7 +270,7 @@ class CommandLineOptions {
 
       // Check that SDK is existing directory.
       if (sdkPath != null) {
-        if (!(io.Directory(sdkPath)).existsSync()) {
+        if (!io.Directory(sdkPath).existsSync()) {
           printAndFail('Invalid Dart SDK path: $sdkPath');
           return null; // Only reachable in testing.
         }

@@ -9,7 +9,7 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 
 /// Replaces invocation of Map factory constructors with
 /// factories of VM-specific classes.
-/// new LinkedHashMap<K, V>() => new _InternalLinkedHashMap<K, V>()
+/// new LinkedHashMap<K, V>() => new _Map<K, V>()
 class MapFactorySpecializer extends BaseSpecializer {
   final Procedure _linkedHashMapDefaultFactory;
   final Constructor _internalLinkedHashMapConstructor;
@@ -25,7 +25,7 @@ class MapFactorySpecializer extends BaseSpecializer {
         _internalLinkedHashMapConstructor = assertNotNull(
           coreTypes.index.getConstructor(
             'dart:collection',
-            '_InternalLinkedHashMap',
+            '_Map',
             '',
           ),
         ) {

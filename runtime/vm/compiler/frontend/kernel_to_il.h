@@ -200,10 +200,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                           LocalVariable* instance,
                           LocalVariable* setter_value);
   Fragment NativeCall(const String& name, const Function& function);
-  Fragment Return(
-      TokenPosition position,
-      bool omit_result_type_check = false,
-      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(TokenPosition position, bool omit_result_type_check = false);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -575,7 +572,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
     return instructions;
   }
 
-  Fragment BuildHashCode(bool smi);
+  Fragment BuildDoubleHashCode();
+  Fragment BuildIntegerHashCode(bool smi);
 
   TranslationHelper translation_helper_;
   Thread* thread_;

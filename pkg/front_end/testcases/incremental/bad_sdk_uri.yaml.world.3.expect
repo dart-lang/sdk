@@ -9,6 +9,13 @@ library from "org-dartlang-test:///lib.dart" as lib {
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart: Error: Dart library 'dart:collection' is not available on this platform.
+//
+// org-dartlang-test:///main.dart: Error: Dart library 'dart:core' is not available on this platform.
+//
 
   import "org-dartlang-test:///lib.dart";
 

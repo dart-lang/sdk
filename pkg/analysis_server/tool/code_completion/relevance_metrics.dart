@@ -2175,27 +2175,6 @@ class RelevanceMetricsComputer {
   }
 }
 
-class Timer {
-  Stopwatch stopwatch = Stopwatch();
-
-  int count = 0;
-
-  Timer();
-
-  double get averageTime => count == 0 ? 0 : totalTime / count;
-
-  int get totalTime => stopwatch.elapsedMilliseconds;
-
-  void start() {
-    stopwatch.start();
-  }
-
-  void stop() {
-    stopwatch.stop();
-    count++;
-  }
-}
-
 /// Information collected to compute a percentage of data points that were
 /// positive.
 class _PercentageData {

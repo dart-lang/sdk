@@ -1004,7 +1004,9 @@ class Assembler : public AssemblerBase {
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
 
-  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractClassIdFromTags(Register result,
+                              Register tags,
+                              Condition cond = AL);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
 
   void RangeCheck(Register value,

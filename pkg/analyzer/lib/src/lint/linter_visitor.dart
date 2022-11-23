@@ -324,12 +324,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitExtractorPattern(ExtractorPattern node) {
-    _runSubscriptions(node, registry._forExtractorPattern);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _runSubscriptions(node, registry._forFieldDeclaration);
     node.visitChildren(this);
@@ -450,8 +444,8 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitHideClause(HideClause node) {
-    _runSubscriptions(node, registry._forHideClause);
+  void visitGuardedPattern(GuardedPattern node) {
+    _runSubscriptions(node, registry._forCaseClause);
     node.visitChildren(this);
   }
 
@@ -636,6 +630,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitObjectPattern(ObjectPattern node) {
+    _runSubscriptions(node, registry._forObjectPattern);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitOnClause(OnClause node) {
     _runSubscriptions(node, registry._forOnClause);
     node.visitChildren(this);
@@ -785,6 +785,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _runSubscriptions(node, registry._forRestPatternElement);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRethrowExpression(RethrowExpression node) {
     _runSubscriptions(node, registry._forRethrowExpression);
     node.visitChildren(this);
@@ -809,20 +815,8 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitShowClause(ShowClause node) {
-    _runSubscriptions(node, registry._forShowClause);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitShowCombinator(ShowCombinator node) {
     _runSubscriptions(node, registry._forShowCombinator);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitShowHideElement(ShowHideElement node) {
-    _runSubscriptions(node, registry._forShowHideElement);
     node.visitChildren(this);
   }
 
@@ -895,12 +889,6 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     _runSubscriptions(node, registry._forSwitchExpressionCase);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSwitchExpressionDefault(SwitchExpressionDefault node) {
-    _runSubscriptions(node, registry._forSwitchExpressionDefault);
     node.visitChildren(this);
   }
 
@@ -1098,7 +1086,7 @@ class NodeLintRegistry {
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
   final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
   final List<_Subscription<ExtensionOverride>> _forExtensionOverride = [];
-  final List<_Subscription<ExtractorPattern>> _forExtractorPattern = [];
+  final List<_Subscription<ObjectPattern>> _forObjectPattern = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
   final List<_Subscription<FieldFormalParameter>> _forFieldFormalParameter = [];
   final List<_Subscription<ForEachPartsWithDeclaration>>
@@ -1127,7 +1115,7 @@ class NodeLintRegistry {
       _forFunctionTypedFormalParameter = [];
   final List<_Subscription<GenericFunctionType>> _forGenericFunctionType = [];
   final List<_Subscription<GenericTypeAlias>> _forGenericTypeAlias = [];
-  final List<_Subscription<HideClause>> _forHideClause = [];
+  final List<_Subscription<GuardedPattern>> _forGuardedPattern = [];
   final List<_Subscription<HideCombinator>> _forHideCombinator = [];
   final List<_Subscription<IfElement>> _forIfElement = [];
   final List<_Subscription<IfStatement>> _forIfStatement = [];
@@ -1195,13 +1183,12 @@ class NodeLintRegistry {
   final List<_Subscription<RedirectingConstructorInvocation>>
       _forRedirectingConstructorInvocation = [];
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
+  final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
   final List<_Subscription<ScriptTag>> _forScriptTag = [];
   final List<_Subscription<SetOrMapLiteral>> _forSetOrMapLiteral = [];
-  final List<_Subscription<ShowClause>> _forShowClause = [];
   final List<_Subscription<ShowCombinator>> _forShowCombinator = [];
-  final List<_Subscription<ShowHideElement>> _forShowHideElement = [];
   final List<_Subscription<SimpleFormalParameter>> _forSimpleFormalParameter =
       [];
   final List<_Subscription<SimpleIdentifier>> _forSimpleIdentifier = [];
@@ -1215,8 +1202,6 @@ class NodeLintRegistry {
   final List<_Subscription<SwitchCase>> _forSwitchCase = [];
   final List<_Subscription<SwitchDefault>> _forSwitchDefault = [];
   final List<_Subscription<SwitchExpressionCase>> _forSwitchExpressionCase = [];
-  final List<_Subscription<SwitchExpressionDefault>>
-      _forSwitchExpressionDefault = [];
   final List<_Subscription<SwitchExpression>> _forSwitchExpression = [];
   final List<_Subscription<SwitchPatternCase>> _forSwitchPatternCase = [];
   final List<_Subscription<SwitchStatement>> _forSwitchStatement = [];
@@ -1464,10 +1449,6 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addExtractorPattern(LintRule linter, AstVisitor visitor) {
-    _forExtractorPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
   void addFieldDeclaration(LintRule linter, AstVisitor visitor) {
     _forFieldDeclaration.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1564,8 +1545,8 @@ class NodeLintRegistry {
     _forGenericTypeAlias.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addHideClause(LintRule linter, AstVisitor visitor) {
-    _forHideClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addGuardedPattern(LintRule linter, AstVisitor visitor) {
+    _forGuardedPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addHideCombinator(LintRule linter, AstVisitor visitor) {
@@ -1696,6 +1677,10 @@ class NodeLintRegistry {
     _forNullLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addObjectPattern(LintRule linter, AstVisitor visitor) {
+    _forObjectPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addOnClause(LintRule linter, AstVisitor visitor) {
     _forOnClause.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1795,6 +1780,11 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addRestPatternElement(LintRule linter, AstVisitor visitor) {
+    _forRestPatternElement
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addRethrowExpression(LintRule linter, AstVisitor visitor) {
     _forRethrowExpression
         .add(_Subscription(linter, visitor, _getTimer(linter)));
@@ -1812,16 +1802,8 @@ class NodeLintRegistry {
     _forSetOrMapLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addShowClause(LintRule linter, AstVisitor visitor) {
-    _forShowClause.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
   void addShowCombinator(LintRule linter, AstVisitor visitor) {
     _forShowCombinator.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addShowHideElement(LintRule linter, AstVisitor visitor) {
-    _forShowHideElement.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addSimpleFormalParameter(LintRule linter, AstVisitor visitor) {
@@ -1875,11 +1857,6 @@ class NodeLintRegistry {
 
   void addSwitchExpressionCase(LintRule linter, AstVisitor visitor) {
     _forSwitchExpressionCase
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addSwitchExpressionDefault(LintRule linter, AstVisitor visitor) {
-    _forSwitchExpressionDefault
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 

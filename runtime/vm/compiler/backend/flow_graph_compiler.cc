@@ -875,15 +875,14 @@ void FlowGraphCompiler::GenerateDeferredCode() {
   }
 }
 
-void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
-                                            intptr_t outer_try_index,
-                                            intptr_t pc_offset,
-                                            bool is_generated,
-                                            const Array& handler_types,
-                                            bool needs_stacktrace) {
-  exception_handlers_list_->AddHandler(try_index, outer_try_index, pc_offset,
-                                       is_generated, handler_types,
-                                       needs_stacktrace);
+void FlowGraphCompiler::AddExceptionHandler(CatchBlockEntryInstr* entry) {
+  exception_handlers_list_->AddHandler(
+      entry->catch_try_index(), entry->try_index(), assembler()->CodeSize(),
+      entry->is_generated(), entry->catch_handler_types(),
+      entry->needs_stacktrace());
+  if (is_optimizing()) {
+    RecordSafepoint(entry->locs());
+  }
 }
 
 void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
@@ -931,7 +930,7 @@ void FlowGraphCompiler::AddNullCheck(const InstructionSource& source,
 
 void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
                                                 Code::EntryKind entry_kind) {
-  ASSERT(function.IsZoneHandle());
+  DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
                                ? Code::kUncheckedEntry
                                : Code::kDefaultEntry;
@@ -941,7 +940,7 @@ void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
 }
 
 void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
-  ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
+  DEBUG_ASSERT(stub_code.IsNotTemporaryScopedHandle());
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kPcRelativeCall, Code::kDefaultEntry, assembler()->CodeSize(),
@@ -949,7 +948,7 @@ void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
 }
 
 void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
-  ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
+  DEBUG_ASSERT(stub_code.IsNotTemporaryScopedHandle());
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kPcRelativeTailCall, Code::kDefaultEntry, assembler()->CodeSize(),
@@ -958,7 +957,7 @@ void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
 
 void FlowGraphCompiler::AddPcRelativeTTSCallTypeTarget(
     const AbstractType& dst_type) {
-  ASSERT(dst_type.IsZoneHandle() || dst_type.IsReadOnlyHandle());
+  DEBUG_ASSERT(dst_type.IsNotTemporaryScopedHandle());
   ASSERT(!dst_type.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kPcRelativeTTSCall, Code::kDefaultEntry, assembler()->CodeSize(),
@@ -967,7 +966,7 @@ void FlowGraphCompiler::AddPcRelativeTTSCallTypeTarget(
 
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
                                             Code::EntryKind entry_kind) {
-  ASSERT(func.IsZoneHandle());
+  DEBUG_ASSERT(func.IsNotTemporaryScopedHandle());
   const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
                                ? Code::kUncheckedEntry
                                : Code::kDefaultEntry;
@@ -977,7 +976,7 @@ void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
 }
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
-  ASSERT(code.IsZoneHandle() || code.IsReadOnlyHandle());
+  DEBUG_ASSERT(code.IsNotTemporaryScopedHandle());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kCallViaCode, Code::kDefaultEntry, assembler()->CodeSize(), nullptr,
       &code, nullptr));
@@ -2645,8 +2644,6 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
   if (type.IsRecordType()) {
     // Subtype test cache stubs are not useful for record types.
     // Fall through to runtime.
-    // TODO(dartbug.com/49719): generate separate type test
-    // for each record field.
     return SubtypeTestCache::New();
   }
 
@@ -3339,10 +3336,8 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   // when building a dynamic closure call dispatcher, where any unboxed values
   // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
   // See FlowGraphBuilder::BuildDynamicCallVarsInit().
-  // Unboxed values are also allowed in record field getters.
   ASSERT(!RepresentationUtils::IsUnboxedInteger(rep) ||
-         function.IsDynamicClosureCallDispatcher(thread()) ||
-         function.IsRecordFieldGetter());
+         function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }
 

@@ -22,23 +22,16 @@ import '../universe/selector.dart';
 import '../world.dart';
 
 import 'element_map.dart';
-import 'kernel_world_interfaces.dart' as interfaces;
 
 /// The immutable result of the [ResolutionWorldBuilder].
-class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
-  @override
+class KClosedWorld implements BuiltWorld {
   final KernelToElementMap elementMap;
-  @override
   final KElementEnvironment elementEnvironment;
-  @override
   final DartTypes dartTypes;
-  @override
   final KCommonElements commonElements;
 
-  @override
   final NativeData nativeData;
   final InterceptorData interceptorData;
-  @override
   final BackendUsage backendUsage;
   final NoSuchMethodData noSuchMethodData;
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
@@ -47,14 +40,13 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
   final Iterable<MemberEntity> liveInstanceMembers;
+  final Iterable<MemberEntity> liveAbstractInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
 
-  @override
   final KFieldAnalysis fieldAnalysis;
   final Iterable<ClassEntity> liveNativeClasses;
-  @override
   final Map<MemberEntity, MemberUsage> liveMemberUsage;
 
   @override
@@ -85,13 +77,11 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
   ///
   /// A closurized method is considered live if the enclosing class has been
   /// instantiated.
-  @override
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables;
 
   /// Set of (live) local functions (closures).
   ///
   /// A live function is one whose enclosing member function has been enqueued.
-  @override
   final Iterable<Local> localFunctions;
 
   @override
@@ -113,6 +103,7 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
       required Set<ClassEntity> implementedClasses,
       required this.liveNativeClasses,
       required this.liveInstanceMembers,
+      required this.liveAbstractInstanceMembers,
       required this.assignedInstanceMembers,
       required this.liveMemberUsage,
       required this.mixinUses,
@@ -171,11 +162,10 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
 
   /// Returns `true` if [member] has been marked as used (called, read, etc.) in
   /// this world builder.
-  @override
   bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
 
   @override
-  void forEachGenericMethod(Function f) {
+  void forEachGenericMethod(void Function(FunctionEntity e) f) {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
@@ -185,7 +175,7 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
   }
 
   @override
-  void forEachGenericInstanceMethod(Function f) {
+  void forEachGenericInstanceMethod(void Function(FunctionEntity e) f) {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           member.isInstanceMember &&
@@ -240,8 +230,8 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (usage.hasRead) {
         DartType? type;
-        if (member.isField) {
-          type = elementEnvironment.getFieldType(member as FieldEntity);
+        if (member is FieldEntity) {
+          type = elementEnvironment.getFieldType(member);
         } else if (member.isGetter) {
           type = elementEnvironment
               .getFunctionType(member as FunctionEntity)

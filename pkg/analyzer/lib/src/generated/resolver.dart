@@ -6,7 +6,12 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide NamedType, RecordPatternField, RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -26,6 +31,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -41,7 +47,6 @@ import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/constructor_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
-import 'package:analyzer/src/dart/resolver/extractor_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
@@ -58,7 +63,6 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
-import 'package:analyzer/src/dart/resolver/record_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
@@ -86,6 +90,12 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
+
+typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
+    DartPattern, DartType, PromotableElement>;
+
+typedef SharedRecordPatternField
+    = shared.RecordPatternField<RecordPatternFieldImpl, DartPatternImpl>;
 
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
@@ -141,7 +151,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     with
         ErrorDetectionHelpers,
         TypeAnalyzer<AstNode, Statement, Expression, PromotableElement,
-            DartType> {
+            DartType, DartPattern> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -286,14 +296,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
 
-  late final ExtractorPatternResolver extractorPatternResolver =
-      ExtractorPatternResolver(this);
-
   late final ListPatternResolver listPatternResolver =
       ListPatternResolver(this);
-
-  late final RecordPatternResolver recordPatternResolver =
-      RecordPatternResolver(this);
 
   final bool genericMetadataIsEnabled;
 
@@ -496,7 +500,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  TypeOperations2<DartType> get typeOperations => flowAnalysis.typeOperations;
+  TypeOperations<DartType> get typeOperations => flowAnalysis.typeOperations;
 
   @override
   DartType get unknownType => UnknownInferredType.instance;
@@ -504,6 +508,45 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
+
+  @override
+  shared.RecordType<DartType>? asRecordType(DartType type) {
+    if (type is RecordType) {
+      return shared.RecordType(
+        positional: type.positionalFields.map((e) => e.type).toList(),
+        named: type.namedFields
+            .map((e) => shared.NamedType(e.name, e.type))
+            .toList(),
+      );
+    }
+    return null;
+  }
+
+  List<SharedRecordPatternField> buildSharedRecordPatternFields(
+    List<RecordPatternFieldImpl> fields,
+  ) {
+    return fields.map((field) {
+      Token? nameToken;
+      var fieldName = field.fieldName;
+      if (fieldName != null) {
+        nameToken = fieldName.name;
+        if (nameToken == null) {
+          nameToken = field.pattern.variablePattern?.name;
+          if (nameToken == null) {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
+              field,
+            );
+          }
+        }
+      }
+      return shared.RecordPatternField(
+        node: field,
+        name: nameToken?.lexeme,
+        pattern: field.pattern,
+      );
+    }).toList();
+  }
 
   /// Verify that the arguments in the given [argumentList] can be assigned to
   /// their corresponding parameters.
@@ -708,6 +751,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void dispatchCollectionElement(
+    covariant CollectionElementImpl element,
+    covariant CollectionLiteralContext? context,
+  ) {
+    if (element is ExpressionImpl) {
+      dispatchExpression(element, context?.elementType ?? unknownType);
+    } else {
+      element.resolveElement(this, context);
+    }
+    popRewrite();
+  }
+
+  @override
   ExpressionTypeAnalysisResult<DartType> dispatchExpression(
       covariant ExpressionImpl expression, DartType context) {
     int? stackDepth;
@@ -734,19 +790,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void dispatchPattern(
-      DartType matchedType,
-      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
-      MatchContext<AstNode, Expression> context,
-      AstNode node) {
+      DartType matchedType, SharedMatchContext context, AstNode node) {
     if (node is DartPatternImpl) {
-      node.resolvePattern(this, matchedType, typeInfos, context);
+      node.resolvePattern(this, matchedType, context);
     } else {
       // This can occur inside conventional switch statements, since
       // [SwitchCase] points directly to an [Expression] rather than to a
       // [ConstantPattern].  So we mimic what
       // [ConstantPatternImpl.resolvePattern] would do.
-      analyzeConstantPattern(
-          matchedType, typeInfos, context, node, node as Expression);
+      analyzeConstantPattern(matchedType, context, node, node as Expression);
       // Stack: (Expression)
       popRewrite();
       // Stack: ()
@@ -764,8 +816,77 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  DartType downwardInferObjectPatternRequiredType({
+    required DartType matchedType,
+    required covariant ObjectPatternImpl pattern,
+  }) {
+    var typeNode = pattern.type;
+    if (typeNode.typeArguments == null) {
+      var typeNameElement = typeNode.name.staticElement;
+      if (typeNameElement is InterfaceElement) {
+        var typeParameters = typeNameElement.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          var typeArguments = _inferTypeArguments(
+            typeParameters: typeParameters,
+            errorNode: typeNode,
+            declaredType: typeNameElement.thisType,
+            contextType: matchedType,
+          );
+          return typeNode.type = typeNameElement.instantiate(
+            typeArguments: typeArguments,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
+      } else if (typeNameElement is TypeAliasElement) {
+        var typeParameters = typeNameElement.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          var typeArguments = _inferTypeArguments(
+            typeParameters: typeParameters,
+            errorNode: typeNode,
+            declaredType: typeNameElement.aliasedType,
+            contextType: matchedType,
+          );
+          return typeNode.type = typeNameElement.instantiate(
+            typeArguments: typeArguments,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
+      }
+    }
+    return typeNode.typeOrThrow;
+  }
+
+  @override
   void finishExpressionCase(Expression node, int caseIndex) {
     throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void finishJoinedPatternVariable(
+    covariant VariablePatternJoinElementImpl variable, {
+    required bool isConsistent,
+    required bool isFinal,
+    required DartType type,
+  }) {
+    variable.isConsistent &= isConsistent;
+    variable.isFinal = isFinal;
+    variable.type = type;
+  }
+
+  @override
+  List<PromotableElement>? getJoinedVariableComponents(
+      PromotableElement variable) {
+    if (variable is VariablePatternJoinElementImpl) {
+      return variable.components;
+    }
+    return null;
+  }
+
+  @override
+  shared.MapPatternEntry<Expression, DartPattern>? getMapPatternEntry(
+      AstNode element) {
+    // TODO(scheglov): implement getMapPatternEntry
+    throw UnimplementedError();
   }
 
   /// Return the static element associated with the given expression whose type
@@ -790,33 +911,86 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<AstNode, Expression> getSwitchExpressionMemberInfo(
-      Expression node, int index) {
+  DartPattern? getRestPatternElementPattern(covariant DartPatternImpl node) {
+    // TODO(scheglov): implement getRestPatternElementPattern
+    throw UnimplementedError();
+  }
+
+  @override
+  SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement>
+      getSwitchExpressionMemberInfo(Expression node, int index) {
     throw UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  SwitchStatementMemberInfo<AstNode, Statement, Expression>
-      getSwitchStatementMemberInfo(covariant SwitchStatement node, int index) {
-    var member = node.members[index];
-    AstNode? pattern;
-    WhenClause? whenClause;
-    if (member is SwitchCase) {
-      pattern = member.expression;
-    } else if (member is SwitchPatternCase) {
-      pattern = member.pattern;
-      whenClause = member.whenClause;
+  SwitchStatementMemberInfo<AstNode, Statement, Expression, PromotableElement>
+      getSwitchStatementMemberInfo(
+    covariant SwitchStatementImpl node,
+    int index,
+  ) {
+    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElement> ofMember(
+      SwitchMemberImpl member,
+    ) {
+      if (member is SwitchCaseImpl) {
+        return CaseHeadOrDefaultInfo(
+          pattern: member.expression,
+          variables: {},
+          guard: null,
+        );
+      } else if (member is SwitchPatternCaseImpl) {
+        var guardedPattern = member.guardedPattern;
+        return CaseHeadOrDefaultInfo(
+          pattern: guardedPattern.pattern,
+          variables: {}, // TODO(scheglov) use actual
+          guard: guardedPattern.whenClause?.expression,
+        );
+      } else {
+        return CaseHeadOrDefaultInfo(
+          pattern: null,
+          variables: {},
+          guard: null,
+        );
+      }
     }
+
+    var group = node.memberGroups[index];
     return SwitchStatementMemberInfo(
-      [
-        CaseHeadOrDefaultInfo(
-          pattern: pattern,
-          guard: whenClause?.expression,
-        ),
-      ],
-      member.statements,
-      labels: member.labels,
+      group.members.map(ofMember).toList(),
+      group.statements,
+      {},
+      hasLabels: group.hasLabels,
     );
+  }
+
+  @override
+  DartType getVariableType(PromotableElement element) {
+    return element.type;
+  }
+
+  @override
+  void handle_ifElement_conditionEnd(covariant IfElementImpl node) {
+    // Stack: (Expression condition)
+    var condition = popRewrite()!;
+
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition,
+        whyNotPromoted: whyNotPromoted);
+  }
+
+  @override
+  void handle_ifElement_elseEnd(
+    covariant IfElementImpl node,
+    covariant CollectionElementImpl ifFalse,
+  ) {
+    nullSafetyDeadCodeVerifier.flowEnd(ifFalse);
+  }
+
+  @override
+  void handle_ifElement_thenEnd(
+    covariant IfElementImpl node,
+    covariant CollectionElementImpl ifTrue,
+  ) {
+    nullSafetyDeadCodeVerifier.flowEnd(ifTrue);
   }
 
   @override
@@ -840,33 +1014,62 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void handleCase_afterCaseHeads(AstNode node, int caseIndex, int numHeads) {}
+  void handleCase_afterCaseHeads(
+      AstNode node, int caseIndex, Iterable<PromotableElement> variables) {}
 
   @override
   void handleCaseHead(
       // TODO(paulberry): once we support switch expressions this type will
       // need to change.
-      covariant SwitchStatement node,
+      covariant SwitchStatementImpl node,
       {required int caseIndex,
       required int subIndex}) {
     // Stack: (Expression)
     popRewrite(); // "when" expression
     // Stack: ()
-    switchExhaustiveness!.visitSwitchMember(node.members[caseIndex]);
+    switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
   }
 
   @override
-  void handleDefault(covariant SwitchStatement node, int caseIndex) {
-    switchExhaustiveness!.visitSwitchMember(node.members[caseIndex]);
+  void handleDefault(covariant SwitchStatementImpl node, int caseIndex) {
+    switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
   }
 
   @override
-  void handleMergedStatementCase(covariant SwitchStatement node,
-      {required int caseIndex,
-      required int executionPathIndex,
-      required int numStatements}) {
-    nullSafetyDeadCodeVerifier.flowEnd(node.members[caseIndex]);
+  void handleListPatternRestElement(
+    DartPattern container,
+    covariant DartPattern restElement,
+  ) {
+    // TODO(scheglov): implement handleListPatternRestElement
+    throw UnimplementedError();
   }
+
+  @override
+  void handleMapPatternEntry(DartPattern container, AstNode entryElement) {
+    // TODO(scheglov): implement handleMapPatternEntry
+    throw UnimplementedError();
+  }
+
+  @override
+  void handleMapPatternRestElement(
+    DartPattern container,
+    covariant DartPattern restElement,
+  ) {
+    // TODO(scheglov): implement handleMapPatternRestElement
+    throw UnimplementedError();
+  }
+
+  @override
+  void handleMergedStatementCase(
+    covariant SwitchStatementImpl node, {
+    required int caseIndex,
+  }) {
+    nullSafetyDeadCodeVerifier
+        .flowEnd(node.memberGroups[caseIndex].members.last);
+  }
+
+  @override
+  void handleNoCollectionElement(AstNode node) {}
 
   @override
   void handleNoGuard(AstNode node, int caseIndex) {
@@ -942,8 +1145,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  bool isRestPatternElement(covariant DartPatternImpl node) {
+    // TODO(scheglov): implement isRestPatternElement
+    return false;
+  }
+
+  @override
   bool isSwitchExhaustive(AstNode node, DartType expressionType) =>
       switchExhaustiveness!.isExhaustive;
+
+  @override
+  bool isVariableFinal(PromotableElement element) {
+    return element.isFinal;
+  }
 
   @override
   bool isVariablePattern(AstNode pattern) => pattern is VariablePattern;
@@ -951,6 +1165,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType listType(DartType elementType) {
     return typeProvider.listType(elementType);
+  }
+
+  @override
+  DartType mapType({
+    required DartType keyType,
+    required DartType valueType,
+  }) {
+    return typeProvider.mapType(keyType, valueType);
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
@@ -1051,6 +1273,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_debugPrint('PUSH ${expression.runtimeType} $expression'));
     }
     _rewriteStack.add(expression);
+  }
+
+  @override
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
+    return RecordTypeImpl(
+      positionalFields: positional.map((type) {
+        return RecordTypePositionalFieldImpl(type: type);
+      }).toList(),
+      namedFields: named.map((namedType) {
+        return RecordTypeNamedFieldImpl(
+          name: namedType.name,
+          type: namedType.type,
+        );
+      }).toList(),
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   /// Replaces the expression [oldNode] with [newNode], updating the node's
@@ -1156,18 +1396,71 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  void resolveRelationalPattern({
-    required RelationalPatternImpl node,
-    required DartType matchedType,
+  @override
+  DartType resolveObjectPatternPropertyGet({
+    required DartType receiverType,
+    required covariant SharedRecordPatternField field,
   }) {
-    final operatorLexeme = node.operator.lexeme;
-    final isEqEq = const {'==', '!='}.contains(operatorLexeme);
-    final methodName = isEqEq ? '==' : operatorLexeme;
+    var fieldNode = field.node;
+    var nameToken = fieldNode.fieldName?.name;
+    nameToken ??= field.pattern.variablePattern?.name;
+    if (nameToken == null) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
+        fieldNode,
+      );
+      return typeProvider.dynamicType;
+    }
 
-    analyzeExpression(node.operand, matchedType);
-    node.operand = popRewrite()!;
+    var result = typePropertyResolver.resolve(
+      receiver: null,
+      receiverType: receiverType,
+      name: nameToken.lexeme,
+      propertyErrorEntity: nameToken,
+      nameErrorEntity: nameToken,
+    );
 
-    final result = typePropertyResolver.resolve(
+    if (result.needsGetterError) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.UNDEFINED_GETTER,
+        nameToken,
+        [nameToken.lexeme, receiverType],
+      );
+    }
+
+    var getter = result.getter;
+    if (getter != null) {
+      fieldNode.fieldElement = getter;
+      if (getter is PropertyAccessorElement) {
+        return getter.returnType;
+      } else {
+        // TODO(scheglov) https://github.com/dart-lang/language/issues/2561
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.UNDEFINED_GETTER,
+          nameToken,
+          [nameToken.lexeme, receiverType],
+        );
+        return getter.type;
+      }
+    }
+
+    var recordField = result.recordField;
+    if (recordField != null) {
+      return recordField.type;
+    }
+
+    return typeProvider.dynamicType;
+  }
+
+  RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
+    covariant RelationalPatternImpl node,
+    DartType matchedType,
+  ) {
+    var operatorLexeme = node.operator.lexeme;
+    var isEquality = const {'==', '!='}.contains(operatorLexeme);
+    var methodName = isEquality ? '==' : operatorLexeme;
+
+    var result = typePropertyResolver.resolve(
       receiver: null,
       receiverType: matchedType,
       name: methodName,
@@ -1183,33 +1476,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     }
 
-    final element = result.getter as MethodElement?;
+    var element = result.getter as MethodElement?;
     node.element = element;
-
-    if (element != null) {
-      final parameterType = element.firstParameterType;
-      if (parameterType != null) {
-        final operandType = node.operand.typeOrThrow;
-        final argumentType =
-            isEqEq ? typeSystem.promoteToNonNull(operandType) : operandType;
-        if (!typeSystem.isAssignableTo(argumentType, parameterType)) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-            node.operand,
-            [argumentType, parameterType],
-          );
-        }
-      }
-
-      final returnType = element.returnType;
-      if (!typeSystem.isAssignableTo(returnType, typeProvider.boolType)) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode
-              .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
-          node.operator,
-        );
-      }
+    if (element == null) {
+      return null;
     }
+
+    var parameterType = element.firstParameterType;
+    if (parameterType == null) {
+      return null;
+    }
+
+    return RelationalOperatorResolution(
+      isEquality: isEquality,
+      parameterType: parameterType,
+      returnType: element.returnType,
+    );
   }
 
   void setReadElement(Expression node, Element? element) {
@@ -1390,6 +1672,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _insertImplicitCallReference(
         insertGenericFunctionInstantiation(node, contextType: contextType),
         contextType: contextType);
+
+    var expression = node.expression;
+    var staticType = node.staticType;
+    if (staticType != null && expression is SimpleIdentifier) {
+      var simpleIdentifier = expression as SimpleIdentifier;
+      var element = simpleIdentifier.staticElement;
+      if (element is PromotableElement &&
+          !expression.typeOrThrow.isDartCoreNull &&
+          typeSystem.isNullable(element.type) &&
+          typeSystem.isNonNullable(staticType) &&
+          flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
+        errorReporter.reportErrorForNode(
+          HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
+          simpleIdentifier,
+          [simpleIdentifier.name],
+        );
+      }
+    }
   }
 
   @override
@@ -1531,6 +1831,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     nullShortingTermination(node);
     _insertImplicitCallReference(node, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
   }
 
   @override
@@ -2152,30 +2453,34 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitHideCombinator(HideCombinator node) {}
 
   @override
-  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
-    flowAnalysis.flow?.ifStatement_conditionBegin();
-    Expression condition = node.condition;
-    analyzeExpression(condition, typeProvider.boolType);
-    condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
-
-    boolExpressionVerifier.checkForNonBoolCondition(condition,
-        whyNotPromoted: whyNotPromoted);
-
-    flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-    (node.thenElement as CollectionElementImpl).resolveElement(this, context);
-    popRewrite();
-    nullSafetyDeadCodeVerifier.flowEnd(node.thenElement);
-
-    var elseElement = node.elseElement;
-    if (elseElement != null) {
-      flowAnalysis.flow?.ifStatement_elseBegin();
-      (elseElement as CollectionElementImpl).resolveElement(this, context);
-      popRewrite();
-      nullSafetyDeadCodeVerifier.flowEnd(elseElement);
+  void visitIfElement(
+    covariant IfElementImpl node, {
+    CollectionLiteralContext? context,
+  }) {
+    final caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      analyzeIfCaseElement(
+        node: node,
+        expression: node.expression,
+        pattern: guardedPattern.pattern,
+        guard: guardedPattern.whenClause?.expression,
+        ifTrue: node.thenElement,
+        ifFalse: node.elseElement,
+        context: context,
+      );
+      // Stack: (Expression, Guard)
+      popRewrite(); // guard
+      popRewrite()!; // expression
+    } else {
+      analyzeIfElement(
+        node: node,
+        condition: node.expression,
+        ifTrue: node.thenElement,
+        ifFalse: node.elseElement,
+        context: context,
+      );
     }
-
-    flowAnalysis.flow?.ifStatement_end(elseElement != null);
   }
 
   @override
@@ -2184,13 +2489,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     final caseClause = node.caseClause;
     if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
       analyzeIfCaseStatement(
         node,
         node.expression,
-        caseClause.pattern,
-        caseClause.whenClause?.expression,
+        guardedPattern.pattern,
+        guardedPattern.whenClause?.expression,
         node.thenStatement,
         node.elseStatement,
+        guardedPattern.variables,
       );
       // Stack: (Expression, Guard)
       popRewrite(); // guard
@@ -2267,6 +2574,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     nullShortingTermination(node);
     _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
   }
 
   @override
@@ -2432,6 +2740,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
     _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyMethodInvocation(node);
   }
 
   @override
@@ -2612,6 +2921,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     nullShortingTermination(node);
     _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
   }
 
   @override
@@ -2803,12 +3113,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(covariant SwitchStatementImpl node) {
     // Stack: ()
     checkUnreachableNode(node);
 
     var previousExhaustiveness = switchExhaustiveness;
-    analyzeSwitchStatement(node, node.expression, node.members.length);
+    analyzeSwitchStatement(node, node.expression, node.memberGroups.length);
     // Stack: (Expression)
     popRewrite();
     // Stack: ()
@@ -3080,6 +3390,35 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return true;
   }
 
+  /// Infers type arguments corresponding to [typeParameters] used it the
+  /// [declaredType], so that thr resulting type is a subtype of [contextType].
+  List<DartType> _inferTypeArguments({
+    required List<TypeParameterElement> typeParameters,
+    required AstNode errorNode,
+    required DartType declaredType,
+    required DartType contextType,
+  }) {
+    var inferrer = GenericInferrer(
+      typeSystem,
+      typeParameters,
+      inferenceErrorListener: InferenceErrorReporter(
+        errorReporter,
+        isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+        isGenericMetadataEnabled: genericMetadataIsEnabled,
+      ),
+      errorNode: errorNode,
+      genericMetadataIsEnabled: genericMetadataIsEnabled,
+    );
+    inferrer.constrainReturnType(declaredType, contextType);
+    return inferrer.partialInfer().map((typeArgument) {
+      if (typeArgument is UnknownInferredType) {
+        return typeProvider.dynamicType;
+      } else {
+        return typeArgument;
+      }
+    }).toList();
+  }
+
   /// If `expression` should be treated as `expression.call`, inserts an
   /// [ImplicitCallReference] node which wraps [expression].
   void _insertImplicitCallReference(ExpressionImpl expression,
@@ -3347,6 +3686,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorName = nameNode.constructorName;
       name =
           constructorName.name?.name ?? '${constructorName.type.name.name}.new';
+    } else if (nameNode is RedirectingConstructorInvocation) {
+      name = nameNode.constructorName?.name;
+      if (name == null) {
+        var staticElement = nameNode.staticElement;
+        if (staticElement != null) {
+          name =
+              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
+        }
+      }
     } else if (nameNode is SuperConstructorInvocation) {
       name = nameNode.constructorName?.name;
       if (name == null) {
@@ -3385,7 +3733,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       throw UnimplementedError('(${nameNode.runtimeType}) $nameNode');
     }
 
-    var isPlural = requiredParameterCount - actualArgumentCount > 1;
+    var isPlural = requiredParameterCount > 1;
     var arguments = <Object>[];
     if (isPlural) {
       arguments.add(requiredParameterCount);
@@ -3454,7 +3802,10 @@ class ResolverVisitorForMigration extends ResolverVisitor {
   }
 
   @override
-  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
+  void visitIfElement(
+    covariant IfElementImpl node, {
+    CollectionLiteralContext? context,
+  }) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
@@ -3463,7 +3814,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
     } else {
       var element = conditionalKnownValue ? node.thenElement : node.elseElement;
       if (element != null) {
-        (element as CollectionElementImpl).resolveElement(this, context);
+        element.resolveElement(this, context);
         popRewrite();
       }
     }
@@ -4045,11 +4396,26 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
+  void visitIfStatement(covariant IfStatementImpl node) {
     node.condition.accept(this);
-    node.caseClause?.accept(this);
-    visitStatementInScope(node.thenStatement);
-    visitStatementInScope(node.elseStatement);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      guardedPattern.pattern.accept(this);
+      _withNameScope(() {
+        var patternVariables = guardedPattern.variables;
+        for (var variable in patternVariables.values) {
+          _define(variable);
+        }
+        guardedPattern.whenClause?.accept(this);
+        visitStatementInScope(node.thenStatement);
+      });
+      visitStatementInScope(node.elseStatement);
+    } else {
+      visitStatementInScope(node.thenStatement);
+      visitStatementInScope(node.elseStatement);
+    }
   }
 
   @override
@@ -4363,6 +4729,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
+  /// Run [f] with the new name scope.
+  void _withNameScope(void Function() f) {
+    var current = nameScope;
+    try {
+      nameScope = LocalScope(current);
+      f();
+    } finally {
+      nameScope = current;
+    }
+  }
+
   /// Return the [Scope] to use while resolving inside the [node].
   ///
   /// Not every node has the scope set, for example we set the scopes for
@@ -4407,22 +4784,36 @@ class SwitchExhaustiveness {
 
   SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
 
-  void visitSwitchMember(SwitchMember node) {
-    if (_enumConstants != null && node is SwitchCase) {
-      var element = _referencedElement(node.expression);
-      if (element is PropertyAccessorElement) {
-        _enumConstants!.remove(element.variable);
-      }
-
-      if (node.expression is NullLiteral) {
-        _isNullEnumValueCovered = true;
-      }
-
-      if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
+  void visitSwitchMember(SwitchStatementCaseGroup group) {
+    for (var node in group.members) {
+      if (_enumConstants != null) {
+        ExpressionImpl? caseConstant;
+        if (node is SwitchCaseImpl) {
+          caseConstant = node.expression;
+        } else if (node is SwitchPatternCaseImpl) {
+          var guardedPattern = node.guardedPattern;
+          if (guardedPattern.whenClause == null) {
+            var pattern = guardedPattern.pattern.unParenthesized;
+            if (pattern is ConstantPatternImpl) {
+              caseConstant = pattern.expression;
+            }
+          }
+        }
+        if (caseConstant != null) {
+          var element = _referencedElement(caseConstant);
+          if (element is PropertyAccessorElement) {
+            _enumConstants!.remove(element.variable);
+          }
+          if (caseConstant is NullLiteral) {
+            _isNullEnumValueCovered = true;
+          }
+          if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
+            isExhaustive = true;
+          }
+        }
+      } else if (node is SwitchDefault) {
         isExhaustive = true;
       }
-    } else if (node is SwitchDefault) {
-      isExhaustive = true;
     }
   }
 

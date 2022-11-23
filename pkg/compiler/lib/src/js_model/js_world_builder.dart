@@ -35,9 +35,8 @@ import 'elements.dart';
 import 'element_map_impl.dart';
 import 'js_to_frontend_map.dart';
 import 'js_world.dart';
-import 'js_world_builder_interfaces.dart' as interfaces;
 
-class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
+class JClosedWorldBuilder {
   final JsKernelToElementMap _elementMap;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
       ClassHierarchyNodesMap();
@@ -47,14 +46,14 @@ class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
   final DiagnosticReporter _reporter;
   final AbstractValueStrategy _abstractValueStrategy;
 
-  JsClosedWorldBuilder(this._elementMap, this._closureDataBuilder,
-      this._options, this._reporter, this._abstractValueStrategy);
+  JClosedWorldBuilder(this._elementMap, this._closureDataBuilder, this._options,
+      this._reporter, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
   DartTypes get _dartTypes => _elementMap.types;
 
-  JsClosedWorld convertClosedWorld(
+  JClosedWorld convertClosedWorld(
       KClosedWorld closedWorld,
       Map<MemberEntity, ClosureScopeModel> closureModels,
       OutputUnitData kOutputUnitData) {
@@ -112,6 +111,8 @@ class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
 
     Set<MemberEntity> liveInstanceMembers =
         map.toBackendMemberSet(closedWorld.liveInstanceMembers);
+    Set<MemberEntity> liveAbstractInstanceMembers =
+        map.toBackendMemberSet(closedWorld.liveAbstractInstanceMembers);
 
     Map<ClassEntity, Set<ClassEntity>> mixinUses =
         map.toBackendClassMap(closedWorld.mixinUses, map.toBackendClassSet);
@@ -213,7 +214,7 @@ class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
         (MemberUsage usage) =>
             MemberAccess(usage.reads, usage.writes, usage.invokes));
 
-    return JsClosedWorld(
+    return JClosedWorld(
         _elementMap,
         nativeData,
         interceptorData,
@@ -227,6 +228,7 @@ class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
         // represent the synthesized call methods for static and instance method
         // closurizations.
         liveInstanceMembers /*..addAll(callMethods)*/,
+        liveAbstractInstanceMembers,
         assignedInstanceMembers,
         processedMembers,
         extractTypeArgumentsInterfacesNewRti,
@@ -317,7 +319,6 @@ class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
 
   /// Construct a closure class and set up the necessary class inference
   /// hierarchy.
-  @override
   JsClosureClassInfo buildClosureClass(
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,

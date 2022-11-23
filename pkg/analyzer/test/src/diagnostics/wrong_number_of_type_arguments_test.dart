@@ -93,40 +93,6 @@ dynamic<int> v;
     ]);
   }
 
-  test_extractorPattern_tooFew() async {
-    await assertErrorsInCode(r'''
-abstract class A<T, U> {
-  int get foo;
-}
-
-void f(x) {
-  switch (x) {
-    case A<int>(foo: 0):
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 79, 6),
-    ]);
-  }
-
-  test_extractorPattern_tooMany() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int get foo;
-}
-
-void f(x) {
-  switch (x) {
-    case A<int>(foo: 0):
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 73, 6),
-    ]);
-  }
-
   test_functionReference_tooFew() async {
     await assertErrorsInCode('''
 f() {
@@ -293,6 +259,40 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 11),
+    ]);
+  }
+
+  test_objectPattern_tooFew() async {
+    await assertErrorsInCode(r'''
+abstract class A<T, U> {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A<int>(foo: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 79, 6),
+    ]);
+  }
+
+  test_objectPattern_tooMany() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A<int>(foo: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 73, 6),
     ]);
   }
 

@@ -63,6 +63,7 @@ class LintNames {
   static const String eol_at_end_of_file = 'eol_at_end_of_file';
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
+  static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
@@ -144,6 +145,8 @@ class LintNames {
       'unnecessary_getters_setters';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_late = 'unnecessary_late';
+  static const String unnecessary_library_directive =
+      'unnecessary_library_directive';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_aware_assignments =
       'unnecessary_null_aware_assignments';

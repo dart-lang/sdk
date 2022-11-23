@@ -252,6 +252,7 @@ enum EdgeOriginKind {
   alwaysNullableType,
   angularAnnotation,
   argumentErrorCheckNotNull,
+  assignmentFromAngularInjectorGet,
   builtValueNullableAnnotation,
   callTearOff,
   compoundAssignment,

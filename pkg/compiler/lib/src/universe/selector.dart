@@ -137,9 +137,9 @@ class Selector {
       return Selector.setter(name);
     } else if (element.isGetter) {
       return Selector.getter(name);
-    } else if (element.isField) {
+    } else if (element is FieldEntity) {
       return Selector.getter(name);
-    } else if (element.isConstructor) {
+    } else if (element is ConstructorEntity) {
       return Selector.callConstructor(name);
     } else {
       throw failedAt(element, "Cannot get selector from $element");
@@ -240,9 +240,14 @@ class Selector {
     if (!memberName.matches(element.memberName)) {
       return false;
     }
+    return appliesStructural(element);
+  }
+
+  bool appliesStructural(MemberEntity element) {
+    assert(name == element.name);
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
-    if (element.isField) {
+    if (element is FieldEntity) {
       return isSetter ? element.isAssignable : isGetter || isCall;
     }
     if (isGetter) return true;

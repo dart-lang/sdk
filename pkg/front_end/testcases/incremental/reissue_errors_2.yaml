@@ -26,7 +26,7 @@ worlds:
     worldType: updated
     expectInitializeFromDill: false
     expectedLibraryCount: 2
-    advancedInvalidation: problemsInLibrary
+    advancedInvalidation: outlineChange
 
   - entry: main.dart
     sources:
@@ -40,7 +40,7 @@ worlds:
         class B extends A {}
     expectedLibraryCount: 2
     errors: true
-    advancedInvalidation: problemsInLibrary
+    advancedInvalidation: outlineChange
 
   - entry: main.dart
     errors: true
@@ -48,7 +48,7 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 2
-    advancedInvalidation: problemsInLibrary
+    advancedInvalidation: outlineChange
 
   - entry: main.dart
     errors: true

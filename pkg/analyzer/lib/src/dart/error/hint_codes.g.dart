@@ -66,6 +66,17 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the unassigned variable
+  static const HintCode CAST_FROM_NULLABLE_ALWAYS_FAILS = HintCode(
+    'CAST_FROM_NULLABLE_ALWAYS_FAILS',
+    "This cast will always throw an exception because the nullable local "
+        "variable '{0}' is not assigned.",
+    correctionMessage:
+        "Try giving it an initializer expression, or ensure that it's assigned "
+        "on every execution path.",
+  );
+
   ///  No parameters.
   static const HintCode CAST_FROM_NULL_ALWAYS_FAILS = HintCode(
     'CAST_FROM_NULL_ALWAYS_FAILS',
@@ -115,6 +126,14 @@ class HintCode extends AnalyzerErrorCode {
         "Try reordering the catch clauses so that this block can be reached, "
         "or removing the unreachable catch clause.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
+    'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+    "Using a colon as a separator before a default value is deprecated and "
+        "will not be supported in language version 3.0 and later.",
+    correctionMessage: "Try replacing the colon with an equal sign.",
   );
 
   ///  Parameters:
@@ -169,7 +188,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
       HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
-    "'{0}' is deprecated and shouldn't be used. {1}.",
+    "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
@@ -181,7 +200,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  1: message details
   static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE',
-    "'{0}' is deprecated and shouldn't be used. {1}.",
+    "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,

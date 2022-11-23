@@ -10,13 +10,11 @@ import 'work_queue.dart';
 import '../common.dart';
 import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
 import '../elements/entities.dart';
-import '../kernel/element_map_interfaces.dart'
-    show KernelToElementMapForDeferredLoading;
-import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
+import '../kernel/element_map.dart';
+import '../kernel/kernel_world.dart' show KClosedWorld;
 
 // TODO(48820): delete typedef after the migration is complete.
 typedef Compiler = CompilerDeferredLoadingFacade;
-typedef KernelToElementMap = KernelToElementMapForDeferredLoading;
 
 /// Manages the state of the [EntityData] model. Every class, member, constant,
 /// etc, is wrapped in the deferred loading algorithm by an [EntityData] which
@@ -35,7 +33,7 @@ class AlgorithmState {
       this.importSets, this.registry)
       : queue = WorkQueue(importSets, registry);
 
-  /// Factory function to create and initialize a [AlgorithmState].
+  /// Factory function to create and initialize an [AlgorithmState].
   factory AlgorithmState.create(
       FunctionEntity main,
       Compiler compiler,

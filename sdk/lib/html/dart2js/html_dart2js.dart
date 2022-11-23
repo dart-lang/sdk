@@ -11427,7 +11427,7 @@ class DomRectList extends JavaScriptObject
 
   Rectangle operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("Rectangle", "#[#]", this, index);
   }
 
@@ -11677,7 +11677,7 @@ class DomStringList extends JavaScriptObject
 
   String operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("String", "#[#]", this, index);
   }
 
@@ -16217,7 +16217,7 @@ class FileList extends JavaScriptObject
 
   File operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("File", "#[#]", this, index);
   }
 
@@ -17730,7 +17730,7 @@ class HtmlCollection extends JavaScriptObject
 
   Node operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("Node", "#[#]", this, index);
   }
 
@@ -18599,7 +18599,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * Length of time in milliseconds before a request is automatically
    * terminated.
    *
-   * When the time has passed, a [HttpRequestEventTarget.timeoutEvent] is
+   * When the time has passed, an [HttpRequestEventTarget.timeoutEvent] is
    * dispatched.
    *
    * If [timeout] is set to 0, then the request will not time out.
@@ -22209,7 +22209,7 @@ class MimeTypeArray extends JavaScriptObject
 
   MimeType operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("MimeType", "#[#]", this, index);
   }
 
@@ -23732,7 +23732,7 @@ class NodeList extends JavaScriptObject
 
   Node operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("Node", "#[#]", this, index);
   }
 
@@ -25745,7 +25745,7 @@ class PluginArray extends JavaScriptObject
 
   Plugin operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("Plugin", "#[#]", this, index);
   }
 
@@ -28437,7 +28437,7 @@ class SourceBufferList extends EventTarget
 
   SourceBuffer operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("SourceBuffer", "#[#]", this, index);
   }
 
@@ -28594,7 +28594,7 @@ class SpeechGrammarList extends JavaScriptObject
 
   SpeechGrammar operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("SpeechGrammar", "#[#]", this, index);
   }
 
@@ -30242,7 +30242,7 @@ class TextTrackCueList extends JavaScriptObject
 
   TextTrackCue operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("TextTrackCue", "#[#]", this, index);
   }
 
@@ -30316,7 +30316,7 @@ class TextTrackList extends EventTarget
 
   TextTrack operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("TextTrack", "#[#]", this, index);
   }
 
@@ -30585,7 +30585,7 @@ class TouchList extends JavaScriptObject
 
   Touch operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("Touch", "#[#]", this, index);
   }
 
@@ -34546,7 +34546,7 @@ class _CssRuleList extends JavaScriptObject
 
   CssRule operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("CssRule", "#[#]", this, index);
   }
 
@@ -34864,7 +34864,7 @@ class _GamepadList extends JavaScriptObject
 
   Gamepad? operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("Gamepad|Null", "#[#]", this, index);
   }
 
@@ -35136,7 +35136,7 @@ class _NamedNodeMap extends JavaScriptObject
 
   Node operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("Node", "#[#]", this, index);
   }
 
@@ -35330,7 +35330,7 @@ class _SpeechRecognitionResultList extends JavaScriptObject
 
   SpeechRecognitionResult operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("SpeechRecognitionResult", "#[#]", this, index);
   }
 
@@ -35390,7 +35390,7 @@ class _StyleSheetList extends JavaScriptObject
 
   StyleSheet operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return JS("StyleSheet", "#[#]", this, index);
   }
 

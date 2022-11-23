@@ -45,6 +45,7 @@ class NodeCreator {
   List<Library> _neededLibraries = [];
   List<Class> _neededClasses = [];
   List<Extension> _neededExtensions = [];
+  List<View> _neededViews = [];
   List<Typedef> _neededTypedefs = [];
   List<TypeParameter> _neededTypeParameters = [];
   List<Constructor> _neededConstructors = [];
@@ -311,6 +312,9 @@ class NodeCreator {
         case NodeKind.Typedef:
           _needLibrary().addTypedef(node as Typedef);
           break;
+        case NodeKind.View:
+          _needLibrary().addView(node as View);
+          break;
       }
     }
     return _component;
@@ -364,7 +368,7 @@ class NodeCreator {
     return cls;
   }
 
-  /// Returns a [Extension] node that fits the requirements.
+  /// Returns an [Extension] node that fits the requirements.
   ///
   /// If no such [Extension] exists in [_neededExtensions], a new [Extension] is
   /// created and added to [_neededExtensions].
@@ -373,11 +377,27 @@ class NodeCreator {
     for (Extension extension in _neededExtensions) {
       return extension;
     }
-    Extension extension = Extension(name: 'foo', fileUri: _uri)
-      ..onType = DynamicType();
+    Extension extension =
+        Extension(name: 'foo', fileUri: _uri, onType: const DynamicType());
     _neededExtensions.add(extension);
     _needLibrary().addExtension(extension);
     return extension;
+  }
+
+  /// Returns a [View] node that fits the requirements.
+  ///
+  /// If no such [View] exists in [_neededViews], a new [Extension] is
+  /// created and added to [_neededViews].
+  // TODO(johnniwinther): Add requirements when/where needed.
+  View _needView() {
+    for (View view in _neededViews) {
+      return view;
+    }
+    View view = View(
+        name: 'foo', fileUri: _uri, representationType: const DynamicType());
+    _neededViews.add(view);
+    _needLibrary().addView(view);
+    return view;
   }
 
   /// Returns a [Typedef] node that fits the requirements.
@@ -1188,6 +1208,8 @@ class NodeCreator {
           // TODO(johnniwinther): Create non-trivial cases.
           () => TypedefType(_needTypedef(), Nullability.nonNullable, []),
         ]);
+      case DartTypeKind.ViewType:
+        return ViewType(_needView(), Nullability.nonNullable);
       case DartTypeKind.VoidType:
         return VoidType();
     }
@@ -1545,6 +1567,11 @@ class NodeCreator {
       case NodeKind.Typedef:
         return Typedef('foo', _createDartType(), fileUri: _uri)
           ..fileOffset = _needFileOffset();
+      case NodeKind.View:
+        // TODO(johnniwinther): Add non-trivial cases.
+        return View(name: 'foo', fileUri: _uri)
+          ..fileOffset = _needFileOffset()
+          ..representationType = _createDartType();
     }
   }
 

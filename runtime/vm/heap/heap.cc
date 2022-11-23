@@ -58,6 +58,8 @@ Heap::Heap(IsolateGroup* isolate_group,
     old_weak_tables_[sel] = new WeakTable();
   }
   stats_.num_ = 0;
+  stats_.state_ = kInitial;
+  stats_.reachability_barrier_ = 0;
 }
 
 Heap::~Heap() {
@@ -611,7 +613,7 @@ void Heap::CheckConcurrentMarking(Thread* thread,
 
   switch (phase) {
     case PageSpace::kMarking:
-      if (size != 0) {
+      if ((size != 0) && (mode_ != Dart_PerformanceMode_Latency)) {
         old_space_.IncrementalMarkWithSizeBudget(size);
       }
       return;

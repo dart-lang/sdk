@@ -17,6 +17,12 @@ import 'package:front_end/src/fasta/source/diet_parser.dart'
 
 import 'package:front_end/src/fasta/util/parser_ast.dart' show getAST;
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
+    show ExperimentalFlag;
+
+import 'package:_fe_analyzer_shared/src/experiments/errors.dart'
+    show getExperimentNotEnabledMessage;
+
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
 
@@ -535,9 +541,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     return result;
   }
 
-  @override
-  void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+  void _reportMessage(Message message, Token startToken, Token endToken) {
     if (source != null) {
       Location location =
           source!.getLocation(source!.fileUri!, offsetForToken(startToken));
@@ -552,8 +556,21 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     } else {
       errors.add(message.problemMessage);
     }
+  }
 
+  @override
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    _reportMessage(message, startToken, endToken);
     super.handleRecoverableError(message, startToken, endToken);
+  }
+
+  @override
+  void handleExperimentNotEnabled(shared.ExperimentalFlag experimentalFlag,
+      Token startToken, Token endToken) {
+    _reportMessage(
+        getExperimentNotEnabledMessage(experimentalFlag), startToken, endToken);
+    super.handleExperimentNotEnabled(experimentalFlag, startToken, endToken);
   }
 }
 

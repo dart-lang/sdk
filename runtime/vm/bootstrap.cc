@@ -86,8 +86,23 @@ static void Finish(Thread* thread) {
   ASSERT(field.HostOffset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
-  // Eagerly compile Bool class, bool constants are used from within compiler.
+  // Eagerly compile to avoid repeated checks when loading constants or
+  // serializing.
+  cls = object_store->null_class();
+  cls.EnsureIsFinalized(thread);
   cls = object_store->bool_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->array_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->immutable_array_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->map_impl_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->const_map_impl_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->set_impl_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->const_set_impl_class();
   cls.EnsureIsFinalized(thread);
 }
 

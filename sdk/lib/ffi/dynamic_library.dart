@@ -68,6 +68,11 @@ extension DynamicLibraryExtension on DynamicLibrary {
   /// Looks up a native function and returns it as a Dart function.
   ///
   /// [T] is the C function signature, and [F] is the Dart function signature.
+  ///
+  /// [isLeaf] specifies whether the function is a leaf function.
+  /// A leaf function must not run Dart code or call back into the Dart VM.
+  /// Leaf calls are faster than non-leaf calls.
+  ///
   /// For example:
   ///
   /// ```c

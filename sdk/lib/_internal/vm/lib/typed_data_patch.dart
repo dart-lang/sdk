@@ -129,12 +129,16 @@ mixin _IntListMixin implements List<int> {
 
   List<R> cast<R>() => List.castFrom<int, R>(this);
   void set first(int value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[0] = value;
   }
 
   void set last(int value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[this.length - 1] = value;
   }
 
@@ -479,12 +483,16 @@ mixin _DoubleListMixin implements List<double> {
 
   List<R> cast<R>() => List.castFrom<double, R>(this);
   void set first(double value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[0] = value;
   }
 
   void set last(double value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[this.length - 1] = value;
   }
 
@@ -835,12 +843,16 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
 
   List<R> cast<R>() => List.castFrom<Float32x4, R>(this);
   void set first(Float32x4 value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[0] = value;
   }
 
   void set last(Float32x4 value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[this.length - 1] = value;
   }
 
@@ -1189,12 +1201,16 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
 
   List<R> cast<R>() => List.castFrom<Int32x4, R>(this);
   void set first(Int32x4 value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[0] = value;
   }
 
   void set last(Int32x4 value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[this.length - 1] = value;
   }
 
@@ -1542,12 +1558,16 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
 
   List<R> cast<R>() => List.castFrom<Float64x2, R>(this);
   void set first(Float64x2 value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[0] = value;
   }
 
   void set last(Float64x2 value) {
-    if (this.length == 0) throw new RangeError.index(0, this);
+    if (this.length == 0) {
+      throw new IndexError.withLength(0, length, indexable: this);
+    }
     this[this.length - 1] = value;
   }
 
@@ -2189,7 +2209,8 @@ class _Int8List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getInt8(index);
   }
@@ -2197,7 +2218,8 @@ class _Int8List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setInt8(index, _toInt8(value));
   }
@@ -2243,7 +2265,8 @@ class _Uint8List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getUint8(index);
   }
@@ -2251,7 +2274,8 @@ class _Uint8List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setUint8(index, _toUint8(value));
   }
@@ -2297,7 +2321,8 @@ class _Uint8ClampedList extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getUint8(index);
   }
@@ -2305,7 +2330,8 @@ class _Uint8ClampedList extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setUint8(index, _toClampedUint8(value));
   }
@@ -2351,7 +2377,8 @@ class _Int16List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt16(index);
   }
@@ -2359,7 +2386,8 @@ class _Int16List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt16(index, _toInt16(value));
   }
@@ -2425,7 +2453,8 @@ class _Uint16List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedUint16(index);
   }
@@ -2433,7 +2462,8 @@ class _Uint16List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedUint16(index, _toUint16(value));
   }
@@ -2498,7 +2528,8 @@ class _Int32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt32(index);
   }
@@ -2506,7 +2537,8 @@ class _Int32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt32(index, _toInt32(value));
   }
@@ -2559,7 +2591,8 @@ class _Uint32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedUint32(index);
   }
@@ -2567,7 +2600,8 @@ class _Uint32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedUint32(index, _toUint32(value));
   }
@@ -2620,7 +2654,8 @@ class _Int64List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt64(index);
   }
@@ -2628,7 +2663,8 @@ class _Int64List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt64(index, value);
   }
@@ -2681,7 +2717,8 @@ class _Uint64List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedUint64(index);
   }
@@ -2689,7 +2726,8 @@ class _Uint64List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedUint64(index, value);
   }
@@ -2743,7 +2781,8 @@ class _Float32List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat32(index);
   }
@@ -2751,7 +2790,8 @@ class _Float32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat32(index, value);
   }
@@ -2805,7 +2845,8 @@ class _Float64List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat64(index);
   }
@@ -2813,7 +2854,8 @@ class _Float64List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat64(index, value);
   }
@@ -2865,7 +2907,8 @@ class _Float32x4List extends _TypedList
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat32x4(index);
   }
@@ -2873,7 +2916,8 @@ class _Float32x4List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat32x4(index, value);
   }
@@ -2925,7 +2969,8 @@ class _Int32x4List extends _TypedList
   @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt32x4(index);
   }
@@ -2933,7 +2978,8 @@ class _Int32x4List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt32x4(index, value);
   }
@@ -2985,7 +3031,8 @@ class _Float64x2List extends _TypedList
   @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat64x2(index);
   }
@@ -2993,7 +3040,8 @@ class _Float64x2List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, Float64x2 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat64x2(index, value);
   }
@@ -3028,14 +3076,16 @@ class _ExternalInt8Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getInt8(index);
   }
 
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setInt8(index, value);
   }
@@ -3065,7 +3115,8 @@ class _ExternalUint8Array extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getUint8(index);
   }
@@ -3073,7 +3124,8 @@ class _ExternalUint8Array extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setUint8(index, _toUint8(value));
   }
@@ -3102,7 +3154,8 @@ class _ExternalUint8ClampedArray extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getUint8(index);
   }
@@ -3110,7 +3163,8 @@ class _ExternalUint8ClampedArray extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setUint8(index, _toClampedUint8(value));
   }
@@ -3137,14 +3191,16 @@ class _ExternalInt16Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt16(index);
   }
 
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt16(index, _toInt16(value));
   }
@@ -3179,14 +3235,16 @@ class _ExternalUint16Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedUint16(index);
   }
 
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedUint16(index, _toUint16(value));
   }
@@ -3221,14 +3279,16 @@ class _ExternalInt32Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt32(index);
   }
 
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt32(index, _toInt32(value));
   }
@@ -3263,14 +3323,16 @@ class _ExternalUint32Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedUint32(index);
   }
 
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedUint32(index, _toUint32(value));
   }
@@ -3305,14 +3367,16 @@ class _ExternalInt64Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt64(index);
   }
 
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt64(index, value);
   }
@@ -3347,14 +3411,16 @@ class _ExternalUint64Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedUint64(index);
   }
 
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedUint64(index, value);
   }
@@ -3389,14 +3455,16 @@ class _ExternalFloat32Array extends _TypedList
   // Method(s) implementing the List interface.
   double operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat32(index);
   }
 
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat32(index, value);
   }
@@ -3431,14 +3499,16 @@ class _ExternalFloat64Array extends _TypedList
   // Method(s) implementing the List interface.
   double operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat64(index);
   }
 
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat64(index, value);
   }
@@ -3473,14 +3543,16 @@ class _ExternalFloat32x4Array extends _TypedList
   // Method(s) implementing the List interface.
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat32x4(index);
   }
 
   void operator []=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat32x4(index, value);
   }
@@ -3515,14 +3587,16 @@ class _ExternalInt32x4Array extends _TypedList
   // Method(s) implementing the List interface.
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedInt32x4(index);
   }
 
   void operator []=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedInt32x4(index, value);
   }
@@ -3557,14 +3631,16 @@ class _ExternalFloat64x2Array extends _TypedList
   // Method(s) implementing the List interface.
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _getIndexedFloat64x2(index);
   }
 
   void operator []=(int index, Float64x2 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _setIndexedFloat64x2(index, value);
   }
@@ -4153,7 +4229,8 @@ class _Int8ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getInt8(offsetInBytes + (index * Int8List.bytesPerElement));
@@ -4162,7 +4239,8 @@ class _Int8ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setInt8(
         offsetInBytes + (index * Int8List.bytesPerElement), _toInt8(value));
@@ -4195,7 +4273,8 @@ class _Uint8ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getUint8(offsetInBytes + (index * Uint8List.bytesPerElement));
@@ -4204,7 +4283,8 @@ class _Uint8ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setUint8(
         offsetInBytes + (index * Uint8List.bytesPerElement), _toUint8(value));
@@ -4237,7 +4317,8 @@ class _Uint8ClampedArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getUint8(offsetInBytes + (index * Uint8List.bytesPerElement));
@@ -4246,7 +4327,8 @@ class _Uint8ClampedArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setUint8(offsetInBytes + (index * Uint8List.bytesPerElement),
         _toClampedUint8(value));
@@ -4279,7 +4361,8 @@ class _Int16ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getInt16(offsetInBytes + (index * Int16List.bytesPerElement));
@@ -4288,7 +4371,8 @@ class _Int16ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setInt16(
         offsetInBytes + (index * Int16List.bytesPerElement), _toInt16(value));
@@ -4334,7 +4418,8 @@ class _Uint16ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getUint16(offsetInBytes + (index * Uint16List.bytesPerElement));
@@ -4343,7 +4428,8 @@ class _Uint16ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setUint16(
         offsetInBytes + (index * Uint16List.bytesPerElement), _toUint16(value));
@@ -4390,7 +4476,8 @@ class _Int32ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getInt32(offsetInBytes + (index * Int32List.bytesPerElement));
@@ -4399,7 +4486,8 @@ class _Int32ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setInt32(
         offsetInBytes + (index * Int32List.bytesPerElement), _toInt32(value));
@@ -4432,7 +4520,8 @@ class _Uint32ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getUint32(offsetInBytes + (index * Uint32List.bytesPerElement));
@@ -4441,7 +4530,8 @@ class _Uint32ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setUint32(
         offsetInBytes + (index * Uint32List.bytesPerElement), _toUint32(value));
@@ -4474,7 +4564,8 @@ class _Int64ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getInt64(offsetInBytes + (index * Int64List.bytesPerElement));
@@ -4483,7 +4574,8 @@ class _Int64ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setInt64(
         offsetInBytes + (index * Int64List.bytesPerElement), value);
@@ -4516,7 +4608,8 @@ class _Uint64ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getUint64(offsetInBytes + (index * Uint64List.bytesPerElement));
@@ -4525,7 +4618,8 @@ class _Uint64ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setUint64(
         offsetInBytes + (index * Uint64List.bytesPerElement), value);
@@ -4558,7 +4652,8 @@ class _Float32ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   double operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getFloat32(offsetInBytes + (index * Float32List.bytesPerElement));
@@ -4567,7 +4662,8 @@ class _Float32ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setFloat32(
         offsetInBytes + (index * Float32List.bytesPerElement), value);
@@ -4600,7 +4696,8 @@ class _Float64ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   double operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getFloat64(offsetInBytes + (index * Float64List.bytesPerElement));
@@ -4609,7 +4706,8 @@ class _Float64ArrayView extends _TypedListView
   @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setFloat64(
         offsetInBytes + (index * Float64List.bytesPerElement), value);
@@ -4641,7 +4739,8 @@ class _Float32x4ArrayView extends _TypedListView
   // Method(s) implementing List interface.
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getFloat32x4(offsetInBytes + (index * Float32x4List.bytesPerElement));
@@ -4649,7 +4748,8 @@ class _Float32x4ArrayView extends _TypedListView
 
   void operator []=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setFloat32x4(
         offsetInBytes + (index * Float32x4List.bytesPerElement), value);
@@ -4681,7 +4781,8 @@ class _Int32x4ArrayView extends _TypedListView
   // Method(s) implementing List interface.
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getInt32x4(offsetInBytes + (index * Int32x4List.bytesPerElement));
@@ -4689,7 +4790,8 @@ class _Int32x4ArrayView extends _TypedListView
 
   void operator []=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setInt32x4(
         offsetInBytes + (index * Int32x4List.bytesPerElement), value);
@@ -4721,7 +4823,8 @@ class _Float64x2ArrayView extends _TypedListView
   // Method(s) implementing List interface.
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _typedData
         ._getFloat64x2(offsetInBytes + (index * Float64x2List.bytesPerElement));
@@ -4729,7 +4832,8 @@ class _Float64x2ArrayView extends _TypedListView
 
   void operator []=(int index, Float64x2 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw new IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     _typedData._setFloat64x2(
         offsetInBytes + (index * Float64x2List.bytesPerElement), value);
@@ -4773,7 +4877,8 @@ class _ByteDataView implements ByteData {
   @pragma("vm:prefer-inline")
   int getInt8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw new IndexError.withLength(byteOffset, length,
+          indexable: this, name: "byteOffset");
     }
     return _typedData._getInt8(offsetInBytes + byteOffset);
   }
@@ -4781,7 +4886,8 @@ class _ByteDataView implements ByteData {
   @pragma("vm:prefer-inline")
   void setInt8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw new IndexError.withLength(byteOffset, length,
+          indexable: this, name: "byteOffset");
     }
     _typedData._setInt8(offsetInBytes + byteOffset, value);
   }
@@ -4789,7 +4895,8 @@ class _ByteDataView implements ByteData {
   @pragma("vm:prefer-inline")
   int getUint8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw new IndexError.withLength(byteOffset, length,
+          indexable: this, name: "byteOffset");
     }
     return _typedData._getUint8(offsetInBytes + byteOffset);
   }
@@ -4797,7 +4904,8 @@ class _ByteDataView implements ByteData {
   @pragma("vm:prefer-inline")
   void setUint8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw new IndexError.withLength(byteOffset, length,
+          indexable: this, name: "byteOffset");
     }
     _typedData._setUint8(offsetInBytes + byteOffset, value);
   }
@@ -5550,7 +5658,8 @@ class _UnmodifiableByteDataView extends _ByteDataView
 
 class _UnmodifiableByteBufferView extends _ByteBuffer
     implements UnmodifiableByteBufferView {
-  _UnmodifiableByteBufferView(_ByteBuffer data) : super(data._data);
+  _UnmodifiableByteBufferView(ByteBuffer data)
+      : super(unsafeCast<_ByteBuffer>(data)._data);
 
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) =>
       new UnmodifiableUint8ListView(super.asUint8List(offsetInBytes, length));

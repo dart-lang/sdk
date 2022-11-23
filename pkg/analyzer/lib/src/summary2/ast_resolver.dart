@@ -101,15 +101,15 @@ class AstResolver {
     _flowAnalysis.topLevelDeclaration_exit();
   }
 
-  void resolveExpression(Expression Function() getNode,
-      {DartType? contextType, bool buildElements = true}) {
+  void resolveExpression(
+    Expression Function() getNode, {
+    DartType? contextType,
+  }) {
     Expression node = getNode();
-    if (buildElements) {
-      node.accept(_resolutionVisitor);
-      // Node may have been rewritten so get it again.
-      node = getNode();
-      node.accept(_scopeResolverVisitor);
-    }
+    node.accept(_resolutionVisitor);
+    // Node may have been rewritten so get it again.
+    node = getNode();
+    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
     _resolverVisitor.analyzeExpression(node, contextType);

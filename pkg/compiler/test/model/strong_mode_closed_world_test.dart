@@ -10,7 +10,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/kernel_world.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 main() {
   asyncTest(() async {
@@ -46,7 +46,7 @@ class B {
 class C extends A {
   method1() {}
   method2() {}
-  method4() {} 
+  method4() {}
   get getter => 42;
   set setter(_) {}
 }
@@ -78,7 +78,7 @@ class F extends B {
 class G {
   method1() {}
   method2() {}
-  method4() {} 
+  method4() {}
   get getter => 42;
   set setter(_) {}
 }
@@ -151,7 +151,7 @@ method1() {
   a.method1();
   a.getter;
   b.method2();
-  b.setter = 42; 
+  b.setter = 42;
   new C();
   new D();
   new H();
@@ -160,7 +160,7 @@ method1() {
   new M2().getter;
   new N();
   O o = new P();
-  o.method1(); 
+  o.method1();
   o.getter;
   o.setter = 42;
   R r;
@@ -208,7 +208,7 @@ method2() {
     List<String> actualLiveMembers = <String>[];
     closedWorld.liveMemberUsage.forEach((MemberEntity member, _) {
       if (member.enclosingClass != cls) return;
-      if (member.isConstructor) return;
+      if (member is ConstructorEntity) return;
       actualLiveMembers.add(member.name);
     });
     Expect.setEquals(

@@ -1325,8 +1325,8 @@ class ObjectCopy : public Base {
       CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(COPY_TO)
       COPY_TO(Array)
       COPY_TO(GrowableObjectArray)
-      COPY_TO(LinkedHashMap)
-      COPY_TO(LinkedHashSet)
+      COPY_TO(Map)
+      COPY_TO(Set)
 #undef COPY_TO
 
 #define COPY_TO(clazz) case kTypedData##clazz##Cid:
@@ -1437,7 +1437,9 @@ class ObjectCopy : public Base {
 
   void CopyRecord(typename Types::Record from, typename Types::Record to) {
     const intptr_t num_fields = Record::NumFields(Types::GetRecordPtr(from));
-    UntagRecord(to)->num_fields_ = UntagRecord(from)->num_fields_;
+    Base::StoreCompressedPointersNoBarrier(
+        from, to, OFFSET_OF(UntaggedRecord, num_fields_),
+        OFFSET_OF(UntaggedRecord, num_fields_));
     Base::ForwardCompressedPointer(from, to,
                                    OFFSET_OF(UntaggedRecord, field_names_));
     Base::ForwardCompressedPointers(
@@ -1502,8 +1504,8 @@ class ObjectCopy : public Base {
           from, to, OFFSET_OF(UntaggedLinkedHashBase, hash_mask_),
           OFFSET_OF(UntaggedLinkedHashBase, hash_mask_));
       Base::StoreCompressedPointersNoBarrier(
-          from, to, OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_),
-          OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_));
+          from, to, OFFSET_OF(UntaggedMap, deleted_keys_),
+          OFFSET_OF(UntaggedMap, deleted_keys_));
     }
     Base::ForwardCompressedPointer(from, to,
                                    OFFSET_OF(UntaggedLinkedHashBase, data_));
@@ -1512,16 +1514,14 @@ class ObjectCopy : public Base {
         OFFSET_OF(UntaggedLinkedHashBase, used_data_));
   }
 
-  void CopyLinkedHashMap(typename Types::LinkedHashMap from,
-                         typename Types::LinkedHashMap to) {
-    CopyLinkedHashBase<2, typename Types::LinkedHashMap>(
-        from, to, UntagLinkedHashMap(from), UntagLinkedHashMap(to));
+  void CopyMap(typename Types::Map from, typename Types::Map to) {
+    CopyLinkedHashBase<2, typename Types::Map>(from, to, UntagMap(from),
+                                               UntagMap(to));
   }
 
-  void CopyLinkedHashSet(typename Types::LinkedHashSet from,
-                         typename Types::LinkedHashSet to) {
-    CopyLinkedHashBase<1, typename Types::LinkedHashSet>(
-        from, to, UntagLinkedHashSet(from), UntagLinkedHashSet(to));
+  void CopySet(typename Types::Set from, typename Types::Set to) {
+    CopyLinkedHashBase<1, typename Types::Set>(from, to, UntagSet(from),
+                                               UntagSet(to));
   }
 
   void CopyDouble(typename Types::Double from, typename Types::Double to) {

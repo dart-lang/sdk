@@ -53,17 +53,17 @@ namespace dart {
   V(Integer_ushrFromInteger, 2)                                                \
   V(Bool_fromEnvironment, 3)                                                   \
   V(Bool_hasEnvironment, 2)                                                    \
-  V(CapabilityImpl_factory, 1)                                                 \
-  V(CapabilityImpl_equals, 2)                                                  \
-  V(CapabilityImpl_get_hashcode, 1)                                            \
-  V(RawReceivePortImpl_factory, 2)                                             \
-  V(RawReceivePortImpl_get_id, 1)                                              \
-  V(RawReceivePortImpl_get_sendport, 1)                                        \
-  V(RawReceivePortImpl_closeInternal, 1)                                       \
-  V(RawReceivePortImpl_setActive, 2)                                           \
-  V(SendPortImpl_get_id, 1)                                                    \
-  V(SendPortImpl_get_hashcode, 1)                                              \
-  V(SendPortImpl_sendInternal_, 2)                                             \
+  V(Capability_factory, 1)                                                     \
+  V(Capability_equals, 2)                                                      \
+  V(Capability_get_hashcode, 1)                                                \
+  V(RawReceivePort_factory, 2)                                                 \
+  V(RawReceivePort_get_id, 1)                                                  \
+  V(RawReceivePort_get_sendport, 1)                                            \
+  V(RawReceivePort_closeInternal, 1)                                           \
+  V(RawReceivePort_setActive, 2)                                               \
+  V(SendPort_get_id, 1)                                                        \
+  V(SendPort_get_hashcode, 1)                                                  \
+  V(SendPort_sendInternal_, 2)                                                 \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
   V(SuspendState_instantiateClosureWithFutureTypeArgument, 2)                  \
@@ -80,7 +80,7 @@ namespace dart {
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 3)                                                    \
   V(Developer_webServerControl, 3)                                             \
-  V(Double_hashCode, 1)                                                        \
+  V(Developer_reachability_barrier, 0)                                         \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \

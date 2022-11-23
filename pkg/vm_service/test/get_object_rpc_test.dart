@@ -1,6 +1,9 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--enable-experiment=records
+// @dart=2.19
+// ignore_for_file: experiment_not_enabled
 
 library get_object_rpc_test;
 
@@ -52,10 +55,16 @@ getList() => [3, 2, 1];
 getMap() => {"x": 3, "y": 4, "z": 5};
 
 @pragma("vm:entry-point")
+getSet() => {6, 7, 8};
+
+@pragma("vm:entry-point")
 getUint8List() => uint8List;
 
 @pragma("vm:entry-point")
 getUint64List() => uint64List;
+
+@pragma("vm:entry-point")
+getRecord() => (1, x: 2, 3.0, y: 4.0);
 
 @pragma("vm:entry-point")
 getDummyClass() => _DummyClass();
@@ -315,10 +324,10 @@ var tests = <IsolateTest>[
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
@@ -357,10 +366,10 @@ var tests = <IsolateTest>[
     final result =
         await service.getObject(isolateId, objectId, count: 2) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
@@ -393,10 +402,10 @@ var tests = <IsolateTest>[
     final result = await service.getObject(isolateId, objectId,
         offset: 2, count: 2) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
@@ -423,16 +432,48 @@ var tests = <IsolateTest>[
     final result = await service.getObject(isolateId, objectId,
         offset: 100, count: 2) as Instance;
     expect(result.kind, InstanceKind.kMap);
-    expect(result.json!['_vmType'], equals('LinkedHashMap'));
+    expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
-    expect(result.classRef!.name, equals('_InternalLinkedHashMap'));
+    expect(result.classRef!.name, equals('_Map'));
     expect(result.size, isPositive);
     expect(result.fields, isEmpty);
     expect(result.length, equals(3));
     expect(result.offset, equals(3));
     expect(result.count, equals(0));
     expect(result.associations, isEmpty);
+  },
+
+  // A built-in Set.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Call eval to get a Dart set.
+    final evalResult = await service
+        .invoke(isolateId, isolate.rootLib!.id!, 'getSet', []) as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, InstanceKind.kSet);
+    expect(result.json!['_vmType'], equals('Set'));
+    expect(result.id, startsWith('objects/'));
+    expect(result.valueAsString, isNull);
+    expect(result.classRef!.name, equals('_Set'));
+    expect(result.size, isPositive);
+    expect(result.fields, isEmpty);
+    expect(result.length, equals(3));
+    expect(result.offset, isNull);
+    expect(result.count, isNull);
+    final elements = result.elements!;
+    expect(elements.length, equals(3));
+    expect(elements[0] is InstanceRef, true);
+    expect(elements[0].kind, InstanceKind.kInt);
+    expect(elements[0].valueAsString, equals('6'));
+    expect(elements[1] is InstanceRef, true);
+    expect(elements[1].kind, InstanceKind.kInt);
+    expect(elements[1].valueAsString, equals('7'));
+    expect(elements[2] is InstanceRef, true);
+    expect(elements[2].kind, InstanceKind.kInt);
+    expect(elements[2].valueAsString, equals('8'));
   },
 
   // Uint8List.
@@ -640,6 +681,31 @@ var tests = <IsolateTest>[
       expect(e.sentinel.kind, startsWith('Expired'));
       expect(e.sentinel.valueAsString, equals('<expired>'));
     }
+  },
+
+  // A record.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Call eval to get a Dart record.
+    final evalResult =
+        await service.invoke(isolateId, isolate.rootLib!.id!, 'getRecord', [])
+            as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, '_Record');
+    expect(result.json!['_vmType'], 'Record');
+    expect(result.id, startsWith('objects/'));
+    expect(result.valueAsString, isNull);
+    expect(result.classRef!.name, '_Record');
+    expect(result.size, isPositive);
+    final fields = result.fields!;
+    expect(fields.length, 4);
+    // TODO(derekx): Include field names in this test once they are accessible
+    // through package:vm_service.
+    Set<String> fieldValues =
+        Set.from(fields.map((f) => f.value.valueAsString));
+    expect(fieldValues.containsAll(['1', '2', '3.0', '4.0']), true);
   },
 
   // library.

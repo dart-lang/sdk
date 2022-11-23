@@ -539,7 +539,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
     }
     // A LinkedHasMap overwrites its internal storage.
     // Keeping both of them in the list is redundant.
-    if (was_last_array_ && obj->IsLinkedHashMap()) {
+    if (was_last_array_ && obj->IsMap()) {
       was_last_array_ = false;
       return 1;
     }
@@ -946,9 +946,17 @@ class Pass1Visitor : public ObjectVisitor,
     const auto cid = obj->GetClassId();
 
     if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
-      obj->untag()->VisitPointersPrecise(isolate_group(), this);
+      obj->untag()->VisitPointersPrecise(this);
     } else {
-      writer_->CountReferences(object_slots_->ObjectSlotsFor(cid)->length());
+      for (auto& slot : *object_slots_->ObjectSlotsFor(cid)) {
+        if (slot.is_compressed_pointer) {
+          auto target = reinterpret_cast<CompressedObjectPtr*>(
+              UntaggedObject::ToAddr(obj->untag()) + slot.offset);
+          VisitCompressedPointers(obj->heap_base(), target, target);
+        } else {
+          writer_->CountReferences(1);
+        }
+      }
     }
   }
 
@@ -1062,7 +1070,6 @@ class Pass2Visitor : public ObjectVisitor,
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         HandleVisitor(Thread::Current()),
-        isolate_group_(thread()->isolate_group()),
         writer_(writer),
         object_slots_(object_slots) {}
 
@@ -1138,14 +1145,14 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(Smi::Value(
           static_cast<GrowableObjectArrayPtr>(obj)->untag()->length()));
-    } else if (cid == kLinkedHashMapCid || cid == kImmutableLinkedHashMapCid) {
+    } else if (cid == kMapCid || cid == kConstMapCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
-    } else if (cid == kLinkedHashSetCid || cid == kImmutableLinkedHashSetCid) {
+          Smi::Value(static_cast<MapPtr>(obj)->untag()->used_data()));
+    } else if (cid == kSetCid || cid == kConstSetCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<LinkedHashSetPtr>(obj)->untag()->used_data()));
+          Smi::Value(static_cast<SetPtr>(obj)->untag()->used_data()));
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<ObjectPoolPtr>(obj)->untag()->length_);
@@ -1187,15 +1194,27 @@ class Pass2Visitor : public ObjectVisitor,
     } else if (cid == kScriptCid) {
       writer_->WriteUnsigned(kNameData);
       ScrubAndWriteUtf8(static_cast<ScriptPtr>(obj)->untag()->url());
+    } else if (cid == kTypeArgumentsCid) {
+      // Handle scope so we do not change the root set.
+      // We are assuming that TypeArguments::PrintSubvectorName never allocates
+      // objects or zone handles.
+      HANDLESCOPE(thread());
+      const TypeArguments& args =
+          TypeArguments::Handle(static_cast<TypeArgumentsPtr>(obj));
+      TextBuffer buffer(128);
+      args.PrintSubvectorName(0, args.Length(), TypeArguments::kScrubbedName,
+                              &buffer);
+      writer_->WriteUnsigned(kNameData);
+      writer_->WriteUtf8(buffer.buffer());
     } else {
       writer_->WriteUnsigned(kNoData);
     }
 
     if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
       DoCount();
-      obj->untag()->VisitPointersPrecise(isolate_group_, this);
+      obj->untag()->VisitPointersPrecise(this);
       DoWrite();
-      obj->untag()->VisitPointersPrecise(isolate_group_, this);
+      obj->untag()->VisitPointersPrecise(this);
     } else {
       auto slots = object_slots_->ObjectSlotsFor(cid);
       DoCount();
@@ -1701,13 +1720,13 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kExternalTwoByteStringCid:
     case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
-    case kImmutableLinkedHashMapCid:
-    case kImmutableLinkedHashSetCid:
+    case kConstMapCid:
+    case kConstSetCid:
     case kInstructionsCid:
     case kInstructionsSectionCid:
     case kInstructionsTableCid:
-    case kLinkedHashMapCid:
-    case kLinkedHashSetCid:
+    case kMapCid:
+    case kSetCid:
     case kMintCid:
     case kNeverCid:
     case kSentinelCid:

@@ -10,8 +10,6 @@
 // The generator sometimes generates unnecessary 'this' references.
 // ignore_for_file: unnecessary_this
 
-library analyzer.src.summary.format;
-
 import 'dart:convert' as convert;
 import 'dart:typed_data' as typed_data;
 

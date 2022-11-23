@@ -225,18 +225,16 @@ class MoveFieldInitializers {
       c.initializers.last is RedirectingInitializer;
 }
 
-// Pass which removes all annotations except @ExternalName and @pragma
-// on variables, members, classes and libraries.
+// Pass which removes all annotations except @pragma on variables, members,
+// classes and libraries.
 // May also keep @TagNumber which is used by protobuf handler.
 class CleanupAnnotations extends RecursiveVisitor {
-  final Class externalNameClass;
   final Class pragmaClass;
   final ProtobufHandler? protobufHandler;
 
   CleanupAnnotations(
       CoreTypes coreTypes, LibraryIndex index, this.protobufHandler)
-      : externalNameClass = index.getClass('dart:_internal', 'ExternalName'),
-        pragmaClass = coreTypes.pragmaClass;
+      : pragmaClass = coreTypes.pragmaClass;
 
   @override
   defaultNode(Node node) {
@@ -262,8 +260,7 @@ class CleanupAnnotations extends RecursiveVisitor {
       final constant = annotation.constant;
       if (constant is InstanceConstant) {
         final cls = constant.classNode;
-        return (cls == externalNameClass) ||
-            (cls == pragmaClass) ||
+        return (cls == pragmaClass) ||
             (protobufHandler != null &&
                 protobufHandler!.usesAnnotationClass(cls));
       }

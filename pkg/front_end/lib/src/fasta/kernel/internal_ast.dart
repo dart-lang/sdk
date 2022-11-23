@@ -22,10 +22,11 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
 
 import '../builder/type_alias_builder.dart';
+import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
@@ -33,6 +34,9 @@ import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/object_access_target.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
+
+typedef SharedMatchContext = shared
+    .MatchContext<Node, Expression, Pattern, DartType, VariableDeclaration>;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
@@ -5058,25 +5062,28 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   /// Variable declarations induced by nested variable patterns.
   ///
   /// These variables are initialized to the values captured by the variable
-  /// patterns nested in the matcher.
+  /// patterns nested in the pattern.
   List<VariableDeclaration> get declaredVariables;
 
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context});
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  });
 
-  /// Creates the desugared matching condition.
+  /// Transforms a pattern into a series of if-statements and local variables
   ///
-  /// [matchedExpressionVariable] is the variable initialized to the value of
-  /// the expression being matched.
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor);
-
-  /// Creates initializing expressions for the variables captured by the pattern
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
+  /// [matchedExpression] is the expression that evaluates to the object being
+  /// matched against the pattern at runtime. [matchedType] is the static type
+  /// of [matchedExpression]. [variableInitializingContext] evaluates to the
+  /// same runtime objects as [matchedExpression], but can be accessed without
+  /// causing additional side effects. It is the responsibility of the caller to
+  /// ensure the absence of those side effects, which can be done, for example,
+  /// via caching of the value to match in a local variable.
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor);
 }
 
@@ -5085,36 +5092,37 @@ class DummyPattern extends Pattern {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write('<dummy-matcher>');
+    printer.write('<dummy-pattern>');
   }
 
   @override
   List<VariableDeclaration> get declaredVariables => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitDummyMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitDummyPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return null;
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition: null, variableInitializers: <Statement>[])
+    ]);
   }
-
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   String toString() {
-    return "DummyMatcher(${toStringInternal()})";
+    return "DummyPattern(${toStringInternal()})";
   }
 }
 
@@ -5131,37 +5139,35 @@ class ExpressionPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitExpressionMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitExpressionPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
     ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
-        matchedExpressionVariable.type, equalsName, fileOffset,
+        matchedType, equalsName, fileOffset,
         callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    return new InstanceInvocation(
-        InstanceAccessKind.Instance,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, matchedExpressionVariable),
-        equalsName,
-        inferenceVisitor.engine.forest
-            .createArguments(fileOffset, [expression]),
-        functionType: target.getFunctionType(inferenceVisitor),
-        interfaceTarget: target.member as Procedure)
-      ..fileOffset = fileOffset;
+    Expression result = inferenceVisitor.engine.forest.createEqualsCall(
+        fileOffset,
+        matchedExpression,
+        expression,
+        target.getFunctionType(inferenceVisitor),
+        target.member as Procedure);
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition: result, variableInitializers: [])
+    ]);
   }
-
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5170,7 +5176,7 @@ class ExpressionPattern extends Pattern {
 
   @override
   String toString() {
-    return "ExpressionMatcher(${toStringInternal()})";
+    return "ExpressionPattern(${toStringInternal()})";
   }
 }
 
@@ -5186,55 +5192,37 @@ class BinaryPattern extends Pattern {
   Pattern right;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables =>
+      [...left.declaredVariables, ...right.declaredVariables];
 
   BinaryPattern(this.left, this.kind, this.right, int fileOffset)
       : super(fileOffset) {
     left.parent = this;
     right.parent = this;
-
-    if (kind == BinaryPatternKind.or) {
-      // All branches should declare same variables.
-      declaredVariables.addAll(left.declaredVariables);
-    } else {
-      // Branches together declare the variables.
-      declaredVariables
-        ..addAll(left.declaredVariables)
-        ..addAll(right.declaredVariables);
-    }
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitBinaryMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitBinaryPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented BinaryMatcher.makeCondition");
-  }
-
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    if (kind == BinaryPatternKind.and) {
-      // All branches together define the set of declared variables.
-      left.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-      right.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-    } else {
-      // All branches define the same set of variables.
-      left.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-    }
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition:
+              new InvalidExpression("Unimplemented BinaryPattern.transform"),
+          variableInitializers: [])
+    ]);
   }
 
   @override
@@ -5253,7 +5241,7 @@ class BinaryPattern extends Pattern {
 
   @override
   String toString() {
-    return "BinaryMatcher(${toStringInternal()})";
+    return "BinaryPattern(${toStringInternal()})";
   }
 }
 
@@ -5270,27 +5258,45 @@ class CastPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitCastMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitCastPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented CastMatcher.makeCondition");
-  }
+    // castExpression: `matchedExpression` as `type`
+    Expression castExpression = inferenceVisitor.engine.forest
+        .createAsExpression(fileOffset, matchedExpression, type,
+            forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
 
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
+    // intermediateVariable: `type` VAR = `castExpression`;
+    //   ==> `type` VAR = `matchedExpression` as `type`;
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(castExpression, type: type);
+
+    PatternTransformationResult transformationResult = pattern.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        type,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: null, variableInitializers: [intermediateVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 
   @override
@@ -5302,7 +5308,7 @@ class CastPattern extends Pattern {
 
   @override
   String toString() {
-    return "CastMatcher(${toStringInternal()})";
+    return "CastPattern(${toStringInternal()})";
   }
 }
 
@@ -5318,28 +5324,48 @@ class NullAssertPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitNullAssertMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitNullAssertPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression(
-        "Unimplemented NullAssertMatcher.makeCondition");
-  }
+    // nullCheckCondition: `matchedExpression`!
+    Expression nullCheckExpression = inferenceVisitor.engine.forest
+        .createNullCheck(fileOffset, matchedExpression);
 
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
+    DartType typeWithoutNullabilityMarkers = matchedType.toNonNull();
+
+    // intermediateVariable: `typeWithoutNullabilityMarkers` VAR =
+    //     `nullCheckExpression`;
+    //   ==> `typeWithoutNullabilityMarkers` VAR = `matchedExpression`!;
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(nullCheckExpression,
+            type: typeWithoutNullabilityMarkers);
+
+    PatternTransformationResult transformationResult = pattern.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        typeWithoutNullabilityMarkers,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: null, variableInitializers: [intermediateVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 
   @override
@@ -5350,11 +5376,11 @@ class NullAssertPattern extends Pattern {
 
   @override
   String toString() {
-    return "NullAssertMatcher(${toStringInternal()})";
+    return "NullAssertPattern(${toStringInternal()})";
   }
 }
 
-/// A [Pattern] for `matcher?`.
+/// A [Pattern] for `pattern?`.
 class NullCheckPattern extends Pattern {
   Pattern pattern;
 
@@ -5366,28 +5392,58 @@ class NullCheckPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitNullCheckMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitNullCheckPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression(
-        "Unimplemented NullCheckMatcher.makeCondition");
-  }
+    // intermediateVariable: `matchedType` VAR = `matchedExpression`
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
 
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
+    // nullCheckCondition: !(`intermediateVariable` == null)
+    Expression nullCheckCondition = inferenceVisitor.engine.forest.createNot(
+        fileOffset,
+        inferenceVisitor.engine.forest.createEqualsNull(
+            fileOffset,
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, intermediateVariable)));
+
+    DartType promotedType = matchedType.toNonNull();
+    PatternTransformationResult transformationResult = pattern.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable)
+          ..promotedType = matchedType != promotedType ? promotedType : null,
+        promotedType,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+
+    // This needs to be added to the transformation elements since we need to
+    // create the [intermediateVariable] unconditionally before applying the
+    // [nullCheckCondition], as opposed to passing [nullCheckCondition] as the
+    // condition in the last transformation element.
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: nullCheckCondition, variableInitializers: []),
+        inferenceVisitor);
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: null, variableInitializers: [intermediateVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 
   @override
@@ -5398,7 +5454,7 @@ class NullCheckPattern extends Pattern {
 
   @override
   String toString() {
-    return "NullCheckMatcher(${toStringInternal()})";
+    return "NullCheckPattern(${toStringInternal()})";
   }
 }
 
@@ -5408,38 +5464,160 @@ class ListPattern extends Pattern {
   List<Pattern> patterns;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables =>
+      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
 
   ListPattern(this.typeArgument, this.patterns, int fileOffset)
       : super(fileOffset) {
     setParents(patterns, this);
-    for (Pattern pattern in patterns) {
-      declaredVariables.addAll(pattern.declaredVariables);
+  }
+
+  @override
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitListPattern(this,
+        matchedType: matchedType, context: context);
+  }
+
+  @override
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
+      InferenceVisitorBase inferenceVisitor) {
+    // targetListType: List<`typeArgument`>
+    DartType targetListType = new InterfaceType(
+        inferenceVisitor.coreTypes.listClass,
+        Nullability.nonNullable,
+        <DartType>[typeArgument]);
+
+    ObjectAccessTarget lengthTarget = inferenceVisitor.findInterfaceMember(
+        targetListType, lengthName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    bool typeCheckForTargetListNeeded =
+        !inferenceVisitor.isAssignable(targetListType, matchedType) ||
+            matchedType is DynamicType;
+
+    // listVariable: `matchedType` LVAR = `matchedExpression`
+    VariableDeclaration listVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    // lengthGet: `listVariable`.length
+    //   ==> LVAR.length
+    Expression lengthGet = new InstanceGet(
+        InstanceAccessKind.Instance,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, listVariable)
+          ..promotedType = typeCheckForTargetListNeeded ? targetListType : null,
+        lengthName,
+        resultType: lengthTarget.getGetterType(inferenceVisitor),
+        interfaceTarget: lengthTarget.member as Procedure)
+      ..fileOffset = fileOffset;
+
+    ObjectAccessTarget greaterThanOrEqualsTarget =
+        inferenceVisitor.findInterfaceMember(
+            inferenceVisitor.coreTypes.intNonNullableRawType,
+            greaterThanOrEqualsName,
+            fileOffset,
+            callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+
+    // greaterThanOrEqualsInvocation: `lengthGet` >= `patterns.length`
+    //   ==> LVAR.length >= `patterns.length`
+    Expression greaterThanOrEqualsInvocation = new InstanceInvocation(
+        InstanceAccessKind.Instance,
+        lengthGet,
+        greaterThanOrEqualsName,
+        inferenceVisitor.engine.forest.createArguments(fileOffset, [
+          inferenceVisitor.engine.forest
+              .createIntLiteral(fileOffset, patterns.length)
+        ]),
+        functionType:
+            greaterThanOrEqualsTarget.getFunctionType(inferenceVisitor),
+        interfaceTarget: greaterThanOrEqualsTarget.member as Procedure)
+      ..fileOffset = fileOffset;
+
+    // typeAndLengthCheck: `listVariable` is `targetListType`
+    //     && `greaterThanOrEqualsInvocation`
+    //   ==> [LVAR is List<`typeArgument`> &&]?
+    //       LVAR.length >= `patterns.length`
+    Expression typeAndLengthCheck;
+    if (typeCheckForTargetListNeeded) {
+      typeAndLengthCheck = inferenceVisitor.engine.forest
+          .createLogicalExpression(
+              fileOffset,
+              inferenceVisitor.engine.forest.createIsExpression(
+                  fileOffset,
+                  inferenceVisitor.engine.forest
+                      .createVariableGet(fileOffset, listVariable),
+                  targetListType,
+                  forNonNullableByDefault: false),
+              doubleAmpersandName.text,
+              greaterThanOrEqualsInvocation);
+    } else {
+      typeAndLengthCheck = greaterThanOrEqualsInvocation;
     }
-  }
 
-  @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitListMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
-  }
+    ObjectAccessTarget elementAccess = inferenceVisitor.findInterfaceMember(
+        targetListType, indexGetName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    FunctionType elementAccessFunctionType =
+        elementAccess.getFunctionType(inferenceVisitor);
+    PatternTransformationResult transformationResult =
+        new PatternTransformationResult([]);
+    List<VariableDeclaration> elementAccessVariables = [];
+    for (int i = 0; i < patterns.length; i++) {
+      // listElement: `listVariable`[`i`]
+      //   ==> LVAR[`i`]
+      Expression listElement = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, listVariable)
+            ..promotedType = targetListType,
+          indexGetName,
+          inferenceVisitor.engine.forest.createArguments(fileOffset,
+              [inferenceVisitor.engine.forest.createIntLiteral(fileOffset, i)]),
+          functionType: elementAccessFunctionType,
+          interfaceTarget: elementAccess.member as Procedure);
 
-  @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    throw new UnimplementedError("ListMatcher.makeCondition");
-  }
+      // listElementVariable: `typeArgument` EVAR = `listElement`
+      //   ==> `typeArgument` EVAR = LVAR[`i`]
+      VariableDeclaration listElementVariable = inferenceVisitor.engine.forest
+          .createVariableDeclarationForValue(listElement, type: typeArgument);
 
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    throw new UnimplementedError(
-        "ListMatcher.createDeclaredVariableInitializers");
+      PatternTransformationResult subpatternTransformationResult = patterns[i]
+          .transform(
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, listElementVariable),
+              typeArgument,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, listElementVariable),
+              inferenceVisitor);
+
+      if (patterns[i].declaredVariables.isNotEmpty ||
+          !(subpatternTransformationResult.elements.length == 1 &&
+              subpatternTransformationResult.elements.single.isEmpty)) {
+        elementAccessVariables.add(listElementVariable);
+        transformationResult = transformationResult.combine(
+            subpatternTransformationResult, inferenceVisitor);
+      }
+    }
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: typeAndLengthCheck,
+            variableInitializers: elementAccessVariables),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: null, variableInitializers: [listVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 
   @override
@@ -5449,9 +5627,9 @@ class ListPattern extends Pattern {
     printer.write('>');
     printer.write('[');
     String comma = '';
-    for (Pattern matcher in patterns) {
+    for (Pattern pattern in patterns) {
       printer.write(comma);
-      matcher.toTextInternal(printer);
+      pattern.toTextInternal(printer);
       comma = ', ';
     }
     printer.write(']');
@@ -5459,7 +5637,7 @@ class ListPattern extends Pattern {
 
   @override
   String toString() {
-    return "ListMatcher(${toStringInternal()})";
+    return "ListPattern(${toStringInternal()})";
   }
 }
 
@@ -5487,26 +5665,93 @@ class RelationalPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitRelationalMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitRelationalPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression(
-        "Unimplemented RelationalMatcher.makeCondition");
+    Expression? condition;
+    Name? name;
+    switch (kind) {
+      case RelationalPatternKind.equals:
+      case RelationalPatternKind.notEquals:
+        if (expression is NullLiteral || expression is NullConstant) {
+          condition = inferenceVisitor.engine.forest
+              .createEqualsNull(fileOffset, matchedExpression);
+        } else {
+          ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
+              matchedType, equalsName, fileOffset,
+              callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+          condition = inferenceVisitor.engine.forest.createEqualsCall(
+              fileOffset,
+              matchedExpression,
+              expression,
+              target.getFunctionType(inferenceVisitor),
+              target.member as Procedure);
+        }
+        if (kind == RelationalPatternKind.notEquals) {
+          condition =
+              inferenceVisitor.engine.forest.createNot(fileOffset, condition);
+        }
+        break;
+      case RelationalPatternKind.lessThan:
+        name = lessThanName;
+        break;
+      case RelationalPatternKind.lessThanEqual:
+        name = lessThanOrEqualsName;
+        break;
+      case RelationalPatternKind.greaterThan:
+        name = greaterThanName;
+        break;
+      case RelationalPatternKind.greaterThanEqual:
+        name = greaterThanOrEqualsName;
+        break;
+    }
+    if (condition == null) {
+      ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
+          matchedType, name!, fileOffset,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+      if (target.kind == ObjectAccessTargetKind.dynamic) {
+        condition = new DynamicInvocation(
+            DynamicAccessKind.Dynamic,
+            matchedExpression,
+            name,
+            inferenceVisitor.engine.forest
+                .createArguments(fileOffset, [expression]));
+      } else if (target.member is! Procedure) {
+        inferenceVisitor.helper.addProblem(
+            templateUndefinedOperator.withArguments(name.text, matchedType,
+                inferenceVisitor.isNonNullableByDefault),
+            fileOffset,
+            noLength);
+        condition = null;
+      } else {
+        condition = new InstanceInvocation(
+            InstanceAccessKind.Instance,
+            matchedExpression,
+            name,
+            inferenceVisitor.engine.forest
+                .createArguments(fileOffset, [expression]),
+            functionType: target.getFunctionType(inferenceVisitor),
+            interfaceTarget: target.member as Procedure)
+          ..fileOffset = fileOffset;
+      }
+    }
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition: condition, variableInitializers: [])
+    ]);
   }
-
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5535,7 +5780,7 @@ class RelationalPattern extends Pattern {
 
   @override
   String toString() {
-    return "RelationalMatcher(${toStringInternal()})";
+    return "RelationalPattern(${toStringInternal()})";
   }
 }
 
@@ -5548,34 +5793,34 @@ class WildcardPattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => const [];
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
     return visitor.visitWildcardBinder(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
+    Expression? condition;
     if (type != null) {
-      return inferenceVisitor.engine.forest.createIsExpression(
-          fileOffset,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, matchedExpressionVariable),
-          type!,
+      condition = inferenceVisitor.engine.forest.createIsExpression(
+          fileOffset, matchedExpression, type!,
           forNonNullableByDefault: false);
     } else {
-      return null;
+      condition = null;
     }
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition: condition, variableInitializers: [])
+    ]);
   }
-
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {}
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5758,16 +6003,16 @@ class MapPattern extends Pattern {
   final List<MapPatternEntry> entries;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables => [
+        for (MapPatternEntry entry in entries) ...[
+          ...entry.key.declaredVariables,
+          ...entry.value.declaredVariables
+        ]
+      ];
 
   MapPattern(this.keyType, this.valueType, this.entries, int fileOffset)
       : assert((keyType == null) == (valueType == null)),
-        super(fileOffset) {
-    for (MapPatternEntry entry in entries) {
-      declaredVariables.addAll(entry.key.declaredVariables);
-      declaredVariables.addAll(entry.value.declaredVariables);
-    }
-  }
+        super(fileOffset);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -5786,41 +6031,40 @@ class MapPattern extends Pattern {
 
   @override
   String toString() {
-    return 'MapMatcher(${toStringInternal()})';
+    return 'MapPattern(${toStringInternal()})';
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitMapMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitMapPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    for (MapPatternEntry entry in entries) {
-      entry.key.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-      entry.value.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-    }
-  }
-
-  @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented MapMatcher.makeCondition");
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition:
+              new InvalidExpression("Unimplemented MapPattern.transform"),
+          variableInitializers: [])
+    ]);
   }
 }
 
 class NamedPattern extends Pattern {
   final String name;
   final Pattern pattern;
+
+  @override
+  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   NamedPattern(this.name, this.pattern, int fileOffset) : super(fileOffset) {
     pattern.parent = this;
@@ -5839,30 +6083,27 @@ class NamedPattern extends Pattern {
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitNamedMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitNamedPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    pattern.createDeclaredVariableInitializers(
-        matchedExpressionVariable, inferenceVisitor);
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented NamedMatcher.makeCondition");
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition:
+              new InvalidExpression("Unimplemented NamedPattern.transform"),
+          variableInitializers: [])
+    ]);
   }
 }
 
@@ -5870,13 +6111,11 @@ class RecordPattern extends Pattern {
   final List<Pattern> patterns;
 
   @override
-  final List<VariableDeclaration> declaredVariables = [];
+  List<VariableDeclaration> get declaredVariables =>
+      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
 
   RecordPattern(this.patterns, int fileOffset) : super(fileOffset) {
     setParents(patterns, this);
-    for (Pattern pattern in patterns) {
-      declaredVariables.addAll(pattern.declaredVariables);
-    }
   }
 
   @override
@@ -5893,33 +6132,31 @@ class RecordPattern extends Pattern {
 
   @override
   String toString() {
-    return 'RecordMatcher(${toStringInternal()})';
+    return 'RecordPattern(${toStringInternal()})';
   }
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitRecordMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitRecordPattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    for (Pattern matcher in patterns) {
-      matcher.createDeclaredVariableInitializers(
-          matchedExpressionVariable, inferenceVisitor);
-    }
-  }
-
-  @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    return new InvalidExpression("Unimplemented RecordMatcher.makeCondition");
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          condition:
+              new InvalidExpression("Unimplemented RecordPattern.transform"),
+          variableInitializers: [])
+    ]);
   }
 }
 
@@ -5929,43 +6166,56 @@ class VariablePattern extends Pattern {
   VariableDeclaration variable;
 
   @override
-  final List<VariableDeclaration> declaredVariables;
+  List<VariableDeclaration> get declaredVariables => [variable];
 
   VariablePattern(this.type, this.name, this.variable, int fileOffset)
-      : declaredVariables = [variable],
-        super(fileOffset);
+      : super(fileOffset);
 
   @override
-  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
-      {required DartType matchedType,
-      required Map<VariableDeclaration, VariableTypeInfo<Node, DartType>>
-          typeInfos,
-      required MatchContext<Node, Expression> context}) {
-    return visitor.visitVariableMatcher(this,
-        matchedType: matchedType, typeInfos: typeInfos, context: context);
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitVariablePattern(this,
+        matchedType: matchedType, context: context);
   }
 
   @override
-  Expression? makeCondition(VariableDeclaration matchedExpressionVariable,
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
+    PatternTransformationResult transformationResult;
+
     if (type != null) {
-      return inferenceVisitor.engine.forest.createIsExpression(
+      VariableDeclaration? matchedExpressionVariable;
+      matchedExpressionVariable = inferenceVisitor.engine.forest
+          .createVariableDeclarationForValue(matchedExpression,
+              type: matchedType);
+      Expression condition = inferenceVisitor.engine.forest.createIsExpression(
           variable.fileOffset,
-          inferenceVisitor.engine.forest.createVariableGet(
-              variable.fileOffset, matchedExpressionVariable),
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, matchedExpressionVariable),
           type!,
           forNonNullableByDefault: false);
+      transformationResult = new PatternTransformationResult([
+        new PatternTransformationElement(
+            condition: null, variableInitializers: [matchedExpressionVariable]),
+        new PatternTransformationElement(
+            condition: condition, variableInitializers: [])
+      ]);
+      variable.initializer = inferenceVisitor.engine.forest
+          .createVariableGet(fileOffset, matchedExpressionVariable)
+        ..promotedType = type!
+        ..parent = variable;
     } else {
-      return null;
+      transformationResult = new PatternTransformationResult([]);
+      variable.initializer = matchedExpression..parent = variable;
     }
-  }
 
-  @override
-  void createDeclaredVariableInitializers(
-      VariableDeclaration matchedExpressionVariable,
-      InferenceVisitorBase inferenceVisitor) {
-    variable.initializer = inferenceVisitor.engine.forest
-        .createVariableGet(variable.fileOffset, matchedExpressionVariable);
+    return transformationResult;
   }
 
   @override
@@ -6015,5 +6265,100 @@ class VariablePattern extends Pattern {
   @override
   String toString() {
     return "VariableBinder(${toStringInternal()})";
+  }
+}
+
+class PatternTransformationElement {
+  /// Part of a matching condition of a pattern
+  ///
+  /// The desugared condition for matching a pattern is broken into several
+  /// elements. This is needed in order to declare the intermediate variables
+  /// for storing values that should be computed only once.
+  final Expression? condition;
+
+  /// Declaration and initialization of captured and intermediate variables
+  ///
+  /// These are the statements that needs to present in the desugared code in
+  /// order to properly initialize [declaredVariables] and any intermediate
+  /// variables.
+  final List<Statement> variableInitializers;
+
+  PatternTransformationElement(
+      {required this.condition, required this.variableInitializers});
+
+  bool get isEmpty => condition == null && variableInitializers.isEmpty;
+}
+
+class PatternTransformationResult {
+  final List<PatternTransformationElement> elements;
+
+  PatternTransformationResult(this.elements);
+
+  /// Combines the results of two pattern transformations into a single result
+  ///
+  /// The typical use case of [combine] is to combine the results of
+  /// transforming two sub-patterns of the same pattern into a single result
+  /// that can later be combined with the results of transforming of other
+  /// sub-patterns as well. So the overall result of transforming a pattern is
+  /// a combination of the results of transforming of all of the sub-patterns.
+  ///
+  /// [combine] uses [prependElement] on [other] for the purpose of optimization
+  /// and simplification.
+  PatternTransformationResult combine(PatternTransformationResult other,
+      InferenceVisitorBase inferenceVisitor) {
+    if (elements.isEmpty) {
+      return other;
+    } else if (other.elements.isEmpty) {
+      return this;
+    } else {
+      return new PatternTransformationResult([
+        ...elements.sublist(0, elements.length - 1),
+        ...other.prependElement(elements.last, inferenceVisitor).elements
+      ]);
+    }
+  }
+
+  /// Adds [element] to the beginning of the transformation result
+  ///
+  /// The condition and the intermediate variables declared by the [element] are
+  /// assumed to affect the scope of the transformation result they are
+  /// prepended to. Some optimizations are performed to minimize the count of
+  /// the elements in the overall result. The optimizations include combining
+  /// conditions via logical `&&` operation and concatenating lists of variable
+  /// declarations.
+  PatternTransformationResult prependElement(
+      PatternTransformationElement element,
+      InferenceVisitorBase inferenceVisitor) {
+    if (elements.isEmpty) {
+      return new PatternTransformationResult([element]);
+    }
+    PatternTransformationElement outermost = elements.first;
+    Expression? elementCondition = element.condition;
+    Expression? outermostCondition = outermost.condition;
+    if (outermostCondition == null) {
+      elements[0] = new PatternTransformationElement(
+          condition: elementCondition,
+          variableInitializers: [
+            ...element.variableInitializers,
+            ...outermost.variableInitializers
+          ]);
+      return this;
+    } else if (element.variableInitializers.isEmpty) {
+      if (elementCondition == null) {
+        // Trivial case: [element] has empty components.
+        return this;
+      } else {
+        elements[0] = new PatternTransformationElement(
+            condition: inferenceVisitor.engine.forest.createLogicalExpression(
+                elementCondition.fileOffset,
+                elementCondition,
+                doubleAmpersandName.text,
+                outermostCondition),
+            variableInitializers: outermost.variableInitializers);
+        return this;
+      }
+    } else {
+      return new PatternTransformationResult([element, ...elements]);
+    }
   }
 }

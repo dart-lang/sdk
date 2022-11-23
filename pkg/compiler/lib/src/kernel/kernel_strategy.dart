@@ -45,15 +45,11 @@ import '../util/enumset.dart';
 import 'kelements.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
-import 'kernel_strategy_migrated.dart'; // TODO(48820): Remove when migrated.
 import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy
-    implements
-        KernelFrontendStrategyForBackendUsage,
-        KernelFrontendStrategyForDeferredLoading {
+class KernelFrontendStrategy {
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
   late final KernelToElementMap _elementMap;
@@ -251,13 +247,11 @@ class KernelFrontendStrategy
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
-  @override
   KernelElementEnvironment get elementEnvironment =>
       _elementMap.elementEnvironment;
 
   /// Returns the [CommonElements] for the element model used in this
   /// strategy.
-  @override
   KCommonElements get commonElements => _elementMap.commonElements;
 
   KernelToElementMap get elementMap => _elementMap;
@@ -274,7 +268,6 @@ class KernelFrontendStrategy
   }
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
-  @override
   SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
@@ -401,7 +394,7 @@ class KernelWorkItem implements WorkItem {
       if (scopeModel.closureScopeModel != null) {
         _closureModels[element] = scopeModel.closureScopeModel!;
       }
-      if (element.isField && !element.isInstanceMember) {
+      if (element is FieldEntity && !element.isInstanceMember) {
         _fieldAnalysis.registerStaticField(
             element as KField, scopeModel.initializerComplexity);
       }

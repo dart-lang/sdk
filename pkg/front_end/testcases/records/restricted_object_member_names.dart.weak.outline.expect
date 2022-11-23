@@ -2,32 +2,47 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/records/restricted_object_member_names.dart:14:7: Error: Record field names can't be the same as a member from 'Object'.
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:5:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int hashCode,) foo1() => throw 0; // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:6:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int runtimeType,) foo2() => throw 0; // Error.
+//      ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:7:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int noSuchMethod,) foo3() => throw 0; // Error.
+//      ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:8:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int toString,) foo4() => throw 0; // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:9:7: Error: Record field names can't be the same as a member from 'Object'.
 // ({int hashCode}) foo5() => throw 0; // Error.
 //       ^^^^^^^^
 //
-// pkg/front_end/testcases/records/restricted_object_member_names.dart:15:7: Error: Record field names can't be the same as a member from 'Object'.
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:10:7: Error: Record field names can't be the same as a member from 'Object'.
 // ({int runtimeType}) foo6() => throw 0; // Error.
 //       ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/records/restricted_object_member_names.dart:16:7: Error: Record field names can't be the same as a member from 'Object'.
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:11:7: Error: Record field names can't be the same as a member from 'Object'.
 // ({int noSuchMethod}) foo7() => throw 0; // Error.
 //       ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/records/restricted_object_member_names.dart:17:7: Error: Record field names can't be the same as a member from 'Object'.
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:12:7: Error: Record field names can't be the same as a member from 'Object'.
 // ({int toString}) foo8() => throw 0; // Error.
 //       ^^^^^^^^
 //
 import self as self;
-import "dart:core" as core;
 
-static method foo1() → (core::int)
+static method foo1() → invalid-type
   ;
-static method foo2() → (core::int)
+static method foo2() → invalid-type
   ;
-static method foo3() → (core::int)
+static method foo3() → invalid-type
   ;
-static method foo4() → (core::int)
+static method foo4() → invalid-type
   ;
 static method foo5() → invalid-type
   ;

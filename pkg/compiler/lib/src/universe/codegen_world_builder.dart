@@ -14,6 +14,7 @@ import '../js_backend/annotations.dart' show AnnotationsData;
 import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
@@ -454,7 +455,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         ClassEntity cls = member.enclosingClass!;
         bool isNative = _nativeBasicData.isNativeClass(cls);
         usage = MemberUsage(member, potentialAccess: potentialAccess);
-        if (member.isField && !isNative) {
+        if (member is FieldEntity && !isNative) {
           useSet.addAll(usage.init());
         }
         if (member is JSignatureMethod) {
@@ -501,7 +502,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         }
       } else {
         usage = MemberUsage(member, potentialAccess: potentialAccess);
-        if (member.isField) {
+        if (member is FieldEntity) {
           useSet.addAll(usage.init());
         }
       }
@@ -703,7 +704,7 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  void forEachGenericMethod(Function f) {
+  void forEachGenericMethod(void Function(FunctionEntity e) f) {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           _closedWorld.elementEnvironment
@@ -715,7 +716,7 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  void forEachGenericInstanceMethod(Function f) {
+  void forEachGenericInstanceMethod(void Function(FunctionEntity e) f) {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           member.isInstanceMember &&
@@ -728,7 +729,7 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  void forEachGenericClosureCallMethod(Function f) {
+  void forEachGenericClosureCallMethod(void Function(FunctionEntity e) f) {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member.name == Identifiers.call &&
           member.isInstanceMember &&
@@ -788,9 +789,8 @@ class CodegenWorldImpl implements CodegenWorld {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (usage.hasRead) {
         DartType? type;
-        if (member.isField) {
-          type = _closedWorld.elementEnvironment
-              .getFieldType(member as FieldEntity);
+        if (member is FieldEntity) {
+          type = _closedWorld.elementEnvironment.getFieldType(member);
         } else if (member.isGetter) {
           type = _closedWorld.elementEnvironment
               .getFunctionType(member as FunctionEntity)

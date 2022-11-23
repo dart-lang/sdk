@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: experiment_not_enabled
+// @dart = 2.19
+
 // See inspector.txt for expected behavior.
 
 library manual_inspector_test;
@@ -38,15 +41,19 @@ class Node {
   var nullable;
   var mixedType;
   var array;
+  var arrayConst;
   var bigint;
   var blockClean;
   var blockCopying;
   var blockFull;
   var blockFullWithChain;
+  var blockType;
   var boundedType;
   var capability;
   var counter;
   var expando;
+  var finalizer;
+  var finalizerEntry;
   var float32x4;
   var float64;
   var float64x2;
@@ -55,6 +62,7 @@ class Node {
   var int32x4;
   var isolate;
   var map;
+  var mapConst;
   var mint;
   var mirrorClass;
   var mirrorClosure;
@@ -62,7 +70,12 @@ class Node {
   var mirrorReference;
   var portReceive;
   var portSend;
+  var record;
+  var recordType;
   var regex;
+  late var sentinel;  // Not initialized
+  var set;
+  var setConst;
   var smi;
   var stacktrace;
   var string;
@@ -76,9 +89,12 @@ class Node {
   var theTrue;
   var type;
   var typeParameter;
-  var typedData;
+  var typedDataArray;
+  var typedDataView;
+  var typedDataUnmodifiableView;
   var userTag;
   var weakProperty;
+  var weakReference;
 
   genStackTrace() {
     try {
@@ -141,16 +157,20 @@ class Node {
     array[0] = 1;
     array[1] = 2;
     array[2] = 3;
-    bigint = 1 << 65;
+    arrayConst = const [1, 2, 3];
+    bigint = BigInt.one << 65;
     blockClean = genCleanBlock();
     blockCopying = genCopyingBlock();
     blockFull = genFullBlock();
     blockFullWithChain = genFullBlockWithChain();
+    blockType = blockClean.runtimeType;
     boundedType = extractPrivateField(
         reflect(new B<int>()).type.typeVariables.single, '_reflectee');
     counter = new Counter("CounterName", "Counter description");
     expando = new Expando("expando-name");
     expando[array] = 'The weakly associated value';
+    finalizer = Finalizer<dynamic>((_){});
+    finalizer.attach(this, this);
     float32x4 = new Float32x4(0.0, -1.0, 3.14, 2e28);
     float64 = 3.14;
     float64x2 = new Float64x2(0.0, 3.14);
@@ -162,6 +182,10 @@ class Node {
       "y-key": "y-value",
       "removed-key": "removed-value"
     };
+    mapConst = const {
+      1: 1.5,
+      2: 2.5,
+    };
     map.remove("removed-key");
     mint = 1 << 32;
     mirrorClass = reflectClass(Object);
@@ -170,7 +194,16 @@ class Node {
     mirrorReference = extractPrivateField(mirrorClass, '_reflectee');
     portReceive = new RawReceivePort();
     portSend = portReceive.sendPort;
+    record = (1, 2, three: 3, four: 4);
+    recordType = record.runtimeType;
     regex = new RegExp("a*b+c");
+    set = {
+      "element1", "element2", "removed-element"
+    };
+    set.remove("removed-element");
+    setConst = const {
+      10, 20, 30
+    };
     smi = 7;
     stacktrace = genStackTrace();
     string = "Hello $smi ${smi.runtimeType}";
@@ -185,10 +218,13 @@ class Node {
     type = String;
     typeParameter =
         extractPrivateField(reflectClass(A).typeVariables.single, '_reflectee');
-    typedData = extractPrivateField(new ByteData(64), '_typedData');
+    typedDataArray = Uint8List(32);
+    typedDataView = Uint8List.view(typedDataArray.buffer, 16);
+    typedDataUnmodifiableView = UnmodifiableUint8ListView(typedDataArray);
     userTag = new UserTag("Example tag name");
     weakProperty =
         extractPrivateField(expando, '_data').firstWhere((e) => e != null);
+    weakReference = WeakReference(this);
 
     Isolate.spawn(secondMain, "Hello2").then((otherIsolate) {
       isolate = otherIsolate;

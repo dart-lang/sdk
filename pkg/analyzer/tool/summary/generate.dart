@@ -654,8 +654,6 @@ class _CodeGenerator {
     out("// The generator sometimes generates unnecessary 'this' references.");
     out('// ignore_for_file: unnecessary_this');
     out();
-    out('library analyzer.src.summary.format;');
-    out();
     out("import 'dart:convert' as convert;");
     out("import 'dart:typed_data' as typed_data;");
     out();

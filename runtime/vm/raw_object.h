@@ -167,9 +167,9 @@ class UntaggedObject {
     kReservedBit = 7,
 
     kSizeTagPos = kReservedBit + 1,  // = 8
-    kSizeTagSize = 8,
-    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
-    kClassIdTagSize = 16,
+    kSizeTagSize = 4,
+    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 12
+    kClassIdTagSize = 20,
     kHashTagPos = kClassIdTagPos + kClassIdTagSize,  // = 32
     kHashTagSize = 32,
   };
@@ -230,7 +230,8 @@ class UntaggedObject {
                                      ClassIdTagType,
                                      kClassIdTagPos,
                                      kClassIdTagSize> {};
-  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) == kClassIdTagSize);
+  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) >= kClassIdTagSize);
+  COMPILE_ASSERT(kClassIdTagMax == (1 << kClassIdTagSize) - 1);
 
 #if defined(HASH_IN_OBJECT_HEADER)
   class HashTag : public BitField<uword, uint32_t, kHashTagPos, kHashTagSize> {
@@ -468,8 +469,7 @@ class UntaggedObject {
 
   // This variant ensures that we do not visit the extra slot created from
   // rounding up instance sizes up to the allocation unit.
-  void VisitPointersPrecise(IsolateGroup* isolate_group,
-                            ObjectPointerVisitor* visitor);
+  void VisitPointersPrecise(ObjectPointerVisitor* visitor);
 
   static ObjectPtr FromAddr(uword addr) {
     // We expect the untagged address here.
@@ -1694,8 +1694,6 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ObjectPtr, retained_kernel_blob)
   VISIT_TO(retained_kernel_blob)
 
-  uint32_t kernel_binary_version_;
-
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     return reinterpret_cast<CompressedObjectPtr*>(&constants_table_);
   }
@@ -2644,10 +2642,8 @@ class UntaggedAbstractType : public UntaggedInstance {
 class UntaggedType : public UntaggedAbstractType {
  public:
   static constexpr intptr_t kTypeClassIdShift = TypeStateBits::kNextBit;
-  using TypeClassIdBits = BitField<uint32_t,
-                                   ClassIdTagType,
-                                   kTypeClassIdShift,
-                                   sizeof(ClassIdTagType) * kBitsPerByte>;
+  using TypeClassIdBits =
+      BitField<uint32_t, ClassIdTagType, kTypeClassIdShift, kClassIdTagSize>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
@@ -2985,6 +2981,7 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
 
   friend class Api;
   friend class Instance;
+  friend class DeltaEncodedTypedDataDeserializationCluster;
   friend class NativeEntryData;
   friend class Object;
   friend class ObjectPool;
@@ -3092,19 +3089,19 @@ class UntaggedArray : public UntaggedInstance {
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
-  friend class LinkedHashMapSerializationCluster;
-  friend class LinkedHashMapDeserializationCluster;
-  friend class LinkedHashSetSerializationCluster;
-  friend class LinkedHashSetDeserializationCluster;
+  friend class MapSerializationCluster;
+  friend class MapDeserializationCluster;
+  friend class SetSerializationCluster;
+  friend class SetDeserializationCluster;
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
   friend class UntaggedCode;
   friend class UntaggedImmutableArray;
   friend class GrowableObjectArray;
-  friend class LinkedHashMap;
-  friend class UntaggedLinkedHashMap;
-  friend class UntaggedImmutableLinkedHashMap;
+  friend class Map;
+  friend class UntaggedMap;
+  friend class UntaggedConstMap;
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
@@ -3151,24 +3148,24 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
   }
 };
 
-class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+class UntaggedMap : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Map);
 
-  friend class UntaggedImmutableLinkedHashMap;
+  friend class UntaggedConstMap;
 };
 
-class UntaggedImmutableLinkedHashMap : public UntaggedLinkedHashMap {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashMap);
+class UntaggedConstMap : public UntaggedMap {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ConstMap);
 };
 
-class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
+class UntaggedSet : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Set);
 
-  friend class UntaggedImmutableLinkedHashSet;
+  friend class UntaggedConstSet;
 };
 
-class UntaggedImmutableLinkedHashSet : public UntaggedLinkedHashSet {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashSet);
+class UntaggedConstSet : public UntaggedSet {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ConstSet);
 };
 
 class UntaggedFloat32x4 : public UntaggedInstance {
@@ -3221,9 +3218,9 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 class UntaggedRecord : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
 
-  int32_t num_fields_;
+  COMPRESSED_SMI_FIELD(SmiPtr, num_fields)
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
-  VISIT_FROM(field_names)
+  VISIT_FROM(num_fields)
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
 
@@ -3477,7 +3474,7 @@ class UntaggedFinalizerBase : public UntaggedInstance {
 
   COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
   VISIT_FROM(detachments)
-  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
+  COMPRESSED_POINTER_FIELD(SetPtr, all_entries)
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>

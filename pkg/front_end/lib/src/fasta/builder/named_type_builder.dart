@@ -400,6 +400,13 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   DartType _buildInternal(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     DartType aliasedType = _buildAliasedInternal(library, typeUse, hierarchy);
+
+    if (library is SourceLibraryBuilder &&
+        !isRecordAccessAllowed(library.libraryFeatures) &&
+        isDartCoreRecord(aliasedType)) {
+      library.reportFeatureNotEnabled(library.libraryFeatures.records,
+          fileUri ?? library.fileUri, charOffset!, nameText.length);
+    }
     return unalias(aliasedType,
         legacyEraseAliases:
             !_performTypeCanonicalization && !library.isNonNullableByDefault);
@@ -412,7 +419,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     DartType builtType = _buildAliasedInternal(library, typeUse, hierarchy);
     if (library is SourceLibraryBuilder &&
         !isRecordAccessAllowed(library.libraryFeatures) &&
-        isRecordOrItsAlias(builtType)) {
+        isDartCoreRecord(builtType)) {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
     }
@@ -704,16 +711,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
   @override
   DartType build(LibraryBuilder library, TypeUse typeUse,
       {ClassHierarchyBase? hierarchy}) {
-    DartType builtType = _buildInternal(library, typeUse, hierarchy);
-
-    if (library is SourceLibraryBuilder &&
-        !isRecordAccessAllowed(library.libraryFeatures) &&
-        isRecordOrItsAlias(builtType)) {
-      library.reportFeatureNotEnabled(library.libraryFeatures.records,
-          fileUri ?? library.fileUri, charOffset!, nameText.length);
-    }
-
-    return _type ??= builtType;
+    return _type ??= _buildInternal(library, typeUse, hierarchy);
   }
 }
 

@@ -7,12 +7,9 @@ import '../sdk.dart';
 String get sdkConstraint => "sdk: '>=${sdk.version} <3.0.0'";
 
 const String gitignore = '''
-# Files and directories created by pub.
+# https://dart.dev/guides/libraries/private-files
+# Created by `dart pub`
 .dart_tool/
-.packages
-
-# Conventional directory for build output.
-build/
 ''';
 
 const String analysisOptions = '''

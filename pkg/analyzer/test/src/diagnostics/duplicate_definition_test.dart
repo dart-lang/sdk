@@ -1495,6 +1495,7 @@ class A {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_locals_block_switchCase() async {
     await assertErrorsInCode(r'''
 main() {
@@ -1509,6 +1510,24 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 58, 1,
           contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
+    ]);
+  }
+
+  test_locals_block_switchCase_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+main() {
+  switch(1) {
+    case 1:
+      var a;
+      var a;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 74, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 74, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 61, 1)]),
     ]);
   }
 

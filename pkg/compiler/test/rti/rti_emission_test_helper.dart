@@ -116,7 +116,7 @@ class RtiEmissionDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
@@ -128,7 +128,7 @@ class RtiEmissionDataComputer extends DataComputer<String> {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
             compiler, closedWorld.closureDataLookup)

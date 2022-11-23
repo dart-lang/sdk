@@ -17,20 +17,32 @@ bool isRecordAccessAllowed(LibraryFeatures libraryFeatures) {
       libraryFeatures.records.isEnabled;
 }
 
-/// Returns `true` if [type] is `Record` from  `dart:core` or an alias of it.
-bool isRecordOrItsAlias(DartType type) {
+/// Returns `true` if [type] is `Record` from  `dart:core`.
+bool isDartCoreRecord(DartType type) {
   Class? targetClass;
   if (type is InterfaceType) {
     targetClass = type.classNode;
-  } else if (type is TypedefType) {
-    DartType unaliasedType = type.unalias;
-    if (unaliasedType is InterfaceType) {
-      targetClass = unaliasedType.classNode;
-    }
   }
   return targetClass != null &&
       targetClass.parent != null &&
       targetClass.name == "Record" &&
       targetClass.enclosingLibrary.importUri.scheme == "dart" &&
       targetClass.enclosingLibrary.importUri.path == "core";
+}
+
+int? tryParseRecordPositionalGetterName(String name, int positionalFieldCount) {
+  if (name.startsWith(r"$")) {
+    String suffix = name.substring(1);
+    int? impliedIndex = int.tryParse(suffix);
+    if (impliedIndex != null &&
+        impliedIndex >= 0 &&
+        impliedIndex < positionalFieldCount &&
+        suffix == "${impliedIndex}") {
+      return impliedIndex;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
 }

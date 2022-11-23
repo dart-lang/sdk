@@ -81,12 +81,6 @@ abstract class KMember extends IndexedMember {
   bool get isFunction => false;
 
   @override
-  bool get isField => false;
-
-  @override
-  bool get isConstructor => false;
-
-  @override
   bool get isInstanceMember => enclosingClass != null && !_isStatic;
 
   @override
@@ -129,9 +123,6 @@ abstract class KConstructor extends KFunction
       : super(enclosingClass.library, enclosingClass, name, parameterStructure,
             AsyncMarker.SYNC,
             isExternal: isExternal);
-
-  @override
-  bool get isConstructor => true;
 
   @override
   bool get isInstanceMember => false;
@@ -247,9 +238,6 @@ class KField extends KMember implements FieldEntity, IndexedField {
       {required super.isStatic,
       required this.isAssignable,
       required this.isConst});
-
-  @override
-  bool get isField => true;
 
   @override
   String get _kind => 'field';

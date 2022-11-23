@@ -38,7 +38,7 @@ struct ScriptIndexPair {
 
   ScriptIndexPair(const Script* s, intptr_t index) : script_(s), index_(index) {
     ASSERT(!s->IsNull());
-    ASSERT(s->IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(s->IsNotTemporaryScopedHandle());
   }
 
   ScriptIndexPair() : script_(NULL), index_(-1) {}
@@ -70,7 +70,7 @@ struct FunctionIndexPair {
   FunctionIndexPair(const Function* f, intptr_t index)
       : function_(f), index_(index) {
     ASSERT(!f->IsNull());
-    ASSERT(f->IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(f->IsNotTemporaryScopedHandle());
   }
 
   FunctionIndexPair() : function_(NULL), index_(-1) {}
@@ -94,7 +94,7 @@ struct DwarfCodeKeyValueTrait {
     Pair(const Code* c, const T v) : code(c), value(v) {
       ASSERT(c != nullptr);
       ASSERT(!c->IsNull());
-      ASSERT(c->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(c->IsNotTemporaryScopedHandle());
     }
     Pair() : code(nullptr), value{} {}
 

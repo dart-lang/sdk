@@ -108,7 +108,13 @@ Thread::Thread(bool is_vm_isolate)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
 #endif
-      next_(nullptr) {
+#if !defined(PRODUCT)
+      next_(nullptr),
+      heap_sampler_(this) {
+#else
+              next_(nullptr) {
+#endif
+
 #if defined(SUPPORT_TIMELINE)
   dart_stream_ = Timeline::GetDartStream();
   ASSERT(dart_stream_ != nullptr);

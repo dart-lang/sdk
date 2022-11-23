@@ -8,11 +8,13 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements;
+import '../../common/metrics.dart';
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
 import '../../ir/class_relation.dart';
+import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -20,7 +22,6 @@ import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world_interfaces.dart' show JClosedWorld;
 import '../../inferrer/abstract_value_domain.dart';
 import '../../inferrer/abstract_value_strategy.dart';
 import 'constants.dart';
@@ -44,6 +45,8 @@ class CommonMasks with AbstractValueDomain {
 
   CommonElements get commonElements => _closedWorld.commonElements;
   DartTypes get dartTypes => _closedWorld.dartTypes;
+
+  final Map<TypeMask, Map<TypeMask, TypeMask>> _intersectionCache = {};
 
   /// Cache of [FlatTypeMask]s grouped by the possible values of the
   /// `FlatTypeMask.flags` property.
@@ -933,6 +936,17 @@ class CommonMasks with AbstractValueDomain {
     sink.writeCached<TypeMask>(
         value, (TypeMask value) => value.writeToDataSink(sink));
   }
+
+  @override
+  Metrics get metrics => _metrics;
+  final _metrics = _CommonMaskMetrics();
+
+  @override
+  void finalizeMetrics() {
+    _metrics.intersectionCacheTop.add(_intersectionCache.length);
+    _metrics.intersectionCacheTotal
+        .add(_intersectionCache.values.fold(0, (p, e) => p + e.length));
+  }
 }
 
 /// Convert the given TypeMask to a compact string format.
@@ -982,4 +996,19 @@ String formatType(DartTypes dartTypes, TypeMask type) {
     return '$baseType=$value';
   }
   return '$type'; // Fall back on toString if not supported here.
+}
+
+class _CommonMaskMetrics implements Metrics {
+  final intersectionCacheTop = CountMetric('count.intersectionCacheTop');
+  final intersectionCacheTotal = CountMetric('count.intersectionCacheTotal');
+
+  @override
+  String get namespace => 'CommonMasks';
+
+  @override
+  Iterable<Metric> get primary => const [];
+
+  @override
+  Iterable<Metric> get secondary =>
+      [intersectionCacheTop, intersectionCacheTotal];
 }

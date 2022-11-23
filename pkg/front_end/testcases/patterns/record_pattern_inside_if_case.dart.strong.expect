@@ -3,15 +3,15 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  if(invalid-expression "Unimplemented RecordMatcher.makeCondition") {
+  if(invalid-expression "Unimplemented RecordPattern.transform") {
   }
   final dynamic #t2 = x;
-  if(invalid-expression "Unimplemented RecordMatcher.makeCondition") {
+  if(invalid-expression "Unimplemented RecordPattern.transform") {
   }
   final dynamic #t3 = x;
-  if(invalid-expression "Unimplemented RecordMatcher.makeCondition") {
+  if(invalid-expression "Unimplemented RecordPattern.transform") {
   }
   final dynamic #t4 = x;
-  if(invalid-expression "Unimplemented RecordMatcher.makeCondition") {
+  if(invalid-expression "Unimplemented RecordPattern.transform") {
   }
 }

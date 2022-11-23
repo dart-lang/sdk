@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:kernel/ast.dart';
 
 import '../fasta_codes.dart';
+import '../kernel/internal_ast.dart';
 import 'inference_helper.dart';
 
 /// Implementation of [TypeAnalyzerErrors] that reports errors using the
@@ -13,13 +14,22 @@ import 'inference_helper.dart';
 class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<Node, Statement, Expression, VariableDeclaration,
-            DartType> {
+            DartType, Pattern> {
   final InferenceHelper helper;
 
   final Uri uriForInstrumentation;
 
   SharedTypeAnalyzerErrors(
       {required this.helper, required this.uriForInstrumentation});
+
+  @override
+  void argumentTypeNotAssignable({
+    required Expression argument,
+    required DartType argumentType,
+    required DartType parameterType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
 
   @override
   void assertInErrorRecovery() {
@@ -48,18 +58,21 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void inconsistentMatchVar(
-      {required Node pattern,
-      required DartType type,
-      required Node previousPattern,
-      required DartType previousType}) {
-    throw new UnimplementedError('TODO(paulberry)');
+  void duplicateRecordPatternField({
+    required String name,
+    required RecordPatternField<Node, Pattern> original,
+    required RecordPatternField<Node, Pattern> duplicate,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
-  void inconsistentMatchVarExplicitness(
-      {required Node pattern, required Node previousPattern}) {
-    throw new UnimplementedError('TODO(paulberry)');
+  void inconsistentJoinedPatternVariable({
+    required VariableDeclaration variable,
+    required VariableDeclaration component,
+  }) {
+    // TODO(scheglov): implement logicalOrPatternInconsistentVariablePair
+    throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
@@ -84,6 +97,14 @@ class SharedTypeAnalyzerErrors
   @override
   void refutablePatternInIrrefutableContext(Node pattern, Node context) {
     throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void relationalPatternOperatorReturnTypeNotAssignableToBool({
+    required Node node,
+    required DartType returnType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override

@@ -2251,7 +2251,11 @@ class LoadOptimizer : public ValueObject {
                 forward_def = alloc->InputAt(pos)->definition();
               } else {
                 // Fields not provided as an input to the instruction are
-                // initialized to null during allocation.
+                // initialized to null during allocation (except
+                // Record::num_fields).
+                // Accesses to Record::num_fields should be folded in
+                // LoadFieldInstr::Canonicalize.
+                ASSERT(slot->kind() != Slot::Kind::kRecord_num_fields);
                 forward_def = graph_->constant_null();
               }
             }
@@ -3856,6 +3860,10 @@ void AllocationSinking::CreateMaterializationAt(
         flow_graph_->isolate_group()->class_table()->At(instr->class_id()));
     num_elements = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateRecord()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->class_table()->At(kRecordCid));
+    num_elements = instr->num_fields();
+  } else if (auto instr = alloc->AsAllocateSmallRecord()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(kRecordCid));
     num_elements = instr->num_fields();

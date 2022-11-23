@@ -480,6 +480,8 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
   });
   var shutdownTimer =
       startShutdownTimer(inactivityTimeout, server, serverInfoFile);
+  // TODO: This should be changed to print to stderr so we don't change the
+  // stdout text for regular apps.
   print('The Resident Frontend Compiler is listening at '
       '${server.address.address}:${server.port}');
 

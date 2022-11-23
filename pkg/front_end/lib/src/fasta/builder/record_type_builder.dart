@@ -9,6 +9,7 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart'
     show
+        messageNamedFieldClashesWithPositionalFieldInRecord,
         messageObjectMemberNameUsedForRecordField,
         messageRecordFieldsCantBePrivate,
         messageSupertypeIsFunction,
@@ -17,6 +18,7 @@ import '../fasta_codes.dart'
         templateDuplicatedRecordTypeFieldNameContext;
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
+import '../util/helpers.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
@@ -152,6 +154,12 @@ abstract class RecordTypeBuilder extends TypeBuilder {
             hasErrors = true;
             continue;
           }
+          if (forbiddenObjectMemberNames.contains(fieldName)) {
+            library.addProblem(messageObjectMemberNameUsedForRecordField,
+                field.charOffset, fieldName.length, fileUri);
+            hasErrors = true;
+            continue;
+          }
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
@@ -197,6 +205,17 @@ abstract class RecordTypeBuilder extends TypeBuilder {
         if (name.startsWith("_")) {
           library.addProblem(messageRecordFieldsCantBePrivate, field.charOffset,
               name.length, fileUri);
+          hasErrors = true;
+          continue;
+        }
+        if (tryParseRecordPositionalGetterName(
+                name, positionalFields?.length ?? 0) !=
+            null) {
+          library.addProblem(
+              messageNamedFieldClashesWithPositionalFieldInRecord,
+              field.charOffset,
+              name.length,
+              fileUri);
           hasErrors = true;
           continue;
         }

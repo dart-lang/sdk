@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart' show mergeSort;
 import 'package:kernel/ast.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
@@ -38,17 +39,14 @@ import '../universe/selector.dart';
 import '../world.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'locals.dart';
 
-class JsClosedWorld implements JClosedWorld {
+class JClosedWorld implements World {
   static const String tag = 'closed-world';
 
-  @override
   final NativeData nativeData;
-  @override
   final InterceptorData interceptorData;
-  @override
   final BackendUsage backendUsage;
-  @override
   final NoSuchMethodData noSuchMethodData;
 
   // [_allFunctions] is created lazily because it is not used when we switch
@@ -88,42 +86,37 @@ class JsClosedWorld implements JClosedWorld {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> implementedClasses;
 
-  @override
   final Set<MemberEntity> liveInstanceMembers;
+
+  final Set<MemberEntity> liveAbstractInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
   final Set<MemberEntity> assignedInstanceMembers;
 
-  @override
   final Set<ClassEntity> liveNativeClasses;
 
-  @override
   final Set<MemberEntity> processedMembers;
 
-  @override
+  /// Returns the set of interfaces passed as type arguments to the internal
+  /// `extractTypeArguments` function.
   final Set<ClassEntity> extractTypeArgumentsInterfacesNewRti;
 
-  @override
   final ClassHierarchy classHierarchy;
 
-  @override
   final JsKernelToElementMap elementMap;
-  @override
   final RuntimeTypesNeed rtiNeed;
   late AbstractValueDomain _abstractValueDomain;
-  @override
   final JFieldAnalysis fieldAnalysis;
-  @override
   final AnnotationsData annotationsData;
-  @override
   final ClosureData closureDataLookup;
-  @override
   final OutputUnitData outputUnitData;
+
+  /// The [Sorter] used for sorting elements in the generated code.
   Sorter? _sorter;
 
   final Map<MemberEntity, MemberAccess> memberAccess;
 
-  JsClosedWorld(
+  JClosedWorld(
       this.elementMap,
       this.nativeData,
       this.interceptorData,
@@ -134,6 +127,7 @@ class JsClosedWorld implements JClosedWorld {
       this.implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,
+      this.liveAbstractInstanceMembers,
       this.assignedInstanceMembers,
       this.processedMembers,
       this.extractTypeArgumentsInterfacesNewRti,
@@ -148,8 +142,8 @@ class JsClosedWorld implements JClosedWorld {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
-  /// Deserializes a [JsClosedWorld] object from [source].
-  factory JsClosedWorld.readFromDataSource(
+  /// Deserializes a [JClosedWorld] object from [source].
+  factory JClosedWorld.readFromDataSource(
       CompilerOptions options,
       DiagnosticReporter reporter,
       Environment environment,
@@ -180,6 +174,8 @@ class JsClosedWorld implements JClosedWorld {
     Set<ClassEntity> extractTypeArgumentsInterfacesNewRti =
         source.readClasses().toSet();
     Set<MemberEntity> liveInstanceMembers = source.readMembers().toSet();
+    Set<MemberEntity> liveAbstractInstanceMembers =
+        source.readMembers().toSet();
     Set<MemberEntity> assignedInstanceMembers = source.readMembers().toSet();
     Set<MemberEntity> processedMembers = source.readMembers().toSet();
     Map<ClassEntity, Set<ClassEntity>> mixinUses =
@@ -202,7 +198,7 @@ class JsClosedWorld implements JClosedWorld {
 
     source.end(tag);
 
-    return JsClosedWorld(
+    return JClosedWorld(
         elementMap,
         nativeData,
         interceptorData,
@@ -213,6 +209,7 @@ class JsClosedWorld implements JClosedWorld {
         implementedClasses,
         liveNativeClasses,
         liveInstanceMembers,
+        liveAbstractInstanceMembers,
         assignedInstanceMembers,
         processedMembers,
         extractTypeArgumentsInterfacesNewRti,
@@ -226,7 +223,7 @@ class JsClosedWorld implements JClosedWorld {
         memberAccess);
   }
 
-  /// Serializes this [JsClosedWorld] to [sink].
+  /// Serializes this [JClosedWorld] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     elementMap.writeToDataSink(sink);
@@ -241,6 +238,7 @@ class JsClosedWorld implements JClosedWorld {
     sink.writeClasses(liveNativeClasses);
     sink.writeClasses(extractTypeArgumentsInterfacesNewRti);
     sink.writeMembers(liveInstanceMembers);
+    sink.writeMembers(liveAbstractInstanceMembers);
     sink.writeMembers(assignedInstanceMembers);
     sink.writeMembers(processedMembers);
     sink.writeClassMap(
@@ -257,21 +255,20 @@ class JsClosedWorld implements JClosedWorld {
     sink.end(tag);
   }
 
-  @override
   JElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 
-  @override
   JCommonElements get commonElements => elementMap.commonElements;
 
-  @override
   DartTypes get dartTypes => elementMap.types;
 
-  @override
+  /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
     return implementedClasses.contains(cls);
   }
 
-  @override
+  /// Returns the most specific subclass of [cls] (including [cls]) that is
+  /// directly instantiated or a superclass of all directly instantiated
+  /// subclasses. If [cls] is not instantiated, `null` is returned.
   ClassEntity? getLubOfInstantiatedSubclasses(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubclasses(
@@ -281,7 +278,9 @@ class JsClosedWorld implements JClosedWorld {
     return hierarchy.getLubOfInstantiatedSubclasses();
   }
 
-  @override
+  /// Returns the most specific subtype of [cls] (including [cls]) that is
+  /// directly instantiated or a superclass of all directly instantiated
+  /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
   ClassEntity? getLubOfInstantiatedSubtypes(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubtypes(
@@ -291,19 +290,20 @@ class JsClosedWorld implements JClosedWorld {
     return classSet.getLubOfInstantiatedSubtypes();
   }
 
-  @override
+  /// Returns `true` if [cls] is mixed into a live class.
   bool isUsedAsMixin(ClassEntity cls) {
     return !mixinUsesOf(cls).isEmpty;
   }
 
-  @override
+  /// Returns `true` if any live class that mixes in [cls] implements [type].
   bool hasAnySubclassOfMixinUseThatImplements(
       ClassEntity cls, ClassEntity type) {
     return mixinUsesOf(cls)
         .any((use) => hasAnySubclassThatImplements(use, type));
   }
 
-  @override
+  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
+  /// of a mixin application of [y].
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
     Map<ClassEntity, bool> secondMap = _subtypeCoveredByCache[x] ??= {};
     return secondMap[y] ??= classHierarchy.subtypesOf(x).every(
@@ -312,14 +312,52 @@ class JsClosedWorld implements JClosedWorld {
             isSubclassOfMixinUseOf(cls, y));
   }
 
-  @override
+  /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
     Set<ClassEntity>? subclasses = typesImplementedBySubclasses[superclass];
     if (subclasses == null) return false;
     return subclasses.contains(type);
   }
 
-  @override
+  /// Returns `true` if a call of [selector] on [cls] and/or subclasses/subtypes
+  /// need noSuchMethod handling.
+  ///
+  /// If the receiver is guaranteed to have a member that matches what we're
+  /// looking for, there's no need to introduce a noSuchMethod handler. It will
+  /// never be called.
+  ///
+  /// As an example, consider this class hierarchy:
+  ///
+  ///                   A    <-- noSuchMethod
+  ///                  / \
+  ///                 C   B  <-- foo
+  ///
+  /// If we know we're calling foo on an object of type B we don't have to worry
+  /// about the noSuchMethod method in A because objects of type B implement
+  /// foo. On the other hand, if we end up calling foo on something of type C we
+  /// have to add a handler for it.
+  ///
+  /// If the holders of all user-defined noSuchMethod implementations that might
+  /// be applicable to the receiver type have a matching member for the current
+  /// name and selector, we avoid introducing a noSuchMethod handler.
+  ///
+  /// As an example, consider this class hierarchy:
+  ///
+  ///                        A    <-- foo
+  ///                       / \
+  ///    noSuchMethod -->  B   C  <-- bar
+  ///                      |   |
+  ///                      C   D  <-- noSuchMethod
+  ///
+  /// When calling foo on an object of type A, we know that the implementations
+  /// of noSuchMethod are in the classes B and D that also (indirectly)
+  /// implement foo, so we do not need a handler for it.
+  ///
+  /// If we're calling bar on an object of type D, we don't need the handler
+  /// either because all objects of type D implement bar through inheritance.
+  ///
+  /// If we're calling bar on an object of type A we do need the handler because
+  /// we may have to call B.noSuchMethod since B does not implement bar.
   bool needsNoSuchMethod(
       ClassEntity base, Selector selector, ClassQuery query) {
     /// Returns `true` if subclasses in the [rootNode] tree needs noSuchMethod
@@ -369,7 +407,7 @@ class JsClosedWorld implements JClosedWorld {
     }
   }
 
-  @override
+  /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes) {
     Iterator<ClassEntity> iterator = classes.iterator;
     if (!iterator.moveNext()) return const <ClassEntity>[];
@@ -411,19 +449,20 @@ class JsClosedWorld implements JClosedWorld {
     return commonSupertypes;
   }
 
-  @override
+  /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     return _liveMixinUses[cls] ?? const <ClassEntity>[];
   }
 
-  @override
+  /// Returns `true` if any live class that mixes in [mixin] is also a subclass
+  /// of [superclass].
   bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin) {
     return mixinUsesOf(mixin).any((ClassEntity each) {
       return classHierarchy.isSubclassOf(each, superclass);
     });
   }
 
-  @override
+  /// Returns `true` if [cls] or any superclass mixes in [mixin].
   bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin) {
     if (isUsedAsMixin(mixin)) {
       ClassEntity? current = cls;
@@ -440,7 +479,12 @@ class JsClosedWorld implements JClosedWorld {
   late final ClassEntity _functionLub =
       getLubOfInstantiatedSubtypes(commonElements.functionClass)!;
 
-  @override
+  /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
+  /// subclass of `Closure` using the [abstractValueDomain].
+  ///
+  /// Every implementation of `Closure` has a 'call' method with its own
+  /// signature so it cannot be modelled by a [FunctionEntity]. Also,
+  /// call-methods for tear-off are not part of the element model.
   bool includesClosureCallInDomain(Selector selector, AbstractValue? receiver,
       AbstractValueDomain abstractValueDomain) {
     return selector.name == Identifiers.call &&
@@ -464,15 +508,25 @@ class JsClosedWorld implements JClosedWorld {
                 .isPotentiallyTrue);
   }
 
-  @override
+  /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
+  /// subclass of `Closure`.
+  ///
+  /// Every implementation of `Closure` has a 'call' method with its own
+  /// signature so it cannot be modelled by a [FunctionEntity]. Also,
+  /// call-methods for tear-off are not part of the element model.
   bool includesClosureCall(Selector selector, AbstractValue? receiver) {
     return includesClosureCallInDomain(selector, receiver, abstractValueDomain);
   }
 
-  @override
   Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
 
-  @override
+  /// Returns the mask for the potential receivers of a dynamic call to
+  /// [selector] on [receiver].
+  ///
+  /// This will narrow the constraints of [receiver] to an [AbstractValue] of
+  /// the set of classes that actually implement the selected member or
+  /// implement the handling 'noSuchMethod' where the selected member is
+  /// unimplemented.
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
     if (includesClosureCall(selector, receiver)) {
       return abstractValueDomain.dynamicType;
@@ -480,13 +534,19 @@ class JsClosedWorld implements JClosedWorld {
     return _allFunctions.receiverType(selector, receiver, abstractValueDomain);
   }
 
-  @override
+  /// Returns all the instance members that may be invoked with the [selector]
+  /// on the given [receiver] using the [abstractValueDomain]. The returned elements may include noSuchMethod
+  /// handlers that are potential targets indirectly through the noSuchMethod
+  /// mechanism.
   Iterable<MemberEntity> locateMembersInDomain(Selector selector,
       AbstractValue? receiver, AbstractValueDomain abstractValueDomain) {
     return _allFunctions.filter(selector, receiver, abstractValueDomain);
   }
 
-  @override
+  /// Returns all the instance members that may be invoked with the [selector]
+  /// on the given [receiver]. The returned elements may include noSuchMethod
+  /// handlers that are potential targets indirectly through the noSuchMethod
+  /// mechanism.
   Iterable<MemberEntity> locateMembers(
       Selector selector, AbstractValue? receiver) {
     return locateMembersInDomain(selector, receiver, abstractValueDomain);
@@ -498,15 +558,16 @@ class JsClosedWorld implements JClosedWorld {
         .any((each) => each.isGetter);
   }
 
-  @override
+  /// Returns the single [MemberEntity] that matches a call to [selector] on the
+  /// [receiver]. If multiple targets exist, `null` is returned.
   MemberEntity? locateSingleMember(Selector selector, AbstractValue receiver) {
     if (includesClosureCall(selector, receiver)) return null;
     return abstractValueDomain.locateSingleMember(receiver, selector);
   }
 
-  @override
+  /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element) {
-    if (!element.isField) return false;
+    if (element is! FieldEntity) return false;
     if (nativeData.isNativeMember(element)) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
@@ -524,17 +585,18 @@ class JsClosedWorld implements JClosedWorld {
     return false;
   }
 
-  @override
   Sorter get sorter {
     return _sorter ??= KernelSorter(elementMap);
   }
 
-  @override
+  /// Returns the [AbstractValueDomain] used in the global type inference.
   AbstractValueDomain get abstractValueDomain {
     return _abstractValueDomain;
   }
 
-  @override
+  /// Returns whether [element] will be the one used at runtime when being
+  /// invoked on an instance of [cls]. [name] is used to ensure library
+  /// privacy is taken into account.
   bool hasElementIn(ClassEntity cls, Name name, Entity element) {
     ClassEntity? current = cls;
     while (current != null) {
@@ -571,12 +633,13 @@ class JsClosedWorld implements JClosedWorld {
         !elementEnvironment.isUnnamedMixinApplication(cls);
   }
 
-  @override
+  /// Returns the set of read, write, and invocation accesses found on [member]
+  /// during the closed world computation.
   MemberAccess? getMemberAccess(MemberEntity member) {
     return memberAccess[member];
   }
 
-  @override
+  /// Registers [interface] as a type argument to `extractTypeArguments`.
   void registerExtractTypeArguments(ClassEntity interface) {
     extractTypeArgumentsInterfacesNewRti.add(interface);
   }
@@ -591,22 +654,33 @@ class KernelSorter implements Sorter {
     return utils.compareLibrariesUris(a.canonicalUri, b.canonicalUri);
   }
 
-  int _compareSourceSpans(Entity entity1, SourceSpan sourceSpan1,
+  /// Compare by URI, offset and then name. My return `0` for entities that are
+  /// different entities with the same name and position, which happens for some
+  /// code generated by transforms, e.g. late instance field getters and
+  /// setters.
+  int _compareByLocationThenName(Entity entity1, SourceSpan sourceSpan1,
       Entity entity2, SourceSpan sourceSpan2) {
     int r = utils.compareSourceUris(sourceSpan1.uri, sourceSpan2.uri);
     if (r != 0) return r;
-    return utils.compareEntities(
-        entity1, sourceSpan1.begin, null, entity2, sourceSpan2.begin, null);
+
+    r = sourceSpan1.begin.compareTo(sourceSpan2.begin);
+    if (r != 0) return r;
+
+    return entity1.name!.compareTo(entity2.name!);
   }
 
   @override
   Iterable<LibraryEntity> sortLibraries(Iterable<LibraryEntity> libraries) {
-    return libraries.toList()..sort(_compareLibraries);
+    final list = List.of(libraries);
+    mergeSort(list, compare: _compareLibraries);
+    return list;
   }
 
   @override
   Iterable<T> sortMembers<T extends MemberEntity>(Iterable<T> members) {
-    return members.toList()..sort(compareMembersByLocation);
+    final list = List.of(members);
+    mergeSort(list, compare: compareMembersByLocation);
+    return list;
   }
 
   @override
@@ -620,10 +694,8 @@ class KernelSorter implements Sorter {
         regularClasses.add(cls);
       }
     }
-    List<ClassEntity> sorted = <ClassEntity>[];
-    regularClasses.sort(compareClassesByLocation);
-    sorted.addAll(regularClasses);
-    unnamedMixins.sort((a, b) {
+    mergeSort(regularClasses, compare: compareClassesByLocation);
+    mergeSort(unnamedMixins, compare: (ClassEntity a, ClassEntity b) {
       int result = _compareLibraries(a.library, b.library);
       if (result != 0) return result;
       result = a.name.compareTo(b.name);
@@ -631,8 +703,7 @@ class KernelSorter implements Sorter {
           failedAt(a, "Multiple mixins named ${a.name}: $a vs $b."));
       return result;
     });
-    sorted.addAll(unnamedMixins);
-    return sorted;
+    return [...regularClasses, ...unnamedMixins];
   }
 
   @override
@@ -642,21 +713,36 @@ class KernelSorter implements Sorter {
 
   @override
   int compareClassesByLocation(ClassEntity a, ClassEntity b) {
+    if (identical(a, b)) return 0;
     int r = _compareLibraries(a.library, b.library);
     if (r != 0) return r;
     ClassDefinition definition1 = elementMap.getClassDefinition(a);
     ClassDefinition definition2 = elementMap.getClassDefinition(b);
-    return _compareSourceSpans(
+    return _compareByLocationThenName(
         a, definition1.location, b, definition2.location);
   }
 
   @override
   int compareMembersByLocation(MemberEntity a, MemberEntity b) {
+    if (identical(a, b)) return 0;
     int r = _compareLibraries(a.library, b.library);
     if (r != 0) return r;
     MemberDefinition definition1 = elementMap.getMemberDefinition(a);
     MemberDefinition definition2 = elementMap.getMemberDefinition(b);
-    return _compareSourceSpans(
+    return _compareByLocationThenName(
         a, definition1.location, b, definition2.location);
+  }
+}
+
+/// [LocalLookup] implementation used to deserialize [JClosedWorld].
+class LocalLookupImpl implements LocalLookup {
+  final GlobalLocalsMap _globalLocalsMap;
+
+  LocalLookupImpl(this._globalLocalsMap);
+
+  @override
+  Local getLocalByIndex(MemberEntity memberContext, int index) {
+    final map = _globalLocalsMap.getLocalsMap(memberContext);
+    return map.getLocalByIndex(index);
   }
 }

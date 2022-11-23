@@ -46,6 +46,7 @@ export 'util.dart' show lengthForToken, lengthOfSpan, optional;
 class ErrorCollectingListener extends Listener {
   final List<ParserError> recoverableErrors = <ParserError>[];
 
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.

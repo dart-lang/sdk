@@ -710,6 +710,38 @@ suggestions
 ''');
   }
 
+  Future<void>
+      test_class_method_fromExtends_signatureHasUnimportedTypes() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+
+class A {
+  FutureOr<void> foo01() {}
+}
+''');
+    final response = await getTestCodeSuggestions('''
+import 'a.dart';
+
+class B extends A {
+  foo^
+}
+''');
+
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  FutureOr<void> foo01() {
+    // TODO: implement foo01
+    return super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 70 21
+''');
+  }
+
   Future<void> test_class_method_fromExtends_withOverride() async {
     final response = await getTestCodeSuggestions('''
 class A {

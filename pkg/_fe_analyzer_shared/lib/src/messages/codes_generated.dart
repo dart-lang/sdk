@@ -144,6 +144,17 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractSealedClass = messageAbstractSealedClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractSealedClass = const MessageCode(
+    "AbstractSealedClass",
+    index: 132,
+    problemMessage:
+        r"""A class can't be declared both 'sealed' and 'abstract'.""",
+    correctionMessage: r"""Try removing the 'abstract' or 'sealed' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3152,6 +3163,16 @@ Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumWithNameValues = messageEnumWithNameValues;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumWithNameValues = const MessageCode(
+    "EnumWithNameValues",
+    analyzerCodes: <String>["ENUM_WITH_NAME_VALUES"],
+    problemMessage:
+        r"""The name 'values' is not a valid name for an enum. Try using a different name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
     messageEqualityCannotBeEqualityOperand;
 
@@ -3656,7 +3677,7 @@ const Code<Message Function(String string)>
     codeExperimentNotEnabledOffByDefault =
     const Code<Message Function(String string)>(
         "ExperimentNotEnabledOffByDefault",
-        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+        index: 133);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentNotEnabledOffByDefault(String string) {
@@ -5535,6 +5556,76 @@ const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
         r"""Try moving the import directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Uri uri_,
+        String string,
+        String
+            string2)> templateImportChainContext = const Template<
+        Message Function(Uri uri_, String string, String string2)>(
+    problemMessageTemplate:
+        r"""The unavailable library '#uri' is imported through these packages:
+
+#string
+Detailed import paths for (some of) the these imports:
+
+#string2""",
+    withArguments: _withArgumentsImportChainContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string, String string2)>
+    codeImportChainContext =
+    const Code<Message Function(Uri uri_, String string, String string2)>(
+        "ImportChainContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImportChainContext(
+    Uri uri_, String string, String string2) {
+  String? uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeImportChainContext,
+      problemMessage:
+          """The unavailable library '${uri}' is imported through these packages:
+
+${string}
+Detailed import paths for (some of) the these imports:
+
+${string2}""",
+      arguments: {'uri': uri_, 'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_, String string)>
+    templateImportChainContextSimple =
+    const Template<Message Function(Uri uri_, String string)>(
+        problemMessageTemplate:
+            r"""The unavailable library '#uri' is imported through these paths:
+
+#string""",
+        withArguments: _withArgumentsImportChainContextSimple);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string)>
+    codeImportChainContextSimple =
+    const Code<Message Function(Uri uri_, String string)>(
+        "ImportChainContextSimple",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImportChainContextSimple(Uri uri_, String string) {
+  String? uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeImportChainContextSimple,
+      problemMessage:
+          """The unavailable library '${uri}' is imported through these paths:
+
+${string}""",
+      arguments: {'uri': uri_, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIncorrectTypeArgumentVariable =
     messageIncorrectTypeArgumentVariable;
 
@@ -5624,6 +5715,35 @@ const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
     "InheritedMembersConflictCause2",
     severity: Severity.context,
     problemMessage: r"""This is the other inherited member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateInheritedRestrictedMemberOfEnumImplementer =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
+        withArguments:
+            _withArgumentsInheritedRestrictedMemberOfEnumImplementer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeInheritedRestrictedMemberOfEnumImplementer =
+    const Code<Message Function(String name, String name2)>(
+        "InheritedRestrictedMemberOfEnumImplementer",
+        analyzerCodes: <String>["ILLEGAL_CONCRETE_ENUM_MEMBER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInheritedRestrictedMemberOfEnumImplementer(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeInheritedRestrictedMemberOfEnumImplementer,
+      problemMessage:
+          """A concrete instance member named '${name}' can't be inherited from '${name2}' in a class that implements 'Enum'.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7261,6 +7381,38 @@ const MessageCode messageJsInteropNonExternalMember = const MessageCode(
     correctionMessage: r"""Try annotating the member with `external`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateJsInteropNonStaticWithStaticInteropSupertype =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does.""",
+        correctionMessageTemplate:
+            r"""Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'.""",
+        withArguments:
+            _withArgumentsJsInteropNonStaticWithStaticInteropSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropNonStaticWithStaticInteropSupertype =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropNonStaticWithStaticInteropSupertype",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropNonStaticWithStaticInteropSupertype,
+      problemMessage:
+          """Class '${name}' does not have an `@staticInterop` annotation, but has supertype '${name2}', which does.""",
+      correctionMessage: """Try marking '${name}' as a `@staticInterop` class, or don't inherit '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropOperatorsNotSupported =
     messageJsInteropOperatorsNotSupported;
 
@@ -7383,6 +7535,35 @@ Message _withArgumentsJsInteropStaticInteropMockMissingImplements(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropStaticInteropNoJSAnnotation = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""`@staticInterop` classes should also have the `@JS` annotation.""",
+    correctionMessageTemplate: r"""Add `@JS` to class '#name'.""",
+    withArguments: _withArgumentsJsInteropStaticInteropNoJSAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropNoJSAnnotation =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropNoJSAnnotation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropNoJSAnnotation,
+      problemMessage:
+          """`@staticInterop` classes should also have the `@JS` annotation.""",
+      correctionMessage: """Add `@JS` to class '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
     const Template<Message Function(String name)>(
@@ -7476,7 +7657,7 @@ const Template<Message Function(String name, String name2)>
     templateJsInteropStaticInteropWithNonStaticSupertype =
     const Template<Message Function(String name, String name2)>(
         problemMessageTemplate:
-            r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static.""",
+            r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not.""",
         correctionMessageTemplate:
             r"""Try marking the supertype as a static interop class using `@staticInterop`.""",
         withArguments:
@@ -7498,7 +7679,7 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
   name2 = demangleMixinApplicationName(name2);
   return new Message(codeJsInteropStaticInteropWithNonStaticSupertype,
       problemMessage:
-          """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which is non-static.""",
+          """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which does not.""",
       correctionMessage: """Try marking the supertype as a static interop class using `@staticInterop`.""",
       arguments: {'name': name, 'name2': name2});
 }
@@ -8468,6 +8649,17 @@ Message _withArgumentsNameNotFound(String name) {
       problemMessage: """Undefined name '${name}'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNamedFieldClashesWithPositionalFieldInRecord =
+    messageNamedFieldClashesWithPositionalFieldInRecord;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNamedFieldClashesWithPositionalFieldInRecord =
+    const MessageCode("NamedFieldClashesWithPositionalFieldInRecord",
+        analyzerCodes: <String>["INVALID_FIELD_NAME"],
+        problemMessage:
+            r"""Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
@@ -10064,12 +10256,16 @@ const MessageCode messagePatchDeclarationOrigin = const MessageCode(
     problemMessage: r"""This is the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-    templatePatchInjectionFailed =
-    const Template<Message Function(String name, Uri uri_)>(
-        problemMessageTemplate: r"""Can't inject '#name' into '#uri'.""",
-        correctionMessageTemplate: r"""Try adding '@patch'.""",
-        withArguments: _withArgumentsPatchInjectionFailed);
+const Template<
+    Message Function(
+        String name,
+        Uri
+            uri_)> templatePatchInjectionFailed = const Template<
+        Message Function(String name, Uri uri_)>(
+    problemMessageTemplate: r"""Can't inject public '#name' into '#uri'.""",
+    correctionMessageTemplate:
+        r"""Make '#name' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
+    withArguments: _withArgumentsPatchInjectionFailed);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, Uri uri_)> codePatchInjectionFailed =
@@ -10083,8 +10279,9 @@ Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
   name = demangleMixinApplicationName(name);
   String? uri = relativizeUri(uri_);
   return new Message(codePatchInjectionFailed,
-      problemMessage: """Can't inject '${name}' into '${uri}'.""",
-      correctionMessage: """Try adding '@patch'.""",
+      problemMessage: """Can't inject public '${name}' into '${uri}'.""",
+      correctionMessage:
+          """Make '${name}' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
       arguments: {'name': name, 'uri': uri_});
 }
 
@@ -11516,6 +11713,27 @@ const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
     "TypedefUnaliasedTypeCause",
     severity: Severity.context,
     problemMessage: r"""This is the type denoted by the type alias.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)> templateUnavailableDartLibrary =
+    const Template<Message Function(Uri uri_)>(
+        problemMessageTemplate:
+            r"""Dart library '#uri' is not available on this platform.""",
+        withArguments: _withArgumentsUnavailableDartLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeUnavailableDartLibrary =
+    const Code<Message Function(Uri uri_)>("UnavailableDartLibrary",
+        analyzerCodes: <String>["URI_DOES_NOT_EXIST"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnavailableDartLibrary(Uri uri_) {
+  String? uri = relativizeUri(uri_);
+  return new Message(codeUnavailableDartLibrary,
+      problemMessage:
+          """Dart library '${uri}' is not available on this platform.""",
+      arguments: {'uri': uri_});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;

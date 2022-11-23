@@ -13,6 +13,8 @@ void main() {
 }
 
 void defineDocTests() {
+  ensureRunFromSdkBinDart();
+
   test('--help', () async {
     final p = project();
     final result = await p.run(['doc', '--help']);

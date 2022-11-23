@@ -64,14 +64,14 @@ class ElementMatcher {
             return false;
           }
         }
-        return true;
-      }
-      // The node has fewer components, which can happen, for example, when we
-      // can't figure out the class that used to define a field. We treat the
-      // missing components as wildcards and match the rest.
-      for (var i = 0; i < nodeComponentCount; i++) {
-        if (elementComponents[i] != components[i]) {
-          return false;
+      } else {
+        // The node has fewer components, which can happen, for example, when we
+        // can't figure out the class that used to define a field. We treat the
+        // missing components as wildcards and match the rest.
+        for (var i = 0; i < nodeComponentCount; i++) {
+          if (elementComponents[i] != components[i]) {
+            return false;
+          }
         }
       }
     } else {

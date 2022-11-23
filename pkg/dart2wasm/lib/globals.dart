@@ -12,11 +12,11 @@ import 'package:dart2wasm/translator.dart';
 class Globals {
   final Translator translator;
 
-  final Map<Field, w.Global> globals = {};
-  final Map<Field, w.BaseFunction> globalInitializers = {};
-  final Map<Field, w.Global> globalInitializedFlag = {};
-  final Map<w.FunctionType, w.DefinedFunction> dummyFunctions = {};
-  final Map<w.HeapType, w.DefinedGlobal> dummyValues = {};
+  final Map<Field, w.Global> _globals = {};
+  final Map<Field, w.BaseFunction> _globalInitializers = {};
+  final Map<Field, w.Global> _globalInitializedFlag = {};
+  final Map<w.FunctionType, w.DefinedFunction> _dummyFunctions = {};
+  final Map<w.HeapType, w.DefinedGlobal> _dummyValues = {};
   late final w.DefinedGlobal dummyGlobal;
 
   w.Module get m => translator.m;
@@ -33,15 +33,15 @@ class Globals {
     w.Instructions ib = dummyGlobal.initializer;
     ib.struct_new(structType);
     ib.end();
-    dummyValues[w.HeapType.any] = dummyGlobal;
-    dummyValues[w.HeapType.eq] = dummyGlobal;
-    dummyValues[w.HeapType.data] = dummyGlobal;
+    _dummyValues[w.HeapType.any] = dummyGlobal;
+    _dummyValues[w.HeapType.eq] = dummyGlobal;
+    _dummyValues[w.HeapType.data] = dummyGlobal;
   }
 
   /// Provide a dummy function with the given signature. Used for empty entries
   /// in vtables and for dummy values of function reference type.
   w.DefinedFunction getDummyFunction(w.FunctionType type) {
-    return dummyFunctions.putIfAbsent(type, () {
+    return _dummyFunctions.putIfAbsent(type, () {
       w.DefinedFunction function = m.addFunction(type, "#dummy function $type");
       w.Instructions b = function.body;
       b.unreachable();
@@ -52,18 +52,18 @@ class Globals {
 
   /// Returns whether the given function was provided by [getDummyFunction].
   bool isDummyFunction(w.BaseFunction function) {
-    return dummyFunctions[function.type] == function;
+    return _dummyFunctions[function.type] == function;
   }
 
-  w.Global? prepareDummyValue(w.ValueType type) {
+  w.Global? _prepareDummyValue(w.ValueType type) {
     if (type is w.RefType && !type.nullable) {
       w.HeapType heapType = type.heapType;
-      w.DefinedGlobal? global = dummyValues[heapType];
+      w.DefinedGlobal? global = _dummyValues[heapType];
       if (global != null) return global;
       if (heapType is w.DefType) {
         if (heapType is w.StructType) {
           for (w.FieldType field in heapType.fields) {
-            prepareDummyValue(field.type.unpacked);
+            _prepareDummyValue(field.type.unpacked);
           }
           global = m.addGlobal(w.GlobalType(type, mutable: false));
           w.Instructions ib = global.initializer;
@@ -83,7 +83,7 @@ class Globals {
           ib.ref_func(getDummyFunction(heapType));
           ib.end();
         }
-        dummyValues[heapType] = global!;
+        _dummyValues[heapType] = global!;
       }
       return global;
     }
@@ -112,9 +112,9 @@ class Globals {
         if (type is w.RefType) {
           w.HeapType heapType = type.heapType;
           if (type.nullable) {
-            b.ref_null(heapType);
+            b.ref_null(heapType.bottomType);
           } else {
-            b.global_get(prepareDummyValue(type)!);
+            b.global_get(_prepareDummyValue(type)!);
           }
         } else {
           throw "Unsupported global type ${type} ($type)";
@@ -138,7 +138,7 @@ class Globals {
   /// field.
   w.Global getGlobal(Field variable) {
     assert(!variable.isLate);
-    return globals.putIfAbsent(variable, () {
+    return _globals.putIfAbsent(variable, () {
       w.ValueType type = translator.translateType(variable.type);
       Constant? init = _getConstantInitializer(variable);
       if (init != null &&
@@ -159,14 +159,14 @@ class Globals {
           w.DefinedGlobal flag = m.addGlobal(w.GlobalType(w.NumType.i32));
           flag.initializer.i32_const(0);
           flag.initializer.end();
-          globalInitializedFlag[variable] = flag;
+          _globalInitializedFlag[variable] = flag;
         }
 
         w.DefinedGlobal global = m.addGlobal(w.GlobalType(type));
         instantiateDummyValue(global.initializer, type);
         global.initializer.end();
 
-        globalInitializers[variable] =
+        _globalInitializers[variable] =
             translator.functions.getFunction(variable.fieldReference);
         return global;
       }
@@ -178,19 +178,19 @@ class Globals {
   ///
   /// Note that [getGlobal] must have been called for the field beforehand.
   w.Global? getGlobalInitializedFlag(Field variable) {
-    return globalInitializedFlag[variable];
+    return _globalInitializedFlag[variable];
   }
 
   /// Emit code to read a static field.
   w.ValueType readGlobal(w.Instructions b, Field variable) {
     w.Global global = getGlobal(variable);
-    w.BaseFunction? initFunction = globalInitializers[variable];
+    w.BaseFunction? initFunction = _globalInitializers[variable];
     if (initFunction == null) {
       // Statically initialized
       b.global_get(global);
       return global.type.type;
     }
-    w.Global? flag = globalInitializedFlag[variable];
+    w.Global? flag = _globalInitializedFlag[variable];
     if (flag != null) {
       // Explicit initialization flag
       assert(global.type.type == initFunction.type.outputs.single);

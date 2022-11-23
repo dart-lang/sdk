@@ -733,6 +733,29 @@ DEFINE_RUNTIME_ENTRY(AllocateRecord, 2) {
   arguments.SetReturn(record);
 }
 
+// Allocate a new small record instance and initialize its fields.
+// Arg0: number of fields.
+// Arg1: field names.
+// Arg2-Arg4: field values.
+// Return value: newly allocated record.
+DEFINE_RUNTIME_ENTRY(AllocateSmallRecord, 5) {
+  const Smi& num_fields = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& field_names = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& value0 = Instance::CheckedHandle(zone, arguments.ArgAt(2));
+  const auto& value1 = Instance::CheckedHandle(zone, arguments.ArgAt(3));
+  const auto& value2 = Instance::CheckedHandle(zone, arguments.ArgAt(4));
+  const Record& record =
+      Record::Handle(zone, Record::New(num_fields.Value(), field_names,
+                                       SpaceForRuntimeAllocation()));
+  ASSERT(num_fields.Value() == 2 || num_fields.Value() == 3);
+  record.SetFieldAt(0, value0);
+  record.SetFieldAt(1, value1);
+  if (num_fields.Value() > 2) {
+    record.SetFieldAt(2, value2);
+  }
+  arguments.SetReturn(record);
+}
+
 // Allocate a SuspendState object.
 // Arg0: frame size.
 // Arg1: existing SuspendState object or function data.
@@ -862,8 +885,6 @@ static void UpdateTypeTestCache(
   if (instance.IsRecord()) {
     // Do not add record instances to cache as they don't have a valid
     // key (type of a record depends on types of all its fields).
-    // TODO(dartbug.com/49719): consider testing each record field using
-    // SubtypeTestCache.
     if (FLAG_trace_type_checks) {
       THR_Print("Not updating subtype test cache for the record instance.\n");
     }
@@ -3366,6 +3387,18 @@ static void CopySavedRegisters(uword saved_registers_address,
   *cpu_registers = cpu_registers_copy;
 }
 #endif
+
+DEFINE_LEAF_RUNTIME_ENTRY(bool, TryDoubleAsInteger, 1, Thread* thread) {
+  double value = thread->unboxed_double_runtime_arg();
+  int64_t int_value = static_cast<int64_t>(value);
+  double converted_double = static_cast<double>(int_value);
+  if (converted_double != value) {
+    return false;
+  }
+  thread->set_unboxed_int64_runtime_arg(int_value);
+  return true;
+}
+END_LEAF_RUNTIME_ENTRY
 
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.

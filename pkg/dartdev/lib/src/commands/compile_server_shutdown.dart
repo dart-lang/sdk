@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show File, FileSystemException;
+import 'dart:io' show File;
 
 import 'package:args/args.dart';
 
@@ -14,18 +14,26 @@ import '../utils.dart';
 
 /// Implement `dart compiler-server-shutdown`.
 class CompileServerShutdownCommand extends DartdevCommand {
-  static const cmdName = 'compiler-server-shutdown';
+  static const commandName = 'compiler-server-shutdown';
+
+  static const commandDescription = '''
+Shut down the resident frontend compiler.
+
+Frontend compilers stay resident in memory when using 'dart run --resident'. This command will shutdown any remaining frontend compiler processes.
+
+Note that this command name and usage could change as we evolve the resident frontend compiler behavior.''';
+
+  static const residentServerInfoFileFlag = 'resident-server-info-file';
 
   CompileServerShutdownCommand({bool verbose = false})
-      : super(cmdName, 'Shut down the Resident Frontend Compiler.', false) {
+      : super(commandName, commandDescription, false, hidden: !verbose) {
     argParser.addOption(
-      'resident-server-info-file',
-      hide: !verbose,
-      help: 'Specify the file that the Dart CLI uses to communicate with '
-          'the Resident Frontend Compiler. Passing this flag results in '
-          'having one unique resident frontend compiler per file. '
-          'This is needed when writing unit '
-          'tests that utilize resident mode in order to maintain isolation.',
+      residentServerInfoFileFlag,
+      help: 'Specify the file that the Dart CLI uses to communicate with the '
+          'resident frontend compiler. Passing this flag results in having one '
+          'unique resident frontend compiler per file. This is needed when '
+          'writing unit tests that utilize resident mode in order to maintain '
+          'isolation.',
     );
   }
 
@@ -42,18 +50,26 @@ class CompileServerShutdownCommand extends DartdevCommand {
     final args = argResults!;
     final serverInfoFile = args.wasParsed(serverInfoOption)
         ? File(maybeUriToFilename(args[serverInfoOption]))
-        : File(defaultResidentServerInfoFile);
-    try {
-      final serverResponse = await sendAndReceiveResponse(
-        residentServerShutdownCommand,
-        serverInfoFile,
-      );
-      cleanupResidentServerInfo(serverInfoFile);
-      if (serverResponse.containsKey(responseErrorString)) {
-        log.stderr(serverResponse[responseErrorString]);
-        return DartdevCommand.errorExitCode;
-      }
-    } on FileSystemException catch (_) {} // no server is running
+        : defaultResidentServerInfoFile;
+
+    if (serverInfoFile == null || !serverInfoFile.existsSync()) {
+      log.stdout('No server instance running.');
+      return 0;
+    }
+
+    final serverResponse = await sendAndReceiveResponse(
+      residentServerShutdownCommand,
+      serverInfoFile,
+    );
+
+    cleanupResidentServerInfo(serverInfoFile);
+    if (serverResponse.containsKey(responseErrorString)) {
+      log.stderr(serverResponse[responseErrorString]);
+      return DartdevCommand.errorExitCode;
+    } else {
+      log.stdout('Server instance shutdown.');
+    }
+
     return 0;
   }
 }

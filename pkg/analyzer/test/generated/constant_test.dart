@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
@@ -78,8 +79,8 @@ const x = kIsWeb ? a : b;
           1),
     ]);
 
-    var x_result = findElement.topVar('x').evaluationResult;
-    assertDartObjectText(x_result.value, r'''
+    var result = findElement.topVar('x').evaluationResult;
+    assertDartObjectText(result.value, r'''
 dynamic <unknown>
   variable: self::@variable::x
 ''');
@@ -935,6 +936,27 @@ B<int>
     a: int 1
   b: int 2
   variable: self::@variable::x
+''');
+  }
+
+  test_unknownConstuctor() async {
+    await assertErrorsInCode('''
+class C<T> {
+  const C.named();
+}
+
+const x = C<int>.();
+''', [
+      // TODO(https://github.com/dart-lang/sdk/issues/50441): This should not be
+      // reported.
+      error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+          45, 8),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 52, 1),
+    ]);
+
+    var result = findElement.topVar('x').evaluationResult;
+    assertDartObjectText(result.value, r'''
+<null>
 ''');
   }
 

@@ -23,7 +23,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -52,7 +52,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -76,7 +76,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -95,7 +95,7 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@46
-        type: dynamic
+        type: int
   rightBracket: ]
   requiredType: List<int>
 ''');
@@ -110,7 +110,7 @@ void f(List<int> x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -134,7 +134,7 @@ void f(List<num> x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -153,7 +153,7 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@56
-        type: num
+        type: int
   rightBracket: ]
   requiredType: List<int>
 ''');
@@ -168,7 +168,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -191,7 +191,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -209,7 +209,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -238,7 +238,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -262,7 +262,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -295,7 +295,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -334,7 +334,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -353,7 +353,7 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@53
-        type: Object?
+        type: int
   rightBracket: ]
   requiredType: List<int>
 ''');

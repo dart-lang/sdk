@@ -933,8 +933,14 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     debugEvent("beginClassDeclaration");
     push(begin);
   }
@@ -947,7 +953,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     push(mixinKeyword);
   }

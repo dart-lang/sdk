@@ -251,6 +251,18 @@ class SearchMatchImpl implements SearchMatch {
     if (kind == SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF) {
       return MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
     }
+    if (kind == SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE) {
+      return MatchKind.REFERENCE_IN_EXTENDS_CLAUSE;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE) {
+      return MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_ON_CLAUSE) {
+      return MatchKind.REFERENCE_IN_ON_CLAUSE;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_WITH_CLAUSE) {
+      return MatchKind.REFERENCE_IN_WITH_CLAUSE;
+    }
     return MatchKind.REFERENCE;
   }
 }

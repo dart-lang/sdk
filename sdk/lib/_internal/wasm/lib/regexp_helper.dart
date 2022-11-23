@@ -85,7 +85,7 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   bool get isMultiLine => _nativeRegExp.multiline;
-  bool get isCaseSensitive => _nativeRegExp.ignoreCase;
+  bool get isCaseSensitive => !_nativeRegExp.ignoreCase;
   bool get isUnicode => _nativeRegExp.unicode;
   bool get isDotAll => _nativeRegExp.dotAll;
 

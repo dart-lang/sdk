@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -378,11 +379,16 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
 }
 
 class TypeSystemOperations
-    with TypeOperations<DartType>, TypeOperations2<DartType>
+    with TypeOperations<DartType>
     implements Operations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
   TypeSystemOperations(this.typeSystem);
+
+  @override
+  bool areStructurallyEqual(DartType type1, DartType type2) {
+    return type1 == type2;
+  }
 
   @override
   TypeClassification classifyType(DartType type) {
@@ -450,10 +456,35 @@ class TypeSystemOperations
   }
 
   @override
+  DartType? matchIterableType(DartType type) {
+    var iterableElement = typeSystem.typeProvider.iterableElement;
+    var listType = type.asInstanceOf(iterableElement);
+    return listType?.typeArguments[0];
+  }
+
+  @override
   DartType? matchListType(DartType type) {
     var listElement = typeSystem.typeProvider.listElement;
     var listType = type.asInstanceOf(listElement);
     return listType?.typeArguments[0];
+  }
+
+  @override
+  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+    var mapElement = typeSystem.typeProvider.mapElement;
+    var mapType = type.asInstanceOf(mapElement);
+    if (mapType != null) {
+      return MapPatternTypeArguments<DartType>(
+        keyType: mapType.typeArguments[0],
+        valueType: mapType.typeArguments[1],
+      );
+    }
+    return null;
+  }
+
+  @override
+  DartType normalize(DartType type) {
+    return typeSystem.normalize(type);
   }
 
   @override
@@ -584,12 +615,26 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
+  void visitIfStatement(covariant IfStatementImpl node) {
     node.condition.accept(this);
-    assignedVariables.beginNode();
-    node.thenStatement.accept(this);
-    assignedVariables.endNode(node);
-    node.elseStatement?.accept(this);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      assignedVariables.beginNode();
+      for (var variable in guardedPattern.variables.values) {
+        assignedVariables.declare(variable);
+      }
+      guardedPattern.whenClause?.accept(this);
+      node.thenStatement.accept(this);
+      assignedVariables.endNode(node);
+      node.elseStatement?.accept(this);
+    } else {
+      assignedVariables.beginNode();
+      node.thenStatement.accept(this);
+      assignedVariables.endNode(node);
+      node.elseStatement?.accept(this);
+    }
   }
 
   @override

@@ -21,12 +21,12 @@ import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/compiler_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
 export 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
-export '../helpers/memory_compiler.dart' show CollectedMessage;
+export 'package:compiler/src/util/memory_compiler.dart' show CollectedMessage;
 
 const String specMarker = 'spec';
 const String prodMarker = 'prod';
@@ -226,13 +226,13 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     }
     if (member.enclosingClass != null) {
       if (elementEnvironment.isEnumClass(member.enclosingClass)) {
-        if (member.isConstructor ||
+        if (member is ConstructorEntity ||
             member.isInstanceMember ||
             member.name == 'values') {
           return;
         }
       }
-      if (member.isConstructor &&
+      if (member is ConstructorEntity &&
           elementEnvironment.isMixinApplication(member.enclosingClass)) {
         return;
       }

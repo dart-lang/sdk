@@ -971,6 +971,28 @@ void f(int e) {
     ]);
   }
 
+  test_switch_case1_default_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+void f(int e) {
+  int v;
+  switch (e) {
+    case 1:
+      v = 0;
+      break;
+    case 2:
+      // not assigned
+      break;
+    default:
+      v = 0;
+  }
+  v;
+}
+''', [
+      _notAssignedError(173, 1),
+    ]);
+  }
+
   test_switch_case2_default() async {
     await assertErrorsInCode(r'''
 void f(int e) {
@@ -990,6 +1012,29 @@ void f(int e) {
 }
 ''', [
       _notAssignedError(157, 2),
+    ]);
+  }
+
+  test_switch_case2_default_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+void f(int e) {
+  int v1, v2;
+  switch (e) {
+    case 1:
+      v1 = 0;
+      v2 = 0;
+      v1;
+      break;
+    default:
+      v1 = 0;
+      v1;
+  }
+  v1;
+  v2;
+}
+''', [
+      _notAssignedError(173, 2),
     ]);
   }
 
@@ -1016,6 +1061,30 @@ void f(bool b, int e) {
     ]);
   }
 
+  test_switch_case_default_break_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+void f(bool b, int e) {
+  int v1, v2;
+  switch (e) {
+    case 1:
+      v1 = 0;
+      if (b) break;
+      v2 = 0;
+      break;
+    default:
+      v1 = 0;
+      if (b) break;
+      v2 = 0;
+  }
+  v1;
+  v2;
+}
+''', [
+      _notAssignedError(215, 2),
+    ]);
+  }
+
   test_switch_case_default_continue() async {
     // We don't analyze to which `case` we go from `continue L`,
     // but we don't have to. If all cases assign, then the variable is
@@ -1023,6 +1092,30 @@ void f(bool b, int e) {
     // case when it is not assigned, then the variable will be left unassigned
     // in the `breakState`.
     await assertNoErrorsInCode(r'''
+void f(int e) {
+  int v;
+  switch (e) {
+    L: case 1:
+      v = 0;
+      break;
+    case 2:
+      continue L;
+    default:
+      v = 0;
+  }
+  v;
+}
+''');
+  }
+
+  test_switch_case_default_continue_language218() async {
+    // We don't analyze to which `case` we go from `continue L`,
+    // but we don't have to. If all cases assign, then the variable is
+    // removed from the unassigned set in the `breakState`. And if there is a
+    // case when it is not assigned, then the variable will be left unassigned
+    // in the `breakState`.
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
 void f(int e) {
   int v;
   switch (e) {
@@ -1055,8 +1148,36 @@ void f(int e) {
     ]);
   }
 
+  test_switch_case_noDefault_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+void f(int e) {
+  int v;
+  switch (e) {
+    case 1:
+      v = 0;
+      break;
+  }
+  v;
+}
+''', [
+      _notAssignedError(100, 1),
+    ]);
+  }
+
   test_switch_expression() async {
     await assertNoErrorsInCode(r'''
+void f() {
+  int v;
+  switch (v = 0) {}
+  v;
+}
+''');
+  }
+
+  test_switch_expression_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
 void f() {
   int v;
   switch (v = 0) {}

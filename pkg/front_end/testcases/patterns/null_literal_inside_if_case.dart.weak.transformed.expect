@@ -1,9 +1,8 @@
 library /*isNonNullableByDefault*/;
 import self as self;
-import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  if(#t1.{core::Object::==}(null){(core::Object) → core::bool}) {
+  if(#t1 == null) {
   }
 }

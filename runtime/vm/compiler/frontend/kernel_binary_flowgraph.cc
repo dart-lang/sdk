@@ -894,7 +894,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 
   const Function& function = parsed_function()->function();
 
-  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // Setup an [ActiveClassScope] and an [ActiveMemberScope] which will be used
   // e.g. for type translation.
   const Class& klass =
       Class::Handle(zone_, parsed_function()->function().Owner());
@@ -1283,10 +1283,7 @@ Nullability KernelReaderHelper::ReadNullability() {
 }
 
 Variance KernelReaderHelper::ReadVariance() {
-  if (translation_helper_.info().kernel_binary_version() >= 34) {
-    return reader_.ReadVariance();
-  }
-  return kCovariant;
+  return reader_.ReadVariance();
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
@@ -1486,10 +1483,9 @@ IndirectGotoInstr* StreamingFlowGraphBuilder::IndirectGoto(
   return flow_graph_builder_->IndirectGoto(target_count);
 }
 
-Fragment StreamingFlowGraphBuilder::Return(TokenPosition position,
-                                           intptr_t yield_index) {
-  return flow_graph_builder_->Return(position, /*omit_result_type_check=*/false,
-                                     yield_index);
+Fragment StreamingFlowGraphBuilder::Return(TokenPosition position) {
+  return flow_graph_builder_->Return(position,
+                                     /*omit_result_type_check=*/false);
 }
 
 Fragment StreamingFlowGraphBuilder::EvaluateAssertion() {
@@ -3802,20 +3798,9 @@ Fragment StreamingFlowGraphBuilder::BuildStringConcatenation(TokenPosition* p) {
   return instructions;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
-  TokenPosition position = ReadPosition();  // read position.
-  if (p != nullptr) *p = position;
-
-  if (translation_helper_.info().kernel_binary_version() >= 38) {
-    // We do not use the library mode for the type test, which is indicated by
-    // the flag kIsExpressionFlagForNonNullableByDefault.
-    ReadFlags();
-  }
-
-  Fragment instructions = BuildExpression();  // read operand.
-
-  const AbstractType& type = T.BuildType();  // read type.
-
+Fragment StreamingFlowGraphBuilder::BuildIsTest(TokenPosition position,
+                                                const AbstractType& type) {
+  Fragment instructions;
   // The VM does not like an instanceOf call with a dynamic type. We need to
   // special case this situation by detecting a top type.
   if (type.IsTopTypeForInstanceOf()) {
@@ -3831,6 +3816,11 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
       instructions += InstanceCall(
           position, Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
           Token::kIS, 2, 2);  // 2 checked arguments.
+      return instructions;
+    }
+
+    if (type.IsRecordType()) {
+      instructions += BuildRecordIsTest(position, RecordType::Cast(type));
       return instructions;
     }
 
@@ -3852,6 +3842,123 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
         position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
         Token::kIS, 4);
   }
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildRecordIsTest(TokenPosition position,
+                                                      const RecordType& type) {
+  // Type of a record instance depends on the runtime types of all
+  // its fields, so subtype test cache cannot be used for testing
+  // record types and runtime call is used.
+  // So it is more efficient to test each record field separately
+  // without going to runtime.
+
+  Fragment instructions;
+  JoinEntryInstr* is_true = BuildJoinEntry();
+  JoinEntryInstr* is_false = BuildJoinEntry();
+  LocalVariable* instance = MakeTemporary();
+
+  // Test if instance is null.
+  if (type.IsNullable()) {
+    TargetEntryInstr* is_null;
+    TargetEntryInstr* not_null;
+
+    instructions += LoadLocal(instance);
+    instructions += BranchIfNull(&is_null, &not_null);
+    Fragment(is_null) + Goto(is_true);
+    instructions.current = not_null;
+  }
+
+  // Test if instance is record.
+  {
+    TargetEntryInstr* is_record;
+    TargetEntryInstr* not_record;
+
+    instructions += LoadLocal(instance);
+    instructions += B->LoadClassId();
+    instructions += IntConstant(kRecordCid);
+    instructions += BranchIfEqual(&is_record, &not_record);
+    Fragment(not_record) + Goto(is_false);
+    instructions.current = is_record;
+  }
+
+  // Test number of fields.
+  {
+    TargetEntryInstr* same_num_fields;
+    TargetEntryInstr* different_num_fields;
+
+    instructions += LoadLocal(instance);
+    instructions += LoadNativeField(Slot::Record_num_fields());
+    instructions += IntConstant(type.NumFields());
+    instructions += BranchIfEqual(&same_num_fields, &different_num_fields);
+    Fragment(different_num_fields) + Goto(is_false);
+    instructions.current = same_num_fields;
+  }
+
+  // Test record shape.
+  {
+    TargetEntryInstr* same_shape;
+    TargetEntryInstr* different_shape;
+
+    instructions += LoadLocal(instance);
+    instructions += LoadNativeField(Slot::Record_field_names());
+    instructions += Constant(Array::ZoneHandle(Z, type.field_names()));
+    instructions += BranchIfEqual(&same_shape, &different_shape);
+    Fragment(different_shape) + Goto(is_false);
+    instructions.current = same_shape;
+  }
+
+  // Test each record field
+  for (intptr_t i = 0, n = type.NumFields(); i < n; ++i) {
+    TargetEntryInstr* success;
+    TargetEntryInstr* failure;
+
+    instructions += LoadLocal(instance);
+    instructions += LoadNativeField(Slot::GetRecordFieldSlot(
+        H.thread(), compiler::target::Record::field_offset(i)));
+    instructions +=
+        BuildIsTest(position, AbstractType::ZoneHandle(Z, type.FieldTypeAt(i)));
+    instructions += Constant(Bool::True());
+    instructions += BranchIfEqual(&success, &failure);
+    Fragment(failure) + Goto(is_false);
+    instructions.current = success;
+  }
+
+  instructions += Goto(is_true);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+  LocalVariable* expr_temp = parsed_function()->expression_temp_var();
+
+  instructions.current = is_true;
+  instructions += Constant(Bool::True());
+  instructions += StoreLocal(TokenPosition::kNoSource, expr_temp);
+  instructions += Drop();
+  instructions += Goto(join);
+
+  instructions.current = is_false;
+  instructions += Constant(Bool::False());
+  instructions += StoreLocal(TokenPosition::kNoSource, expr_temp);
+  instructions += Drop();
+  instructions += Goto(join);
+
+  instructions.current = join;
+  instructions += Drop();  // Instance.
+  instructions += LoadLocal(expr_temp);
+
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
+  TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
+
+  ReadFlags();
+
+  Fragment instructions = BuildExpression();  // read operand.
+
+  const AbstractType& type = T.BuildType();  // read type.
+
+  instructions += BuildIsTest(position, type);
   return instructions;
 }
 
@@ -4056,16 +4163,37 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
         SkipExpression();  // read ith expression.
         names.SetAt(i, name);
       }
+      names.MakeImmutable();
       names ^= H.Canonicalize(names);
       field_names = &names;
     }
   }
   const intptr_t num_fields = positional_count + named_count;
-
-  // TODO(dartbug.com/49719): provide specialized allocation stubs for small
-  // records.
-
   Fragment instructions;
+
+  if (num_fields == 2 ||
+      (num_fields == 3 && AllocateSmallRecordABI::kValue2Reg != kNoRegister)) {
+    // Generate specialized allocation for a small number of fields.
+    const bool has_named_fields = named_count > 0;
+    if (has_named_fields) {
+      instructions += Constant(*field_names);
+    }
+    for (intptr_t i = 0; i < positional_count; ++i) {
+      instructions += BuildExpression();  // read ith expression.
+    }
+    ReadListLength();  // read list length.
+    for (intptr_t i = 0; i < named_count; ++i) {
+      SkipStringReference();              // read ith name.
+      instructions += BuildExpression();  // read ith expression.
+    }
+    SkipDartType();  // read recordType.
+
+    instructions +=
+        B->AllocateSmallRecord(position, num_fields, has_named_fields);
+
+    return instructions;
+  }
+
   instructions += Constant(*field_names);
   instructions += B->AllocateRecord(position, num_fields);
   LocalVariable* record = MakeTemporary();
@@ -4356,6 +4484,11 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
 
   instructions += BuildExpression();  // read operand.
 
+  if (ReadTag() == kSomething) {
+    // TODO(50529): Use runtime check type when present.
+    SkipDartType();  // read runtime check type.
+  }
+
   if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
     instructions += DebugStepCheck(pos);
   }
@@ -4453,7 +4586,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   instructions += RecordCoverage(condition_start_offset);
   instructions += CheckBoolean(condition_start_offset);
   instructions += Constant(Bool::True());
-  instructions += BranchIfEqual(&then, &otherwise, false);
+  instructions += BranchIfEqual(&then, &otherwise);
 
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));

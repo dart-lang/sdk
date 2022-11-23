@@ -251,23 +251,7 @@ class _Link extends FileSystemEntity implements Link {
 
   static throwIfError(Object? result, String msg, [String path = ""]) {
     if (result is OSError) {
-      throw new FileSystemException(msg, path, result);
-    }
-  }
-
-  /// If the [response] is an error, throws an [Exception] or an [Error].
-  void _checkForErrorResponse(Object? response, String message, String path) {
-    if (response is List<Object?> && response[0] != _successResponse) {
-      switch (response[_errorResponseErrorType]) {
-        case _illegalArgumentResponse:
-          throw ArgumentError();
-        case _osErrorResponse:
-          var err = OSError(response[_osErrorResponseMessage] as String,
-              response[_osErrorResponseErrorCode] as int);
-          throw FileSystemException(message, path, err);
-        default:
-          throw AssertionError("Unknown error");
-      }
+      throw FileSystemException._fromOSError(result, msg, path);
     }
   }
 }

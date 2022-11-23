@@ -85,6 +85,7 @@ print(x) {}
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_hideInSwitchCase_function() async {
     await assertErrorsInCode(r'''
 var v = 0;
@@ -104,6 +105,27 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
   }
 
+  test_hideInSwitchCase_function_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    case 0:
+      v;
+      void v() {}
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 77, 1,
+          contextMessages: [message('$testPackageLibPath/test.dart', 91, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_hideInSwitchCase_local() async {
     await assertErrorsInCode(r'''
 var v = 0;
@@ -118,6 +140,26 @@ void f(int a) {
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 61, 1,
           contextMessages: [message('$testPackageLibPath/test.dart', 74, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+  }
+
+  test_hideInSwitchCase_local_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    case 0:
+      v;
+      var v = 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 77, 1,
+          contextMessages: [message('$testPackageLibPath/test.dart', 90, 1)]),
     ]);
 
     assertElement(findNode.simple('v;'), findElement.localVar('v'));
@@ -142,6 +184,26 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
   }
 
+  test_hideInSwitchDefault_function_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    default:
+      v;
+      void v() {}
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 78, 1,
+          contextMessages: [message('$testPackageLibPath/test.dart', 92, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+  }
+
   test_hideInSwitchDefault_local() async {
     await assertErrorsInCode(r'''
 var v = 0;
@@ -156,6 +218,26 @@ void f(int a) {
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
           contextMessages: [message('$testPackageLibPath/test.dart', 75, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+  }
+
+  test_hideInSwitchDefault_local_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    default:
+      v;
+      var v = 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 78, 1,
+          contextMessages: [message('$testPackageLibPath/test.dart', 91, 1)]),
     ]);
 
     assertElement(findNode.simple('v;'), findElement.localVar('v'));

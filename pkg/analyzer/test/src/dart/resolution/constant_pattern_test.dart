@@ -25,7 +25,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PrefixedIdentifier
@@ -54,7 +54,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -80,7 +80,7 @@ void f(x) {
   if (x case 0) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -98,7 +98,7 @@ void f(double x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -113,7 +113,7 @@ void f(x) {
   if (x case const [0]) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -134,7 +134,7 @@ void f(x) {
   if (x case const {0: 1}) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -170,7 +170,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PropertyAccess
@@ -208,7 +208,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PrefixedIdentifier
@@ -232,7 +232,7 @@ void f(x) {
   if (x case const {0, 1}) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -259,7 +259,7 @@ void f(x) {
   if (x case foo) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: SimpleIdentifier
@@ -275,7 +275,7 @@ void f(x) {
   if (x case 0) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -293,7 +293,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral

@@ -39,12 +39,8 @@ class IntTypeAnalysisResult<Type extends Object>
 }
 
 /// Information about the code context surrounding a pattern match.
-class MatchContext<Node extends Object, Expression extends Node> {
-  /// Simple case where the match context is non-final and there's nothing else
-  /// special going on.
-  static const MatchContext<Never, Never> simpleNonFinal =
-      const MatchContext(isFinal: false, topPattern: null);
-
+class MatchContext<Node extends Object, Expression extends Node,
+    Pattern extends Node, Type extends Object, Variable extends Object> {
   /// If non-`null`, the match is being done in an irrefutable context, and this
   /// is the surrounding AST node that establishes the irrefutable context.
   final Node? irrefutableContext;
@@ -67,43 +63,39 @@ class MatchContext<Node extends Object, Expression extends Node> {
   /// statement or switch expression.
   final Expression? _switchScrutinee;
 
-  const MatchContext(
-      {Expression? initializer,
-      this.irrefutableContext,
-      required this.isFinal,
-      this.isLate = false,
-      Expression? switchScrutinee,
-      required this.topPattern})
-      : _initializer = initializer,
+  MatchContext({
+    Expression? initializer,
+    this.irrefutableContext,
+    required this.isFinal,
+    this.isLate = false,
+    Expression? switchScrutinee,
+    required this.topPattern,
+  })  : _initializer = initializer,
         _switchScrutinee = switchScrutinee;
 
   /// If the pattern [pattern] is the [topPattern] and there is a corresponding
   /// initializer expression, returns it.  Otherwise returns `null`.
-  ///
-  /// Note: the type of [pattern] is `Object` to avoid a runtime covariance
-  /// check (which would fail if this method is called on [simpleNonFinal]).
-  Expression? getInitializer(Object pattern) =>
+  Expression? getInitializer(Pattern pattern) =>
       identical(pattern, topPattern) ? _initializer : null;
 
   /// If the pattern [pattern] is the [topPattern] and there is a corresponding
   /// switch scrutinee expression, returns it.  Otherwise returns `null`.
-  ///
-  /// Note: the type of [pattern] is `Object` to avoid a runtime covariance
-  /// check (which would fail if this method is called on [simpleNonFinal]).
-  Expression? getSwitchScrutinee(Object pattern) =>
+  Expression? getSwitchScrutinee(Node pattern) =>
       identical(pattern, topPattern) ? _switchScrutinee : null;
 
   /// Returns a modified version of `this`, with [irrefutableContext] set to
   /// `null`.  This is used to suppress cascading errors after reporting
   /// [TypeAnalyzerErrors.refutablePatternInIrrefutableContext].
-  MatchContext<Node, Expression> makeRefutable() => irrefutableContext == null
-      ? this
-      : new MatchContext(
-          initializer: _initializer,
-          isFinal: isFinal,
-          isLate: isLate,
-          switchScrutinee: _switchScrutinee,
-          topPattern: topPattern);
+  MatchContext<Node, Expression, Pattern, Type, Variable> makeRefutable() =>
+      irrefutableContext == null
+          ? this
+          : new MatchContext(
+              initializer: _initializer,
+              isFinal: isFinal,
+              isLate: isLate,
+              switchScrutinee: _switchScrutinee,
+              topPattern: topPattern,
+            );
 }
 
 /// Container for the result of running type analysis on an expression that does
@@ -133,17 +125,13 @@ class SwitchStatementTypeAnalysisResult<Type> {
   /// Whether the last case body in the switch statement terminated.
   final bool lastCaseTerminates;
 
-  /// The number of case bodies in the switch statement (after merging cases
-  /// that share a body).
-  final int numExecutionPaths;
-
   /// The static type of the scrutinee expression.
   final Type scrutineeType;
 
-  SwitchStatementTypeAnalysisResult(
-      {required this.hasDefault,
-      required this.isExhaustive,
-      required this.lastCaseTerminates,
-      required this.numExecutionPaths,
-      required this.scrutineeType});
+  SwitchStatementTypeAnalysisResult({
+    required this.hasDefault,
+    required this.isExhaustive,
+    required this.lastCaseTerminates,
+    required this.scrutineeType,
+  });
 }

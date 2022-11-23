@@ -17,7 +17,7 @@ import 'package:compiler/src/serialization/strategies.dart';
 import 'package:compiler/src/serialization/task.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import '../helpers/text_helpers.dart';
 
 /// Entries in dump info that naturally differ between compilations.
@@ -47,7 +47,7 @@ void finishCompileAndCompare(
     {bool stoppedAfterClosedWorld = false,
     bool stoppedAfterTypeInference = false}) async {
   if (stoppedAfterClosedWorld) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     var newClosedWorldAndIndices =
         cloneClosedWorld(compiler, closedWorld, strategy);
     compiler.performGlobalTypeInference(newClosedWorldAndIndices.data);
@@ -245,8 +245,8 @@ void checkData(List<int> data, List<int> newData) {
   Expect.listEquals(data, newData);
 }
 
-DataAndIndices<JsClosedWorld> cloneClosedWorld(Compiler compiler,
-    JsClosedWorld closedWorld, SerializationStrategy strategy) {
+DataAndIndices<JClosedWorld> cloneClosedWorld(Compiler compiler,
+    JClosedWorld closedWorld, SerializationStrategy strategy) {
   ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
   List<int> irData = strategy.serializeComponent(component);
   List<int> closedWorldData =

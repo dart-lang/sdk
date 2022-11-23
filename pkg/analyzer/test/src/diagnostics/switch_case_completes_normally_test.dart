@@ -10,11 +10,26 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SwitchCaseCompletesNormallyTest);
+    defineReflectiveTests(SwitchCaseCompletesNormallyTest_Language218);
   });
 }
 
 @reflectiveTest
-class SwitchCaseCompletesNormallyTest extends PubPackageResolutionTest {
+class SwitchCaseCompletesNormallyTest extends PubPackageResolutionTest
+    with SwitchCaseCompletesNormallyTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_completes() {
+    return super.test_completes();
+  }
+}
+
+@reflectiveTest
+class SwitchCaseCompletesNormallyTest_Language218
+    extends PubPackageResolutionTest
+    with WithLanguage218Mixin, SwitchCaseCompletesNormallyTestCases {}
+
+mixin SwitchCaseCompletesNormallyTestCases on PubPackageResolutionTest {
   test_break() async {
     await assertNoErrorsInCode(r'''
 void f(int a) {

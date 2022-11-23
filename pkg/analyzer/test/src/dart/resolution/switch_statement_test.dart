@@ -40,12 +40,13 @@ SwitchStatement
   members
     SwitchPatternCase
       keyword: case
-      pattern: PostfixPattern
-        operand: ConstantPattern
-          expression: IntegerLiteral
-            literal: 0
-            staticType: int
-        operator: ?
+      guardedPattern: GuardedPattern
+        pattern: PostfixPattern
+          operand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 0
+              staticType: int
+          operator: ?
       colon: :
       statements
         BreakStatement
@@ -89,21 +90,23 @@ SwitchStatement
   members
     SwitchPatternCase
       keyword: case
-      pattern: PostfixPattern
-        operand: ConstantPattern
-          expression: IntegerLiteral
-            literal: 0
-            staticType: int
-        operator: ?
+      guardedPattern: GuardedPattern
+        pattern: PostfixPattern
+          operand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 0
+              staticType: int
+          operator: ?
       colon: :
     SwitchPatternCase
       keyword: case
-      pattern: PostfixPattern
-        operand: ConstantPattern
-          expression: IntegerLiteral
-            literal: 1
-            staticType: int
-        operator: ?
+      guardedPattern: GuardedPattern
+        pattern: PostfixPattern
+          operand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 1
+              staticType: int
+          operator: ?
       colon: :
       statements
         BreakStatement
@@ -111,12 +114,13 @@ SwitchStatement
           semicolon: ;
     SwitchPatternCase
       keyword: case
-      pattern: PostfixPattern
-        operand: ConstantPattern
-          expression: IntegerLiteral
-            literal: 2
-            staticType: int
-        operator: ?
+      guardedPattern: GuardedPattern
+        pattern: PostfixPattern
+          operand: ConstantPattern
+            expression: IntegerLiteral
+              literal: 2
+              staticType: int
+          operator: ?
       colon: :
       statements
         BreakStatement
@@ -150,19 +154,20 @@ SwitchStatement
   members
     SwitchPatternCase
       keyword: case
-      pattern: ConstantPattern
-        const: const
-        expression: FunctionExpressionInvocation
-          function: SimpleIdentifier
-            token: a
-            staticElement: self::@function::f::@parameter::a
-            staticType: int Function()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticElement: <null>
-          staticInvokeType: int Function()
-          staticType: int
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          const: const
+          expression: FunctionExpressionInvocation
+            function: SimpleIdentifier
+              token: a
+              staticElement: self::@function::f::@parameter::a
+              staticType: int Function()
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticElement: <null>
+            staticInvokeType: int Function()
+            staticType: int
       colon: :
       statements
         BreakStatement
@@ -196,23 +201,24 @@ SwitchStatement
   members
     SwitchPatternCase
       keyword: case
-      pattern: ConstantPattern
-        expression: IntegerLiteral
-          literal: 0
-          staticType: int
-      whenClause: WhenClause
-        whenKeyword: when
-        expression: FunctionExpressionInvocation
-          function: SimpleIdentifier
-            token: a
-            staticElement: self::@function::f::@parameter::a
-            staticType: bool Function()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticElement: <null>
-          staticInvokeType: bool Function()
-          staticType: bool
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 0
+            staticType: int
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: FunctionExpressionInvocation
+            function: SimpleIdentifier
+              token: a
+              staticElement: self::@function::f::@parameter::a
+              staticType: bool Function()
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticElement: <null>
+            staticInvokeType: bool Function()
+            staticType: bool
       colon: :
       statements
         BreakStatement
@@ -246,15 +252,16 @@ SwitchStatement
   members
     SwitchPatternCase
       keyword: case
-      pattern: ConstantPattern
-        expression: IntegerLiteral
-          literal: 0
-          staticType: int
-      whenClause: WhenClause
-        whenKeyword: when
-        expression: BooleanLiteral
-          literal: true
-          staticType: bool
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 0
+            staticType: int
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BooleanLiteral
+            literal: true
+            staticType: bool
       colon: :
       statements
         BreakStatement

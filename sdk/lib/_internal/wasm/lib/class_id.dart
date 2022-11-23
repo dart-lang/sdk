@@ -14,6 +14,18 @@ class ClassID {
   external static int get cidUint8Array;
   @pragma("wasm:class-id", "dart.typed_data#_Uint8ArrayView")
   external static int get cidUint8ArrayView;
+  @pragma("wasm:class-id", "dart.typed_data#Uint8ClampedList")
+  external static int get cidUint8ClampedList;
+  @pragma("wasm:class-id", "dart.typed_data#_Uint8ClampedList")
+  external static int get cid_Uint8ClampedList;
+  @pragma("wasm:class-id", "dart.typed_data#_Uint8ClampedArrayView")
+  external static int get cidUint8ClampedArrayView;
+  @pragma("wasm:class-id", "dart.typed_data#Int8List")
+  external static int get cidInt8List;
+  @pragma("wasm:class-id", "dart.typed_data#_Int8List")
+  external static int get cid_Int8List;
+  @pragma("wasm:class-id", "dart.typed_data#_Int8ArrayView")
+  external static int get cidInt8ArrayView;
   @pragma("wasm:class-id", "dart.core#Object")
   external static int get cidObject;
   @pragma("wasm:class-id", "dart.async#_Future")
@@ -46,10 +58,8 @@ class ClassID {
   external static int get cidInterfaceType;
   @pragma("wasm:class-id", "dart.core#_FunctionType")
   external static int get cidFunctionType;
-  @pragma("wasm:class-id", "dart.core#_GenericFunctionType")
-  external static int get cidGenericFunctionType;
-  @pragma("wasm:class-id", "dart.core#_GenericFunctionTypeParameterType")
-  external static int get cidGenericFunctionTypeParameterType;
+  @pragma("wasm:class-id", "dart.core#_FunctionTypeParameterType")
+  external static int get cidFunctionTypeParameterType;
   @pragma("wasm:class-id", "dart.core#_InterfaceTypeParameterType")
   external static int get cidInterfaceTypeParameterType;
 

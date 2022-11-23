@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:compiler/src/dart2js.dart' as dart2js;
+import '../../../pkg/vm/bin/gen_kernel.dart' as gen_kernel;
 
 Future<void> main(List<String> args) async {
   if (args.contains('--child')) {
@@ -16,7 +16,7 @@ Future<void> main(List<String> args) async {
   // non-trival snapshot size.
   if (args.contains('--train')) {
     args.remove('--train');
-    return dart2js.main(args);
+    return gen_kernel.main(args);
   }
 
   var tempDir;
@@ -54,7 +54,7 @@ Future<void> main(List<String> args) async {
     throw 'Could not determine main isolate';
   }
 
-  void report(String name, String isolateId) {
+  void report(String name, String? isolateId) {
     var filtered = events.where((event) => event['name'] == name);
     if (isolateId != null) {
       filtered =

@@ -19,7 +19,7 @@ main() {
           positionalParameters + namedParameters.length,
           namedParameters,
           typeParameters);
-      List<String> actualSuffixes = Namer.callSuffixForStructure(callStructure);
+      List<String> actualSuffixes = callSuffixForStructure(callStructure);
       Expect.listEquals(
           expectedSuffixes,
           actualSuffixes,

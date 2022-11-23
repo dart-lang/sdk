@@ -35,9 +35,6 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
-  Flag("string-data-segments",
-      (o, value) => o.translatorOptions.stringDataSegments = value,
-      defaultsTo: _d.translatorOptions.stringDataSegments),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),

@@ -42,7 +42,7 @@ class E1 extends core::_Enum implements self::I /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
   method foo() → void {}
 }
@@ -53,7 +53,7 @@ class E2 extends core::_Enum implements self::I /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3 extends core::_Enum implements self::I /*isEnum*/  {
@@ -63,7 +63,7 @@ class E3 extends core::_Enum implements self::I /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
   method foo() → void {}
 }
@@ -74,7 +74,7 @@ class E4 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
   method foo() → void {}
 }

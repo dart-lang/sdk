@@ -107,7 +107,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     ASSERT(list_[try_index].pc_offset == ExceptionHandlers::kInvalidPcOffset);
     list_[try_index].pc_offset = pc_offset;
     list_[try_index].is_generated = is_generated;
-    ASSERT(handler_types.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(handler_types.IsNotTemporaryScopedHandle());
     list_[try_index].handler_types = &handler_types;
     list_[try_index].needs_stacktrace |= needs_stacktrace;
   }
