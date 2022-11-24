@@ -8883,7 +8883,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    // TODO(cstefantsova): Implement visitMapPattern.
+    // TODO(cstefantsova): Use [analyzeMapPattern] when it's available.
+    // Until then, an ad-hoc inference is used.
+    DartType keyType = const DynamicType();
+    DartType valueType = const DynamicType();
+    if (matchedType is InterfaceType) {
+      List<DartType>? typeArguments = hierarchyBuilder
+          .getTypeArgumentsAsInstanceOf(matchedType, coreTypes.mapClass);
+      if (typeArguments != null) {
+        keyType = typeArguments[0];
+        valueType = typeArguments[1];
+      }
+    }
+    pattern.type = new InterfaceType(coreTypes.mapClass,
+        Nullability.nonNullable, <DartType>[keyType, valueType]);
     return const PatternInferenceResult();
   }
 

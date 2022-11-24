@@ -4408,8 +4408,8 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Pattern,
       ])
     ]));
-    Pattern key = toPattern(pop());
     Pattern value = toPattern(pop());
+    Pattern key = toPattern(pop());
     push(new MapPatternEntry(key, value, colon.charOffset));
   }
 

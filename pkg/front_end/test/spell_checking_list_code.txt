@@ -883,6 +883,7 @@ msdn
 msg
 murmur
 mus
+mvar
 n
 na
 nameless
@@ -1631,6 +1632,7 @@ vm's
 vn
 vs
 vtab
+vvar
 w
 waiting
 walker

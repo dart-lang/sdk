@@ -18,6 +18,7 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
@@ -5597,6 +5598,15 @@ class ListPattern extends Pattern {
                   .createVariableGet(fileOffset, listElementVariable),
               inferenceVisitor);
 
+      // If the sub-pattern transformation doesn't declare captured variables
+      // and consists of a single empty element, it means that it simply
+      // doesn't have a place where it could refer to the element expression.
+      // In that case we can avoid creating the intermediary variable for the
+      // element expression.
+      //
+      // An example of such sub-pattern is in the following:
+      //
+      // if (x case [var _]) { /* ... */ }
       if (patterns[i].declaredVariables.isNotEmpty ||
           !(subpatternTransformationResult.elements.length == 1 &&
               subpatternTransformationResult.elements.single.isEmpty)) {
@@ -6001,14 +6011,11 @@ class MapPattern extends Pattern {
   final DartType? keyType;
   final DartType? valueType;
   final List<MapPatternEntry> entries;
+  late final InterfaceType type;
 
   @override
-  List<VariableDeclaration> get declaredVariables => [
-        for (MapPatternEntry entry in entries) ...[
-          ...entry.key.declaredVariables,
-          ...entry.value.declaredVariables
-        ]
-      ];
+  List<VariableDeclaration> get declaredVariables =>
+      [for (MapPatternEntry entry in entries) ...entry.value.declaredVariables];
 
   MapPattern(this.keyType, this.valueType, this.entries, int fileOffset)
       : assert((keyType == null) == (valueType == null)),
@@ -6050,12 +6057,147 @@ class MapPattern extends Pattern {
       DartType matchedType,
       Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          condition:
-              new InvalidExpression("Unimplemented MapPattern.transform"),
-          variableInitializers: [])
-    ]);
+    DartType valueType = type.typeArguments[1];
+
+    ObjectAccessTarget containsKeyTarget = inferenceVisitor.findInterfaceMember(
+        type, containsKeyName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
+    bool typeCheckForTargetMapNeeded =
+        !inferenceVisitor.isAssignable(type, matchedType) ||
+            matchedType is DynamicType;
+
+    // mapVariable: `matchedType` MVAR = `matchedExpression`
+    VariableDeclaration mapVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    Expression? keysCheck;
+    for (int i = entries.length - 1; i >= 0; i--) {
+      MapPatternEntry entry = entries[i];
+      ExpressionPattern keyPattern = entry.key as ExpressionPattern;
+
+      // containsKeyCheck: `mapVariable`.containsKey(`keyPattern.expression`)
+      //   ==> MVAR.containsKey(`keyPattern.expression`)
+      Expression containsKeyCheck = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, mapVariable)
+            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
+          containsKeyName,
+          inferenceVisitor.engine.forest
+              .createArguments(fileOffset, [keyPattern.expression]),
+          functionType: containsKeyTarget.getFunctionType(inferenceVisitor),
+          interfaceTarget: containsKeyTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+
+      if (keysCheck == null) {
+        // keyCheck: `containsKeyCheck`
+        keysCheck = containsKeyCheck;
+      } else {
+        // keyCheck: `containsKeyCheck` && `keyCheck`
+        keysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
+            fileOffset, containsKeyCheck, doubleAmpersandName.text, keysCheck);
+      }
+    }
+
+    Expression? typeCheck;
+    if (typeCheckForTargetMapNeeded) {
+      // typeCheck: `mapVariable` is `targetMapType`
+      //   ==> MVAR is Map<`keyType`, `valueType`>
+      typeCheck = inferenceVisitor.engine.forest.createIsExpression(
+          fileOffset,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, mapVariable),
+          type,
+          forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
+    }
+
+    Expression? typeAndKeysCheck;
+    if (typeCheck != null && keysCheck != null) {
+      // typeAndKeysCheck: `typeCheck` && `keysCheck`
+      typeAndKeysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
+          fileOffset, typeCheck, doubleAmpersandName.text, keysCheck);
+    } else if (typeCheck != null && keysCheck == null) {
+      typeAndKeysCheck = typeCheck;
+    } else if (typeCheck == null && keysCheck != null) {
+      typeAndKeysCheck = keysCheck;
+    } else {
+      typeAndKeysCheck = null;
+    }
+
+    ObjectAccessTarget valueAccess = inferenceVisitor.findInterfaceMember(
+        type, indexGetName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    FunctionType valueAccessFunctionType =
+        valueAccess.getFunctionType(inferenceVisitor);
+    PatternTransformationResult transformationResult =
+        new PatternTransformationResult([]);
+    List<VariableDeclaration> valueAccessVariables = [];
+    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
+    for (MapPatternEntry entry in entries) {
+      ExpressionPattern keyPattern = entry.key as ExpressionPattern;
+
+      // [keyPattern.expression] can be cloned without caching because it's a
+      // const expression according to the spec, and the constant
+      // canonicalization will eliminate the duplicated code.
+      //
+      // mapValue: `mapVariable`[`keyPattern.expression`]
+      //   ==> MVAR[`keyPattern.expression`]
+      Expression mapValue = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, mapVariable)
+            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
+          indexGetName,
+          inferenceVisitor.engine.forest.createArguments(
+              fileOffset, [cloner.clone(keyPattern.expression)]),
+          functionType: valueAccessFunctionType,
+          interfaceTarget: valueAccess.member as Procedure);
+
+      // mapValueVariable: `valueType` VVAR = `mapValue`
+      //   ==> `valueType` VVAR = MVAR[`keyPattern.expression`]
+      VariableDeclaration mapValueVariable = inferenceVisitor.engine.forest
+          .createVariableDeclarationForValue(mapValue, type: valueType);
+
+      PatternTransformationResult subpatternTransformationResult = entry.value
+          .transform(
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, mapValueVariable),
+              valueType,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, mapValueVariable),
+              inferenceVisitor);
+
+      // If the sub-pattern transformation doesn't declare captured variables
+      // and consists of a single empty element, it means that it simply
+      // doesn't have a place where it could refer to the element expression.
+      // In that case we can avoid creating the intermediary variable for the
+      // element expression.
+      //
+      // An example of such sub-pattern is in the following:
+      //
+      // if (x case {"key": var _}) { /* ... */ }
+      if (entry.value.declaredVariables.isNotEmpty ||
+          !(subpatternTransformationResult.elements.length == 1 &&
+              subpatternTransformationResult.elements.single.isEmpty)) {
+        valueAccessVariables.add(mapValueVariable);
+        transformationResult = transformationResult.combine(
+            subpatternTransformationResult, inferenceVisitor);
+      }
+    }
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: typeAndKeysCheck,
+            variableInitializers: valueAccessVariables),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: null, variableInitializers: [mapVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 }
 
