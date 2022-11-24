@@ -83,7 +83,6 @@ import '../fasta_codes.dart'
         templateExperimentNotEnabledOffByDefault;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
-import '../messages.dart' as messages show getLocationFromUri;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
 import '../names.dart' show emptyName, minusName, plusName;
@@ -7608,25 +7607,8 @@ class BodyBuilder extends StackListenerImpl
 
   Expression buildFallThroughError(int charOffset) {
     addProblem(fasta.messageSwitchCaseFallThrough, charOffset, noLength);
-
-    // TODO(ahe): The following doesn't make sense for the Analyzer. It should
-    // be moved to [Forest] or conditional on `forest is Fangorn`.
-
-    // TODO(ahe): Compute a LocatedMessage above instead?
-    Location? location = messages.getLocationFromUri(uri, charOffset);
-
-    return forest.createThrow(
-        charOffset,
-        buildStaticInvocation(
-            libraryBuilder
-                .loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
-            forest.createArguments(noLocation, <Expression>[
-              forest.createStringLiteral(
-                  charOffset, "${location?.file ?? uri}"),
-              forest.createIntLiteral(charOffset, location?.line ?? 0),
-            ]),
-            constness: Constness.explicitNew,
-            charOffset: charOffset));
+    return new InvalidExpression(
+        fasta.messageSwitchCaseFallThrough.problemMessage);
   }
 
   Expression buildAbstractClassInstantiationError(
