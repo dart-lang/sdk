@@ -147,7 +147,6 @@ external bool get extensionStreamHasListener;
 ///
 /// If [extensionStreamHasListener] is false, this method is a no-op.
 void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
-  print('Inside Post Event');
   final protectedStreams = [
     'VM',
     'Isolate',

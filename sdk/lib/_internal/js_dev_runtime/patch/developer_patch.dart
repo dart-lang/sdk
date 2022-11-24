@@ -123,7 +123,7 @@ _invokeExtension(String methodName, String encodedJson) {
 bool get extensionStreamHasListener => _debuggerAttached;
 
 @patch
-void _postEvent(String eventKind, String eventData, { String stream = 'Extension' }) {
+void _postEvent(String eventKind, String eventData) {
   // TODO(46377) Update this check when we have a documented API for DDC apps.
   if (JS<bool>('!', r'!!#.$emitDebugEvent', dart.global_)) {
     // See hooks assigned by package:dwds:
@@ -132,8 +132,8 @@ void _postEvent(String eventKind, String eventData, { String stream = 'Extension
     return;
   }
   // TODO(48103) Remove use of debug log in Dart 3.0.0.
-  JS('', 'console.debug("dart.developer.postEvent", #, #, #)', eventKind,
-      eventData, stream);
+  JS('', 'console.debug("dart.developer.postEvent", #, #)', eventKind,
+      eventData);
 }
 
 @patch
