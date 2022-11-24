@@ -6706,6 +6706,7 @@ ListPattern
   leftBracket: [
   elements
     RestPatternElement
+      operator: ...
   rightBracket: ]
 ''');
   }
@@ -6725,6 +6726,10 @@ ListPattern
   leftBracket: [
   elements
     RestPatternElement
+      operator: ...
+      pattern: VariablePattern
+        keyword: var
+        name: y
   rightBracket: ]
 ''');
   }

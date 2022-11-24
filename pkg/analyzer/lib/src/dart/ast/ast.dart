@@ -10967,13 +10967,20 @@ class RestPatternElementImpl extends AstNodeImpl
   RestPatternElementImpl({
     required this.operator,
     required this.pattern,
-  });
+  }) {
+    _becomeParentOf(pattern);
+  }
 
   @override
   Token get beginToken => operator;
 
   @override
   Token get endToken => pattern?.endToken ?? operator;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('pattern', pattern);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {

@@ -101,6 +101,33 @@ ListPattern
 ''');
   }
 
+  test_matchList_noTypeArguments_restElement() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  if (x case [0, ...var rest]) {}
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    RestPatternElement
+      operator: ...
+      pattern: VariablePattern
+        keyword: var
+        name: rest
+        declaredElement: hasImplicitType rest@46
+          type: List<int>
+  rightBracket: ]
+  requiredType: List<int>
+''');
+  }
+
   test_matchList_noTypeArguments_variable_untyped() async {
     await assertNoErrorsInCode(r'''
 void f(List<int> x) {
