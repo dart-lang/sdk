@@ -911,9 +911,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartPattern? getRestPatternElementPattern(covariant DartPatternImpl node) {
-    // TODO(scheglov): implement getRestPatternElementPattern
-    throw UnimplementedError();
+  DartPattern? getRestPatternElementPattern(
+    covariant RestPatternElementImpl element,
+  ) {
+    return element.pattern;
   }
 
   @override
@@ -1038,11 +1039,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void handleListPatternRestElement(
     DartPattern container,
-    covariant DartPattern restElement,
-  ) {
-    // TODO(scheglov): implement handleListPatternRestElement
-    throw UnimplementedError();
-  }
+    covariant RestPatternElementImpl restElement,
+  ) {}
 
   @override
   void handleMapPatternEntry(DartPattern container, AstNode entryElement) {
@@ -1145,9 +1143,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isRestPatternElement(covariant DartPatternImpl node) {
-    // TODO(scheglov): implement isRestPatternElement
-    return false;
+  bool isRestPatternElement(AstNode node) {
+    return node is RestPatternElementImpl;
   }
 
   @override
