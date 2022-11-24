@@ -21,7 +21,7 @@ static method main(core::List<core::String*>* args) → void {
     case #C1:
       {
         x = 4;
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 10);
+        invalid-expression "Switch case may fall through to the next case.";
       }
     #L3:
     case #C2:
@@ -38,7 +38,7 @@ static method main(core::List<core::String*>* args) → void {
         else {
           return;
         }
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 14);
+        invalid-expression "Switch case may fall through to the next case.";
       }
     #L5:
     case #C5:

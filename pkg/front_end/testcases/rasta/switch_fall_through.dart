@@ -4,7 +4,7 @@
 
 // @dart=2.9
 
-main() {
+test() {
   switch (1) {
     case 1:
       {
