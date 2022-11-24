@@ -303,18 +303,18 @@ import 'lib2.dart' as lib2;
   "functionKind": 0
 }],
  holding=[
-  {"id":"function/dart:_js_helper::checkDeferredIsLoaded","mask":null},
-  {"id":"function/dart:_js_helper::loadDeferredLibrary","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/dart:async::StreamIterator.StreamIterator","mask":null},
-  {"id":"function/dart:async::_asyncAwait","mask":null},
-  {"id":"function/dart:async::_asyncRethrow","mask":null},
-  {"id":"function/dart:async::_asyncReturn","mask":null},
-  {"id":"function/dart:async::_asyncStartSync","mask":null},
-  {"id":"function/dart:async::_makeAsyncAwaitCompleter","mask":null},
-  {"id":"function/dart:async::_wrapJsFunctionForAsync","mask":null},
+  {"id":"function/dart:_js_helper::checkDeferredIsLoaded"},
+  {"id":"function/dart:_js_helper::loadDeferredLibrary"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/dart:async::StreamIterator.StreamIterator"},
+  {"id":"function/dart:async::_asyncAwait"},
+  {"id":"function/dart:async::_asyncRethrow"},
+  {"id":"function/dart:async::_asyncReturn"},
+  {"id":"function/dart:async::_asyncStartSync"},
+  {"id":"function/dart:async::_makeAsyncAwaitCompleter"},
+  {"id":"function/dart:async::_wrapJsFunctionForAsync"},
   {"id":"function/memory:sdk/tests/web/native/lib2.dart::A.method","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/lib2.dart::A.method","mask":null}]
+  {"id":"function/memory:sdk/tests/web/native/lib2.dart::A.method"}]
 */
 /*canary.member: main:
  function=[{

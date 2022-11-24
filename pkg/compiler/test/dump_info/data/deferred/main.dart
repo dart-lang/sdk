@@ -326,12 +326,12 @@ import 'lib.dart' deferred as lib;
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_js_helper::loadDeferredLibrary","mask":null},
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
+  {"id":"function/dart:_js_helper::loadDeferredLibrary"},
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:_rti::findType"},
   {"id":"function/dart:async::_Future.then","mask":"[exact=_Future]"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null}]
+  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"}]
 */
 /*canary.member: main:
  closure=[{
