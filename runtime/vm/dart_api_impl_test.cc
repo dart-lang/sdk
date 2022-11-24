@@ -10577,8 +10577,8 @@ TEST_CASE(DartAPI_HeapSampling) {
   last_isolate_group_data = nullptr;
   USE(Dart_NewList(10));
   EXPECT_EQ(heap_samples, 0);
-  EXPECT_EQ(last_allocation_cls, nullptr);
-  EXPECT_EQ(last_isolate_group_data, nullptr);
+  EXPECT_NULLPTR(last_allocation_cls);
+  EXPECT_NULLPTR(last_isolate_group_data);
 
   // Clear heap sampling callback state.
   Dart_RegisterHeapSamplingCallback(nullptr);

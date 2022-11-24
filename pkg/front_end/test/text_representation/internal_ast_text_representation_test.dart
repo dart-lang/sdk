@@ -1067,20 +1067,15 @@ true''');
 
 void _testBinaryMatcher() {
   testMatcher(
-      new BinaryPattern(
-          new ExpressionPattern(new IntLiteral(0)),
-          BinaryPatternKind.and,
-          new ExpressionPattern(new IntLiteral(1)),
-          TreeNode.noOffset),
+      new AndPattern(new ExpressionPattern(new IntLiteral(0)),
+          new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset),
       '''
 0 & 1''');
 
   testMatcher(
-      new BinaryPattern(
-          new ExpressionPattern(new IntLiteral(0)),
-          BinaryPatternKind.or,
-          new ExpressionPattern(new IntLiteral(1)),
-          TreeNode.noOffset),
+      new OrPattern(new ExpressionPattern(new IntLiteral(0)),
+          new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset,
+          orPatternJointVariables: []),
       '''
 0 | 1''');
 }

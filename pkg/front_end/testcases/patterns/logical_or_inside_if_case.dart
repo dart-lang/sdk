@@ -2,6 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-test(dynamic x) {
+test1(dynamic x) {
   if (x case int? _ | double? _) {}
+}
+
+test2(dynamic x) {
+  if (x case [int y, var _] | [var _, String y]) {
+    return y;
+  } else {
+    return null;
+  }
+}
+
+test3(dynamic x) {
+  if (x case == 1 | == 2 | == 3) {
+    return 0;
+  } else {
+    return 1;
+  }
 }

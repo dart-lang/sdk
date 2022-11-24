@@ -137,6 +137,7 @@ nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
+patterns/records/record_pattern_inside_if_case: FormatterCrash
 rasta/bad_redirection: FormatterCrash
 rasta/issue_000032: FormatterCrash
 rasta/issue_000034: FormatterCrash
@@ -153,6 +154,9 @@ records/duplicated_name_errors: FormatterCrash
 records/issue50132: FormatterCrash
 records/issue50133: FormatterCrash
 records/issue50157: FormatterCrash
+records/issue50182: FormatterCrash
+records/issue50514: FormatterCrash
+records/issue50515: FormatterCrash
 records/named_fields_clashing_with_positional: FormatterCrash
 records/names_of_positional_fields_same_as_object_members: FormatterCrash
 records/null_shorting: FormatterCrash

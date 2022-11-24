@@ -18,6 +18,7 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
@@ -5116,7 +5117,9 @@ class DummyPattern extends Pattern {
       InferenceVisitorBase inferenceVisitor) {
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: null, variableInitializers: <Statement>[])
+          kind: PatternTransformationElementKind.regular,
+          condition: null,
+          variableInitializers: <Statement>[])
     ]);
   }
 
@@ -5165,7 +5168,9 @@ class ExpressionPattern extends Pattern {
         target.member as Procedure);
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: result, variableInitializers: [])
+          kind: PatternTransformationElementKind.regular,
+          condition: result,
+          variableInitializers: [])
     ]);
   }
 
@@ -5180,23 +5185,16 @@ class ExpressionPattern extends Pattern {
   }
 }
 
-enum BinaryPatternKind {
-  and,
-  or,
-}
-
-/// A [Pattern] for `pattern | pattern` and `pattern & pattern`.
-class BinaryPattern extends Pattern {
+/// A [Pattern] for `pattern & pattern`.
+class AndPattern extends Pattern {
   Pattern left;
-  BinaryPatternKind kind;
   Pattern right;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
       [...left.declaredVariables, ...right.declaredVariables];
 
-  BinaryPattern(this.left, this.kind, this.right, int fileOffset)
-      : super(fileOffset) {
+  AndPattern(this.left, this.right, int fileOffset) : super(fileOffset) {
     left.parent = this;
     right.parent = this;
   }
@@ -5207,7 +5205,7 @@ class BinaryPattern extends Pattern {
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitBinaryPattern(this,
+    return visitor.visitAndPattern(this,
         matchedType: matchedType, context: context);
   }
 
@@ -5217,25 +5215,277 @@ class BinaryPattern extends Pattern {
       DartType matchedType,
       Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          condition:
-              new InvalidExpression("Unimplemented BinaryPattern.transform"),
-          variableInitializers: [])
-    ]);
+    // intermediateVariable: `matchedType` VAR = `matchedExpression`
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    PatternTransformationResult transformationResult = left.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        matchedType,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.combine(
+        right.transform(
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, intermediateVariable),
+            matchedType,
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, intermediateVariable),
+            inferenceVisitor),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
     left.toTextInternal(printer);
-    switch (kind) {
-      case BinaryPatternKind.and:
-        printer.write(' & ');
-        break;
-      case BinaryPatternKind.or:
-        printer.write(' | ');
-        break;
+    printer.write(' & ');
+    right.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "BinaryPattern(${toStringInternal()})";
+  }
+}
+
+/// A [Pattern] for `pattern | pattern`.
+class OrPattern extends Pattern {
+  Pattern left;
+  Pattern right;
+  List<VariableDeclaration> _orPatternJointVariables;
+
+  @override
+  List<VariableDeclaration> get declaredVariables => _orPatternJointVariables;
+
+  OrPattern(this.left, this.right, int fileOffset,
+      {required List<VariableDeclaration> orPatternJointVariables})
+      : _orPatternJointVariables = orPatternJointVariables,
+        super(fileOffset) {
+    left.parent = this;
+    right.parent = this;
+  }
+
+  @override
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitOrPattern(this,
+        matchedType: matchedType, context: context);
+  }
+
+  @override
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
+      InferenceVisitorBase inferenceVisitor) {
+    // intermediateVariable: `matchedType` VAR = `matchedExpression`
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    // leftConditionIsTrue: bool LVAR = false;
+    VariableDeclaration leftConditionIsTrue = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(
+            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
+            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
+
+    Map<String, VariableDeclaration> leftVariablesByName = {
+      for (VariableDeclaration variable in left.declaredVariables)
+        variable.name!: variable
+    };
+    Map<String, VariableDeclaration> rightVariablesByName = {
+      for (VariableDeclaration variable in right.declaredVariables)
+        variable.name!: variable
+    };
+    List<VariableDeclaration> declaredVariables = this.declaredVariables;
+    for (VariableDeclaration variable in declaredVariables) {
+      VariableDeclaration leftVariable = leftVariablesByName[variable.name!]!;
+      VariableDeclaration rightVariable = rightVariablesByName[variable.name!]!;
+      variable.initializer = inferenceVisitor.engine.forest
+          .createConditionalExpression(
+              fileOffset,
+              inferenceVisitor.engine.forest.createVariableGet(
+                  fileOffset, leftConditionIsTrue),
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, leftVariable)
+                ..promotedType = leftVariable.type,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, rightVariable)
+                ..promotedType = rightVariable.type)
+        ..staticType = inferenceVisitor.typeSchemaEnvironment
+            .getStandardUpperBound(leftVariable.type, rightVariable.type,
+                inferenceVisitor.libraryBuilder.library)
+        ..parent = variable;
     }
+
+    // setLeftConditionIsTrue: `leftConditionIsTrue` = true;
+    //   ==> VAR = true;
+    Statement setLeftConditionIsTrue = inferenceVisitor.engine.forest
+        .createExpressionStatement(
+            fileOffset,
+            inferenceVisitor.engine.forest.createVariableSet(
+                fileOffset,
+                leftConditionIsTrue,
+                inferenceVisitor.engine.forest
+                    .createBoolLiteral(fileOffset, true)));
+
+    PatternTransformationResult leftTransformationResult = left.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        matchedType,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+    leftTransformationResult = leftTransformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.logicalOrPatternLeftBegin,
+            condition: null,
+            variableInitializers: []),
+        inferenceVisitor);
+    // Initialize variables to values captured by [left].
+    leftTransformationResult = leftTransformationResult.combine(
+        new PatternTransformationResult([
+          new PatternTransformationElement(
+              kind: PatternTransformationElementKind.regular,
+              condition: null,
+              variableInitializers: [
+                setLeftConditionIsTrue,
+                for (VariableDeclaration variable in left.declaredVariables)
+                  inferenceVisitor.engine.forest.createExpressionStatement(
+                      fileOffset,
+                      inferenceVisitor.engine.forest.createVariableSet(
+                          fileOffset, variable, variable.initializer!))
+              ])
+        ]),
+        inferenceVisitor);
+    for (VariableDeclaration variable in left.declaredVariables) {
+      variable.name = null;
+      variable.initializer = null;
+      variable.type = const DynamicType();
+    }
+
+    // rightConditionIsTrue: bool RVAR = false;
+    VariableDeclaration rightConditionIsTrue = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(
+            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
+            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
+
+    // setRightConditionIsTrue: `rightConditionIsTrue` = true;
+    //   ==> VAR = true;
+    Statement setRightConditionIsTrue = inferenceVisitor.engine.forest
+        .createExpressionStatement(
+            fileOffset,
+            inferenceVisitor.engine.forest.createVariableSet(
+                fileOffset,
+                rightConditionIsTrue,
+                inferenceVisitor.engine.forest
+                    .createBoolLiteral(fileOffset, true)));
+
+    PatternTransformationResult rightTransformationResult = right.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        matchedType,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+    rightTransformationResult = rightTransformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            // condition: !`leftConditionIsTrue`
+            condition: inferenceVisitor.engine.forest.createNot(
+                fileOffset,
+                inferenceVisitor.engine.forest
+                    .createVariableGet(fileOffset, leftConditionIsTrue)),
+            variableInitializers: []),
+        inferenceVisitor);
+    rightTransformationResult = rightTransformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.logicalOrPatternRightBegin,
+            condition: null,
+            variableInitializers: []),
+        inferenceVisitor);
+    // Initialize variables to values captured by [right].
+    rightTransformationResult = rightTransformationResult.combine(
+        new PatternTransformationResult([
+          new PatternTransformationElement(
+              kind: PatternTransformationElementKind.regular,
+              condition: null,
+              variableInitializers: [
+                setRightConditionIsTrue,
+                for (VariableDeclaration variable in right.declaredVariables)
+                  inferenceVisitor.engine.forest.createExpressionStatement(
+                      fileOffset,
+                      inferenceVisitor.engine.forest.createVariableSet(
+                          fileOffset, variable, variable.initializer!))
+              ])
+        ]),
+        inferenceVisitor);
+    for (VariableDeclaration variable in right.declaredVariables) {
+      variable.name = null;
+      variable.initializer = null;
+      variable.type = const DynamicType();
+    }
+
+    PatternTransformationResult transformationResult = leftTransformationResult
+        .combine(rightTransformationResult, inferenceVisitor)
+        .combine(
+            new PatternTransformationResult([
+              new PatternTransformationElement(
+                  kind: PatternTransformationElementKind.logicalOrPatternEnd,
+                  condition: null,
+                  variableInitializers: []),
+              new PatternTransformationElement(
+                  kind: PatternTransformationElementKind.regular,
+                  // condition:
+                  //     `leftConditionIsTrue` || `rightConditionIsTrue`
+                  condition: inferenceVisitor.engine.forest
+                      .createLogicalExpression(
+                          fileOffset,
+                          inferenceVisitor.engine.forest.createVariableGet(
+                              fileOffset, leftConditionIsTrue),
+                          doubleBarName.text,
+                          inferenceVisitor.engine.forest.createVariableGet(
+                              fileOffset, rightConditionIsTrue)),
+                  variableInitializers: [])
+            ]),
+            inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [
+              intermediateVariable,
+              leftConditionIsTrue,
+              rightConditionIsTrue,
+              ...left.declaredVariables,
+              ...right.declaredVariables
+            ]),
+        inferenceVisitor);
+
+    return transformationResult;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    left.toTextInternal(printer);
+    printer.write(' | ');
     right.toTextInternal(printer);
   }
 
@@ -5293,7 +5543,9 @@ class CastPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [intermediateVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5362,7 +5614,9 @@ class NullAssertPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [intermediateVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5436,11 +5690,15 @@ class NullCheckPattern extends Pattern {
     // condition in the last transformation element.
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: nullCheckCondition, variableInitializers: []),
+            kind: PatternTransformationElementKind.regular,
+            condition: nullCheckCondition,
+            variableInitializers: []),
         inferenceVisitor);
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [intermediateVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5597,6 +5855,15 @@ class ListPattern extends Pattern {
                   .createVariableGet(fileOffset, listElementVariable),
               inferenceVisitor);
 
+      // If the sub-pattern transformation doesn't declare captured variables
+      // and consists of a single empty element, it means that it simply
+      // doesn't have a place where it could refer to the element expression.
+      // In that case we can avoid creating the intermediary variable for the
+      // element expression.
+      //
+      // An example of such sub-pattern is in the following:
+      //
+      // if (x case [var _]) { /* ... */ }
       if (patterns[i].declaredVariables.isNotEmpty ||
           !(subpatternTransformationResult.elements.length == 1 &&
               subpatternTransformationResult.elements.single.isEmpty)) {
@@ -5608,13 +5875,16 @@ class ListPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
             condition: typeAndLengthCheck,
             variableInitializers: elementAccessVariables),
         inferenceVisitor);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [listVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [listVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5749,7 +6019,9 @@ class RelationalPattern extends Pattern {
     }
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: condition, variableInitializers: [])
+          kind: PatternTransformationElementKind.regular,
+          condition: condition,
+          variableInitializers: [])
     ]);
   }
 
@@ -5818,7 +6090,9 @@ class WildcardPattern extends Pattern {
     }
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: condition, variableInitializers: [])
+          kind: PatternTransformationElementKind.regular,
+          condition: condition,
+          variableInitializers: [])
     ]);
   }
 
@@ -6001,14 +6275,11 @@ class MapPattern extends Pattern {
   final DartType? keyType;
   final DartType? valueType;
   final List<MapPatternEntry> entries;
+  late final InterfaceType type;
 
   @override
-  List<VariableDeclaration> get declaredVariables => [
-        for (MapPatternEntry entry in entries) ...[
-          ...entry.key.declaredVariables,
-          ...entry.value.declaredVariables
-        ]
-      ];
+  List<VariableDeclaration> get declaredVariables =>
+      [for (MapPatternEntry entry in entries) ...entry.value.declaredVariables];
 
   MapPattern(this.keyType, this.valueType, this.entries, int fileOffset)
       : assert((keyType == null) == (valueType == null)),
@@ -6050,12 +6321,150 @@ class MapPattern extends Pattern {
       DartType matchedType,
       Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          condition:
-              new InvalidExpression("Unimplemented MapPattern.transform"),
-          variableInitializers: [])
-    ]);
+    DartType valueType = type.typeArguments[1];
+
+    ObjectAccessTarget containsKeyTarget = inferenceVisitor.findInterfaceMember(
+        type, containsKeyName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
+    bool typeCheckForTargetMapNeeded =
+        !inferenceVisitor.isAssignable(type, matchedType) ||
+            matchedType is DynamicType;
+
+    // mapVariable: `matchedType` MVAR = `matchedExpression`
+    VariableDeclaration mapVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    Expression? keysCheck;
+    for (int i = entries.length - 1; i >= 0; i--) {
+      MapPatternEntry entry = entries[i];
+      ExpressionPattern keyPattern = entry.key as ExpressionPattern;
+
+      // containsKeyCheck: `mapVariable`.containsKey(`keyPattern.expression`)
+      //   ==> MVAR.containsKey(`keyPattern.expression`)
+      Expression containsKeyCheck = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, mapVariable)
+            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
+          containsKeyName,
+          inferenceVisitor.engine.forest
+              .createArguments(fileOffset, [keyPattern.expression]),
+          functionType: containsKeyTarget.getFunctionType(inferenceVisitor),
+          interfaceTarget: containsKeyTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+
+      if (keysCheck == null) {
+        // keyCheck: `containsKeyCheck`
+        keysCheck = containsKeyCheck;
+      } else {
+        // keyCheck: `containsKeyCheck` && `keyCheck`
+        keysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
+            fileOffset, containsKeyCheck, doubleAmpersandName.text, keysCheck);
+      }
+    }
+
+    Expression? typeCheck;
+    if (typeCheckForTargetMapNeeded) {
+      // typeCheck: `mapVariable` is `targetMapType`
+      //   ==> MVAR is Map<`keyType`, `valueType`>
+      typeCheck = inferenceVisitor.engine.forest.createIsExpression(
+          fileOffset,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, mapVariable),
+          type,
+          forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
+    }
+
+    Expression? typeAndKeysCheck;
+    if (typeCheck != null && keysCheck != null) {
+      // typeAndKeysCheck: `typeCheck` && `keysCheck`
+      typeAndKeysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
+          fileOffset, typeCheck, doubleAmpersandName.text, keysCheck);
+    } else if (typeCheck != null && keysCheck == null) {
+      typeAndKeysCheck = typeCheck;
+    } else if (typeCheck == null && keysCheck != null) {
+      typeAndKeysCheck = keysCheck;
+    } else {
+      typeAndKeysCheck = null;
+    }
+
+    ObjectAccessTarget valueAccess = inferenceVisitor.findInterfaceMember(
+        type, indexGetName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    FunctionType valueAccessFunctionType =
+        valueAccess.getFunctionType(inferenceVisitor);
+    PatternTransformationResult transformationResult =
+        new PatternTransformationResult([]);
+    List<VariableDeclaration> valueAccessVariables = [];
+    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
+    for (MapPatternEntry entry in entries) {
+      ExpressionPattern keyPattern = entry.key as ExpressionPattern;
+
+      // [keyPattern.expression] can be cloned without caching because it's a
+      // const expression according to the spec, and the constant
+      // canonicalization will eliminate the duplicated code.
+      //
+      // mapValue: `mapVariable`[`keyPattern.expression`]
+      //   ==> MVAR[`keyPattern.expression`]
+      Expression mapValue = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          inferenceVisitor.engine.forest
+              .createVariableGet(fileOffset, mapVariable)
+            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
+          indexGetName,
+          inferenceVisitor.engine.forest.createArguments(
+              fileOffset, [cloner.clone(keyPattern.expression)]),
+          functionType: valueAccessFunctionType,
+          interfaceTarget: valueAccess.member as Procedure);
+
+      // mapValueVariable: `valueType` VVAR = `mapValue`
+      //   ==> `valueType` VVAR = MVAR[`keyPattern.expression`]
+      VariableDeclaration mapValueVariable = inferenceVisitor.engine.forest
+          .createVariableDeclarationForValue(mapValue, type: valueType);
+
+      PatternTransformationResult subpatternTransformationResult = entry.value
+          .transform(
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, mapValueVariable),
+              valueType,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, mapValueVariable),
+              inferenceVisitor);
+
+      // If the sub-pattern transformation doesn't declare captured variables
+      // and consists of a single empty element, it means that it simply
+      // doesn't have a place where it could refer to the element expression.
+      // In that case we can avoid creating the intermediary variable for the
+      // element expression.
+      //
+      // An example of such sub-pattern is in the following:
+      //
+      // if (x case {"key": var _}) { /* ... */ }
+      if (entry.value.declaredVariables.isNotEmpty ||
+          !(subpatternTransformationResult.elements.length == 1 &&
+              subpatternTransformationResult.elements.single.isEmpty)) {
+        valueAccessVariables.add(mapValueVariable);
+        transformationResult = transformationResult.combine(
+            subpatternTransformationResult, inferenceVisitor);
+      }
+    }
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: typeAndKeysCheck,
+            variableInitializers: valueAccessVariables),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [mapVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 }
 
@@ -6100,6 +6509,7 @@ class NamedPattern extends Pattern {
       InferenceVisitorBase inferenceVisitor) {
     return new PatternTransformationResult([
       new PatternTransformationElement(
+          kind: PatternTransformationElementKind.regular,
           condition:
               new InvalidExpression("Unimplemented NamedPattern.transform"),
           variableInitializers: [])
@@ -6109,6 +6519,7 @@ class NamedPattern extends Pattern {
 
 class RecordPattern extends Pattern {
   final List<Pattern> patterns;
+  late final RecordType type;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
@@ -6151,12 +6562,117 @@ class RecordPattern extends Pattern {
       DartType matchedType,
       Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          condition:
-              new InvalidExpression("Unimplemented RecordPattern.transform"),
-          variableInitializers: [])
-    ]);
+    bool typeCheckNeeded = !inferenceVisitor.isAssignable(type, matchedType) ||
+        matchedType is DynamicType;
+
+    // recordVariable: `matchedType` RVAR = `matchedExpression`
+    VariableDeclaration recordVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    PatternTransformationResult transformationResult =
+        new PatternTransformationResult([]);
+    int recordFieldIndex = 0;
+    List<VariableDeclaration> fieldAccessVariables = [];
+    for (Pattern fieldPattern in patterns) {
+      Expression recordField;
+      DartType fieldType;
+      Pattern subpattern;
+      if (fieldPattern is NamedPattern) {
+        // recordField: `recordVariable`[`fieldPattern.name`]
+        //   ==> RVAR[`fieldPattern.name`]
+        recordField = new RecordNameGet(
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, recordVariable)
+              ..promotedType = typeCheckNeeded ? type : null,
+            type,
+            fieldPattern.name);
+
+        // [type] is computed by the CFE, so the absence of the named field is
+        // an internal error, and we check the condition with an assert rather
+        // than reporting a compile-time error.
+        assert(type.named.any((named) => named.name == fieldPattern.name));
+        fieldType = type.named
+            .firstWhere((named) => named.name == fieldPattern.name)
+            .type;
+
+        subpattern = fieldPattern.pattern;
+      } else {
+        // recordField: `recordVariable`[`recordFieldIndex`]
+        //   ==> RVAR[`recordFieldIndex`]
+        recordField = new RecordIndexGet(
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, recordVariable)
+              ..promotedType = typeCheckNeeded ? type : null,
+            type,
+            recordFieldIndex);
+
+        // [type] is computed by the CFE, so the field index out of range is an
+        // internal error, and we check the condition with an assert rather than
+        // reporting a compile-time error.
+        assert(recordFieldIndex < type.positional.length);
+        fieldType = type.positional[recordFieldIndex];
+
+        subpattern = fieldPattern;
+        recordFieldIndex++;
+      }
+
+      // recordFieldIndex: `fieldType` FVAR = `recordField`
+      VariableDeclaration recordFieldVariable = inferenceVisitor.engine.forest
+          .createVariableDeclarationForValue(recordField, type: fieldType);
+
+      PatternTransformationResult subpatternTransformationResult =
+          subpattern.transform(
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, recordFieldVariable),
+              fieldType,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, recordFieldVariable),
+              inferenceVisitor);
+
+      // If the sub-pattern transformation doesn't declare captured variables
+      // and consists of a single empty element, it means that it simply
+      // doesn't have a place where it could refer to the element expression.
+      // In that case we can avoid creating the intermediary variable for the
+      // element expression.
+      //
+      // An example of such sub-pattern is in the following:
+      //
+      // if (x case (var _,)) { /* ... */ }
+      if (subpattern.declaredVariables.isNotEmpty ||
+          !(subpatternTransformationResult.elements.length == 1 &&
+              subpatternTransformationResult.elements.single.isEmpty)) {
+        fieldAccessVariables.add(recordFieldVariable);
+        transformationResult = transformationResult.combine(
+            subpatternTransformationResult, inferenceVisitor);
+      }
+    }
+
+    // condition: [`recordVariable` is `type`]?
+    //   ==> [RVAR is `type`]?
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: !typeCheckNeeded
+                ? null
+                : inferenceVisitor.engine.forest.createIsExpression(
+                    fileOffset,
+                    inferenceVisitor.engine.forest
+                        .createVariableGet(fileOffset, recordVariable),
+                    type,
+                    forNonNullableByDefault:
+                        inferenceVisitor.isNonNullableByDefault),
+            variableInitializers: fieldAccessVariables),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [recordVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 }
 
@@ -6202,9 +6718,13 @@ class VariablePattern extends Pattern {
           forNonNullableByDefault: false);
       transformationResult = new PatternTransformationResult([
         new PatternTransformationElement(
-            condition: null, variableInitializers: [matchedExpressionVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [matchedExpressionVariable]),
         new PatternTransformationElement(
-            condition: condition, variableInitializers: [])
+            kind: PatternTransformationElementKind.regular,
+            condition: condition,
+            variableInitializers: [])
       ]);
       variable.initializer = inferenceVisitor.engine.forest
           .createVariableGet(fileOffset, matchedExpressionVariable)
@@ -6268,6 +6788,13 @@ class VariablePattern extends Pattern {
   }
 }
 
+enum PatternTransformationElementKind {
+  regular,
+  logicalOrPatternLeftBegin,
+  logicalOrPatternRightBegin,
+  logicalOrPatternEnd
+}
+
 class PatternTransformationElement {
   /// Part of a matching condition of a pattern
   ///
@@ -6283,8 +6810,15 @@ class PatternTransformationElement {
   /// variables.
   final List<Statement> variableInitializers;
 
+  final PatternTransformationResult? otherwise;
+
+  final PatternTransformationElementKind kind;
+
   PatternTransformationElement(
-      {required this.condition, required this.variableInitializers});
+      {required this.condition,
+      required this.variableInitializers,
+      required this.kind,
+      this.otherwise});
 
   bool get isEmpty => condition == null && variableInitializers.isEmpty;
 }
@@ -6311,6 +6845,9 @@ class PatternTransformationResult {
     } else if (other.elements.isEmpty) {
       return this;
     } else {
+      // TODO(cstefantsova): Does it make sense to use [prependElement] on each
+      // element from [elements], last to the first, prepending them to the
+      // accumulated result?
       return new PatternTransformationResult([
         ...elements.sublist(0, elements.length - 1),
         ...other.prependElement(elements.last, inferenceVisitor).elements
@@ -6332,11 +6869,16 @@ class PatternTransformationResult {
     if (elements.isEmpty) {
       return new PatternTransformationResult([element]);
     }
+    if (element.kind != PatternTransformationElementKind.regular ||
+        elements.first.kind != PatternTransformationElementKind.regular) {
+      return new PatternTransformationResult([element, ...elements]);
+    }
     PatternTransformationElement outermost = elements.first;
     Expression? elementCondition = element.condition;
     Expression? outermostCondition = outermost.condition;
     if (outermostCondition == null) {
       elements[0] = new PatternTransformationElement(
+          kind: PatternTransformationElementKind.regular,
           condition: elementCondition,
           variableInitializers: [
             ...element.variableInitializers,
@@ -6349,6 +6891,7 @@ class PatternTransformationResult {
         return this;
       } else {
         elements[0] = new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
             condition: inferenceVisitor.engine.forest.createLogicalExpression(
                 elementCondition.fileOffset,
                 elementCondition,
@@ -6361,4 +6904,10 @@ class PatternTransformationResult {
       return new PatternTransformationResult([element, ...elements]);
     }
   }
+}
+
+class ContinuationStackElement {
+  List<Statement> statements;
+
+  ContinuationStackElement(this.statements);
 }

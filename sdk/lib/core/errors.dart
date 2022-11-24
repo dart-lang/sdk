@@ -13,11 +13,11 @@ part of dart.core;
 /// or even with the wrong number of arguments,
 /// or calling it at a time when it is not allowed.
 ///
-/// These are not errors that a caller should expect or catch -
+/// These are not errors that a caller should expect or catch &mdash;
 /// if they occur, the program is erroneous,
 /// and terminating the program may be the safest response.
 ///
-/// When deciding that a function throws an error,
+/// When deciding that a function should throw an error,
 /// the conditions where it happens should be clearly described,
 /// and they should be detectable and predictable,
 /// so the programmer using the function can avoid triggering the error.
@@ -40,13 +40,14 @@ part of dart.core;
 /// It may still throw,
 /// but the caller will have to catch the thrown value,
 /// effectively making it an alternative result rather than an error.
+/// If so, we consider the thrown object an *exception* rather than an error.
 /// The thrown object can choose to implement [Exception]
 /// to document that it represents an exceptional, but not erroneous,
 /// occurrence, but being an [Exception] has no other effect
 /// than documentation.
 ///
 /// All non-`null` values can be thrown in Dart.
-/// Objects extending `Error` are handled specially:
+/// Objects *extending* the `Error` class are handled specially:
 /// The first time they are thrown,
 /// the stack trace at the throw point is recorded
 /// and stored in the error object.
@@ -55,7 +56,8 @@ part of dart.core;
 /// will not store the stack trace automatically.
 ///
 /// Error objects are also used for system wide failures
-/// like stack overflow or an out-of-memory situation.
+/// like stack overflow or an out-of-memory situation,
+/// which the user is also not expected to catch or handle.
 ///
 /// Since errors are not created to be caught,
 /// there is no need for subclasses to distinguish the errors.
@@ -64,6 +66,8 @@ part of dart.core;
 /// For example, the [String.contains] method will use a [RangeError]
 /// if its `startIndex` isn't in the range `0..length`,
 /// which is easily created by `RangeError.range(startIndex, 0, length)`.
+/// Catching specific subclasses of [Error] is not intended,
+/// and shouldn't happen outside of testing your own code.
 @pragma('flutter:keep-to-string-in-subtypes')
 class Error {
   Error(); // Prevent use as mixin.
@@ -146,13 +150,29 @@ class CastError extends Error {}
 ///
 /// In null safe code, you are statically disallowed from throwing `null`,
 /// so this error will go away when non-null safe code stops being supported.
-class NullThrownError extends Error {
+@Deprecated("Use TypeError instead")
+class NullThrownError extends Error implements TypeError {
   @pragma("vm:entry-point")
   NullThrownError();
   String toString() => "Throw of null.";
 }
 
 /// Error thrown when a function is passed an unacceptable argument.
+///
+/// The method should document restrictions on the arguments it accepts,
+/// for example if an integer argument must be non-nullable,
+/// a string argument must be non-empty,
+/// or a `dynamic`-typed argument must actually have one of a few accepted
+/// types.
+///
+/// The user should be able to predict which arguments will cause an
+/// error to be throw, and avoid calling with those.
+///
+/// It's almost always a good idea to provide the unacceptable value
+/// as part of the error, to help the user figure out what vent wrong,
+/// so the [ArgumentError.value] constructor is the preferred constructor.
+/// Use [ArgumentError.new] only when the value cannot be provided for some
+/// reason.
 class ArgumentError extends Error {
   /// Whether value was provided.
   final bool _hasValue;
@@ -173,9 +193,9 @@ class ArgumentError extends Error {
   /// of a message.
   ///
   /// If [name] is provided, it should be the name of the parameter
-  /// which was invalid.
+  /// which received an invalid argument.
   ///
-  /// Consider using [ArgumentError.value] instead to retain and document the
+  /// Prefer using [ArgumentError.value] instead to retain and document the
   /// invalid value as well.
   @pragma("vm:entry-point")
   ArgumentError([this.message, @Since("2.14") this.name])
@@ -211,10 +231,8 @@ class ArgumentError extends Error {
   ///
   /// Returns the [argument] if it is not null.
   @Since("2.1")
-  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) {
-    if (argument == null) throw ArgumentError.notNull(name);
-    return argument;
-  }
+  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) =>
+      argument ?? (throw ArgumentError.notNull(name));
 
   // Helper functions for toString overridden in subclasses.
   String get _errorName => "Invalid argument${!_hasValue ? "(s)" : ""}";
@@ -234,13 +252,15 @@ class ArgumentError extends Error {
   }
 }
 
-/// Error thrown due to a value being outside a valid range.
+/// Error thrown due to an argument value being outside an accepted range.
 class RangeError extends ArgumentError {
   /// The minimum value that [value] is allowed to assume.
   final num? start;
 
   /// The maximum value that [value] is allowed to assume.
   final num? end;
+
+  num? get invalidValue => super.invalidValue;
 
   // TODO(lrn): This constructor should be called only with string values.
   // It currently isn't in all cases.
@@ -411,10 +431,15 @@ class RangeError extends ArgumentError {
 /// and the invalid index itself.
 class IndexError extends ArgumentError implements RangeError {
   /// The indexable object that [invalidValue] was not a valid index into.
+  ///
+  /// Can be, for example, a [List] or [String],
+  /// which both have index based operations.
   final Object? indexable;
 
   /// The length of [indexable] at the time of the error.
   final int length;
+
+  int get invalidValue => super.invalidValue;
 
   /// Creates a new [IndexError] stating that [invalidValue] is not a valid index
   /// into [indexable].
@@ -496,7 +521,7 @@ class IndexError extends ArgumentError implements RangeError {
 /// control reached the end of a switch case (except the last case
 /// of a switch) without meeting a `break` or other control flow operators.
 /// That kind of fall-through was made a compile-time error Dart 2.0,
-/// so this error no longer thrown.
+/// so this error is no longer thrown.
 @Deprecated("No longer relevant in Dart 2.0")
 class FallThroughError extends Error {
   FallThroughError();
@@ -518,7 +543,15 @@ class AbstractClassInstantiationError extends Error {
   external String toString();
 }
 
-/// Error thrown by the default implementation of `noSuchMethod` on [Object].
+/// Error thrown when a particular method invocation is not possible.
+///
+/// This error is thrown by the default implementation of `noSuchMethod`
+/// on [Object], which is the default behavior of a failed dynamic
+/// invocation.
+///
+/// The error is also thrown in other cases where an object
+/// does not support a requested operation, but where the failed operation
+/// does not trigger a call to [Object.noSuchMethod].
 class NoSuchMethodError extends Error {
   /// Creates a [NoSuchMethodError] corresponding to a failed method call.
   ///
@@ -562,6 +595,8 @@ class NoSuchMethodError extends Error {
 ///
 /// This [Error] is thrown when an instance cannot implement one of the methods
 /// in its signature.
+/// For example, it's used by unmodifiable versions of collections,
+/// when someone calls a modifying method.
 @pragma("vm:entry-point")
 class UnsupportedError extends Error {
   final String? message;
@@ -593,11 +628,12 @@ class UnimplementedError extends Error implements UnsupportedError {
 ///
 /// Should be used when this particular object is currently in a state
 /// which doesn't support the requested operation, but other similar
-/// objects might, or the object might change its state to one which
-/// supports the operation.
+/// objects might, or the object itself can later change its state
+/// to one which supports the operation.
+///
 /// Example: Asking for `list.first` on a currently empty list.
-/// If the operation is never supported, consider using
-/// [UnsupportedError] instead.
+/// If the operation is never supported by this object or class,
+/// consider using [UnsupportedError] instead.
 ///
 /// This is a generic error used for a variety of different erroneous
 /// actions. The message should be descriptive.
@@ -647,9 +683,12 @@ class StackOverflowError implements Error {
 
 /// Error thrown when a lazily initialized variable cannot be initialized.
 ///
-/// This is no longer used in null safe Dart code and is replaced by late
-/// variables and `LateInitializationError`.
-// TODO: Deprecate?
+/// Cyclic dependencies are no longer detected at runtime in null safe code.
+/// Such code will fail in other ways instead,
+/// possibly with a [StackOverflowError].
+///
+/// Will be removed when support for non-null-safe code is discontinued.
+@Deprecated("Use Error instead")
 class CyclicInitializationError extends Error {
   final String? variableName;
   @pragma("vm:entry-point")

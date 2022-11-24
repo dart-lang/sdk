@@ -1,8 +1,8 @@
 ## Running dart2wasm
 
-You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed.
+You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed and have the [Dart SDK repository checked out](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source).
 
-To compile a Dart file to Wasm, run:
+To compile a Dart file to Wasm, in a checkout of the Dart SDK repository, run:
 
 `dart --enable-asserts pkg/dart2wasm/bin/dart2wasm.dart` *options* *infile*`.dart` *outfile*`.wasm`
 

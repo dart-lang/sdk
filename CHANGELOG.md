@@ -50,7 +50,7 @@
   library-level documentation comments, and with this new feature, you don't
   have to provide a unique name for each library directive. Instead, a name can
   simply be omitted (see [#1073][]).
-  
+
 [#1073]: https://github.com/dart-lang/language/issues/1073
 
 ### Libraries
@@ -71,6 +71,8 @@
 - Deprecated `RangeError.checkValidIndex` in favor of `IndexError.check`.
 - Deprecated `IndexError` constructor in favor of `IndexError.withLength`
   constructor.
+- Deprecated `NullThrownError` and `CyclicInitializationError`.
+  Neither error is thrown by null safe code.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [#24644]: https://github.com/dart-lang/sdk/issues/24644

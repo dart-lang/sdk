@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordPatternField, RecordType;
+    hide NamedType, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -1828,25 +1828,62 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ])
       ];
     }
+
+    List<ContinuationStackElement> continuationStack = [];
     for (int i = transformationResult.elements.length - 1; i >= 0; i--) {
       PatternTransformationElement transformationElement =
           transformationResult.elements[i];
-      replacementStatements = [
-        ...transformationElement.variableInitializers,
-        ...replacementStatements
-      ];
-      Expression? condition = transformationElement.condition;
-      if (condition != null) {
-        replacementStatements = [
-          engine.forest.createIfStatement(
-              node.fileOffset,
-              condition,
-              engine.forest.createBlock(
-                  node.fileOffset, node.fileOffset, replacementStatements),
-              null)
-        ];
+
+      switch (transformationElement.kind) {
+        case PatternTransformationElementKind.regular:
+          replacementStatements = [
+            ...transformationElement.variableInitializers,
+            ...replacementStatements
+          ];
+          Expression? condition = transformationElement.condition;
+          if (condition != null) {
+            replacementStatements = [
+              engine.forest.createIfStatement(
+                  node.fileOffset,
+                  condition,
+                  engine.forest.createBlock(
+                      node.fileOffset, node.fileOffset, replacementStatements),
+                  null)
+            ];
+          }
+          break;
+
+        case PatternTransformationElementKind.logicalOrPatternLeftBegin:
+          ContinuationStackElement leftContinuation =
+              continuationStack.removeLast();
+          ContinuationStackElement rightContinuation =
+              continuationStack.removeLast();
+
+          List<Statement> leftConditionDesugaring = replacementStatements;
+          replacementStatements = [
+            ...leftConditionDesugaring,
+            ...leftContinuation.statements,
+            ...rightContinuation.statements,
+          ];
+
+          break;
+
+        case PatternTransformationElementKind.logicalOrPatternRightBegin:
+          continuationStack
+              .add(new ContinuationStackElement(replacementStatements));
+          replacementStatements = [];
+          break;
+
+        case PatternTransformationElementKind.logicalOrPatternEnd:
+          continuationStack
+              .add(new ContinuationStackElement(replacementStatements));
+          replacementStatements = [];
+          break;
       }
     }
+    assert(continuationStack.isEmpty,
+        "Continuation stack is not empty at the end of desugaring.");
+
     replacementStatements = [
       matchedExpressionVariable,
       if (otherwise != null) isPatternMatchingFailed,
@@ -8605,7 +8642,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
 
   @override
-  DartType get dynamicType => throw new UnimplementedError('TODO(paulberry)');
+  DartType get dynamicType => const DynamicType();
 
   @override
   void finishExpressionCase(Expression node, int caseIndex) {
@@ -8738,8 +8775,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType get objectQuestionType =>
-      throw new UnimplementedError('TODO(paulberry)');
+  DartType get objectQuestionType => coreTypes.objectNullableRawType;
 
   @override
   void setVariableType(VariableDeclaration variable, DartType type) {
@@ -8803,8 +8839,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitBinaryPattern(
-    BinaryPattern pattern, {
+  PatternInferenceResult visitAndPattern(
+    AndPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    pattern.left
+        .acceptInference(this, matchedType: matchedType, context: context);
+    pattern.right
+        .acceptInference(this, matchedType: matchedType, context: context);
+    return const PatternInferenceResult();
+  }
+
+  PatternInferenceResult visitOrPattern(
+    OrPattern pattern, {
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
@@ -8883,7 +8931,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    // TODO(cstefantsova): Implement visitMapPattern.
+    // TODO(cstefantsova): Use [analyzeMapPattern] when it's available.
+    // Until then, an ad-hoc inference is used.
+    DartType keyType = const DynamicType();
+    DartType valueType = const DynamicType();
+    if (matchedType is InterfaceType) {
+      List<DartType>? typeArguments = hierarchyBuilder
+          .getTypeArgumentsAsInstanceOf(matchedType, coreTypes.mapClass);
+      if (typeArguments != null) {
+        keyType = typeArguments[0];
+        valueType = typeArguments[1];
+      }
+    }
+    pattern.type = new InterfaceType(coreTypes.mapClass,
+        Nullability.nonNullable, <DartType>[keyType, valueType]);
     return const PatternInferenceResult();
   }
 
@@ -8901,22 +8962,42 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    // TODO(cstefantsova): Implement visitRecordPattern.
+    List<RecordPatternField<Node, Pattern>> fields = [
+      for (Pattern fieldPattern in pattern.patterns)
+        new RecordPatternField(
+            node: fieldPattern,
+            pattern: fieldPattern,
+            name: fieldPattern is NamedPattern ? fieldPattern.name : null)
+    ];
+    DartType patternType =
+        analyzeRecordPattern(matchedType, context, pattern, fields: fields);
+    pattern.type = patternType as RecordType;
     return const PatternInferenceResult();
   }
 
   @override
   shared.RecordType<DartType>? asRecordType(DartType type) {
-    // TODO(scheglov): implement asRecordType
-    throw new UnimplementedError('TODO(scheglov)');
+    if (type is RecordType) {
+      return new shared.RecordType(
+          positional: type.positional,
+          named: type.named
+              .map((field) => new shared.NamedType(field.name, field.type))
+              .toList());
+    } else {
+      return null;
+    }
   }
 
   @override
   DartType recordType(
       {required List<DartType> positional,
       required List<shared.NamedType<DartType>> named}) {
-    // TODO(scheglov): implement recordType
-    throw new UnimplementedError('TODO(scheglov)');
+    List<NamedType> namedFields = [];
+    for (shared.NamedType<DartType> namedType in named) {
+      namedFields.add(new NamedType(namedType.name, namedType.type));
+    }
+    namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
+    return new RecordType(positional, namedFields, Nullability.nonNullable);
   }
 
   @override
