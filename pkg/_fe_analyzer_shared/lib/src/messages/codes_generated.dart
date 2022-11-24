@@ -10660,6 +10660,60 @@ Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSealedClassSubtypeOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Sealed class '#name' can't be extended, implemented, or mixed in outside of its library.""",
+    withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeSealedClassSubtypeOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+  "SealedClassSubtypeOutsideOfLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSealedClassSubtypeOutsideOfLibrary,
+      problemMessage:
+          """Sealed class '${name}' can't be extended, implemented, or mixed in outside of its library.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSealedMixinSubtypeOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Sealed mixin '#name' can't be mixed in outside of its library.""",
+    withArguments: _withArgumentsSealedMixinSubtypeOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeSealedMixinSubtypeOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+  "SealedMixinSubtypeOutsideOfLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSealedMixinSubtypeOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSealedMixinSubtypeOutsideOfLibrary,
+      problemMessage:
+          """Sealed mixin '${name}' can't be mixed in outside of its library.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSetLiteralTooManyTypeArguments =
     messageSetLiteralTooManyTypeArguments;
 

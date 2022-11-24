@@ -5997,3 +5997,23 @@ InheritedRestrictedMemberOfEnumImplementer:
   script: |
     abstract class A { int get hashCode => 0; }
     abstract class B extends A implements Enum {}
+
+SealedClassSubtypeOutsideOfLibrary:
+  problemMessage: "Sealed class '#name' can't be extended, implemented, or mixed in outside of its library."
+  experiments: sealed-class
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B extends A {}
+    lib.dart:
+      sealed class A {}
+
+SealedMixinSubtypeOutsideOfLibrary:
+  problemMessage: "Sealed mixin '#name' can't be mixed in outside of its library."
+  experiments: sealed-class
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with M {}
+    lib.dart:
+      sealed mixin M {}

@@ -869,12 +869,27 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginSwitchExpressionBlock(Token token) {
+    _unsupported();
+  }
+
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     _unsupported();
   }
 
   @override
+  void beginSwitchExpressionCase() {
+    _unsupported();
+  }
+
+  @override
   void beginSwitchStatement(Token token) {
+    _unsupported();
+  }
+
+  @override
+  void beginSwitchExpression(Token token) {
     _unsupported();
   }
 
@@ -1464,6 +1479,12 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    _unsupported();
+  }
+
+  @override
   void endSwitchCase(
       int labelCount,
       int expressionCount,
@@ -1476,7 +1497,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    _unsupported();
+  }
+
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
     _unsupported();
   }
 

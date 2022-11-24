@@ -39,6 +39,7 @@ class FindNode {
           }
         },
         switchPatternCase: (node) => nodes.add(node.guardedPattern),
+        switchExpressionCase: (node) => nodes.add(node.guardedPattern),
       ),
     );
     return nodes.single;

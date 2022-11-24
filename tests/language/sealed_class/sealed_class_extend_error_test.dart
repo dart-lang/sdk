@@ -9,14 +9,14 @@
 import 'sealed_class_extend_lib.dart';
 
 abstract class OutsideA extends SealedClass {}
-// ^
+//             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class OutsideB extends SealedClass {
-// ^
+//    ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
   @override
   int foo = 2;
 

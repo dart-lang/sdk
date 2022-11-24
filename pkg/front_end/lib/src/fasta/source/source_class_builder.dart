@@ -103,8 +103,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? mixedInTypeBuilder;
 
-  bool isMixinDeclaration;
-
   final IndexedClass? referencesFromIndexed;
 
   @override
@@ -115,6 +113,9 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   final bool isAugmentation;
+
+  @override
+  bool isMixinDeclaration;
 
   bool? _isConflictingAugmentationMember;
 

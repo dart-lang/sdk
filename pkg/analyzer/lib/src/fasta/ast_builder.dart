@@ -3041,6 +3041,61 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    assert(optional('switch', switchKeyword));
+    debugEvent("SwitchExpression");
+
+    var rightBracket = pop() as Token;
+    var cases = pop() as List<SwitchExpressionCaseImpl>;
+    var leftBracket = pop() as Token;
+    var condition = pop() as _ParenthesizedCondition;
+    push(
+      SwitchExpressionImpl(
+        switchKeyword: switchKeyword,
+        leftParenthesis: condition.leftParenthesis,
+        expression: condition.expression,
+        rightParenthesis: condition.rightParenthesis,
+        leftBracket: leftBracket,
+        cases: cases,
+        rightBracket: rightBracket,
+      ),
+    );
+  }
+
+  @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token leftBracket, Token rightBracket) {
+    assert(optional('{', leftBracket));
+    assert(optional('}', rightBracket));
+    debugEvent("SwitchExpressionBlock");
+
+    var cases = popTypedList2<SwitchExpressionCaseImpl>(caseCount);
+
+    push(leftBracket);
+    push(cases);
+    push(rightBracket);
+  }
+
+  @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    debugEvent("SwitchExpressionCase");
+    var expression = pop() as ExpressionImpl;
+    WhenClauseImpl? whenClause;
+    if (when != null) {
+      var expression = pop() as ExpressionImpl;
+      whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
+    }
+    var pattern = pop() as DartPatternImpl;
+    push(SwitchExpressionCaseImpl(
+        guardedPattern: GuardedPatternImpl(
+          pattern: pattern,
+          whenClause: whenClause,
+        ),
+        arrow: arrow,
+        expression: expression));
+  }
+
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     assert(optional('switch', switchKeyword));
     debugEvent("SwitchStatement");

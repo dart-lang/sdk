@@ -1804,6 +1804,21 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginSwitchExpression(Token token) {
+    seen(token);
+    doPrint('beginSwitchExpression(' '$token)');
+    indent++;
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    indent--;
+    seen(switchKeyword);
+    seen(endToken);
+    doPrint('endSwitchExpression(' '$switchKeyword, ' '$endToken)');
+  }
+
+  @override
   void beginSwitchBlock(Token token) {
     seen(token);
     doPrint('beginSwitchBlock(' '$token)');
@@ -1816,6 +1831,25 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endSwitchBlock(' '$caseCount, ' '$beginToken, ' '$endToken)');
+  }
+
+  @override
+  void beginSwitchExpressionBlock(Token token) {
+    seen(token);
+    doPrint('beginSwitchExpressionBlock(' '$token)');
+    indent++;
+  }
+
+  @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    indent--;
+    seen(beginToken);
+    seen(endToken);
+    doPrint('endSwitchExpressionBlock('
+        '$caseCount, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
@@ -2793,6 +2827,21 @@ class ParserTestListener implements Listener {
         '$statementCount, '
         '$firstToken, '
         '$endToken)');
+  }
+
+  @override
+  void beginSwitchExpressionCase() {
+    doPrint('beginSwitchExpressionCase()');
+    indent++;
+  }
+
+  @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    indent--;
+    seen(when);
+    seen(arrow);
+    seen(endToken);
+    doPrint('endSwitchExpressionCase(' '$when, ' '$arrow, ' '$endToken)');
   }
 
   @override

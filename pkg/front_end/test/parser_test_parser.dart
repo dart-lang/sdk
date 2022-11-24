@@ -1108,6 +1108,15 @@ class TestParser extends Parser {
   }
 
   @override
+  Token ensureFunctionArrow(Token token) {
+    doPrint('ensureFunctionArrow(' '$token)');
+    indent++;
+    var result = super.ensureFunctionArrow(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token ensureLiteralString(Token token) {
     doPrint('ensureLiteralString(' '$token)');
     indent++;
@@ -2776,6 +2785,15 @@ class TestParser extends Parser {
     indent++;
     var result = super
         .parsePatternVariableDeclarationStatement(keyword, start, varOrFinal);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseSwitchExpression(Token token) {
+    doPrint('parseSwitchExpression(' '$token)');
+    indent++;
+    var result = super.parseSwitchExpression(token);
     indent--;
     return result;
   }
