@@ -567,6 +567,7 @@ function's
 fuse
 futured
 futureor
+fvar
 g
 gardening
 gb
@@ -1237,6 +1238,7 @@ rparen
 rpc
 rs
 runnable
+rvar
 s
 safer
 sampled

@@ -6251,6 +6251,7 @@ class NamedPattern extends Pattern {
 
 class RecordPattern extends Pattern {
   final List<Pattern> patterns;
+  late final RecordType type;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
@@ -6293,12 +6294,114 @@ class RecordPattern extends Pattern {
       DartType matchedType,
       Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          condition:
-              new InvalidExpression("Unimplemented RecordPattern.transform"),
-          variableInitializers: [])
-    ]);
+    bool typeCheckNeeded = !inferenceVisitor.isAssignable(type, matchedType) ||
+        matchedType is DynamicType;
+
+    // recordVariable: `matchedType` RVAR = `matchedExpression`
+    VariableDeclaration recordVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    PatternTransformationResult transformationResult =
+        new PatternTransformationResult([]);
+    int recordFieldIndex = 0;
+    List<VariableDeclaration> fieldAccessVariables = [];
+    for (Pattern fieldPattern in patterns) {
+      Expression recordField;
+      DartType fieldType;
+      Pattern subpattern;
+      if (fieldPattern is NamedPattern) {
+        // recordField: `recordVariable`[`fieldPattern.name`]
+        //   ==> RVAR[`fieldPattern.name`]
+        recordField = new RecordNameGet(
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, recordVariable)
+              ..promotedType = typeCheckNeeded ? type : null,
+            type,
+            fieldPattern.name);
+
+        // [type] is computed by the CFE, so the absence of the named field is
+        // an internal error, and we check the condition with an assert rather
+        // than reporting a compile-time error.
+        assert(type.named.any((named) => named.name == fieldPattern.name));
+        fieldType = type.named
+            .firstWhere((named) => named.name == fieldPattern.name)
+            .type;
+
+        subpattern = fieldPattern.pattern;
+      } else {
+        // recordField: `recordVariable`[`recordFieldIndex`]
+        //   ==> RVAR[`recordFieldIndex`]
+        recordField = new RecordIndexGet(
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, recordVariable)
+              ..promotedType = typeCheckNeeded ? type : null,
+            type,
+            recordFieldIndex);
+
+        // [type] is computed by the CFE, so the field index out of range is an
+        // internal error, and we check the condition with an assert rather than
+        // reporting a compile-time error.
+        assert(recordFieldIndex < type.positional.length);
+        fieldType = type.positional[recordFieldIndex];
+
+        subpattern = fieldPattern;
+        recordFieldIndex++;
+      }
+
+      // recordFieldIndex: `fieldType` FVAR = `recordField`
+      VariableDeclaration recordFieldVariable = inferenceVisitor.engine.forest
+          .createVariableDeclarationForValue(recordField, type: fieldType);
+
+      PatternTransformationResult subpatternTransformationResult =
+          subpattern.transform(
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, recordFieldVariable),
+              fieldType,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, recordFieldVariable),
+              inferenceVisitor);
+
+      // If the sub-pattern transformation doesn't declare captured variables
+      // and consists of a single empty element, it means that it simply
+      // doesn't have a place where it could refer to the element expression.
+      // In that case we can avoid creating the intermediary variable for the
+      // element expression.
+      //
+      // An example of such sub-pattern is in the following:
+      //
+      // if (x case (var _,)) { /* ... */ }
+      if (subpattern.declaredVariables.isNotEmpty ||
+          !(subpatternTransformationResult.elements.length == 1 &&
+              subpatternTransformationResult.elements.single.isEmpty)) {
+        fieldAccessVariables.add(recordFieldVariable);
+        transformationResult = transformationResult.combine(
+            subpatternTransformationResult, inferenceVisitor);
+      }
+    }
+
+    // condition: [`recordVariable` is `type`]?
+    //   ==> [RVAR is `type`]?
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: !typeCheckNeeded
+                ? null
+                : inferenceVisitor.engine.forest.createIsExpression(
+                    fileOffset,
+                    inferenceVisitor.engine.forest
+                        .createVariableGet(fileOffset, recordVariable),
+                    type,
+                    forNonNullableByDefault:
+                        inferenceVisitor.isNonNullableByDefault),
+            variableInitializers: fieldAccessVariables),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            condition: null, variableInitializers: [recordVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 }
 

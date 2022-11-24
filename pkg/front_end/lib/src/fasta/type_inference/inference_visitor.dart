@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordPatternField, RecordType;
+    hide NamedType, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -8605,7 +8605,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
 
   @override
-  DartType get dynamicType => throw new UnimplementedError('TODO(paulberry)');
+  DartType get dynamicType => const DynamicType();
 
   @override
   void finishExpressionCase(Expression node, int caseIndex) {
@@ -8738,8 +8738,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType get objectQuestionType =>
-      throw new UnimplementedError('TODO(paulberry)');
+  DartType get objectQuestionType => coreTypes.objectNullableRawType;
 
   @override
   void setVariableType(VariableDeclaration variable, DartType type) {
@@ -8914,22 +8913,42 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    // TODO(cstefantsova): Implement visitRecordPattern.
+    List<RecordPatternField<Node, Pattern>> fields = [
+      for (Pattern fieldPattern in pattern.patterns)
+        new RecordPatternField(
+            node: fieldPattern,
+            pattern: fieldPattern,
+            name: fieldPattern is NamedPattern ? fieldPattern.name : null)
+    ];
+    DartType patternType =
+        analyzeRecordPattern(matchedType, context, pattern, fields: fields);
+    pattern.type = patternType as RecordType;
     return const PatternInferenceResult();
   }
 
   @override
   shared.RecordType<DartType>? asRecordType(DartType type) {
-    // TODO(scheglov): implement asRecordType
-    throw new UnimplementedError('TODO(scheglov)');
+    if (type is RecordType) {
+      return new shared.RecordType(
+          positional: type.positional,
+          named: type.named
+              .map((field) => new shared.NamedType(field.name, field.type))
+              .toList());
+    } else {
+      return null;
+    }
   }
 
   @override
   DartType recordType(
       {required List<DartType> positional,
       required List<shared.NamedType<DartType>> named}) {
-    // TODO(scheglov): implement recordType
-    throw new UnimplementedError('TODO(scheglov)');
+    List<NamedType> namedFields = [];
+    for (shared.NamedType<DartType> namedType in named) {
+      namedFields.add(new NamedType(namedType.name, namedType.type));
+    }
+    namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
+    return new RecordType(positional, namedFields, Nullability.nonNullable);
   }
 
   @override
