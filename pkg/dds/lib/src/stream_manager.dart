@@ -142,13 +142,17 @@ class StreamManager {
         final streamId = parameters['streamId'].asString;
         final event =
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
-        if (event.extensionStream != null &&
-            event.extensionStream != 'Extension') {
-          final customStreamId = event.extensionStream!;
+        final destinationStreamId =
+            event.extensionData?.data['__destinationStream']!;
+
+        if (destinationStreamId != 'Extension') {
           final values = parameters.value;
 
-          values['streamId'] = customStreamId;
-          streamNotify(customStreamId, values);
+          values['streamId'] = destinationStreamId;
+          (values['event']['extensionData'] as Map<String, dynamic>)
+              .remove('__destinationStream');
+
+          streamNotify(destinationStreamId, values);
           return;
         }
         // Forward events from the streams IsolateManager subscribes to.
@@ -393,6 +397,18 @@ class StreamManager {
     ...loggingRepositoryStreams,
   };
 
+  static final protectedStreams = <String>{
+    'VM',
+    'Isolate',
+    'Debug',
+    'GC',
+    '_Echo',
+    'HeapSnapshot',
+    'Logging',
+    'Extension',
+    'Timeline',
+    'Profiler',
+  };
   static final allStandardStreams = <String>{
     ...isolateManagerStreams,
     ...loggingRepositoryStreams,

@@ -146,7 +146,28 @@ external bool get extensionStreamHasListener;
 /// event stream.
 ///
 /// If [extensionStreamHasListener] is false, this method is a no-op.
-void postEvent(String eventKind, Map eventData, { String stream = 'Extension'}) {
+void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
+  print('Inside Post Event');
+  final protectedStreams = [
+    'VM',
+    'Isolate',
+    'Debug',
+    'GC',
+    '_Echo',
+    'HeapSnapshot',
+    'Logging',
+    'Timeline',
+    'Profiler',
+  ];
+
+  if (protectedStreams.contains(stream)) {
+    throw new ArgumentError.value(
+        stream, "stream", "cannot be a protected stream");
+  } else if (stream.startsWith('_')) {
+    throw new ArgumentError.value(
+        stream, "stream", "Cannot start with and underscore");
+  }
+
   if (!extensionStreamHasListener) {
     return;
   }
@@ -154,11 +175,12 @@ void postEvent(String eventKind, Map eventData, { String stream = 'Extension'}) 
   checkNotNullable(eventKind, 'eventKind');
   checkNotNullable(eventData, 'eventData');
   checkNotNullable(stream, 'stream');
+  eventData['__destinationStream'] = stream;
   String eventDataAsString = json.encode(eventData);
-  _postEvent(eventKind, eventDataAsString, stream: stream);
+  _postEvent(eventKind, eventDataAsString);
 }
 
-external void _postEvent(String eventKind, String eventData, { String stream = 'Extension'});
+external void _postEvent(String eventKind, String eventData);
 
 // Both of these functions are written inside C++ to avoid updating the data
 // structures in Dart, getting an OOB, and observing stale state. Do not move

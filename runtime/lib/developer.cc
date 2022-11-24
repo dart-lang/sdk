@@ -63,15 +63,13 @@ DEFINE_NATIVE_ENTRY(Developer_log, 0, 8) {
 #endif  // PRODUCT
 }
 
-DEFINE_NATIVE_ENTRY(Developer_postEvent, 0, 3) {
+DEFINE_NATIVE_ENTRY(Developer_postEvent, 0, 2) {
 #if defined(PRODUCT)
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(String, event_kind, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, event_data, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(String, event_stream, arguments->NativeArgAt(2));
-
-  Service::SendExtensionEvent(isolate, event_kind, event_data, event_stream);
+  Service::SendExtensionEvent(isolate, event_kind, event_data);
   return Object::null();
 #endif  // PRODUCT
 }

@@ -306,8 +306,6 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (kind() == kExtension) {
     js->AppendSerializedObject("extensionData",
                                extension_event_.event_data->ToCString());
-    jsobj.AddProperty("extensionStream",
-                       extension_event_.event_stream->ToCString());
   }
 
   if (kind() == kCpuSamples) {

@@ -78,7 +78,7 @@ namespace dart {
   V(Developer_lookupExtension, 1)                                              \
   V(Developer_registerExtension, 2)                                            \
   V(Developer_log, 8)                                                          \
-  V(Developer_postEvent, 3)                                                    \
+  V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 3)                                             \
   V(Developer_reachability_barrier, 0)                                         \
   V(Double_getIsNegative, 1)                                                   \

@@ -149,8 +149,7 @@ class Service : public AllStatic {
 
   static void SendExtensionEvent(Isolate* isolate,
                                  const String& event_kind,
-                                 const String& event_data,
-                                 const String& event_stream);
+                                 const String& event_data);
 
   // Takes ownership of 'data'.
   static void SendEventWithData(const char* stream_id,
