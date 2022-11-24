@@ -5117,7 +5117,9 @@ class DummyPattern extends Pattern {
       InferenceVisitorBase inferenceVisitor) {
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: null, variableInitializers: <Statement>[])
+          kind: PatternTransformationElementKind.regular,
+          condition: null,
+          variableInitializers: <Statement>[])
     ]);
   }
 
@@ -5166,7 +5168,9 @@ class ExpressionPattern extends Pattern {
         target.member as Procedure);
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: result, variableInitializers: [])
+          kind: PatternTransformationElementKind.regular,
+          condition: result,
+          variableInitializers: [])
     ]);
   }
 
@@ -5181,23 +5185,16 @@ class ExpressionPattern extends Pattern {
   }
 }
 
-enum BinaryPatternKind {
-  and,
-  or,
-}
-
-/// A [Pattern] for `pattern | pattern` and `pattern & pattern`.
-class BinaryPattern extends Pattern {
+/// A [Pattern] for `pattern & pattern`.
+class AndPattern extends Pattern {
   Pattern left;
-  BinaryPatternKind kind;
   Pattern right;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
       [...left.declaredVariables, ...right.declaredVariables];
 
-  BinaryPattern(this.left, this.kind, this.right, int fileOffset)
-      : super(fileOffset) {
+  AndPattern(this.left, this.right, int fileOffset) : super(fileOffset) {
     left.parent = this;
     right.parent = this;
   }
@@ -5208,7 +5205,7 @@ class BinaryPattern extends Pattern {
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitBinaryPattern(this,
+    return visitor.visitAndPattern(this,
         matchedType: matchedType, context: context);
   }
 
@@ -5218,25 +5215,277 @@ class BinaryPattern extends Pattern {
       DartType matchedType,
       Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          condition:
-              new InvalidExpression("Unimplemented BinaryPattern.transform"),
-          variableInitializers: [])
-    ]);
+    // intermediateVariable: `matchedType` VAR = `matchedExpression`
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    PatternTransformationResult transformationResult = left.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        matchedType,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.combine(
+        right.transform(
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, intermediateVariable),
+            matchedType,
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, intermediateVariable),
+            inferenceVisitor),
+        inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
+        inferenceVisitor);
+
+    return transformationResult;
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
     left.toTextInternal(printer);
-    switch (kind) {
-      case BinaryPatternKind.and:
-        printer.write(' & ');
-        break;
-      case BinaryPatternKind.or:
-        printer.write(' | ');
-        break;
+    printer.write(' & ');
+    right.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "BinaryPattern(${toStringInternal()})";
+  }
+}
+
+/// A [Pattern] for `pattern | pattern`.
+class OrPattern extends Pattern {
+  Pattern left;
+  Pattern right;
+  List<VariableDeclaration> _orPatternJointVariables;
+
+  @override
+  List<VariableDeclaration> get declaredVariables => _orPatternJointVariables;
+
+  OrPattern(this.left, this.right, int fileOffset,
+      {required List<VariableDeclaration> orPatternJointVariables})
+      : _orPatternJointVariables = orPatternJointVariables,
+        super(fileOffset) {
+    left.parent = this;
+    right.parent = this;
+  }
+
+  @override
+  PatternInferenceResult acceptInference(
+    InferenceVisitorImpl visitor, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    return visitor.visitOrPattern(this,
+        matchedType: matchedType, context: context);
+  }
+
+  @override
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
+      InferenceVisitorBase inferenceVisitor) {
+    // intermediateVariable: `matchedType` VAR = `matchedExpression`
+    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(matchedExpression,
+            type: matchedType);
+
+    // leftConditionIsTrue: bool LVAR = false;
+    VariableDeclaration leftConditionIsTrue = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(
+            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
+            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
+
+    Map<String, VariableDeclaration> leftVariablesByName = {
+      for (VariableDeclaration variable in left.declaredVariables)
+        variable.name!: variable
+    };
+    Map<String, VariableDeclaration> rightVariablesByName = {
+      for (VariableDeclaration variable in right.declaredVariables)
+        variable.name!: variable
+    };
+    List<VariableDeclaration> declaredVariables = this.declaredVariables;
+    for (VariableDeclaration variable in declaredVariables) {
+      VariableDeclaration leftVariable = leftVariablesByName[variable.name!]!;
+      VariableDeclaration rightVariable = rightVariablesByName[variable.name!]!;
+      variable.initializer = inferenceVisitor.engine.forest
+          .createConditionalExpression(
+              fileOffset,
+              inferenceVisitor.engine.forest.createVariableGet(
+                  fileOffset, leftConditionIsTrue),
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, leftVariable)
+                ..promotedType = leftVariable.type,
+              inferenceVisitor.engine.forest
+                  .createVariableGet(fileOffset, rightVariable)
+                ..promotedType = rightVariable.type)
+        ..staticType = inferenceVisitor.typeSchemaEnvironment
+            .getStandardUpperBound(leftVariable.type, rightVariable.type,
+                inferenceVisitor.libraryBuilder.library)
+        ..parent = variable;
     }
+
+    // setLeftConditionIsTrue: `leftConditionIsTrue` = true;
+    //   ==> VAR = true;
+    Statement setLeftConditionIsTrue = inferenceVisitor.engine.forest
+        .createExpressionStatement(
+            fileOffset,
+            inferenceVisitor.engine.forest.createVariableSet(
+                fileOffset,
+                leftConditionIsTrue,
+                inferenceVisitor.engine.forest
+                    .createBoolLiteral(fileOffset, true)));
+
+    PatternTransformationResult leftTransformationResult = left.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        matchedType,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+    leftTransformationResult = leftTransformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.logicalOrPatternLeftBegin,
+            condition: null,
+            variableInitializers: []),
+        inferenceVisitor);
+    // Initialize variables to values captured by [left].
+    leftTransformationResult = leftTransformationResult.combine(
+        new PatternTransformationResult([
+          new PatternTransformationElement(
+              kind: PatternTransformationElementKind.regular,
+              condition: null,
+              variableInitializers: [
+                setLeftConditionIsTrue,
+                for (VariableDeclaration variable in left.declaredVariables)
+                  inferenceVisitor.engine.forest.createExpressionStatement(
+                      fileOffset,
+                      inferenceVisitor.engine.forest.createVariableSet(
+                          fileOffset, variable, variable.initializer!))
+              ])
+        ]),
+        inferenceVisitor);
+    for (VariableDeclaration variable in left.declaredVariables) {
+      variable.name = null;
+      variable.initializer = null;
+      variable.type = const DynamicType();
+    }
+
+    // rightConditionIsTrue: bool RVAR = false;
+    VariableDeclaration rightConditionIsTrue = inferenceVisitor.engine.forest
+        .createVariableDeclarationForValue(
+            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
+            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
+
+    // setRightConditionIsTrue: `rightConditionIsTrue` = true;
+    //   ==> VAR = true;
+    Statement setRightConditionIsTrue = inferenceVisitor.engine.forest
+        .createExpressionStatement(
+            fileOffset,
+            inferenceVisitor.engine.forest.createVariableSet(
+                fileOffset,
+                rightConditionIsTrue,
+                inferenceVisitor.engine.forest
+                    .createBoolLiteral(fileOffset, true)));
+
+    PatternTransformationResult rightTransformationResult = right.transform(
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        matchedType,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, intermediateVariable),
+        inferenceVisitor);
+    rightTransformationResult = rightTransformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            // condition: !`leftConditionIsTrue`
+            condition: inferenceVisitor.engine.forest.createNot(
+                fileOffset,
+                inferenceVisitor.engine.forest
+                    .createVariableGet(fileOffset, leftConditionIsTrue)),
+            variableInitializers: []),
+        inferenceVisitor);
+    rightTransformationResult = rightTransformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.logicalOrPatternRightBegin,
+            condition: null,
+            variableInitializers: []),
+        inferenceVisitor);
+    // Initialize variables to values captured by [right].
+    rightTransformationResult = rightTransformationResult.combine(
+        new PatternTransformationResult([
+          new PatternTransformationElement(
+              kind: PatternTransformationElementKind.regular,
+              condition: null,
+              variableInitializers: [
+                setRightConditionIsTrue,
+                for (VariableDeclaration variable in right.declaredVariables)
+                  inferenceVisitor.engine.forest.createExpressionStatement(
+                      fileOffset,
+                      inferenceVisitor.engine.forest.createVariableSet(
+                          fileOffset, variable, variable.initializer!))
+              ])
+        ]),
+        inferenceVisitor);
+    for (VariableDeclaration variable in right.declaredVariables) {
+      variable.name = null;
+      variable.initializer = null;
+      variable.type = const DynamicType();
+    }
+
+    PatternTransformationResult transformationResult = leftTransformationResult
+        .combine(rightTransformationResult, inferenceVisitor)
+        .combine(
+            new PatternTransformationResult([
+              new PatternTransformationElement(
+                  kind: PatternTransformationElementKind.logicalOrPatternEnd,
+                  condition: null,
+                  variableInitializers: []),
+              new PatternTransformationElement(
+                  kind: PatternTransformationElementKind.regular,
+                  // condition:
+                  //     `leftConditionIsTrue` || `rightConditionIsTrue`
+                  condition: inferenceVisitor.engine.forest
+                      .createLogicalExpression(
+                          fileOffset,
+                          inferenceVisitor.engine.forest.createVariableGet(
+                              fileOffset, leftConditionIsTrue),
+                          doubleBarName.text,
+                          inferenceVisitor.engine.forest.createVariableGet(
+                              fileOffset, rightConditionIsTrue)),
+                  variableInitializers: [])
+            ]),
+            inferenceVisitor);
+
+    transformationResult = transformationResult.prependElement(
+        new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [
+              intermediateVariable,
+              leftConditionIsTrue,
+              rightConditionIsTrue,
+              ...left.declaredVariables,
+              ...right.declaredVariables
+            ]),
+        inferenceVisitor);
+
+    return transformationResult;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    left.toTextInternal(printer);
+    printer.write(' | ');
     right.toTextInternal(printer);
   }
 
@@ -5294,7 +5543,9 @@ class CastPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [intermediateVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5363,7 +5614,9 @@ class NullAssertPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [intermediateVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5437,11 +5690,15 @@ class NullCheckPattern extends Pattern {
     // condition in the last transformation element.
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: nullCheckCondition, variableInitializers: []),
+            kind: PatternTransformationElementKind.regular,
+            condition: nullCheckCondition,
+            variableInitializers: []),
         inferenceVisitor);
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [intermediateVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [intermediateVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5618,13 +5875,16 @@ class ListPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
             condition: typeAndLengthCheck,
             variableInitializers: elementAccessVariables),
         inferenceVisitor);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [listVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [listVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -5759,7 +6019,9 @@ class RelationalPattern extends Pattern {
     }
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: condition, variableInitializers: [])
+          kind: PatternTransformationElementKind.regular,
+          condition: condition,
+          variableInitializers: [])
     ]);
   }
 
@@ -5828,7 +6090,9 @@ class WildcardPattern extends Pattern {
     }
     return new PatternTransformationResult([
       new PatternTransformationElement(
-          condition: condition, variableInitializers: [])
+          kind: PatternTransformationElementKind.regular,
+          condition: condition,
+          variableInitializers: [])
     ]);
   }
 
@@ -6188,13 +6452,16 @@ class MapPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
             condition: typeAndKeysCheck,
             variableInitializers: valueAccessVariables),
         inferenceVisitor);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [mapVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [mapVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -6242,6 +6509,7 @@ class NamedPattern extends Pattern {
       InferenceVisitorBase inferenceVisitor) {
     return new PatternTransformationResult([
       new PatternTransformationElement(
+          kind: PatternTransformationElementKind.regular,
           condition:
               new InvalidExpression("Unimplemented NamedPattern.transform"),
           variableInitializers: [])
@@ -6384,6 +6652,7 @@ class RecordPattern extends Pattern {
     //   ==> [RVAR is `type`]?
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
             condition: !typeCheckNeeded
                 ? null
                 : inferenceVisitor.engine.forest.createIsExpression(
@@ -6398,7 +6667,9 @@ class RecordPattern extends Pattern {
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
-            condition: null, variableInitializers: [recordVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [recordVariable]),
         inferenceVisitor);
 
     return transformationResult;
@@ -6447,9 +6718,13 @@ class VariablePattern extends Pattern {
           forNonNullableByDefault: false);
       transformationResult = new PatternTransformationResult([
         new PatternTransformationElement(
-            condition: null, variableInitializers: [matchedExpressionVariable]),
+            kind: PatternTransformationElementKind.regular,
+            condition: null,
+            variableInitializers: [matchedExpressionVariable]),
         new PatternTransformationElement(
-            condition: condition, variableInitializers: [])
+            kind: PatternTransformationElementKind.regular,
+            condition: condition,
+            variableInitializers: [])
       ]);
       variable.initializer = inferenceVisitor.engine.forest
           .createVariableGet(fileOffset, matchedExpressionVariable)
@@ -6513,6 +6788,13 @@ class VariablePattern extends Pattern {
   }
 }
 
+enum PatternTransformationElementKind {
+  regular,
+  logicalOrPatternLeftBegin,
+  logicalOrPatternRightBegin,
+  logicalOrPatternEnd
+}
+
 class PatternTransformationElement {
   /// Part of a matching condition of a pattern
   ///
@@ -6528,8 +6810,15 @@ class PatternTransformationElement {
   /// variables.
   final List<Statement> variableInitializers;
 
+  final PatternTransformationResult? otherwise;
+
+  final PatternTransformationElementKind kind;
+
   PatternTransformationElement(
-      {required this.condition, required this.variableInitializers});
+      {required this.condition,
+      required this.variableInitializers,
+      required this.kind,
+      this.otherwise});
 
   bool get isEmpty => condition == null && variableInitializers.isEmpty;
 }
@@ -6556,6 +6845,9 @@ class PatternTransformationResult {
     } else if (other.elements.isEmpty) {
       return this;
     } else {
+      // TODO(cstefantsova): Does it make sense to use [prependElement] on each
+      // element from [elements], last to the first, prepending them to the
+      // accumulated result?
       return new PatternTransformationResult([
         ...elements.sublist(0, elements.length - 1),
         ...other.prependElement(elements.last, inferenceVisitor).elements
@@ -6577,11 +6869,16 @@ class PatternTransformationResult {
     if (elements.isEmpty) {
       return new PatternTransformationResult([element]);
     }
+    if (element.kind != PatternTransformationElementKind.regular ||
+        elements.first.kind != PatternTransformationElementKind.regular) {
+      return new PatternTransformationResult([element, ...elements]);
+    }
     PatternTransformationElement outermost = elements.first;
     Expression? elementCondition = element.condition;
     Expression? outermostCondition = outermost.condition;
     if (outermostCondition == null) {
       elements[0] = new PatternTransformationElement(
+          kind: PatternTransformationElementKind.regular,
           condition: elementCondition,
           variableInitializers: [
             ...element.variableInitializers,
@@ -6594,6 +6891,7 @@ class PatternTransformationResult {
         return this;
       } else {
         elements[0] = new PatternTransformationElement(
+            kind: PatternTransformationElementKind.regular,
             condition: inferenceVisitor.engine.forest.createLogicalExpression(
                 elementCondition.fileOffset,
                 elementCondition,
@@ -6606,4 +6904,10 @@ class PatternTransformationResult {
       return new PatternTransformationResult([element, ...elements]);
     }
   }
+}
+
+class ContinuationStackElement {
+  List<Statement> statements;
+
+  ContinuationStackElement(this.statements);
 }

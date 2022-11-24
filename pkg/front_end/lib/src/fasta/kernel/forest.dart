@@ -413,8 +413,11 @@ class Forest {
   /// [fileOffset]. The [condition] is the expression preceding the question
   /// mark. The [thenExpression] is the expression following the question mark.
   /// The [elseExpression] is the expression following the colon.
-  Expression createConditionalExpression(int fileOffset, Expression condition,
-      Expression thenExpression, Expression elseExpression) {
+  ConditionalExpression createConditionalExpression(
+      int fileOffset,
+      Expression condition,
+      Expression thenExpression,
+      Expression elseExpression) {
     return new ConditionalExpression(
         condition, thenExpression, elseExpression, const UnknownType())
       ..fileOffset = fileOffset;

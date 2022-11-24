@@ -1676,6 +1676,7 @@ join
 joined
 joining
 joins
+joint
 judgment
 judgments
 jump

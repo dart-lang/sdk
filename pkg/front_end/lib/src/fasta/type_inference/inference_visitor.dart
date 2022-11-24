@@ -1828,25 +1828,62 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ])
       ];
     }
+
+    List<ContinuationStackElement> continuationStack = [];
     for (int i = transformationResult.elements.length - 1; i >= 0; i--) {
       PatternTransformationElement transformationElement =
           transformationResult.elements[i];
-      replacementStatements = [
-        ...transformationElement.variableInitializers,
-        ...replacementStatements
-      ];
-      Expression? condition = transformationElement.condition;
-      if (condition != null) {
-        replacementStatements = [
-          engine.forest.createIfStatement(
-              node.fileOffset,
-              condition,
-              engine.forest.createBlock(
-                  node.fileOffset, node.fileOffset, replacementStatements),
-              null)
-        ];
+
+      switch (transformationElement.kind) {
+        case PatternTransformationElementKind.regular:
+          replacementStatements = [
+            ...transformationElement.variableInitializers,
+            ...replacementStatements
+          ];
+          Expression? condition = transformationElement.condition;
+          if (condition != null) {
+            replacementStatements = [
+              engine.forest.createIfStatement(
+                  node.fileOffset,
+                  condition,
+                  engine.forest.createBlock(
+                      node.fileOffset, node.fileOffset, replacementStatements),
+                  null)
+            ];
+          }
+          break;
+
+        case PatternTransformationElementKind.logicalOrPatternLeftBegin:
+          ContinuationStackElement leftContinuation =
+              continuationStack.removeLast();
+          ContinuationStackElement rightContinuation =
+              continuationStack.removeLast();
+
+          List<Statement> leftConditionDesugaring = replacementStatements;
+          replacementStatements = [
+            ...leftConditionDesugaring,
+            ...leftContinuation.statements,
+            ...rightContinuation.statements,
+          ];
+
+          break;
+
+        case PatternTransformationElementKind.logicalOrPatternRightBegin:
+          continuationStack
+              .add(new ContinuationStackElement(replacementStatements));
+          replacementStatements = [];
+          break;
+
+        case PatternTransformationElementKind.logicalOrPatternEnd:
+          continuationStack
+              .add(new ContinuationStackElement(replacementStatements));
+          replacementStatements = [];
+          break;
       }
     }
+    assert(continuationStack.isEmpty,
+        "Continuation stack is not empty at the end of desugaring.");
+
     replacementStatements = [
       matchedExpressionVariable,
       if (otherwise != null) isPatternMatchingFailed,
@@ -8802,8 +8839,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
-  PatternInferenceResult visitBinaryPattern(
-    BinaryPattern pattern, {
+  PatternInferenceResult visitAndPattern(
+    AndPattern pattern, {
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    pattern.left
+        .acceptInference(this, matchedType: matchedType, context: context);
+    pattern.right
+        .acceptInference(this, matchedType: matchedType, context: context);
+    return const PatternInferenceResult();
+  }
+
+  PatternInferenceResult visitOrPattern(
+    OrPattern pattern, {
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
