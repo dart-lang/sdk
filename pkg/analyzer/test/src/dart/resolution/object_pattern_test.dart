@@ -780,4 +780,175 @@ ObjectPattern
   rightParenthesis: )
 ''');
   }
+
+  test_variableDeclaration_inferredType() async {
+    await assertNoErrorsInCode(r'''
+void f(A<int> x) {
+  var A(foo: a) = x;
+}
+
+class A<T> {
+  T get foo => throw 0;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ObjectPattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A<int>
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          name: foo
+          colon: :
+        pattern: VariablePattern
+          name: a
+          declaredElement: hasImplicitType a@32
+            type: int
+        fieldElement: PropertyAccessorMember
+          base: self::@class::A::@getter::foo
+          substitution: {T: int}
+    rightParenthesis: )
+  equals: =
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: A<int>
+''');
+  }
+
+  /// TODO(scheglov) Remove `new` (everywhere), implement rewrite.
+  test_variableDeclaration_typeSchema_withTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var A<int>(foo: a) = new A();
+}
+
+class A<T> {
+  T get foo => throw 0;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ObjectPattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: A<int>
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          name: foo
+          colon: :
+        pattern: VariablePattern
+          name: a
+          declaredElement: hasImplicitType a@29
+            type: int
+        fieldElement: PropertyAccessorMember
+          base: self::@class::A::@getter::foo
+          substitution: {T: int}
+    rightParenthesis: )
+  equals: =
+  expression: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A<int>
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A<int>
+''');
+  }
+
+  test_variableDeclaration_typeSchema_withVariableType() async {
+    // `int a` does not propagate up, we get `A<dynamic>`
+    await assertNoErrorsInCode(r'''
+void f() {
+  var A(foo: int a) = new A();
+}
+
+class A<T> {
+  T get foo => throw 0;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ObjectPattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A<dynamic>
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          name: foo
+          colon: :
+        pattern: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@28
+            type: int
+        fieldElement: PropertyAccessorMember
+          base: self::@class::A::@getter::foo
+          substitution: {T: dynamic}
+    rightParenthesis: )
+  equals: =
+  expression: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A<dynamic>
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::new
+        substitution: {T: dynamic}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A<dynamic>
+''');
+  }
 }
