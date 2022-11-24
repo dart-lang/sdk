@@ -25,13 +25,12 @@ library /*isNonNullableByDefault*/;
 //                   ^
 //
 import self as self;
-import "dart:core" as core;
 import "dart:test" as test;
 
 import "dart:test";
 
 static method test() → dynamic {
-  throw new core::AbstractClassInstantiationError::•("Class1a");
+  invalid-expression "The class 'Class1a' is abstract and can't be instantiated.";
   new test::Class1b::•();
   test::SuperClass c2a = new test::Class2a::•();
   test::SuperClass c2b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:11:24: Error: A value of type 'Class2b' can't be assigned to a variable of type 'SuperClass'.

@@ -152,11 +152,6 @@ library /*isNonNullableByDefault*/;
 // dynamic foo3() => const Record(); // Error.
 //                         ^^^^^^
 //
-// pkg/front_end/testcases/records/type_record_unsupported.dart:25:25: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// dynamic foo3() => const Record(); // Error.
-//                         ^
-//
 // pkg/front_end/testcases/records/type_record_unsupported.dart:27:20: Error: The 'records' language feature is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.19 or higher.
 // dynamic foo4() => <Record>[]; // Error.
@@ -251,12 +246,9 @@ abstract class A9 extends core::Record {
 static method foo1() → invalid-type
   return throw "";
 static method foo2() → dynamic
-  return throw new core::AbstractClassInstantiationError::•("Record");
+  return invalid-expression "The class 'Record' is abstract and can't be instantiated.";
 static method foo3() → dynamic
-  return throw invalid-expression "pkg/front_end/testcases/records/type_record_unsupported.dart:25:25: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-dynamic foo3() => const Record(); // Error.
-                        ^";
+  return invalid-expression "The class 'Record' is abstract and can't be instantiated.";
 static method foo4() → dynamic
   return core::_GrowableList::•<invalid-type>(0);
 static method foo5() → dynamic

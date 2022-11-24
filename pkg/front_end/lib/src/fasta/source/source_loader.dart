@@ -773,10 +773,6 @@ severity: $severity
     return formattedMessage;
   }
 
-  MemberBuilder getAbstractClassInstantiationError() {
-    return target.getAbstractClassInstantiationError(this);
-  }
-
   MemberBuilder getCompileTimeError() => target.getCompileTimeError(this);
 
   MemberBuilder getDuplicatedFieldInitializerError() {

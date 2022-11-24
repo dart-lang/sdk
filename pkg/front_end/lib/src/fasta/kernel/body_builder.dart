@@ -7615,16 +7615,7 @@ class BodyBuilder extends StackListenerImpl
       Message message, String className,
       [int charOffset = -1]) {
     addProblemErrorIfConst(message, charOffset, className.length);
-    // TODO(ahe): The following doesn't make sense to Analyzer AST.
-    MemberBuilder constructor =
-        libraryBuilder.loader.getAbstractClassInstantiationError();
-    Expression invocation = buildStaticInvocation(
-        constructor.member,
-        forest.createArguments(charOffset,
-            <Expression>[forest.createStringLiteral(charOffset, className)]),
-        constness: Constness.explicitNew,
-        charOffset: charOffset);
-    return forest.createThrow(charOffset, invocation);
+    return new InvalidExpression(message.problemMessage);
   }
 
   Statement buildProblemStatement(Message message, int charOffset,
