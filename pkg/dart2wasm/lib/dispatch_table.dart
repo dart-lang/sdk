@@ -59,9 +59,6 @@ class SelectorInfo {
   /// Number of non-abstract references in [targets].
   late final int targetCount;
 
-  /// Whether this selector's member is invoked in a dynamic invocation.
-  bool _calledDynamically = false;
-
   /// When [targetCount] is 1, this holds the only non-abstract target of the
   /// selector.
   late final Reference? singularTarget;
@@ -304,7 +301,6 @@ class DispatchTable {
             _selectorMetadata[selectorId].callCount, paramInfo, returnCount));
     selector.paramInfo.merge(paramInfo);
     selector._returnCount = max(selector._returnCount, returnCount);
-    selector._calledDynamically |= calledDynamically;
     if (calledDynamically) {
       if (isGetter) {
         (_dynamicGets[member.name.text] ??= []).add(selector);
@@ -412,7 +408,7 @@ class DispatchTable {
 
     // Assign selector offsets
 
-    /// Whether the selector will be used in a dynamic or instance invocation.
+    /// Whether the selector will be used in an instance invocation.
     ///
     /// If not, then we don't add the selector to the dispatch table and don't
     /// assign it a dispatch table offset.
@@ -421,7 +417,6 @@ class DispatchTable {
     /// invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
     /// even if there was no references to it from the Dart code.
     bool needsDispatch(SelectorInfo selector) =>
-        (selector._calledDynamically && selector.targetCount > 0) ||
         (selector.callCount > 0 && selector.targetCount > 1) ||
         (selector.paramInfo.member! == translator.objectNoSuchMethod);
 
