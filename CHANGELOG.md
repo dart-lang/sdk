@@ -261,20 +261,29 @@ Updated the Linter to `1.30.0`, which includes changes that
   These will show up in the lock file on the first run of `dart pub get`.
 
   See https://dart.dev/go/content-hashes for more details.
+- New flag `dart pub get --enforce-lockfile` will fetch dependencies, but fail
+  if anything deviates from `pubspec.lock`. Useful for ensuring reproducible runs
+  in CI and production.
 - Remove remaining support for `.packages` files. The flag
   `--legacy-packages-file` is no longer supported.
 - The client will now default to the `pub.dev` repository instead of `pub.dartlang.org`.
-  This will cause a change in pubspec.lock.
-- Support a new field [`funding`](https://dart.dev/tools/pub/pubspec#funding) in pubspec.yaml.
+  This will cause a change in `pubspec.lock`.
+- Support a new field [`funding`](https://dart.dev/tools/pub/pubspec#funding) in `pubspec.yaml`.
 - Validate the CRC32c checksum of downloaded archives and retry on failure.
 - `dart pub add foo:<constraint>` with an existing dependency will now update
   the constraint rather than fail.
-- Update `dart pub publish` to allow `dependency_overrides` in pubspec.yaml.
+- Update `dart pub publish` to allow `dependency_overrides` in `pubspec.yaml`.
   They will still cause a publication warning.
   Note that only `dependency_overrides` from the root package effect resolution.
 - Update `dart pub publish` to require a working resolution.
   If publishing a breaking release of mutually dependent packages use `dependency_overrides`
   to obtain a resolution.
+- `dart pub add` will now allow adding multiple packages from any source using the same YAML syntax as in `pubspec.yaml`.
+
+  For example:
+  ```
+  $ dart pub add retry:^1.0.0 'dev:foo{"git":"https://github.com/foo/foo"}'
+  ```
 - `dart pub publish` will now give a warning if `dart analyze` reports any diagnostics.
 - `dart pub get` now fails gracefully when run from inside the pub-cache.
 - `dart pub publish` now shows the file sizes of large files in your package to

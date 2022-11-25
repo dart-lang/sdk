@@ -184,7 +184,7 @@ class _FutureOrType extends _Type {
   const _FutureOrType(super.isDeclaredNullable, this.typeArgument);
 
   _InterfaceType get asFuture =>
-      _InterfaceType(ClassID.cid_Future, isDeclaredNullable, [typeArgument]);
+      _InterfaceType(ClassID.cidFuture, isDeclaredNullable, [typeArgument]);
 
   // Removing a `?` from a type should not require additional normalization.
   @override
@@ -554,9 +554,10 @@ class _TypeUniverse {
     if (isTopType(typeArgument) || isObjectType(typeArgument)) {
       return typeArgument;
     } else if (typeArgument.isNever) {
-      return _InterfaceType(ClassID.cid_Future, false, [const _NeverType()]);
+      return _InterfaceType(
+          ClassID.cidFuture, isDeclaredNullable, [const _NeverType()]);
     } else if (typeArgument.isNull) {
-      return _InterfaceType(ClassID.cid_Future, true, [const _NullType()]);
+      return _InterfaceType(ClassID.cidFuture, true, [const _NullType()]);
     }
 
     bool declaredNullability =
