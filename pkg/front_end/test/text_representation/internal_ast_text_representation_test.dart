@@ -127,6 +127,7 @@ void main() {
     _testRelationalMatcher();
     _testMapMatcher();
     _testIfCaseStatement();
+    _testPatternSwitchStatement();
   });
 }
 
@@ -295,6 +296,62 @@ switch (null) {
 }''',
       limited: '''
 switch (null) { case 0: case 1: return; case 2: default: return; }''');
+}
+
+void _testPatternSwitchStatement() {
+  Expression expression = new NullLiteral();
+  PatternGuard case0 =
+      new PatternGuard(new ExpressionPattern(new IntLiteral(0)));
+  PatternGuard case1 =
+      new PatternGuard(new ExpressionPattern(new IntLiteral(1)));
+  PatternGuard case2 = new PatternGuard(
+      new ExpressionPattern(new IntLiteral(2)), new IntLiteral(3));
+  Block emptyBlock = new Block([]);
+  Block returnBlock1 = new Block([new ReturnStatement()]);
+  Block returnBlock2 = new Block([new ReturnStatement()]);
+
+  testStatement(
+      new PatternSwitchStatement(TreeNode.noOffset, expression, [
+        new PatternSwitchCase(TreeNode.noOffset, [case0], emptyBlock,
+            isDefault: false, hasLabel: false)
+      ]),
+      '''
+switch (null) {
+  case 0:
+}''',
+      limited: '''
+switch (null) { case 0: }''');
+
+  testStatement(
+      new PatternSwitchStatement(TreeNode.noOffset, expression, [
+        new PatternSwitchCase(TreeNode.noOffset, [], emptyBlock,
+            hasLabel: false, isDefault: true)
+      ]),
+      '''
+switch (null) {
+  default:
+}''',
+      limited: '''
+switch (null) { default: }''');
+
+  testStatement(
+      new PatternSwitchStatement(TreeNode.noOffset, expression, [
+        new PatternSwitchCase(TreeNode.noOffset, [case0, case1], returnBlock1,
+            hasLabel: false, isDefault: false),
+        new PatternSwitchCase(TreeNode.noOffset, [case2], returnBlock2,
+            hasLabel: true, isDefault: true)
+      ]),
+      '''
+switch (null) {
+  case 0:
+  case 1:
+    return;
+  case 2 when 3:
+  default:
+    return;
+}''',
+      limited: '''
+switch (null) { case 0: case 1: return; case 2 when 3: default: return; }''');
 }
 
 void _testBreakStatementImpl() {
@@ -1173,8 +1230,7 @@ void _testIfCaseStatement() {
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionPattern(new IntLiteral(1)),
-          null,
+          new PatternGuard(new ExpressionPattern(new IntLiteral(1))),
           new ReturnStatement(),
           null,
           TreeNode.noOffset),
@@ -1184,8 +1240,7 @@ if (0 case 1) return;''');
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionPattern(new IntLiteral(1)),
-          null,
+          new PatternGuard(new ExpressionPattern(new IntLiteral(1))),
           new ReturnStatement(new IntLiteral(2)),
           new ReturnStatement(new IntLiteral(3)),
           TreeNode.noOffset),
@@ -1195,8 +1250,8 @@ if (0 case 1) return 2; else return 3;''');
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionPattern(new IntLiteral(1)),
-          new IntLiteral(2),
+          new PatternGuard(
+              new ExpressionPattern(new IntLiteral(1)), new IntLiteral(2)),
           new ReturnStatement(),
           null,
           TreeNode.noOffset),
@@ -1206,8 +1261,8 @@ if (0 case 1 when 2) return;''');
   testStatement(
       new IfCaseStatement(
           new IntLiteral(0),
-          new ExpressionPattern(new IntLiteral(1)),
-          new IntLiteral(2),
+          new PatternGuard(
+              new ExpressionPattern(new IntLiteral(1)), new IntLiteral(2)),
           new ReturnStatement(new IntLiteral(3)),
           new ReturnStatement(new IntLiteral(4)),
           TreeNode.noOffset),

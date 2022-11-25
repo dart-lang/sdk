@@ -1749,8 +1749,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
     // TODO(scheglov) Pass actual variables, not just `{}`.
-    DartType scrutineeType = analyzeIfCaseStatement(node, node.expression,
-        node.pattern, node.guard, node.then, node.otherwise, {});
+    DartType scrutineeType = analyzeIfCaseStatement(
+        node,
+        node.expression,
+        node.patternGuard.pattern,
+        node.patternGuard.guard,
+        node.then,
+        node.otherwise, {});
     // Stack: (Expression scrutinee, Expression guard, Statement ifTrue,
     //         Statement ifFalse)
     Statement? otherwise = node.otherwise;
@@ -1764,8 +1769,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       then = node.then = (rewrite as Statement)..parent = node;
     }
     rewrite = popRewrite();
-    if (!identical(node.guard, rewrite)) {
-      node.guard = (rewrite as Expression)..parent = node;
+    if (!identical(node.patternGuard.guard, rewrite)) {
+      node.patternGuard.guard = (rewrite as Expression)
+        ..parent = node.patternGuard;
     }
     rewrite = popRewrite();
     if (!identical(node.expression, rewrite)) {
@@ -1775,13 +1781,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration matchedExpressionVariable = engine.forest
         .createVariableDeclarationForValue(node.expression,
             type: scrutineeType);
-    PatternTransformationResult transformationResult = node.pattern.transform(
-        engine.forest
-            .createVariableGet(node.fileOffset, matchedExpressionVariable),
-        scrutineeType,
-        engine.forest
-            .createVariableGet(node.fileOffset, matchedExpressionVariable),
-        this);
+    PatternTransformationResult transformationResult = node.patternGuard.pattern
+        .transform(
+            engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            scrutineeType,
+            engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            this);
 
     // isPatternMatchingFailed: bool VAR = true;
     VariableDeclaration isPatternMatchingFailed = engine.forest
@@ -1811,7 +1818,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     List<Statement> replacementStatements;
-    if (node.pattern.declaredVariables.isEmpty) {
+    if (node.patternGuard.pattern.declaredVariables.isEmpty) {
       replacementStatements = [
         if (otherwise != null) patternMatchedSet,
         if (then is! Block || then.statements.isNotEmpty) then
@@ -1823,7 +1830,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // The block is created to avoid having variables with the same name in
         // the same scope.
         engine.forest.createBlock(node.fileOffset, node.fileOffset, [
-          ...node.pattern.declaredVariables,
+          ...node.patternGuard.pattern.declaredVariables,
           if (then is! Block || then.statements.isNotEmpty) then
         ])
       ];
@@ -7725,6 +7732,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return replacement != null
         ? new StatementInferenceResult.single(replacement)
         : const StatementInferenceResult();
+  }
+
+  StatementInferenceResult visitPatternSwitchStatement(
+      PatternSwitchStatement node) {
+    return new StatementInferenceResult.single(
+        new ExpressionStatement(new InvalidExpression('$node')));
   }
 
   @override

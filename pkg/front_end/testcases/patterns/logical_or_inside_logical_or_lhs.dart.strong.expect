@@ -3,15 +3,8 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   #L1:
-  switch(x) {
-    #L2:
-    case #C1:
-      {
-        break #L1;
-      }
-  }
-}
-
-constants  {
-  #C1 = null
+  invalid-expression "PatternSwitchStatement(switch (x) {
+  case Object? _ | double? _ | int? _:
+    break label0;
+})";
 }

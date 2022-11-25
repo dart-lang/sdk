@@ -2690,7 +2690,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("RecordType");
     assert(checkState(leftBracket, [
       if (hasNamedFields) ValueKinds.RecordTypeFieldBuilderListOrNull,
-      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder,
+      ...repeatedKind(ValueKinds.RecordTypeFieldBuilder,
           hasNamedFields ? count - 1 : count),
     ]));
 
@@ -2759,7 +2759,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endRecordTypeNamedFields(int count, Token leftBracket) {
     assert(checkState(leftBracket, [
-      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder, count),
+      ...repeatedKind(ValueKinds.RecordTypeFieldBuilder, count),
     ]));
     List<RecordTypeFieldBuilder>? fields =
         const FixedNullableList<RecordTypeFieldBuilder>()
