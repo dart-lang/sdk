@@ -4,7 +4,7 @@ import self as self;
 static method test(dynamic x) → dynamic {
   #L1:
   invalid-expression "PatternSwitchStatement(switch (x) {
-  case Object? _ | double? _ & int? _:
+  case int? _ & double? _ | Object? _:
     break label0;
 })";
 }
