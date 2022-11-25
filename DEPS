@@ -152,7 +152,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "1ea5b031cfda37786d305292cb8104dffb45d9ae",
   "protobuf_rev": "ae90e53cd690edbfc72fa6c293fdb7b4a09ee0a2",
-  "pub_rev": "6ac42d7644dedfcc500147ab47886eecab4b1b38", # manually rev'd
+  "pub_rev": "6fdcdd4357645817e7d7027ee2157ed68ef69c53", # manually rev'd
   "pub_semver_rev": "28159b8c5b96fc2709d0904389d7932880f68659", # b/258766867
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "1c2104737973715426035c11ba840c7f23d8f186",
@@ -176,7 +176,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "1b0561cfec8ff7e9465896eb340ea3c382b59393",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "3ec168f6815af9d5f11278111d147bc82c0755c3",
+  "webdev_rev": "637b406f325669507b5c1048c19a7c0083c1bd6e",
   "webdriver_rev": "336dd3d1208d0b390ac437a785a78760ca7cac7d",
   "webkit_inspection_protocol_rev": "ddb624cd85954dd384056cc253a8fc2b9da5364d",
   "yaml_edit_rev": "299f74594ff9fda412c1da5c0b5d5231d0c6fc42",
