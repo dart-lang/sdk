@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -290,6 +291,11 @@ class DuplicateDefinitionVerifier {
           statement.functionDeclaration.name,
           element: statement.functionDeclaration.declaredElement!,
         );
+      } else if (statement is PatternVariableDeclarationStatementImpl) {
+        for (var variable in statement.declaration.elements) {
+          _checkDuplicateIdentifier(definedNames, variable.node.name,
+              element: variable);
+        }
       }
     }
   }

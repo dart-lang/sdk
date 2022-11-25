@@ -9921,6 +9921,9 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @override
   final DartPatternImpl pattern;
 
+  /// Variables declared in [pattern].
+  late final List<VariablePatternBindElementImpl> elements;
+
   PatternVariableDeclarationImpl({
     required this.keyword,
     required this.pattern,
