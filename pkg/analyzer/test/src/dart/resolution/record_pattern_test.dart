@@ -648,4 +648,95 @@ RecordPattern
   rightParenthesis: )
 ''');
   }
+
+  test_variableDeclaration_inferredType() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) x) {
+  var (a, b) = x;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: RecordPattern
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        pattern: VariablePattern
+          name: a
+          declaredElement: hasImplicitType a@33
+            type: int
+        fieldElement: <null>
+      RecordPatternField
+        pattern: VariablePattern
+          name: b
+          declaredElement: hasImplicitType b@36
+            type: String
+        fieldElement: <null>
+    rightParenthesis: )
+  equals: =
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: (int, String)
+''');
+  }
+
+  test_variableDeclaration_typeSchema() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var (int a, String b) = g();
+}
+
+(T, U) g<T, U>() => throw 0;
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: RecordPattern
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        pattern: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@22
+            type: int
+        fieldElement: <null>
+      RecordPatternField
+        pattern: VariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: String
+              staticElement: dart:core::@class::String
+              staticType: null
+            type: String
+          name: b
+          declaredElement: b@32
+            type: String
+        fieldElement: <null>
+    rightParenthesis: )
+  equals: =
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+      staticElement: self::@function::g
+      staticType: (T, U) Function<T, U>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: (int, String) Function()
+    staticType: (int, String)
+    typeArgumentTypes
+      int
+      String
+''');
+  }
 }

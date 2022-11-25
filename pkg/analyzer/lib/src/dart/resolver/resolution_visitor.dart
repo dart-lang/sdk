@@ -991,6 +991,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternVariableDeclarationStatement(
+      PatternVariableDeclarationStatement node) {
+    _patternVariables.casePatternStart();
+    super.visitPatternVariableDeclarationStatement(node);
+    _patternVariables.casePatternFinish();
+  }
+
+  @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var newNode = _astRewriter.prefixedIdentifier(_nameScope, node);
     if (newNode != node) {

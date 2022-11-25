@@ -408,7 +408,7 @@ class TypeSystemOperations
 
   @override
   DartType glb(DartType type1, DartType type2) {
-    throw UnimplementedError('TODO(paulberry)');
+    return typeSystem.getGreatestLowerBound(type1, type2);
   }
 
   @override
@@ -452,7 +452,7 @@ class TypeSystemOperations
 
   @override
   DartType makeNullable(DartType type) {
-    throw UnimplementedError('TODO(paulberry)');
+    return typeSystem.makeNullable(type);
   }
 
   @override

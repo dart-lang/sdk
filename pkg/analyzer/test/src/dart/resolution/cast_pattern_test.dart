@@ -64,4 +64,37 @@ CastPattern
     type: int
 ''');
   }
+
+  test_variableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+void f(x) {
+  var (a as int) = x;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: CastPattern
+      pattern: VariablePattern
+        name: a
+        declaredElement: hasImplicitType a@19
+          type: int
+      asToken: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightParenthesis: )
+  equals: =
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: dynamic
+''');
+  }
 }

@@ -2835,6 +2835,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitPatternVariableDeclarationStatement(
+      PatternVariableDeclarationStatement node) {
+    checkUnreachableNode(node);
+    var declaration = node.declaration;
+    // TODO(scheglov) Support for `late` was removed.
+    analyzePatternVariableDeclarationStatement(
+        node, declaration.pattern, declaration.expression,
+        isFinal: declaration.keyword.keyword == Keyword.FINAL, isLate: false);
+    // node.visitChildren(this);
+    popRewrite(); // expression
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     _postfixExpressionResolver.resolve(node as PostfixExpressionImpl,

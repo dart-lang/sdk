@@ -45,6 +45,29 @@ class FindNode {
     return nodes.single;
   }
 
+  /// Returns the [PatternVariableDeclaration], there must be only one.
+  PatternVariableDeclaration get singlePatternVariableDeclaration {
+    var nodes = <PatternVariableDeclaration>[];
+    unit.accept(
+      FunctionAstVisitor(
+        patternVariableDeclaration: nodes.add,
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [PatternVariableDeclarationStatement], there must be only one.
+  PatternVariableDeclarationStatement
+      get singlePatternVariableDeclarationStatement {
+    var nodes = <PatternVariableDeclarationStatement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        patternVariableDeclarationStatement: nodes.add,
+      ),
+    );
+    return nodes.single;
+  }
+
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
   }

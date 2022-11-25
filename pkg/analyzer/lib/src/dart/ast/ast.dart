@@ -21,6 +21,7 @@ import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
@@ -1540,8 +1541,9 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeCastPatternSchema();
+  }
 
   @override
   void resolvePattern(
@@ -8085,8 +8087,13 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    var elementType = typeArguments?.arguments.elementAtOrNull(0)?.typeOrThrow;
+    return resolverVisitor.analyzeListPatternSchema(
+      elementType: elementType,
+      elements: elements,
+    );
+  }
 
   @override
   void resolvePattern(
@@ -9449,8 +9456,9 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeObjectPatternSchema(type.typeOrThrow);
+  }
 
   @override
   void resolvePattern(
@@ -9644,8 +9652,9 @@ class ParenthesizedPatternImpl extends DartPatternImpl
       visitor.visitParenthesizedPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.dispatchPatternSchema(pattern);
+  }
 
   @override
   void resolvePattern(
@@ -10109,8 +10118,12 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeNullCheckOrAssertPatternSchema(
+      operand,
+      isAssert: operator.type == TokenType.BANG,
+    );
+  }
 
   @override
   void resolvePattern(
@@ -10607,8 +10620,11 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeRecordPatternSchema(
+      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
+    );
+  }
 
   @override
   void resolvePattern(
@@ -13635,8 +13651,9 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariablePattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeVariablePatternSchema(type?.typeOrThrow);
+  }
 
   @override
   void resolvePattern(
