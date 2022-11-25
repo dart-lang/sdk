@@ -113,7 +113,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endMetadataStar(int count) {
-    assert(checkState(null, repeatedKinds(ValueKinds.Token, count)));
+    assert(checkState(null, repeatedKind(ValueKinds.Token, count)));
     debugEvent("MetadataStar");
     if (count > 0) {
       discard(count - 1);

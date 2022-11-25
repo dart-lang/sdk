@@ -412,6 +412,142 @@ class SwitchCaseImpl extends SwitchCase {
   }
 }
 
+/// A [Pattern] with an optional guard [Expression].
+class PatternGuard extends TreeNode with InternalTreeNode {
+  Pattern pattern;
+  Expression? guard;
+
+  PatternGuard(this.pattern, [this.guard]) {
+    pattern.parent = this;
+    guard?.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    pattern.toTextInternal(printer);
+    if (guard != null) {
+      printer.write(' when ');
+      printer.writeExpression(guard!);
+    }
+  }
+
+  @override
+  String toString() => 'PatternGuard(${toStringInternal()})';
+}
+
+class PatternSwitchCase extends TreeNode
+    with InternalTreeNode
+    implements SwitchCase {
+  final List<PatternGuard> patternGuards;
+  @override
+  Statement body;
+
+  @override
+  bool isDefault;
+
+  final bool hasLabel;
+
+  PatternSwitchCase(int fileOffset, this.patternGuards, this.body,
+      {required this.isDefault, required this.hasLabel}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    for (int index = 0; index < patternGuards.length; index++) {
+      if (index > 0) {
+        printer.newLine();
+      }
+      printer.write('case ');
+      patternGuards[index].toTextInternal(printer);
+      printer.write(':');
+    }
+    if (isDefault) {
+      if (patternGuards.isNotEmpty) {
+        printer.newLine();
+      }
+      printer.write('default:');
+    }
+    printer.incIndentation();
+    Statement? block = body;
+    if (block is Block) {
+      for (Statement statement in block.statements) {
+        printer.newLine();
+        printer.writeStatement(statement);
+      }
+    } else {
+      printer.write(' ');
+      printer.writeStatement(body);
+    }
+    printer.decIndentation();
+  }
+
+  @override
+  String toString() {
+    return "PatternSwitchCase(${toStringInternal()})";
+  }
+
+  @override
+  List<Expression> get expressions =>
+      throw new UnimplementedError('PatternSwitchCase.expressions');
+
+  @override
+  List<int> get expressionOffsets =>
+      throw new UnimplementedError('PatternSwitchCase.expressionOffsets');
+}
+
+class PatternSwitchStatement extends InternalStatement {
+  Expression expression;
+  final List<SwitchCase> cases;
+
+  PatternSwitchStatement(int fileOffset, this.expression, this.cases) {
+    this.fileOffset = fileOffset;
+    expression.parent = this;
+    setParents(cases, this);
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitPatternSwitchStatement(this);
+  }
+
+  @override
+  String toString() {
+    return "PatternSwitchStatement(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('switch (');
+    printer.writeExpression(expression);
+    printer.write(') {');
+    printer.incIndentation();
+    for (SwitchCase switchCase in cases) {
+      printer.newLine();
+      printer.writeSwitchCase(switchCase);
+    }
+    printer.decIndentation();
+    printer.newLine();
+    printer.write('}');
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    throw new UnsupportedError('PatternSwitchStatement.transformChildren');
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    throw new UnsupportedError(
+        'PatternSwitchStatement.transformOrRemoveChildren');
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    throw new UnsupportedError('PatternSwitchStatement.visitChildren');
+  }
+}
+
 class BreakStatementImpl extends BreakStatement {
   Statement? targetStatement;
   final bool isContinue;
@@ -6182,17 +6318,15 @@ final Pattern dummyPattern = new ExpressionPattern(dummyExpression);
 ///
 class IfCaseStatement extends InternalStatement {
   Expression expression;
-  Pattern pattern;
-  Expression? guard;
+  PatternGuard patternGuard;
   Statement then;
   Statement? otherwise;
 
-  IfCaseStatement(this.expression, this.pattern, this.guard, this.then,
-      this.otherwise, int fileOffset) {
+  IfCaseStatement(this.expression, this.patternGuard, this.then, this.otherwise,
+      int fileOffset) {
     this.fileOffset = fileOffset;
     expression.parent = this;
-    pattern.parent = this;
-    guard?.parent = this;
+    patternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -6207,11 +6341,7 @@ class IfCaseStatement extends InternalStatement {
     printer.write('if (');
     printer.writeExpression(expression);
     printer.write(' case ');
-    pattern.toTextInternal(printer);
-    if (guard != null) {
-      printer.write(' when ');
-      printer.writeExpression(guard!);
-    }
+    patternGuard.toTextInternal(printer);
     printer.write(') ');
     printer.writeStatement(then);
     if (otherwise != null) {

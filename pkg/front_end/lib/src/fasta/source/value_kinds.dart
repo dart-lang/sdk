@@ -27,7 +27,7 @@ import '../builder/type_variable_builder.dart' as type;
 import '../identifiers.dart' as type;
 
 import '../kernel/body_builder.dart' as type
-    show Condition, FormalParameters, JumpTarget;
+    show Condition, FormalParameters, JumpTarget, Label;
 import '../kernel/expression_generator.dart' as type;
 import '../kernel/internal_ast.dart' as type;
 
@@ -64,6 +64,8 @@ class ValueKinds {
   static const ValueKind ContinueTarget =
       const SingleValueKind<type.JumpTarget>(NullValue.ContinueTarget);
   static const ValueKind Expression = const SingleValueKind<type.Expression>();
+  static const ValueKind ExpressionOrPatternGuardList =
+      const SingleValueKind<List<Object>>();
   static const ValueKind ExpressionOrNull =
       const SingleValueKind<type.Expression>(NullValue.Expression);
   static const ValueKind FieldInitializerOrNull =
@@ -82,11 +84,16 @@ class ValueKinds {
   static const ValueKind Initializer =
       const SingleValueKind<type.Initializer>();
   static const ValueKind Integer = const SingleValueKind<int>();
+  static const ValueKind Label = const SingleValueKind<type.Label>();
+  static const ValueKind LabelListOrNull =
+      const SingleValueKind<List<type.Label>>(NullValue.Labels);
   static const ValueKind MapLiteralEntry =
       const SingleValueKind<type.MapLiteralEntry>();
   static const ValueKind MapPatternEntry =
       const SingleValueKind<type.MapPatternEntry>();
   static const ValueKind Pattern = const SingleValueKind<type.Pattern>();
+  static const ValueKind PatternGuard =
+      const SingleValueKind<type.PatternGuard>();
   static const ValueKind PatternOrNull =
       const SingleValueKind<type.Pattern>(NullValue.Pattern);
   static const ValueKind PatternListOrNull =
@@ -139,6 +146,7 @@ class ValueKinds {
           NullValue.RecordTypeFieldList);
   static const ValueKind Scope = const SingleValueKind<type.Scope>();
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
+  static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
   static const ValueKind SwitchCaseList =
       const SingleValueKind<List<type.SwitchCase>>();
   static const ValueKind SwitchScopeOrNull =

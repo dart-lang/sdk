@@ -20,8 +20,7 @@ errorToString(error) {
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_CONST
     //   ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_CASE_EXPRESSION
-    //           ^
-    // [cfe] Not a constant expression.
+    // [cfe] Setter not found: 'ERROR_B'.
     case ERROR_B:
       return "ERROR_B";
     default:
