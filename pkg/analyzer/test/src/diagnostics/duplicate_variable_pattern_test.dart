@@ -69,4 +69,15 @@ BinaryPattern
       type: int
 ''');
   }
+
+  test_variableDeclaration() async {
+    await assertErrorsInCode(r'''
+void f(x) {
+  var (var a, var a) = x;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 30, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+    ]);
+  }
 }

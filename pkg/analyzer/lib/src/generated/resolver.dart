@@ -2843,7 +2843,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzePatternVariableDeclarationStatement(
         node, declaration.pattern, declaration.expression,
         isFinal: declaration.keyword.keyword == Keyword.FINAL, isLate: false);
-    // node.visitChildren(this);
     popRewrite(); // expression
   }
 

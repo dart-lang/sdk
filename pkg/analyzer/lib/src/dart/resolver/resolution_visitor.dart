@@ -991,11 +991,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
     _patternVariables.casePatternStart();
-    super.visitPatternVariableDeclarationStatement(node);
-    _patternVariables.casePatternFinish();
+    super.visitPatternVariableDeclaration(node);
+    var variablesMap = _patternVariables.casePatternFinish();
+    node.elements = variablesMap.values
+        .whereType<VariablePatternBindElementImpl>()
+        .toList();
   }
 
   @override
