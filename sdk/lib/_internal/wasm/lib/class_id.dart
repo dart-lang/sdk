@@ -28,8 +28,8 @@ class ClassID {
   external static int get cidInt8ArrayView;
   @pragma("wasm:class-id", "dart.core#Object")
   external static int get cidObject;
-  @pragma("wasm:class-id", "dart.async#_Future")
-  external static int get cid_Future;
+  @pragma("wasm:class-id", "dart.async#Future")
+  external static int get cidFuture;
   @pragma("wasm:class-id", "dart.core#Function")
   external static int get cidFunction;
   @pragma("wasm:class-id", "dart.core#_Function")
