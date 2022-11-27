@@ -1515,88 +1515,6 @@ bool get a => true;
 ''');
   }
 
-  test_locals_block_if() async {
-    await assertErrorsInCode(r'''
-void f(int p) {
-  if (p != 0) {
-    var a;
-    var a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 51, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
-    ]);
-  }
-
-  test_locals_block_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  m() {
-    int a;
-    int a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 37, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-    ]);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
-  test_locals_block_switchCase() async {
-    await assertErrorsInCode(r'''
-main() {
-  switch(1) {
-    case 1:
-      var a;
-      var a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 58, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
-    ]);
-  }
-
-  test_locals_block_switchCase_language218() async {
-    await assertErrorsInCode(r'''
-// @dart = 2.18
-main() {
-  switch(1) {
-    case 1:
-      var a;
-      var a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 74, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 74, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 61, 1)]),
-    ]);
-  }
-
-  test_locals_block_topLevelFunction() async {
-    await assertErrorsInCode(r'''
-main() {
-  int m = 0;
-  m(a) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 15, 1)]),
-      error(HintCode.UNUSED_ELEMENT, 24, 1),
-    ]);
-  }
-
   test_parameters_constructor_field_first() async {
     await assertErrorsInCode(r'''
 class A {
@@ -1670,6 +1588,58 @@ f(int a, double a) {}
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 16, 1,
           contextMessages: [message('/home/test/lib/test.dart', 6, 1)]),
+    ]);
+  }
+
+  test_switchCase_localVariable_localVariable() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+void f() {
+  switch (0) {
+    case 0:
+      var a;
+      var a;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 77, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 64, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 77, 1),
+    ]);
+  }
+
+  test_switchDefault_localVariable_localVariable() async {
+    await assertErrorsInCode(r'''
+void f() {
+  switch (0) {
+    default:
+      var a;
+      var a;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 62, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 49, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
+  }
+
+  test_switchPatternCase_localVariable_localVariable() async {
+    await assertErrorsInCode(r'''
+void f() {
+  switch (0) {
+    case 0:
+      var a;
+      var a;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 61, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 48, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
   }
 

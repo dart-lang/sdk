@@ -1246,6 +1246,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _withHiddenElements(node.statements, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements);
+      super.visitSwitchPatternCase(node);
+    });
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
     _checkForSwitchExpressionNotAssignable(node);
     _checkForCaseBlocksNotTerminated(node);
