@@ -8,7 +8,7 @@ abstract sealed class A extends core::Object {
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
-sealed class B = core::Object with self::M /*hasConstConstructor*/  {
+abstract sealed class B = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::B
     : super core::Object::•()
     ;

@@ -2209,6 +2209,9 @@ class OutlineBuilder extends StackListenerImpl {
           }
         }
       }
+      if (sealedToken != null) {
+        modifiers |= abstractMask;
+      }
 
       int startCharOffset = beginToken.charOffset;
       int charEndOffset = endToken.charOffset;
