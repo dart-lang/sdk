@@ -1916,13 +1916,26 @@ ISOLATE_UNIT_TEST_CASE(Array) {
 
   EXPECT_EQ(0, Object::empty_array().Length());
 
-  EXPECT_EQ(1, Object::zero_array().Length());
-  element = Object::zero_array().At(0);
-  EXPECT(Smi::Cast(element).IsZero());
-
   array.MakeImmutable();
   Object& obj = Object::Handle(array.ptr());
   EXPECT(obj.IsArray());
+}
+
+ISOLATE_UNIT_TEST_CASE(EmptyInstantiationsCacheArray) {
+  SafepointMutexLocker ml(
+      thread->isolate_group()->type_arguments_canonicalization_mutex());
+  const Array& empty_cache = Object::empty_instantiations_cache_array();
+  DEBUG_ONLY(EXPECT(TypeArguments::Cache::IsValidStorageLocked(empty_cache));)
+  const TypeArguments::Cache cache(thread->zone(), empty_cache);
+  EXPECT(cache.IsLinear());
+  EXPECT(!cache.IsHash());
+  EXPECT_EQ(0, cache.NumOccupied());
+  const InstantiationsCacheTable table(empty_cache);
+  EXPECT_EQ(1, table.Length());
+  for (const auto& tuple : table) {
+    EXPECT(tuple.Get<TypeArguments::Cache::kSentinelIndex>() ==
+           TypeArguments::Cache::Sentinel());
+  }
 }
 
 static void TestIllegalArrayLength(intptr_t length) {
@@ -7989,6 +8002,142 @@ FutureOr<T?> bar<T>() { return null; }
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
   }
 }
+
+static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
+  TextBuffer buffer(MB);
+  buffer.AddString("class D<T> {}\n");
+  for (intptr_t i = 0; i < num_classes; i++) {
+    buffer.Printf("class C%" Pd " { String toString() => 'C%" Pd "'; }\n", i,
+                  i);
+  }
+  buffer.AddString("main() {\n");
+  for (intptr_t i = 0; i < num_classes; i++) {
+    buffer.Printf("  new C%" Pd "().toString();\n", i);
+  }
+  buffer.AddString("}\n");
+
+  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), NULL);
+  EXPECT_VALID(api_lib);
+  Dart_Handle result = Dart_Invoke(api_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // D + C0...CN, where N = kNumClasses - 1
+  EXPECT(IsolateGroup::Current()->class_table()->NumCids() > num_classes);
+
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+
+  const auto& class_d = Class::Handle(zone, GetClass(root_lib, "D"));
+  ASSERT(!class_d.IsNull());
+  const auto& decl_type_d = Type::Handle(zone, class_d.DeclarationType());
+  const auto& decl_type_d_type_args =
+      TypeArguments::Handle(zone, decl_type_d.arguments());
+
+  EXPECT(!decl_type_d_type_args.HasInstantiations());
+
+  auto& class_c = Class::Handle(zone);
+  auto& decl_type_c = Type::Handle(zone);
+  auto& instantiator_type_args = TypeArguments::Handle(zone);
+  const auto& function_type_args = Object::null_type_arguments();
+  auto& result_type_args = TypeArguments::Handle(zone);
+  auto& result_type = AbstractType::Handle(zone);
+  // Cache the first computed set of instantiator type arguments to check that
+  // no entries from the cache have been lost when the cache grows.
+  auto& first_instantiator_type_args = TypeArguments::Handle(zone);
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    auto const name = OS::SCreate(zone, "C%" Pd "", i);
+    class_c = GetClass(root_lib, name);
+    ASSERT(!class_c.IsNull());
+    decl_type_c = class_c.DeclarationType();
+    instantiator_type_args = TypeArguments::New(1);
+    instantiator_type_args.SetTypeAt(0, decl_type_c);
+    instantiator_type_args = instantiator_type_args.Canonicalize(thread);
+
+    // Check that the key does not currently exist in the cache.
+    {
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i, cache.NumOccupied());
+      auto loc =
+          cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(!loc.present);
+    }
+
+    decl_type_d_type_args.InstantiateAndCanonicalizeFrom(instantiator_type_args,
+                                                         function_type_args);
+
+    // Check that the key now does exist in the cache.
+    TypeArguments::Cache::KeyLocation loc;
+    {
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i + 1, cache.NumOccupied());
+      // Double-check that we got the expected type of cache.
+      EXPECT(i < TypeArguments::Cache::kMaxLinearCacheEntries ? cache.IsLinear()
+                                                              : cache.IsHash());
+      loc = cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(loc.present);
+    }
+
+    result_type_args = decl_type_d_type_args.InstantiateAndCanonicalizeFrom(
+        instantiator_type_args, function_type_args);
+    result_type = result_type_args.TypeAt(0);
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(decl_type_c, result_type);
+
+    // Check that no new entries were added to the cache.
+    {
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i + 1, cache.NumOccupied());
+      auto const loc2 =
+          cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(loc2.present);
+      EXPECT_EQ(loc.entry, loc2.entry);
+    }
+
+    if (i == 0) {
+      first_instantiator_type_args = instantiator_type_args.ptr();
+    } else {
+      // Check that the first instantiator TAV still exists in the cache.
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i + 1, cache.NumOccupied());
+      // Double-check that we got the expected type of cache.
+      EXPECT(i < TypeArguments::Cache::kMaxLinearCacheEntries ? cache.IsLinear()
+                                                              : cache.IsHash());
+      auto const loc =
+          cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(loc.present);
+    }
+  }
+}
+
+// A smaller version of the following test case, just to ensure some coverage
+// on slower builds.
+TEST_CASE(TypeArguments_Cache_SomeInstantiations) {
+  TypeArgumentsHashCacheTest(thread,
+                             2 * TypeArguments::Cache::kMaxLinearCacheEntries);
+}
+
+// Too slow in debug mode. Also avoid the sanitizers for similar reasons.
+#if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
+    !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
+    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER)
+TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
+  const intptr_t kNumClasses = 100000;
+  static_assert(kNumClasses > TypeArguments::Cache::kMaxLinearCacheEntries,
+                "too few classes to trigger change to a hash-based cache");
+  TypeArgumentsHashCacheTest(thread, kNumClasses);
+}
+#endif
 
 #undef EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT
 

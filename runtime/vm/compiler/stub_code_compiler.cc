@@ -284,42 +284,58 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   const Register kEntryReg = InstantiationABI::kResultTypeArgumentsReg;
   // Lookup cache before calling runtime.
   __ LoadCompressed(
-      kEntryReg,
+      InstantiationABI::kScratchReg,
       compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
                              target::TypeArguments::instantiations_offset()));
-  __ LoadFieldAddressForOffset(kEntryReg, kEntryReg, Array::data_offset());
+  // Both the linear and hash-based cache access loops assume kEntryReg is
+  // the address of the first cache entry, so set it before branching.
+  __ LoadFieldAddressForOffset(kEntryReg, InstantiationABI::kScratchReg,
+                               Array::data_offset());
+  __ AddImmediate(kEntryReg, TypeArguments::Cache::kHeaderSize *
+                                 target::kCompressedWordSize);
 
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found, call_runtime;
-  __ Bind(&loop);
+  compiler::Label linear_cache_loop, hash_cache_loop, found, call_runtime;
 
-  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
-  // to access the other entries. If we found a sentinel we go to runtime.
-  __ LoadAcquireCompressed(
-      InstantiationABI::kScratchReg, kEntryReg,
-      TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ CompareImmediate(InstantiationABI::kScratchReg,
-                      Smi::RawValue(TypeArguments::kNoInstantiator),
-                      kObjectBytes);
-  __ BranchIf(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
+  // There is a maximum size for linear caches that is smaller than the size of
+  // any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  __ LoadFromSlot(InstantiationABI::kScratchReg, InstantiationABI::kScratchReg,
+                  Slot::Array_length());
+  __ CompareImmediate(
+      InstantiationABI::kScratchReg,
+      target::ToRawSmi(TypeArguments::Cache::kMaxLinearCacheSize));
+  __ BranchIf(GREATER, &call_runtime);
 
+  __ Bind(&linear_cache_loop);
+  // Use load-acquire to get the entry.
+  static_assert(TypeArguments::Cache::kSentinelIndex ==
+                    TypeArguments::Cache::kInstantiatorTypeArgsIndex,
+                "sentinel is not same index as instantiator type args");
+  __ LoadAcquireCompressed(InstantiationABI::kScratchReg, kEntryReg,
+                           TypeArguments::Cache::kInstantiatorTypeArgsIndex *
+                               target::kCompressedWordSize);
+  // Must either be the sentinel (a Smi) or a TypeArguments object, so test for
+  // a Smi and go to the runtime if found.
+  __ BranchIfSmi(InstantiationABI::kScratchReg, &call_runtime,
+                 compiler::Assembler::kNearJump);
+  // We have a TypeArguments object, so this is an array cache and we can
+  // safely access the other entries.
+  compiler::Label next;
   __ CompareRegisters(InstantiationABI::kScratchReg,
                       InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ BranchIf(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
   __ LoadCompressed(
       InstantiationABI::kScratchReg,
       compiler::Address(kEntryReg,
-                        TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+                        TypeArguments::Cache::kFunctionTypeArgsIndex *
                             target::kCompressedWordSize));
   __ CompareRegisters(InstantiationABI::kScratchReg,
                       InstantiationABI::kFunctionTypeArgumentsReg);
   __ BranchIf(EQUAL, &found, compiler::Assembler::kNearJump);
   __ Bind(&next);
-  __ AddImmediate(kEntryReg, TypeArguments::Instantiation::kSizeInWords *
+  __ AddImmediate(kEntryReg, TypeArguments::Cache::kEntrySize *
                                  target::kCompressedWordSize);
-  __ Jump(&loop, compiler::Assembler::kNearJump);
+  __ Jump(&linear_cache_loop, compiler::Assembler::kNearJump);
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
@@ -352,9 +368,9 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Bind(&found);
   __ LoadCompressed(
       InstantiationABI::kResultTypeArgumentsReg,
-      compiler::Address(
-          kEntryReg, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-                         target::kCompressedWordSize));
+      compiler::Address(kEntryReg,
+                        TypeArguments::Cache::kInstantiatedTypeArgsIndex *
+                            target::kCompressedWordSize));
   __ Ret();
 }
 

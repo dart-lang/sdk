@@ -743,11 +743,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   *bool_true_ = true_;
   *bool_false_ = false_;
 
-  // Initialize the empty and zero array handles to null_ in order to be able to
-  // check if the empty and zero arrays were allocated (RAW_NULL is not
-  // available).
+  // Initialize the empty array and empty instantiations cache array handles to
+  // null_ in order to be able to check if the empty and zero arrays were
+  // allocated (RAW_NULL is not available).
   *empty_array_ = Array::null();
-  *zero_array_ = Array::null();
+  *empty_instantiations_cache_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -1001,17 +1001,32 @@ void Object::Init(IsolateGroup* isolate_group) {
   }
 
   Smi& smi = Smi::Handle();
-  // Allocate and initialize the zero_array instance.
+  // Allocate and initialize the empty instantiations cache array instance,
+  // which contains metadata as the first element and a sentinel value
+  // at the start of the first entry.
   {
-    uword address = heap->Allocate(thread, Array::InstanceSize(1), Heap::kOld);
-    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1),
+    const intptr_t array_size =
+        TypeArguments::Cache::kHeaderSize + TypeArguments::Cache::kEntrySize;
+    uword address =
+        heap->Allocate(thread, Array::InstanceSize(array_size), Heap::kOld);
+    InitializeObject(address, kImmutableArrayCid,
+                     Array::InstanceSize(array_size),
                      Array::ContainsCompressedPointers());
-    Array::initializeHandle(zero_array_,
+    Array::initializeHandle(empty_instantiations_cache_array_,
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
-    zero_array_->untag()->set_length(Smi::New(1));
+    empty_instantiations_cache_array_->untag()->set_length(
+        Smi::New(array_size));
+    // The empty cache has no occupied entries.
     smi = Smi::New(0);
-    zero_array_->SetAt(0, smi);
-    zero_array_->SetCanonical();
+    empty_instantiations_cache_array_->SetAt(
+        TypeArguments::Cache::kOccupiedEntriesIndex, smi);
+    // Make the first (and only) entry unoccupied by setting its first element
+    // to the sentinel value.
+    smi = TypeArguments::Cache::Sentinel();
+    InstantiationsCacheTable table(*empty_instantiations_cache_array_);
+    table.At(0).Set<TypeArguments::Cache::kSentinelIndex>(smi);
+    // The other contents of the array are immaterial.
+    empty_instantiations_cache_array_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -1257,8 +1272,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(null_compressed_stackmaps_->IsCompressedStackMaps());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
-  ASSERT(!zero_array_->IsSmi());
-  ASSERT(zero_array_->IsArray());
+  ASSERT(!empty_instantiations_cache_array_->IsSmi());
+  ASSERT(empty_instantiations_cache_array_->IsArray());
   ASSERT(!empty_type_arguments_->IsSmi());
   ASSERT(empty_type_arguments_->IsTypeArguments());
   ASSERT(!empty_context_scope_->IsSmi());
@@ -6739,23 +6754,294 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
   return true;
 }
 
-bool TypeArguments::HasInstantiations() const {
-  const Array& prior_instantiations = Array::Handle(instantiations());
-  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-  return prior_instantiations.Length() > 1;
+TypeArguments::Cache::Cache(Zone* zone, const TypeArguments& source)
+    : zone_(ASSERT_NOTNULL(zone)),
+      cache_container_(&source),
+      data_(Array::Handle(source.instantiations())),
+      smi_handle_(Smi::Handle(zone)) {
+  ASSERT(IsolateGroup::Current()
+             ->type_arguments_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
 }
 
-intptr_t TypeArguments::NumInstantiations() const {
-  const Array& prior_instantiations = Array::Handle(instantiations());
-  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-  intptr_t num = 0;
-  intptr_t i = 0;
-  while (prior_instantiations.At(i) !=
-         Smi::New(TypeArguments::kNoInstantiator)) {
-    i += TypeArguments::Instantiation::kSizeInWords;
-    num++;
+TypeArguments::Cache::Cache(Zone* zone, const Array& array)
+    : zone_(ASSERT_NOTNULL(zone)),
+      cache_container_(nullptr),
+      data_(Array::Handle(array.ptr())),
+      smi_handle_(Smi::Handle(zone)) {
+  ASSERT(IsolateGroup::Current()
+             ->type_arguments_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
+}
+
+bool TypeArguments::Cache::IsHash(const Array& array) {
+  return array.Length() > kMaxLinearCacheSize;
+}
+
+intptr_t TypeArguments::Cache::NumOccupied(const Array& array) {
+  return RawSmiValue(Smi::RawCast(array.AtAcquire(kOccupiedEntriesIndex)));
+}
+
+#if defined(DEBUG)
+bool TypeArguments::Cache::IsValidStorageLocked(const Array& array) {
+  // We only require the mutex be held so we don't need to use acquire/release
+  // semantics to access and set the number of occupied entries in the header.
+  ASSERT(IsolateGroup::Current()
+             ->type_arguments_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
+  // Quick check against the empty linear cache.
+  if (array.ptr() == EmptyStorage().ptr()) return true;
+  const intptr_t num_occupied = NumOccupied(array);
+  // We should be using the same shared value for an empty cache.
+  if (num_occupied == 0) return false;
+  const intptr_t storage_len = array.Length();
+  // All caches have the metadata followed by a series of entries.
+  if ((storage_len % kEntrySize) != kHeaderSize) return false;
+  const intptr_t num_entries = NumEntries(array);
+  // Linear caches contain at least one unoccupied entry, and hash-based caches
+  // grow prior to hitting 100% occupancy.
+  if (num_occupied >= num_entries) return false;
+  // In a linear cache, all entries with indexes smaller than [num_occupied]
+  // should be occupied and ones greater than or equal should be unoccupied.
+  const bool is_linear_cache = IsLinear(array);
+  // The capacity of a hash-based cache must be a power of two (see
+  // EnsureCapacityLocked as to why).
+  if (!is_linear_cache && !Utils::IsPowerOfTwo(num_entries)) return false;
+  for (intptr_t i = 0; i < num_entries; i++) {
+    const intptr_t index = kHeaderSize + i * kEntrySize;
+    if (array.At(index + kSentinelIndex) == Sentinel()) {
+      if (is_linear_cache && i < num_occupied) return false;
+      continue;
+    }
+    if (is_linear_cache && i >= num_occupied) return false;
+    // The elements of an occupied entry are all TypeArguments values.
+    for (intptr_t j = index; j < index + kEntrySize; j++) {
+      if (!array.At(j)->IsHeapObject()) return false;
+      if (array.At(j) == Object::null()) continue;  // null is a valid TAV.
+      if (!array.At(j)->IsTypeArguments()) return false;
+    }
   }
-  return num;
+  return true;
+}
+#endif
+
+bool TypeArguments::Cache::IsOccupied(intptr_t entry) const {
+  InstantiationsCacheTable table(data_);
+  ASSERT(entry >= 0 && entry < table.Length());
+  return table.At(entry).Get<kSentinelIndex>() != Sentinel();
+}
+
+TypeArgumentsPtr TypeArguments::Cache::Retrieve(intptr_t entry) const {
+  ASSERT(IsOccupied(entry));
+  InstantiationsCacheTable table(data_);
+  return table.At(entry).Get<kInstantiatedTypeArgsIndex>();
+}
+
+intptr_t TypeArguments::Cache::NumEntries(const Array& array) {
+  InstantiationsCacheTable table(array);
+  return table.Length();
+}
+
+TypeArguments::Cache::KeyLocation TypeArguments::Cache::FindKeyOrUnused(
+    const Array& array,
+    const TypeArguments& instantiator_tav,
+    const TypeArguments& function_tav) {
+  const bool is_hash = IsHash(array);
+  InstantiationsCacheTable table(array);
+  const intptr_t num_entries = table.Length();
+  // For a linear cache, start at the first entry and probe linearly. This can
+  // be done because a linear cache always has at least one unoccupied entry
+  // after all the occupied ones.
+  intptr_t probe = 0;
+  intptr_t probe_distance = 1;
+  if (is_hash) {
+    // For a hash-based cache, instead start at an entry determined by the hash
+    // of the keys.
+    auto hash = FinalizeHash(
+        CombineHashes(instantiator_tav.Hash(), function_tav.Hash()));
+    probe = hash & (num_entries - 1);
+  }
+  while (true) {
+    const auto& tuple = table.At(probe);
+    if (tuple.Get<kSentinelIndex>() == Sentinel()) break;
+    if ((tuple.Get<kInstantiatorTypeArgsIndex>() == instantiator_tav.ptr()) &&
+        (tuple.Get<kFunctionTypeArgsIndex>() == function_tav.ptr())) {
+      return {probe, true};
+    }
+    // Advance probe by the current probing distance.
+    probe = probe + probe_distance;
+    if (is_hash) {
+      // Wrap around if the probe goes off the end of the entries array.
+      probe = probe & (num_entries - 1);
+      // We had a collision, so increase the probe distance. See comment in
+      // EnsureCapacityLocked for an explanation of how this hits all slots.
+      probe_distance++;
+    }
+  }
+  // We should always get the next slot for a linear cache.
+  ASSERT(is_hash || probe == NumOccupied(array));
+  return {probe, false};
+}
+
+TypeArguments::Cache::KeyLocation TypeArguments::Cache::AddEntry(
+    intptr_t entry,
+    const TypeArguments& instantiator_tav,
+    const TypeArguments& function_tav,
+    const TypeArguments& instantiated_tav) const {
+  // We don't do mutating operations in tests without a TypeArguments object.
+  ASSERT(cache_container_ != nullptr);
+#if defined(DEBUG)
+  auto loc = FindKeyOrUnused(instantiator_tav, function_tav);
+  ASSERT_EQUAL(loc.entry, entry);
+  ASSERT(!loc.present);
+#endif
+  // Double-check we got the expected entry index when adding to a linear array.
+  ASSERT(!IsLinear() || entry == NumOccupied());
+  const intptr_t new_occupied = NumOccupied() + 1;
+  const bool storage_changed = EnsureCapacity(new_occupied);
+  // Note that this call to IsLinear() may return a different result than the
+  // earlier, since EnsureCapacity() may have swapped to hash-based storage.
+  if (storage_changed && !IsLinear()) {
+    // The capacity of the array has changed, and the capacity is used when
+    // probing further into the array due to collisions. Thus, we need to redo
+    // the entry index calculation.
+    auto loc = FindKeyOrUnused(instantiator_tav, function_tav);
+    ASSERT(!loc.present);
+    entry = loc.entry;
+  }
+
+  // Increment the number of occupied entries prior to adding the entry.
+  // Only the Cache class uses the information, and Cache objects are only
+  // created when holding the type arguments canonicalization mutex, so we
+  // don't need a store-release barrier for this.
+  smi_handle_ = Smi::New(new_occupied);
+  data_.SetAt(kOccupiedEntriesIndex, smi_handle_);
+
+  InstantiationsCacheTable table(data_);
+  const auto& tuple = table.At(entry);
+  // The parts of the tuple that aren't used for sentinel checking are only
+  // retrieved if the entry is occupied. Entries in the cache are never deleted,
+  // so once the entry is marked as occupied, the contents of that entry never
+  // change. Thus, we don't need store-release barriers here.
+  tuple.Set<kFunctionTypeArgsIndex>(function_tav);
+  tuple.Set<kInstantiatedTypeArgsIndex>(instantiated_tav);
+  // For the sentinel position, though, we do.
+  static_assert(
+      kSentinelIndex == kInstantiatorTypeArgsIndex,
+      "the sentinel position is not protected with a store-release barrier");
+  tuple.Set<kInstantiatorTypeArgsIndex, std::memory_order_release>(
+      instantiator_tav);
+
+  if (storage_changed) {
+    // Only check for validity on growth, just to keep the overhead on DEBUG
+    // builds down.
+    DEBUG_ASSERT(IsValidStorageLocked(data_));
+    // Update the container of the original cache to point to the new one.
+    cache_container_->set_instantiations(data_);
+  }
+
+  return {entry, true};
+}
+
+SmiPtr TypeArguments::Cache::Sentinel() {
+  return Smi::New(kSentinelValue);
+}
+
+bool TypeArguments::Cache::EnsureCapacity(intptr_t new_occupied) const {
+  ASSERT(new_occupied > NumOccupied());
+  // How many entries are in the current array (including unoccupied entries).
+  const intptr_t current_capacity = NumEntries();
+
+  // Early returns for cases where no growth is needed.
+  const bool is_linear = IsLinear();
+  if (is_linear) {
+    // We need at least one unoccupied entry in addition to the occupied ones.
+    if (current_capacity > new_occupied) return false;
+  } else {
+    if (LoadFactor(new_occupied, current_capacity) < kMaxLoadFactor) {
+      return false;
+    }
+  }
+
+  if (new_occupied <= kMaxLinearCacheEntries) {
+    ASSERT(is_linear);
+    // Not enough room for both the new entry and at least one unoccupied
+    // entry, so grow the tuple capacity of the linear cache by about 50%,
+    // ensuring that space for at least one new tuple is added, capping the
+    // total number of occupied entries to the max allowed.
+    const intptr_t new_capacity =
+        Utils::Minimum(current_capacity + (current_capacity >> 1),
+                       kMaxLinearCacheEntries) +
+        1;
+    const intptr_t cache_size = kHeaderSize + new_capacity * kEntrySize;
+    ASSERT(cache_size <= kMaxLinearCacheSize);
+    data_ = Array::Grow(data_, cache_size, Heap::kOld);
+    ASSERT(!data_.IsNull());
+    // No need to adjust the number of occupied entries or old entries, as they
+    // are copied over by Array::Grow. Just mark any new entries as unoccupied.
+    smi_handle_ = Sentinel();
+    InstantiationsCacheTable table(data_);
+    for (intptr_t i = current_capacity; i < new_capacity; i++) {
+      const auto& tuple = table.At(i);
+      tuple.Set<kSentinelIndex>(smi_handle_);
+    }
+    return true;
+  }
+
+  // Either we're converting a linear cache into a hash-based cache, or the
+  // load factor of the hash-based cache has increased to the point where we
+  // need to grow it.
+  const intptr_t new_capacity =
+      is_linear ? kNumInitialHashCacheEntries : 2 * current_capacity;
+  // Because we use quadratic (actually triangle number) probing it is
+  // important that the size is a power of two (otherwise we could fail to
+  // find an empty slot).  This is described in Knuth's The Art of Computer
+  // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
+  // appendix, 2nd edition).
+  ASSERT(Utils::IsPowerOfTwo(new_capacity));
+  ASSERT(LoadFactor(new_occupied, new_capacity) < kMaxLoadFactor);
+  const intptr_t new_size = kHeaderSize + new_capacity * kEntrySize;
+  const auto& new_data =
+      Array::Handle(zone_, Array::NewUninitialized(new_size, Heap::kOld));
+  ASSERT(!new_data.IsNull());
+  // First copy over the metadata.
+  auto& object = Object::Handle(zone_);
+  for (intptr_t i = 0; i < kHeaderSize; i++) {
+    object = data_.At(i);
+    new_data.SetAt(i, object);
+  }
+  // Then mark all the entries in new_data as unoccupied.
+  smi_handle_ = Sentinel();
+  InstantiationsCacheTable to_table(new_data);
+  for (const auto& tuple : to_table) {
+    tuple.Set<kSentinelIndex>(smi_handle_);
+  }
+  // Finally, copy over the entries.
+  auto& function_tav = TypeArguments::Handle(zone_);
+  auto& result_tav = TypeArguments::Handle(zone_);
+  const InstantiationsCacheTable from_table(data_);
+  for (const auto& from_tuple : from_table) {
+    // Skip unoccupied entries.
+    if (from_tuple.Get<kSentinelIndex>() == Sentinel()) continue;
+    object = from_tuple.Get<kInstantiatorTypeArgsIndex>();
+    const auto& instantiator_tav = TypeArguments::Cast(object);
+    function_tav = from_tuple.Get<kFunctionTypeArgsIndex>();
+    result_tav = from_tuple.Get<kInstantiatedTypeArgsIndex>();
+    // Since new_data has a different total capacity, we can't use the old
+    // entry indexes, but must recalculate them.
+    auto loc = FindKeyOrUnused(new_data, instantiator_tav, function_tav);
+    ASSERT(!loc.present);
+    const auto& to_tuple = to_table.At(loc.entry);
+    to_tuple.Set<kInstantiatorTypeArgsIndex>(instantiator_tav);
+    to_tuple.Set<kFunctionTypeArgsIndex>(function_tav);
+    to_tuple.Set<kInstantiatedTypeArgsIndex>(result_tav);
+  }
+  data_ = new_data.ptr();
+  return true;
+}
+
+bool TypeArguments::HasInstantiations() const {
+  return instantiations() != Cache::EmptyStorage().ptr();
 }
 
 ArrayPtr TypeArguments::instantiations() const {
@@ -7078,28 +7364,11 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
   // Lookup instantiators and if found, return instantiated result.
-  Array& prior_instantiations = Array::Handle(zone, instantiations());
-  ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-  intptr_t index = 0;
-  while (true) {
-    if ((prior_instantiations.At(
-             index +
-             TypeArguments::Instantiation::kInstantiatorTypeArgsIndex) ==
-         instantiator_type_arguments.ptr()) &&
-        (prior_instantiations.At(
-             index + TypeArguments::Instantiation::kFunctionTypeArgsIndex) ==
-         function_type_arguments.ptr())) {
-      return TypeArguments::RawCast(prior_instantiations.At(
-          index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex));
-    }
-    if (prior_instantiations.At(index) ==
-        Smi::New(TypeArguments::kNoInstantiator)) {
-      break;
-    }
-    index += TypeArguments::Instantiation::kSizeInWords;
+  Cache cache(zone, *this);
+  auto const loc = cache.FindKeyOrUnused(instantiator_type_arguments,
+                                         function_type_arguments);
+  if (loc.present) {
+    return cache.Retrieve(loc.entry);
   }
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle(zone);
@@ -7109,44 +7378,9 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   result = result.Canonicalize(thread, nullptr);
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
   // indirectly, so the prior_instantiations array cannot have grown.
-  ASSERT(prior_instantiations.ptr() == instantiations());
-  // Add instantiator and function type args and result to instantiations array.
-  intptr_t length = prior_instantiations.Length();
-  if ((index + TypeArguments::Instantiation::kSizeInWords) >= length) {
-    // TODO(regis): Should we limit the number of cached instantiations?
-    // Grow the instantiations array by about 50%, but at least by 1.
-    // The initial array is Object::zero_array() of length 1.
-    intptr_t entries =
-        (length - 1) / TypeArguments::Instantiation::kSizeInWords;
-    intptr_t new_entries = entries + (entries >> 1) + 1;
-    length = new_entries * TypeArguments::Instantiation::kSizeInWords + 1;
-    prior_instantiations =
-        Array::Grow(prior_instantiations, length, Heap::kOld);
-    set_instantiations(prior_instantiations);
-    ASSERT((index + TypeArguments::Instantiation::kSizeInWords) < length);
-  }
-
-  // Set sentinel marker at next position.
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kSizeInWords +
-          TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      Smi::Handle(zone, Smi::New(TypeArguments::kNoInstantiator)));
-
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kFunctionTypeArgsIndex,
-      function_type_arguments);
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex, result);
-
-  // We let any concurrently running mutator thread now see the new entry by
-  // using a store-release barrier.
-  ASSERT(
-      prior_instantiations.At(
-          index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex) ==
-      Smi::New(TypeArguments::kNoInstantiator));
-  prior_instantiations.SetAtRelease(
-      index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      instantiator_type_arguments);
+  ASSERT(cache.data_.ptr() == instantiations());
+  cache.AddEntry(loc.entry, instantiator_type_arguments,
+                 function_type_arguments, result);
   return result.ptr();
 }
 
@@ -7167,10 +7401,9 @@ TypeArgumentsPtr TypeArguments::New(intptr_t len, Heap::Space space) {
     result.SetHash(0);
     result.set_nullability(0);
   }
-  // The zero array should have been initialized.
-  ASSERT(Object::zero_array().ptr() != Array::null());
-  COMPILE_ASSERT(TypeArguments::kNoInstantiator == 0);
-  result.set_instantiations(Object::zero_array());
+  // The array used as storage for an empty linear cache should be initialized.
+  ASSERT(Cache::EmptyStorage().ptr() != Array::null());
+  result.set_instantiations(Cache::EmptyStorage());
   return result.ptr();
 }
 

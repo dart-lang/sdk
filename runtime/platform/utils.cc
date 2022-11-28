@@ -14,21 +14,6 @@
 
 namespace dart {
 
-// Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
-// figure 3-3, page 48, where the function is called clp2.
-uintptr_t Utils::RoundUpToPowerOfTwo(uintptr_t x) {
-  x = x - 1;
-  x = x | (x >> 1);
-  x = x | (x >> 2);
-  x = x | (x >> 4);
-  x = x | (x >> 8);
-  x = x | (x >> 16);
-#if defined(ARCH_IS_64_BIT)
-  x = x | (x >> 32);
-#endif  // defined(ARCH_IS_64_BIT)
-  return x + 1;
-}
-
 int Utils::CountLeadingZeros64(uint64_t x) {
 #if defined(ARCH_IS_32_BIT)
   const uint32_t x_hi = static_cast<uint32_t>(x >> 32);
