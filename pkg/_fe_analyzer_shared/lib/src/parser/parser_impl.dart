@@ -9803,7 +9803,8 @@ class Parser {
       // Record or parenthesized pattern
       return next.endGroup;
     }
-    throw new UnimplementedError('TODO(paulberry)');
+    // Not an outer pattern
+    return null;
   }
 
   /// Tries to advance through an object pattern, where [token] is the last

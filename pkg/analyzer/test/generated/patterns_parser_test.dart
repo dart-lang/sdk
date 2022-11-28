@@ -6734,6 +6734,18 @@ ListPattern
 ''');
   }
 
+  test_skipOuterPattern_eof() {
+    // See https://github.com/dart-lang/sdk/issues/50563
+    _parse('''
+main() {
+  int var = 0;
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 11, 3),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
+      error(ScannerErrorCode.EXPECTED_TOKEN, 24, 1),
+    ]);
+  }
+
   test_switchExpression_empty() {
     // Even though an empty switch expression is illegal (because it's not
     // exhaustive), it should be accepted by the parser to enable analyzer code
