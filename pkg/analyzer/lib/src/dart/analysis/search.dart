@@ -722,8 +722,7 @@ class SearchedFiles {
 
   bool add(String path, Search search) {
     final fsState = search._driver.fsState;
-    final file = fsState.resourceProvider.getFile(path);
-    final fileState = fsState.getExisting(file);
+    final fileState = fsState.getExistingFromPath(path);
     if (fileState == null) {
       return false;
     }

@@ -1244,6 +1244,10 @@ class FileSystemState {
     return _pathToFile[file.path];
   }
 
+  FileState? getExistingFromPath(String path) {
+    return _pathToFile[path];
+  }
+
   /// Return the [FileState] for the given absolute [path]. The returned file
   /// has the last known state since if was last refreshed.
   /// TODO(scheglov) Merge with [getFileForPath2].
