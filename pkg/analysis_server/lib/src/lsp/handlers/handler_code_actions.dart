@@ -6,8 +6,10 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
+import 'package:analysis_server/src/lsp/handlers/code_actions/analysis_options.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/dart.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/plugins.dart';
+import 'package:analysis_server/src/lsp/handlers/code_actions/pubspec.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -128,6 +130,9 @@ class CodeActionHandler
     final length = endOffsetResult - startOffsetResult;
 
     final isDart = file_paths.isDart(pathContext, unitPath);
+    final isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
+    final isAnalysisOptions =
+        file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
     final includeSourceActions = shouldIncludeAnyOfKind(CodeActionKind.Source);
     final includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
     final includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
@@ -147,6 +152,26 @@ class CodeActionHandler
           shouldIncludeKind: shouldIncludeKind,
           capabilities: capabilities,
           triggerKind: params.context.triggerKind,
+        ),
+      if (isPubspec)
+        PubspecCodeActionsProducer(
+          server,
+          unitPath,
+          lineInfo,
+          offset: offset,
+          length: length,
+          shouldIncludeKind: shouldIncludeKind,
+          capabilities: capabilities,
+        ),
+      if (isAnalysisOptions)
+        AnalysisOptionsCodeActionsProducer(
+          server,
+          unitPath,
+          lineInfo,
+          offset: offset,
+          length: length,
+          shouldIncludeKind: shouldIncludeKind,
+          capabilities: capabilities,
         ),
       PluginCodeActionsProducer(
         server,

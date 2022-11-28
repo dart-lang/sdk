@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Position;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -29,13 +28,6 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
   @override
   String get name => 'PluginActionsComputer';
-
-  Diagnostic createDiagnostic(AnalysisError error) => pluginToDiagnostic(
-        (_) => lineInfo,
-        error,
-        supportedTags: supportedDiagnosticTags,
-        clientSupportsCodeDescription: supportsCodeDescription,
-      );
 
   @override
   Future<List<CodeActionWithPriority>> getAssistActions() async {
@@ -87,7 +79,12 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
   Iterable<CodeActionWithPriority> _convertFixes(
       plugin.AnalysisErrorFixes fixes) {
-    final diagnostic = createDiagnostic(fixes.error);
+    final diagnostic = pluginToDiagnostic(
+      (_) => lineInfo,
+      fixes.error,
+      supportedTags: supportedDiagnosticTags,
+      clientSupportsCodeDescription: supportsCodeDescription,
+    );
     return fixes.fixes.map(
       (fix) => CodeActionWithPriority(
         createFixAction(fix.change, diagnostic, path, lineInfo),

@@ -20,6 +20,105 @@ void main() {
 
 @reflectiveTest
 class FixesCodeActionsTest extends AbstractCodeActionsTest {
+  /// Helper to check plugin fixes for [filePath].
+  ///
+  /// Used to ensure that both Dart and non-Dart files fixes are returned.
+  Future<void> checkPluginResults(String filePath) async {
+    final fileUri = Uri.file(filePath);
+
+    // This code should get a fix to replace 'foo' with 'bar'.'
+    const content = '[[foo]]';
+    const expectedContent = 'bar';
+
+    final pluginResult = plugin.EditGetFixesResult([
+      plugin.AnalysisErrorFixes(
+        plugin.AnalysisError(
+          plugin.AnalysisErrorSeverity.ERROR,
+          plugin.AnalysisErrorType.HINT,
+          plugin.Location(filePath, 0, 3, 0, 0),
+          "Do not use 'foo'",
+          'do_not_use_foo',
+        ),
+        fixes: [
+          plugin.PrioritizedSourceChange(
+            0,
+            plugin.SourceChange(
+              "Change 'foo' to 'bar'",
+              edits: [
+                plugin.SourceFileEdit(filePath, 0,
+                    edits: [plugin.SourceEdit(0, 3, 'bar')])
+              ],
+              id: 'fooToBar',
+            ),
+          )
+        ],
+      )
+    ]);
+    configureTestPlugin(
+      handler: (request) =>
+          request is plugin.EditGetFixesParams ? pluginResult : null,
+    );
+
+    newFile(filePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(fileUri, range: rangeFromMarkers(content));
+    final assist = findEditAction(codeActions,
+        CodeActionKind('quickfix.fooToBar'), "Change 'foo' to 'bar'")!;
+
+    final edit = assist.edit!;
+    expect(edit.changes, isNotNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      filePath: withoutMarkers(content),
+    };
+    applyChanges(contents, edit.changes!);
+    expect(contents[filePath], equals(expectedContent));
+  }
+
+  Future<void> test_analysisOptions() async {
+    registerLintRules();
+    const content = r'''
+linter:
+  rules:
+    - prefer_is_empty
+    - [[invariant_booleans]]
+    - lines_longer_than_80_chars
+''';
+
+    const expectedContent = r'''
+linter:
+  rules:
+    - prefer_is_empty
+    - lines_longer_than_80_chars
+''';
+
+    newFile(analysisOptionsPath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    // Expect a fix.
+    final codeActions = await getCodeActions(analysisOptionsUri,
+        range: rangeFromMarkers(content));
+    final fix = findEditAction(codeActions,
+        CodeActionKind('quickfix.removeLint'), "Remove 'invariant_booleans'")!;
+
+    // Ensure it makes the correct edits.
+    final edit = fix.edit!;
+    final contents = {
+      analysisOptionsPath: withoutMarkers(content),
+    };
+    applyChanges(contents, edit.changes!);
+    expect(contents[analysisOptionsPath], equals(expectedContent));
+  }
+
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     // This code should get a fix to remove the unused import.
     const content = '''
@@ -437,18 +536,6 @@ void f() {
     expect(createClassActions.first.diagnostics, hasLength(3));
   }
 
-  Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, simplePubspecContent);
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
-
-    final codeActions =
-        await getCodeActions(pubspecFileUri, range: startOfDocRange);
-    expect(codeActions, isEmpty);
-  }
-
   Future<void> test_organizeImportsFix_namedOrganizeImports() async {
     registerLintRules();
     newFile(analysisOptionsPath, '''
@@ -513,61 +600,10 @@ ProcessInfo b;
     expect(codeActions, isEmpty);
   }
 
-  Future<void> test_plugin() async {
-    // This code should get a fix to replace 'foo' with 'bar'.'
-    const content = '[[foo]]';
-    const expectedContent = 'bar';
+  Future<void> test_plugin_dart() => checkPluginResults(mainFilePath);
 
-    final pluginResult = plugin.EditGetFixesResult([
-      plugin.AnalysisErrorFixes(
-        plugin.AnalysisError(
-          plugin.AnalysisErrorSeverity.ERROR,
-          plugin.AnalysisErrorType.HINT,
-          plugin.Location(mainFilePath, 0, 3, 0, 0),
-          "Do not use 'foo'",
-          'do_not_use_foo',
-        ),
-        fixes: [
-          plugin.PrioritizedSourceChange(
-            0,
-            plugin.SourceChange(
-              "Change 'foo' to 'bar'",
-              edits: [
-                plugin.SourceFileEdit(mainFilePath, 0,
-                    edits: [plugin.SourceEdit(0, 3, 'bar')])
-              ],
-              id: 'fooToBar',
-            ),
-          )
-        ],
-      )
-    ]);
-    configureTestPlugin(
-      handler: (request) =>
-          request is plugin.EditGetFixesParams ? pluginResult : null,
-    );
-
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final assist = findEditAction(codeActions,
-        CodeActionKind('quickfix.fooToBar'), "Change 'foo' to 'bar'")!;
-
-    final edit = assist.edit!;
-    expect(edit.changes, isNotNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedContent));
-  }
+  Future<void> test_plugin_nonDart() =>
+      checkPluginResults(join(projectFolderPath, 'lib', 'foo.foo'));
 
   Future<void> test_plugin_sortsWithServer() async {
     // Produces a server fix for removing unused import with a default
@@ -616,6 +652,34 @@ ProcessInfo b;
         'Low',
       ]),
     );
+  }
+
+  Future<void> test_pubspec() async {
+    const content = '';
+
+    const expectedContent = r'''
+name: my_project
+''';
+
+    newFile(pubspecFilePath, content);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    // Expect a fix.
+    final codeActions =
+        await getCodeActions(pubspecFileUri, range: startOfDocRange);
+    final fix = findEditAction(
+        codeActions, CodeActionKind('quickfix.add.name'), "Add 'name' key")!;
+
+    // Ensure it makes the correct edits.
+    final edit = fix.edit!;
+    final contents = {
+      pubspecFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, edit.changes!);
+    expect(contents[pubspecFilePath], equals(expectedContent));
   }
 
   Future<void> test_snippets_createMethod_functionTypeNestedParameters() async {

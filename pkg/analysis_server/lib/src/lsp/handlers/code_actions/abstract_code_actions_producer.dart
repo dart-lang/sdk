@@ -8,9 +8,13 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Position;
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/request_handler_mixin.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:meta/meta.dart';
 
 /// A base for classes that produce [CodeAction]s for the LSP handler.
@@ -52,7 +56,7 @@ abstract class AbstractCodeActionsProducer
   /// before the version number is read.
   @protected
   CodeAction createAssistAction(
-      SourceChange change, String path, LineInfo lineInfo) {
+      protocol.SourceChange change, String path, LineInfo lineInfo) {
     return CodeAction(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
@@ -62,13 +66,25 @@ abstract class AbstractCodeActionsProducer
     );
   }
 
+  /// Create an LSP [Diagnostic] for [error].
+  @protected
+  Diagnostic createDiagnostic(
+      LineInfo lineInfo, engine.ErrorsResultImpl result, AnalysisError error) {
+    return pluginToDiagnostic(
+      (_) => lineInfo,
+      protocol.newAnalysisError_fromEngine(result, error),
+      supportedTags: supportedDiagnosticTags,
+      clientSupportsCodeDescription: supportsCodeDescription,
+    );
+  }
+
   /// Creates a CodeAction to apply this fix. Note: This code will fetch the
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
   @protected
-  CodeAction createFixAction(SourceChange change, Diagnostic diagnostic,
-      String path, LineInfo lineInfo) {
+  CodeAction createFixAction(protocol.SourceChange change,
+      Diagnostic diagnostic, String path, LineInfo lineInfo) {
     return CodeAction(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
@@ -78,6 +94,20 @@ abstract class AbstractCodeActionsProducer
     );
   }
 
+  @protected
+  engine.ErrorsResultImpl createResult(
+      AnalysisSession session, LineInfo lineInfo, List<AnalysisError> errors) {
+    return engine.ErrorsResultImpl(
+        session: session,
+        path: path,
+        uri: Uri.file(path),
+        lineInfo: lineInfo,
+        isAugmentation: false,
+        isLibrary: true,
+        isPart: false,
+        errors: errors);
+  }
+
   Future<List<CodeActionWithPriority>> getAssistActions();
 
   Future<List<CodeActionWithPriority>> getFixActions();
@@ -85,6 +115,17 @@ abstract class AbstractCodeActionsProducer
   Future<List<Either2<CodeAction, Command>>> getRefactorActions();
 
   Future<List<Either2<CodeAction, Command>>> getSourceActions();
+
+  /// Return the contents of the [file], or `null` if the file does not exist or
+  /// cannot be read.
+  @protected
+  String? safelyRead(File file) {
+    try {
+      return file.readAsStringSync();
+    } on FileSystemException {
+      return null;
+    }
+  }
 }
 
 /// A wrapper that contains an LSP [CodeAction] and a server-supplied priority
