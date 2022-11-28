@@ -116,6 +116,7 @@ class AnalysisOptionsFixGenerator {
     if (change.edits.isEmpty) {
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     fixes.add(Fix(kind, change));
   }

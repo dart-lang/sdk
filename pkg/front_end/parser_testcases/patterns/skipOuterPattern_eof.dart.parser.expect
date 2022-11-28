@@ -1,0 +1,9 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+int ;var *synthetic*= 0;
+}
+
+[UnmatchedToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+int[StringToken] ;[SyntheticToken]var[KeywordToken] [SyntheticStringToken]=[SimpleToken] 0[StringToken];[SimpleToken]
+}[SyntheticToken][SimpleToken]
