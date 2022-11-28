@@ -321,13 +321,13 @@ external mixedPositionalArgs(a, [dynamic? b]);
   "functionKind": 0
 }],
  holding=[
-  {"id":"function/dart:_interceptors::getNativeInterceptor","mask":null},
+  {"id":"function/dart:_interceptors::getNativeInterceptor"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singleArg","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject]"},
-  {"id":"function/package:expect/expect.dart::Expect.equals","mask":null}]
+  {"id":"function/package:expect/expect.dart::Expect.equals"}]
 */
 main() {
   eval(r"""
