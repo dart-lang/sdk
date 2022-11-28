@@ -35,6 +35,27 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await pumpEventQueue(times: 5000);
   }
 
+  Future<void> assertDynamicRegistration(
+      String name, Set<Method> expectedResult) async {
+    // Check that when the server calls client/registerCapability it only includes
+    // the items we advertised dynamic registration support for.
+    final registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
+      () => initialize(
+          textDocumentCapabilities: withGivenTextDocumentDynamicRegistrations(
+              emptyTextDocumentClientCapabilities, name),
+          workspaceCapabilities: withGivenWorkspaceDynamicRegistrations(
+              emptyWorkspaceClientCapabilities, name)),
+    );
+
+    final registeredMethods =
+        registrations.map((registration) => registration.method).toSet();
+    final result = expectedResult.map((method) => method.toJson()).toSet();
+
+    expect(registeredMethods, equals(result));
+  }
+
   TextDocumentRegistrationOptions registrationOptionsFor(
     List<Registration> registrations,
     Method method,
@@ -243,6 +264,97 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await Future.wait([registrationsDone, unregistrationsDone]);
   }
 
+  Future<void> test_dynamicRegistration_config_allHierarchy() =>
+      assertDynamicRegistration(
+          'callHierarchy', {Method.textDocument_prepareCallHierarchy});
+
+  Future<void> test_dynamicRegistration_config_codeAction() =>
+      assertDynamicRegistration('codeAction', {Method.textDocument_codeAction});
+
+  Future<void> test_dynamicRegistration_config_colorProvider() =>
+      assertDynamicRegistration(
+          'colorProvider', {Method.textDocument_documentColor});
+
+  Future<void> test_dynamicRegistration_config_completion() =>
+      assertDynamicRegistration('completion', {Method.textDocument_completion});
+
+  Future<void> test_dynamicRegistration_config_definition() =>
+      assertDynamicRegistration('definition', {Method.textDocument_definition});
+
+  Future<void> test_dynamicRegistration_config_didChangeConfiguration() =>
+      assertDynamicRegistration(
+          'didChangeConfiguration', {Method.workspace_didChangeConfiguration});
+
+  Future<void> test_dynamicRegistration_config_documentHighlight() =>
+      assertDynamicRegistration(
+          'documentHighlight', {Method.textDocument_documentHighlight});
+
+  Future<void> test_dynamicRegistration_config_documentSymbol() =>
+      assertDynamicRegistration(
+          'documentSymbol', {Method.textDocument_documentSymbol});
+
+  Future<void> test_dynamicRegistration_config_fileOperations() =>
+      assertDynamicRegistration(
+          'fileOperations', {Method.workspace_willRenameFiles});
+
+  Future<void> test_dynamicRegistration_config_foldingRange() =>
+      assertDynamicRegistration(
+          'foldingRange', {Method.textDocument_foldingRange});
+
+  Future<void> test_dynamicRegistration_config_formatting() =>
+      assertDynamicRegistration('formatting', {Method.textDocument_formatting});
+
+  Future<void> test_dynamicRegistration_config_hover() =>
+      assertDynamicRegistration('hover', {Method.textDocument_hover});
+
+  Future<void> test_dynamicRegistration_config_implementation() =>
+      assertDynamicRegistration(
+          'implementation', {Method.textDocument_implementation});
+
+  Future<void> test_dynamicRegistration_config_inlayHint() =>
+      assertDynamicRegistration('inlayHint', {Method.textDocument_inlayHint});
+
+  Future<void> test_dynamicRegistration_config_onTypeFormatting() =>
+      assertDynamicRegistration(
+          'onTypeFormatting', {Method.textDocument_onTypeFormatting});
+
+  Future<void> test_dynamicRegistration_config_rangeFormatting() =>
+      assertDynamicRegistration(
+          'rangeFormatting', {Method.textDocument_rangeFormatting});
+
+  Future<void> test_dynamicRegistration_config_references() =>
+      assertDynamicRegistration('references', {Method.textDocument_references});
+
+  Future<void> test_dynamicRegistration_config_rename() =>
+      assertDynamicRegistration('rename', {Method.textDocument_rename});
+
+  Future<void> test_dynamicRegistration_config_selectionRange() =>
+      assertDynamicRegistration(
+          'selectionRange', {Method.textDocument_selectionRange});
+
+  Future<void> test_dynamicRegistration_config_semanticTokens() =>
+      assertDynamicRegistration(
+          'semanticTokens', {CustomMethods.semanticTokenDynamicRegistration});
+
+  Future<void> test_dynamicRegistration_config_signatureHelp() =>
+      assertDynamicRegistration(
+          'signatureHelp', {Method.textDocument_signatureHelp});
+
+  Future<void> test_dynamicRegistration_config_synchronization() =>
+      assertDynamicRegistration('synchronization', {
+        Method.textDocument_didOpen,
+        Method.textDocument_didChange,
+        Method.textDocument_didClose
+      });
+
+  Future<void> test_dynamicRegistration_config_typeDefinition() =>
+      assertDynamicRegistration(
+          'typeDefinition', {Method.textDocument_typeDefinition});
+
+  Future<void> test_dynamicRegistration_config_typeHierarchy() =>
+      assertDynamicRegistration(
+          'typeHierarchy', {Method.textDocument_prepareTypeHierarchy});
+
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
@@ -353,22 +465,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.semanticTokensProvider, isNotNull);
 
     expect(didGetRegisterCapabilityRequest, isFalse);
-  }
-
-  Future<void> test_dynamicRegistration_onlyForClientSupportedMethods() async {
-    // Check that when the server calls client/registerCapability it only includes
-    // the items we advertised dynamic registration support for.
-    final registrations = <Registration>[];
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(
-          textDocumentCapabilities: withHoverDynamicRegistration(
-              emptyTextDocumentClientCapabilities)),
-    );
-
-    expect(registrations, hasLength(1));
-    expect(registrations.single.method,
-        equals(Method.textDocument_hover.toJson()));
   }
 
   Future<void> test_dynamicRegistration_suppressesStaticRegistration() async {

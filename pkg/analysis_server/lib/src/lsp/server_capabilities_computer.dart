@@ -57,7 +57,7 @@ class ClientDynamicRegistrations {
       _capabilities.textDocument?.callHierarchy?.dynamicRegistration ?? false;
 
   bool get codeActions =>
-      _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
+      _capabilities.textDocument?.codeAction?.dynamicRegistration ?? false;
 
   bool get colorProvider =>
       _capabilities.textDocument?.colorProvider?.dynamicRegistration ?? false;
