@@ -1360,8 +1360,8 @@ body div {
 
       function run(url) {
         number_of_tests++;
-        number_div.innerHTML = number_of_tests;
-        executing_div.innerHTML = url;
+        number_div.textContent = number_of_tests;
+        executing_div.textContent = url;
         if (use_iframe) {
           embedded_iframe.onload = null;
           embedded_iframe_div.removeChild(embedded_iframe);

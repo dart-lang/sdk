@@ -79,7 +79,7 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
         ..children = <Element>[]
         ..children.addAll(content)
         ..children.add(new ButtonElement()
-          ..innerHtml = '&times;'
+          ..text = '×'
           ..onClick.map(_toEvent).listen(_delete))
     ];
   }

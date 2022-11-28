@@ -79,7 +79,7 @@ class NavNotifyExceptionElement extends CustomElement implements Renderable {
             ..text = 'Connect to a different VM',
           new SpanElement()..text = ']',
           new ButtonElement()
-            ..innerHtml = '&times;'
+            ..text = '×'
             ..onClick.map(_toEvent).listen(_delete)
         ]
     ];
@@ -109,7 +109,7 @@ class NavNotifyExceptionElement extends CustomElement implements Renderable {
         ..text = 'Connect to a different VM',
       new SpanElement()..text = ']',
       new ButtonElement()
-        ..innerHtml = '&times;'
+        ..text = '×'
         ..onClick.map(_toEvent).listen(_delete)
     ]);
     children = <Element>[new DivElement()..children = content];

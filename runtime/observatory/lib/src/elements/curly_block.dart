@@ -80,9 +80,7 @@ class CurlyBlockElement extends CustomElement implements Renderable {
     List<Element> content = <Element>[new SpanElement()..text = '{'];
     SpanElement label = new SpanElement()
       ..classes = disabled ? ['curly-block', 'disabled'] : ['curly-block']
-      ..innerHtml = expanded
-          ? '&nbsp;&nbsp;&#8863;&nbsp;&nbsp;'
-          : '&nbsp;&nbsp;&#8862;&nbsp;&nbsp;';
+     ..text = expanded ? '\xa0\xa0⊟\xa0\xa0' : '\xa0\xa0⊞\xa0\xa0';
     if (disabled) {
       content.add(label);
     } else {

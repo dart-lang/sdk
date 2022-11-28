@@ -498,7 +498,7 @@ void loadNavigationTree() async {
   try {
     final response = (await doGet<List<Object?>>(path))!;
     var navTree = document.querySelector('.nav-tree')!;
-    navTree.innerHtml = '';
+    navTree.text = '';
     navigationTree = NavigationTreeNode.listFromJson(response);
     writeNavigationSubtree(navTree, navigationTree!,
         enablePartialMigration: true);
@@ -614,7 +614,7 @@ String pluralize(int count, String single, {String? multiple}) {
 
 void populateEditDetails([EditDetails? response]) {
   // Clear out any current edit details.
-  editPanel!.innerHtml = '';
+  editPanel!.text = '';
   if (response == null) {
     Element p = ParagraphElement()
       ..text = 'See details about a proposed edit.'
@@ -647,7 +647,7 @@ void populateEditDetails([EditDetails? response]) {
 /// Write the contents of the Edit List, from JSON data [editListData].
 void populateProposedEdits(
     String path, Map<String, List<EditListItem>> edits, bool clearEditDetails) {
-  editListElement!.innerHtml = '';
+  editListElement!.text = '';
 
   var editCount = edits.length;
 
@@ -929,7 +929,7 @@ void writeNavigationSubtree(
       Element arrow = document.createElement('span');
       li.append(arrow);
       arrow.classes.add('arrow');
-      arrow.innerHtml = '&#x25BC;';
+      arrow.text = '\u25BC';
       var folderIcon = createIcon('folder_open');
       li.append(folderIcon);
       li.append(Text(entity.name!));
