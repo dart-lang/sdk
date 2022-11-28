@@ -122,7 +122,6 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   const Function& function =
       Function::CheckedHandle(zone, arguments->NativeArg0());
 
@@ -164,7 +163,7 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   }
 #endif
 
-  return Pointer::New(type_arg, entry_point);
+  return Pointer::New(entry_point);
 }
 
 DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {

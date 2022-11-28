@@ -4,7 +4,7 @@
 
 library dart.wasm;
 
-// A collection a special Dart tytpes that are mapped directly to Wasm types
+// A collection a special Dart types that are mapped directly to Wasm types
 // by the dart2wasm compiler. These types have a number of constraints:
 //
 // - They can only be used directly as types of local variables, fields, or

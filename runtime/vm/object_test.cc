@@ -5154,10 +5154,7 @@ static void NativeFinalizer_TwoEntriesCrossGen(
     queue_length_start = aq.queue()->Length();
   }
 
-  ObjectStore* object_store = thread->isolate_group()->object_store();
-  const auto& void_type = Type::Handle(object_store->never_type());
   const auto& callback = Pointer::Handle(Pointer::New(
-      void_type,
       reinterpret_cast<uword>(&NativeFinalizer_TwoEntriesCrossGen_Finalizer),
       spaces[3]));
 
@@ -5195,14 +5192,14 @@ static void NativeFinalizer_TwoEntriesCrossGen(
 
   auto& value1 = String::Handle();
   auto& detach1 = String::Handle();
-  const auto& token1 = Pointer::Handle(Pointer::New(
-      void_type, reinterpret_cast<uword>(&token1_memory), spaces[3]));
+  const auto& token1 = Pointer::Handle(
+      Pointer::New(reinterpret_cast<uword>(&token1_memory), spaces[3]));
   entry1.set_token(token1);
 
   auto& value2 = String::Handle();
   auto& detach2 = String::Handle();
-  const auto& token2 = Pointer::Handle(Pointer::New(
-      void_type, reinterpret_cast<uword>(&token2_memory), spaces[4]));
+  const auto& token2 = Pointer::Handle(
+      Pointer::New(reinterpret_cast<uword>(&token2_memory), spaces[4]));
   entry2.set_token(token2);
   entry2.set_detach(detach2);
 

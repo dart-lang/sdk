@@ -285,8 +285,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Converts 0 to false and the rest to true.
   Fragment IntToBool();
 
-  // Creates an ffi.Pointer holding a given address (TOS).
-  Fragment FfiPointerFromAddress(const Type& result_type);
+  // Creates an ffi.Pointer holding a given address.
+  Fragment FfiPointerFromAddress();
 
   // Pushes an (unboxed) bogus value returned when a native -> Dart callback
   // throws an exception.

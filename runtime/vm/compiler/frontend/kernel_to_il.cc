@@ -1324,29 +1324,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body +=
           Box(LoadIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
       if (kind == MethodRecognizer::kFfiLoadPointer) {
-        const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kPointerCid));
         const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
+            Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+        const auto& type_arguments = TypeArguments::ZoneHandle(
+            Z, IG->object_store()->type_argument_never());
 
-        // We find the reified type to use for the pointer allocation.
-        //
-        // Call sites to this recognized method are guaranteed to pass a
-        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
-        // will return a Pointer<X> object - for which we inspect the
-        // reified type on the argument.
-        //
-        // The following is safe to do, as (1) we are guaranteed to have a
-        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
-        // type parameter guarantees X is an interface type.
+        // We do not reify Pointer type arguments
         ASSERT(function.NumTypeParameters() == 1);
         LocalVariable* address = MakeTemporary();
-        body += LoadLocal(parsed_function_->RawParameterVariable(0));
-        body += LoadNativeField(
-            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
-        body += LoadNativeField(Slot::GetTypeArgumentsIndexSlot(
-            thread_, Pointer::kNativeTypeArgPos));
-        body += LoadNativeField(Slot::Type_arguments());
+        body += Constant(type_arguments);
         body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
         LocalVariable* pointer = MakeTemporary();
         body += LoadLocal(pointer);
@@ -1380,37 +1366,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
       LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
-
-      if (kind == MethodRecognizer::kFfiStorePointer) {
-        // Do type check before anything untagged is on the stack.
-        const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kPointerCid));
-        const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
-        const auto& pointer_type_param =
-            TypeParameter::ZoneHandle(pointer_class.TypeParameterAt(0));
-
-        // But we type check it as a method on a generic class at runtime.
-        body += LoadLocal(arg_value);          // value.
-        body += Constant(pointer_type_param);  // dst_type.
-        // We pass the Pointer type argument as instantiator_type_args.
-        //
-        // Call sites to this recognized method are guaranteed to pass a
-        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
-        // will takes a Pointer<X> object - for which we inspect the
-        // reified type on the argument.
-        //
-        // The following is safe to do, as (1) we are guaranteed to have a
-        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
-        // type parameter guarantees X is an interface type.
-        body += LoadLocal(arg_pointer);
-        body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
-        body += LoadNativeField(
-            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
-        body += NullConstant();  // function_type_args.
-        body += AssertAssignable(TokenPosition::kNoSource, Symbols::Empty());
-        body += Drop();
-      }
 
       ASSERT_EQUAL(function.NumParameters(), 3);
       body += LoadLocal(arg_offset);
@@ -1448,14 +1403,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiFromAddress: {
-      const auto class_table = thread_->isolate_group()->class_table();
-      ASSERT(class_table->HasValidClassAt(kPointerCid));
       const auto& pointer_class =
-          Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
+          Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+      const auto& type_arguments = TypeArguments::ZoneHandle(
+          Z, IG->object_store()->type_argument_never());
 
       ASSERT(function.NumTypeParameters() == 1);
       ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
+      body += Constant(type_arguments);
       body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
       body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
@@ -4306,15 +4261,17 @@ Fragment FlowGraphBuilder::NativeReturn(
   return Fragment(instr).closed();
 }
 
-Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
+Fragment FlowGraphBuilder::FfiPointerFromAddress() {
   LocalVariable* address = MakeTemporary();
   LocalVariable* result = parsed_function_->expression_temp_var();
 
-  Class& result_class = Class::ZoneHandle(Z, result_type.type_class());
+  Class& result_class =
+      Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
   // This class might only be instantiated as a return type of ffi calls.
   result_class.EnsureIsFinalized(thread_);
 
-  TypeArguments& args = TypeArguments::ZoneHandle(Z, result_type.arguments());
+  TypeArguments& args =
+      TypeArguments::ZoneHandle(Z, IG->object_store()->type_argument_never());
 
   // A kernel transform for FFI in the front-end ensures that type parameters
   // do not appear in the type arguments to a any Pointer classes in an FFI
@@ -4656,8 +4613,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
-    body += FfiPointerFromAddress(
-        Type::CheckedHandle(Z, marshaller.CType(arg_index)));
+    body += FfiPointerFromAddress();
   } else if (marshaller.IsHandle(arg_index)) {
     body += UnwrapHandle();
   } else if (marshaller.IsVoid(arg_index)) {

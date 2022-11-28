@@ -89,6 +89,13 @@
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`ServiceExtensionResponse`]: https://api.dart.dev/stable/2.17.6/dart-developer/ServiceExtensionResponse-class.html#constants
 
+#### `dart:ffi`
+
+- **Breaking change** [#49935][]:  The runtime type argument of `Pointer` has
+  changed to `Never` in preparation of completely removing the runtime type
+  argument. `Pointer.toString` has changed to not report any type argument.
+
+[#49935]: https://github.com/dart-lang/sdk/issues/49935
 
 #### `dart:html`
 
