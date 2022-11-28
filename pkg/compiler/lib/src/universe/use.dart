@@ -652,7 +652,7 @@ class StaticUse {
 
   /// Inlining of [element].
   factory StaticUse.methodInlining(
-      FunctionEntity element, List<DartType> typeArguments) {
+      FunctionEntity element, List<DartType>? typeArguments) {
     return StaticUse.internal(element, StaticUseKind.INLINING,
         typeArguments: typeArguments);
   }

@@ -54,7 +54,7 @@ class SsaOptimizerTask extends CompilerTask {
 
   Map<HInstruction, Range> ranges = {};
 
-  Map<MemberEntity, OptimizationTestLog> loggersForTesting;
+  final Map<MemberEntity, OptimizationTestLog> loggersForTesting = {};
 
   SsaOptimizerTask(Measurer measurer, this._options) : super(measurer);
 
@@ -64,7 +64,7 @@ class SsaOptimizerTask extends CompilerTask {
   void optimize(
       MemberEntity member,
       HGraph graph,
-      CodegenInputs codegen,
+      CodegenInputs /*!*/ codegen,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenRegistry registry,
@@ -85,9 +85,8 @@ class SsaOptimizerTask extends CompilerTask {
 
     OptimizationTestLog log;
     if (retainDataForTesting) {
-      loggersForTesting ??= {};
-      loggersForTesting[member] =
-          log = OptimizationTestLog(closedWorld.dartTypes);
+      log = loggersForTesting[member] =
+          OptimizationTestLog(closedWorld.dartTypes);
     }
 
     measure(() {
@@ -340,13 +339,13 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     // Is [block] the join point for a simple diamond that generates a single
     // phi node?
     if (block.phis.isEmpty) return;
-    HPhi phi = block.phis.first;
+    HPhi phi = block.phis.first as HPhi;
     if (phi.next != null) return;
     if (block.predecessors.length != 2) return;
     assert(phi.inputs.length == 2);
     HBasicBlock b1 = block.predecessors[0];
     HBasicBlock b2 = block.predecessors[1];
-    HBasicBlock dominator = block.dominator;
+    HBasicBlock /*!*/ dominator = block.dominator;
     if (!(b1.dominator == dominator && b2.dominator == dominator)) return;
 
     // Extract the controlling condition.
@@ -543,7 +542,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         if (user == checkedLoad) continue;
         assert(user is HLocalGet && user.local == node);
         if (assignment != null && !assignment.dominates(user)) return node;
-        loads.add(user);
+        loads.add(user as HLocalGet);
       }
 
       for (HLocalGet user in loads) {
@@ -595,18 +594,23 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
+
+    if (actualReceiver is HConstant) {
+      ConstantValue constant = actualReceiver.constant;
+      if (constant is StringConstantValue) {
+        return _graph.addConstantInt(constant.length, _closedWorld);
+      }
+      if (constant is ListConstantValue) {
+        return _graph.addConstantInt(constant.length, _closedWorld);
+      }
+      if (constant is MapConstantValue) {
+        return _graph.addConstantInt(constant.length, _closedWorld);
+      }
+    }
+
     if (actualReceiver
         .isIndexablePrimitive(_abstractValueDomain)
         .isDefinitelyTrue) {
-      if (actualReceiver.isConstantString()) {
-        HConstant constantInput = actualReceiver;
-        StringConstantValue constant = constantInput.constant;
-        return _graph.addConstantInt(constant.length, _closedWorld);
-      } else if (actualReceiver.isConstantList()) {
-        HConstant constantInput = actualReceiver;
-        ListConstantValue constant = constantInput.constant;
-        return _graph.addConstantInt(constant.length, _closedWorld);
-      }
       bool isFixed =
           isFixedLength(actualReceiver.instructionType, _closedWorld);
       AbstractValue actualType = node.instructionType;
@@ -636,10 +640,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       HGetLength result =
           HGetLength(checkedReceiver, resultType, isAssignable: !isFixed);
       return result;
-    } else if (actualReceiver.isConstantMap()) {
-      HConstant constantInput = actualReceiver;
-      MapConstantValue constant = constantInput.constant;
-      return _graph.addConstantInt(constant.length, _closedWorld);
     }
     return null;
   }
@@ -648,12 +648,17 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     // Try constant folding the instruction.
     constant_system.Operation operation = node.specializer.operation();
     if (operation != null) {
-      HInstruction instruction = node.inputs.length == 2
-          ? foldUnary(operation, node.inputs[1])
-          : foldBinary(operation, node.inputs[1], node.inputs[2]);
-      if (instruction != null) {
+      HInstruction folded;
+      if (operation is constant_system.UnaryOperation) {
+        assert(node.inputs.length == 2);
+        folded = foldUnary(operation, node.inputs[1]);
+      } else if (operation is constant_system.BinaryOperation) {
+        assert(node.inputs.length == 3);
+        folded = foldBinary(operation, node.inputs[1], node.inputs[2]);
+      }
+      if (folded != null) {
         _metrics.countOperationFolded.add();
-        return instruction;
+        return folded;
       }
     }
 
@@ -814,7 +819,8 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         // If we found out that the only target is an implicitly called
         // `noSuchMethod` we just ignore it.
         node.selector.applies(element)) {
-      FunctionEntity method = element;
+      // `.isFunction` implies FunctionEntity, but not vice-versa.
+      FunctionEntity method = element as FunctionEntity;
 
       if (_nativeData.isNativeMember(method)) {
         return tryInlineNativeMethod(node, method) ?? node;
@@ -858,18 +864,21 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
             node.block.addBefore(node, check);
             insertionPoint = check;
           }
-          ConstantValue value = fieldData.constantValue;
-          load = _graph.addConstant(value, _closedWorld,
+          HConstant constant = _graph.addConstant(
+              fieldData.constantValue, _closedWorld,
               sourceInformation: node.sourceInformation);
-          _log?.registerConstantFieldCall(node, field, load);
+          _log?.registerConstantFieldCall(node, field, constant);
+          load = constant;
         } else {
           AbstractValue type = AbstractValueFactory.inferredTypeForMember(
               field, _globalInferenceResults);
-          load = HFieldGet(field, receiver, type, node.sourceInformation,
+          HFieldGet fieldGet = HFieldGet(
+              field, receiver, type, node.sourceInformation,
               isAssignable: field.isAssignable);
-          _log?.registerFieldCall(node, load);
-          node.block.addBefore(node, load);
-          insertionPoint = load;
+          _log?.registerFieldCall(node, fieldGet);
+          node.block.addBefore(node, fieldGet);
+          insertionPoint = fieldGet;
+          load = fieldGet;
         }
         Selector callSelector = Selector.callClosureFrom(node.selector);
         List<HInstruction> inputs = [
@@ -1067,14 +1076,18 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitBoundsCheck(HBoundsCheck node) {
+    // TODO(sra): Remove all this code. It marks a bounds check where the index
+    // is a non-integer as always failing. We can still get a non-integer index
+    // with non-sound null safety (1) with legacy code where the index is `null`
+    // (2) when we lower `[]` from a dynamic call and omit the argument type
+    // check (e.g. under -O3).
     HInstruction index = node.index;
     if (index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
       return node;
     }
-    if (index.isConstant()) {
-      HConstant constantInstruction = index;
-      assert(constantInstruction.constant is! IntConstantValue);
-      if (!constant_system.isInt(constantInstruction.constant)) {
+    if (index is HConstant) {
+      assert(index.constant is! IntConstantValue);
+      if (!constant_system.isInt(index.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
         node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
       }
@@ -1082,12 +1095,11 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     return node;
   }
 
-  HInstruction foldBinary(constant_system.BinaryOperation operation,
+  HConstant /*?*/ foldBinary(constant_system.BinaryOperation operation,
       HInstruction left, HInstruction right) {
     if (left is HConstant && right is HConstant) {
-      HConstant op1 = left;
-      HConstant op2 = right;
-      ConstantValue folded = operation.fold(op1.constant, op2.constant);
+      ConstantValue /*?*/ folded =
+          operation.fold(left.constant, right.constant);
       if (folded != null) return _graph.addConstant(folded, _closedWorld);
     }
     return null;
@@ -1145,6 +1157,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
+    // TODO(sra): The above is probably no longer true.
     if (!(left.isNumberOrNull(_abstractValueDomain).isDefinitelyTrue &&
         right.isNumberOrNull(_abstractValueDomain).isDefinitelyTrue)) {
       if (_abstractValueDomain
@@ -1159,23 +1172,27 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       return makeTrue();
     }
 
-    HInstruction compareConstant(HConstant constant, HInstruction input) {
-      if (constant.constant is TrueConstantValue) {
-        return input;
-      } else {
-        return HNot(input, _abstractValueDomain.boolType);
+    // `x == true` --> `x`
+    // `x == false` --> `!x`
+    HInstruction /*?*/ tryCompareConstant(
+        HConstant constantInput, HInstruction otherInput) {
+      final constant = constantInput.constant;
+      if (constant is BoolConstantValue &&
+          otherInput.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
+        return constant.boolValue
+            ? otherInput
+            : HNot(otherInput, _abstractValueDomain.boolType);
       }
+      return null;
     }
 
-    if (left.isConstantBoolean() &&
-        right.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
-      return compareConstant(left, right);
+    HInstruction replacement;
+    if (left is HConstant) {
+      replacement = tryCompareConstant(left, right);
+    } else if (right is HConstant) {
+      replacement = tryCompareConstant(right, left);
     }
-
-    if (right.isConstantBoolean() &&
-        left.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
-      return compareConstant(right, left);
-    }
+    if (replacement != null) return replacement;
 
     if (identical(left.nonCheck(), right.nonCheck())) {
       // Avoid constant-folding `identical(x, x)` when `x` might be double.  The
@@ -1320,7 +1337,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   @override
   HInstruction visitIf(HIf node) {
     HInstruction condition = node.condition;
-    if (condition.isConstant()) return node;
+    if (condition is HConstant) return node;
 
     AbstractBool isTruthy =
         _abstractValueDomain.isTruthy(condition.instructionType);
@@ -1463,18 +1480,16 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   HInstruction visitGetLength(HGetLength node) {
     HInstruction receiver = node.receiver;
 
-    if (receiver.isConstantList()) {
-      HConstant constantReceiver = receiver;
-      ListConstantValue constant = constantReceiver.constant;
-      _metrics.countGetLengthFolded.add();
-      return _graph.addConstantInt(constant.length, _closedWorld);
-    }
-
-    if (receiver.isConstantString()) {
-      HConstant constantReceiver = receiver;
-      StringConstantValue constant = constantReceiver.constant;
-      _metrics.countGetLengthFolded.add();
-      return _graph.addConstantInt(constant.length, _closedWorld);
+    if (receiver is HConstant) {
+      ConstantValue constant = receiver.constant;
+      if (constant is ListConstantValue) {
+        _metrics.countGetLengthFolded.add();
+        return _graph.addConstantInt(constant.length, _closedWorld);
+      }
+      if (constant is StringConstantValue) {
+        _metrics.countGetLengthFolded.add();
+        return _graph.addConstantInt(constant.length, _closedWorld);
+      }
     }
 
     AbstractValue receiverType = receiver.instructionType;
@@ -1626,7 +1641,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     return node;
   }
 
-  HInstruction _directFieldGet(
+  HFieldGet _directFieldGet(
       HInstruction receiver, FieldEntity field, HInstruction node) {
     bool isAssignable = !_closedWorld.fieldNeverChanges(field);
 
@@ -1858,25 +1873,29 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     //     "L" + "R"             ->  "LR"
     //     (prefix + "L") + "R"  ->  prefix + "LR"
     //
-    StringConstantValue getString(HInstruction instruction) {
-      if (!instruction.isConstantString()) return null;
-      HConstant constant = instruction;
-      return constant.constant;
+    StringConstantValue /*?*/ getString(HInstruction instruction) {
+      if (instruction is HConstant) {
+        final constant = instruction.constant;
+        if (constant is StringConstantValue) return constant;
+      }
+      return null;
     }
 
-    StringConstantValue leftString = getString(node.left);
+    final left = node.left;
+    final right = node.right;
+    StringConstantValue leftString = getString(left);
     if (leftString != null && leftString.stringValue.length == 0) {
-      return node.right;
+      return right;
     }
 
-    StringConstantValue rightString = getString(node.right);
+    StringConstantValue rightString = getString(right);
     if (rightString == null) return node;
-    if (rightString.stringValue.length == 0) return node.left;
+    if (rightString.stringValue.length == 0) return left;
 
     HInstruction prefix = null;
     if (leftString == null) {
-      if (node.left is! HStringConcat) return node;
-      HStringConcat leftConcat = node.left;
+      if (left is! HStringConcat) return node;
+      HStringConcat leftConcat = left;
       // Don't undo CSE.
       if (leftConcat.usedBy.length != 1) return node;
       prefix = leftConcat.left;
@@ -1908,26 +1927,27 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         _graph.addConstant(constant_system.createString(string), _closedWorld);
 
     HInstruction tryConstant() {
-      if (!input.isConstant()) return null;
-      HConstant constant = input;
-      ConstantValue value = constant.constant;
-      if (value is IntConstantValue) {
-        // Only constant-fold int.toString() when Dart and JS results the same.
-        // TODO(18103): We should be able to remove this work-around when issue
-        // 18103 is resolved by providing the correct string.
-        if (!value.isUInt32()) return null;
-        return asString('${value.intValue}');
-      }
-      if (value is BoolConstantValue) {
-        return asString(value.boolValue ? 'true' : 'false');
-      }
-      if (value is NullConstantValue) {
-        return asString('null');
-      }
-      if (value is DoubleConstantValue) {
-        // TODO(sra): It seems unlikely that all dart2js host implementations
-        // produce exactly the same characters as all JavaScript targets.
-        return asString('${value.doubleValue}');
+      if (input is HConstant) {
+        ConstantValue value = input.constant;
+        if (value is IntConstantValue) {
+          // Only constant-fold int.toString() when Dart and JS results the
+          // same.
+          // TODO(18103): We should be able to remove this work-around when
+          // issue 18103 is resolved by providing the correct string.
+          if (!value.isUInt32()) return null;
+          return asString('${value.intValue}');
+        }
+        if (value is BoolConstantValue) {
+          return asString(value.boolValue ? 'true' : 'false');
+        }
+        if (value is NullConstantValue) {
+          return asString('null');
+        }
+        if (value is DoubleConstantValue) {
+          // TODO(sra): It seems unlikely that all dart2js host implementations
+          // produce exactly the same characters as all JavaScript targets.
+          return asString('${value.doubleValue}');
+        }
       }
       return null;
     }
@@ -2072,7 +2092,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {
-      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      // Always a TypeExpressionRecipe, otherwise 'as' is malformed.
+      TypeExpressionRecipe recipe =
+          typeInput.typeExpression as TypeExpressionRecipe;
       node.checkedTypeExpression = recipe.type;
     }
 
@@ -2081,7 +2103,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     }
 
     // See if this check can be lowered to a simple one.
-    MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
+    FunctionEntity specializedCheck = SpecializedChecks.findAsCheck(
         node.checkedTypeExpression,
         _closedWorld.commonElements,
         _options.useLegacySubtyping);
@@ -2111,7 +2133,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   HInstruction visitIsTest(HIsTest node) {
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {
-      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      // Always a TypeExpressionRecipe, otherwise 'is' is malformed.
+      TypeExpressionRecipe recipe =
+          typeInput.typeExpression as TypeExpressionRecipe;
       node.dartType = recipe.type;
     }
 
@@ -2454,7 +2478,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   final JClosedWorld closedWorld;
   final SsaOptimizerTask optimizer;
-  HGraph _graph;
+  /*late final*/ HGraph _graph;
   Map<HInstruction, bool> trivialDeadStoreReceivers = Maplet();
   bool eliminatedSideEffects = false;
   bool newGvnCandidates = false;
@@ -2479,7 +2503,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (!instruction.onlyThrowsNSM()) return false;
 
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
-    HInstruction current = instruction.next;
+    HInstruction /*?*/ current = instruction.next;
     do {
       if ((current.getDartReceiver(closedWorld) == receiver) &&
           current.canThrow(_abstractValueDomain)) {
@@ -2676,10 +2700,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void simplifyControlFlow(HBasicBlock block) {
-    HControlFlow instruction = block.last;
+    HInstruction instruction = block.last;
     if (instruction is HIf) {
       HInstruction condition = instruction.condition;
-      if (condition.isConstant()) return;
+      if (condition is HConstant) return;
 
       // We want to remove an if-then-else diamond when the then- and else-
       // branches are empty and the condition does not control a HPhi. We cannot
@@ -2730,10 +2754,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   // TODO(29475): Delete dead blocks instead.
   void evacuateTakenBranch(HBasicBlock block) {
     if (!block.isLive) return;
-    HControlFlow branch = block.last;
+    HInstruction branch = block.last;
     if (branch is HIf) {
       if (branch.thenBlock.isLive == branch.elseBlock.isLive) return;
-      assert(branch.condition.isConstant());
+      assert(branch.condition is HConstant);
       HBasicBlock liveSuccessor =
           branch.thenBlock.isLive ? branch.thenBlock : branch.elseBlock;
       HInstruction instruction = liveSuccessor.first;
@@ -2809,7 +2833,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor<void> {
   @override
   void visitIf(HIf instruction) {
     HInstruction condition = instruction.condition;
-    if (condition.isConstant()) {
+    if (condition is HConstant) {
       if (condition.isConstantTrue()) {
         markBlockLive(instruction.thenBlock);
       } else {
@@ -2824,28 +2848,34 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor<void> {
   void visitSwitch(HSwitch node) {
     if (node.expression.isInteger(_abstractValueDomain).isDefinitelyTrue) {
       Range switchRange = ranges[node.expression];
-      if (switchRange != null &&
-          switchRange.lower is IntValue &&
-          switchRange.upper is IntValue) {
-        IntValue lowerValue = switchRange.lower;
-        IntValue upperValue = switchRange.upper;
-        BigInt lower = lowerValue.value;
-        BigInt upper = upperValue.value;
-        Set<BigInt> liveLabels = {};
-        for (int pos = 1; pos < node.inputs.length; pos++) {
-          HConstant input = node.inputs[pos];
-          if (!input.isConstantInteger()) continue;
-          IntConstantValue constant = input.constant;
-          BigInt label = constant.intValue;
-          if (!liveLabels.contains(label) && label <= upper && label >= lower) {
-            markBlockLive(node.block.successors[pos - 1]);
-            liveLabels.add(label);
+      if (switchRange != null) {
+        final lowerValue = switchRange.lower;
+        final upperValue = switchRange.upper;
+        if (lowerValue is IntValue && upperValue is IntValue) {
+          BigInt lower = lowerValue.value;
+          BigInt upper = upperValue.value;
+          Set<BigInt> liveLabels = {};
+          for (int pos = 1; pos < node.inputs.length; pos++) {
+            HConstant input = node.inputs[pos] as HConstant;
+            final constant = input.constant;
+            if (constant is! IntConstantValue) {
+              // The switch expression is an integer but the constant is not, so
+              // the target block is unreachable.
+              continue;
+            }
+            BigInt label = (constant as IntConstantValue).intValue;
+            if (!liveLabels.contains(label) &&
+                label <= upper &&
+                label >= lower) {
+              markBlockLive(node.block.successors[pos - 1]);
+              liveLabels.add(label);
+            }
           }
+          if (BigInt.from(liveLabels.length) != upper - lower + BigInt.one) {
+            markBlockLive(node.defaultTarget);
+          }
+          return;
         }
-        if (BigInt.from(liveLabels.length) != upper - lower + BigInt.one) {
-          markBlockLive(node.defaultTarget);
-        }
-        return;
       }
     }
     visitControlFlow(node);
@@ -3137,12 +3167,11 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 
   void computeChangesFlags(HGraph graph) {
     // Create the changes flags lists. Make sure to initialize the
-    // loop changes flags list to zero so we can use bitwise or when
+    // loop changes flags list to zero so we can use bitwise-or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = List<int>.filled(length, null);
-    loopChangesFlags = List<int>.filled(length, null);
-    for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
+    blockChangesFlags = List<int>.filled(length, -1);
+    loopChangesFlags = List<int>.filled(length, 0);
 
     // Run through all the basic blocks in the graph and fill in the
     // changes flags lists.
@@ -3157,7 +3186,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         changesFlags |= instruction.sideEffects.getChangesFlags();
         instruction = instruction.next;
       }
-      assert(blockChangesFlags[id] == null);
+      assert(blockChangesFlags[id] == -1);
       blockChangesFlags[id] = changesFlags;
 
       // Loop headers are part of their loop, so update the loop
@@ -3216,16 +3245,13 @@ class SsaCodeMotion extends HBaseVisitor<void> implements OptimizationPhase {
   final String name = "SsaCodeMotion";
 
   bool movedCode = false;
-  List<ValueSet> values;
+  /*late final*/ List<ValueSet> values;
 
   SsaCodeMotion(this._abstractValueDomain);
 
   @override
   void visitGraph(HGraph graph) {
-    values = List<ValueSet>.filled(graph.blocks.length, null);
-    for (int i = 0; i < graph.blocks.length; i++) {
-      values[graph.blocks[i].id] = ValueSet();
-    }
+    values = List.generate(graph.blocks.length, (_) => ValueSet());
     visitPostDominatorTree(graph);
   }
 
@@ -3849,15 +3875,21 @@ class MemorySet {
   /// instance methods, or a [MemoryFeature] for `length` access on
   /// `JSIndexable`.
   ///
+  /// The receiver is `null` for static and top-level fields.
+  ///
+  /// Sometimes `null` is stored in the map instead of deleting an entry to
+  /// avoid ConcurrentModificationError.
   // TODO(25544): Split length effects from other effects and model lengths
   // separately.
   final Map<Object /*MemberEntity|MemoryFeature*/,
-      Map<HInstruction, HInstruction>> fieldValues = {};
+      Map<HInstruction /*?*/, HInstruction /*?*/ >> fieldValues = {};
 
   /// Maps a receiver to a map of keys to value.
-  final Map<HInstruction, Map<HInstruction, HInstruction>> keyedValues = {};
+  final Map<HInstruction, Map<HInstruction, HInstruction /*?*/ >> keyedValues =
+      {};
 
-  /// Set of objects that we know don't escape the current function.
+  /// Set of objects that we know don't escape (or have not yet escaped) the
+  /// current function.
   final Setlet<HInstruction> nonEscapingReceivers = Setlet();
 
   MemorySet(this.closedWorld);
@@ -3942,7 +3974,7 @@ class MemorySet {
     assert(field is MemberEntity || field is MemoryFeature,
         "Unexpected member/feature: $field");
     assert(receiver == null || receiver == receiver.nonCheck());
-    if (closedWorld.nativeData.isNativeMember(field)) {
+    if (field is MemberEntity && closedWorld.nativeData.isNativeMember(field)) {
       return false; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from the
@@ -3995,6 +4027,8 @@ class MemorySet {
 
     if (instruction.sideEffects.changesInstanceProperty() ||
         instruction.sideEffects.changesStaticProperty()) {
+      // TODO(sra): Be more precise about removing only instance or static
+      // properties.
       List<HInstruction> receiversToRemove = [];
 
       List<Object> fieldsToRemove;
@@ -4211,13 +4245,11 @@ class MemorySet {
     MemorySet result = MemorySet(closedWorld);
 
     fieldValues.forEach((element, values) {
-      result.fieldValues[element] =
-          Map<HInstruction, HInstruction>.from(values);
+      result.fieldValues[element] = Map<HInstruction, HInstruction>.of(values);
     });
 
     keyedValues.forEach((receiver, values) {
-      result.keyedValues[receiver] =
-          Map<HInstruction, HInstruction>.from(values);
+      result.keyedValues[receiver] = Map<HInstruction, HInstruction>.of(values);
     });
 
     result.nonEscapingReceivers.addAll(nonEscapingReceivers);

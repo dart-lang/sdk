@@ -1387,14 +1387,11 @@ abstract class HInstruction implements SpannableWithEntity {
     block = other.block;
   }
 
-  bool isConstant() => false;
   bool isConstantBoolean() => false;
   bool isConstantNull() => false;
   bool isConstantNumber() => false;
   bool isConstantInteger() => false;
   bool isConstantString() => false;
-  bool isConstantList() => false;
-  bool isConstantMap() => false;
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
 
@@ -2953,8 +2950,6 @@ class HConstant extends HInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitConstant(this);
 
   @override
-  bool isConstant() => true;
-  @override
   bool isConstantBoolean() => constant is BoolConstantValue;
   @override
   bool isConstantNull() => constant is NullConstantValue;
@@ -2964,10 +2959,6 @@ class HConstant extends HInstruction {
   bool isConstantInteger() => constant is IntConstantValue;
   @override
   bool isConstantString() => constant is StringConstantValue;
-  @override
-  bool isConstantList() => constant is ListConstantValue;
-  @override
-  bool isConstantMap() => constant is MapConstantValue;
   @override
   bool isConstantFalse() => constant is FalseConstantValue;
   @override
@@ -2986,7 +2977,7 @@ class HConstant extends HInstruction {
     // Only lists can be specialized. The SSA builder uses the
     // inferrer for finding the type of a constant list. We should
     // have the constant know its type instead.
-    if (!isConstantList()) return;
+    if (constant is! ListConstantValue) return;
     super.instructionType = type;
   }
 }

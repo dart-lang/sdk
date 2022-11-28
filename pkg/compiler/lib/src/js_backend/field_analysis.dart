@@ -576,7 +576,8 @@ class JFieldAnalysis {
   // TODO(sra): Add way to let injected fields be initialized to a constant in
   // allocator.
 
-  FieldAnalysisData getFieldData(JField field) {
+  FieldAnalysisData getFieldData(FieldEntity field) {
+    assert(field is JField);
     return _fieldData[field] ?? const FieldAnalysisData();
   }
 }
