@@ -1765,6 +1765,52 @@ class C<T> {
 }
 {% endprettify %}
 
+### body_might_complete_normally_catch_error
+
+_This 'onError' handler must return a value assignable to '{0}', but ends
+without returning a value._
+
+#### Description
+
+The analyzer produces this diagnostic when the closure passed to the
+`onError` parameter of the `Future.catchError` method is required to
+return a non-`null` value (because of the `Future`s type argument) but can
+implicitly return `null`.
+
+#### Example
+
+The following code produces this diagnostic because the closure passed to
+the `catchError` method is required to return an `int` but doesn't end
+with an explicit `return`, causing it to implicitly return `null`:
+
+{% prettify dart tag=pre+code %}
+void g(Future<int> f) {
+  f.catchError((e, st) [!{!]});
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the closure should sometimes return a non-`null` value, then add an
+explicit return to the closure:
+
+{% prettify dart tag=pre+code %}
+void g(Future<int> f) {
+  f.catchError((e, st) {
+    return -1;
+  });
+}
+{% endprettify %}
+
+If the closure should always return `null`, then change the type argument
+of the `Future` to be either `void` or `Null`:
+
+{% prettify dart tag=pre+code %}
+void g(Future<void> f) {
+  f.catchError((e, st) {});
+}
+{% endprettify %}
+
 ### body_might_complete_normally_nullable
 
 _This function has a nullable return type of '{0}', but ends without returning a
@@ -2107,6 +2153,85 @@ void f(int s) {
     case 1:
       break;
   }
+}
+{% endprettify %}
+
+### cast_from_nullable_always_fails
+
+_This cast will always throw an exception because the nullable local variable
+'{0}' is not assigned._
+
+#### Description
+
+The analyzer produces this diagnostic when a local variable that has a
+nullable type hasn't been assigned and is cast to a non-nullable type.
+Because the variable hasn't been assigned it has the default value of
+`null`, causing the cast to throw an exception.
+
+#### Example
+
+The following code produces this diagnostic because the variable `x` is
+cast to a non-nullable type (`int`) when it's known to have the value
+`null`:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  num? x;
+  [!x!] as int;
+  print(x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the variable is expected to have a value before the cast, then add an
+initializer or an assignment:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  num? x = 3;
+  x as int;
+  print(x);
+}
+{% endprettify %}
+
+If the variable isn't expected to be assigned, then remove the cast:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  num? x;
+  print(x);
+}
+{% endprettify %}
+
+### cast_from_null_always_fails
+
+_This cast always throws an exception because the expression always evaluates to
+'null'._
+
+#### Description
+
+The analyzer produces this diagnostic when an expression whose type is
+`Null` is being cast to a non-nullable type.
+
+#### Example
+
+The following code produces this diagnostic because `n` is known to always
+be `null`, but it's being cast to a non-nullable type:
+
+{% prettify dart tag=pre+code %}
+void f(Null n) {
+  [!n as int!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unnecessary cast:
+
+{% prettify dart tag=pre+code %}
+void f(Null n) {
+  n;
 }
 {% endprettify %}
 
@@ -3853,6 +3978,87 @@ dependencies:
   meta: ^1.0.2
 ```
 
+### deprecated_colon_for_default_value
+
+_Using a colon as a separator before a default value is deprecated and will not
+be supported in language version 3.0 and later._
+
+#### Description
+
+The analyzer produces this diagnostic when a colon is used as the
+separator before the default value of an optional parameter. While this
+syntax is allowed, it's being deprecated in favor of using an equal sign.
+
+#### Example
+
+The following code produces this diagnostic because a colon is being used
+before the default value of the optional parameter `i`:
+
+{% prettify dart tag=pre+code %}
+void f({int i [!:!] 0}) {}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the colon with an equal sign.
+
+{% prettify dart tag=pre+code %}
+void f({int i = 0}) {}
+{% endprettify %}
+
+### deprecated_export_use
+
+_The ability to import '{0}' indirectly is deprecated._
+
+#### Description
+
+The analyzer produces this diagnostic when one library imports a name from
+a second library, and the second library exports the name from a third
+library but has indicated that it won't export the third library in the
+future.
+
+#### Example
+
+Given a library `a.dart` defining the class `A`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+{% endprettify %}
+
+And a second library `b.dart` that exports `a.dart` but has marked the
+export as being deprecated:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+@deprecated
+export 'a.dart';
+{% endprettify %}
+
+The following code produces this diagnostic because the class `A` won't be
+exported from `b.dart` in some future version:
+
+{% prettify dart tag=pre+code %}
+import 'b.dart';
+
+[!A!]? a;
+{% endprettify %}
+
+#### Common fixes
+
+If the name is available from a different library that you can import,
+then replace the existing import with an import for that library (or add
+an import for the defining library if you still need the old import):
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+A? a;
+{% endprettify %}
+
+If the name isn't available, then look for instructions from the library
+author or contact them directly to find out how to update your code.
+
 ### deprecated_field
 
 _The '{0}' field is no longer used and can be removed._
@@ -4192,6 +4398,34 @@ Choose a different name for one of the declarations.
 {% prettify dart tag=pre+code %}
 int x = 0;
 int y = 1;
+{% endprettify %}
+
+### duplicate_export
+
+_Duplicate export._
+
+#### Description
+
+The analyzer produces this diagnostic when an export directive is found
+that is the same as an export before it in the file. The second export
+doesn't add value and should be removed.
+
+#### Example
+
+The following code produces this diagnostic because the same library is
+being exported twice:
+
+{% prettify dart tag=pre+code %}
+export 'package:meta/meta.dart';
+export [!'package:meta/meta.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unnecessary export:
+
+{% prettify dart tag=pre+code %}
+export 'package:meta/meta.dart';
 {% endprettify %}
 
 ### duplicate_field_formal_parameter
@@ -8468,14 +8702,26 @@ class C {
 
 #### Common fixes
 
-If the factory returns an instance of the surrounding class, then rename
-the factory:
+If the factory returns an instance of the surrounding class, and you
+intend it to be an unnamed factory constructor, then rename the factory:
 
 {% prettify dart tag=pre+code %}
 class A {}
 
 class C {
   factory C() => throw 0;
+}
+{% endprettify %}
+
+If the factory returns an instance of the surrounding class, and you
+intend it to be a named factory constructor, then prefix the name of the
+factory constructor with the name of the surrounding class:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class C {
+  factory C.a() => throw 0;
 }
 {% endprettify %}
 
@@ -10863,6 +11109,66 @@ name: example
 dependencies:
   meta: ^1.0.2
 ```
+
+### missing_override_of_must_be_overridden
+
+_Missing concrete override implementation of '{0}' and '{1}'._
+
+_Missing concrete override implementation of '{0}', '{1}', and {2} more._
+
+_Missing concrete override implementation of '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance member that has the
+`@mustBeOverridden` annotation isn't overridden in a subclass.
+
+#### Example
+
+The following code produces this diagnostic because the class `B` doesn't
+have an override of the inherited method `A.m` when `A.m` is annotated
+with `@mustBeOverridden`:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+}
+
+class [!B!] extends A {}
+{% endprettify %}
+
+#### Common fixes
+
+If the annotation is appropriate for the member, then override the member
+in the subclass:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+}
+
+class B extends A {
+  @override
+  void m() {}
+}
+{% endprettify %}
+
+If the annotation isn't appropriate for the member, then remove the
+annotation:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+class B extends A {}
+{% endprettify %}
 
 ### missing_required_argument
 
@@ -13926,6 +14232,34 @@ void f() {
 }
 
 Null g() => null;
+{% endprettify %}
+
+### obsolete_colon_for_default_value
+
+_Using a colon as a separator before a default value is no longer supported._
+
+#### Description
+
+The analyzer produces this diagnostic when a colon is used as the
+separator before the default value of an optional parameter. While this
+syntax used to be allowed, it's deprecated in favor of using an equal
+sign.
+
+#### Example
+
+The following code produces this diagnostic because a colon is being used
+before the default value of the optional parameter `i`:
+
+{% prettify dart tag=pre+code %}
+void f({int i [!:!] 0}) {}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the colon with an equal sign:
+
+{% prettify dart tag=pre+code %}
+void f({int i = 0}) {}
 {% endprettify %}
 
 ### on_repeated

@@ -6983,14 +6983,26 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If the factory returns an instance of the surrounding class, then rename
-      the factory:
+      If the factory returns an instance of the surrounding class, and you
+      intend it to be an unnamed factory constructor, then rename the factory:
 
       ```dart
       class A {}
 
       class C {
         factory C() => throw 0;
+      }
+      ```
+
+      If the factory returns an instance of the surrounding class, and you
+      intend it to be a named factory constructor, then prefix the name of the
+      factory constructor with the name of the surrounding class:
+
+      ```dart
+      class A {}
+
+      class C {
+        factory C.a() => throw 0;
       }
       ```
 
@@ -7028,9 +7040,7 @@ CompileTimeErrorCode:
     comment: No parameters.
   INVALID_FIELD_NAME_POSITIONAL:
     sharedName: INVALID_FIELD_NAME
-    problemMessage: >-
-      Record field names can't be a dollar sign followed by an integer when the
-      integer is the index of a positional field.
+    problemMessage: Record field names can't be a dollar sign followed by an integer when the integer is the index of a positional field.
     correctionMessage: Try using a different name for the field.
     comment: No parameters.
   INVALID_IMPLEMENTATION_OVERRIDE:
@@ -10918,6 +10928,30 @@ CompileTimeErrorCode:
     problemMessage: "Using a colon as a separator before a default value is no longer supported."
     correctionMessage: "Try replacing the colon with an equal sign."
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a colon is used as the
+      separator before the default value of an optional parameter. While this
+      syntax used to be allowed, it's deprecated in favor of using an equal
+      sign.
+
+      #### Example
+
+      The following code produces this diagnostic because a colon is being used
+      before the default value of the optional parameter `i`:
+
+      ```dart
+      void f({int i [!:!] 0}) {}
+      ```
+
+      #### Common fixes
+
+      Replace the colon with an equal sign:
+
+      ```dart
+      void f({int i = 0}) {}
+      ```
   ON_REPEATED:
     problemMessage: "The type '{0}' can be included in the superclass constraints only once."
     correctionMessage: Try removing all except one occurrence of the type name.
@@ -17643,6 +17677,47 @@ HintCode:
     comment: |-
       Parameters:
       0: the return type as derived by the type of the [Future].
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the closure passed to the
+      `onError` parameter of the `Future.catchError` method is required to
+      return a non-`null` value (because of the `Future`s type argument) but can
+      implicitly return `null`.
+
+      #### Example
+
+      The following code produces this diagnostic because the closure passed to
+      the `catchError` method is required to return an `int` but doesn't end
+      with an explicit `return`, causing it to implicitly return `null`:
+
+      ```dart
+      void g(Future<int> f) {
+        f.catchError((e, st) [!{!]});
+      }
+      ```
+
+      #### Common fixes
+
+      If the closure should sometimes return a non-`null` value, then add an
+      explicit return to the closure:
+
+      ```dart
+      void g(Future<int> f) {
+        f.catchError((e, st) {
+          return -1;
+        });
+      }
+      ```
+
+      If the closure should always return `null`, then change the type argument
+      of the `Future` to be either `void` or `Null`:
+
+      ```dart
+      void g(Future<void> f) {
+        f.catchError((e, st) {});
+      }
+      ```
   BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
     problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
     correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
@@ -17860,17 +17935,89 @@ HintCode:
       }
       ```
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: >-
-      Using a colon as a separator before a default value is deprecated and will
-      not be supported in language version 3.0 and later.
+    problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
     correctionMessage: "Try replacing the colon with an equal sign."
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a colon is used as the
+      separator before the default value of an optional parameter. While this
+      syntax is allowed, it's being deprecated in favor of using an equal sign.
+
+      #### Example
+
+      The following code produces this diagnostic because a colon is being used
+      before the default value of the optional parameter `i`:
+
+      ```dart
+      void f({int i [!:!] 0}) {}
+      ```
+
+      #### Common fixes
+
+      Replace the colon with an equal sign.
+
+      ```dart
+      void f({int i = 0}) {}
+      ```
   DEPRECATED_EXPORT_USE:
-    problemMessage: "The ability to import '{0}' indirectly has been deprecated."
+    problemMessage: "The ability to import '{0}' indirectly is deprecated."
     correctionMessage: "Try importing '{0}' directly."
     comment: |-
       Parameters:
       0: the name of the element
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when one library imports a name from
+      a second library, and the second library exports the name from a third
+      library but has indicated that it won't export the third library in the
+      future.
+
+      #### Example
+
+      Given a library `a.dart` defining the class `A`:
+
+      ```dart
+      %uri="lib/a.dart"
+      class A {}
+      ```
+
+      And a second library `b.dart` that exports `a.dart` but has marked the
+      export as being deprecated:
+
+      ```dart
+      %uri="lib/b.dart"
+      import 'a.dart';
+
+      @deprecated
+      export 'a.dart';
+      ```
+
+      The following code produces this diagnostic because the class `A` won't be
+      exported from `b.dart` in some future version:
+
+      ```dart
+      import 'b.dart';
+
+      [!A!]? a;
+      ```
+
+      #### Common fixes
+
+      If the name is available from a different library that you can import,
+      then replace the existing import with an import for that library (or add
+      an import for the defining library if you still need the old import):
+
+      ```dart
+      import 'a.dart';
+
+      A? a;
+      ```
+
+      If the name isn't available, then look for instructions from the library
+      author or contact them directly to find out how to update your code.
   DEPRECATED_MEMBER_USE:
     problemMessage: "'{0}' is deprecated and shouldn't be used."
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
@@ -18119,6 +18266,30 @@ HintCode:
       Duplicate exports.
 
       No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an export directive is found
+      that is the same as an export before it in the file. The second export
+      doesn't add value and should be removed.
+
+      #### Example
+
+      The following code produces this diagnostic because the same library is
+      being exported twice:
+
+      ```dart
+      export 'package:meta/meta.dart';
+      export [!'package:meta/meta.dart'!];
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary export:
+
+      ```dart
+      export 'package:meta/meta.dart';
+      ```
   DUPLICATE_IGNORE:
     problemMessage: "The diagnostic '{0}' doesn't need to be ignored here because it's already being ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
@@ -19491,6 +19662,58 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member that has the
+      `@mustBeOverridden` annotation isn't overridden in a subclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` doesn't
+      have an override of the inherited method `A.m` when `A.m` is annotated
+      with `@mustBeOverridden`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustBeOverridden
+        void m() {}
+      }
+
+      class [!B!] extends A {}
+      ```
+
+      #### Common fixes
+
+      If the annotation is appropriate for the member, then override the member
+      in the subclass:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @mustBeOverridden
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void m() {}
+      }
+      ```
+
+      If the annotation isn't appropriate for the member, then remove the
+      annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+
+      class B extends A {}
+      ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete override implementation of '{0}' and '{1}'."
@@ -19907,10 +20130,36 @@ HintCode:
       A condition in operands of a logical operator could evaluate to `null`
       because it uses the null-aware '?.' operator.
   CAST_FROM_NULL_ALWAYS_FAILS:
-    problemMessage: "This cast will always throw an exception because the expression will always evaluate to 'null'."
+    problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
     comment: |-
       No parameters.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an expression whose type is
+      `Null` is being cast to a non-nullable type.
+
+      #### Example
+
+      The following code produces this diagnostic because `n` is known to always
+      be `null`, but it's being cast to a non-nullable type:
+
+      ```dart
+      void f(Null n) {
+        [!n as int!];
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary cast:
+
+      ```dart
+      void f(Null n) {
+        n;
+      }
+      ```
   CAST_FROM_NULLABLE_ALWAYS_FAILS:
     problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
     correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
@@ -19918,6 +20167,49 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the unassigned variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable that has a
+      nullable type hasn't been assigned and is cast to a non-nullable type.
+      Because the variable hasn't been assigned it has the default value of
+      `null`, causing the cast to throw an exception.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `x` is
+      cast to a non-nullable type (`int`) when it's known to have the value
+      `null`:
+
+      ```dart
+      void f() {
+        num? x;
+        [!x!] as int;
+        print(x);
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable is expected to have a value before the cast, then add an
+      initializer or an assignment:
+
+      ```dart
+      void f() {
+        num? x = 3;
+        x as int;
+        print(x);
+      }
+      ```
+
+      If the variable isn't expected to be assigned, then remove the cast:
+
+      ```dart
+      void f() {
+        num? x;
+        print(x);
+      }
+      ```
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-
