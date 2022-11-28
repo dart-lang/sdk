@@ -6548,7 +6548,8 @@ abstract class IdentifierImpl extends CommentReferableExpressionImpl
   bool get isAssignable => true;
 }
 
-class IfElementImpl extends CollectionElementImpl implements IfElement {
+class IfElementImpl extends CollectionElementImpl
+    implements IfElement, IfElementOrStatementImpl<CollectionElementImpl> {
   @override
   final Token ifKeyword;
 
@@ -6613,7 +6614,13 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
 
   @override
-  Expression get expression => _condition;
+  ExpressionImpl get expression => _condition;
+
+  @override
+  CollectionElementImpl? get ifFalse => elseElement;
+
+  @override
+  CollectionElementImpl get ifTrue => thenElement;
 
   @override
   CollectionElementImpl get thenElement => _thenElement;
@@ -6652,12 +6659,30 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   }
 }
 
+abstract class IfElementOrStatementImpl<E extends AstNodeImpl>
+    implements AstNodeImpl {
+  /// Return the `case` clause used to match a pattern against the [expression].
+  CaseClauseImpl? get caseClause;
+
+  /// Return the expression used to either determine which of the statements is
+  /// executed next or to compute the value matched against the pattern in the
+  /// `case` clause.
+  ExpressionImpl get expression;
+
+  /// The node that is executed if the condition evaluates to `false`.
+  E? get ifFalse;
+
+  /// The node that is executed if the condition evaluates to `true`.
+  E get ifTrue;
+}
+
 /// An if statement.
 ///
 ///    ifStatement ::=
 ///        'if' '(' [Expression] [CaseClause]? ')'[Statement]
 ///        ('else' [Statement])?
-class IfStatementImpl extends StatementImpl implements IfStatement {
+class IfStatementImpl extends StatementImpl
+    implements IfStatement, IfElementOrStatementImpl<StatementImpl> {
   @override
   final Token ifKeyword;
 
@@ -6729,7 +6754,13 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   }
 
   @override
-  Expression get expression => _condition;
+  ExpressionImpl get expression => _condition;
+
+  @override
+  StatementImpl? get ifFalse => elseStatement;
+
+  @override
+  StatementImpl get ifTrue => thenStatement;
 
   @override
   StatementImpl get thenStatement => _thenStatement;

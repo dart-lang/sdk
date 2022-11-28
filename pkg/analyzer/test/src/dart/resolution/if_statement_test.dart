@@ -755,6 +755,101 @@ IfStatement
 ''');
   }
 
+  test_caseClause_variables_scope() async {
+    // Each `guardedPattern` introduces a new case scope which is where the
+    // variables defined by that case's pattern are bound.
+    // There is no initializing expression for the variables in a case pattern,
+    // but they are considered initialized after the entire case pattern,
+    // before the guard expression if there is one. However, all pattern
+    // variables are in scope in the entire pattern.
+    await assertErrorsInCode(r'''
+const a = 0;
+void f(Object? x) {
+  if (x case [int a, == a] when a > 0) {
+    a;
+  } else {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 57, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 51, 1)]),
+    ]);
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: ListPattern
+        leftBracket: [
+        elements
+          VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@51
+              type: int
+          RelationalPattern
+            operator: ==
+            operand: SimpleIdentifier
+              token: a
+              staticElement: a@51
+              staticType: int
+            element: dart:core::@class::Object::@method::==
+        rightBracket: ]
+        requiredType: List<Object?>
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a@51
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@51
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+  elseKeyword: else
+  elseStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: self::@getter::a
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_caseClause_variables_single() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
