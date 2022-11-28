@@ -114,7 +114,20 @@ class Utils {
         RoundUp(reinterpret_cast<uword>(x), alignment, offset));
   }
 
-  static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
+  // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+  // figure 3-3, page 48, where the function is called clp2.
+  static constexpr uintptr_t RoundUpToPowerOfTwo(uintptr_t x) {
+    x = x - 1;
+    x = x | (x >> 1);
+    x = x | (x >> 2);
+    x = x | (x >> 4);
+    x = x | (x >> 8);
+    x = x | (x >> 16);
+#if defined(ARCH_IS_64_BIT)
+    x = x | (x >> 32);
+#endif  // defined(ARCH_IS_64_BIT)
+    return x + 1;
+  }
 
   static constexpr int CountOneBits64(uint64_t x) {
     // Apparently there are x64 chips without popcount.

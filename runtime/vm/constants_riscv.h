@@ -164,6 +164,7 @@ constexpr Register CALLEE_SAVED_TEMP = S8;
 constexpr Register CALLEE_SAVED_TEMP2 = S7;
 constexpr Register WRITE_BARRIER_STATE = S11;
 constexpr Register NULL_REG = S10;  // Caches NullObject() value.
+#define DART_ASSEMBLER_HAS_NULL_REG 1
 
 // ABI for catch-clause entry point.
 constexpr Register kExceptionObjectReg = A0;

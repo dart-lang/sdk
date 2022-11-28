@@ -155,6 +155,7 @@ const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 const Register HEAP_BITS = R28;  // write_barrier_mask << 32 | heap_base >> 32
 const Register NULL_REG = R22;   // Caches NullObject() value.
+#define DART_ASSEMBLER_HAS_NULL_REG 1
 
 // ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;

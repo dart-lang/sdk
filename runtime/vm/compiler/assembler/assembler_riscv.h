@@ -877,11 +877,11 @@ class Assembler : public MicroAssembler {
   void TsanStoreRelease(Register addr);
 #endif
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0);
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) override;
 
   void LoadAcquireCompressed(Register dst,
                              Register address,
-                             int32_t offset = 0);
+                             int32_t offset = 0) override;
 
   void StoreRelease(Register src,
                     Register address,
@@ -1025,6 +1025,15 @@ class Assembler : public MicroAssembler {
   void AndImmediate(Register rd, intx_t imm) {
     AndImmediate(rd, rd, imm);
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override {
+    ASSERT(src1 != src2);  // Likely a mistake.
+    if (src2 == kNoRegister) {
+      src2 = dst;
+    }
+    and_(dst, src2, src1);
+  }
   void OrImmediate(Register rd,
                    Register rn,
                    intx_t imm,
@@ -1043,7 +1052,9 @@ class Assembler : public MicroAssembler {
     srli(rd, rd, shift);
   }
   void TestImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);
-  void CompareImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);
+  void CompareImmediate(Register rn,
+                        intx_t imm,
+                        OperandSize sz = kWordBytes) override;
 
   void LoadFromOffset(Register dest,
                       const Address& address,
@@ -1142,8 +1153,14 @@ class Assembler : public MicroAssembler {
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset) {
     LoadFromOffset(dest, base, offset);
   }
-  void LoadCompressedSmi(Register dest, const Address& slot) {
+  void LoadCompressedSmi(Register dest, const Address& slot) override {
     lx(dest, slot);
+#if defined(DEBUG)
+    Label done;
+    BranchIfSmi(dest, &done, kNearJump);
+    Stop("Expected Smi");
+    Bind(&done);
+#endif
   }
   void LoadCompressedSmiFromOffset(Register dest,
                                    Register base,
@@ -1474,6 +1491,12 @@ class Assembler : public MicroAssembler {
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
                                     Register offset_in_words_as_smi);
+
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    AddImmediate(address, instance, offset - kHeapObjectTag);
+  }
 
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.

@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.23 Change logical pattern rules to || and &&
+//
 // v0.22 Change pattern rules, following updated feature specification.
 //
 // v0.21 Add support for patterns.
@@ -1019,11 +1021,11 @@ patterns
     ;
 
 logicalOrPattern
-    :    logicalAndPattern ('|' logicalAndPattern)*
+    :    logicalAndPattern ('||' logicalAndPattern)*
     ;
 
 logicalAndPattern
-    :    relationalPattern ('&' relationalPattern)*
+    :    relationalPattern ('&&' relationalPattern)*
     ;
 
 relationalPattern

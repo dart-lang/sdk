@@ -751,6 +751,21 @@ void Assembler::AndImmediate(Register dst, const Immediate& imm) {
   }
 }
 
+void Assembler::AndRegisters(Register dst, Register src1, Register src2) {
+  ASSERT(src1 != src2);  // Likely a mistake.
+  if (src2 == kNoRegister) {
+    src2 = dst;
+  }
+  if (dst == src1) {
+    andq(dst, src2);
+  } else if (dst == src2) {
+    andq(dst, src1);
+  } else {
+    movq(dst, src1);
+    andq(dst, src2);
+  }
+}
+
 void Assembler::OrImmediate(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     orq(dst, imm);
@@ -1433,7 +1448,7 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #endif
 #if defined(DEBUG)
   Label done;
-  BranchIfSmi(dest, &done);
+  BranchIfSmi(dest, &done, kNearJump);
   Stop("Expected Smi");
   Bind(&done);
 #endif

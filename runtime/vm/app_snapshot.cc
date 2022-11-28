@@ -6052,7 +6052,8 @@ class VMSerializationRoots : public SerializationRoots {
     s->AddBaseObject(Object::transition_sentinel().ptr(), "Null",
                      "transition_sentinel");
     s->AddBaseObject(Object::empty_array().ptr(), "Array", "<empty_array>");
-    s->AddBaseObject(Object::zero_array().ptr(), "Array", "<zero_array>");
+    s->AddBaseObject(Object::empty_instantiations_cache_array().ptr(), "Array",
+                     "<empty_instantiations_cache_array>");
     s->AddBaseObject(Object::dynamic_type().ptr(), "Type", "<dynamic type>");
     s->AddBaseObject(Object::void_type().ptr(), "Type", "<void type>");
     s->AddBaseObject(Object::empty_type_arguments().ptr(), "TypeArguments",
@@ -6174,7 +6175,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::sentinel().ptr());
     d->AddBaseObject(Object::transition_sentinel().ptr());
     d->AddBaseObject(Object::empty_array().ptr());
-    d->AddBaseObject(Object::zero_array().ptr());
+    d->AddBaseObject(Object::empty_instantiations_cache_array().ptr());
     d->AddBaseObject(Object::dynamic_type().ptr());
     d->AddBaseObject(Object::void_type().ptr());
     d->AddBaseObject(Object::empty_type_arguments().ptr());

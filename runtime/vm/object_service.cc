@@ -223,23 +223,19 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   if (!IsInstantiated()) {
     JSONArray jsarr(&jsobj, "_instantiations");
-    Array& prior_instantiations = Array::Handle(instantiations());
-    ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-    TypeArguments& type_args = TypeArguments::Handle();
-    intptr_t i = 0;
-    while (prior_instantiations.At(i) !=
-           Smi::New(TypeArguments::kNoInstantiator)) {
+    Array& prior_instantiations = Array::Handle(zone, instantiations());
+    TypeArguments& type_args = TypeArguments::Handle(zone);
+    InstantiationsCacheTable table(prior_instantiations);
+    for (const auto& tuple : table) {
+      // Skip unoccupied entries.
+      if (tuple.Get<Cache::kSentinelIndex>() == Cache::Sentinel()) continue;
       JSONObject instantiation(&jsarr);
-      type_args ^= prior_instantiations.At(
-          i + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex);
+      type_args ^= tuple.Get<Cache::kInstantiatorTypeArgsIndex>();
       instantiation.AddProperty("instantiatorTypeArguments", type_args, true);
-      type_args ^= prior_instantiations.At(
-          i + TypeArguments::Instantiation::kFunctionTypeArgsIndex);
+      type_args = tuple.Get<Cache::kFunctionTypeArgsIndex>();
       instantiation.AddProperty("functionTypeArguments", type_args, true);
-      type_args ^= prior_instantiations.At(
-          i + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex);
+      type_args = tuple.Get<Cache::kInstantiatedTypeArgsIndex>();
       instantiation.AddProperty("instantiated", type_args, true);
-      i += TypeArguments::Instantiation::kSizeInWords;
     }
   }
 }

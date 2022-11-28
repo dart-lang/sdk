@@ -448,7 +448,7 @@ class Object {
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
-  V(Array, zero_array)                                                         \
+  V(Array, empty_instantiations_cache_array)                                   \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
   V(CompressedStackMaps, empty_compressed_stackmaps)                           \
@@ -8106,27 +8106,172 @@ class TypeArguments : public Instance {
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments) const;
 
-  // Each cached instantiation consists of a 3-tuple in the instantiations_
-  // array stored in each canonical uninstantiated type argument vector.
-  enum Instantiation {
-    kInstantiatorTypeArgsIndex = 0,
-    kFunctionTypeArgsIndex,
-    kInstantiatedTypeArgsIndex,
-    kSizeInWords,
-  };
+  class Cache : public ValueObject {
+   public:
+    // The contents of the backing array storage is a header followed by
+    // a number of entry tuples. Any entry that is unoccupied has
+    // Sentinel() as its first component.
+    //
+    // If the cache is linear, the entries can be accessed in a linear fashion:
+    // all occupied entries come first, followed by at least one unoccupied
+    // entry to mark the end of the cache. Guaranteeing at least one unoccupied
+    // entry avoids the need for a length check when iterating over the contents
+    // of the linear cache in stubs.
+    //
+    // If the cache is hash-based, the array is instead treated as a hash table
+    // probed by using a hash value derived from the instantiator and function
+    // type arguments.
 
-  // The array is terminated by the value kNoInstantiator occurring in place of
-  // the instantiator type args of the 4-tuple that would otherwise follow.
-  // Therefore, kNoInstantiator must be distinct from any type arguments vector,
-  // even a null one. Since arrays are initialized with 0, the instantiations_
-  // array is properly terminated upon initialization.
-  static const intptr_t kNoInstantiator = 0;
+    enum Header {
+      // The number of occupied entries in the cache.
+      kOccupiedEntriesIndex = 0,
+      kHeaderSize,
+    };
+
+    // The tuple of values stored in a given entry.
+    //
+    // Note: accesses of the first component outside of the type arguments
+    // canonicalization mutex must have acquire semantics.
+    enum Entry {
+      kSentinelIndex = 0,  // Used when only checking for sentinel values.
+      kInstantiatorTypeArgsIndex = kSentinelIndex,
+      kFunctionTypeArgsIndex,
+      kInstantiatedTypeArgsIndex,
+      kEntrySize,
+    };
+
+    // Requires that the type arguments canonicalization mutex is held.
+    Cache(Zone* zone, const TypeArguments& source);
+
+    // Requires that the type arguments canonicalization mutex is held.
+    Cache(Zone* zone, const Array& array);
+
+    // Used to check that the state of the backing array is valid.
+    //
+    // Requires that the type arguments canonicalization mutex is held.
+    DEBUG_ONLY(static bool IsValidStorageLocked(const Array& array);)
+
+    // Returns the number of entries stored in the cache.
+    intptr_t NumOccupied() const { return NumOccupied(data_); }
+
+    struct KeyLocation {
+      // The entry index if [present] is true, otherwise where the entry would
+      // be located if added afterwards without any intermediate additions.
+      intptr_t entry;
+      bool present;  // Whether an entry already exists in the cache.
+    };
+
+    // If an entry contains the given instantiator and function type arguments,
+    // returns a KeyLocation with the index of the entry and true. Otherwise,
+    // returns the index an entry with those keys would have if added and false.
+    KeyLocation FindKeyOrUnused(const TypeArguments& instantiator_tav,
+                                const TypeArguments& function_tav) const {
+      return FindKeyOrUnused(data_, instantiator_tav, function_tav);
+    }
+
+    // Returns whether the entry at the given index in the cache is occupied.
+    bool IsOccupied(intptr_t entry) const;
+
+    // Given an occupied entry index, returns the instantiated TypeArguments.
+    TypeArgumentsPtr Retrieve(intptr_t entry) const;
+
+    // Adds a new instantiation mapping to the cache at index [entry]. Assumes
+    // that the entry at index [entry] is unoccupied.
+    //
+    // May replace the underlying storage array, in which case the returned
+    // index of the entry may differ from the requested one. If this Cache was
+    // constructed using a TypeArguments object, its instantiations field is
+    // also updated to point to the new storage.
+    KeyLocation AddEntry(intptr_t entry,
+                         const TypeArguments& instantiator_tav,
+                         const TypeArguments& function_tav,
+                         const TypeArguments& instantiated_tav) const;
+
+    // The sentinel value used to mark unoccupied entries.
+    static SmiPtr Sentinel();
+
+    static const Array& EmptyStorage() {
+      return Object::empty_instantiations_cache_array();
+    }
+
+    // Returns whether the cache is linear.
+    bool IsLinear() const { return IsLinear(data_); }
+
+    // Returns whether the cache is hash-based.
+    bool IsHash() const { return IsHash(data_); }
+
+   private:
+    static constexpr double LoadFactor(intptr_t occupied, intptr_t capacity) {
+      return occupied / static_cast<double>(capacity);
+    }
+
+    // Returns the number of entries stored in the cache backed by the given
+    // array.
+    static intptr_t NumOccupied(const Array& array);
+
+    // Returns whether the cache backed by the given storage is linear.
+    static bool IsLinear(const Array& array) { return !IsHash(array); }
+
+    // Returns whether the cache backed by the given storage is hash-based.
+    static bool IsHash(const Array& array);
+
+    // Ensures that the backing store for the cache can hold at least [occupied]
+    // occupied entries. If it cannot, replaces the backing store with one that
+    // can, copying over entries from the old backing store.
+    //
+    // Returns whether the backing store changed.
+    bool EnsureCapacity(intptr_t occupied) const;
+
+    // Retrieves the number of entries (occupied or unoccupied) in the cache.
+    intptr_t NumEntries() const { return NumEntries(data_); }
+
+    // Retrieves the number of entries (occupied or unoccupied) in a cache
+    // backed by the given array.
+    static intptr_t NumEntries(const Array& array);
+
+    // If an entry in the given array contains the given instantiator and
+    // function type arguments, returns a KeyLocation with the index of the
+    // entry and true. Otherwise, returns a KeyLocation with the index that
+    // would be used if the instantiation for the the given type arguments is
+    // added and false.
+    static KeyLocation FindKeyOrUnused(const Array& array,
+                                       const TypeArguments& instantiator_tav,
+                                       const TypeArguments& function_tav);
+
+    // The sentinel value in the Smi returned from Sentinel().
+    static constexpr intptr_t kSentinelValue = 0;
+
+   public:
+    // The maximum number of occupied entries for a linear cache of
+    // instantiations before swapping to a hash table-based cache.
+    static constexpr intptr_t kMaxLinearCacheEntries = 500;
+
+    // The maximum size of the array backing a linear cache. All hash based
+    // caches are guaranteed to have sizes larger than this.
+    static constexpr intptr_t kMaxLinearCacheSize =
+        kHeaderSize + (kMaxLinearCacheEntries + 1) * kEntrySize;
+
+   private:
+    // The initial number of entries used when converting from a linear to
+    // a hash-based cache.
+    static constexpr intptr_t kNumInitialHashCacheEntries =
+        Utils::RoundUpToPowerOfTwo(2 * kMaxLinearCacheEntries);
+    static_assert(Utils::IsPowerOfTwo(kNumInitialHashCacheEntries),
+                  "number of hash-based cache entries must be a power of two");
+
+    // The max load factor allowed in hash-based caches.
+    static constexpr double kMaxLoadFactor = 0.71;
+
+    Zone* const zone_;
+    const TypeArguments* const cache_container_;
+    Array& data_;
+    Smi& smi_handle_;
+
+    friend class TypeArguments;  // For asserts against data_.
+  };
 
   // Return true if this type argument vector has cached instantiations.
   bool HasInstantiations() const;
-
-  // Return the number of cached instantiations for this type argument vector.
-  intptr_t NumInstantiations() const;
 
   static intptr_t instantiations_offset() {
     return OFFSET_OF(UntaggedTypeArguments, instantiations_);
@@ -12924,10 +13069,10 @@ class ArrayOfTuplesView {
     TupleView entry_;
   };
 
-  explicit ArrayOfTuplesView(const Array& array) : array_(array), index_(-1) {
+  explicit ArrayOfTuplesView(const Array& array) : array_(array) {
     ASSERT(!array.IsNull());
     ASSERT(array.Length() >= kStartOffset);
-    ASSERT((array.Length() - kStartOffset) % EntrySize == kStartOffset);
+    ASSERT(array.Length() % EntrySize == kStartOffset);
   }
 
   intptr_t Length() const {
@@ -12948,7 +13093,6 @@ class ArrayOfTuplesView {
 
  private:
   const Array& array_;
-  intptr_t index_;
 };
 
 using InvocationDispatcherTable =
@@ -12972,6 +13116,11 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
 
 using MegamorphicCacheEntries =
     ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;
+
+using InstantiationsCacheTable =
+    ArrayOfTuplesView<TypeArguments::Cache::Entry,
+                      std::tuple<Object, TypeArguments, TypeArguments>,
+                      TypeArguments::Cache::kHeaderSize>;
 
 void DumpTypeTable(Isolate* isolate);
 void DumpTypeParameterTable(Isolate* isolate);
