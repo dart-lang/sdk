@@ -567,7 +567,7 @@ class Assembler : public AssemblerBase {
                         OperandSize width = kEightBytes);
   void CompareImmediate(Register reg,
                         int64_t immediate,
-                        OperandSize width = kEightBytes) {
+                        OperandSize width = kEightBytes) override {
     return CompareImmediate(reg, Immediate(immediate), width);
   }
 
@@ -586,6 +586,9 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register dst, int64_t value) {
     AndImmediate(dst, Immediate(value));
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override;
   void OrImmediate(Register dst, const Immediate& imm);
   void OrImmediate(Register dst, int64_t value) {
     OrImmediate(dst, Immediate(value));
@@ -833,7 +836,7 @@ class Assembler : public AssemblerBase {
   void CompareObject(Register reg, const Object& object);
 
   void LoadCompressed(Register dest, const Address& slot);
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot) override;
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -1181,7 +1184,9 @@ class Assembler : public AssemblerBase {
   void TsanStoreRelease(Address addr);
 #endif
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     movq(dst, Address(address, offset));
@@ -1191,7 +1196,7 @@ class Assembler : public AssemblerBase {
   }
   void LoadAcquireCompressed(Register dst,
                              Register address,
-                             int32_t offset = 0) {
+                             int32_t offset = 0) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadCompressed(dst, Address(address, offset));
@@ -1394,6 +1399,12 @@ class Assembler : public AssemblerBase {
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leaq(address, FieldAddress(instance, offset_in_words_as_smi,
                                TIMES_COMPRESSED_HALF_WORD_SIZE, 0));
+  }
+
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    leaq(address, FieldAddress(instance, offset));
   }
 
   static Address VMTagAddress();

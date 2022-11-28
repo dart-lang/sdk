@@ -972,7 +972,7 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #endif
 #if defined(DEBUG)
   Label done;
-  BranchIfSmi(dest, &done);
+  BranchIfSmi(dest, &done, kNearJump);
   Stop("Expected Smi");
   Bind(&done);
 #endif

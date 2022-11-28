@@ -707,7 +707,9 @@ class Assembler : public AssemblerBase {
     }
   }
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     movl(dst, Address(address, offset));
@@ -763,6 +765,9 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register dst, int32_t value) {
     andl(dst, Immediate(value));
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override;
   void OrImmediate(Register dst, int32_t value) {
     orl(dst, Immediate(value));
   }
@@ -773,7 +778,10 @@ class Assembler : public AssemblerBase {
     shrl(dst, Immediate(shift));
   }
 
-  void CompareImmediate(Register reg, int32_t immediate) {
+  void CompareImmediate(Register reg,
+                        int32_t immediate,
+                        OperandSize width = kFourBytes) override {
+    ASSERT_EQUAL(width, kFourBytes);
     cmpl(reg, Immediate(immediate));
   }
 
@@ -812,6 +820,7 @@ class Assembler : public AssemblerBase {
   void CompareObject(Register reg, const Object& object);
 
   void LoadCompressed(Register dest, const Address& slot) { movl(dest, slot); }
+  void LoadCompressedSmi(Register dst, const Address& slot) override;
 
   // Store into a heap object and apply the generational write barrier. (Unlike
   // the other architectures, this does not apply the incremental write barrier,
@@ -1027,6 +1036,12 @@ class Assembler : public AssemblerBase {
                                     Register offset_in_words_as_smi) {
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leal(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_2, 0));
+  }
+
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    leal(address, FieldAddress(instance, offset));
   }
 
   static Address VMTagAddress() {

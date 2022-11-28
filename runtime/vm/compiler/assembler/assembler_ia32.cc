@@ -1943,6 +1943,21 @@ void Assembler::SubImmediate(Register reg, const Immediate& imm) {
   }
 }
 
+void Assembler::AndRegisters(Register dst, Register src1, Register src2) {
+  ASSERT(src1 != src2);  // Likely a mistake.
+  if (src2 == kNoRegister) {
+    src2 = dst;
+  }
+  if (dst == src2) {
+    andl(dst, src1);
+  } else if (dst == src1) {
+    andl(dst, src2);
+  } else {
+    movl(dst, src1);
+    andl(dst, src2);
+  }
+}
+
 void Assembler::Drop(intptr_t stack_elements) {
   ASSERT(stack_elements >= 0);
   if (stack_elements > 0) {
@@ -2020,6 +2035,16 @@ void Assembler::CompareObject(Register reg, const Object& object) {
       buffer_.EmitObject(object);
     }
   }
+}
+
+void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
+  movl(dest, slot);
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done, kNearJump);
+  Stop("Expected Smi");
+  Bind(&done);
+#endif
 }
 
 void Assembler::StoreIntoObject(Register object,

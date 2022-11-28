@@ -574,7 +574,9 @@ class Assembler : public AssemblerBase {
   void TsanStoreRelease(Register addr);
 #endif
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0) override {
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
       ldar(dst, TMP2);
@@ -591,7 +593,7 @@ class Assembler : public AssemblerBase {
 
   void LoadAcquireCompressed(Register dst,
                              Register address,
-                             int32_t offset = 0) {
+                             int32_t offset = 0) override {
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
       ldar(dst, TMP2, kObjectBytes);
@@ -1839,6 +1841,15 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register rd, int64_t imm) {
     AndImmediate(rd, rd, imm);
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override {
+    ASSERT(src1 != src2);  // Likely a mistake.
+    if (src2 == kNoRegister) {
+      src2 = dst;
+    }
+    and_(dst, src2, Operand(src1));
+  }
   void OrImmediate(Register rd,
                    Register rn,
                    int64_t imm,
@@ -1851,7 +1862,9 @@ class Assembler : public AssemblerBase {
                     int64_t imm,
                     OperandSize sz = kEightBytes);
   void TestImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
-  void CompareImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
+  void CompareImmediate(Register rn,
+                        int64_t imm,
+                        OperandSize sz = kEightBytes) override;
 
   Address PrepareLargeOffset(Register base, int32_t offset, OperandSize sz);
   void LoadFromOffset(Register dest,
@@ -1967,7 +1980,7 @@ class Assembler : public AssemblerBase {
 
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot) override;
   void LoadCompressedSmiFromOffset(Register dest,
                                    Register base,
                                    int32_t offset);
@@ -2299,6 +2312,12 @@ class Assembler : public AssemblerBase {
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
                                     Register offset_in_words_as_smi);
+
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    AddImmediate(address, instance, offset - kHeapObjectTag);
+  }
 
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.

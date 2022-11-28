@@ -267,6 +267,150 @@ void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
 #endif
 }
 
+// Instantiate type arguments from instantiator and function type args.
+// Inputs:
+// - InstantiationABI::kUninstantiatedTypeArgumentsReg: tav to instantiate
+// - InstantiationABI::kInstantiatorTypeArgumentsReg: instantiator tav
+// - InstantiationABI::kFunctionTypeArgumentsReg: function tav
+// Outputs:
+// - InstantiationABI::kResultTypeArgumentsReg: instantiated tav
+// Clobbers:
+// - InstantiationABI::kScratchReg
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
+    Assembler* assembler) {
+  // We only need the offset of the current entry up until we either call
+  // the runtime or until we retrieve the instantiated type arguments out of it
+  // to put in the result register, so we use the result register to store it.
+  const Register kEntryReg = InstantiationABI::kResultTypeArgumentsReg;
+  // Lookup cache before calling runtime.
+  __ LoadCompressed(
+      kEntryReg,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::instantiations_offset()));
+  __ LoadFieldAddressForOffset(kEntryReg, kEntryReg, Array::data_offset());
+
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  compiler::Label loop, next, found, call_runtime;
+  __ Bind(&loop);
+
+  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
+  // to access the other entries. If we found a sentinel we go to runtime.
+  __ LoadAcquireCompressed(
+      InstantiationABI::kScratchReg, kEntryReg,
+      TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+          target::kCompressedWordSize);
+  __ CompareImmediate(InstantiationABI::kScratchReg,
+                      Smi::RawValue(TypeArguments::kNoInstantiator),
+                      kObjectBytes);
+  __ BranchIf(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
+
+  __ CompareRegisters(InstantiationABI::kScratchReg,
+                      InstantiationABI::kInstantiatorTypeArgumentsReg);
+  __ BranchIf(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
+  __ LoadCompressed(
+      InstantiationABI::kScratchReg,
+      compiler::Address(kEntryReg,
+                        TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+                            target::kCompressedWordSize));
+  __ CompareRegisters(InstantiationABI::kScratchReg,
+                      InstantiationABI::kFunctionTypeArgumentsReg);
+  __ BranchIf(EQUAL, &found, compiler::Assembler::kNearJump);
+  __ Bind(&next);
+  __ AddImmediate(kEntryReg, TypeArguments::Instantiation::kSizeInWords *
+                                 target::kCompressedWordSize);
+  __ Jump(&loop, compiler::Assembler::kNearJump);
+
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
+  __ EnterStubFrame();
+#if !defined(DART_ASSEMBLER_HAS_NULL_REG)
+  __ PushObject(Object::null_object());  // Make room for the result.
+#endif
+#if defined(TARGET_ARCH_ARM)
+  static_assert((InstantiationABI::kUninstantiatedTypeArgumentsReg >
+                 InstantiationABI::kInstantiatorTypeArgumentsReg) &&
+                    (InstantiationABI::kInstantiatorTypeArgumentsReg >
+                     InstantiationABI::kFunctionTypeArgumentsReg),
+                "Should be ordered to push arguments with one instruction");
+#endif
+  __ PushRegistersInOrder({
+#if defined(DART_ASSEMBLER_HAS_NULL_REG)
+    NULL_REG,
+#endif
+        InstantiationABI::kUninstantiatedTypeArgumentsReg,
+        InstantiationABI::kInstantiatorTypeArgumentsReg,
+        InstantiationABI::kFunctionTypeArgumentsReg,
+  });
+  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
+  __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
+  __ PopRegister(InstantiationABI::kResultTypeArgumentsReg);
+  __ LeaveStubFrame();
+  __ Ret();
+
+  __ Bind(&found);
+  __ LoadCompressed(
+      InstantiationABI::kResultTypeArgumentsReg,
+      compiler::Address(
+          kEntryReg, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
+                         target::kCompressedWordSize));
+  __ Ret();
+}
+
+void StubCodeCompiler::
+    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
+        Assembler* assembler) {
+  const Register kScratch1Reg = InstantiationABI::kResultTypeArgumentsReg;
+  const Register kScratch2Reg = InstantiationABI::kScratchReg;
+  // Return the instantiator type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ LoadCompressedSmi(
+      kScratch1Reg,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      kScratch2Reg,
+      compiler::FieldAddress(InstantiationABI::kInstantiatorTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ AndRegisters(kScratch2Reg, kScratch1Reg);
+  __ CompareRegisters(kScratch2Reg, kScratch1Reg);
+  __ BranchIf(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
+  __ MoveRegister(InstantiationABI::kResultTypeArgumentsReg,
+                  InstantiationABI::kInstantiatorTypeArgumentsReg);
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
+    Assembler* assembler) {
+  const Register kScratch1Reg = InstantiationABI::kResultTypeArgumentsReg;
+  const Register kScratch2Reg = InstantiationABI::kScratchReg;
+  // Return the function type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ LoadCompressedSmi(
+      kScratch1Reg,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      kScratch2Reg,
+      compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ AndRegisters(kScratch2Reg, kScratch1Reg);
+  __ CompareRegisters(kScratch2Reg, kScratch1Reg);
+  __ BranchIf(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
+  __ MoveRegister(InstantiationABI::kResultTypeArgumentsReg,
+                  InstantiationABI::kFunctionTypeArgumentsReg);
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
 static void BuildInstantiateTypeRuntimeCall(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(Object::null_object());

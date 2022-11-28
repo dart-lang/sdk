@@ -409,11 +409,13 @@ class Assembler : public AssemblerBase {
     LoadFromOffset(dst, base, offset);
   }
   void LoadCompressed(Register dest, const Address& slot) { ldr(dest, slot); }
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot) override;
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
   }
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0) override {
     ldr(dst, Address(address, offset));
     dmb();
   }
@@ -858,6 +860,15 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
     AndImmediate(rd, rd, imm, cond);
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override {
+    ASSERT(src1 != src2);  // Likely a mistake.
+    if (src2 == kNoRegister) {
+      src2 = dst;
+    }
+    and_(dst, src2, Operand(src1));
+  }
   void OrImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
   void OrImmediate(Register rd, int32_t imm, Condition cond = AL) {
     OrImmediate(rd, rd, imm, cond);
@@ -881,7 +892,13 @@ class Assembler : public AssemblerBase {
   void TestImmediate(Register rn, int32_t imm, Condition cond = AL);
 
   // Compare rn with signed immediate value. May clobber IP.
-  void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
+  void CompareImmediate(Register rn, int32_t value, Condition cond);
+  void CompareImmediate(Register rn,
+                        int32_t value,
+                        OperandSize width = kFourBytes) override {
+    ASSERT_EQUAL(width, kFourBytes);
+    CompareImmediate(rn, value, AL);
+  }
 
   // Signed integer division of left by right. Checks to see if integer
   // division is supported. If not, uses the FPU for division with
@@ -1434,6 +1451,12 @@ class Assembler : public AssemblerBase {
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
                                     Register offset_in_words_as_smi);
+
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    AddImmediate(address, instance, offset - kHeapObjectTag);
+  }
 
   void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
   void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
