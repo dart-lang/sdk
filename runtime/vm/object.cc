@@ -2330,6 +2330,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
     object_store->set_never_type(type);
+    type_args = TypeArguments::New(1);
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize(thread, nullptr);
+    object_store->set_type_argument_never(type_args);
 
     // Create and cache commonly used type arguments <int>, <double>,
     // <String>, <String, dynamic> and <String, String>.
@@ -25689,16 +25693,12 @@ const char* ExternalTypedData::ToCString() const {
   return cls.ScrubbedNameCString();
 }
 
-PointerPtr Pointer::New(const AbstractType& type_arg,
-                        uword native_address,
-                        Heap::Space space) {
+PointerPtr Pointer::New(uword native_address, Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  type_args = TypeArguments::New(1);
-  type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
-  type_args = type_args.Canonicalize(thread, nullptr);
+  TypeArguments& type_args = TypeArguments::Handle(
+      zone, IsolateGroup::Current()->object_store()->type_argument_never());
 
   const Class& cls =
       Class::Handle(IsolateGroup::Current()->class_table()->At(kPointerCid));
@@ -25714,10 +25714,8 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
 }
 
 const char* Pointer::ToCString() const {
-  TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
-  String& type_args_name = String::Handle(type_args.UserVisibleName());
-  return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=0x%" Px,
-                     type_args_name.ToCString(), NativeAddress());
+  return OS::SCreate(Thread::Current()->zone(), "Pointer: address=0x%" Px,
+                     NativeAddress());
 }
 
 DynamicLibraryPtr DynamicLibrary::New(void* handle, Heap::Space space) {

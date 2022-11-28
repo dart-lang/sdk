@@ -96,18 +96,15 @@ void store3() {
   final Pointer<Pointer<Int8>> a = calloc<Pointer<Int8>>();
   final Pointer<NativeType> b = calloc<Int8>().cast<Pointer<NativeType>>();
 
-  // Failing implicit downcast of argument at runtime.
-  // Should fail now at runtime, should statically be rejected when NNBD lands.
-  Expect.throws(() {
-    a.value = b;
-  });
+  // Type arguments are not reified.
+  a.value = b;
 
   calloc.free(a);
   calloc.free(b);
 }
 
 void store4() {
-  // Reified as Pointer<Pointer<Int8>> at runtime.
+  // Type arguments are not reified.
   final Pointer<Pointer<NativeType>> a = calloc<Pointer<Int8>>();
 
   final Pointer<Int8> b = calloc<Int8>();
@@ -119,11 +116,9 @@ void store4() {
 }
 
 void store5() {
-  // Reified as Pointer<Pointer<Int8>> at runtime.
+  // Type arguments are not reified.
   final Pointer<Pointer<NativeType>> a = calloc<Pointer<Int8>>();
-
-  final Pointer<NativeType> b =
-      calloc<Int8>(); // Reified as Pointer<Int8> at runtime.
+  final Pointer<NativeType> b = calloc<Int8>();
 
   a.value = b;
 
@@ -136,10 +131,8 @@ void store6() {
   final Pointer<Pointer<NativeType>> a = calloc<Pointer<Int8>>();
   final Pointer<NativeType> b = calloc<Int8>().cast<Pointer<NativeType>>();
 
-  // Fails on type check of argument.
-  Expect.throws(() {
-    a.value = b;
-  });
+  // Type arguments are not reified.
+  a.value = b;
 
   calloc.free(a);
   calloc.free(b);
@@ -221,11 +214,8 @@ void load4() {
 void load5() {
   final Pointer<Pointer<NativeType>> a = calloc<Pointer<NativeType>>();
 
-  // Failing implicit downcast of return value at runtime.
-  // Should fail now at runtime, should statically be rejected when NNBD lands.
-  Expect.throws(() {
-    Pointer<Int8> b = a.value;
-  });
+  // Type arguments are not reified.
+  Pointer<Int8> b = a.value;
 
   calloc.free(a);
 }

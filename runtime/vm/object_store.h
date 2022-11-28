@@ -103,6 +103,7 @@ class ObjectPointerVisitor;
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_double)                                      \
+  RW(TypeArguments, type_argument_never)                                       \
   RW(TypeArguments, type_argument_string)                                      \
   RW(TypeArguments, type_argument_legacy_string)                               \
   RW(TypeArguments, type_argument_string_dynamic)                              \
