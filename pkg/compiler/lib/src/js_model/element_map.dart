@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -39,6 +40,8 @@ abstract class JsToElementMap {
 
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type);
+
+  Iterable<InterfaceType> getInterfaces(IndexedClass cls);
 
   /// Returns the [TypeVariableType] corresponding to [type].
   TypeVariableType getTypeVariableType(ir.TypeParameterType type);
