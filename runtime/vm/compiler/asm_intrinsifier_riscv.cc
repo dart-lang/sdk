@@ -1848,6 +1848,11 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ sx(T1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(A0, kHeapObjectTag);
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  __ sx(ZR, Address(T1, -1 * target::kWordSize));
+  __ sx(ZR, Address(T1, -2 * target::kWordSize));
 
   // Initialize the tags.
   // A0: new object start as a tagged pointer.
@@ -2001,7 +2006,7 @@ static void StringEquality(Assembler* assembler,
   // Are identical?
   __ beq(A0, A1, &is_true, Assembler::kNearJump);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ BranchIfSmi(A1, normal_ir_body, Assembler::kNearJump);
   __ CompareClassId(A1, string_cid, TMP);
   __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
@@ -2012,23 +2017,29 @@ static void StringEquality(Assembler* assembler,
   __ bne(T2, T3, &is_false, Assembler::kNearJump);
 
   // Check contents, no fall-through possible.
-  __ SmiUntag(T2);
+  ASSERT((string_cid == kOneByteStringCid) ||
+         (string_cid == kTwoByteStringCid));
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(T2);
+  }
+  // T2 is length of data in bytes.
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ AddImmediate(T2, target::kWordSize - 1);
+  __ srli(T2, T2, target::kWordSizeLog2);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
   __ Bind(&loop);
   __ AddImmediate(T2, -1);
   __ bltz(T2, &is_true, Assembler::kNearJump);
-  if (string_cid == kOneByteStringCid) {
-    __ lbu(TMP, FieldAddress(A0, target::OneByteString::data_offset()));
-    __ lbu(TMP2, FieldAddress(A1, target::OneByteString::data_offset()));
-    __ addi(A0, A0, 1);
-    __ addi(A1, A1, 1);
-  } else if (string_cid == kTwoByteStringCid) {
-    __ lhu(TMP, FieldAddress(A0, target::TwoByteString::data_offset()));
-    __ lhu(TMP2, FieldAddress(A1, target::TwoByteString::data_offset()));
-    __ addi(A0, A0, 2);
-    __ addi(A1, A1, 2);
-  } else {
-    UNIMPLEMENTED();
-  }
+  __ lx(TMP,
+        FieldAddress(A0, target::String::length_offset() + target::kWordSize));
+  __ lx(TMP2,
+        FieldAddress(A1, target::String::length_offset() + target::kWordSize));
+  __ addi(A0, A0, target::kWordSize);
+  __ addi(A1, A1, target::kWordSize);
   __ bne(TMP, TMP2, &is_false, Assembler::kNearJump);
   __ j(&loop);
 

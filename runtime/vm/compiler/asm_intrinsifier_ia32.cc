@@ -1627,7 +1627,12 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ movl(Address(THR, target::Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  ASSERT(target::kWordSize == 4);
+  __ movl(Address(EBX, -1 * target::kWordSize), Immediate(0));
+  __ movl(Address(EBX, -2 * target::kWordSize), Immediate(0));
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
   // EBX: new object end address.
@@ -1777,7 +1782,7 @@ static void StringEquality(Assembler* assembler,
   __ cmpl(EAX, EBX);
   __ j(EQUAL, &is_true, Assembler::kNearJump);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(ZERO, &is_false);  // Smi
   __ CompareClassId(EBX, string_cid, EDI);
@@ -1788,27 +1793,28 @@ static void StringEquality(Assembler* assembler,
   __ cmpl(EDI, FieldAddress(EBX, target::String::length_offset()));
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
 
-  // Check contents, no fall-through possible.
-  // TODO(srdjan): write a faster check.
-  __ SmiUntag(EDI);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(EDI);
+  }
+
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ addl(EDI, Immediate(target::kWordSize - 1));
+  __ sarl(EDI, Immediate(target::kWordSizeLog2));
   __ Bind(&loop);
   __ decl(EDI);
-  __ cmpl(EDI, Immediate(0));
   __ j(LESS, &is_true, Assembler::kNearJump);
-  if (string_cid == kOneByteStringCid) {
-    __ movzxb(ECX, FieldAddress(EAX, EDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-    __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-  } else if (string_cid == kTwoByteStringCid) {
-    __ movzxw(ECX, FieldAddress(EAX, EDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-    __ movzxw(EDX, FieldAddress(EBX, EDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-  } else {
-    UNIMPLEMENTED();
-  }
-  __ cmpl(ECX, EDX);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 4);
+  __ movl(ECX, FieldAddress(EAX, EDI, TIMES_4,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
+  __ cmpl(ECX, FieldAddress(EBX, EDI, TIMES_4,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
   __ jmp(&loop, Assembler::kNearJump);
 

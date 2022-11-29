@@ -5977,9 +5977,33 @@ class StringDeserializationCluster
       const intptr_t encoded = d.ReadUnsigned();
       intptr_t cid = 0;
       const intptr_t length = DecodeLengthAndCid(encoded, &cid);
-      Deserializer::InitializeHeader(str, cid, InstanceSize(length, cid),
+      const intptr_t instance_size = InstanceSize(length, cid);
+      // Clean up last two words of the string object to simplify future
+      // string comparisons.
+      // Objects are rounded up to two-word size boundary.
+      *reinterpret_cast<word*>(reinterpret_cast<uint8_t*>(str->untag()) +
+                               instance_size - 1 * kWordSize) = 0;
+      *reinterpret_cast<word*>(reinterpret_cast<uint8_t*>(str->untag()) +
+                               instance_size - 2 * kWordSize) = 0;
+      Deserializer::InitializeHeader(str, cid, instance_size,
                                      primary && is_canonical());
+#if DART_COMPRESSED_POINTERS
+      // Gap caused by less-than-a-word length_ smi sitting before data_.
+      const intptr_t length_offset =
+          reinterpret_cast<intptr_t>(&str->untag()->length_);
+      const intptr_t data_offset =
+          cid == kOneByteStringCid
+              ? reinterpret_cast<intptr_t>(
+                    static_cast<OneByteStringPtr>(str)->untag()->data())
+              : reinterpret_cast<intptr_t>(
+                    static_cast<TwoByteStringPtr>(str)->untag()->data());
+      const intptr_t length_with_gap = data_offset - length_offset;
+      ASSERT(length_with_gap > kCompressedWordSize);
+      ASSERT(length_with_gap == kWordSize);
+      memset(reinterpret_cast<void*>(length_offset), 0, length_with_gap);
+#endif
       str->untag()->length_ = Smi::New(length);
+
       StringHasher hasher;
       if (cid == kOneByteStringCid) {
         for (intptr_t j = 0; j < length; j++) {
@@ -5987,6 +6011,7 @@ class StringDeserializationCluster
           static_cast<OneByteStringPtr>(str)->untag()->data()[j] = code_unit;
           hasher.Add(code_unit);
         }
+
       } else {
         for (intptr_t j = 0; j < length; j++) {
           uint16_t code_unit = d.Read<uint8_t>();

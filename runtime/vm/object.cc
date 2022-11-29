@@ -24519,10 +24519,26 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
         OneByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     OneByteStringPtr result = static_cast<OneByteStringPtr>(raw);
+#if DART_COMPRESSED_POINTERS
+    // Gap caused by less-than-a-word length_ smi sitting before data_.
+    const intptr_t length_offset =
+        reinterpret_cast<intptr_t>(&result->untag()->length_);
+    const intptr_t data_offset =
+        reinterpret_cast<intptr_t>(result->untag()->data());
+    const intptr_t length_with_gap = data_offset - length_offset;
+    ASSERT(length_with_gap > kCompressedWordSize);
+    ASSERT(length_with_gap == kWordSize);
+    memset(reinterpret_cast<void*>(length_offset), 0, length_with_gap);
+#endif
     result->untag()->set_length(Smi::New(len));
 #if !defined(HASH_IN_OBJECT_HEADER)
     result->untag()->set_hash(Smi::New(0));
 #endif
+    OneByteStringPtr s = static_cast<OneByteStringPtr>(result);
+    intptr_t size = OneByteString::UnroundedSize(s);
+    ASSERT(size <= s->untag()->HeapSize());
+    memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(s) + size), 0,
+           s->untag()->HeapSize() - size);
     return result;
   }
 }
@@ -24713,10 +24729,25 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
         TwoByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
+    TwoByteStringPtr s = static_cast<TwoByteStringPtr>(raw);
+#if DART_COMPRESSED_POINTERS
+    // Gap caused by less-than-a-word length_ smi sitting before data_.
+    const intptr_t length_offset =
+        reinterpret_cast<intptr_t>(&s->untag()->length_);
+    const intptr_t data_offset = reinterpret_cast<intptr_t>(s->untag()->data());
+    const intptr_t length_with_gap = data_offset - length_offset;
+    ASSERT(length_with_gap > kCompressedWordSize);
+    ASSERT(length_with_gap == kWordSize);
+    memset(reinterpret_cast<void*>(length_offset), 0, length_with_gap);
+#endif
     result.SetLength(len);
 #if !defined(HASH_IN_OBJECT_HEADER)
     result.ptr()->untag()->set_hash(Smi::New(0));
 #endif
+    intptr_t size = TwoByteString::UnroundedSize(s);
+    ASSERT(size <= s->untag()->HeapSize());
+    memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(s) + size), 0,
+           s->untag()->HeapSize() - size);
   }
   return TwoByteString::raw(result);
 }

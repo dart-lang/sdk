@@ -1572,6 +1572,12 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  __ LoadImmediate(TMP, 0);
+  __ str(TMP, Address(R1, -1 * target::kWordSize));
+  __ str(TMP, Address(R1, -2 * target::kWordSize));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
@@ -1726,7 +1732,7 @@ static void StringEquality(Assembler* assembler,
   __ cmp(R0, Operand(R1));
   __ b(&is_true, EQ);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ tst(R1, Operand(kSmiTagMask));
   __ b(normal_ir_body, EQ);
   __ CompareClassId(R1, string_cid, R2);
@@ -1742,29 +1748,30 @@ static void StringEquality(Assembler* assembler,
   // TODO(zra): try out other sequences.
   ASSERT((string_cid == kOneByteStringCid) ||
          (string_cid == kTwoByteStringCid));
-  const intptr_t offset = (string_cid == kOneByteStringCid)
-                              ? target::OneByteString::data_offset()
-                              : target::TwoByteString::data_offset();
-  __ AddImmediate(R0, offset - kHeapObjectTag);
-  __ AddImmediate(R1, offset - kHeapObjectTag);
-  __ SmiUntag(R2);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(R2);
+  }
+  // R2 is length of data in bytes.
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ AddImmediate(R2, target::kWordSize - 1);
+  __ LsrImmediate(R2, R2, target::kWordSizeLog2);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 4);
+  __ AddImmediate(
+      R0, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+  __ AddImmediate(
+      R1, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+
   __ Bind(&loop);
   __ AddImmediate(R2, -1);
   __ cmp(R2, Operand(0));
   __ b(&is_true, LT);
-  if (string_cid == kOneByteStringCid) {
-    __ ldrb(R3, Address(R0));
-    __ ldrb(R4, Address(R1));
-    __ AddImmediate(R0, 1);
-    __ AddImmediate(R1, 1);
-  } else if (string_cid == kTwoByteStringCid) {
-    __ ldrh(R3, Address(R0));
-    __ ldrh(R4, Address(R1));
-    __ AddImmediate(R0, 2);
-    __ AddImmediate(R1, 2);
-  } else {
-    UNIMPLEMENTED();
-  }
+  __ ldr(R3, Address(R0, 4, Address::PostIndex));
+  __ ldr(R4, Address(R1, 4, Address::PostIndex));
   __ cmp(R3, Operand(R4));
   __ b(&is_false, NE);
   __ b(&loop);
