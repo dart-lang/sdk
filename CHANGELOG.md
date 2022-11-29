@@ -1,6 +1,7 @@
 # 1.31.0
 
-- deprecated `prefer_equal_for_default_values`
+- updated `prefer_equal_for_default_values` to not report for SDKs `>=2.19`,
+  where this lint is now an analyzer diagnostic.
 
 # 1.30.0
 
