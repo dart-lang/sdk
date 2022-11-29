@@ -143,6 +143,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add explicit .call tearoff',
   );
+  static const ADD_EXPLICIT_CALL_MULTI = FixKind(
+    'dart.fix.add.explicitCall.multi',
+    DartFixKindPriority.IN_FILE,
+    'Add explicit .call to implicit tearoffs in file',
+  );
   static const ADD_EXPLICIT_CAST = FixKind(
     'dart.fix.add.explicitCast',
     DartFixKindPriority.DEFAULT,

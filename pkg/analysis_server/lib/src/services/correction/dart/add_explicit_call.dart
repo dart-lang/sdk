@@ -12,7 +12,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddExplicitCall extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CALL;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_EXPLICIT_CALL_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

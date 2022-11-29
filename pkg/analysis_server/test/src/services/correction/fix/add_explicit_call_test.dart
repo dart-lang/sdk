@@ -11,8 +11,40 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddExplicitCallBulkTest);
     defineReflectiveTests(AddExplicitCallTest);
   });
+}
+
+@reflectiveTest
+class AddExplicitCallBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.implicit_call_tearoffs;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+class C {
+  void call() {}
+}
+void f(void Function() a) {}
+void g() async {
+  f(C());
+  var c = Future.value(C());
+  f(await c);
+}
+''');
+    await assertHasFix(r'''
+class C {
+  void call() {}
+}
+void f(void Function() a) {}
+void g() async {
+  f(C().call);
+  var c = Future.value(C());
+  f((await c).call);
+}
+''');
+  }
 }
 
 @reflectiveTest
