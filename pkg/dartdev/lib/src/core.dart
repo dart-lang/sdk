@@ -151,6 +151,8 @@ class Project {
   bool get hasPubspecFile =>
       FileSystemEntity.isFileSync(path.join(dir.path, 'pubspec.yaml'));
 
+  File get pubspecFile => File(path.join(dir.path, 'pubspec.yaml'));
+
   bool get hasPackageConfigFile => packageConfig != null;
 
   PackageConfig? get packageConfig {

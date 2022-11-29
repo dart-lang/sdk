@@ -6,6 +6,7 @@ import 'package:test/test.dart';
 
 import 'analytics_test.dart' as analytics;
 import 'commands/analyze_test.dart' as analyze;
+import 'commands/bug_test.dart' as bug;
 import 'commands/compile_test.dart' as compile;
 import 'commands/create_test.dart' as create;
 import 'commands/fix_test.dart' as fix;
@@ -31,6 +32,7 @@ void main() {
   group('dart', () {
     analytics.main();
     analyze.main();
+    bug.main();
     create.main();
     experiments.main();
     fix.main();
