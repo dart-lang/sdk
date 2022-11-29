@@ -4,6 +4,8 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Error when attempting to mix in a sealed class inside of library.
+
 sealed class SealedClass {
   int nonAbstractFoo = 0;
   abstract int foo;
@@ -12,16 +14,14 @@ sealed class SealedClass {
 }
 
 abstract class A with SealedClass {}
-
-class AImpl extends A {
-  @override
-  int foo = 1;
-
-  @override
-  int bar(int value) => value + 1;
-}
+// ^
+// [analyzer] unspecified
+// [cfe] unspecified
 
 class B with SealedClass {
+// ^
+// [analyzer] unspecified
+// [cfe] unspecified
   @override
   int nonAbstractFoo = 100;
 
@@ -33,11 +33,6 @@ class B with SealedClass {
 }
 
 abstract class C = Object with SealedClass;
-
-class CImpl extends C {
-  @override
-  int foo = 3;
-
-  @override
-  int bar(int value) => value - 1;
-}
+// ^
+// [analyzer] unspecified
+// [cfe] unspecified

@@ -4,27 +4,20 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
-// Error when attempting to mix in a sealed class outside of library.
+// Error when attempting to extend or implement typedef sealed class
+// outside of its library.
 
-import 'sealed_class_as_mixin_in_lib_error_test.dart';
+import 'sealed_class_typedef_lib.dart';
 
-abstract class OutsideA with SealedClass {}
-//             ^
+class ATypeDef extends SealedClassTypeDef {}
+//    ^
 // [analyzer] unspecified
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
-class OutsideB with SealedClass {
+class BTypeDef implements SealedClassTypeDef {
 //    ^
 // [analyzer] unspecified
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
   @override
-  int foo = 2;
-
-  @override
-  int bar(int value) => value;
+  int foo = 1;
 }
-
-abstract class OutsideC = Object with SealedClass;
-//             ^
-// [analyzer] unspecified
-// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
