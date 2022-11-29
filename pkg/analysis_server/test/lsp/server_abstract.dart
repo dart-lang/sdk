@@ -515,6 +515,32 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withGivenTextDocumentDynamicRegistrations(
+    TextDocumentClientCapabilities source,
+    String name,
+  ) {
+    final json = name == 'semanticTokens'
+        ? SemanticTokensClientCapabilities(
+            dynamicRegistration: true,
+            requests: SemanticTokensClientCapabilitiesRequests(),
+            formats: [],
+            tokenModifiers: [],
+            tokenTypes: []).toJson()
+        : {'dynamicRegistration': true};
+    return extendTextDocumentCapabilities(source, {
+      name: json,
+    });
+  }
+
+  WorkspaceClientCapabilities withGivenWorkspaceDynamicRegistrations(
+    WorkspaceClientCapabilities source,
+    String name,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      name: {'dynamicRegistration': true},
+    });
+  }
+
   TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
     TextDocumentClientCapabilities source,
   ) {

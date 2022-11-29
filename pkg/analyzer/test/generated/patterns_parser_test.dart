@@ -6711,6 +6711,26 @@ ListPattern
 ''');
   }
 
+  test_rest_withoutSubpattern_insideMap() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {...}:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    RestPatternElement
+      operator: ...
+  rightBracket: }
+''');
+  }
+
   test_rest_withSubpattern_insideList() {
     _parse('''
 void f(x) {

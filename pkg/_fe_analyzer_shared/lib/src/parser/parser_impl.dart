@@ -9571,18 +9571,28 @@ class Parser {
 
     int count = 0;
     while (true) {
-      token = parseExpression(token);
-      Token colon = token.next!;
-      if (!optional(':', colon)) {
-        // TODO(paulberry): test this error recovery logic
-        // Recover from a missing colon by inserting one.
-        colon = rewriteAndRecover(
-            token,
-            codes.templateExpectedButGot.withArguments(':'),
-            new SyntheticToken(TokenType.PERIOD, next.charOffset));
+      if (optional('...', next)) {
+        Token dots = next;
+        token = next;
+        // TODO(paulberry): users might assume that `...pattern` is valid inside
+        // a map (because it's valid inside a list).  Consider accepting this
+        // and reporting the error at a later stage of the compilation pipeline
+        // so that the error is more useful.
+        listener.handleRestPattern(dots, hasSubPattern: false);
+      } else {
+        token = parseExpression(token);
+        Token colon = token.next!;
+        if (!optional(':', colon)) {
+          // TODO(paulberry): test this error recovery logic
+          // Recover from a missing colon by inserting one.
+          colon = rewriteAndRecover(
+              token,
+              codes.templateExpectedButGot.withArguments(':'),
+              new SyntheticToken(TokenType.PERIOD, next.charOffset));
+        }
+        token = parsePattern(colon, isRefutableContext: isRefutableContext);
+        listener.handleMapPatternEntry(colon, token.next!);
       }
-      token = parsePattern(colon, isRefutableContext: isRefutableContext);
-      listener.handleMapPatternEntry(colon, token.next!);
       ++count;
       next = token.next!;
 
