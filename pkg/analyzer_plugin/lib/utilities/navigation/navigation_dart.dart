@@ -22,7 +22,11 @@ NavigationCollector computeDartNavigation(
     int? offset,
     int? length) {
   var dartCollector = _DartNavigationCollector(collector, offset, length);
-  var visitor = _DartNavigationComputerVisitor(resourceProvider, dartCollector);
+  var visitor = _DartNavigationComputerVisitor(
+    resourceProvider: resourceProvider,
+    computer: dartCollector,
+    unitElement: unit.declaredElement!,
+  );
   if (offset == null || length == null) {
     unit.accept(visitor);
   } else {
@@ -158,11 +162,29 @@ class _DartNavigationCollector {
 
 class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   final ResourceProvider resourceProvider;
+  final CompilationUnitElement unitElement;
   final _DartNavigationCollector computer;
-  final _ExamplesFolder _examplesFolder;
 
-  _DartNavigationComputerVisitor(this.resourceProvider, this.computer)
-      : _examplesFolder = _ExamplesFolder(resourceProvider);
+  /// The directory that contains `examples/api`, `null` if not found.
+  late final Folder? folderWithExamplesApi = () {
+    var filePath = unitElement.source.fullName;
+    var file = resourceProvider.getFile(filePath);
+    for (var parent in file.parent.withAncestors) {
+      var apiFolder = parent
+          .getChildAssumingFolder('examples')
+          .getChildAssumingFolder('api');
+      if (apiFolder.exists) {
+        return parent;
+      }
+    }
+    return null;
+  }();
+
+  _DartNavigationComputerVisitor({
+    required this.resourceProvider,
+    required this.unitElement,
+    required this.computer,
+  });
 
   @override
   void visitAnnotation(Annotation node) {
@@ -216,11 +238,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       super.visitComment(node);
       return;
     }
-    if (_examplesFolder._hasBeenComputedAndDoesNotExist) {
-      // Examples directory doesn't exist.
-      super.visitComment(node);
-      return;
-    }
 
     for (var commentReference in node.references) {
       commentReference.accept(this);
@@ -243,8 +260,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           var seeCodeIn = '** See code in ';
           var startIndex = strValue.indexOf('${seeCodeIn}examples/api/');
           if (startIndex != -1) {
-            _examplesFolder._computeApiPath(node);
-            if (_examplesFolder._hasBeenComputedAndDoesNotExist) {
+            final folderWithExamplesApi = this.folderWithExamplesApi;
+            if (folderWithExamplesApi == null) {
               // Examples directory doesn't exist.
               super.visitComment(node);
               return;
@@ -255,8 +272,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
             // Split on '/' because that's what the comment syntax uses, but
             // re-join it using the resource provider to get the right separator
             // for the platform.
-            var examplePath = resourceProvider.pathContext.joinAll(
-                [_examplesFolder._apiPath!, ...pathSnippet.split('/')]);
+            var examplePath = resourceProvider.pathContext.joinAll([
+              folderWithExamplesApi.path,
+              ...pathSnippet.split('/'),
+            ]);
             var start = token.offset + startIndex;
             var end = token.offset + endIndex;
             computer._addRegion(
@@ -605,58 +624,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       if (resourceProvider.getResource(source.fullName).exists) {
         computer._addRegionForNode(node.uri, element);
       }
-    }
-  }
-}
-
-/// This class tracks the computation of a possible path to an "examples API"
-/// folder.
-class _ExamplesFolder {
-  final ResourceProvider _resourceProvider;
-
-  /// The path to the "exapmles API" folder, if there is one, `null` if it has
-  /// not yet been computed, or none was found when it was computed.
-  String? _apiPath;
-
-  bool _hasComputedParentWithExamplesApi = false;
-
-  _ExamplesFolder(this._resourceProvider);
-
-  /// Whether the possible path has been computed and does not exist.
-  bool get _hasBeenComputedAndDoesNotExist =>
-      _hasComputedParentWithExamplesApi && _apiPath == null;
-
-  /// Returns the path of the directory containing [node]'s API examples.
-  ///
-  /// All parent directories of the compilation unit are searched until one is
-  /// found which contains child directories `example/api`. `null` is returned
-  /// if no such directory is found.
-  void _computeApiPath(AstNode node) {
-    if (_hasComputedParentWithExamplesApi) {
-      return;
-    }
-    _hasComputedParentWithExamplesApi = true;
-    // TODO(srawlins): we compute navigation for resolved units, and we already
-    // know its `CompilationUnitElement`, so there is no need to re-discover it.
-    var source =
-        node.thisOrAncestorOfType<CompilationUnit>()?.declaredElement?.source;
-    if (source == null) {
-      return;
-    }
-
-    var file = _resourceProvider.getFile(source.fullName);
-    if (!file.exists) {
-      return;
-    }
-    var parent = file.parent;
-    while (parent != parent.parent) {
-      var examplesFolder =
-          _resourceProvider.pathContext.join(parent.path, 'examples', 'api');
-      if (_resourceProvider.getFolder(examplesFolder).exists) {
-        _apiPath = parent.path;
-        return;
-      }
-      parent = parent.parent;
     }
   }
 }
