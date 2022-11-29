@@ -641,7 +641,7 @@ abstract class Zone {
   ///     future = Future.error("asynchronous error");
   ///   }, (error) { print(error); });  // Creates a zone with an error handler.
   ///   // The following `catchError` handler is never invoked, because the
-  ///   // custom zone created by the call to `runZoned` provides an
+  ///   // custom zone created by the call to `runZonedGuarded` provides an
   ///   // error handler.
   ///   future.catchError((error) { throw "is never reached"; });
   /// }
