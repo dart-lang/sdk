@@ -1789,6 +1789,10 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  __ stp(ZR, ZR, Address(R1, -2 * target::kWordSize, Address::PairOffset));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
@@ -1812,6 +1816,10 @@ static void TryAllocateString(Assembler* assembler,
     __ str(R2, FieldAddress(R0, target::Object::tags_offset()));  // Store tags.
   }
 
+#if DART_COMPRESSED_POINTERS
+  // Clear out padding caused by alignment gap between length and data.
+  __ str(ZR, FieldAddress(R0, target::String::length_offset()));
+#endif
   // Set the length field using the saved length (R6).
   __ StoreCompressedIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::String::length_offset()), R6);
@@ -1953,44 +1961,43 @@ static void StringEquality(Assembler* assembler,
   __ CompareObjectRegisters(R0, R1);
   __ b(&is_true, EQ);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ BranchIfSmi(R1, normal_ir_body);
   __ CompareClassId(R1, string_cid);
   __ b(normal_ir_body, NE);
 
   // Have same length?
-  __ LoadCompressedSmi(R2, FieldAddress(R0, target::String::length_offset()));
-  __ LoadCompressedSmi(R3, FieldAddress(R1, target::String::length_offset()));
-  __ CompareObjectRegisters(R2, R3);
+  __ ldr(R2, FieldAddress(R0, target::String::length_offset()));
+  __ ldr(R3, FieldAddress(R1, target::String::length_offset()));
+  __ CompareRegisters(R2, R3);
   __ b(&is_false, NE);
 
-  // Check contents, no fall-through possible.
-  // TODO(zra): try out other sequences.
   ASSERT((string_cid == kOneByteStringCid) ||
          (string_cid == kTwoByteStringCid));
-  const intptr_t offset = (string_cid == kOneByteStringCid)
-                              ? target::OneByteString::data_offset()
-                              : target::TwoByteString::data_offset();
-  __ AddImmediate(R0, offset - kHeapObjectTag);
-  __ AddImmediate(R1, offset - kHeapObjectTag);
-  __ SmiUntag(R2);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(R2);
+  }
+  // R2 is length of data in bytes.
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ AddImmediate(R2, target::kWordSize - 1);
+  __ LsrImmediate(R2, R2, target::kWordSizeLog2);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 8);
+  __ AddImmediate(
+      R0, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+  __ AddImmediate(
+      R1, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+
   __ Bind(&loop);
   __ AddImmediate(R2, -1);
   __ CompareRegisters(R2, ZR);
   __ b(&is_true, LT);
-  if (string_cid == kOneByteStringCid) {
-    __ ldr(R3, Address(R0), kUnsignedByte);
-    __ ldr(R4, Address(R1), kUnsignedByte);
-    __ AddImmediate(R0, 1);
-    __ AddImmediate(R1, 1);
-  } else if (string_cid == kTwoByteStringCid) {
-    __ ldr(R3, Address(R0), kUnsignedTwoBytes);
-    __ ldr(R4, Address(R1), kUnsignedTwoBytes);
-    __ AddImmediate(R0, 2);
-    __ AddImmediate(R1, 2);
-  } else {
-    UNIMPLEMENTED();
-  }
+  __ ldr(R3, Address(R0, 8, Address::PostIndex));
+  __ ldr(R4, Address(R1, 8, Address::PostIndex));
   __ cmp(R3, Operand(R4));
   __ b(&is_false, NE);
   __ b(&loop);

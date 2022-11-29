@@ -562,10 +562,10 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       RELEASE_ASSERT(String::GetCachedHash(str.ptr()) != 0);
       RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
 
-      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length()));
 #if !defined(HASH_IN_OBJECT_HEADER)
       stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->hash()));
 #endif
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length()));
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::String::InstanceSize());
       stream->WriteBytes(

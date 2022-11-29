@@ -2852,14 +2852,15 @@ class UntaggedString : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(String);
 
  protected:
-  COMPRESSED_SMI_FIELD(SmiPtr, length)
-  VISIT_FROM(length)
-#if defined(HASH_IN_OBJECT_HEADER)
-  VISIT_TO(length)
-#else
+#if !defined(HASH_IN_OBJECT_HEADER)
   COMPRESSED_SMI_FIELD(SmiPtr, hash)
-  VISIT_TO(hash);
+  VISIT_FROM(hash)
 #endif
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+#if defined(HASH_IN_OBJECT_HEADER)
+  VISIT_FROM(length)
+#endif
+  VISIT_TO(length)
 
  private:
   friend class Library;

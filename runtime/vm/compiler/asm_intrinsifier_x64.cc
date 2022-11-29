@@ -1703,6 +1703,12 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ movq(Address(THR, target::Thread::top_offset()), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  ASSERT(target::kWordSize == 8);
+  __ movq(Address(RCX, -1 * target::kWordSize), Immediate(0));
+  __ movq(Address(RCX, -2 * target::kWordSize), Immediate(0));
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
@@ -1729,6 +1735,11 @@ static void TryAllocateString(Assembler* assembler,
 
   // Set the length field.
   __ popq(RDI);
+#if DART_COMPRESSED_POINTERS
+  // Clear out padding caused by alignment gap between length and data.
+  __ movq(FieldAddress(RAX, target::String::length_offset()),
+          compiler::Immediate(0));
+#endif
   __ StoreCompressedIntoObjectNoBarrier(
       RAX, FieldAddress(RAX, target::String::length_offset()), RDI);
   __ jmp(ok, Assembler::kNearJump);
@@ -1863,38 +1874,38 @@ static void StringEquality(Assembler* assembler,
   __ OBJ(cmp)(RAX, RCX);
   __ j(EQUAL, &is_true, Assembler::kNearJump);
 
-  // Is other target::OneByteString?
+  // Is other same kind of string?
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(ZERO, &is_false);  // Smi
   __ CompareClassId(RCX, string_cid);
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
 
   // Have same length?
-  __ LoadCompressedSmi(RDI, FieldAddress(RAX, target::String::length_offset()));
-  __ OBJ(cmp)(RDI, FieldAddress(RCX, target::String::length_offset()));
+  __ movq(RDI, FieldAddress(RAX, target::String::length_offset()));
+  __ cmpq(RDI, FieldAddress(RCX, target::String::length_offset()));
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
 
-  // Check contents, no fall-through possible.
-  // TODO(srdjan): write a faster check.
-  __ SmiUntag(RDI);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(RDI);
+  }
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ addq(RDI, Immediate(target::kWordSize - 1));
+  __ sarq(RDI, Immediate(target::kWordSizeLog2));
   __ Bind(&loop);
   __ decq(RDI);
-  __ cmpq(RDI, Immediate(0));
   __ j(LESS, &is_true, Assembler::kNearJump);
-  if (string_cid == kOneByteStringCid) {
-    __ movzxb(RBX, FieldAddress(RAX, RDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-    __ movzxb(RDX, FieldAddress(RCX, RDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-  } else if (string_cid == kTwoByteStringCid) {
-    __ movzxw(RBX, FieldAddress(RAX, RDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-    __ movzxw(RDX, FieldAddress(RCX, RDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-  } else {
-    UNIMPLEMENTED();
-  }
-  __ cmpq(RBX, RDX);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 8);
+  __ movq(RBX, FieldAddress(RAX, RDI, TIMES_8,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
+  __ cmpq(RBX, FieldAddress(RCX, RDI, TIMES_8,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
   __ jmp(&loop, Assembler::kNearJump);
 

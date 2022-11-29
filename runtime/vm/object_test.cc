@@ -7298,6 +7298,48 @@ void init() {
   HashSetNonConstEqualsConst(kScript);
 }
 
+TEST_CASE(OneByteStringExternalEqualsInternal) {
+  const char* kScript = R"(
+makeInternalString() {
+  return String.fromCharCodes(<int>[1, 1, 2, 3, 5, 8, 13]);
+}
+
+bool equalsAB(String a, String b) => !identical(a, b) && (a == b);
+bool equalsBA(String a, String b) => !identical(b, a) && (b == a);
+)";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle internal_string =
+      Dart_Invoke(lib, NewString("makeInternalString"), 0, NULL);
+  EXPECT_VALID(internal_string);
+
+  Dart_Handle external_string;
+  uint8_t characters[] = {1, 1, 2, 3, 5, 8, 13};
+  intptr_t len = ARRAY_SIZE(characters);
+
+  {
+    TransitionNativeToVM transition(thread);
+
+    const String& str = String::Handle(ExternalOneByteString::New(
+        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+    EXPECT(!str.IsOneByteString());
+    EXPECT(str.IsExternalOneByteString());
+
+    external_string = Api::NewHandle(thread, str.ptr());
+  }
+
+  Dart_Handle args[2] = {internal_string, external_string};
+  Dart_Handle equalsAB_result =
+      Dart_Invoke(lib, NewString("equalsAB"), 2, args);
+  EXPECT_VALID(equalsAB_result);
+  EXPECT_TRUE(equalsAB_result);
+
+  Dart_Handle equalsBA_result =
+      Dart_Invoke(lib, NewString("equalsBA"), 2, args);
+  EXPECT_VALID(equalsBA_result);
+  EXPECT_TRUE(equalsBA_result);
+}
+
 static void CheckConcatAll(const String* data[], intptr_t n) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
