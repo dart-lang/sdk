@@ -1819,7 +1819,7 @@ LintCode.control_flow_in_finally:
 LintCode.curly_braces_in_flow_control_structures:
   status: hasFix
 LintCode.dangling_library_doc_comments:
-  status: needsEvaluation
+  status: hasFix
 LintCode.depend_on_referenced_packages:
   status: needsFix
 LintCode.deprecated_consistency:

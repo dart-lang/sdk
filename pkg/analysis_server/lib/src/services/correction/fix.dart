@@ -852,6 +852,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Move this annotation to a library directive",
   );
+  static const MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE = FixKind(
+    'dart.fix.moveDocCommentToLibraryDirective',
+    DartFixKindPriority.DEFAULT,
+    "Move this doc comment to a library directive",
+  );
   static const ORGANIZE_IMPORTS = FixKind(
     'dart.fix.organize.imports',
     DartFixKindPriority.DEFAULT,

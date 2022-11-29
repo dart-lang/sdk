@@ -53,6 +53,8 @@ class LintNames {
   static const String combinators_ordering = 'combinators_ordering';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
+  static const String dangling_library_doc_comments =
+      'dangling_library_doc_comments';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
