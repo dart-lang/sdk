@@ -905,6 +905,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+        node.name, HighlightRegionType.PARAMETER_DECLARATION);
     super.visitFunctionTypedFormalParameter(node);
   }
 
