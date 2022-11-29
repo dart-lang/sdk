@@ -200,7 +200,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
         .map((r) => Location(uri: mainFileUri, range: r));
 
     if (expectResults) {
-      expect(res, equals(expectedLocations));
+      expect(res, unorderedEquals(expectedLocations));
     } else {
       for (final location in expectedLocations) {
         expect(res, isNot(contains(location)));
