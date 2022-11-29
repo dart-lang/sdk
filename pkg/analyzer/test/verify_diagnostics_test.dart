@@ -58,6 +58,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.NON_SYNC_FACTORY',
+    // This isn't enabled yet, but will be enabled in 3.0.
+    'CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',

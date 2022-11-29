@@ -975,12 +975,16 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("CaseMatch");
 
+    WhenClauseImpl? whenClause;
+    if (when != null) {
+      var expression = pop() as ExpressionImpl;
+      whenClause = WhenClauseImpl(
+        whenKeyword: when,
+        expression: expression,
+      );
+    }
+
     if (_featureSet.isEnabled(Feature.patterns)) {
-      WhenClauseImpl? whenClause;
-      if (when != null) {
-        var expression = pop() as ExpressionImpl;
-        whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
-      }
       var pattern = pop() as DartPatternImpl;
       push(
         SwitchPatternCaseImpl(

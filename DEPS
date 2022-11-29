@@ -47,7 +47,7 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.18.0",
+  "sdk_tag": "version:2.19.0-374.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
@@ -127,14 +127,14 @@ vars = {
 
   "dartdoc_rev": "dc502d0862fe1ba8451c9c57cd7ab70432634af3",
   "devtools_rev": "23444af89d716818f099974df3e4fffac87fd886",
-  "ffi_rev": "3ede2312dd6ec37db6e7bcd6e1236647f72c7fc0",
+  "ffi_rev": "17a8142da8114a065e03200467c7657b5368a86d",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
-  "fixnum_rev": "bca3816daf641397f7b5ab9cf865a6d10d30c625",
+  "fixnum_rev": "bca3816daf641397f7b5ab9cf865a6d10d30c625", # b/260609190
   "glob_rev": "7f97bf5be6bfe8c90a92283e4c590dba2a676083",
   "html_rev": "28fb8b97acf471bedcfa4eaf38899a0f65d5e30d",
   "http_multi_server_rev": "e31c6988e3869fb4019429254604066338f86095",
   "http_parser_rev": "c73967535ce31120e218120f70ef98cc22688c82",
-  "http_rev": "d56141de40b69e8ae3cc22602caea6cca3fba4dc",
+  "http_rev": "047d6ed015d397be169a7fb892d75141d9bfd58f",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "a127902594a964f2090239fb454adadf7c1a77ef",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -142,7 +142,7 @@ vars = {
   "linter_rev": "8bce8b8b06c22716219207eb9d52beb93932ea44", # 1.30.0
   "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
-  "markdown_rev": "37951d151750acfae756b2e466f563c1c5119b3d",
+  "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "15d4af21002ae9adee952110192a3face96307c7",
   "mime_rev": "c0c4c47a3d7bf696f1aa1959fb83d598baadb33c",
@@ -151,15 +151,15 @@ vars = {
   "path_rev": "12ce876fdd8873128671acfec54c8ad88da361fa",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "1ea5b031cfda37786d305292cb8104dffb45d9ae",
-  "protobuf_rev": "ae90e53cd690edbfc72fa6c293fdb7b4a09ee0a2",
+  "protobuf_rev": "c181573c330ff0337db0bab5501deda3a42ba028",
   "pub_rev": "6fdcdd4357645817e7d7027ee2157ed68ef69c53", # manually rev'd
-  "pub_semver_rev": "28159b8c5b96fc2709d0904389d7932880f68659", # b/258766867
+  "pub_semver_rev": "17231113f98c80285881cc4452863bcfd085d1a8",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "1c2104737973715426035c11ba840c7f23d8f186",
   "source_map_stack_trace_rev": "8d8078fcc81c8f7936805cd277198493e0b7fc62",
   "source_maps_rev": "b031e2cdbef5675ab9a92025202d323a5e7cc526",
   "source_span_rev": "d1d47e550b6f77ed9b4907339a8a5e430b9ca314",
-  "sse_rev": "283568dd4865cc51e25370ed107fcbdb68759c22",
+  "sse_rev": "8d018dd606f1f8a957c51de16159d532ce664569",
   "stack_trace_rev": "dce00134f6558086e8963e37d0b1ba0830862c01",
   "stream_channel_rev": "914304769d036867b993bd7f9c111145f1ca4ab0",
   "string_scanner_rev": "4a5cbc5c1127151ea507cc9da797b829857607e8",
@@ -168,7 +168,7 @@ vars = {
   "test_descriptor_rev": "13dbc20e9d5c354b670353220c3ab95642ae228c",
   "test_process_rev": "1774aa7a94ebbc60924a7f7174adb02e84458c25",
   "test_reflective_loader_rev": "52b6753852661787208e003f9716b079026c7ac7",
-  "test_rev": "7756833000d671d4540b37ef04acd4b9e716026f",
+  "test_rev": "b25dac9936c2ea9605b54a3418e0c956937da48f",
   "typed_data_rev": "1e838b8ec85699b5b99e793d004ae315e72fcbc0",
   "usage_rev": "fee1d9d9c295362f6edebfeebb9f8187711c55ab",
   "vector_math_rev": "1eee95b15e5d35cf519514cc253037b19705fb7a",

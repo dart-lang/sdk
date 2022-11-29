@@ -589,8 +589,8 @@ class Range {
     return info.newNormalizedRange(low, up);
   }
 
-  static Range add(Range a, Range b) => a + b;
-  static Range subtract(Range a, Range b) => a - b;
+  static Range add(Range /*!*/ a, Range /*!*/ b) => a + b;
+  static Range subtract(Range /*!*/ a, Range /*!*/ b) => a - b;
 
   Range operator +(Range other) {
     return info.newNormalizedRange(lower + other.lower, upper + other.upper);
@@ -665,7 +665,7 @@ class Range {
   String toString() => '[$lower, $upper]';
 }
 
-typedef BinaryRangeOperation = Range Function(Range, Range);
+typedef BinaryRangeOperation = Range Function(Range /*!*/, Range /*!*/);
 
 /// Visits the graph in dominator order, and computes value ranges for
 /// integer instructions. While visiting the graph, this phase also
@@ -895,8 +895,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
       return info.newUnboundRange();
     }
     constant_system.BinaryOperation operation = relational.operation();
-    Range rightRange = ranges[relational.right];
-    Range leftRange = ranges[relational.left];
+    Range rightRange = ranges[relational.right] /*!*/;
+    Range leftRange = ranges[relational.left] /*!*/;
 
     if (relational is HIdentity) {
       handleEqualityCheck(relational);
@@ -913,8 +913,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
     return info.newUnboundRange();
   }
 
-  bool applyRelationalOperation(
-      constant_system.BinaryOperation operation, Range left, Range right) {
+  bool applyRelationalOperation(constant_system.BinaryOperation /*!*/ operation,
+      Range left, Range right) {
     if (operation == const constant_system.LessOperation()) {
       return left < right;
     }
@@ -932,7 +932,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   }
 
   void handleEqualityCheck(HRelational node) {
-    Range right = ranges[node.right];
+    Range /*!*/ right = ranges[node.right];
     Range left = ranges[node.left];
     if (left.isSingleValue && right.isSingleValue && left == right) {
       node.block.rewrite(node, graph.addConstantBool(true, closedWorld));
@@ -1217,7 +1217,7 @@ class LoopUpdateRecognizer extends HBaseVisitor<Range> {
     // uses the loop phi, it has a range to use.
     ranges[loopPhi] = info.newMarkerRange();
     Range updateRange = visit(loopPhi.inputs[1]);
-    ranges[loopPhi] = null;
+    ranges.remove(loopPhi);
     if (updateRange == null) return null;
     Range startRange = ranges[loopPhi.inputs[0]];
     // If the lower (respectively upper) value is the marker, we know

@@ -149,44 +149,44 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.field","mask":null},
-    {"id":"function/dart:_js_helper::throwCyclicInit","mask":null},
-    {"id":"function/dart:_late_helper::throwLateFieldADI","mask":null},
-    {"id":"function/dart:_rti::Rti._bind","mask":null},
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_arrayInstanceType","mask":null},
-    {"id":"function/dart:_rti::_asBool","mask":null},
-    {"id":"function/dart:_rti::_asBoolQ","mask":null},
-    {"id":"function/dart:_rti::_asBoolS","mask":null},
-    {"id":"function/dart:_rti::_asDouble","mask":null},
-    {"id":"function/dart:_rti::_asDoubleQ","mask":null},
-    {"id":"function/dart:_rti::_asDoubleS","mask":null},
-    {"id":"function/dart:_rti::_asInt","mask":null},
-    {"id":"function/dart:_rti::_asIntQ","mask":null},
-    {"id":"function/dart:_rti::_asIntS","mask":null},
-    {"id":"function/dart:_rti::_asNum","mask":null},
-    {"id":"function/dart:_rti::_asNumQ","mask":null},
-    {"id":"function/dart:_rti::_asNumS","mask":null},
-    {"id":"function/dart:_rti::_asObject","mask":null},
-    {"id":"function/dart:_rti::_asString","mask":null},
-    {"id":"function/dart:_rti::_asStringQ","mask":null},
-    {"id":"function/dart:_rti::_asStringS","mask":null},
-    {"id":"function/dart:_rti::_asTop","mask":null},
-    {"id":"function/dart:_rti::_generalAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedAsCheck","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedIsTest","mask":null},
-    {"id":"function/dart:_rti::_instanceType","mask":null},
-    {"id":"function/dart:_rti::_isBool","mask":null},
-    {"id":"function/dart:_rti::_isInt","mask":null},
-    {"id":"function/dart:_rti::_isNum","mask":null},
-    {"id":"function/dart:_rti::_isObject","mask":null},
-    {"id":"function/dart:_rti::_isString","mask":null},
-    {"id":"function/dart:_rti::_isTop","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/dart:_rti::instanceType","mask":null}]
+    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.field"},
+    {"id":"function/dart:_js_helper::throwCyclicInit"},
+    {"id":"function/dart:_late_helper::throwLateFieldADI"},
+    {"id":"function/dart:_rti::Rti._bind"},
+    {"id":"function/dart:_rti::Rti._eval"},
+    {"id":"function/dart:_rti::_arrayInstanceType"},
+    {"id":"function/dart:_rti::_asBool"},
+    {"id":"function/dart:_rti::_asBoolQ"},
+    {"id":"function/dart:_rti::_asBoolS"},
+    {"id":"function/dart:_rti::_asDouble"},
+    {"id":"function/dart:_rti::_asDoubleQ"},
+    {"id":"function/dart:_rti::_asDoubleS"},
+    {"id":"function/dart:_rti::_asInt"},
+    {"id":"function/dart:_rti::_asIntQ"},
+    {"id":"function/dart:_rti::_asIntS"},
+    {"id":"function/dart:_rti::_asNum"},
+    {"id":"function/dart:_rti::_asNumQ"},
+    {"id":"function/dart:_rti::_asNumS"},
+    {"id":"function/dart:_rti::_asObject"},
+    {"id":"function/dart:_rti::_asString"},
+    {"id":"function/dart:_rti::_asStringQ"},
+    {"id":"function/dart:_rti::_asStringS"},
+    {"id":"function/dart:_rti::_asTop"},
+    {"id":"function/dart:_rti::_generalAsCheckImplementation"},
+    {"id":"function/dart:_rti::_generalIsTestImplementation"},
+    {"id":"function/dart:_rti::_generalNullableAsCheckImplementation"},
+    {"id":"function/dart:_rti::_generalNullableIsTestImplementation"},
+    {"id":"function/dart:_rti::_installSpecializedAsCheck"},
+    {"id":"function/dart:_rti::_installSpecializedIsTest"},
+    {"id":"function/dart:_rti::_instanceType"},
+    {"id":"function/dart:_rti::_isBool"},
+    {"id":"function/dart:_rti::_isInt"},
+    {"id":"function/dart:_rti::_isNum"},
+    {"id":"function/dart:_rti::_isObject"},
+    {"id":"function/dart:_rti::_isString"},
+    {"id":"function/dart:_rti::_isTop"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/dart:_rti::instanceType"}]
   */
   var field = () => T;
   /*member: Class1.funcField:
@@ -203,9 +203,9 @@ class Class1<T> {
   "type": "dynamic"
 }],
    holding=[
-    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField","mask":null},
-    {"id":"function/dart:_js_helper::throwCyclicInit","mask":null},
-    {"id":"function/dart:_late_helper::throwLateFieldADI","mask":null}]
+    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField"},
+    {"id":"function/dart:_js_helper::throwCyclicInit"},
+    {"id":"function/dart:_late_helper::throwLateFieldADI"}]
   */
   var funcField;
 
@@ -269,10 +269,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null}]
+    {"id":"function/dart:_rti::Rti._eval"},
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"}]
   */
   Class1() {
     field = () => T;
@@ -309,10 +309,10 @@ class Class1<T> {
   "functionKind": 3
 }],
    holding=[
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null}]
+    {"id":"function/dart:_rti::Rti._eval"},
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"}]
   */
   Class1.setFunc(this.funcField);
   /*member: Class1.fact:function=[{
@@ -399,10 +399,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.setFunc","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.setFunc"}]
   */
   factory Class1.fact2() => new Class1.setFunc(() => new Set<T>());
 
@@ -490,9 +490,9 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call"}]
   */
   method2() {
     return () => T;
@@ -582,9 +582,9 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call"}]
   */
   method4<S>() {
     return () => S;
@@ -684,10 +684,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call"}]
   */
   method5() {
     local<S>() {
@@ -863,12 +863,12 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call"}]
   */
   method6<S>() {
     local<U>() {
@@ -965,9 +965,9 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call"}]
   */
   static staticMethod2<S>() {
     return () => S;
@@ -1067,10 +1067,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call"}]
   */
   static staticMethod3() {
     local<S>() {
@@ -1246,12 +1246,12 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call"}]
   */
   static staticMethod4<S>() {
     local<U>() {
@@ -1350,9 +1350,9 @@ topLevelMethod1<S>() => S;
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call"}]
 */
 topLevelMethod2<S>() {
   return () => S;
@@ -1452,10 +1452,10 @@ topLevelMethod2<S>() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call"}]
 */
 topLevelMethod3() {
   local<S>() {
@@ -1631,12 +1631,12 @@ topLevelMethod3() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call"}]
 */
 topLevelMethod4<S>() {
   local<U>() {
@@ -1743,11 +1743,11 @@ topLevelMethod4<S>() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call"}]
 */
 dynamic twoLocals() {
   local1() {}
@@ -1849,9 +1849,9 @@ dynamic twoLocals() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call"}]
 */
 dynamic nested() {
   dynamic x;
@@ -1991,10 +1991,10 @@ dynamic nested() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:core::print","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:core::print"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"}]
 */
 dynamic nested2() {
   dynamic y;
@@ -2133,10 +2133,10 @@ dynamic nested2() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:core::print","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:core::print"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call"}]
 */
 dynamic siblings() {
   int local1() {
@@ -2174,36 +2174,36 @@ dynamic siblings() {
   "functionKind": 0
 }],
  holding=[
-  {"id":"field/dart:_rti::Rti._precomputed1","mask":null},
-  {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField","mask":null},
-  {"id":"function/dart:_rti::createRuntimeType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1","mask":null},
+  {"id":"field/dart:_rti::Rti._precomputed1"},
+  {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField"},
+  {"id":"function/dart:_rti::createRuntimeType"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method1","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method1","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method1"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method3","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method3","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method3"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod1","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod1","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod1"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod1","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod1","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals","mask":null}]
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod1"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals"}]
 */
 main() {
   new Class1<int>().method1();

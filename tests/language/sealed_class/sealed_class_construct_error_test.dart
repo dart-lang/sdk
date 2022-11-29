@@ -11,6 +11,9 @@ sealed class NotConstructable {}
 
 sealed mixin AlsoNotConstructable {}
 
+mixin M {}
+sealed class NotConstructableWithMixin = Object with M;
+
 main() {
   var error = NotConstructable();
   //          ^
@@ -19,4 +22,7 @@ main() {
   //           ^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_INSTANTIATE
   // [cfe] Couldn't find constructor 'AlsoNotConstructable'.
+  var error3 = NotConstructableWithMixin();
+  //           ^
+  // [cfe] The class 'NotConstructableWithMixin' is abstract and can't be instantiated.
 }

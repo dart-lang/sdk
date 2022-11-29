@@ -2136,5 +2136,7 @@ class Listener implements UnescapeErrorListener {
   /// patterns accepted by the `outerPattern` grammar rule defined in the
   /// patterns spec.
   void handlePatternVariableDeclarationStatement(
-      Token keyword, Token equals, Token semicolon) {}
+      Token keyword, Token equals, Token semicolon) {
+    logEvent('PatternVariableDeclarationStatement');
+  }
 }

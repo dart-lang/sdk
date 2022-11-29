@@ -2749,10 +2749,10 @@ class TestParser extends Parser {
   }
 
   @override
-  bool looksLikePatternVariableDeclaration(Token token) {
-    doPrint('looksLikePatternVariableDeclaration(' '$token)');
+  bool looksLikeOuterPatternEquals(Token token) {
+    doPrint('looksLikeOuterPatternEquals(' '$token)');
     indent++;
-    var result = super.looksLikePatternVariableDeclaration(token);
+    var result = super.looksLikeOuterPatternEquals(token);
     indent--;
     return result;
   }

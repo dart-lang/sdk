@@ -4467,19 +4467,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     argument.accept(this);
     HInstruction instruction = pop();
 
-    if (!instruction.isConstantString()) {
-      reporter.reportErrorMessage(
-          _elementMap.getSpannable(targetElement, argument),
-          MessageKind.GENERIC, {
-        'text': "Error: Expected String constant as ${adjective}argument "
-            "to '$methodName'."
-      });
-      return null;
+    if (instruction is HConstant) {
+      ConstantValue constant = instruction.constant;
+      if (constant is StringConstantValue) return constant.stringValue;
     }
 
-    HConstant hConstant = instruction;
-    StringConstantValue stringConstant = hConstant.constant;
-    return stringConstant.stringValue;
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, argument),
+        MessageKind.GENERIC, {
+      'text': "Error: Expected String constant as ${adjective}argument "
+          "to '$methodName'."
+    });
+    return null;
   }
 
   void _handleForeignDartClosureToJs(

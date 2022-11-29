@@ -80,8 +80,8 @@ class HintCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const HintCode CAST_FROM_NULL_ALWAYS_FAILS = HintCode(
     'CAST_FROM_NULL_ALWAYS_FAILS',
-    "This cast will always throw an exception because the expression will "
-        "always evaluate to 'null'.",
+    "This cast always throws an exception because the expression always "
+        "evaluates to 'null'.",
   );
 
   ///  Dead code is code that is never reached, this can happen for instance if a
@@ -140,7 +140,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  0: the name of the element
   static const HintCode DEPRECATED_EXPORT_USE = HintCode(
     'DEPRECATED_EXPORT_USE',
-    "The ability to import '{0}' indirectly has been deprecated.",
+    "The ability to import '{0}' indirectly is deprecated.",
     correctionMessage: "Try importing '{0}' directly.",
   );
 

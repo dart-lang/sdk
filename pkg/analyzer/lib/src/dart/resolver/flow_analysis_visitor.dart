@@ -606,40 +606,28 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfElement(IfElement node) {
-    node.condition.accept(this);
-    assignedVariables.beginNode();
-    node.thenElement.accept(this);
-    assignedVariables.endNode(node);
-    node.elseElement?.accept(this);
+  void visitIfElement(covariant IfElementImpl node) {
+    _visitIf(node);
   }
 
   @override
   void visitIfStatement(covariant IfStatementImpl node) {
-    node.condition.accept(this);
-
-    var caseClause = node.caseClause;
-    if (caseClause != null) {
-      var guardedPattern = caseClause.guardedPattern;
-      assignedVariables.beginNode();
-      for (var variable in guardedPattern.variables.values) {
-        assignedVariables.declare(variable);
-      }
-      guardedPattern.whenClause?.accept(this);
-      node.thenStatement.accept(this);
-      assignedVariables.endNode(node);
-      node.elseStatement?.accept(this);
-    } else {
-      assignedVariables.beginNode();
-      node.thenStatement.accept(this);
-      assignedVariables.endNode(node);
-      node.elseStatement?.accept(this);
-    }
+    _visitIf(node);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     throw StateError('Should not visit top level declarations');
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+    covariant PatternVariableDeclarationStatementImpl node,
+  ) {
+    for (var variable in node.declaration.elements) {
+      assignedVariables.declare(variable);
+    }
+    super.visitPatternVariableDeclarationStatement(node);
   }
 
   @override
@@ -775,6 +763,28 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       assignedVariables.endNode(node);
     } else {
       throw StateError('Unrecognized for loop parts');
+    }
+  }
+
+  void _visitIf(IfElementOrStatementImpl node) {
+    node.expression.accept(this);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      assignedVariables.beginNode();
+      for (var variable in guardedPattern.variables.values) {
+        assignedVariables.declare(variable);
+      }
+      guardedPattern.whenClause?.accept(this);
+      node.ifTrue.accept(this);
+      assignedVariables.endNode(node);
+      node.ifFalse?.accept(this);
+    } else {
+      assignedVariables.beginNode();
+      node.ifTrue.accept(this);
+      assignedVariables.endNode(node);
+      node.ifFalse?.accept(this);
     }
   }
 }

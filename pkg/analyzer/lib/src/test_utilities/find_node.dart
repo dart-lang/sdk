@@ -32,14 +32,22 @@ class FindNode {
     var nodes = <GuardedPattern>[];
     unit.accept(
       FunctionAstVisitor(
-        ifStatement: (node) {
-          var caseClause = node.caseClause;
-          if (caseClause != null) {
-            nodes.add(caseClause.guardedPattern);
-          }
+        guardedPattern: (node) {
+          nodes.add(node);
         },
-        switchPatternCase: (node) => nodes.add(node.guardedPattern),
-        switchExpressionCase: (node) => nodes.add(node.guardedPattern),
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [IfStatement], there must be only one.
+  IfStatement get singleIfStatement {
+    var nodes = <IfStatement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        ifStatement: (node) {
+          nodes.add(node);
+        },
       ),
     );
     return nodes.single;

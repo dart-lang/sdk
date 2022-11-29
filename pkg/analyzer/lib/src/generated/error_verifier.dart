@@ -860,6 +860,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitGuardedPattern(covariant GuardedPatternImpl node) {
+    _withHiddenElementsGuardedPattern(node, () {
+      node.pattern.accept(this);
+    });
+    node.whenClause?.accept(this);
+  }
+
+  @override
   void visitImplementsClause(ImplementsClause node) {
     node.interfaces.forEach(_checkForImplicitDynamicType);
     super.visitImplementsClause(node);
@@ -1042,6 +1050,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitNativeFunctionBody(NativeFunctionBody node) {
     _checkForNativeFunctionBodyInNonSdkCode(node);
     super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+    covariant PatternVariableDeclarationStatementImpl node,
+  ) {
+    super.visitPatternVariableDeclarationStatement(node);
+    for (var variable in node.declaration.elements) {
+      _hiddenElements?.declare(variable);
+    }
   }
 
   @override
@@ -5271,6 +5289,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _withHiddenElementsGuardedPattern(
+      GuardedPatternImpl guardedPattern, void Function() f) {
+    _hiddenElements =
+        HiddenElements.forGuardedPattern(_hiddenElements, guardedPattern);
+    try {
+      f();
+    } finally {
+      _hiddenElements = _hiddenElements!.outerElements;
+    }
+  }
+
   /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
   /// the given [constructor], but are not initialized.
   static List<FieldElement> computeNotInitializedFields(
@@ -5325,6 +5354,16 @@ class HiddenElements {
   /// declared in the given [statements].
   HiddenElements(this.outerElements, List<Statement> statements) {
     _initializeElements(statements);
+  }
+
+  /// Initialize a newly created set of hidden elements to include all of the
+  /// elements defined in the set of [outerElements] and all of the elements
+  /// declared in the given [guardedPattern].
+  HiddenElements.forGuardedPattern(
+    this.outerElements,
+    GuardedPatternImpl guardedPattern,
+  ) {
+    _elements.addAll(guardedPattern.variables.values);
   }
 
   /// Return `true` if this set of elements contains the given [element].

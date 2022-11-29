@@ -7456,7 +7456,7 @@ class Parser {
         (optional('var', varFinalOrConst) ||
             optional('final', varFinalOrConst)) &&
         !onlyParseVariableDeclarationStart &&
-        looksLikePatternVariableDeclaration(beforeType)) {
+        looksLikeOuterPatternEquals(beforeType)) {
       // If there was any metadata, then the caller was responsible for parsing
       // it; if not, then we need to let the listener know there wasn't any.
       if (!optional('@', start.next!)) {
@@ -9763,12 +9763,13 @@ class Parser {
     return token;
   }
 
-  /// Returns `true` if the given [token] should be treated like the start of
-  /// a pattern variable declaration.
+  /// Returns `true` if the given [token] looks like an outer pattern followed
+  /// by `=`.  This occurs in the following grammar productions:
   ///
   /// patternVariableDeclaration ::= ( 'final' | 'var' ) outerPattern '='
   ///                                expression
-  bool looksLikePatternVariableDeclaration(Token token) {
+  /// patternAssignment ::= outerPattern '=' expression
+  bool looksLikeOuterPatternEquals(Token token) {
     Token? afterOuterPattern = skipOuterPattern(token);
     if (afterOuterPattern == null) return false;
     return optional('=', afterOuterPattern.next!);

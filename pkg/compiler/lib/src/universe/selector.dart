@@ -244,7 +244,6 @@ class Selector {
   }
 
   bool appliesStructural(MemberEntity element) {
-    assert(name == element.name);
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
     if (element is FieldEntity) {

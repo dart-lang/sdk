@@ -1335,4 +1335,30 @@ SuperFormalParameter
   name: a
 ''');
   }
+
+  void test_switchStatement_withPatternCase_whenDisabled() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 2.18
+void f(Object value) {
+  switch (value) {
+    case (int a,) when a == 0:
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 72, 1),
+    ]);
+
+    var node = parseResult.findNode.switchCase('case');
+    assertParsedNodeText(node, r'''
+SwitchCase
+  keyword: case
+  expression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: int
+    rightParenthesis: )
+  colon: :
+''');
+  }
 }

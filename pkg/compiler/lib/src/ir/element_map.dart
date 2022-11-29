@@ -63,6 +63,8 @@ abstract class IrToElementMap {
   InterfaceType getThisType(covariant ClassEntity cls);
   InterfaceType? getSuperType(covariant ClassEntity cls);
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
+
+  /// Returns the [ClassEntity] objects for interfaces that [cls] `implements`.
   Iterable<InterfaceType> getInterfaces(covariant ClassEntity cls);
   InterfaceType? asInstanceOf(InterfaceType type, ClassEntity cls);
   DartType substByContext(DartType type, InterfaceType context);

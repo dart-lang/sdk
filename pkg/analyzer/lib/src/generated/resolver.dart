@@ -4405,26 +4405,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitIfStatement(covariant IfStatementImpl node) {
-    node.condition.accept(this);
+  void visitIfElement(covariant IfElementImpl node) {
+    _visitIf(node);
+  }
 
-    var caseClause = node.caseClause;
-    if (caseClause != null) {
-      var guardedPattern = caseClause.guardedPattern;
-      guardedPattern.pattern.accept(this);
-      _withNameScope(() {
-        var patternVariables = guardedPattern.variables;
-        for (var variable in patternVariables.values) {
-          _define(variable);
-        }
-        guardedPattern.whenClause?.accept(this);
-        visitStatementInScope(node.thenStatement);
-      });
-      visitStatementInScope(node.elseStatement);
-    } else {
-      visitStatementInScope(node.thenStatement);
-      visitStatementInScope(node.elseStatement);
-    }
+  @override
+  void visitIfStatement(covariant IfStatementImpl node) {
+    _visitIf(node);
   }
 
   @override
@@ -4716,6 +4703,27 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             [labelNode.name]);
       }
       return definingScope.node;
+    }
+  }
+
+  void _visitIf(IfElementOrStatementImpl node) {
+    node.expression.accept(this);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      _withNameScope(() {
+        var patternVariables = guardedPattern.variables;
+        for (var variable in patternVariables.values) {
+          _define(variable);
+        }
+        guardedPattern.accept(this);
+        node.ifTrue.accept(this);
+      });
+      node.ifFalse?.accept(this);
+    } else {
+      node.ifTrue.accept(this);
+      node.ifFalse?.accept(this);
     }
   }
 

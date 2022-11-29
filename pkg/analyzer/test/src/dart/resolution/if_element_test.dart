@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IfElementTest);
+    defineReflectiveTests(IfElementResolutionTest);
   });
 }
 
 @reflectiveTest
-class IfElementTest extends PatternsResolutionTest {
+class IfElementResolutionTest extends PatternsResolutionTest {
   test_caseClause() async {
     await assertNoErrorsInCode(r'''
 void f(Object x) {
@@ -45,6 +46,154 @@ IfElement
   elseElement: IntegerLiteral
     literal: 2
     staticType: int
+''');
+  }
+
+  test_caseClause_variables_scope() async {
+    // Each `guardedPattern` introduces a new case scope which is where the
+    // variables defined by that case's pattern are bound.
+    // There is no initializing expression for the variables in a case pattern,
+    // but they are considered initialized after the entire case pattern,
+    // before the guard expression if there is one. However, all pattern
+    // variables are in scope in the entire pattern.
+    await assertErrorsInCode(r'''
+const a = 0;
+void f(Object x) {
+  [
+    if (x case [int a, == a] when a > 0)
+      a
+    else
+      a
+  ];
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
+    ]);
+
+    final node = findNode.ifElement('if');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: ListPattern
+        leftBracket: [
+        elements
+          VariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@56
+              type: int
+          RelationalPattern
+            operator: ==
+            operand: SimpleIdentifier
+              token: a
+              staticElement: a@56
+              staticType: int
+            element: dart:core::@class::Object::@method::==
+        rightBracket: ]
+        requiredType: List<Object?>
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a@56
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenElement: SimpleIdentifier
+    token: a
+    staticElement: a@56
+    staticType: int
+  elseKeyword: else
+  elseElement: SimpleIdentifier
+    token: a
+    staticElement: self::@getter::a
+    staticType: int
+''');
+  }
+
+  test_caseClause_variables_single() async {
+    await assertErrorsInCode(r'''
+void f(Object x) {
+  [
+    if (x case int a when a > 0)
+      a
+    else
+      a // error
+  ];
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1),
+    ]);
+
+    final node = findNode.ifElement('if');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        name: a
+        declaredElement: a@42
+          type: int
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a@42
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenElement: SimpleIdentifier
+    token: a
+    staticElement: a@42
+    staticType: int
+  elseKeyword: else
+  elseElement: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: dynamic
 ''');
   }
 

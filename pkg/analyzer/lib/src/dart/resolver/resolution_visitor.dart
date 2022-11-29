@@ -801,17 +801,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIfElement(covariant IfElementImpl node) {
+    _visitIf(node);
+  }
+
+  @override
   void visitIfStatement(covariant IfStatementImpl node) {
-    var caseClause = node.caseClause;
-    if (caseClause != null) {
-      node.expression.accept(this);
-      _resolveGuardedPattern(caseClause.guardedPattern, then: () {
-        node.thenStatement.accept(this);
-      });
-      node.elseStatement?.accept(this);
-    } else {
-      node.visitChildren(this);
-    }
+    _visitIf(node);
   }
 
   @override
@@ -1267,6 +1263,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _define(element);
       element.isFinal = node.keyword?.keyword == Keyword.FINAL;
       element.hasImplicitType = node.type == null;
+      element.type = node.type?.type ?? _dynamicType;
       node.declaredElement = element;
     }
   }
@@ -1540,6 +1537,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.metadata = annotations.map((annotation) {
         return annotation.elementAnnotation!;
       }).toList();
+    }
+  }
+
+  void _visitIf(IfElementOrStatementImpl node) {
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      node.expression.accept(this);
+      _resolveGuardedPattern(caseClause.guardedPattern, then: () {
+        node.ifTrue.accept(this);
+      });
+      node.ifFalse?.accept(this);
+    } else {
+      node.visitChildren(this);
     }
   }
 

@@ -76,11 +76,6 @@ abstract class TypeInformation {
   /// change.
   bool isStable = false;
 
-  // TypeInformations are unique. Store an arbitrary identity hash code.
-  static int _staticHashCode = 0;
-  @override
-  final int hashCode = _staticHashCode = (_staticHashCode + 1).toUnsigned(30);
-
   bool get isConcrete => false;
 
   TypeInformation(this.type, this.context)

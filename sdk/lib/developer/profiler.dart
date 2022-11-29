@@ -31,6 +31,7 @@ abstract class UserTag {
 /// Returns the current [UserTag] for the isolate.
 external UserTag getCurrentTag();
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
 /// Abstract [Metric] class. Metric names must be unique, are hierarchical,
 /// and use periods as separators. For example, 'a.b.c'. Uniqueness is only
 /// enforced when a Metric is registered. The name of a metric cannot contain
@@ -51,6 +52,7 @@ abstract class Metric {
   Map _toJSON();
 }
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
 /// A measured value with a min and max. Initial value is min. Value will
 /// be clamped to the interval `[min, max]`.
 class Gauge extends Metric {
@@ -91,6 +93,7 @@ class Gauge extends Metric {
   }
 }
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
 /// A changing value. Initial value is 0.0.
 class Counter extends Metric {
   Counter(String name, String description) : super(name, description);
@@ -113,6 +116,7 @@ class Counter extends Metric {
   }
 }
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
 /// Register and deregister custom [Metric]s to be displayed in developer
 /// tooling.
 class Metrics {
