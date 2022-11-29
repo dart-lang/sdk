@@ -5466,10 +5466,14 @@ class Parser {
         listener.handleIdentifier(token, IdentifierContext.expression);
       }
     } else {
-      token = optional('throw', token.next!)
-          ? parseThrowExpression(token, /* allowCascades = */ true)
-          : parsePrecedenceExpression(
-              token, ASSIGNMENT_PRECEDENCE, /* allowCascades = */ true);
+      if (allowPatterns && looksLikeOuterPatternEquals(token)) {
+        token = parsePatternAssignment(token);
+      } else {
+        token = optional('throw', token.next!)
+            ? parseThrowExpression(token, /* allowCascades = */ true)
+            : parsePrecedenceExpression(
+                token, ASSIGNMENT_PRECEDENCE, /* allowCascades = */ true);
+      }
     }
     expressionDepth--;
     return token;
@@ -9796,7 +9800,8 @@ class Parser {
       if (next.isIdentifier) {
         return skipObjectPatternRest(next);
       } else {
-        throw new UnimplementedError('TODO(paulberry)');
+        // IDENTIFIER `.` NON-IDENTIFIER (not a pattern)
+        return null;
       }
     }
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
@@ -9845,6 +9850,17 @@ class Parser {
     listener.handlePatternVariableDeclarationStatement(
         keyword, equals, semicolon);
     return semicolon;
+  }
+
+  /// patternAssignment ::= outerPattern '=' expression
+  Token parsePatternAssignment(Token token) {
+    token = parsePattern(token, isRefutableContext: false);
+    Token equals = token.next!;
+    // Caller should have assured that the pattern was followed by an `=`.
+    assert(optional('=', equals));
+    token = parseExpression(equals);
+    listener.handlePatternAssignment(equals);
+    return token;
   }
 
   /// switchExpression    ::= 'switch' '(' expression ')' '{'

@@ -2924,6 +2924,13 @@ abstract class AbstractParserAstListener implements Listener {
             keyword: keyword, equals: equals, semicolon: semicolon);
     seen(data);
   }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    PatternAssignmentHandle data =
+        new PatternAssignmentHandle(ParserAstType.HANDLE, equals: equals);
+    seen(data);
+  }
 }
 
 class ArgumentsBegin extends ParserAstNode {
@@ -8097,5 +8104,17 @@ class PatternVariableDeclarationStatementHandle extends ParserAstNode {
         "keyword": keyword,
         "equals": equals,
         "semicolon": semicolon,
+      };
+}
+
+class PatternAssignmentHandle extends ParserAstNode {
+  final Token equals;
+
+  PatternAssignmentHandle(ParserAstType type, {required this.equals})
+      : super("PatternAssignment", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "equals": equals,
       };
 }

@@ -2139,4 +2139,13 @@ class Listener implements UnescapeErrorListener {
       Token keyword, Token equals, Token semicolon) {
     logEvent('PatternVariableDeclarationStatement');
   }
+
+  /// Called after the parser has processed a pattern assignment consisting of
+  /// `PATTERN EQUALS EXPRESSION`.
+  ///
+  /// PATTERN may only be one of the patterns accepted by the `outerPattern`
+  /// grammar rule defined in the patterns spec.
+  void handlePatternAssignment(Token equals) {
+    logEvent("PatternAssignment");
+  }
 }

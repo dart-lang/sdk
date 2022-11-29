@@ -1995,6 +1995,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handlePatternAssignment(Token equals) {
+    listener?.handlePatternAssignment(equals);
+  }
+
+  @override
   void logEvent(String name) {
     listener?.logEvent(name);
   }

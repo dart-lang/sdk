@@ -3048,4 +3048,10 @@ class ParserTestListener implements Listener {
         '$equals, '
         '$semicolon)');
   }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    seen(equals);
+    doPrint('handlePatternAssignment(' '$equals)');
+  }
 }

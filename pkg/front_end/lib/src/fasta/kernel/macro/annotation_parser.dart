@@ -2221,6 +2221,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handlePatternAssignment(Token equals) {
+    _unsupported();
+  }
+
+  @override
   void logEvent(String name) {}
 
   @override

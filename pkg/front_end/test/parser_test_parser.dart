@@ -2790,6 +2790,15 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parsePatternAssignment(Token token) {
+    doPrint('parsePatternAssignment(' '$token)');
+    indent++;
+    var result = super.parsePatternAssignment(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseSwitchExpression(Token token) {
     doPrint('parseSwitchExpression(' '$token)');
     indent++;
