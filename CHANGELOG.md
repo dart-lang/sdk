@@ -1,3 +1,7 @@
+# 1.31.0
+
+- deprecated `prefer_equal_for_default_values`
+
 # 1.30.0
 
 - new lint: `enable_null_safety`
