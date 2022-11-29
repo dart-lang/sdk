@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-
 import '../analyzer.dart';
 
 const _desc = r'Use `=` to separate a named parameter from its default value.';
@@ -42,23 +38,6 @@ class PreferEqualForDefaultValues extends LintRule {
   @override
   LintCode get lintCode => code;
 
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addDefaultFormalParameter(this, visitor);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (node.isNamed && node.separator?.type == TokenType.COLON) {
-      rule.reportLintForToken(node.separator);
-    }
-  }
+  // As of 2.19, this is a warning so we don't want to double-report and so
+  // we don't register any processors.
 }

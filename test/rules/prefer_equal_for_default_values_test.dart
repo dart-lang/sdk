@@ -18,7 +18,8 @@ class PreferEqualForDefaultValuesTest extends LintRuleTest {
   String get lintRule => 'prefer_equal_for_default_values';
 
   test_super() async {
-    await assertDiagnostics(r'''
+    // As of 2.19, this is a warning and the lint is a no-op.
+    await assertNoDiagnostics(r'''
 class A {
   String? a;
   A({this.a});
@@ -27,8 +28,6 @@ class A {
 class B extends A {
   B({super.a : ''});
 }
-''', [
-      lint(74, 1),
-    ]);
+''');
   }
 }
