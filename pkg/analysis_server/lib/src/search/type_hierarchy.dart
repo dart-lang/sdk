@@ -14,42 +14,22 @@ import 'package:analyzer/dart/element/type.dart';
 /// A computer for a type hierarchy of an [Element].
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
-
-  final Element _pivotElement;
-  final LibraryElement _pivotLibrary;
-  final ElementKind _pivotKind;
-  final String? _pivotName;
-  late bool _pivotFieldFinal;
-  InterfaceElement? _pivotClass;
+  final TypeHierarchyComputerHelper helper;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
   final List<InterfaceElement> _itemClassElements = [];
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       HashMap<Element, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine, this._pivotElement)
-      : _pivotLibrary = _pivotElement.library!,
-        _pivotKind = _pivotElement.kind,
-        _pivotName = _pivotElement.name {
-    // try to find enclosing ClassElement
-    Element? element = _pivotElement;
-    if (_pivotElement is FieldElement) {
-      _pivotFieldFinal = (_pivotElement as FieldElement).isFinal;
-      element = _pivotElement.enclosingElement;
-    }
-    if (_pivotElement is ExecutableElement) {
-      element = _pivotElement.enclosingElement;
-    }
-    if (element is InterfaceElement) {
-      _pivotClass = element;
-    }
-  }
+  TypeHierarchyComputer(this._searchEngine, final Element pivotElement)
+      : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
 
-  bool get _isNonNullableByDefault => _pivotLibrary.isNonNullableByDefault;
+  bool get _isNonNullableByDefault =>
+      helper.pivotLibrary.isNonNullableByDefault;
 
   /// Returns the computed type hierarchy, maybe `null`.
   Future<List<TypeHierarchyItem>?> compute() async {
-    var pivotClass = _pivotClass;
+    var pivotClass = helper.pivotClass;
     if (pivotClass != null) {
       _createSuperItem(pivotClass, null);
       await _createSubclasses(_items[0], 0, pivotClass);
@@ -60,7 +40,7 @@ class TypeHierarchyComputer {
 
   /// Returns the computed super type only type hierarchy, maybe `null`.
   List<TypeHierarchyItem>? computeSuper() {
-    var pivotClass = _pivotClass;
+    var pivotClass = helper.pivotClass;
     if (pivotClass != null) {
       _createSuperItem(pivotClass, null);
       return _items;
@@ -81,7 +61,7 @@ class TypeHierarchyComputer {
         continue;
       }
       // create a subclass item
-      var subMemberElement = _findMemberElement(subElement);
+      var subMemberElement = helper.findMemberElement(subElement);
       var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
           convertElement(subElement, withNullability: _isNonNullableByDefault),
@@ -126,7 +106,7 @@ class TypeHierarchyComputer {
             .join(', ');
         displayName = '${classElement.displayName}<$typeArgumentsStr>';
       }
-      var memberElement = _findMemberElement(classElement);
+      var memberElement = helper.findMemberElement(classElement);
       var memberElementDeclared = memberElement?.nonSynthetic;
       item = TypeHierarchyItem(
           convertElement(classElement,
@@ -164,45 +144,77 @@ class TypeHierarchyComputer {
     // done
     return itemId;
   }
+}
 
-  ExecutableElement? _findMemberElement(InterfaceElement clazz) {
-    var pivotName = _pivotName;
+class TypeHierarchyComputerHelper {
+  final Element pivotElement;
+  final LibraryElement pivotLibrary;
+  final ElementKind pivotKind;
+  final String? pivotName;
+  final bool pivotFieldFinal;
+  final InterfaceElement? pivotClass;
+
+  TypeHierarchyComputerHelper(this.pivotElement, this.pivotLibrary,
+      this.pivotKind, this.pivotName, this.pivotFieldFinal, this.pivotClass);
+
+  factory TypeHierarchyComputerHelper.fromElement(final Element pivotElement) {
+    // try to find enclosing ClassElement
+    Element? element = pivotElement;
+    bool pivotFieldFinal = false;
+    if (pivotElement is FieldElement) {
+      pivotFieldFinal = pivotElement.isFinal;
+      element = pivotElement.enclosingElement;
+    }
+    if (pivotElement is ExecutableElement) {
+      element = pivotElement.enclosingElement;
+    }
+    InterfaceElement? pivotClass;
+    if (element is InterfaceElement) {
+      pivotClass = element;
+    }
+
+    return TypeHierarchyComputerHelper(pivotElement, pivotElement.library!,
+        pivotElement.kind, pivotElement.name, pivotFieldFinal, pivotClass);
+  }
+
+  ExecutableElement? findMemberElement(InterfaceElement clazz) {
+    var pivotName = this.pivotName;
     if (pivotName == null) {
       return null;
     }
     ExecutableElement? result;
     // try to find in the class itself
-    if (_pivotKind == ElementKind.METHOD) {
+    if (pivotKind == ElementKind.METHOD) {
       result = clazz.getMethod(pivotName);
-    } else if (_pivotKind == ElementKind.GETTER) {
+    } else if (pivotKind == ElementKind.GETTER) {
       result = clazz.getGetter(pivotName);
-    } else if (_pivotKind == ElementKind.SETTER) {
+    } else if (pivotKind == ElementKind.SETTER) {
       result = clazz.getSetter(pivotName);
-    } else if (_pivotKind == ElementKind.FIELD) {
+    } else if (pivotKind == ElementKind.FIELD) {
       result = clazz.getGetter(pivotName);
-      if (result == null && !_pivotFieldFinal) {
+      if (result == null && !pivotFieldFinal) {
         result = clazz.getSetter(pivotName);
       }
     }
-    if (result != null && result.isAccessibleIn(_pivotLibrary)) {
+    if (result != null && result.isAccessibleIn(pivotLibrary)) {
       return result;
     }
     // try to find in the class mixin
     for (var mixin in clazz.mixins.reversed) {
       var mixinElement = mixin.element;
-      if (_pivotKind == ElementKind.METHOD) {
-        result = mixinElement.lookUpMethod(pivotName, _pivotLibrary);
-      } else if (_pivotKind == ElementKind.GETTER) {
-        result = mixinElement.lookUpGetter(pivotName, _pivotLibrary);
-      } else if (_pivotKind == ElementKind.SETTER) {
-        result = mixinElement.lookUpSetter(pivotName, _pivotLibrary);
-      } else if (_pivotKind == ElementKind.FIELD) {
-        result = mixinElement.lookUpGetter(pivotName, _pivotLibrary);
-        if (result == null && !_pivotFieldFinal) {
-          result = mixinElement.lookUpSetter(pivotName, _pivotLibrary);
+      if (pivotKind == ElementKind.METHOD) {
+        result = mixinElement.lookUpMethod(pivotName, pivotLibrary);
+      } else if (pivotKind == ElementKind.GETTER) {
+        result = mixinElement.lookUpGetter(pivotName, pivotLibrary);
+      } else if (pivotKind == ElementKind.SETTER) {
+        result = mixinElement.lookUpSetter(pivotName, pivotLibrary);
+      } else if (pivotKind == ElementKind.FIELD) {
+        result = mixinElement.lookUpGetter(pivotName, pivotLibrary);
+        if (result == null && !pivotFieldFinal) {
+          result = mixinElement.lookUpSetter(pivotName, pivotLibrary);
         }
       }
-      if (result == _pivotElement) {
+      if (result == pivotElement) {
         return null;
       }
       if (result != null) {
