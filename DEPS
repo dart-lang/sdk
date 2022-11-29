@@ -126,7 +126,7 @@ vars = {
   "dart_style_rev": "f79a9828ad07e50d6e8352ac154cc16eb4d78d5c", # manually rev'd
 
   "dartdoc_rev": "dc502d0862fe1ba8451c9c57cd7ab70432634af3",
-  "devtools_rev": "23444af89d716818f099974df3e4fffac87fd886",
+  "devtools_rev": "dd3fade2bd2ef74fc6102e56333a48f0efc594d3",
   "ffi_rev": "17a8142da8114a065e03200467c7657b5368a86d",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "bca3816daf641397f7b5ab9cf865a6d10d30c625", # b/260609190
@@ -152,7 +152,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "1ea5b031cfda37786d305292cb8104dffb45d9ae",
   "protobuf_rev": "c181573c330ff0337db0bab5501deda3a42ba028",
-  "pub_rev": "6fdcdd4357645817e7d7027ee2157ed68ef69c53", # manually rev'd
+  "pub_rev": "867ad175d81713c4e70473b1ab32107547cbdc3e", # manually rev'd
   "pub_semver_rev": "17231113f98c80285881cc4452863bcfd085d1a8",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "1c2104737973715426035c11ba840c7f23d8f186",
