@@ -159,6 +159,9 @@ main() {
 
   // Same class as above defined in and inherited from null safe library throw.
   var nullSafeB = null_safe.B();
+  // Should not throw because the inherited setter does allow null even though
+  // the getter has an override and is non-nullable.
+  nullSafeB.nullableField = null;
   Expect.throws(() {
     nullSafeB.getterSetterPair = null;
   }, asserted('i'));
@@ -193,6 +196,10 @@ main() {
 
   // Same class as above defined in null safe library throws.
   var nullSafeD = null_safe.D();
+  // Should not throw because the inherited setters do allow null even though
+  // the getter has an override and is non-nullable.
+  nullSafeD.nullableField = null;
+  nullSafeD.nullableGetterSetterPair = null;
   Expect.throws(() {
     nullSafeD.field = null;
   }, asserted('field'));

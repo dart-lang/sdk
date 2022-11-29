@@ -28,7 +28,10 @@ class A {
   int get getterSetterPair => 0;
   set getterSetterPair(int i) => null;
   set setterOnly(String s) => null;
+  int? get nullableGetterSetterPair => 0;
+  set nullableGetterSetterPair(int? i) => null;
   int field = 0;
+  int? nullableField = 0;
   static bool staticField = false;
   static int get staticGetterSetterPair => 0;
   static set staticGetterSetterPair(int i) => null;
@@ -44,6 +47,9 @@ class B extends A {
   int get getterSetterPair => 999;
   @override
   int get field => 999;
+  // Getter override makes the type non-nullable.
+  @override
+  int get nullableField => 999;
 }
 
 /// Overrides the setters.
@@ -60,4 +66,10 @@ class C extends A {
 class D extends A {
   @override
   int field = 10;
+  // Field override is final (getter only) and makes type non-nullable.
+  @override
+  final int nullableField = 999;
+  // Getter has override to be non-nullable but nullable setter is inherited.
+  @override
+  int get nullableGetterSetterPair => 999;
 }
