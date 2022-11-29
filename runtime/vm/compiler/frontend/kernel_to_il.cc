@@ -3969,6 +3969,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     body += Box(kUnboxedInt64);
   } else if (target.has_unboxed_double_return()) {
     body += Box(kUnboxedDouble);
+  } else if (target.has_unboxed_record_return()) {
+    // Handled in SelectRepresentations pass in optimized mode.
+    ASSERT(optimizing_);
   }
 
   // Later optimization passes assume that result of a x.[]=(...) call is not

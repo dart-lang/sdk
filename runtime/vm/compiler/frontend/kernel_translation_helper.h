@@ -1170,7 +1170,9 @@ class UnboxingInfoMetadata : public ZoneAllocated {
     kBoxed = 0,
     kUnboxedIntCandidate = 1 << 0,
     kUnboxedDoubleCandidate = 1 << 1,
-    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate,
+    kUnboxedRecordCandidate = 1 << 2,
+    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate |
+                         kUnboxedRecordCandidate,
   };
 
   UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }

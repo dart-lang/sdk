@@ -3466,6 +3466,17 @@ class Function : public Object {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  void set_unboxed_record_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const_cast<UntaggedFunction::UnboxedParameterBitmap*>(
+        &untag()->unboxed_parameters_info_)
+        ->SetUnboxedRecord(0);
+
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
   bool is_unboxed_parameter_at(intptr_t index) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(index >= 0);
@@ -3520,13 +3531,19 @@ class Function : public Object {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  bool has_unboxed_record_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return untag()->unboxed_parameters_info_.IsUnboxedRecord(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasUnboxedParameters() const {
     return untag()->unboxed_parameters_info_.HasUnboxedParameters();
   }
-  bool HasUnboxedReturnValue() const {
-    return untag()->unboxed_parameters_info_.HasUnboxedReturnValue();
-  }
+  bool HasUnboxedReturnValue() const { return has_unboxed_return(); }
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 
   bool IsDispatcherOrImplicitAccessor() const {

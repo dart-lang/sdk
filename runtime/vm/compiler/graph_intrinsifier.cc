@@ -200,6 +200,7 @@ static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
                                              Definition* value,
                                              Representation representation) {
   const auto& function = builder->function();
+  ASSERT(!function.has_unboxed_record_return());
   if (function.has_unboxed_return()) {
     return value;
   } else {
@@ -211,6 +212,7 @@ static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
 static Definition* CreateUnboxedResultIfNeeded(BlockBuilder* builder,
                                                Definition* value) {
   const auto& function = builder->function();
+  ASSERT(!function.has_unboxed_record_return());
   if (function.has_unboxed_return() && value->representation() == kTagged) {
     return builder->AddUnboxInstr(FlowGraph::ReturnRepresentationOf(function),
                                   new Value(value), /* is_checked = */ true);
@@ -1055,6 +1057,7 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
   // We only support cases where we do not have to create a box (whose
   // allocation could fail).
   ASSERT(function.HasUnboxedReturnValue() || !slot.is_unboxed());
+  ASSERT(!function.has_unboxed_record_return());
 
   // We might need to unbox the field value before returning.
   if (function.HasUnboxedReturnValue() && !slot.is_unboxed()) {

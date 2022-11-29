@@ -1212,17 +1212,22 @@ class UntaggedFunction : public UntaggedObject {
   };
 
   // Wraps a 64-bit integer to represent the bitmap for unboxed parameters and
-  // return value. Two bits are used for each of them - the first one indicates
-  // whether this value is unboxed or not, and the second one says whether it is
-  // an integer or a double. It includes the two bits for the receiver, even
-  // though currently we do not have information from TFA that allows the
-  // receiver to be unboxed.
+  // return value. Two bits are used for each of them to denote if it is boxed,
+  // unboxed integer, unboxed double or unboxed record.
+  // It includes the two bits for the receiver, even though currently we
+  // do not have information from TFA that allows the receiver to be unboxed.
   class alignas(8) UnboxedParameterBitmap {
    public:
-    static constexpr intptr_t kBitsPerParameter = 2;
-    static constexpr intptr_t kParameterBitmask = (1 << kBitsPerParameter) - 1;
+    enum UnboxedState {
+      kBoxed,
+      kUnboxedInt,
+      kUnboxedDouble,
+      kUnboxedRecord,
+    };
+    static constexpr intptr_t kBitsPerElement = 2;
+    static constexpr uint64_t kElementBitmask = (1 << kBitsPerElement) - 1;
     static constexpr intptr_t kCapacity =
-        (kBitsPerByte * sizeof(uint64_t)) / kBitsPerParameter;
+        (kBitsPerByte * sizeof(uint64_t)) / kBitsPerElement;
 
     UnboxedParameterBitmap() : bitmap_(0) {}
     explicit UnboxedParameterBitmap(uint64_t bitmap) : bitmap_(bitmap) {}
@@ -1230,49 +1235,48 @@ class UntaggedFunction : public UntaggedObject {
     UnboxedParameterBitmap& operator=(const UnboxedParameterBitmap&) = default;
 
     DART_FORCE_INLINE bool IsUnboxed(intptr_t position) const {
-      if (position >= kCapacity) {
-        return false;
-      }
-      ASSERT(Utils::TestBit(bitmap_, kBitsPerParameter * position) ||
-             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
-      return Utils::TestBit(bitmap_, kBitsPerParameter * position);
+      return At(position) != kBoxed;
     }
     DART_FORCE_INLINE bool IsUnboxedInteger(intptr_t position) const {
-      if (position >= kCapacity) {
-        return false;
-      }
-      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
-             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
+      return At(position) == kUnboxedInt;
     }
     DART_FORCE_INLINE bool IsUnboxedDouble(intptr_t position) const {
-      if (position >= kCapacity) {
-        return false;
-      }
-      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
-             Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
+      return At(position) == kUnboxedDouble;
+    }
+    DART_FORCE_INLINE bool IsUnboxedRecord(intptr_t position) const {
+      return At(position) == kUnboxedRecord;
     }
     DART_FORCE_INLINE void SetUnboxedInteger(intptr_t position) {
-      ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
-      ASSERT(!Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
+      SetAt(position, kUnboxedInt);
     }
     DART_FORCE_INLINE void SetUnboxedDouble(intptr_t position) {
-      ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
-      bitmap_ |=
-          Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position + 1);
+      SetAt(position, kUnboxedDouble);
+    }
+    DART_FORCE_INLINE void SetUnboxedRecord(intptr_t position) {
+      SetAt(position, kUnboxedRecord);
     }
     DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
     DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
     DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
     DART_FORCE_INLINE bool HasUnboxedParameters() const {
-      return (bitmap_ >> kBitsPerParameter) != 0;
-    }
-    DART_FORCE_INLINE bool HasUnboxedReturnValue() const {
-      return (bitmap_ & kParameterBitmask) != 0;
+      return (bitmap_ >> kBitsPerElement) != 0;
     }
 
    private:
+    DART_FORCE_INLINE UnboxedState At(intptr_t position) const {
+      if (position >= kCapacity) {
+        return kBoxed;
+      }
+      return static_cast<UnboxedState>(
+          (bitmap_ >> (kBitsPerElement * position)) & kElementBitmask);
+    }
+    DART_FORCE_INLINE void SetAt(intptr_t position, UnboxedState state) {
+      ASSERT(position < kCapacity);
+      const intptr_t shift = kBitsPerElement * position;
+      bitmap_ = (bitmap_ & ((~kElementBitmask) << shift)) |
+                (static_cast<decltype(bitmap_)>(state) << shift);
+    }
+
     uint64_t bitmap_;
   };
 

@@ -522,6 +522,7 @@ struct InstrAttrs {
   M(TestSmi, kNoGC)                                                            \
   M(TestCids, kNoGC)                                                           \
   M(ExtractNthOutput, kNoGC)                                                   \
+  M(MakePair, kNoGC)                                                           \
   M(BinaryUint32Op, kNoGC)                                                     \
   M(ShiftUint32Op, kNoGC)                                                      \
   M(SpeculativeShiftUint32Op, kNoGC)                                           \
@@ -9640,6 +9641,7 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(ExtractNthOutput)
+  DECLARE_ATTRIBUTES(index())
 
   virtual CompileType ComputeType() const;
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -9677,6 +9679,34 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ExtractNthOutputInstr);
+};
+
+// Combines 2 values into a pair with kPairOfTagged representation.
+class MakePairInstr : public TemplateDefinition<2, NoThrow, Pure> {
+ public:
+  MakePairInstr(Value* x, Value* y) {
+    SetInputAt(0, x);
+    SetInputAt(1, y);
+  }
+
+  DECLARE_INSTRUCTION(MakePair)
+
+  virtual CompileType ComputeType() const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kPairOfTagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((0 <= idx) && (idx < InputCount()));
+    return kTagged;
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+
+  DECLARE_EMPTY_SERIALIZATION(MakePairInstr, TemplateDefinition)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MakePairInstr);
 };
 
 class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {

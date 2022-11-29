@@ -677,7 +677,9 @@ CompileType CompileType::FromAbstractType(const AbstractType& type,
 
 CompileType CompileType::FromCid(intptr_t cid) {
   ASSERT(cid != kIllegalCid);
-  ASSERT(cid != kDynamicCid);
+  if (cid == kDynamicCid) {
+    return CompileType::Dynamic();
+  }
   return CompileType(cid == kNullCid, cid == kSentinelCid, cid, nullptr);
 }
 
@@ -1875,6 +1877,10 @@ CompileType TruncDivModInstr::ComputeType() const {
 
 CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
+}
+
+CompileType MakePairInstr::ComputeType() const {
+  return CompileType::Dynamic();
 }
 
 static AbstractTypePtr ExtractElementTypeFromArrayType(

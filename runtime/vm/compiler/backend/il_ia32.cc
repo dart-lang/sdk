@@ -37,6 +37,7 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone,
                                               LocationSummary* locs) {
   // This is unused on ia32.
   ASSERT(locs == nullptr);
+  ASSERT(instr->representation() == kTagged);
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)

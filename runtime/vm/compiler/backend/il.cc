@@ -7811,6 +7811,31 @@ void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id(), env());
 }
 
+LocationSummary* MakePairInstr::MakeLocationSummary(Zone* zone,
+                                                    bool opt) const {
+  ASSERT(opt);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // MakePair instruction is used to combine 2 separate kTagged values into
+  // a single kPairOfTagged value for the subsequent Return, so it uses
+  // fixed registers used to return values according to the calling conventions
+  // in order to avoid any extra moves.
+  locs->set_in(0, Location::RegisterLocation(CallingConventions::kReturnReg));
+  locs->set_in(
+      1, Location::RegisterLocation(CallingConventions::kSecondReturnReg));
+  locs->set_out(
+      0, Location::Pair(
+             Location::RegisterLocation(CallingConventions::kReturnReg),
+             Location::RegisterLocation(CallingConventions::kSecondReturnReg)));
+  return locs;
+}
+
+void MakePairInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // No-op.
+}
+
 #undef __
 
 }  // namespace dart
