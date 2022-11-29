@@ -953,12 +953,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitPatternAssignmentStatement(PatternAssignmentStatement node) {
-    _visitNode(node.assignment);
-    sink.write(';');
-  }
-
-  @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write(node.keyword.lexeme);

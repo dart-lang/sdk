@@ -567,8 +567,6 @@ abstract class AstVisitor<R> {
 
   R? visitPatternAssignment(PatternAssignment node);
 
-  R? visitPatternAssignmentStatement(PatternAssignmentStatement node);
-
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node);
 
   R? visitPatternVariableDeclarationStatement(
@@ -4111,20 +4109,6 @@ abstract class PatternAssignment implements Expression {
 
   /// The pattern that will match the expression.
   DartPattern get pattern;
-}
-
-/// A pattern assignment used as a statement.
-///
-///    patternAssignmentStatement ::=
-///        [PatternAssignment] ';'
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PatternAssignmentStatement implements Statement {
-  /// Return the pattern assignment that comprises the statement.
-  PatternAssignment get assignment;
-
-  /// Return the semicolon terminating the statement.
-  Token get semicolon;
 }
 
 /// A pattern variable declaration.

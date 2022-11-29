@@ -521,10 +521,6 @@ class FindNode {
     return _node(search, (n) => n is PatternAssignment);
   }
 
-  PatternAssignmentStatement patternAssignmentStatement(String search) {
-    return _node(search, (n) => n is PatternAssignmentStatement);
-  }
-
   PatternVariableDeclaration patternVariableDeclaration(String search) {
     return _node(search, (n) => n is PatternVariableDeclaration);
   }

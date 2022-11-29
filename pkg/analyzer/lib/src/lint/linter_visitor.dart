@@ -672,12 +672,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitPatternAssignmentStatement(PatternAssignmentStatement node) {
-    _runSubscriptions(node, registry._forPatternAssignmentStatement);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     _runSubscriptions(node, registry._forPatternVariableDeclaration);
     node.visitChildren(this);
@@ -1157,8 +1151,6 @@ class NodeLintRegistry {
   final List<_Subscription<PartDirective>> _forPartDirective = [];
   final List<_Subscription<PartOfDirective>> _forPartOfDirective = [];
   final List<_Subscription<PatternAssignment>> _forPatternAssignment = [];
-  final List<_Subscription<PatternAssignmentStatement>>
-      _forPatternAssignmentStatement = [];
   final List<_Subscription<PatternVariableDeclaration>>
       _forPatternVariableDeclaration = [];
   final List<_Subscription<PatternVariableDeclarationStatement>>
@@ -1705,11 +1697,6 @@ class NodeLintRegistry {
 
   void addPatternAssignment(LintRule linter, AstVisitor visitor) {
     _forPatternAssignment
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addPatternAssignmentStatement(LintRule linter, AstVisitor visitor) {
-    _forPatternAssignmentStatement
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
