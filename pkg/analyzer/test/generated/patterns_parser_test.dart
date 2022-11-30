@@ -618,7 +618,7 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ as double? & Object? _:
+    case int? _ as double? && Object? _:
       break;
   }
 }
@@ -638,7 +638,7 @@ BinaryPattern
       name: SimpleIdentifier
         token: double
       question: ?
-  operator: &
+  operator: &&
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -652,7 +652,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ as Object?:
+    case int? _ && double? _ as Object?:
       break;
   }
 }
@@ -666,7 +666,7 @@ BinaryPattern
         token: int
       question: ?
     name: _
-  operator: &
+  operator: &&
   rightOperand: CastPattern
     pattern: VariablePattern
       type: NamedType
@@ -686,7 +686,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ as double? | Object? _:
+    case int? _ as double? || Object? _:
       break;
   }
 }
@@ -706,7 +706,7 @@ BinaryPattern
       name: SimpleIdentifier
         token: double
       question: ?
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -720,7 +720,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ | double? _ as Object?:
+    case int? _ || double? _ as Object?:
       break;
   }
 }
@@ -734,7 +734,7 @@ BinaryPattern
         token: int
       question: ?
     name: _
-  operator: |
+  operator: ||
   rightOperand: CastPattern
     pattern: VariablePattern
       type: NamedType
@@ -3693,7 +3693,7 @@ PostfixPattern
   test_logicalAnd_insideIfCase() {
     _parse('''
 void f(x) {
-  if (x case int? _ & double? _) {}
+  if (x case int? _ && double? _) {}
 }
 ''');
     var node = findNode.caseClause('case');
@@ -3708,7 +3708,7 @@ CaseClause
             token: int
           question: ?
         name: _
-      operator: &
+      operator: &&
       rightOperand: VariablePattern
         type: NamedType
           name: SimpleIdentifier
@@ -3722,7 +3722,7 @@ CaseClause
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ & Object? _:
+    case int? _ && double? _ && Object? _:
       break;
   }
 }
@@ -3737,14 +3737,14 @@ BinaryPattern
           token: int
         question: ?
       name: _
-    operator: &
+    operator: &&
     rightOperand: VariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
-  operator: &
+  operator: &&
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -3758,7 +3758,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ | Object? _:
+    case int? _ && double? _ || Object? _:
       break;
   }
 }
@@ -3773,14 +3773,14 @@ BinaryPattern
           token: int
         question: ?
       name: _
-    operator: &
+    operator: &&
     rightOperand: VariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -3794,7 +3794,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ | double? _ & Object? _:
+    case int? _ || double? _ && Object? _:
       break;
   }
 }
@@ -3808,7 +3808,7 @@ BinaryPattern
         token: int
       question: ?
     name: _
-  operator: |
+  operator: ||
   rightOperand: BinaryPattern
     leftOperand: VariablePattern
       type: NamedType
@@ -3816,7 +3816,7 @@ BinaryPattern
           token: double
         question: ?
       name: _
-    operator: &
+    operator: &&
     rightOperand: VariablePattern
       type: NamedType
         name: SimpleIdentifier
@@ -3829,7 +3829,7 @@ BinaryPattern
   test_logicalOr_insideIfCase() {
     _parse('''
 void f(x) {
-  if (x case int? _ | double? _) {}
+  if (x case int? _ || double? _) {}
 }
 ''');
     var node = findNode.caseClause('case');
@@ -3844,7 +3844,7 @@ CaseClause
             token: int
           question: ?
         name: _
-      operator: |
+      operator: ||
       rightOperand: VariablePattern
         type: NamedType
           name: SimpleIdentifier
@@ -3858,7 +3858,7 @@ CaseClause
     _parse('''
 void f(x) {
   switch (x) {
-    case int? _ | double? _ | Object? _:
+    case int? _ || double? _ || Object? _:
       break;
   }
 }
@@ -3873,14 +3873,14 @@ BinaryPattern
           token: int
         question: ?
       name: _
-    operator: |
+    operator: ||
     rightOperand: VariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -4334,7 +4334,7 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1! & 2:
+    case 1! && 2:
       break;
   }
 }
@@ -4347,7 +4347,7 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4358,7 +4358,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & 2!:
+    case 1 && 2!:
       break;
   }
 }
@@ -4369,7 +4369,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
+  operator: &&
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
@@ -4382,7 +4382,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1! | 2:
+    case 1! || 2:
       break;
   }
 }
@@ -4395,7 +4395,7 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4406,7 +4406,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | 2!:
+    case 1 || 2!:
       break;
   }
 }
@@ -4417,7 +4417,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
+  operator: ||
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
@@ -4695,7 +4695,7 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1? & 2:
+    case 1? && 2:
       break;
   }
 }
@@ -4708,7 +4708,7 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4719,7 +4719,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & 2?:
+    case 1 && 2?:
       break;
   }
 }
@@ -4730,7 +4730,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
+  operator: &&
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
@@ -4743,7 +4743,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1? | 2:
+    case 1? || 2:
       break;
   }
 }
@@ -4756,7 +4756,7 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -4767,7 +4767,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | 2?:
+    case 1 || 2?:
       break;
   }
 }
@@ -4778,7 +4778,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
+  operator: ||
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
@@ -6716,7 +6716,7 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case == 1 & 2:
+    case == 1 && 2:
       break;
   }
 }
@@ -6728,7 +6728,7 @@ BinaryPattern
     operator: ==
     operand: IntegerLiteral
       literal: 1
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -6739,7 +6739,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & == 2:
+    case 1 && == 2:
       break;
   }
 }
@@ -6750,7 +6750,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
+  operator: &&
   rightOperand: RelationalPattern
     operator: ==
     operand: IntegerLiteral
@@ -6762,7 +6762,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case == 1 | 2:
+    case == 1 || 2:
       break;
   }
 }
@@ -6774,7 +6774,7 @@ BinaryPattern
     operator: ==
     operand: IntegerLiteral
       literal: 1
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -6785,7 +6785,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | == 2:
+    case 1 || == 2:
       break;
   }
 }
@@ -6796,7 +6796,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
+  operator: ||
   rightOperand: RelationalPattern
     operator: ==
     operand: IntegerLiteral
@@ -7706,7 +7706,7 @@ ListPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int as & 2:
+    case int as && 2:
       break;
   }
 }
@@ -7719,7 +7719,7 @@ BinaryPattern
       name: SimpleIdentifier
         token: int
     name: as
-  operator: &
+  operator: &&
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -7730,7 +7730,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 & int as:
+    case 1 && int as:
       break;
   }
 }
@@ -7741,7 +7741,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: &
+  operator: &&
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -7754,7 +7754,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case int as | 2:
+    case int as || 2:
       break;
   }
 }
@@ -7767,7 +7767,7 @@ BinaryPattern
       name: SimpleIdentifier
         token: int
     name: as
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -7778,7 +7778,7 @@ BinaryPattern
     _parse('''
 void f(x) {
   switch (x) {
-    case 1 | int as:
+    case 1 || int as:
       break;
   }
 }
@@ -7789,7 +7789,7 @@ BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
