@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class RecordPatternResolutionTest extends PatternsResolutionTest {
+class RecordPatternResolutionTest extends PubPackageResolutionTest {
   test_dynamicType_empty() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

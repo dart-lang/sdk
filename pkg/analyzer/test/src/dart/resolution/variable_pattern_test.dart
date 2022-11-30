@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class VariablePatternResolutionTest extends PatternsResolutionTest {
+class VariablePatternResolutionTest extends PubPackageResolutionTest {
   test_final_switchCase() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {

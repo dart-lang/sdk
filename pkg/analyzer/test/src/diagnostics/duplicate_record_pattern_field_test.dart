@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateRecordPatternFieldTest extends PatternsResolutionTest {
+class DuplicateRecordPatternFieldTest extends PubPackageResolutionTest {
   test_objectPattern() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {

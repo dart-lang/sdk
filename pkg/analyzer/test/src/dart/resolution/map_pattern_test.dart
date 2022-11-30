@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class MapPatternResolutionTest extends PatternsResolutionTest {
+class MapPatternResolutionTest extends PubPackageResolutionTest {
   test_elements_constant() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

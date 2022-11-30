@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class RelationalPatternOperatorReturnTypeNotAssignableToBoolTest
-    extends PatternsResolutionTest {
+    extends PubPackageResolutionTest {
   test_dynamic() async {
     await assertNoErrorsInCode(r'''
 class A {

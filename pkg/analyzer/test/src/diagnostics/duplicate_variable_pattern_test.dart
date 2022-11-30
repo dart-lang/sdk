@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateVariablePatternTest extends PatternsResolutionTest {
+class DuplicateVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase() async {
     await assertErrorsInCode(r'''
 void f(int x) {

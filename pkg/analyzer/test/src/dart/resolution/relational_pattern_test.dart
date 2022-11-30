@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class RelationalPatternResolutionTest extends PatternsResolutionTest {
+class RelationalPatternResolutionTest extends PubPackageResolutionTest {
   test_equal_ofClass() async {
     await assertNoErrorsInCode(r'''
 class A {

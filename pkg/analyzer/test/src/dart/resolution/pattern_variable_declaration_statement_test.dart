@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class PatternVariableDeclarationStatementResolutionTest
-    extends PatternsResolutionTest {
+    extends PubPackageResolutionTest {
   test_inferredType() async {
     await assertNoErrorsInCode(r'''
 void f((int, String) x) {

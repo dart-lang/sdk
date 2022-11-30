@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ObjectPatternResolutionTest extends PatternsResolutionTest {
+class ObjectPatternResolutionTest extends PubPackageResolutionTest {
   test_class_generic_noTypeArguments_infer_interfaceType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}

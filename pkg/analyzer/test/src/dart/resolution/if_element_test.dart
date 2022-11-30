@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class IfElementResolutionTest extends PatternsResolutionTest {
+class IfElementResolutionTest extends PubPackageResolutionTest {
   test_caseClause() async {
     await assertNoErrorsInCode(r'''
 void f(Object x) {

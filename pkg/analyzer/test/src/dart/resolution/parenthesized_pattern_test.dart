@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class ParenthesizedPatternResolutionTest extends PatternsResolutionTest {
+class ParenthesizedPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
