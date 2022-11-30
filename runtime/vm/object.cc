@@ -25097,24 +25097,32 @@ ArrayPtr Array::Grow(const Array& source,
   Zone* zone = thread->zone();
   const Array& result =
       Array::Handle(zone, Array::NewUninitialized(new_length, space));
-  intptr_t len = 0;
+  intptr_t old_length = 0;
   if (!source.IsNull()) {
-    len = source.Length();
+    old_length = source.Length();
     result.SetTypeArguments(
         TypeArguments::Handle(zone, source.GetTypeArguments()));
   } else {
     result.SetTypeArguments(Object::null_type_arguments());
   }
-  ASSERT(new_length >= len);  // Cannot copy 'source' into new array.
-  ASSERT(new_length != len);  // Unnecessary copying of array.
-  if (!UseCardMarkingForAllocation(len)) {
+  ASSERT(new_length > old_length);  // Unnecessary copying of array.
+  if (!UseCardMarkingForAllocation(new_length)) {
     NoSafepointScope no_safepoint(thread);
-    for (int i = 0; i < len; i++) {
+    for (intptr_t i = 0; i < old_length; i++) {
       result.untag()->set_element(i, source.untag()->element(i), thread);
     }
+    for (intptr_t i = old_length; i < new_length; i++) {
+      ASSERT(result.untag()->element(i) == Object::null());
+    }
   } else {
-    for (int i = 0; i < len; i++) {
+    for (intptr_t i = 0; i < old_length; i++) {
       result.untag()->set_element(i, source.untag()->element(i), thread);
+      if (((i + 1) % KB) == 0) {
+        thread->CheckForSafepoint();
+      }
+    }
+    for (intptr_t i = old_length; i < new_length; i++) {
+      result.untag()->set_element(i, Object::null(), thread);
       if (((i + 1) % KB) == 0) {
         thread->CheckForSafepoint();
       }
