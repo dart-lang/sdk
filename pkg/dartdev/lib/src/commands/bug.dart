@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:intl/intl.dart';
 import 'package:yaml/yaml.dart';
 
 import '../core.dart';
@@ -13,8 +12,6 @@ import '../processes.dart';
 import '../utils.dart';
 
 // TODO(devoncarew): have a flag to elide paths (enabled by default)
-
-final NumberFormat _nf = NumberFormat();
 
 const bool _elideFilePaths = true;
 
@@ -79,7 +76,7 @@ class BugCommand extends DartdevCommand {
 
         for (var process in processInfo) {
           var row = table.startRow();
-          row.cell('${_nf.format(process.memoryMb)} MB', right: true);
+          row.cell('${process.memoryMb} MB', right: true);
           row.cell('${process.cpuPercent.toStringAsFixed(1)}%', right: true);
           row.cell(process.elapsedTime, right: true);
           row.cell(_elideFilePaths
