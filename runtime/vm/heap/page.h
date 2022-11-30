@@ -72,7 +72,9 @@ class Page {
 
   uword start() const { return memory_->start(); }
   uword end() const { return memory_->end(); }
-  bool Contains(uword addr) const { return memory_->Contains(addr); }
+  bool Contains(uword addr, intptr_t size = 1) const {
+    return memory_->Contains(addr, size);
+  }
   intptr_t AliasOffset() const { return memory_->AliasOffset(); }
 
   uword object_start() const {

@@ -37,9 +37,11 @@ class VirtualMemory {
   // Returns true if dual mapping is enabled.
   static bool DualMappingEnabled();
 
-  bool Contains(uword addr) const { return region_.Contains(addr); }
-  bool ContainsAlias(uword addr) const {
-    return (AliasOffset() != 0) && alias_.Contains(addr);
+  bool Contains(uword addr, intptr_t size = 1) const {
+    return region_.Contains(addr, size);
+  }
+  bool ContainsAlias(uword addr, intptr_t size = 1) const {
+    return (AliasOffset() != 0) && alias_.Contains(addr, size);
   }
 
   // Changes the protection of the virtual memory area.

@@ -53,8 +53,8 @@ class MemoryRegion : public ValueObject {
     return ComputeInternalPointer<T>(offset);
   }
 
-  bool Contains(uword address) const {
-    return (address >= start()) && (address < end());
+  bool Contains(uword address, intptr_t size = 1) const {
+    return (address >= start()) && (address <= (end() - size));
   }
 
   void CopyFrom(uword offset, const MemoryRegion& from) const;

@@ -37,7 +37,7 @@ class SemiSpace {
 
   Page* TryAllocatePageLocked(bool link);
 
-  bool Contains(uword addr) const;
+  bool Contains(uword addr, intptr_t size = 1) const;
   void WriteProtect(bool read_only);
 
   intptr_t used_in_words() const {
@@ -128,7 +128,9 @@ class Scavenger {
   // During scavenging both the to and from spaces contain "legal" objects.
   // During a scavenge this function only returns true for addresses that will
   // be part of the surviving objects.
-  bool Contains(uword addr) const { return to_->Contains(addr); }
+  bool Contains(uword addr, intptr_t size = 1) const {
+    return to_->Contains(addr, size);
+  }
 
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
@@ -255,7 +257,7 @@ class Scavenger {
     if (UNLIKELY(remaining < size)) {
       return 0;
     }
-    ASSERT(to_->Contains(result));
+    ASSERT(to_->Contains(result, size));
     ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
     thread->set_top(result + size);
     return result;
