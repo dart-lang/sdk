@@ -937,10 +937,10 @@ abstract class VmServiceInterface {
   /// their resolved (or absolute) paths. For example, URIs passed to this RPC
   /// are mapped in the following ways:
   ///
-  /// - `dart:io` -&gt; `org-dartlang-sdk:///sdk/lib/io/io.dart`
-  /// - `package:test/test.dart` -&gt;
+  /// - `dart:io` -> `org-dartlang-sdk:///sdk/lib/io/io.dart`
+  /// - `package:test/test.dart` ->
   /// `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart`
-  /// - `file:///foo/bar/bazz.dart` -&gt; `file:///foo/bar/bazz.dart`
+  /// - `file:///foo/bar/bazz.dart` -> `file:///foo/bar/bazz.dart`
   ///
   /// If a URI is not known, the corresponding entry in the [UriList] response
   /// will be `null`.
@@ -956,10 +956,10 @@ abstract class VmServiceInterface {
   /// unresolved paths. For example, URIs passed to this RPC are mapped in the
   /// following ways:
   ///
-  /// - `org-dartlang-sdk:///sdk/lib/io/io.dart` -&gt; `dart:io`
-  /// - `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart` -&gt;
+  /// - `org-dartlang-sdk:///sdk/lib/io/io.dart` -> `dart:io`
+  /// - `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart` ->
   /// `package:test/test.dart`
-  /// - `file:///foo/bar/bazz.dart` -&gt; `file:///foo/bar/bazz.dart`
+  /// - `file:///foo/bar/bazz.dart` -> `file:///foo/bar/bazz.dart`
   ///
   /// If a URI is not known, the corresponding entry in the [UriList] response
   /// will be `null`.
