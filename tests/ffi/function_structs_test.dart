@@ -29,7 +29,7 @@ void main() {
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 /// pass a struct to a c function and get a struct as return value
-void testFunctionWithStruct({bool isLeaf: false}) {
+void testFunctionWithStruct({bool isLeaf = false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("TransposeCoordinate");
   NativeCoordinateOp f1 =
@@ -58,7 +58,7 @@ void testFunctionWithStruct({bool isLeaf: false}) {
 }
 
 /// pass an array of structs to a c function
-void testFunctionWithStructArray({bool isLeaf: false}) {
+void testFunctionWithStructArray({bool isLeaf = false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("CoordinateElemAt1");
   NativeCoordinateOp f1 =
@@ -89,7 +89,7 @@ void testFunctionWithStructArray({bool isLeaf: false}) {
 typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
 typedef NativeVeryLargeStructSum = Int64 Function(Pointer<VeryLargeStruct>);
 
-void testFunctionWithVeryLargeStruct({bool isLeaf: false}) {
+void testFunctionWithVeryLargeStruct({bool isLeaf = false}) {
   Pointer<NativeFunction<NativeVeryLargeStructSum>> p1 =
       ffiTestFunctions.lookup("SumVeryLargeStruct");
   VeryLargeStructSum f =
