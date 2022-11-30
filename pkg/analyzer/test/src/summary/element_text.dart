@@ -290,12 +290,14 @@ class _ElementWriter {
       if (e is ClassElement) {
         _writeIf(e.isAbstract, 'abstract ');
         _writeIf(e.isMacro, 'macro ');
+        _writeIf(e.isSealed, 'sealed ');
       }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
       if (e is EnumElement) {
         buffer.write('enum ');
       } else if (e is MixinElement) {
+        _writeIf(e.isSealed, 'sealed ');
         buffer.write('mixin ');
       } else {
         buffer.write('class ');
@@ -1084,5 +1086,17 @@ extension on ClassElement {
   bool get isMacro {
     final self = this;
     return self is ClassElementImpl && self.isMacro;
+  }
+
+  bool get isSealed {
+    final self = this;
+    return self is ClassElementImpl && self.isSealed;
+  }
+}
+
+extension on MixinElement {
+  bool get isSealed {
+    final self = this;
+    return self is MixinElementImpl && self.isSealed;
   }
 }

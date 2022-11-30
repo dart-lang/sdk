@@ -91,6 +91,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = ClassElementImpl(name, nameToken.offset);
     element.isAbstract = node.abstractKeyword != null;
     element.isMacro = node.macroKeyword != null;
+    element.isSealed = node.sealedKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -124,6 +125,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = ClassElementImpl(name, nameToken.offset);
     element.isAbstract = node.abstractKeyword != null;
     element.isMacro = node.macroKeyword != null;
+    element.isSealed = node.sealedKeyword != null;
     element.isMixinApplication = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -848,6 +850,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name = nameToken.lexeme;
 
     var element = MixinElementImpl(name, nameToken.offset);
+    element.isSealed = node.sealedKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);

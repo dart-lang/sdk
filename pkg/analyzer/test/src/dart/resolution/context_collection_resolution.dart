@@ -325,6 +325,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         EnableString.macros,
         EnableString.patterns,
         EnableString.records,
+        EnableString.sealed_class,
       ];
 
   @override
