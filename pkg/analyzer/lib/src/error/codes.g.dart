@@ -3607,6 +3607,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Using a colon as a separator before a default value is no longer "
         "supported.",
     correctionMessage: "Try replacing the colon with an equal sign.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
