@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -148,12 +149,14 @@ bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
 bool _isCoreInt(DartType type) => type.isDartCoreInt;
 
 bool _isFixNumIntX(DartType type) {
-  if (type is! InterfaceType) {
-    return false;
-  }
-  Element element = type.element;
-  return (element.name == 'Int32' || element.name == 'Int64') &&
-      element.library?.name == 'fixnum';
+  // todo(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
+  // See: https://github.com/dart-lang/linter/issues/3868
+  if (type is! InterfaceType) return false;
+  InterfaceElement element = type.element;
+  if (element.name != 'Int32' && element.name != 'Int64') return false;
+  var uri = element.library.source.uri;
+  if (!uri.isScheme('package')) return false;
+  return uri.pathSegments.firstOrNull == 'fixnum';
 }
 
 class UnrelatedTypeEqualityChecks extends LintRule {
