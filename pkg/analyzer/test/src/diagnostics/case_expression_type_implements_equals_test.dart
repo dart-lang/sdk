@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -20,28 +21,24 @@ main() {
 @reflectiveTest
 class CaseExpressionTypeImplementsEqualsTest extends PubPackageResolutionTest
     with CaseExpressionTypeImplementsEqualsTestCases {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   @override
-  test_implements() {
-    return super.test_implements();
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
-  @override
-  test_Object() {
-    return super.test_Object();
-  }
+  _Variants get _variant => _Variants.patterns;
 }
 
 @reflectiveTest
 class CaseExpressionTypeImplementsEqualsTest_Language218
     extends PubPackageResolutionTest
-    with WithLanguage218Mixin, CaseExpressionTypeImplementsEqualsTestCases {}
+    with WithLanguage218Mixin, CaseExpressionTypeImplementsEqualsTestCases {
+  @override
+  _Variants get _variant => _Variants.nullSafe;
+}
 
 mixin CaseExpressionTypeImplementsEqualsTestCases on PubPackageResolutionTest {
-  test_declares() async {
+  _Variants get _variant;
+
+  test_classInstance_declares() async {
     await assertNoErrorsInCode(r'''
-abstract class A {
+class A {
   final int value;
 
   const A(this.value);
@@ -49,22 +46,53 @@ abstract class A {
   bool operator==(Object other);
 }
 
-class B extends A {
-  const B(int value) : super(value);
-}
-
 void f(e) {
   switch (e) {
-    case const B(0):
+    case const A(0):
       break;
-    case const B(1):
+    case const A(1):
       break;
   }
 }
 ''');
   }
 
-  test_implements() async {
+  test_classInstance_fromObject() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int value;
+  const A(this.value);
+}
+
+void f(e) {
+  switch (e) {
+    case const A(0):
+      break;
+  }
+}
+''');
+  }
+
+  test_classInstance_implements() async {
+    final List<ExpectedError> expectedErrors;
+    switch (_variant) {
+      case _Variants.legacy:
+        expectedErrors = [
+          error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+              128, 6),
+        ];
+        break;
+      case _Variants.nullSafe:
+        expectedErrors = [
+          error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+              150, 10),
+        ];
+        break;
+      case _Variants.patterns:
+        expectedErrors = [];
+        break;
+    }
+
     await assertErrorsInCode(r'''
 class A {
   final int value;
@@ -78,14 +106,11 @@ class A {
 
 void f(e) {
   switch (e) {
-    case A(0):
+    case const A(0):
       break;
   }
 }
-''', [
-      error(
-          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, 150, 4),
-    ]);
+''', expectedErrors);
   }
 
   test_int() async {
@@ -93,22 +118,6 @@ void f(e) {
 void f(e) {
   switch (e) {
     case 0:
-      break;
-  }
-}
-''');
-  }
-
-  test_Object() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final int value;
-  const A(this.value);
-}
-
-void f(e) {
-  switch (e) {
-    case A(0):
       break;
   }
 }
@@ -132,27 +141,7 @@ class CaseExpressionTypeImplementsEqualsWithoutNullSafetyTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, CaseExpressionTypeImplementsEqualsTestCases {
   @override
-  test_implements() async {
-    await assertErrorsInCode(r'''
-class A {
-  final int value;
-
-  const A(this.value);
-
-  bool operator ==(Object other) {
-    return false;
-  }
+  _Variants get _variant => _Variants.legacy;
 }
 
-void f(e) {
-  switch (e) {
-    case A(0):
-      break;
-  }
-}
-''', [
-      error(
-          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, 128, 6),
-    ]);
-  }
-}
+enum _Variants { legacy, nullSafe, patterns }
