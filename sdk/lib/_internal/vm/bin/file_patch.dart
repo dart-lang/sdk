@@ -173,7 +173,7 @@ abstract class _FileSystemWatcher {
         _newWatcher();
       } on dynamic catch (e) {
         _broadcastController.addError(FileSystemException._fromOSError(
-            e, "Failed to initialize file system entity watcher", null));
+            e, "Failed to initialize file system entity watcher", _path));
         _broadcastController.close();
         return;
       }

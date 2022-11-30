@@ -17,17 +17,30 @@ const int _osErrorResponseMessage = 2;
 
 // POSIX error codes.
 // See https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html
+const _ePerm = 1;
 const _eNoEnt = 2;
+const _eAccess = 13;
+const _eExist = 17;
 
 // Windows error codes.
 // See https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
 const _errorFileNotFound = 2;
 const _errorPathNotFound = 3;
+const _errorAccessDenied = 5;
 const _errorInvalidDrive = 15;
+const _errorCurrentDirectory = 16;
 const _errorNoMoreFiles = 18;
+const _errorWriteProtect = 19;
+const _errorBadLength = 24;
+const _errorSharingViolation = 32;
+const _errorLockViolation = 33;
 const _errorBadNetpath = 53;
+const _errorNetworkAccessDenied = 65;
 const _errorBadNetName = 67;
+const _errorFileExists = 80;
+const _errorDriveLocked = 108;
 const _errorBadPathName = 161;
+const _errorAlreadyExists = 183;
 const _errorFilenameExedRange = 206;
 
 /// If the [response] is an error, throws an [Exception] or an [Error].
