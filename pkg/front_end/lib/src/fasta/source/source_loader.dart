@@ -1318,9 +1318,8 @@ severity: $severity
         /* tear off reference = */ null,
         AsyncMarker.Sync,
         new NameScheme(
-            className: null,
-            extensionName: null,
-            isExtensionMember: false,
+            containerName: null,
+            containerType: ContainerType.Library,
             isInstanceMember: false,
             libraryName: libraryBuilder.libraryName),
         isInstanceMember: false,

@@ -1532,8 +1532,9 @@ class KernelTarget extends TargetImplementation {
         patchFieldNames.add(NameScheme.createFieldName(
           FieldNameType.Field,
           name,
+          containerType: ContainerType.Class,
+          containerName: new ClassName(builder.name),
           isInstanceMember: fieldBuilder.isClassInstanceMember,
-          className: builder.name,
           isSynthesized: fieldBuilder.isLateLowered,
         ));
       });

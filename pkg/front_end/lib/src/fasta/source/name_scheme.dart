@@ -8,39 +8,47 @@ import '../kernel/late_lowering.dart' as late_lowering;
 
 enum FieldNameType { Field, Getter, Setter, IsSetField }
 
-// TODO(johnniwinther): Support view names.
+enum ContainerType { Library, Class, View, Extension }
+
 class NameScheme {
   final bool isInstanceMember;
-  final String? className;
-  final bool isExtensionMember;
-  ExtensionName? extensionName;
+  final ContainerName? containerName;
+  final ContainerType containerType;
   final LibraryName libraryName;
 
   NameScheme(
       {required this.isInstanceMember,
-      required this.className,
-      required this.isExtensionMember,
-      required this.extensionName,
+      required this.containerName,
+      required this.containerType,
       required this.libraryName})
       // ignore: unnecessary_null_comparison
       : assert(isInstanceMember != null),
         // ignore: unnecessary_null_comparison
-        assert(isExtensionMember != null),
-        // ignore: unnecessary_null_comparison
-        assert(!isExtensionMember || extensionName != null),
-        // ignore: unnecessary_null_comparison
-        assert(libraryName != null);
+        assert(libraryName != null),
+        assert((containerName == null) ==
+            (containerType == ContainerType.Library));
 
   bool get isStatic => !isInstanceMember;
 
-  MemberName getFieldMemberName(FieldNameType type, String name,
+  bool get isExtensionMember => containerType == ContainerType.Extension;
+
+  MemberName getFieldMemberName(FieldNameType fieldNameType, String name,
       {required bool isSynthesized}) {
-    if (isSynthesized || isExtensionMember) {
+    bool hasSynthesizedName;
+    switch (containerType) {
+      case ContainerType.Library:
+      case ContainerType.Class:
+        hasSynthesizedName = isSynthesized;
+        break;
+      case ContainerType.View:
+      case ContainerType.Extension:
+        hasSynthesizedName = true;
+        break;
+    }
+    if (hasSynthesizedName) {
       return new SynthesizedFieldName(
-          libraryName, className, extensionName, type, name,
-          isInstanceMember: isInstanceMember,
-          isExtensionMember: isExtensionMember,
-          isSynthesized: isSynthesized);
+          libraryName, containerName, containerType, fieldNameType, name,
+          isInstanceMember: isInstanceMember, isSynthesized: isSynthesized);
     } else {
       return name.startsWith('_')
           ? new PrivateMemberName(libraryName, name)
@@ -48,37 +56,35 @@ class NameScheme {
     }
   }
 
-  static String createFieldName(FieldNameType type, String name,
+  static String createFieldName(FieldNameType fieldNameType, String name,
       {required bool isInstanceMember,
-      required String? className,
-      bool isExtensionMethod = false,
-      String? extensionName,
+      required ContainerName? containerName,
+      required ContainerType containerType,
       bool isSynthesized = false}) {
-    assert(isSynthesized || type == FieldNameType.Field,
-        "Unexpected field name type for non-synthesized field: $type");
-    // ignore: unnecessary_null_comparison
-    assert(isExtensionMethod || isInstanceMember != null,
-        "`isInstanceMember` is null for class member.");
-    assert(!(isExtensionMethod && extensionName == null),
-        "No extension name provided for extension member.");
-    // ignore: unnecessary_null_comparison
-    assert(isInstanceMember == null || !(isInstanceMember && className == null),
-        "No class name provided for instance member.");
-    String baseName;
-    if (!isExtensionMethod) {
-      baseName = name;
-    } else {
-      baseName = "${extensionName}|${name}";
-    }
+    assert(isSynthesized || fieldNameType == FieldNameType.Field,
+        "Unexpected field name type for non-synthesized field: $fieldNameType");
+    assert((containerName == null) == (containerType == ContainerType.Library),
+        "Missing container name for ${containerType}");
 
+    String baseName;
+    switch (containerType) {
+      case ContainerType.Library:
+      case ContainerType.Class:
+        baseName = name;
+        break;
+      case ContainerType.View:
+      case ContainerType.Extension:
+        baseName = "${containerName!.name}|${name}";
+        break;
+    }
     if (!isSynthesized) {
       return baseName;
     } else {
       String namePrefix = late_lowering.lateFieldPrefix;
       if (isInstanceMember) {
-        namePrefix = '$namePrefix${className}#';
+        namePrefix = '$namePrefix${containerName!.name}#';
       }
-      switch (type) {
+      switch (fieldNameType) {
         case FieldNameType.Field:
           return "$namePrefix$baseName";
         case FieldNameType.Getter:
@@ -92,24 +98,28 @@ class NameScheme {
   }
 
   MemberName getProcedureMemberName(ProcedureKind kind, String name) {
-    if (extensionName != null) {
-      return new ExtensionProcedureName(libraryName, extensionName!, kind, name,
-          isStatic: isStatic);
-    } else {
-      return name.startsWith('_')
-          ? new PrivateMemberName(libraryName, name)
-          : new PublicMemberName(name);
+    switch (containerType) {
+      case ContainerType.Library:
+      case ContainerType.Class:
+        return name.startsWith('_')
+            ? new PrivateMemberName(libraryName, name)
+            : new PublicMemberName(name);
+      case ContainerType.View:
+      case ContainerType.Extension:
+        return new ExtensionProcedureName(
+            libraryName, containerName!, containerType, kind, name,
+            isStatic: isStatic);
     }
   }
 
   static String _createProcedureName(
-      {required bool isExtensionMethod,
+      {required ContainerName? containerName,
+      required ContainerType containerType,
       required bool isStatic,
       required ProcedureKind kind,
-      String? extensionName,
       required String name}) {
-    if (isExtensionMethod) {
-      assert(extensionName != null);
+    if (containerType == ContainerType.Extension) {
+      String extensionName = containerName!.name;
       String kindInfix = '';
       if (!isStatic) {
         // Instance getter and setter are converted to methods so we use an
@@ -175,18 +185,37 @@ class LibraryName {
   }
 }
 
-/// The name of an extension, either named or unnamed.
-///
-/// This is used for creating extension member names together with the member
-/// builders while still supporting that the synthesized extension names for
-/// unnamed extensions are computed late.
-abstract class ExtensionName {
-  /// The current name of the extension.
+/// The name of a class, view or extension.
+abstract class ContainerName {
+  /// The current name of the container.
   ///
   /// For an unnamed extension, this is initially a sentinel value, which is
   /// updated within the containing [Library] is composed.
   String get name;
 
+  /// Registers [name] as dependent on this container name.
+  void attachMemberName(MemberName name);
+}
+
+/// The name of a class or a view.
+class ClassName extends ContainerName {
+  final String _name;
+
+  ClassName(this._name);
+
+  @override
+  String get name => _name;
+
+  @override
+  void attachMemberName(MemberName name) {}
+}
+
+/// The name of an extension, either named or unnamed.
+///
+/// This is used for creating extension member names together with the member
+/// builders while still supporting that the synthesized extension names for
+/// unnamed extensions are computed late.
+abstract class ExtensionName extends ContainerName {
   /// Updates the name for this extension.
   ///
   /// If changed, the dependent [Extension] names and [MemberName]s will be
@@ -201,9 +230,6 @@ abstract class ExtensionName {
   /// When the [name] is updated, the name of the [extension] will be updated
   /// accordingly.
   void attachExtension(Extension extension);
-
-  /// Registers [name] as dependent on this extension name.
-  void attachMemberName(MemberName name);
 }
 
 /// The name of a named extension.
@@ -369,27 +395,28 @@ class PrivateMemberName extends UpdatableMemberName {
 /// changed.
 class ExtensionProcedureName extends UpdatableMemberName {
   final LibraryName _libraryName;
-  final ExtensionName _extensionName;
+  final ContainerName _containerName;
+  final ContainerType _containerType;
   final ProcedureKind _kind;
   final bool isStatic;
   final String _text;
 
-  ExtensionProcedureName(
-      this._libraryName, this._extensionName, this._kind, this._text,
+  ExtensionProcedureName(this._libraryName, this._containerName,
+      this._containerType, this._kind, this._text,
       {required this.isStatic}) {
     _libraryName.attachMemberName(this);
-    _extensionName.attachMemberName(this);
+    _containerName.attachMemberName(this);
   }
 
   @override
   Name _createName() {
     return new Name.byReference(
         NameScheme._createProcedureName(
-            isExtensionMethod: true,
+            containerName: _containerName,
+            containerType: _containerType,
             isStatic: isStatic,
             kind: _kind,
-            name: _text,
-            extensionName: _extensionName.name),
+            name: _text),
         _libraryName.reference);
   }
 }
@@ -401,21 +428,18 @@ class ExtensionProcedureName extends UpdatableMemberName {
 /// changed.
 class SynthesizedFieldName extends UpdatableMemberName {
   final LibraryName _libraryName;
-  final String? className;
-  final ExtensionName? _extensionName;
+  final ContainerName? _containerName;
+  final ContainerType _containerType;
   final FieldNameType _type;
   final bool isInstanceMember;
-  final bool isExtensionMember;
   final bool isSynthesized;
   final String _text;
 
-  SynthesizedFieldName(this._libraryName, this.className, this._extensionName,
-      this._type, this._text,
-      {required this.isInstanceMember,
-      required this.isExtensionMember,
-      required this.isSynthesized}) {
+  SynthesizedFieldName(this._libraryName, this._containerName,
+      this._containerType, this._type, this._text,
+      {required this.isInstanceMember, required this.isSynthesized}) {
     _libraryName.attachMemberName(this);
-    _extensionName?.attachMemberName(this);
+    _containerName?.attachMemberName(this);
   }
 
   @override
@@ -423,9 +447,8 @@ class SynthesizedFieldName extends UpdatableMemberName {
     return new Name.byReference(
         NameScheme.createFieldName(_type, _text,
             isInstanceMember: isInstanceMember,
-            className: className,
-            isExtensionMethod: isExtensionMember,
-            extensionName: _extensionName?.name,
+            containerName: _containerName,
+            containerType: _containerType,
             isSynthesized: isSynthesized),
         _libraryName.reference);
   }

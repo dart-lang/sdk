@@ -208,9 +208,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     NameScheme staticFieldNameScheme = new NameScheme(
         isInstanceMember: false,
-        className: name,
-        isExtensionMember: false,
-        extensionName: null,
+        containerName: new ClassName(name),
+        containerType: ContainerType.Class,
         libraryName: libraryName);
 
     Reference? constructorReference;
@@ -388,9 +387,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         AsyncMarker.Sync,
         new NameScheme(
             isInstanceMember: true,
-            className: name,
-            isExtensionMember: false,
-            extensionName: null,
+            containerName: new ClassName(name),
+            containerType: ContainerType.Class,
             libraryName: new LibraryName(coreLibrary.library.reference)),
         isExtensionMember: false,
         isInstanceMember: true,

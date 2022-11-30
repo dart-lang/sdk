@@ -15,10 +15,10 @@ import "dart:core" as core;
 view Missing /* representationType = invalid-type */ {
 }
 view Static /* representationType = core::bool */ {
-  static field staticField = self::staticField;
+  static field staticField = self::Static|staticField;
 }
 view Multiple /* representationType = core::bool */ {
 }
 view Duplicate /* representationType = core::bool */ {
 }
-static field core::int staticField = 42;
+static field core::int Static|staticField = 42;
