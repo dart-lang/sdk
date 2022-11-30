@@ -44,6 +44,24 @@
 [#49687]: https://github.com/dart-lang/sdk/issues/49687
 [#2020]: https://github.com/dart-lang/language/issues/2020
 
+- **Breaking Change** [#50383][]: Report a compile-time error for all cyclic
+  dependencies during top-level type inference.
+
+  Previously, some of these dependencies were ignored, based on an analysis
+  determining that they could not influence the inferred type. However,
+  this analysis was complex, differed slightly among tools, and had become
+  much more complex due to other changes (especially, enhanced flow
+  analysis).
+
+  With this change, all tools treat these cyclic dependencies in the
+  same way, the analysis is well-understood, and, arguably, the code is
+  more readable.
+
+  Breakage is mitigated by adding a declared type to one top-level
+  declaration per cycle which is now an error.
+
+[#50383]: https://github.com/dart-lang/sdk/issues/50383
+
 - Add support for **unnamed libraries**. Dart language 2.19 allows a library
   directive to be written without a name (`library;`). A library directive can
   be used for library-level annotations (such as `@deprecated`) and for
