@@ -554,9 +554,6 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_double_quotes: [
       ConvertToDoubleQuotes.new,
     ],
-    LintNames.prefer_equal_for_default_values: [
-      ReplaceColonWithEquals.new,
-    ],
     LintNames.prefer_expression_function_bodies: [
       ConvertToExpressionFunctionBody.new,
     ],

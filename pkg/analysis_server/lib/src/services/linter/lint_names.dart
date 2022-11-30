@@ -93,8 +93,6 @@ class LintNames {
       'prefer_const_literals_to_create_immutables';
   static const String prefer_contains = 'prefer_contains';
   static const String prefer_double_quotes = 'prefer_double_quotes';
-  static const String prefer_equal_for_default_values =
-      'prefer_equal_for_default_values';
   static const String prefer_expression_function_bodies =
       'prefer_expression_function_bodies';
   static const String prefer_final_fields = 'prefer_final_fields';
