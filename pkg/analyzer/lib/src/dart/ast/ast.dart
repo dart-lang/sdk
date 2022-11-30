@@ -9930,8 +9930,7 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @override
   final Token equals;
 
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   @override
   final Token keyword;
@@ -9946,16 +9945,23 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     required this.keyword,
     required this.pattern,
     required this.equals,
-    required this.expression,
+    required ExpressionImpl expression,
     required super.comment,
     required super.metadata,
-  }) {
+  }) : _expression = expression {
     _becomeParentOf(pattern);
-    _becomeParentOf(expression);
+    _becomeParentOf(_expression);
   }
 
   @override
   Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;

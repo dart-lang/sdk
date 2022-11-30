@@ -3032,6 +3032,17 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitPostfixExpression(covariant PostfixExpressionImpl node) {
     if (identical(node.operand, _oldNode)) {
       node.operand = _newNode as ExpressionImpl;
