@@ -942,7 +942,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var guardedPattern = member.guardedPattern;
         return CaseHeadOrDefaultInfo(
           pattern: guardedPattern.pattern,
-          variables: {}, // TODO(scheglov) use actual
+          variables: guardedPattern.variables,
           guard: guardedPattern.whenClause?.expression,
         );
       } else {
@@ -958,7 +958,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return SwitchStatementMemberInfo(
       group.members.map(ofMember).toList(),
       group.statements,
-      {},
+      group.variables,
       hasLabels: group.hasLabels,
     );
   }
@@ -4585,23 +4585,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitSwitchCase(SwitchCase node) {
-    node.expression.accept(this);
-
-    _withDeclaredLocals(node, node.statements, () {
-      node.statements.accept(this);
-    });
-  }
-
-  @override
-  void visitSwitchDefault(SwitchDefault node) {
-    _withDeclaredLocals(node, node.statements, () {
-      node.statements.accept(this);
-    });
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(covariant SwitchStatementImpl node) {
     var outerScope = labelScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
@@ -4614,15 +4598,32 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
               LabelScope(labelScope, labelName.name, member, labelElement);
         }
       }
-      visitSwitchStatementInScope(node);
+      node.expression.accept(this);
+      for (var group in node.memberGroups) {
+        for (var member in group.members) {
+          if (member is SwitchCaseImpl) {
+            member.expression.accept(this);
+          } else if (member is SwitchPatternCaseImpl) {
+            _withNameScope(() {
+              var variables = member.guardedPattern.variables;
+              for (var variable in variables.values) {
+                _define(variable);
+              }
+              member.guardedPattern.accept(this);
+            });
+          }
+        }
+        _withDeclaredLocals(node, group.statements, () {
+          for (var variable in group.variables.values) {
+            _define(variable);
+          }
+          group.statements.accept(this);
+        });
+      }
     } finally {
       labelScope = outerScope;
       _implicitLabelScope = outerImplicitScope;
     }
-  }
-
-  void visitSwitchStatementInScope(SwitchStatement node) {
-    super.visitSwitchStatement(node);
   }
 
   @override

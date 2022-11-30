@@ -670,14 +670,29 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
-    var expression = node.expression;
-    var members = node.members;
-
-    expression.accept(this);
+  void visitSwitchStatement(covariant SwitchStatementImpl node) {
+    node.expression.accept(this);
 
     assignedVariables.beginNode();
-    members.accept(this);
+    for (var group in node.memberGroups) {
+      for (var member in group.members) {
+        if (member is SwitchCaseImpl) {
+          member.expression.accept(this);
+        } else if (member is SwitchPatternCaseImpl) {
+          var guardedPattern = member.guardedPattern;
+          assignedVariables.beginNode();
+          for (var variable in guardedPattern.variables.values) {
+            assignedVariables.declare(variable);
+          }
+          guardedPattern.whenClause?.accept(this);
+          assignedVariables.endNode(node);
+        }
+      }
+      for (var variable in group.variables.values) {
+        assignedVariables.declare(variable);
+      }
+      group.statements.accept(this);
+    }
     assignedVariables.endNode(node);
   }
 
