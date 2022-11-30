@@ -17,9 +17,10 @@ import '../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
-        CAST_PATTERN_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         Keyword,
+        LOGICAL_AND_PRECEDENCE,
+        LOGICAL_OR_PRECEDENCE,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
@@ -5858,9 +5859,12 @@ class Parser {
           _tokenRecoveryReplacements.containsKey(token.lexeme)) {
         _recoverAtPrecedenceLevel = true;
       }
-    } else if (forPattern && identical(type, TokenType.AS)) {
-      // Casts bind tighter in patterns.
-      return CAST_PATTERN_PRECEDENCE;
+    } else if (forPattern && identical(type, TokenType.BAR)) {
+      // `|` in a pattern is treated like `||`.
+      return LOGICAL_OR_PRECEDENCE;
+    } else if (forPattern && identical(type, TokenType.AMPERSAND)) {
+      // `&` in a pattern is treated like `&&`.
+      return LOGICAL_AND_PRECEDENCE;
     }
 
     return type.precedence;
