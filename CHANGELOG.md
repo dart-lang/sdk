@@ -2,6 +2,8 @@
 
 - updated `prefer_equal_for_default_values` to not report for SDKs `>=2.19`,
   where this lint is now an analyzer diagnostic.
+- updated `unrelated_type_equality_checks` to support updated `package:fixnum`
+  structure.
 
 # 1.30.0
 
