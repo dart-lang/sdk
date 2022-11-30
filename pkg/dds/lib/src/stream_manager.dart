@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:developer' as developer;
 import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -15,6 +16,7 @@ import 'utils/mutex.dart';
 
 class StreamManager {
   StreamManager(this.dds);
+  String loggingString = '';
 
   /// Send `streamNotify` notifications to clients subscribed to `streamId`.
   ///
@@ -29,8 +31,9 @@ class StreamManager {
     data, {
     DartDevelopmentServiceClient? excludedClient,
   }) {
-    if (streamListeners.containsKey(streamId)) {
-      final listeners = streamListeners[streamId]!;
+    var listeners = streamListeners[streamId];
+    listeners ??= customStreamListeners[streamId];
+    if (listeners != null) {
       final isBinaryData = data is Uint8List;
       for (final listener in listeners) {
         if (listener == excludedClient) {
@@ -43,10 +46,36 @@ class StreamManager {
           if (streamId == kProfilerStream) {
             processed = _processProfilerEvents(listener, data);
           }
-          listener.sendNotification('streamNotify', processed);
+          try {
+            listener.sendNotification('streamNotify', processed);
+          } on json_rpc.RpcException catch (e) {
+            debugMessage(
+              "YES caught on the streamNotify ${e.code} ${e.message}",
+            );
+          }
         }
       }
     }
+  }
+
+  void debugMessage(String message) {
+    developer.postEvent('DAKE_DEBUG', {'message': message});
+    // var listeners = customStreamListeners['Dake_Debug'];
+    // if (listeners != null) {
+    //   for (final listener in listeners) {
+    //     Map<String, dynamic> processed = {
+    //       'streamId': 'Dake_Debug',
+    //       'event': {
+    //         'type': 'Event',
+    //         'kind': 'Logging',
+    //         'timestamp': DateTime.now().millisecondsSinceEpoch,
+    //         'service': 'service',
+    //         'extensionData': message
+    //       }
+    //     };
+    //     listener.sendNotification('streamNotify', processed);
+    //   }
+    // }
   }
 
   static Map<String, dynamic> _processProfilerEvents(
@@ -138,7 +167,7 @@ class StreamManager {
     }
     dds.vmServiceClient.registerMethod(
       'streamNotify',
-      (json_rpc.Parameters parameters) {
+      (json_rpc.Parameters parameters) async {
         final streamId = parameters['streamId'].asString;
         final event =
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
@@ -146,6 +175,13 @@ class StreamManager {
             event.extensionData?.data['__destinationStream']!;
 
         if (destinationStreamId != 'Extension') {
+          if (streamListeners.containsKey(destinationStreamId)) {
+            // throw kDANTESTEXCEPTION;
+            throw json_rpc.RpcException(
+              6666,
+              'Attempted to post to a non-Custom stream',
+            );
+          }
           final values = parameters.value;
 
           values['streamId'] = destinationStreamId;
@@ -193,28 +229,43 @@ class StreamManager {
       () async {
         assert(stream.isNotEmpty);
         bool streamNewlySubscribed = false;
-        if (!streamListeners.containsKey(stream)) {
+        bool isCustomStream = false;
+
+        if (!streamListeners.containsKey(stream) &&
+            !customStreamListeners.containsKey(stream)) {
           // Initialize the list of clients for the new stream before we do
           // anything else to ensure multiple clients registering for the same
           // stream in quick succession doesn't result in multiple streamListen
           // requests being sent to the VM service.
           streamNewlySubscribed = true;
-          streamListeners[stream] = <DartDevelopmentServiceClient>[];
-          if (allStandardStreams.contains(stream) &&
-              ((stream == kDebugStream && client == null) ||
-                  stream != kDebugStream)) {
+          if ((stream == kDebugStream && client == null) ||
+              stream != kDebugStream) {
             // This will return an RPC exception if the stream doesn't exist. This
             // will throw and the exception will be forwarded to the client.
-            final result =
-                await dds.vmServiceClient.sendRequest('streamListen', {
-              'streamId': stream,
-              if (includePrivates != null)
-                '_includePrivateMembers': includePrivates,
-            });
-            assert(result['type'] == 'Success');
+            try {
+              final result =
+                  await dds.vmServiceClient.sendRequest('streamListen', {
+                'streamId': stream,
+                if (includePrivates != null)
+                  '_includePrivateMembers': includePrivates,
+              });
+              assert(result['type'] == 'Success');
+            } on json_rpc.RpcException catch (e) {
+              if (e.code == RpcErrorCodes.kInvalidParams) {
+                isCustomStream = true;
+              } else {
+                rethrow;
+              }
+            }
+            if (isCustomStream) {
+              customStreamListeners[stream] = <DartDevelopmentServiceClient>[];
+            } else {
+              streamListeners[stream] = <DartDevelopmentServiceClient>[];
+            }
           }
         }
-        if (streamListeners[stream]!.contains(client)) {
+        if (streamListeners[stream]?.contains(client) == true ||
+            customStreamListeners[stream]?.contains(client) == true) {
           throw kStreamAlreadySubscribedException;
         } else if (!streamNewlySubscribed && includePrivates != null) {
           try {
@@ -232,7 +283,11 @@ class StreamManager {
           }
         }
         if (client != null) {
-          streamListeners[stream]!.add(client);
+          if (isCustomStream) {
+            customStreamListeners[stream]?.add(client);
+          } else {
+            streamListeners[stream]!.add(client);
+          }
           if (loggingRepositories.containsKey(stream)) {
             loggingRepositories[stream]!.sendHistoricalLogs(client);
           } else if (stream == kServiceStream) {
@@ -281,7 +336,8 @@ class StreamManager {
     await _streamSubscriptionMutex.runGuarded(
       () async {
         assert(stream.isNotEmpty);
-        final listeners = streamListeners[stream];
+        var listeners = streamListeners[stream];
+        listeners ??= customStreamListeners[stream];
         if (listeners == null ||
             client != null && !listeners.contains(client)) {
           throw kStreamNotSubscribedException;
@@ -358,6 +414,12 @@ class StreamManager {
   static final kStreamNotSubscribedException = RpcErrorCodes.buildRpcException(
     RpcErrorCodes.kStreamNotSubscribed,
   );
+  json_rpc.RpcException kDANTESTEXCEPTION(String message, Object? data) =>
+      json_rpc.RpcException(
+        66666,
+        message,
+        data: data,
+      );
 
   static const kDebugStream = 'Debug';
   static const kExtensionStream = 'Extension';
@@ -416,6 +478,7 @@ class StreamManager {
   };
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
+  final customStreamListeners = <String, List<DartDevelopmentServiceClient>>{};
   final _profilerUserTagSubscriptions = <String>{};
   final _streamSubscriptionMutex = Mutex();
   final _profilerUserTagSubscriptionsMutex = Mutex();
