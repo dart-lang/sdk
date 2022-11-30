@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// Instances of the enum [MatchKind] represent the kind of reference that was
@@ -95,13 +98,23 @@ abstract class SearchEngine {
   /// Returns direct subtypes of the given [type].
   ///
   /// [type] - the [ClassElement] being subtyped by the found matches.
-  Future<List<SearchMatch>> searchSubtypes(InterfaceElement type);
+  /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
+  ///    empty it will be filled out and can be used on any subsequent query.
+  Future<List<SearchMatch>> searchSubtypes(
+      InterfaceElement type, SearchEngineCache cache);
 
   /// Returns all the top-level declarations matching the given pattern.
   ///
   /// [pattern] the regular expression used to match the names of the
   ///    declarations to be found.
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern);
+}
+
+class SearchEngineCache {
+  List<AnalysisDriver>? drivers;
+  // TODO(jensj): Can `searchedFiles` be removed?
+  SearchedFiles? searchedFiles;
+  Map<AnalysisDriver, List<FileState>>? assignedFiles;
 }
 
 /// Instances of the class [SearchMatch] represent a match found by
