@@ -1,3 +1,8 @@
+# 1.31.0
+
+- updated `prefer_equal_for_default_values` to not report for SDKs `>=2.19`,
+  where this lint is now an analyzer diagnostic.
+
 # 1.30.0
 
 - new lint: `enable_null_safety`
