@@ -1184,6 +1184,12 @@ mixin TypeAnalyzer<
       _finishJoinedVariables(variables, reportErrors: false);
       handleCase_afterCaseHeads(node, caseIndex, variables.values);
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads)
+      // If there are joined variables, declare them.
+      if (heads.length > 1 || memberInfo.hasLabels) {
+        for (Variable variable in variables.values) {
+          flow?.declare(variable, true);
+        }
+      }
       for (Statement statement in memberInfo.body) {
         dispatchStatement(statement);
       }

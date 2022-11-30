@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstantPatternResolutionTest extends PatternsResolutionTest {
+class ConstantPatternResolutionTest extends PubPackageResolutionTest {
   test_expression_class_field() async {
     await assertNoErrorsInCode(r'''
 class A {

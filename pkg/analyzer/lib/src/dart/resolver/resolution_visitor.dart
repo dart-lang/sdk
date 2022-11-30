@@ -1162,8 +1162,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (group.hasLabels) {
         _patternVariables.switchStatementSharedCaseScopeEmpty(node);
       }
-      // TODO(scheglov) use variables
-      _patternVariables.switchStatementSharedCaseScopeFinish(node);
+      group.variables =
+          _patternVariables.switchStatementSharedCaseScopeFinish(node);
       _withNameScope(() {
         var statements = group.statements;
         _buildLocalElements(statements);

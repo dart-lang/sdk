@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class IfStatementResolutionTest extends PatternsResolutionTest {
+class IfStatementResolutionTest extends PubPackageResolutionTest {
   test_caseClause() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

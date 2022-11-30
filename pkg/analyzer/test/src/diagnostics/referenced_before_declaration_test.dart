@@ -116,7 +116,6 @@ print(x) {}
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_hideInSwitchCase_function() async {
     await assertErrorsInCode(r'''
 var v = 0;
@@ -156,7 +155,6 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_hideInSwitchCase_local() async {
     await assertErrorsInCode(r'''
 var v = 0;

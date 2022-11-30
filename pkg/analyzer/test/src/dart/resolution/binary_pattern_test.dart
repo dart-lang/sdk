@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class BinaryPatternResolutionTest extends PatternsResolutionTest {
+class BinaryPatternResolutionTest extends PubPackageResolutionTest {
   test_logicalAnd_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

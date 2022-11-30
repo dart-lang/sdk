@@ -124,11 +124,15 @@
 
 [#49878]: https://github.com/dart-lang/sdk/issues/49878
 
-- When a `dart:io` operation fails because a file is not found, throw
-  `PathNotFoundException`, a `FileSystemException` subclass, to make it
-  easier to handle "file not found" errors.
+- Adds three new `FileSystemException` subclasses to handle common error
+  cases:
+
+  - `PathAccessException`: The necessary access rights are not available.
+  - `PathExistsException`: The path being created already exists.
+  - `PathNotFoundException`: The path being accessed does not exist.
 
 [#12461]: https://github.com/dart-lang/sdk/issues/12461
+[#50436]: https://github.com/dart-lang/sdk/issues/50436
 
 #### `dart:isolate`
 
@@ -184,7 +188,7 @@
 
 #### Linter
 
-Updated the Linter to `1.30.0`, which includes changes that
+Updated the Linter to `1.31.0`, which includes changes that
 
 - add new lint: `enable_null_safety`.
 - add new lint: `library_annotations`.

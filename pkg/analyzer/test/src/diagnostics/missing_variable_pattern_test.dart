@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class MissingVariablePatternTest extends PatternsResolutionTest {
+class MissingVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase_differentStatements_nested() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {

@@ -12513,6 +12513,9 @@ class SwitchStatementCaseGroup {
   final List<SwitchMemberImpl> members;
   final bool hasLabels;
 
+  /// Joined variables declared in [members], available in [statements].
+  late final Map<String, PromotableElement> variables;
+
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 
   NodeListImpl<StatementImpl> get statements {

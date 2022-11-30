@@ -1954,7 +1954,9 @@ LintCode.prefer_contains:
 LintCode.prefer_double_quotes:
   status: hasFix
 LintCode.prefer_equal_for_default_values:
-  status: hasFix
+  status: noFix
+  notes: |-
+    Lint is disabled in 2.19 and will be removed in 3.0.
 LintCode.prefer_expression_function_bodies:
   status: hasFix
 LintCode.prefer_final_fields:

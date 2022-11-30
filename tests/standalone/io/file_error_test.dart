@@ -436,6 +436,31 @@ testReadSyncClosedFile() {
   });
 }
 
+void testCreateExistingFile() {
+  createTestFile((file, done) {
+    Expect.throws<PathExistsException>(() => file.createSync(exclusive: true));
+    done();
+  });
+}
+
+void testDeleteDirectoryWithoutPermissions() {
+  if (Platform.isMacOS) {
+    createTestFile((file, done) async {
+      Process.runSync('chflags', ['uchg', file.path]);
+      Expect.throws<PathAccessException>(file.deleteSync);
+      Process.runSync('chflags', ['nouchg', file.path]);
+      done();
+    });
+  }
+  if (Platform.isWindows) {
+    final oldCurrent = Directory.current;
+    Directory.current = tempDir();
+    // Cannot delete the current working directory in Windows.
+    Expect.throws<PathAccessException>(Directory.current.deleteSync);
+    Directory.current = oldCurrent;
+  }
+}
+
 main() {
   testOpenBlankFilename();
   testOpenNonExistent();
@@ -453,4 +478,6 @@ main() {
   testRepeatedlyCloseFile();
   testRepeatedlyCloseFileSync();
   testReadSyncClosedFile();
+  testCreateExistingFile();
+  testDeleteDirectoryWithoutPermissions();
 }

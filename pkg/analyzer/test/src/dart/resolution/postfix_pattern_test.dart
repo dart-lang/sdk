@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class PostfixPatternResolutionTest extends PatternsResolutionTest {
+class PostfixPatternResolutionTest extends PubPackageResolutionTest {
   test_nullAssert_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(int? x) {

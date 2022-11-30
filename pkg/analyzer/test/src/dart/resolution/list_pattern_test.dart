@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class ListPatternResolutionTest extends PatternsResolutionTest {
+class ListPatternResolutionTest extends PubPackageResolutionTest {
   test_matchDynamic_noTypeArguments_variable_typed() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

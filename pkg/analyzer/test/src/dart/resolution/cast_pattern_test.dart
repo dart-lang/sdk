@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class CastPatternResolutionTest extends PatternsResolutionTest {
+class CastPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
