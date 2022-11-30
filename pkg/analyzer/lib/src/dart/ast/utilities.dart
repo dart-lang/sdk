@@ -2877,6 +2877,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool? visitMapPatternEntry(covariant MapPatternEntryImpl node) {
+    if (identical(node.key, _oldNode)) {
+      node.key = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     if (identical(node.returnType, _oldNode)) {
       node.returnType = _newNode as TypeAnnotationImpl;

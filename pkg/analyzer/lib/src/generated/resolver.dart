@@ -12,6 +12,8 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -884,9 +886,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   shared.MapPatternEntry<Expression, DartPattern>? getMapPatternEntry(
-      AstNode element) {
-    // TODO(scheglov): implement getMapPatternEntry
-    throw UnimplementedError();
+    covariant MapPatternElementImpl element,
+  ) {
+    if (element is MapPatternEntryImpl) {
+      return shared.MapPatternEntry(
+        key: element.key,
+        value: element.value,
+      );
+    }
+    return null;
   }
 
   /// Return the static element associated with the given expression whose type
@@ -1043,19 +1051,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ) {}
 
   @override
-  void handleMapPatternEntry(DartPattern container, AstNode entryElement) {
-    // TODO(scheglov): implement handleMapPatternEntry
-    throw UnimplementedError();
+  void handleMapPatternEntry(
+    DartPattern container,
+    covariant MapPatternEntryImpl entry,
+  ) {
+    entry.key = popRewrite()!;
   }
 
   @override
   void handleMapPatternRestElement(
     DartPattern container,
-    covariant DartPattern restElement,
-  ) {
-    // TODO(scheglov): implement handleMapPatternRestElement
-    throw UnimplementedError();
-  }
+    covariant RestPatternElementImpl restElement,
+  ) {}
 
   @override
   void handleMergedStatementCase(
@@ -1391,6 +1398,40 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.accept(this);
       return PropertyElementResolverResult();
     }
+  }
+
+  void resolveMapPattern({
+    required MapPatternImpl node,
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    var typeArgumentsList = node.typeArguments;
+    if (typeArgumentsList != null) {
+      typeArgumentsList.accept(this);
+      // Check that we have exactly two type arguments.
+      var length = typeArgumentsList.arguments.length;
+      if (length == 2) {
+        typeArguments = shared.MapPatternTypeArguments(
+          keyType: typeArgumentsList.arguments[0].typeOrThrow,
+          valueType: typeArgumentsList.arguments[1].typeOrThrow,
+        );
+      } else {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
+          typeArgumentsList,
+          [length],
+        );
+      }
+    }
+
+    node.requiredType = analyzeMapPattern(
+      matchedType,
+      context,
+      node,
+      typeArguments: typeArguments,
+      elements: node.elements,
+    );
   }
 
   @override

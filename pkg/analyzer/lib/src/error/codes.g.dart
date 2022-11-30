@@ -1287,6 +1287,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the number of provided type arguments
+  static const CompileTimeErrorCode EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
+    'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
+    "Map patterns require two type arguments or none, but {0} found.",
+    correctionMessage: "Try adjusting the number of type arguments.",
+  );
+
+  ///  Parameters:
+  ///  0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
     'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',

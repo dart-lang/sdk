@@ -5,6 +5,8 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -8255,8 +8257,7 @@ abstract class MapPatternElementImpl
 @experimental
 class MapPatternEntryImpl extends AstNodeImpl
     implements MapPatternEntry, MapPatternElementImpl {
-  @override
-  final ExpressionImpl key;
+  ExpressionImpl _key;
 
   @override
   final Token separator;
@@ -8265,11 +8266,11 @@ class MapPatternEntryImpl extends AstNodeImpl
   final DartPatternImpl value;
 
   MapPatternEntryImpl({
-    required this.key,
+    required ExpressionImpl key,
     required this.separator,
     required this.value,
-  }) {
-    _becomeParentOf(key);
+  }) : _key = key {
+    _becomeParentOf(_key);
     _becomeParentOf(value);
   }
 
@@ -8278,6 +8279,13 @@ class MapPatternEntryImpl extends AstNodeImpl
 
   @override
   Token get endToken => value.endToken;
+
+  @override
+  ExpressionImpl get key => _key;
+
+  set key(ExpressionImpl key) {
+    _key = _becomeParentOf(key);
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -8313,6 +8321,9 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   final Token rightBracket;
 
+  @override
+  DartType? requiredType;
+
   MapPatternImpl({
     required this.typeArguments,
     required this.leftBracket,
@@ -8343,8 +8354,20 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    final typeArgumentNodes = this.typeArguments?.arguments;
+    if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
+      typeArguments = shared.MapPatternTypeArguments(
+        keyType: typeArgumentNodes[0].typeOrThrow,
+        valueType: typeArgumentNodes[1].typeOrThrow,
+      );
+    }
+    return resolverVisitor.analyzeMapPatternSchema(
+      typeArguments: typeArguments,
+      elements: elements,
+    );
+  }
 
   @override
   void resolvePattern(
@@ -8352,7 +8375,11 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.resolveMapPattern(
+      node: this,
+      matchedType: matchedType,
+      context: context,
+    );
   }
 
   @override

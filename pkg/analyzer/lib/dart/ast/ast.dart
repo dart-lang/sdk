@@ -3497,6 +3497,10 @@ abstract class MapLiteralEntry implements CollectionElement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class MapPattern implements DartPattern {
+  /// The required type, specified by [typeArguments] or inferred from the
+  /// matched value type; or `null` if the node is not resolved yet.
+  DartType? requiredType;
+
   /// Return the elements in this pattern.
   NodeList<MapPatternElement> get elements;
 
