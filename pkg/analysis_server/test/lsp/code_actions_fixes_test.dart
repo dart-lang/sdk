@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:linter/src/rules.dart';
@@ -600,12 +601,18 @@ ProcessInfo b;
     expect(codeActions, isEmpty);
   }
 
-  Future<void> test_plugin_dart() => checkPluginResults(mainFilePath);
+  Future<void> test_plugin_dart() async {
+    if (!AnalysisServer.supportsPlugins) return;
+    return await checkPluginResults(mainFilePath);
+  }
 
-  Future<void> test_plugin_nonDart() =>
-      checkPluginResults(join(projectFolderPath, 'lib', 'foo.foo'));
+  Future<void> test_plugin_nonDart() async {
+    if (!AnalysisServer.supportsPlugins) return;
+    return await checkPluginResults(join(projectFolderPath, 'lib', 'foo.foo'));
+  }
 
   Future<void> test_plugin_sortsWithServer() async {
+    if (!AnalysisServer.supportsPlugins) return;
     // Produces a server fix for removing unused import with a default
     // priority of 50.
     const content = '''

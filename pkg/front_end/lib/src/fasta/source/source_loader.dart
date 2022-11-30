@@ -1210,7 +1210,9 @@ severity: $severity
     // ignore: unnecessary_null_comparison
     if (tokens == null) return;
     OutlineBuilder listener = new OutlineBuilder(library);
-    new ClassMemberParser(listener).parseUnit(tokens);
+    new ClassMemberParser(listener,
+            allowPatterns: target.globalFeatures.patterns.isEnabled)
+        .parseUnit(tokens);
   }
 
   /// Builds all the method bodies found in the given [library].
@@ -1241,7 +1243,8 @@ severity: $severity
       {
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_diet_parser);
-        DietParser parser = new DietParser(new ForwardingListener());
+        DietParser parser = new DietParser(new ForwardingListener(),
+            allowPatterns: target.globalFeatures.patterns.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1256,7 +1259,8 @@ severity: $severity
     }
 
     DietListener listener = createDietListener(library);
-    DietParser parser = new DietParser(listener);
+    DietParser parser = new DietParser(listener,
+        allowPatterns: target.globalFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
     for (LibraryBuilder part in library.parts) {
       if (part.partOfLibrary != library) {
@@ -1318,9 +1322,8 @@ severity: $severity
         /* tear off reference = */ null,
         AsyncMarker.Sync,
         new NameScheme(
-            className: null,
-            extensionName: null,
-            isExtensionMember: false,
+            containerName: null,
+            containerType: ContainerType.Library,
             isInstanceMember: false,
             libraryName: libraryBuilder.libraryName),
         isInstanceMember: false,

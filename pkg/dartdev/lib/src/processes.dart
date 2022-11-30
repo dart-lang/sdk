@@ -162,6 +162,11 @@ class ProcessInfo {
       ...args.skip(1).map(sanitizeArg),
     ].join(' ');
   }
+
+  @override
+  String toString() =>
+      'ProcessInfo(memoryMb: $memoryMb, cpuPercent: $cpuPercent, elapsedTime:'
+      ' $elapsedTime, command: $command, commandLine: $commandLine)';
 }
 
 List<ProcessInfo> _getProcessInfoMacOS({bool elideFilePaths = true}) {

@@ -10925,8 +10925,9 @@ CompileTimeErrorCode:
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
   OBSOLETE_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: "Using a colon as a separator before a default value is no longer supported."
-    correctionMessage: "Try replacing the colon with an equal sign."
+    problemMessage: Using a colon as a separator before a default value is no longer supported.
+    correctionMessage: Try replacing the colon with an equal sign.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -17673,7 +17674,7 @@ HintCode:
   BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
     problemMessage: "This 'onError' handler must return a value assignable to '{0}', but ends without returning a value."
     correctionMessage: Try adding a return statement.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the return type as derived by the type of the [Future].
@@ -17936,7 +17937,8 @@ HintCode:
       ```
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
     problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
-    correctionMessage: "Try replacing the colon with an equal sign."
+    correctionMessage: Try replacing the colon with an equal sign.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -17964,6 +17966,7 @@ HintCode:
   DEPRECATED_EXPORT_USE:
     problemMessage: "The ability to import '{0}' indirectly is deprecated."
     correctionMessage: "Try importing '{0}' directly."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the element
@@ -18261,7 +18264,7 @@ HintCode:
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Duplicate exports.
 
@@ -19658,7 +19661,7 @@ HintCode:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete override implementation of '{0}'."
     correctionMessage: Try overriding the missing member.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
@@ -19718,7 +19721,7 @@ HintCode:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete override implementation of '{0}' and '{1}'."
     correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the first member
@@ -19727,7 +19730,7 @@ HintCode:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete override implementation of '{0}', '{1}', and {2} more."
     correctionMessage: Try overriding the missing members.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the first member
@@ -20133,7 +20136,7 @@ HintCode:
     problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
     comment: |-
       No parameters.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20163,7 +20166,7 @@ HintCode:
   CAST_FROM_NULLABLE_ALWAYS_FAILS:
     problemMessage: "This cast will always throw an exception because the nullable local variable '{0}' is not assigned."
     correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the unassigned variable

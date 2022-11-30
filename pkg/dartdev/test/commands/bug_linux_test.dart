@@ -21,7 +21,12 @@ void main() {
         expect(process.memoryMb, greaterThan(0));
         expect(process.cpuPercent, greaterThanOrEqualTo(0.0));
         expect(process.elapsedTime, isNotEmpty);
-        expect(process.commandLine, startsWith('dart'));
+        if (!(process.commandLine.startsWith('dart') ||
+            process.commandLine.contains('snapshot'))) {
+          print("Expected ${process.commandLine} to start with 'dart' or"
+              " contain 'snapshot'.");
+          expect(true, false);
+        }
       }
     });
   });
@@ -41,7 +46,7 @@ void main() {
       var output = runResult.stdout as String;
 
       expect(output, contains('## Process info'));
-      expect(output, contains('| Memory'));
+      expect(output, contains('Memory |'));
       expect(output, contains('| dart '));
       expect(output, contains(' bug'));
     });

@@ -2613,14 +2613,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
             TypeParameterScopeKind.library &&
         (modifiers & staticMask) == 0;
-    String? className;
-    if (isInstanceMember) {
-      className = currentTypeParameterScopeBuilder.name;
-    }
     final bool isExtensionMember = currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.extensionDeclaration;
-    ExtensionName? extensionName =
-        currentTypeParameterScopeBuilder.extensionName;
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
 
     Reference? fieldReference;
     Reference? fieldGetterReference;
@@ -2633,9 +2631,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     NameScheme nameScheme = new NameScheme(
         isInstanceMember: isInstanceMember,
-        className: className,
-        isExtensionMember: isExtensionMember,
-        extensionName: extensionName,
+        containerName: containerName,
+        containerType: containerType,
         libraryName: referencesFrom != null
             ? new LibraryName(referencesFrom!.reference)
             : libraryName);
@@ -2795,16 +2792,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
-    String? className = (isInstanceMember && !isExtensionMember)
-        ? currentTypeParameterScopeBuilder.name
-        : null;
-    ExtensionName? extensionName = isExtensionMember
-        ? currentTypeParameterScopeBuilder.extensionName
-        : null;
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
     NameScheme nameScheme = new NameScheme(
-        isExtensionMember: isExtensionMember,
-        className: className,
-        extensionName: extensionName,
+        containerName: containerName,
+        containerType: containerType,
         isInstanceMember: isInstanceMember,
         libraryName: referencesFrom != null
             ? new LibraryName(referencesFrom!.reference)
@@ -2917,10 +2911,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name as String;
     }
 
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.parent!.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.parent!.containerName;
+
     NameScheme procedureNameScheme = new NameScheme(
-        isExtensionMember: false,
-        className: null,
-        extensionName: null,
+        containerName: containerName,
+        containerType: containerType,
         isInstanceMember: false,
         libraryName: referencesFrom != null
             ? new LibraryName(
@@ -5060,6 +5058,62 @@ enum TypeParameterScopeKind {
   factoryMethod,
   functionType,
   enumDeclaration,
+}
+
+extension on TypeParameterScopeBuilder {
+  /// Returns the [ContainerName] corresponding to this type parameter scope,
+  /// if any.
+  ContainerName? get containerName {
+    switch (kind) {
+      case TypeParameterScopeKind.library:
+        return null;
+      case TypeParameterScopeKind.classOrNamedMixinApplication:
+      case TypeParameterScopeKind.classDeclaration:
+      case TypeParameterScopeKind.mixinDeclaration:
+      case TypeParameterScopeKind.unnamedMixinApplication:
+      case TypeParameterScopeKind.namedMixinApplication:
+      case TypeParameterScopeKind.enumDeclaration:
+      case TypeParameterScopeKind.viewDeclaration:
+        return new ClassName(name);
+      case TypeParameterScopeKind.extensionDeclaration:
+        return extensionName;
+      case TypeParameterScopeKind.typedef:
+      case TypeParameterScopeKind.staticMethod:
+      case TypeParameterScopeKind.instanceMethod:
+      case TypeParameterScopeKind.constructor:
+      case TypeParameterScopeKind.topLevelMethod:
+      case TypeParameterScopeKind.factoryMethod:
+      case TypeParameterScopeKind.functionType:
+        throw new UnsupportedError("Unexpected field container: ${this}");
+    }
+  }
+
+  /// Returns the [ContainerType] corresponding to this type parameter scope.
+  ContainerType get containerType {
+    switch (kind) {
+      case TypeParameterScopeKind.library:
+        return ContainerType.Library;
+      case TypeParameterScopeKind.classOrNamedMixinApplication:
+      case TypeParameterScopeKind.classDeclaration:
+      case TypeParameterScopeKind.mixinDeclaration:
+      case TypeParameterScopeKind.unnamedMixinApplication:
+      case TypeParameterScopeKind.namedMixinApplication:
+      case TypeParameterScopeKind.enumDeclaration:
+        return ContainerType.Class;
+      case TypeParameterScopeKind.extensionDeclaration:
+        return ContainerType.Extension;
+      case TypeParameterScopeKind.viewDeclaration:
+        return ContainerType.View;
+      case TypeParameterScopeKind.typedef:
+      case TypeParameterScopeKind.staticMethod:
+      case TypeParameterScopeKind.instanceMethod:
+      case TypeParameterScopeKind.constructor:
+      case TypeParameterScopeKind.topLevelMethod:
+      case TypeParameterScopeKind.factoryMethod:
+      case TypeParameterScopeKind.functionType:
+        throw new UnsupportedError("Unexpected field container: ${this}");
+    }
+  }
 }
 
 /// A builder object preparing for building declarations that can introduce type

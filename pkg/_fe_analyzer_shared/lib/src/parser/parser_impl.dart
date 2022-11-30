@@ -5240,7 +5240,12 @@ class Parser {
     final String? value = token.next!.stringValue;
     if (identical(value, '{')) {
       // The scanner ensures that `{` always has a closing `}`.
-      return parseBlock(token, BlockKind.statement);
+      if (allowPatterns && optional('=', token.next!.endGroup!.next!)) {
+        // Expression statement beginning with a pattern assignment
+        return parseExpressionStatement(token);
+      } else {
+        return parseBlock(token, BlockKind.statement);
+      }
     } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
     } else if (identical(value, 'var') || identical(value, 'final')) {

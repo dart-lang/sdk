@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -335,10 +336,12 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     return _RequestToPlugins(
       completionRequest: completionRequest,
       parameters: pluginRequestParameters,
-      futures: server.pluginManager.broadcastRequest(
-        pluginRequestParameters,
-        contextRoot: completionRequest.analysisContext.contextRoot,
-      ),
+      futures: AnalysisServer.supportsPlugins
+          ? server.pluginManager.broadcastRequest(
+              pluginRequestParameters,
+              contextRoot: completionRequest.analysisContext.contextRoot,
+            )
+          : <PluginInfo, Future<plugin.Response>>{},
     );
   }
 }

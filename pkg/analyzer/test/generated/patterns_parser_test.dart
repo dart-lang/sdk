@@ -3944,6 +3944,20 @@ MapPattern
 ''');
   }
 
+  test_map_insideAssignment_untyped_empty_beginningOfStatement() {
+    _parse('''
+void f(x) {
+  {} = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_map_insideAssignment_untyped_nonEmpty() {
     // Note: statements aren't allowed to start with `{` so we need parens
     // around the assignment.  See
@@ -3951,6 +3965,33 @@ MapPattern
     _parse('''
 void f(x) {
   ({'a': a, 'b': b} = x);
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: VariablePattern
+        name: a
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'b'
+      separator: :
+      value: VariablePattern
+        name: b
+  rightBracket: }
+''');
+  }
+
+  test_map_insideAssignment_untyped_nonEmpty_beginningOfStatement() {
+    _parse('''
+void f(x) {
+  {'a': a, 'b': b} = x;
 }
 ''');
     var node = findNode.patternAssignment('= x').pattern;

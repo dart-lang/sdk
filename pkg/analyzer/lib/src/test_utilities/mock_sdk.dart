@@ -294,7 +294,7 @@ class BigInt implements Comparable<BigInt> {
 
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
-      {bool defaultValue: false});
+      {bool defaultValue = false});
 
   external const factory bool.hasEnvironment(String name);
 
@@ -754,7 +754,7 @@ final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
-  external DF asFunction<DF extends Function>({bool isLeaf:false});
+  external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
 class _Compound extends NativeType {}
@@ -824,7 +824,7 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 class FfiNative<T> {
   final String nativeName;
   final bool isLeaf;
-  const FfiNative(this.nativeName, {this.isLeaf: false});
+  const FfiNative(this.nativeName, {this.isLeaf = false});
 }
 
 class Native<T> {
@@ -1206,7 +1206,8 @@ abstract class FileSystemEntity {
   static Future<FileSystemEntityType> type(String path,
           {bool followLinks: true}) =>
       throw 0;
-  static FileSystemEntityType typeSync(String path, {bool followLinks: true}) =>
+  static FileSystemEntityType typeSync(String path,
+          {bool followLinks = true}) =>
       throw 0;
 }
 

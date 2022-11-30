@@ -45,6 +45,7 @@ class HintCode extends AnalyzerErrorCode {
     "This 'onError' handler must return a value assignable to '{0}', but ends "
         "without returning a value.",
     correctionMessage: "Try adding a return statement.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -75,6 +76,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try giving it an initializer expression, or ensure that it's assigned "
         "on every execution path.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -82,6 +84,7 @@ class HintCode extends AnalyzerErrorCode {
     'CAST_FROM_NULL_ALWAYS_FAILS',
     "This cast always throws an exception because the expression always "
         "evaluates to 'null'.",
+    hasPublishedDocs: true,
   );
 
   ///  Dead code is code that is never reached, this can happen for instance if a
@@ -134,6 +137,7 @@ class HintCode extends AnalyzerErrorCode {
     "Using a colon as a separator before a default value is deprecated and "
         "will not be supported in language version 3.0 and later.",
     correctionMessage: "Try replacing the colon with an equal sign.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -142,6 +146,7 @@ class HintCode extends AnalyzerErrorCode {
     'DEPRECATED_EXPORT_USE',
     "The ability to import '{0}' indirectly is deprecated.",
     correctionMessage: "Try importing '{0}' directly.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -240,6 +245,7 @@ class HintCode extends AnalyzerErrorCode {
     'DUPLICATE_EXPORT',
     "Duplicate export.",
     correctionMessage: "Try removing all but one export of the library.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -763,6 +769,7 @@ class HintCode extends AnalyzerErrorCode {
     'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
     "Missing concrete override implementation of '{0}'.",
     correctionMessage: "Try overriding the missing member.",
+    hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
   );
 
@@ -775,6 +782,7 @@ class HintCode extends AnalyzerErrorCode {
     'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
     "Missing concrete override implementation of '{0}', '{1}', and {2} more.",
     correctionMessage: "Try overriding the missing members.",
+    hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
   );
 
@@ -785,6 +793,7 @@ class HintCode extends AnalyzerErrorCode {
     'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
     "Missing concrete override implementation of '{0}' and '{1}'.",
     correctionMessage: "Try overriding the missing members.",
+    hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
   );
 

@@ -7674,6 +7674,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(rhsResult.inferredType, node);
   }
 
+  ExpressionInferenceResult visitSwitchExpression(
+      SwitchExpression node, DartType typeContext) {
+    return new ExpressionInferenceResult(
+        const InvalidType(), new InvalidExpression("$node"));
+  }
+
   @override
   StatementInferenceResult visitSwitchStatement(SwitchStatement node) {
     // Stack: ()

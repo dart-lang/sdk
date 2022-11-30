@@ -167,8 +167,10 @@ class LspAnalysisServer extends AnalysisServer {
 
     _channelSubscription =
         channel.listen(handleMessage, onDone: done, onError: socketError);
-    _pluginChangeSubscription =
-        pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+    if (AnalysisServer.supportsPlugins) {
+      _pluginChangeSubscription =
+          pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+    }
   }
 
   /// A [Future] that completes when any in-progress analysis context rebuild
@@ -195,12 +197,14 @@ class LspAnalysisServer extends AnalysisServer {
 
   @override
   set pluginManager(PluginManager value) {
-    // we exchange the plugin manager in tests
-    super.pluginManager = value;
-    _pluginChangeSubscription?.cancel();
+    if (AnalysisServer.supportsPlugins) {
+      // we exchange the plugin manager in tests
+      super.pluginManager = value;
+      _pluginChangeSubscription?.cancel();
 
-    _pluginChangeSubscription =
-        pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+      _pluginChangeSubscription =
+          pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+    }
   }
 
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
@@ -860,9 +864,11 @@ class LspAnalysisServer extends AnalysisServer {
 
   void _notifyPluginsOverlayChanged(
       String path, plugin.HasToJson changeForPlugins) {
-    pluginManager.setAnalysisUpdateContentParams(
-      plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
-    );
+    if (AnalysisServer.supportsPlugins) {
+      pluginManager.setAnalysisUpdateContentParams(
+        plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+      );
+    }
   }
 
   void _onPluginsChanged() {
@@ -912,18 +918,20 @@ class LspAnalysisServer extends AnalysisServer {
       driver.priorityFiles = priorityFilesList;
     }
 
-    final pluginPriorities =
-        plugin.AnalysisSetPriorityFilesParams(priorityFilesList);
-    pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
+    if (AnalysisServer.supportsPlugins) {
+      final pluginPriorities =
+          plugin.AnalysisSetPriorityFilesParams(priorityFilesList);
+      pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
 
-    // Plugins send most of their analysis results via notifications, but with
-    // LSP we're supposed to have them available per request. Assume that we'll
-    // only receive requests for files that are currently open.
-    final pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
-      for (final service in plugin.AnalysisService.VALUES)
-        service: priorityFilesList,
-    });
-    pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
+      // Plugins send most of their analysis results via notifications, but with
+      // LSP we're supposed to have them available per request. Assume that
+      // we'll only receive requests for files that are currently open.
+      final pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
+        for (final service in plugin.AnalysisService.VALUES)
+          service: priorityFilesList,
+      });
+      pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
+    }
 
     notificationManager.setSubscriptions({
       for (final service in protocol.AnalysisService.VALUES)
@@ -997,7 +1005,9 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
+    if (AnalysisServer.supportsPlugins) {
+      analysisServer.pluginManager.broadcastWatchEvent(event);
+    }
   }
 
   @override
