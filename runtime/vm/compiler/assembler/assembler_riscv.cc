@@ -3025,6 +3025,19 @@ void Assembler::CompareImmediate(Register rn, intx_t imm, OperandSize sz) {
   deferred_imm_ = imm;
 }
 
+Address Assembler::PrepareLargeOffset(Register base, int32_t offset) {
+  ASSERT(base != TMP2);
+  if (IsITypeImm(offset)) {
+    return Address(base, offset);
+  }
+  intx_t lo = ImmLo(offset);
+  intx_t hi = ImmHi(offset);
+  ASSERT(hi != 0);
+  lui(TMP2, hi);
+  add(TMP2, TMP2, base);
+  return Address(TMP2, lo);
+}
+
 void Assembler::LoadFromOffset(Register dest,
                                const Address& address,
                                OperandSize sz) {
@@ -3034,39 +3047,27 @@ void Assembler::LoadFromOffset(Register dest,
                                Register base,
                                int32_t offset,
                                OperandSize sz) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
+  Address addr = PrepareLargeOffset(base, offset);
   switch (sz) {
 #if XLEN == 64
     case kEightBytes:
-      return ld(dest, Address(base, offset));
+      return ld(dest, addr);
     case kUnsignedFourBytes:
-      return lwu(dest, Address(base, offset));
+      return lwu(dest, addr);
 #elif XLEN == 32
     case kUnsignedFourBytes:
-      return lw(dest, Address(base, offset));
+      return lw(dest, addr);
 #endif
     case kFourBytes:
-      return lw(dest, Address(base, offset));
+      return lw(dest, addr);
     case kUnsignedTwoBytes:
-      return lhu(dest, Address(base, offset));
+      return lhu(dest, addr);
     case kTwoBytes:
-      return lh(dest, Address(base, offset));
+      return lh(dest, addr);
     case kUnsignedByte:
-      return lbu(dest, Address(base, offset));
+      return lbu(dest, addr);
     case kByte:
-      return lb(dest, Address(base, offset));
+      return lb(dest, addr);
     default:
       UNREACHABLE();
   }
@@ -3092,37 +3093,11 @@ void Assembler::LoadIndexedCompressed(Register dest,
 }
 
 void Assembler::LoadSFromOffset(FRegister dest, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  flw(dest, Address(base, offset));
+  flw(dest, PrepareLargeOffset(base, offset));
 }
 
 void Assembler::LoadDFromOffset(FRegister dest, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  fld(dest, Address(base, offset));
+  fld(dest, PrepareLargeOffset(base, offset));
 }
 
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
@@ -3144,70 +3119,32 @@ void Assembler::StoreToOffset(Register src,
                               Register base,
                               int32_t offset,
                               OperandSize sz) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
+  Address addr = PrepareLargeOffset(base, offset);
   switch (sz) {
 #if XLEN == 64
     case kEightBytes:
-      return sd(src, Address(base, offset));
+      return sd(src, addr);
 #endif
     case kUnsignedFourBytes:
     case kFourBytes:
-      return sw(src, Address(base, offset));
+      return sw(src, addr);
     case kUnsignedTwoBytes:
     case kTwoBytes:
-      return sh(src, Address(base, offset));
+      return sh(src, addr);
     case kUnsignedByte:
     case kByte:
-      return sb(src, Address(base, offset));
+      return sb(src, addr);
     default:
       UNREACHABLE();
   }
 }
 
 void Assembler::StoreSToOffset(FRegister src, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  fsw(src, Address(base, offset));
+  fsw(src, PrepareLargeOffset(base, offset));
 }
 
 void Assembler::StoreDToOffset(FRegister src, Register base, int32_t offset) {
-  ASSERT(base != TMP2);
-  if (!IsITypeImm(offset)) {
-    intx_t lo = ImmLo(offset);
-    intx_t hi = ImmHi(offset);
-    if (hi == 0) {
-      UNREACHABLE();
-    } else {
-      lui(TMP2, hi);
-      add(TMP2, TMP2, base);
-      base = TMP2;
-      offset = lo;
-    }
-  }
-  fsd(src, Address(base, offset));
+  fsd(src, PrepareLargeOffset(base, offset));
 }
 
 // Store into a heap object and apply the generational and incremental write
