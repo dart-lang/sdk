@@ -9,7 +9,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -17,7 +16,6 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -41,17 +39,9 @@ class EditGetAssistsHandler extends LegacyHandler
     //
     // Allow plugins to start computing assists.
     //
-    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
     var requestParams = plugin.EditGetAssistsParams(file, offset, length);
     var driver = server.getAnalysisDriver(file);
-    if (driver == null) {
-      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
-    } else {
-      pluginFutures = server.pluginManager.broadcastRequest(
-        requestParams,
-        contextRoot: driver.analysisContext!.contextRoot,
-      );
-    }
+    var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
 
     //
     // Compute fixes associated with server-generated errors.

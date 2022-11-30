@@ -934,7 +934,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
+    if (AnalysisServer.supportsPlugins) {
+      analysisServer.pluginManager.broadcastWatchEvent(event);
+    }
   }
 
   @override

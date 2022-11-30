@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -1125,6 +1126,7 @@ final a = Stri^
   }
 
   Future<void> test_fromPlugin_dartFile() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final content = '''
     void f() {
       var x = '';
@@ -1161,6 +1163,7 @@ final a = Stri^
   }
 
   Future<void> test_fromPlugin_dartFile_withImports() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final content = '''
 void f() {
   ^
@@ -1212,6 +1215,7 @@ void f() {
   }
 
   Future<void> test_fromPlugin_nonDartFile() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
     final content = '''
@@ -1252,6 +1256,7 @@ void f() {
   }
 
   Future<void> test_fromPlugin_tooSlow() async {
+    if (!AnalysisServer.supportsPlugins) return;
     final content = '''
     void f() {
       var x = '';

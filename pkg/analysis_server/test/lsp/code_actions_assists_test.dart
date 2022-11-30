@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -212,6 +213,7 @@ Widget build() {
   }
 
   Future<void> test_plugin() async {
+    if (!AnalysisServer.supportsPlugins) return;
     // This code should get an assist to replace 'foo' with 'bar'.'
     const content = '[[foo]]';
     const expectedContent = 'bar';
@@ -257,6 +259,7 @@ Widget build() {
   }
 
   Future<void> test_plugin_sortsWithServer() async {
+    if (!AnalysisServer.supportsPlugins) return;
     // Produces a server assist of "Convert to single quoted string" (with a
     // priority of 30).
     const content = 'import "[[dart:async]]";';

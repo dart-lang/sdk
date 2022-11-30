@@ -1114,7 +1114,9 @@ class PluginsPage extends DiagnosticPageWithNav {
   @override
   Future generateContent(Map<String, String> params) async {
     h3('Analysis plugins');
-    var analysisPlugins = server.pluginManager.plugins;
+    var analysisPlugins = AnalysisServer.supportsPlugins
+        ? server.pluginManager.plugins
+        : <PluginInfo>[];
 
     if (analysisPlugins.isEmpty) {
       blankslate('No known analysis plugins.');
