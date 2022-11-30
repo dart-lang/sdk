@@ -49,6 +49,7 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone,
       result->set_out(
           0, Location::RegisterLocation(CallingConventions::kReturnReg));
       break;
+    case kPairOfTagged:
     case kUnboxedInt64:
       result->set_out(
           0, Location::Pair(
@@ -449,6 +450,7 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
       locs->set_in(0,
                    Location::RegisterLocation(CallingConventions::kReturnReg));
       break;
+    case kPairOfTagged:
     case kUnboxedInt64:
       locs->set_in(
           0, Location::Pair(

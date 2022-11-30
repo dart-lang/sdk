@@ -9893,46 +9893,6 @@ class PatternAssignmentImpl extends ExpressionImpl
   }
 }
 
-/// A pattern assignment used as a statement.
-///
-///    patternAssignmentStatement ::=
-///        [PatternAssignment] ';'
-class PatternAssignmentStatementImpl extends StatementImpl
-    implements PatternAssignmentStatement {
-  @override
-  final PatternAssignmentImpl assignment;
-
-  @override
-  final Token semicolon;
-
-  PatternAssignmentStatementImpl({
-    required this.assignment,
-    required this.semicolon,
-  }) {
-    _becomeParentOf(assignment);
-  }
-
-  @override
-  Token get beginToken => assignment.beginToken;
-
-  @override
-  Token get endToken => semicolon;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('assignment', assignment)
-    ..addToken('semicolon', semicolon);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitPatternAssignmentStatement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    assignment.accept(visitor);
-  }
-}
-
 /// A pattern variable declaration.
 ///
 ///    patternDeclaration ::=

@@ -538,7 +538,7 @@ class CallingConventions {
   static const size_t kRegisterTransferLimit = 16;
 
   static constexpr Register kReturnReg = RAX;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = RDX;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
   static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 

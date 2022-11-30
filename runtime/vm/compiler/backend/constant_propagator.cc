@@ -1343,6 +1343,10 @@ void ConstantPropagator::VisitExtractNthOutput(ExtractNthOutputInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitMakePair(MakePairInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
   SetValue(instr, instr->value());
 }

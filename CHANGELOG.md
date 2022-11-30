@@ -171,19 +171,15 @@
 
 #### Analyzer
 
-- add static enforcement of new `mustBeOverridden` annotation
-- add quick fixes for diagnostics:
-  `abstract_field_initializer`,
-  `ambiguous_extension_member_access`,
-  `argument_type_not_assignable`,
-  `assert_in_redirecting_constructor`,
-  `combinators_ordering`,
-  `default_value_on_required_parameter`,
-  `initializing_formal_for_non_existent_field`,
-  `missing_default_value_for_parameter_positional`,
-  `super_formal_parameter_without_associated_named`,
-  `undefined_identifier`
-- add new hints: `cast_from_null_always_fails`, `duplicate_export`
+- add static enforcement of new `mustBeOverridden` annotation, and quick fixes
+- add quick fixes for many diagnostics including compile-time errors, hints, and
+  lints. There are now quick fixes for over 300 diagnostic codes. These lint
+  rules have new fixes: `combinators_ordering`, `dangling_library_doc_comments`,
+  `implicit_call_tearoffs`, `library_annotations`, and
+  `unnecessary_library_directive`.
+- add new hints: `body_might_complete_normally_catch_error`,
+  `cast_from_null_always_fails`, `cast_from_nullable_always_fails`,
+  `deprecated_colon_for_default_value`, and `duplicate_export`
 - remove hint: `invalid_override_different_default_values`
 
 #### Linter

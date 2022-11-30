@@ -4811,6 +4811,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handlePatternAssignment(Token equals) {
+    var expression = pop() as ExpressionImpl;
+    var pattern = pop() as DartPatternImpl;
+    push(PatternAssignmentImpl(
+        pattern: pattern, equals: equals, expression: expression));
+  }
+
+  @override
   void handlePatternField(Token? colon) {
     debugEvent("PatternField");
 

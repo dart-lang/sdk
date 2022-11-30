@@ -2913,6 +2913,79 @@ f() {
     ]);
   }
 
+  test_list_insideAssignment_typed_nonEmpty() {
+    _parse('''
+void f(x) {
+  <int>[a, b] = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+    rightBracket: >
+  leftBracket: [
+  elements
+    VariablePattern
+      name: a
+    VariablePattern
+      name: b
+  rightBracket: ]
+''');
+  }
+
+  test_list_insideAssignment_untyped_empty() {
+    _parse('''
+void f(x) {
+  [] = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  rightBracket: ]
+''');
+  }
+
+  test_list_insideAssignment_untyped_emptyWithWhitespace() {
+    _parse('''
+void f(x) {
+  [ ] = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  rightBracket: ]
+''');
+  }
+
+  test_list_insideAssignment_untyped_nonEmpty() {
+    _parse('''
+void f(x) {
+  [a, b] = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    VariablePattern
+      name: a
+    VariablePattern
+      name: b
+  rightBracket: ]
+''');
+  }
+
   test_list_insideCase_typed_nonEmpty() {
     _parse('''
 void f(x) {
@@ -3814,6 +3887,90 @@ BinaryPattern
         token: Object
       question: ?
     name: _
+''');
+  }
+
+  test_map_insideAssignment_typed_nonEmpty() {
+    _parse('''
+void f(x) {
+  <String, int>{'a': a, 'b': b} = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: String
+      NamedType
+        name: SimpleIdentifier
+          token: int
+    rightBracket: >
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: VariablePattern
+        name: a
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'b'
+      separator: :
+      value: VariablePattern
+        name: b
+  rightBracket: }
+''');
+  }
+
+  test_map_insideAssignment_untyped_empty() {
+    // Note: statements aren't allowed to start with `{` so we need parens
+    // around the assignment.  See
+    // https://github.com/dart-lang/language/issues/2662.
+    _parse('''
+void f(x) {
+  ({} = x);
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_map_insideAssignment_untyped_nonEmpty() {
+    // Note: statements aren't allowed to start with `{` so we need parens
+    // around the assignment.  See
+    // https://github.com/dart-lang/language/issues/2662.
+    _parse('''
+void f(x) {
+  ({'a': a, 'b': b} = x);
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'a'
+      separator: :
+      value: VariablePattern
+        name: a
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'b'
+      separator: :
+      value: VariablePattern
+        name: b
+  rightBracket: }
 ''');
   }
 
@@ -4792,6 +4949,34 @@ RecordPattern
 ''');
   }
 
+  test_object_prefixed_withTypeArgs_insideAssignment() {
+    _parse('''
+void f(x) {
+  async.Future<int>() = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: async
+      period: .
+      identifier: SimpleIdentifier
+        token: Future
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      rightBracket: >
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
   test_object_prefixed_withTypeArgs_insideCase() {
     _parse('''
 import 'dart:async' as async;
@@ -5331,6 +5516,22 @@ ObjectPattern
             token: int
       rightBracket: >
   leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_parenthesized_insideAssignment() {
+    _parse('''
+f(x) {
+  (a) = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: VariablePattern
+    name: a
   rightParenthesis: )
 ''');
   }
@@ -6037,6 +6238,59 @@ PatternVariableDeclarationStatement
     expression: SimpleIdentifier
       token: x
   semicolon: ;
+''');
+  }
+
+  test_record_insideAssignment_empty() {
+    _parse('''
+void f(x) {
+  () = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_record_insideAssignment_oneField() {
+    _parse('''
+void f(x) {
+  (a,) = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: VariablePattern
+        name: a
+  rightParenthesis: )
+''');
+  }
+
+  test_record_insideAssignment_twoFields() {
+    _parse('''
+void f(x) {
+  (a, b) = x;
+}
+''');
+    var node = findNode.patternAssignment('= x').pattern;
+    assertParsedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: VariablePattern
+        name: a
+    RecordPatternField
+      pattern: VariablePattern
+        name: b
+  rightParenthesis: )
 ''');
   }
 

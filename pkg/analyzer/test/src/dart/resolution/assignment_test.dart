@@ -599,13 +599,16 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_simple() async {
+    // TODO(paulberry): remove `// @dart = 2.18` - see
+    // https://github.com/dart-lang/sdk/issues/50502
     await assertErrorsInCode(r'''
+// @dart = 2.18
 void f(int a, int b, double c) {
   (a + b) = c;
 }
 ''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 51, 7),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 7),
     ]);
 
     var assignment = findNode.assignment('= c');

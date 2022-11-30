@@ -546,10 +546,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitPatternAssignment(PatternAssignment node) => visitExpression(node);
 
   @override
-  R? visitPatternAssignmentStatement(PatternAssignmentStatement node) =>
-      visitStatement(node);
-
-  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
       visitNode(node);
 
@@ -1416,12 +1412,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitPatternAssignmentStatement(PatternAssignmentStatement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -2090,9 +2080,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitPatternAssignment(PatternAssignment node) => null;
 
   @override
-  R? visitPatternAssignmentStatement(PatternAssignmentStatement node) => null;
-
-  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) => null;
 
   @override
@@ -2610,10 +2597,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternAssignment(PatternAssignment node) => _throw(node);
-
-  @override
-  R? visitPatternAssignmentStatement(PatternAssignmentStatement node) =>
-      _throw(node);
 
   @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
@@ -3675,14 +3658,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitPatternAssignmentStatement(PatternAssignmentStatement node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitPatternAssignmentStatement(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPatternVariableDeclaration(node);
@@ -4481,10 +4456,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternAssignment(PatternAssignment node) => visitNode(node);
-
-  @override
-  R? visitPatternAssignmentStatement(PatternAssignmentStatement node) =>
-      visitNode(node);
 
   @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) =>

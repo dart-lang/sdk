@@ -485,6 +485,26 @@ class A {
 ''');
   }
 
+  Future<void> test_class_method_functionTypedFormalParameter() async {
+    var testCode = TestCode.parse(r'''
+class A {
+  void foo(int bar(String a)) {}
+}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 5 |class| KEYWORD
+6 + 1 |A| CLASS
+12 + 4 |void| KEYWORD
+17 + 3 |foo| INSTANCE_METHOD_DECLARATION
+21 + 3 |int| CLASS
+25 + 3 |bar| PARAMETER_DECLARATION
+29 + 6 |String| CLASS
+36 + 1 |a| PARAMETER_DECLARATION
+''');
+  }
+
   Future<void> test_CLASS_notDynamic() async {
     addTestFile('''
 dynamic f() {}
@@ -1613,36 +1633,6 @@ void f() {
     assertHasRegion(HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE, 'V2 = 3');
   }
 
-  Future<void> test_TYPE_ALIAS() async {
-    addTestFile('''
-typedef A = double;
-void f(A a) {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A');
-    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A a');
-  }
-
-  Future<void> test_TYPE_ALIAS_dynamicType() async {
-    addTestFile('''
-typedef A = dynamic;
-void f(A a) {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A =');
-    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A a');
-  }
-
-  Future<void> test_TYPE_ALIAS_interfaceType() async {
-    addTestFile('''
-typedef A = List<int>;
-void f(A a) {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A =');
-    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A a');
-  }
-
   Future<void> test_TYPE_NAME_DYNAMIC() async {
     addTestFile('''
 dynamic f() {
@@ -1667,6 +1657,137 @@ class A<T> {
     assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T fff;');
     assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T mmm(');
     assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T p)');
+  }
+
+  Future<void> test_typedef_classic() async {
+    var testCode = TestCode.parse(r'''
+typedef int MyFunction<T extends num>(T a, String b);
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 3 |int| CLASS
+12 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
+23 + 1 |T| TYPE_PARAMETER
+33 + 3 |num| CLASS
+38 + 1 |T| TYPE_PARAMETER
+40 + 1 |a| PARAMETER_DECLARATION
+43 + 6 |String| CLASS
+50 + 1 |b| PARAMETER_DECLARATION
+''');
+  }
+
+  Future<void> test_typedef_classic_functionTypedFormalParameter() async {
+    var testCode = TestCode.parse(r'''
+typedef int MyFunction(bool foo());
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 3 |int| CLASS
+12 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
+23 + 4 |bool| CLASS
+28 + 3 |foo| PARAMETER_DECLARATION
+''');
+  }
+
+  Future<void> test_typedef_classic_reference() async {
+    var testCode = TestCode.parse(r'''
+typedef void MyFunction();
+void f(MyFunction a) {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 4 |void| KEYWORD
+13 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
+27 + 4 |void| KEYWORD
+32 + 1 |f| TOP_LEVEL_FUNCTION_DECLARATION
+34 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
+45 + 1 |a| PARAMETER_DECLARATION
+''');
+  }
+
+  Future<void> test_typedef_modern_dynamicType() async {
+    var testCode = TestCode.parse(r'''
+typedef A = dynamic;
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 1 |A| TYPE_ALIAS
+12 + 7 |dynamic| TYPE_NAME_DYNAMIC
+''');
+  }
+
+  Future<void> test_typedef_modern_functionType() async {
+    var testCode = TestCode.parse(r'''
+typedef MyFunction = int Function(int a, {required String b});
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
+21 + 3 |int| CLASS
+25 + 8 |Function| BUILT_IN
+34 + 3 |int| CLASS
+38 + 1 |a| PARAMETER_DECLARATION
+42 + 8 |required| KEYWORD
+51 + 6 |String| CLASS
+58 + 1 |b| PARAMETER_DECLARATION
+''');
+  }
+
+  Future<void> test_typedef_modern_interfaceType() async {
+    var testCode = TestCode.parse(r'''
+typedef A = double;
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 1 |A| TYPE_ALIAS
+12 + 6 |double| CLASS
+''');
+  }
+
+  Future<void> test_typedef_modern_interfaceType_typeArguments() async {
+    var testCode = TestCode.parse(r'''
+typedef A = Map<int, String>;
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 1 |A| TYPE_ALIAS
+12 + 3 |Map| CLASS
+16 + 3 |int| CLASS
+21 + 6 |String| CLASS
+''');
+  }
+
+  Future<void> test_typedef_modern_reference() async {
+    var testCode = TestCode.parse(r'''
+typedef A = void Function();
+void f(A a) {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |typedef| BUILT_IN
+8 + 1 |A| FUNCTION_TYPE_ALIAS
+12 + 4 |void| KEYWORD
+17 + 8 |Function| BUILT_IN
+29 + 4 |void| KEYWORD
+34 + 1 |f| TOP_LEVEL_FUNCTION_DECLARATION
+36 + 1 |A| FUNCTION_TYPE_ALIAS
+38 + 1 |a| PARAMETER_DECLARATION
+''');
   }
 
   Future<void>

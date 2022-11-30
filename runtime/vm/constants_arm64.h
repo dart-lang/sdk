@@ -578,7 +578,7 @@ class CallingConventions {
   static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
 
   static constexpr Register kReturnReg = R0;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = R1;
   static constexpr FpuRegister kReturnFpuReg = V0;
 
   static constexpr Register kFfiAnyNonAbiRegister = R19;

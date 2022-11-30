@@ -143,6 +143,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add explicit .call tearoff',
   );
+  static const ADD_EXPLICIT_CALL_MULTI = FixKind(
+    'dart.fix.add.explicitCall.multi',
+    DartFixKindPriority.IN_FILE,
+    'Add explicit .call to implicit tearoffs in file',
+  );
   static const ADD_EXPLICIT_CAST = FixKind(
     'dart.fix.add.explicitCast',
     DartFixKindPriority.DEFAULT,
@@ -851,6 +856,11 @@ class DartFixKind {
     'dart.fix.moveAnnotationToLibraryDirective',
     DartFixKindPriority.DEFAULT,
     "Move this annotation to a library directive",
+  );
+  static const MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE = FixKind(
+    'dart.fix.moveDocCommentToLibraryDirective',
+    DartFixKindPriority.DEFAULT,
+    "Move this doc comment to a library directive",
   );
   static const ORGANIZE_IMPORTS = FixKind(
     'dart.fix.organize.imports',

@@ -2259,7 +2259,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var body = <js_ast.Statement>[];
     var value = _emitIdentifier('value');
-    if (_requiresExtraNullCheck(field.setterType, field.annotations)) {
+    // Avoid adding a null checks on forwarding field setters.
+    if (field.hasSetter &&
+        _requiresExtraNullCheck(field.setterType, field.annotations)) {
       body.add(
           _nullSafetyParameterCheck(value, field.location, field.name.text));
     }

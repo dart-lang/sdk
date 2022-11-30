@@ -107,6 +107,7 @@ import 'package:analysis_server/src/services/correction/dart/make_return_type_nu
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
+import 'package:analysis_server/src/services/correction/dart/move_doc_comment_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
@@ -460,6 +461,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.curly_braces_in_flow_control_structures: [
       UseCurlyBraces.new,
+    ],
+    LintNames.dangling_library_doc_comments: [
+      MoveDocCommentToLibraryDirective.new,
     ],
     LintNames.diagnostic_describe_all_properties: [
       AddDiagnosticPropertyReference.new,

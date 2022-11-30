@@ -126,6 +126,8 @@ Representation FlowGraph::ReturnRepresentationOf(const Function& function) {
     return kUnboxedInt64;
   } else if (function.has_unboxed_double_return()) {
     return kUnboxedDouble;
+  } else if (function.has_unboxed_record_return()) {
+    return kPairOfTagged;
   } else {
     ASSERT(!function.has_unboxed_return());
     return kTagged;
@@ -1917,6 +1919,26 @@ void FlowGraph::InsertConversion(Representation from,
         UnboxInstr::Create(to, use->CopyWithType(), deopt_id, speculative_mode);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
+  } else if ((to == kPairOfTagged) && (from == kTagged)) {
+    // Insert conversion to an unboxed record, which can be only used
+    // in Return instruction.
+    ASSERT(use->instruction()->IsReturn());
+    Definition* x = new (Z)
+        LoadFieldInstr(use->CopyWithType(),
+                       Slot::GetRecordFieldSlot(
+                           thread(), compiler::target::Record::field_offset(0)),
+                       InstructionSource());
+    InsertBefore(insert_before, x, nullptr, FlowGraph::kValue);
+    Definition* y = new (Z)
+        LoadFieldInstr(use->CopyWithType(),
+                       Slot::GetRecordFieldSlot(
+                           thread(), compiler::target::Record::field_offset(1)),
+                       InstructionSource());
+    InsertBefore(insert_before, y, nullptr, FlowGraph::kValue);
+    converted = new (Z) MakePairInstr(new (Z) Value(x), new (Z) Value(y));
+  } else if ((to == kTagged) && (from == kPairOfTagged)) {
+    // Handled in FlowGraph::InsertRecordBoxing.
+    UNREACHABLE();
   } else {
     // We have failed to find a suitable conversion instruction.
     // Insert two "dummy" conversion instructions with the correct
@@ -1950,8 +1972,69 @@ void FlowGraph::InsertConversion(Representation from,
   }
 }
 
+static bool NeedsRecordBoxing(Definition* def) {
+  if (def->env_use_list() != nullptr) return true;
+  for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
+    Value* use = it.Current();
+    if (use->instruction()->RequiredInputRepresentation(use->use_index()) !=
+        kPairOfTagged) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void FlowGraph::InsertRecordBoxing(Definition* def) {
+  // Insert conversion from unboxed record, which can be only returned
+  // by a Dart call with a known interface/direct target.
+  const Function* target = nullptr;
+  if (auto* call = def->AsStaticCall()) {
+    target = &(call->function());
+  } else if (auto* call = def->AsInstanceCallBase()) {
+    target = &(call->interface_target());
+  } else if (auto* call = def->AsDispatchTableCall()) {
+    target = &(call->interface_target());
+  } else {
+    UNREACHABLE();
+  }
+  ASSERT(target != nullptr && !target->IsNull());
+  const auto& type = AbstractType::Handle(Z, target->result_type());
+  ASSERT(type.IsRecordType());
+  const auto& field_names =
+      Array::Handle(Z, RecordType::Cast(type).field_names());
+  Value* field_names_value = (field_names.Length() != 0)
+                                 ? new (Z) Value(GetConstant(field_names))
+                                 : nullptr;
+  auto* x = new (Z)
+      ExtractNthOutputInstr(new (Z) Value(def), 0, kTagged, kDynamicCid);
+  auto* y = new (Z)
+      ExtractNthOutputInstr(new (Z) Value(def), 1, kTagged, kDynamicCid);
+  auto* alloc = new (Z) AllocateSmallRecordInstr(
+      InstructionSource(), 2, field_names_value, new (Z) Value(x),
+      new (Z) Value(y), nullptr, def->deopt_id());
+  def->ReplaceUsesWith(alloc);
+  // Uses of 'def' in 'x' and 'y' should not be replaced as 'x' and 'y'
+  // are not added to the flow graph yet.
+  ASSERT(x->value()->definition() == def);
+  ASSERT(y->value()->definition() == def);
+  Instruction* insert_before = def->next();
+  ASSERT(insert_before != nullptr);
+  InsertBefore(insert_before, x, nullptr, FlowGraph::kValue);
+  InsertBefore(insert_before, y, nullptr, FlowGraph::kValue);
+  InsertBefore(insert_before, alloc, nullptr, FlowGraph::kValue);
+}
+
 void FlowGraph::InsertConversionsFor(Definition* def) {
   const Representation from_rep = def->representation();
+
+  // Insert boxing of a record once after the definition (if needed)
+  // in order to avoid multiple allocations.
+  if (from_rep == kPairOfTagged) {
+    if (NeedsRecordBoxing(def)) {
+      InsertRecordBoxing(def);
+    }
+    return;
+  }
 
   for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
     ConvertUse(it.Current(), from_rep);

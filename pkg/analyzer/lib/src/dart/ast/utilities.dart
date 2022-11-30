@@ -1100,13 +1100,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitPatternAssignmentStatement(PatternAssignmentStatement node) {
-    var other = _other as PatternAssignmentStatement;
-    return isEqualNodes(node.assignment, other.assignment) &&
-        isEqualTokens(node.semicolon, other.semicolon);
-  }
-
-  @override
   bool visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     var other = _other as PatternVariableDeclaration;
     return isEqualNodes(

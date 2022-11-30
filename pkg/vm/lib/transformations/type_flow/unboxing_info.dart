@@ -136,58 +136,66 @@ class UnboxingInfoManager {
 
         for (int i = 0; i < positionalParams.length; i++) {
           final inferredType = argTypes.values[firstParamIndex + i];
-          _applyToArg(unboxingInfo, i, inferredType);
+          _applyToArg(member, unboxingInfo, i, inferredType);
         }
 
         final names = argTypes.names;
         for (int i = 0; i < names.length; i++) {
           final inferredType =
               argTypes.values[firstParamIndex + positionalParams.length + i];
-          _applyToArg(unboxingInfo, positionalParams.length + i, inferredType);
+          _applyToArg(
+              member, unboxingInfo, positionalParams.length + i, inferredType);
         }
 
         final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
-        _applyToReturn(unboxingInfo, resultType);
+        _applyToReturn(member, unboxingInfo, resultType);
       } else if (member is Field) {
         final fieldValue = typeFlowAnalysis.getFieldValue(member).value;
         if (member.hasSetter) {
-          _applyToArg(unboxingInfo, 0, fieldValue);
+          _applyToArg(member, unboxingInfo, 0, fieldValue);
         }
-        _applyToReturn(unboxingInfo, fieldValue);
+        _applyToReturn(member, unboxingInfo, fieldValue);
       } else {
         assert(false, "Unexpected member: $member");
       }
     }
   }
 
-  void _applyToArg(UnboxingInfoMetadata unboxingInfo, int argPos, Type type) {
+  int _getUnboxingType(Member member, Type type, bool isReturn) {
+    if (type is! NullableType) {
+      if (type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass)) {
+        return UnboxingInfoMetadata.kUnboxedIntCandidate;
+      }
+      if (type.isSubtypeOf(_typeHierarchy, _coreTypes.doubleClass)) {
+        return UnboxingInfoMetadata.kUnboxedDoubleCandidate;
+      }
+      if (isReturn) {
+        final function = member.function;
+        if (function != null) {
+          final returnType = function.returnType;
+          if (returnType is RecordType &&
+              (returnType.positional.length + returnType.named.length) == 2) {
+            return UnboxingInfoMetadata.kUnboxedRecordCandidate;
+          }
+        }
+      }
+    }
+    return UnboxingInfoMetadata.kBoxed;
+  }
+
+  void _applyToArg(
+      Member member, UnboxingInfoMetadata unboxingInfo, int argPos, Type type) {
     if (argPos < 0 || unboxingInfo.unboxedArgsInfo.length <= argPos) {
       return;
     }
-
-    if (type is NullableType ||
-        (!type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass) &&
-            !type.isSubtypeOf(_typeHierarchy, _coreTypes.doubleClass))) {
-      unboxingInfo.unboxedArgsInfo[argPos] = UnboxingInfoMetadata.kBoxed;
-    } else {
-      final unboxingType = type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass)
-          ? UnboxingInfoMetadata.kUnboxedIntCandidate
-          : UnboxingInfoMetadata.kUnboxedDoubleCandidate;
-      unboxingInfo.unboxedArgsInfo[argPos] &= unboxingType;
-    }
+    final unboxingType = _getUnboxingType(member, type, false);
+    unboxingInfo.unboxedArgsInfo[argPos] &= unboxingType;
   }
 
-  void _applyToReturn(UnboxingInfoMetadata unboxingInfo, Type type) {
-    if (type is NullableType ||
-        (!type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass) &&
-            !type.isSubtypeOf(_typeHierarchy, _coreTypes.doubleClass))) {
-      unboxingInfo.returnInfo = UnboxingInfoMetadata.kBoxed;
-    } else {
-      final unboxingType = type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass)
-          ? UnboxingInfoMetadata.kUnboxedIntCandidate
-          : UnboxingInfoMetadata.kUnboxedDoubleCandidate;
-      unboxingInfo.returnInfo &= unboxingType;
-    }
+  void _applyToReturn(
+      Member member, UnboxingInfoMetadata unboxingInfo, Type type) {
+    final unboxingType = _getUnboxingType(member, type, true);
+    unboxingInfo.returnInfo &= unboxingType;
   }
 
   bool _cannotUnbox(Member member) {
