@@ -149,6 +149,10 @@ class ValueKinds {
   static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
   static const ValueKind SwitchCaseList =
       const SingleValueKind<List<type.SwitchCase>>();
+  static const ValueKind SwitchExpressionCase =
+      const SingleValueKind<type.SwitchExpressionCase>();
+  static const ValueKind SwitchExpressionCaseList =
+      const SingleValueKind<List<type.SwitchExpressionCase>>();
   static const ValueKind SwitchScopeOrNull =
       const SingleValueKind<type.Scope>(NullValue.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();

@@ -2487,26 +2487,14 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
-    // ignore: unused_local_variable
-    Expression? guard;
-    if (when != null) {
-      assert(checkState(colon, [
-        unionOfKinds([
-          ValueKinds.Expression,
-          ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
-        ]),
-        unionOfKinds([
-          ValueKinds.Expression,
-          ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
-          ValueKinds.Pattern,
-        ]),
-        ValueKinds.ConstantContext,
-      ]));
-      guard = popForValue();
-    }
+    debugEvent("endCaseExpression");
     assert(checkState(colon, [
+      if (when != null)
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.ProblemBuilder,
+        ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
@@ -2515,7 +2503,11 @@ class BodyBuilder extends StackListenerImpl
       ]),
       ValueKinds.ConstantContext,
     ]));
-    debugEvent("endCaseExpression");
+
+    Expression? guard;
+    if (when != null) {
+      guard = popForValue();
+    }
     Object? value = pop();
     constantContext = pop() as ConstantContext;
     if (value is Pattern) {
@@ -7350,6 +7342,70 @@ class BodyBuilder extends StackListenerImpl
     exitLoopOrSwitch(result);
     // This is matched by the [beginNode] call in [beginSwitchBlock].
     typeInferrer.assignedVariables.endNode(switchStatement);
+  }
+
+  @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    debugEvent("endSwitchExpressionCase");
+    assert(checkState(arrow, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      if (when != null)
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.ProblemBuilder,
+        ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ]),
+    ]));
+
+    Expression expression = popForValue();
+    Expression? guard;
+    if (when != null) {
+      guard = popForValue();
+    }
+    Object? value = pop();
+    PatternGuard patternGuard = new PatternGuard(toPattern(value), guard);
+    push(new SwitchExpressionCase(arrow.charOffset, patternGuard, expression));
+    assert(checkState(arrow, [
+      ValueKinds.SwitchExpressionCase,
+    ]));
+  }
+
+  @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    debugEvent("endSwitchExpressionBlock");
+    assert(checkState(
+        beginToken, repeatedKind(ValueKinds.SwitchExpressionCase, caseCount)));
+    List<SwitchExpressionCase> cases = new List<SwitchExpressionCase>.filled(
+        caseCount, dummySwitchExpressionCase);
+    for (int i = caseCount - 1; i >= 0; i--) {
+      cases[i] = pop() as SwitchExpressionCase;
+    }
+    push(cases);
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    debugEvent("endSwitchExpression");
+    assert(checkState(switchKeyword,
+        [ValueKinds.SwitchExpressionCaseList, ValueKinds.Condition]));
+
+    List<SwitchExpressionCase> cases = pop() as List<SwitchExpressionCase>;
+    Condition condition = pop() as Condition;
+    assert(condition.patternGuard == null,
+        "Unexpected pattern in switch expression: ${condition.patternGuard}.");
+    Expression expression = condition.expression;
+    push(new SwitchExpression(switchKeyword.charOffset, expression, cases));
   }
 
   @override

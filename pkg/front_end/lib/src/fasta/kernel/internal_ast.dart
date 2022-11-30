@@ -412,6 +412,8 @@ class SwitchCaseImpl extends SwitchCase {
   }
 }
 
+final PatternGuard dummyPatternGuard = new PatternGuard(dummyPattern);
+
 /// A [Pattern] with an optional guard [Expression].
 class PatternGuard extends TreeNode with InternalTreeNode {
   Pattern pattern;
@@ -546,6 +548,82 @@ class PatternSwitchStatement extends InternalStatement {
   void visitChildren(Visitor v) {
     throw new UnsupportedError('PatternSwitchStatement.visitChildren');
   }
+}
+
+final SwitchExpressionCase dummySwitchExpressionCase = new SwitchExpressionCase(
+    TreeNode.noOffset, dummyPatternGuard, dummyExpression);
+
+class SwitchExpressionCase extends TreeNode with InternalTreeNode {
+  PatternGuard patternGuard;
+  Expression expression;
+
+  SwitchExpressionCase(int fileOffset, this.patternGuard, this.expression) {
+    this.fileOffset = fileOffset;
+    patternGuard.parent = this;
+    expression.parent = this;
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('case ');
+    patternGuard.toTextInternal(printer);
+    printer.write(' => ');
+    printer.writeExpression(expression);
+  }
+
+  @override
+  String toString() {
+    return 'SwitchExpressionCase(${toStringInternal()})';
+  }
+}
+
+class SwitchExpression extends InternalExpression {
+  Expression expression;
+  final List<SwitchExpressionCase> cases;
+
+  SwitchExpression(int fileOffset, this.expression, this.cases) {
+    this.fileOffset = fileOffset;
+    expression.parent = this;
+    setParents(cases, this);
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitSwitchExpression(this, typeContext);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    throw new UnsupportedError('SwitchExpression.transformChildren');
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    throw new UnsupportedError('SwitchExpression.transformOrRemoveChildren');
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    throw new UnsupportedError('SwitchExpression.visitChildren');
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('switch (');
+    printer.writeExpression(expression);
+    printer.write(') {');
+    String comma = ' ';
+    for (SwitchExpressionCase switchCase in cases) {
+      printer.write(comma);
+      switchCase.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write(' }');
+  }
+
+  @override
+  String toString() => 'SwitchExpression(${toStringInternal()})';
 }
 
 class BreakStatementImpl extends BreakStatement {
