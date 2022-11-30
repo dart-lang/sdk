@@ -13,6 +13,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
@@ -38,8 +39,10 @@ class ReferencesHandler
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult(
-        (offset) => _getReferences(unit.result, offset, params, unit.result));
+    return await message.performance.runAsync(
+        "_getReferences",
+        (performance) async => offset.mapResult((offset) => _getReferences(
+            unit.result, offset, params, unit.result, performance)));
   }
 
   List<Location> _getDeclarations(CompilationUnit unit, int offset) {
@@ -55,8 +58,12 @@ class ReferencesHandler
     }).whereNotNull().toList();
   }
 
-  Future<ErrorOr<List<Location>?>> _getReferences(ResolvedUnitResult result,
-      int offset, ReferenceParams params, ResolvedUnitResult unit) async {
+  Future<ErrorOr<List<Location>?>> _getReferences(
+      ResolvedUnitResult result,
+      int offset,
+      ReferenceParams params,
+      ResolvedUnitResult unit,
+      OperationPerformanceImpl performance) async {
     final node = NodeLocator(offset).searchWithin(result.unit);
     var element = server.getElementOfNode(node);
     if (element is LibraryImportElement) {
@@ -74,7 +81,10 @@ class ReferencesHandler
 
     final computer = ElementReferencesComputer(server.searchEngine);
     final session = element.session ?? unit.session;
-    final results = await computer.compute(element, false);
+    final results = await performance.runAsync(
+        "computer.compute",
+        (childPerformance) =>
+            computer.compute(element!, false, performance: childPerformance));
 
     Location? toLocation(SearchMatch result) {
       final file = session.getFile(result.file);
@@ -91,13 +101,14 @@ class ReferencesHandler
       );
     }
 
-    final referenceResults =
-        convert(results, toLocation).whereNotNull().toList();
+    final referenceResults = performance.run(
+        "convert", (_) => convert(results, toLocation).whereNotNull().toList());
 
     final compilationUnit = unit.unit;
     if (params.context.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
-      referenceResults.addAll(_getDeclarations(compilationUnit, offset));
+      referenceResults.addAll(performance.run("_getDeclarations",
+          (_) => _getDeclarations(compilationUnit, offset)));
     }
 
     return success(referenceResults);

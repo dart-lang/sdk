@@ -315,20 +315,27 @@ class Search {
   /// [Search] object, so should be only searched by it to avoid duplicate
   /// results; and updated to take ownership if the file is not owned yet.
   Future<List<SearchResult>> subTypes(
-      InterfaceElement? type, SearchedFiles searchedFiles) async {
+      InterfaceElement? type, SearchedFiles searchedFiles,
+      {List<FileState>? filesToCheck}) async {
     if (type == null) {
       return const <SearchResult>[];
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, type, searchedFiles, const {
-      IndexRelationKind.IS_EXTENDED_BY:
-          SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
-      IndexRelationKind.IS_MIXED_IN_BY:
-          SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
-      IndexRelationKind.IS_IMPLEMENTED_BY:
-          SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
-      IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
-    });
+    await _addResults(
+      results,
+      type,
+      searchedFiles,
+      const {
+        IndexRelationKind.IS_EXTENDED_BY:
+            SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
+        IndexRelationKind.IS_MIXED_IN_BY:
+            SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
+        IndexRelationKind.IS_IMPLEMENTED_BY:
+            SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
+        IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
+      },
+      filesToCheck: filesToCheck,
+    );
     return results;
   }
 
@@ -434,7 +441,8 @@ class Search {
       List<SearchResult> results,
       Element element,
       SearchedFiles searchedFiles,
-      Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
+      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
+      {List<FileState>? filesToCheck}) async {
     // Prepare the element name.
     String name = element.displayName;
     if (element is ConstructorElement) {
@@ -458,7 +466,15 @@ class Search {
         }
       }
     } else {
-      files = await _driver.getFilesReferencingName(name);
+      if (filesToCheck != null) {
+        for (FileState file in filesToCheck) {
+          if (file.referencedNames.contains(name)) {
+            files.add(file.path);
+          }
+        }
+      } else {
+        files = await _driver.getFilesReferencingName(name);
+      }
       if (searchedFiles.add(path, this) && !files.contains(path)) {
         files.add(path);
       }

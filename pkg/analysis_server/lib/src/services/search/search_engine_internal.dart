@@ -53,9 +53,10 @@ class SearchEngineImpl implements SearchEngine {
   @override
   Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type) async {
     var allSubtypes = <InterfaceElement>{};
+    var searchEngineCache = SearchEngineCache();
 
     Future<void> addSubtypes(InterfaceElement type) async {
-      var directResults = await _searchDirectSubtypes(type);
+      var directResults = await _searchDirectSubtypes(type, searchEngineCache);
       for (var directResult in directResults) {
         var directSubtype = directResult.enclosingElement as InterfaceElement;
         if (allSubtypes.add(directSubtype)) {
@@ -106,8 +107,9 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchSubtypes(InterfaceElement type) async {
-    var results = await _searchDirectSubtypes(type);
+  Future<List<SearchMatch>> searchSubtypes(
+      InterfaceElement type, SearchEngineCache searchEngineCache) async {
+    var results = await _searchDirectSubtypes(type, searchEngineCache);
     return results.map(SearchMatchImpl.forSearchResult).toList();
   }
 
@@ -134,12 +136,30 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(
-      InterfaceElement type) async {
+      InterfaceElement type, SearchEngineCache searchEngineCache) async {
     var allResults = <SearchResult>[];
-    var drivers = _drivers.toList();
-    var searchedFiles = _createSearchedFiles(drivers);
+
+    // Fill out cache if needed.
+    var drivers = searchEngineCache.drivers ??= _drivers.toList();
+    var searchedFiles =
+        searchEngineCache.searchedFiles ??= _createSearchedFiles(drivers);
+    var assignedFiles = searchEngineCache.assignedFiles;
+    if (assignedFiles == null) {
+      assignedFiles = searchEngineCache.assignedFiles = {};
+      for (var driver in drivers) {
+        var assignedFilesForDrive = assignedFiles[driver] = [];
+        await driver.discoverAvailableFiles();
+        for (var file in driver.fsState.knownFiles) {
+          if (searchedFiles.add(file.path, driver.search)) {
+            assignedFilesForDrive.add(file);
+          }
+        }
+      }
+    }
+
     for (var driver in drivers) {
-      var results = await driver.search.subTypes(type, searchedFiles);
+      var results = await driver.search
+          .subTypes(type, searchedFiles, filesToCheck: assignedFiles[driver]);
       allResults.addAll(results);
     }
     return allResults;

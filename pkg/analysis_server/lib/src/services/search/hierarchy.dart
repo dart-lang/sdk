@@ -48,9 +48,12 @@ List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
 }
 
 /// Returns a [Set] with direct subclasses of [seed].
-Future<Set<InterfaceElement>> getDirectSubClasses(
-    SearchEngine searchEngine, InterfaceElement seed) async {
-  var matches = await searchEngine.searchSubtypes(seed);
+///
+/// The given [searchEngineCache] will be used or filled out as needed
+/// so subsequent calls can utilize it to speed up the computation.
+Future<Set<InterfaceElement>> getDirectSubClasses(SearchEngine searchEngine,
+    InterfaceElement seed, SearchEngineCache searchEngineCache) async {
+  var matches = await searchEngine.searchSubtypes(seed, searchEngineCache);
   return matches.map((match) => match.element).cast<InterfaceElement>().toSet();
 }
 
