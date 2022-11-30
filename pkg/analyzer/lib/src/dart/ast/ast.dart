@@ -12337,16 +12337,15 @@ class SwitchExpressionCaseImpl extends AstNodeImpl
   @override
   final Token arrow;
 
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   SwitchExpressionCaseImpl({
     required this.guardedPattern,
     required this.arrow,
-    required this.expression,
-  }) {
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(guardedPattern);
-    _becomeParentOf(expression);
+    _becomeParentOf(_expression);
   }
 
   @override
@@ -12354,6 +12353,13 @@ class SwitchExpressionCaseImpl extends AstNodeImpl
 
   @override
   Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -12385,8 +12391,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   @override
   final Token leftParenthesis;
 
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   @override
   final Token rightParenthesis;
@@ -12403,13 +12408,13 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   SwitchExpressionImpl({
     required this.switchKeyword,
     required this.leftParenthesis,
-    required this.expression,
+    required ExpressionImpl expression,
     required this.rightParenthesis,
     required this.leftBracket,
     required List<SwitchExpressionCaseImpl> cases,
     required this.rightBracket,
-  }) {
-    _becomeParentOf(expression);
+  }) : _expression = expression {
+    _becomeParentOf(_expression);
     this.cases._initialize(this, cases);
   }
 
@@ -12418,6 +12423,13 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
 
   @override
   Token get endToken => rightBracket;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   Precedence get precedence => Precedence.primary;
@@ -12436,9 +12448,11 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
-    // TODO: implement resolveExpression
-    throw UnimplementedError();
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    staticType = resolver
+        .analyzeSwitchExpression(this, expression, cases.length, contextType)
+        .type;
+    resolver.popRewrite();
   }
 
   @override

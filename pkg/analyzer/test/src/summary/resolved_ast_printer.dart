@@ -1323,6 +1323,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('SwitchExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
     });
   }
 

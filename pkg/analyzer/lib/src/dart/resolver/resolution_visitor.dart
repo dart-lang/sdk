@@ -1134,6 +1134,25 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(covariant SwitchExpressionImpl node) {
+    node.expression.accept(this);
+
+    for (var case_ in node.cases) {
+      _resolveGuardedPattern(
+        case_.guardedPattern,
+        then: () {
+          case_.expression.accept(this);
+        },
+      );
+    }
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    throw StateError('Should not be invoked');
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     throw StateError('Should not be invoked');
   }

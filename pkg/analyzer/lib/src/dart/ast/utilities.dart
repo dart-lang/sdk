@@ -3266,6 +3266,24 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitSwitchDefault(covariant SwitchDefaultImpl node) =>
       visitSwitchMember(node);
 
+  @override
+  bool? visitSwitchExpression(covariant SwitchExpressionImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool? visitSwitchExpressionCase(covariant SwitchExpressionCaseImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
   bool visitSwitchMember(covariant SwitchMemberImpl node) {
     if (_replaceInList(node.labels)) {
       return true;

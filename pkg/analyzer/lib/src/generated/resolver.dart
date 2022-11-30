@@ -859,8 +859,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void finishExpressionCase(Expression node, int caseIndex) {
-    throw UnimplementedError('TODO(paulberry)');
+  void finishExpressionCase(
+    covariant SwitchExpressionImpl node,
+    int caseIndex,
+  ) {
+    node.cases[caseIndex].expression = popRewrite()!;
   }
 
   @override
@@ -927,8 +930,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement>
-      getSwitchExpressionMemberInfo(Expression node, int index) {
-    throw UnimplementedError('TODO(paulberry)');
+      getSwitchExpressionMemberInfo(
+    covariant SwitchExpressionImpl node,
+    int index,
+  ) {
+    var case_ = node.cases[index];
+    var guardedPattern = case_.guardedPattern;
+    return SwitchExpressionMemberInfo(
+      head: CaseHeadOrDefaultInfo(
+        pattern: guardedPattern.pattern,
+        guard: guardedPattern.whenClause?.expression,
+        variables: guardedPattern.variables,
+      ),
+      expression: case_.expression,
+    );
   }
 
   @override
@@ -1028,15 +1043,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleCaseHead(
-      // TODO(paulberry): once we support switch expressions this type will
-      // need to change.
-      covariant SwitchStatementImpl node,
-      {required int caseIndex,
-      required int subIndex}) {
+    covariant AstNodeImpl node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
     // Stack: (Expression)
     popRewrite(); // "when" expression
     // Stack: ()
-    switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
+    if (node is SwitchStatementImpl) {
+      switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
+    }
+    // TODO(scheglov) Exhaustiveness for SwitchExpressions?
   }
 
   @override
@@ -4622,6 +4639,22 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       } finally {
         nameScope = outerNameScope;
       }
+    }
+  }
+
+  @override
+  void visitSwitchExpression(covariant SwitchExpressionImpl node) {
+    node.expression.accept(this);
+
+    for (var case_ in node.cases) {
+      _withNameScope(() {
+        var guardedPattern = case_.guardedPattern;
+        var variables = guardedPattern.variables;
+        for (var variable in variables.values) {
+          _define(variable);
+        }
+        case_.accept(this);
+      });
     }
   }
 
