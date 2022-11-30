@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.24 Change constant pattern rules to allow Symbols and negative numbers
+//
 // v0.23 Change logical pattern rules to || and &&
 //
 // v0.22 Change pattern rules, following updated feature specification.
@@ -1065,8 +1067,9 @@ nullAssertPattern
 constantPattern
     :    booleanLiteral
     |    nullLiteral
-    |    numericLiteral
+    |    '-'? numericLiteral
     |    stringLiteral
+    |    symbolLiteral
     |    identifier
     |    qualifiedName
     |    constObjectExpression
