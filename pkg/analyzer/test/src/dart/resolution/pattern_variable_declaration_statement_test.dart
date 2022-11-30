@@ -51,6 +51,44 @@ PatternVariableDeclarationStatement
 ''');
   }
 
+  test_rewrite_expression() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var (a) = A();
+}
+
+class A {}
+''');
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: VariablePattern
+        name: a
+        declaredElement: hasImplicitType a@18
+          type: A
+      rightParenthesis: )
+    equals: =
+    expression: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: self::@class::A
+            staticType: null
+          type: A
+        staticElement: self::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+  semicolon: ;
+''');
+  }
+
   test_typeSchema_fromVariableType() async {
     await assertNoErrorsInCode(r'''
 void f() {

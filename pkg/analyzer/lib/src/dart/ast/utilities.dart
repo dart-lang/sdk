@@ -2877,6 +2877,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool? visitMapPatternEntry(covariant MapPatternEntryImpl node) {
+    if (identical(node.key, _oldNode)) {
+      node.key = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     if (identical(node.returnType, _oldNode)) {
       node.returnType = _newNode as TypeAnnotationImpl;
@@ -3020,6 +3029,17 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     }
     return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
   }
 
   @override
@@ -3245,6 +3265,24 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitSwitchDefault(covariant SwitchDefaultImpl node) =>
       visitSwitchMember(node);
+
+  @override
+  bool? visitSwitchExpression(covariant SwitchExpressionImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool? visitSwitchExpressionCase(covariant SwitchExpressionCaseImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
 
   bool visitSwitchMember(covariant SwitchMemberImpl node) {
     if (_replaceInList(node.labels)) {

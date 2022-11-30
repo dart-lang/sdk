@@ -5,6 +5,8 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -8255,8 +8257,7 @@ abstract class MapPatternElementImpl
 @experimental
 class MapPatternEntryImpl extends AstNodeImpl
     implements MapPatternEntry, MapPatternElementImpl {
-  @override
-  final ExpressionImpl key;
+  ExpressionImpl _key;
 
   @override
   final Token separator;
@@ -8265,11 +8266,11 @@ class MapPatternEntryImpl extends AstNodeImpl
   final DartPatternImpl value;
 
   MapPatternEntryImpl({
-    required this.key,
+    required ExpressionImpl key,
     required this.separator,
     required this.value,
-  }) {
-    _becomeParentOf(key);
+  }) : _key = key {
+    _becomeParentOf(_key);
     _becomeParentOf(value);
   }
 
@@ -8278,6 +8279,13 @@ class MapPatternEntryImpl extends AstNodeImpl
 
   @override
   Token get endToken => value.endToken;
+
+  @override
+  ExpressionImpl get key => _key;
+
+  set key(ExpressionImpl key) {
+    _key = _becomeParentOf(key);
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -8313,6 +8321,9 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   final Token rightBracket;
 
+  @override
+  DartType? requiredType;
+
   MapPatternImpl({
     required this.typeArguments,
     required this.leftBracket,
@@ -8343,8 +8354,20 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    final typeArgumentNodes = this.typeArguments?.arguments;
+    if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
+      typeArguments = shared.MapPatternTypeArguments(
+        keyType: typeArgumentNodes[0].typeOrThrow,
+        valueType: typeArgumentNodes[1].typeOrThrow,
+      );
+    }
+    return resolverVisitor.analyzeMapPatternSchema(
+      typeArguments: typeArguments,
+      elements: elements,
+    );
+  }
 
   @override
   void resolvePattern(
@@ -8352,7 +8375,11 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.resolveMapPattern(
+      node: this,
+      matchedType: matchedType,
+      context: context,
+    );
   }
 
   @override
@@ -9903,8 +9930,7 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @override
   final Token equals;
 
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   @override
   final Token keyword;
@@ -9919,16 +9945,23 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     required this.keyword,
     required this.pattern,
     required this.equals,
-    required this.expression,
+    required ExpressionImpl expression,
     required super.comment,
     required super.metadata,
-  }) {
+  }) : _expression = expression {
     _becomeParentOf(pattern);
-    _becomeParentOf(expression);
+    _becomeParentOf(_expression);
   }
 
   @override
   Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;
@@ -12304,16 +12337,15 @@ class SwitchExpressionCaseImpl extends AstNodeImpl
   @override
   final Token arrow;
 
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   SwitchExpressionCaseImpl({
     required this.guardedPattern,
     required this.arrow,
-    required this.expression,
-  }) {
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(guardedPattern);
-    _becomeParentOf(expression);
+    _becomeParentOf(_expression);
   }
 
   @override
@@ -12321,6 +12353,13 @@ class SwitchExpressionCaseImpl extends AstNodeImpl
 
   @override
   Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -12352,8 +12391,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   @override
   final Token leftParenthesis;
 
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   @override
   final Token rightParenthesis;
@@ -12370,13 +12408,13 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   SwitchExpressionImpl({
     required this.switchKeyword,
     required this.leftParenthesis,
-    required this.expression,
+    required ExpressionImpl expression,
     required this.rightParenthesis,
     required this.leftBracket,
     required List<SwitchExpressionCaseImpl> cases,
     required this.rightBracket,
-  }) {
-    _becomeParentOf(expression);
+  }) : _expression = expression {
+    _becomeParentOf(_expression);
     this.cases._initialize(this, cases);
   }
 
@@ -12385,6 +12423,13 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
 
   @override
   Token get endToken => rightBracket;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   Precedence get precedence => Precedence.primary;
@@ -12403,9 +12448,11 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
-    // TODO: implement resolveExpression
-    throw UnimplementedError();
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    staticType = resolver
+        .analyzeSwitchExpression(this, expression, cases.length, contextType)
+        .type;
+    resolver.popRewrite();
   }
 
   @override

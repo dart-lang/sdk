@@ -12,6 +12,8 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -857,8 +859,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void finishExpressionCase(Expression node, int caseIndex) {
-    throw UnimplementedError('TODO(paulberry)');
+  void finishExpressionCase(
+    covariant SwitchExpressionImpl node,
+    int caseIndex,
+  ) {
+    node.cases[caseIndex].expression = popRewrite()!;
   }
 
   @override
@@ -884,9 +889,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   shared.MapPatternEntry<Expression, DartPattern>? getMapPatternEntry(
-      AstNode element) {
-    // TODO(scheglov): implement getMapPatternEntry
-    throw UnimplementedError();
+    covariant MapPatternElementImpl element,
+  ) {
+    if (element is MapPatternEntryImpl) {
+      return shared.MapPatternEntry(
+        key: element.key,
+        value: element.value,
+      );
+    }
+    return null;
   }
 
   /// Return the static element associated with the given expression whose type
@@ -919,8 +930,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement>
-      getSwitchExpressionMemberInfo(Expression node, int index) {
-    throw UnimplementedError('TODO(paulberry)');
+      getSwitchExpressionMemberInfo(
+    covariant SwitchExpressionImpl node,
+    int index,
+  ) {
+    var case_ = node.cases[index];
+    var guardedPattern = case_.guardedPattern;
+    return SwitchExpressionMemberInfo(
+      head: CaseHeadOrDefaultInfo(
+        pattern: guardedPattern.pattern,
+        guard: guardedPattern.whenClause?.expression,
+        variables: guardedPattern.variables,
+      ),
+      expression: case_.expression,
+    );
   }
 
   @override
@@ -1020,15 +1043,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleCaseHead(
-      // TODO(paulberry): once we support switch expressions this type will
-      // need to change.
-      covariant SwitchStatementImpl node,
-      {required int caseIndex,
-      required int subIndex}) {
+    covariant AstNodeImpl node, {
+    required int caseIndex,
+    required int subIndex,
+  }) {
     // Stack: (Expression)
     popRewrite(); // "when" expression
     // Stack: ()
-    switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
+    if (node is SwitchStatementImpl) {
+      switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
+    }
+    // TODO(scheglov) Exhaustiveness for SwitchExpressions?
   }
 
   @override
@@ -1043,19 +1068,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ) {}
 
   @override
-  void handleMapPatternEntry(DartPattern container, AstNode entryElement) {
-    // TODO(scheglov): implement handleMapPatternEntry
-    throw UnimplementedError();
+  void handleMapPatternEntry(
+    DartPattern container,
+    covariant MapPatternEntryImpl entry,
+  ) {
+    entry.key = popRewrite()!;
   }
 
   @override
   void handleMapPatternRestElement(
     DartPattern container,
-    covariant DartPattern restElement,
-  ) {
-    // TODO(scheglov): implement handleMapPatternRestElement
-    throw UnimplementedError();
-  }
+    covariant RestPatternElementImpl restElement,
+  ) {}
 
   @override
   void handleMergedStatementCase(
@@ -1391,6 +1415,40 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.accept(this);
       return PropertyElementResolverResult();
     }
+  }
+
+  void resolveMapPattern({
+    required MapPatternImpl node,
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    var typeArgumentsList = node.typeArguments;
+    if (typeArgumentsList != null) {
+      typeArgumentsList.accept(this);
+      // Check that we have exactly two type arguments.
+      var length = typeArgumentsList.arguments.length;
+      if (length == 2) {
+        typeArguments = shared.MapPatternTypeArguments(
+          keyType: typeArgumentsList.arguments[0].typeOrThrow,
+          valueType: typeArgumentsList.arguments[1].typeOrThrow,
+        );
+      } else {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
+          typeArgumentsList,
+          [length],
+        );
+      }
+    }
+
+    node.requiredType = analyzeMapPattern(
+      matchedType,
+      context,
+      node,
+      typeArguments: typeArguments,
+      elements: node.elements,
+    );
   }
 
   @override
@@ -4581,6 +4639,22 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       } finally {
         nameScope = outerNameScope;
       }
+    }
+  }
+
+  @override
+  void visitSwitchExpression(covariant SwitchExpressionImpl node) {
+    node.expression.accept(this);
+
+    for (var case_ in node.cases) {
+      _withNameScope(() {
+        var guardedPattern = case_.guardedPattern;
+        var variables = guardedPattern.variables;
+        for (var variable in variables.values) {
+          _define(variable);
+        }
+        case_.accept(this);
+      });
     }
   }
 

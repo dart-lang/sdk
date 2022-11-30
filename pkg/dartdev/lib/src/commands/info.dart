@@ -5,35 +5,39 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:intl/intl.dart';
 import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../processes.dart';
 import '../utils.dart';
 
-// TODO(devoncarew): have a flag to elide paths (enabled by default)
-
-final NumberFormat _nf = NumberFormat();
-
-const bool _elideFilePaths = true;
-
 /// Print output useful for diagnosing local issues.
-class BugCommand extends DartdevCommand {
-  static const String cmdName = 'bug';
+class InfoCommand extends DartdevCommand {
+  static const String cmdName = 'info';
 
   static const String cmdDescription =
       'Show diagnostic information about the installed tooling.';
 
-  BugCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose);
+  InfoCommand({bool verbose = false})
+      : super(cmdName, cmdDescription, verbose) {
+    argParser.addFlag(
+      removeFilePathsFlag,
+      help: 'Remove file paths in displayed information.',
+      defaultsTo: true,
+    );
+  }
 
   static const String _message =
       'If providing this information as part of reporting a bug, please review '
-      'the information below carefully to ensure it only contains things '
-      "you're comfortable posting publicly.";
+      "the information below to ensure it only contains things you're "
+      'comfortable posting publicly.';
+
+  static const String removeFilePathsFlag = 'remove-file-paths';
 
   @override
   FutureOr<int> run() async {
+    final elideFilePaths = argResults![removeFilePathsFlag] as bool;
+
     print('');
     print(wrapText(_message, width: dartdevUsageLineLength));
 
@@ -46,7 +50,7 @@ class BugCommand extends DartdevCommand {
     print('- locale is ${Platform.localeName}');
 
     // project information
-    var projectInfo = getProjectInfo(project, onlySimpleDeps: _elideFilePaths);
+    var projectInfo = getProjectInfo(project, onlySimpleDeps: elideFilePaths);
     if (projectInfo != null) {
       print('');
       print('#### Project info');
@@ -61,7 +65,7 @@ class BugCommand extends DartdevCommand {
 
     // process information
     var processInfo =
-        ProcessInfo.getProcessInfo(elideFilePaths: _elideFilePaths);
+        ProcessInfo.getProcessInfo(elideFilePaths: elideFilePaths);
     if (processInfo != null) {
       print('');
       print('#### Process info');
@@ -79,12 +83,15 @@ class BugCommand extends DartdevCommand {
 
         for (var process in processInfo) {
           var row = table.startRow();
-          row.cell('${_nf.format(process.memoryMb)} MB', right: true);
-          row.cell('${process.cpuPercent.toStringAsFixed(1)}%', right: true);
-          row.cell(process.elapsedTime, right: true);
-          row.cell(_elideFilePaths
-              ? _noMoreThan(process.commandLine, MarkdownTable.defaultMaxWidth)
-              : process.commandLine);
+          row.cell('${process.memoryMb} MB', right: true);
+          row.cell(
+            process.cpuPercent == null
+                ? '--'
+                : '${process.cpuPercent!.toStringAsFixed(1)}%',
+            right: true,
+          );
+          row.cell(process.elapsedTime ?? '', right: true);
+          row.cell(process.commandLine);
         }
 
         print(table.finish().trimRight());
@@ -150,9 +157,4 @@ class ProjectInfo {
     required this.devDependencies,
     required this.elidedDependencies,
   });
-}
-
-String _noMoreThan(String value, int length) {
-  if (value.length <= length) return value;
-  return '${value.substring(0, length - 1)}…';
 }

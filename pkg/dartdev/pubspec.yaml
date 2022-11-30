@@ -19,7 +19,6 @@ dependencies:
   dartdoc: any
   dds: any
   front_end: any
-  intl: any
   meta: any
   nnbd_migration: any
   package_config: any

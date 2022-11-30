@@ -3892,6 +3892,12 @@ CompileTimeErrorCode:
       ```dart
       var m = <int, String>{};
       ```
+  EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
+    problemMessage: Map patterns require two type arguments or none, but {0} found.
+    correctionMessage: Try adjusting the number of type arguments.
+    comment: |-
+      Parameters:
+      0: the number of provided type arguments
   EXPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be exported."
     hasPublishedDocs: true

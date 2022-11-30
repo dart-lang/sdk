@@ -447,7 +447,7 @@ class TypeSystemOperations
 
   @override
   DartType lub(DartType type1, DartType type2) {
-    throw UnimplementedError('TODO(paulberry)');
+    return typeSystem.leastUpperBound(type1, type2);
   }
 
   @override
@@ -666,6 +666,20 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         node.parent is! FormalParameter &&
         node.parent is! CatchClause) {
       assignedVariables.read(element);
+    }
+  }
+
+  @override
+  void visitSwitchExpression(covariant SwitchExpressionImpl node) {
+    node.expression.accept(this);
+
+    for (var case_ in node.cases) {
+      var guardedPattern = case_.guardedPattern;
+      var variables = guardedPattern.variables;
+      for (var variable in variables.values) {
+        assignedVariables.declare(variable);
+      }
+      case_.accept(this);
     }
   }
 

@@ -17,7 +17,6 @@ import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
-import 'src/commands/bug.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/compile_server_shutdown.dart';
 import 'src/commands/create.dart';
@@ -25,6 +24,7 @@ import 'src/commands/debug_adapter.dart';
 import 'src/commands/devtools.dart';
 import 'src/commands/doc.dart';
 import 'src/commands/fix.dart';
+import 'src/commands/info.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
@@ -122,14 +122,14 @@ class DartdevRunner extends CommandRunner<int> {
     );
 
     addCommand(AnalyzeCommand(verbose: verbose));
-    addCommand(BugCommand(verbose: verbose));
+    addCommand(CompileCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
-    addCommand(CompileCommand(verbose: verbose));
-    addCommand(DocCommand(verbose: verbose));
     addCommand(DevToolsCommand(verbose: verbose));
+    addCommand(DocCommand(verbose: verbose));
     addCommand(FixCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
+    addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
     addCommand(
