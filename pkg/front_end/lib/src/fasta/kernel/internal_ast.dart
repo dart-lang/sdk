@@ -169,6 +169,11 @@ bool hasExplicitTypeArguments(Arguments arguments) {
 
 mixin InternalTreeNode implements TreeNode {
   @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    // Do nothing. The node should not be part of the resulting AST, anyway.
+  }
+
+  @override
   R accept<R>(TreeVisitor<R> visitor) {
     if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
       // Allow visitors needed for toString and replaceWith.
@@ -205,6 +210,11 @@ mixin InternalTreeNode implements TreeNode {
 /// Common base class for internal statements.
 abstract class InternalStatement extends Statement {
   @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    // Do nothing. The node should not be part of the resulting AST, anyway.
+  }
+
+  @override
   R accept<R>(StatementVisitor<R> visitor) {
     if (visitor is Printer || visitor is Precedence) {
       // Allow visitors needed for toString.
@@ -216,6 +226,18 @@ abstract class InternalStatement extends Statement {
   @override
   R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) =>
       unsupported("${runtimeType}.accept1", -1, null);
+
+  @override
+  void transformChildren(Transformer v) => unsupported(
+      "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) => unsupported(
+      "${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}", -1, null);
+
+  @override
+  void visitChildren(Visitor v) =>
+      unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
 
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
@@ -250,67 +272,6 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    iterable.accept(v);
-    syntheticAssignment?.accept(v);
-    expressionEffects?.accept(v);
-    body.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    if (variable != null) {
-      variable = v.transform(variable!);
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    if (variable != null) {
-      variable = v.transform(variable!);
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ForInStatementWithSynthesizedVariable(${toStringInternal()})";
   }
@@ -339,41 +300,6 @@ class TryStatement extends InternalStatement {
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitTryStatement(this);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    tryBlock.accept(v);
-    visitList(catchBlocks, v);
-    finallyBlock?.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (tryBlock != null) {
-      tryBlock = v.transform(tryBlock);
-      tryBlock.parent = this;
-    }
-    v.transformList(catchBlocks, this);
-    if (finallyBlock != null) {
-      finallyBlock = v.transform(finallyBlock!);
-      finallyBlock?.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (tryBlock != null) {
-      tryBlock = v.transform(tryBlock);
-      tryBlock.parent = this;
-    }
-    v.transformCatchList(catchBlocks, this);
-    if (finallyBlock != null) {
-      finallyBlock = v.transformOrRemoveStatement(finallyBlock!);
-      finallyBlock?.parent = this;
-    }
   }
 
   @override
@@ -655,8 +581,14 @@ class BreakStatementImpl extends BreakStatement {
 /// Common base class for internal expressions.
 abstract class InternalExpression extends Expression {
   @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    // Do nothing. The node should not be part of the resulting AST, anyway.
+  }
+
+  @override
   R accept<R>(ExpressionVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+    if (visitor is Printer ||
+        visitor is Precedence /* || visitor is Transformer*/) {
       // Allow visitors needed for toString and replaceWith.
       return visitor.defaultExpression(this);
     }
@@ -677,6 +609,18 @@ abstract class InternalExpression extends Expression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       unsupported("${runtimeType}.getStaticType", -1, null);
+
+  @override
+  void visitChildren(Visitor<dynamic> v) =>
+      unsupported("${runtimeType}.visitChildren", -1, null);
+
+  @override
+  void transformChildren(Transformer v) =>
+      unsupported("${runtimeType}.transformChildren", -1, null);
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) =>
+      unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
 
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext);
@@ -849,32 +793,6 @@ class Cascade extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    visitList(expressions, v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    v.transformList(expressions, this);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    v.transformExpressionList(expressions, this);
-  }
-
-  @override
   String toString() {
     return "Cascade(${toStringInternal()})";
   }
@@ -919,40 +837,6 @@ class DeferredCheck extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitDeferredCheck(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
   }
 
   @override
@@ -1161,40 +1045,6 @@ class IfNullExpression extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    left.accept(v);
-    right.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullExpression(${toStringInternal()})";
   }
@@ -1355,40 +1205,6 @@ class ExpressionInvocation extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    expression.accept(v);
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ExpressionInvocation(${toStringInternal()})";
   }
@@ -1426,40 +1242,6 @@ class NullAwareMethodInvocation extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareMethodInvocation(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    invocation.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (invocation != null) {
-      invocation = v.transform(invocation);
-      invocation.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (invocation != null) {
-      invocation = v.transform(invocation);
-      invocation.parent = this;
-    }
   }
 
   @override
@@ -1528,40 +1310,6 @@ class NullAwarePropertyGet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    read.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "NullAwarePropertyGet(${toStringInternal()})";
   }
@@ -1612,40 +1360,6 @@ class NullAwarePropertySet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertySet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
   }
 
   @override
@@ -1894,17 +1608,6 @@ class LoadLibraryTearOff extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    v.visitProcedureReference(target);
-  }
-
-  @override
-  void transformChildren(Transformer v) {}
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
-
-  @override
   String toString() {
     return "LoadLibraryTearOff(${toStringInternal()})";
   }
@@ -1971,40 +1674,6 @@ class IfNullPropertySet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullPropertySet(${toStringInternal()})";
   }
@@ -2055,40 +1724,6 @@ class IfNullSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullSet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
   }
 
   @override
@@ -2201,40 +1836,6 @@ class CompoundExtensionSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "CompoundExtensionSet(${toStringInternal()})";
   }
@@ -2305,40 +1906,6 @@ class CompoundPropertySet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "CompoundPropertySet(${toStringInternal()})";
   }
@@ -2397,42 +1964,6 @@ class PropertyPostIncDec extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable!);
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable!)
-          as VariableDeclarationImpl?;
-      variable?.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "PropertyPostIncDec(${toStringInternal()})";
   }
@@ -2466,40 +1997,6 @@ class LocalPostIncDec extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitLocalPostIncDec(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
   }
 
   @override
@@ -2539,40 +2036,6 @@ class StaticPostIncDec extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "StaticPostIncDec(${toStringInternal()})";
   }
@@ -2609,40 +2072,6 @@ class SuperPostIncDec extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    read.accept(v);
-    write.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (read != null) {
-      read = v.transform(read);
-      read.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (write != null) {
-      write = v.transform(write);
-      write.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "SuperPostIncDec(${toStringInternal()})";
   }
@@ -2669,40 +2098,6 @@ class IndexGet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIndexGet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
   }
 
   @override
@@ -2765,51 +2160,6 @@ class IndexSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IndexSet(${toStringInternal()})";
   }
@@ -2860,40 +2210,6 @@ class SuperIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitSuperIndexSet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
   }
 
   @override
@@ -2959,51 +2275,6 @@ class ExtensionIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitExtensionIndexSet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
   }
 
   @override
@@ -3102,51 +2373,6 @@ class IfNullIndexSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullIndexSet(${toStringInternal()})";
   }
@@ -3221,40 +2447,6 @@ class IfNullSuperIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullSuperIndexSet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
   }
 
   @override
@@ -3348,51 +2540,6 @@ class IfNullExtensionIndexSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "IfNullExtensionIndexSet(${toStringInternal()})";
   }
@@ -3472,51 +2619,6 @@ class CompoundIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundIndexSet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
   }
 
   @override
@@ -3642,40 +2744,6 @@ class NullAwareCompoundSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "NullAwareCompoundSet(${toStringInternal()})";
   }
@@ -3775,40 +2843,6 @@ class NullAwareIfNullSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "NullAwareIfNullSet(${toStringInternal()})";
   }
@@ -3897,40 +2931,6 @@ class CompoundSuperIndexSet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundSuperIndexSet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    index.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
   }
 
   @override
@@ -4040,51 +3040,6 @@ class CompoundExtensionIndexSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    index.accept(v);
-    rhs.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (index != null) {
-      index = v.transform(index);
-      index.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (rhs != null) {
-      rhs = v.transform(rhs);
-      rhs.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "CompoundExtensionIndexSet(${toStringInternal()})";
   }
@@ -4151,40 +3106,6 @@ class ExtensionSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ExtensionSet(${toStringInternal()})";
   }
@@ -4216,40 +3137,6 @@ class NullAwareExtension extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareExtension(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    variable.accept(v);
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
   }
 
   @override
@@ -4290,29 +3177,6 @@ class ExtensionTearOff extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "ExtensionTearOff(${toStringInternal()})";
   }
@@ -4339,40 +3203,6 @@ class EqualsExpression extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitEquals(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    left.accept(v);
-    right.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
   }
 
   @override
@@ -4414,40 +3244,6 @@ class BinaryExpression extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    left.accept(v);
-    right.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "BinaryExpression(${toStringInternal()})";
   }
@@ -4478,29 +3274,6 @@ class UnaryExpression extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitUnary(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
   }
 
   @override
@@ -4536,29 +3309,6 @@ class ParenthesizedExpression extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitParenthesized(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    expression.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
   }
 
   @override
@@ -4677,40 +3427,6 @@ class MethodInvocation extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "MethodInvocation(${toStringInternal()})";
   }
@@ -4747,29 +3463,6 @@ class PropertyGet extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitPropertyGet(this, typeContext);
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    receiver.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
   }
 
   @override
@@ -4826,41 +3519,6 @@ class PropertySet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor v) {
-    receiver.accept(v);
-    name.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
   String toString() {
     return "PropertySet(${toStringInternal()})";
   }
@@ -4897,23 +3555,6 @@ class AugmentSuperInvocation extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor<dynamic> v) {
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    arguments = v.transform(arguments);
-    arguments.parent = this;
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    arguments = v.transform(arguments);
-    arguments.parent = this;
-  }
-
-  @override
   String toString() {
     return "AugmentSuperInvocation(${toStringInternal()})";
   }
@@ -4945,15 +3586,6 @@ class AugmentSuperGet extends InternalExpression {
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitAugmentSuperGet(this, typeContext);
   }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {}
-
-  @override
-  void transformChildren(Transformer v) {}
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
 
   @override
   String toString() {
@@ -4994,23 +3626,6 @@ class AugmentSuperSet extends InternalExpression {
   }
 
   @override
-  void visitChildren(Visitor v) {
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    value = v.transform(value);
-    value.parent = this;
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    value = v.transform(value);
-    value.parent = this;
-  }
-
-  @override
   String toString() {
     return "AugmentSuperSet(${toStringInternal()})";
   }
@@ -5039,23 +3654,6 @@ class InternalRecordLiteral extends InternalExpression {
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitInternalRecordLiteral(this, typeContext);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
   }
 
   @override
@@ -6179,23 +4777,6 @@ class PatternVariableDeclaration extends InternalStatement {
   }
 
   @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
   String toString() {
     return "PatternVariableDeclaration(${toStringInternal()})";
   }
@@ -6242,23 +4823,6 @@ class IfCaseStatement extends InternalStatement {
       printer.write(' else ');
       printer.writeStatement(otherwise!);
     }
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
   }
 
   @override
@@ -6787,23 +5351,6 @@ class VariablePattern extends Pattern {
       printer.write("var ");
     }
     printer.write(name);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
   }
 
   @override
