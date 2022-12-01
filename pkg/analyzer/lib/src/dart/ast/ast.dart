@@ -6473,7 +6473,7 @@ class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   /// Variables declared in [pattern], available in [whenClause] guard, and
   /// to the `ifTrue` node.
-  late final Map<String, PromotableElement> variables;
+  late Map<String, PromotableElement> variables;
 
   @override
   final WhenClauseImpl? whenClause;
@@ -12574,7 +12574,7 @@ class SwitchStatementCaseGroup {
   final bool hasLabels;
 
   /// Joined variables declared in [members], available in [statements].
-  late final Map<String, PromotableElement> variables;
+  late Map<String, PromotableElement> variables;
 
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 
