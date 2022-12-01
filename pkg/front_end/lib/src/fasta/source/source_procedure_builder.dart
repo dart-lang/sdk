@@ -114,9 +114,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
-    if ((isExtensionInstanceMember
-        // TODO(johnniwinther): Support view tear offs.
-        /* || isViewInstanceMember*/) &&
+    if ((isExtensionInstanceMember || isViewInstanceMember) &&
         kind == ProcedureKind.Method) {
       _extensionTearOff = new Procedure(
           dummyName, ProcedureKind.Method, new FunctionNode(null),

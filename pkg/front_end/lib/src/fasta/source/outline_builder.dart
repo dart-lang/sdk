@@ -1947,8 +1947,10 @@ class OutlineBuilder extends StackListenerImpl {
       bool isStatic = (modifiers & staticMask) != 0;
       if (constructorName == null &&
           !isStatic &&
-          libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-              TypeParameterScopeKind.extensionDeclaration) {
+          (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
+                  TypeParameterScopeKind.extensionDeclaration ||
+              libraryBuilder.currentTypeParameterScopeBuilder.kind ==
+                  TypeParameterScopeKind.viewDeclaration)) {
         TypeParameterScopeBuilder extension =
             libraryBuilder.currentTypeParameterScopeBuilder;
         Map<TypeVariableBuilder, TypeBuilder>? substitution;
@@ -1975,7 +1977,27 @@ class OutlineBuilder extends StackListenerImpl {
           }
         }
         List<FormalParameterBuilder> synthesizedFormals = [];
-        TypeBuilder thisType = extension.extensionThisType;
+        TypeBuilder thisType;
+        if (extension.kind == TypeParameterScopeKind.extensionDeclaration) {
+          thisType = extension.extensionThisType;
+        } else {
+          thisType = libraryBuilder.addNamedType(
+              extension.name,
+              const NullabilityBuilder.omitted(),
+              typeVariables != null
+                  ? new List<TypeBuilder>.generate(
+                      typeVariables.length,
+                      (int index) =>
+                          new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                              typeVariables![index],
+                              const NullabilityBuilder.omitted(),
+                              instanceTypeVariableAccess:
+                                  InstanceTypeVariableAccessState.Allowed))
+                  : null,
+              charOffset,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
+        }
         if (substitution != null) {
           List<NamedTypeBuilder> unboundTypes = [];
           List<TypeVariableBuilder> unboundTypeVariables = [];

@@ -8,3 +8,10 @@ view class Class {
   void instanceMethod() {}
   static void staticMethod() {}
 }
+
+view class GenericClass<T> {
+  final T it;
+
+  void instanceMethod() {}
+  static void staticMethod() {}
+}
