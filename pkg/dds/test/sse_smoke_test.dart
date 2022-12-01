@@ -13,7 +13,7 @@ import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as service;
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 
 import 'common/test_helper.dart';
 

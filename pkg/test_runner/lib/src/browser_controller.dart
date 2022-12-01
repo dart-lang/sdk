@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 
 import 'android.dart';
 import 'configuration.dart';
