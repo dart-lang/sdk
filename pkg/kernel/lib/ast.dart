@@ -14811,10 +14811,12 @@ class Component extends TreeNode {
   Component(
       {CanonicalName? nameRoot,
       List<Library>? libraries,
-      Map<Uri, Source>? uriToSource})
+      Map<Uri, Source>? uriToSource,
+      NonNullableByDefaultCompiledMode? mode})
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
-        uriToSource = uriToSource ?? <Uri, Source>{} {
+        uriToSource = uriToSource ?? <Uri, Source>{},
+        _mode = mode {
     adoptChildren();
   }
 

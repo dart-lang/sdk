@@ -101,8 +101,11 @@ String kernelLibraryToString(Library library,
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);
   printer.writeConstantTable(library.enclosingComponent!);
-  String result =
-      buffer.toString().replaceAll(library.importUri.toString(), library.name!);
+  String result = buffer.toString();
+  final libraryName = library.name;
+  if (libraryName != null) {
+    result = result.replaceAll(library.importUri.toString(), library.name!);
+  }
   if (removeSelectorIds) {
     result = result
         .replaceAll(RegExp(r',methodOrSetterSelectorId:\d{3,}'), '')
