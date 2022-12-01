@@ -856,6 +856,17 @@ class Assembler : public AssemblerBase {
   void SubRegisters(Register dest, Register src) {
     sub(dest, dest, Operand(src));
   }
+  void MulImmediate(Register reg,
+                    int32_t imm,
+                    OperandSize width = kFourBytes) override {
+    ASSERT(width == kFourBytes);
+    if (Utils::IsPowerOfTwo(imm)) {
+      LslImmediate(reg, Utils::ShiftForPowerOfTwo(imm));
+    } else {
+      LoadImmediate(TMP, imm);
+      mul(reg, reg, TMP);
+    }
+  }
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
   void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
     AndImmediate(rd, rd, imm, cond);
@@ -879,6 +890,9 @@ class Assembler : public AssemblerBase {
   }
   void LslImmediate(Register rd, int32_t shift) {
     LslImmediate(rd, rd, shift);
+  }
+  void LslRegister(Register dst, Register shift) override {
+    Lsl(dst, dst, shift);
   }
   void LsrImmediate(Register rd, Register rn, int32_t shift) {
     ASSERT((shift >= 0) && (shift < kBitsPerInt32));
@@ -1396,6 +1410,9 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHash(Register dst, Register scratch = TMP) override;
 
   // The register into which the allocation tracing state table is loaded with
   // LoadAllocationTracingStateAddress should be passed to MaybeTraceAllocation.

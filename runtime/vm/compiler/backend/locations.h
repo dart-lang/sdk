@@ -704,6 +704,10 @@ class RegisterSet : public ValueObject {
   intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers()); }
   intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers()); }
 
+  bool IsEmpty() const {
+    return CpuRegisterCount() == 0 && FpuRegisterCount() == 0;
+  }
+
   static intptr_t RegisterCount(intptr_t registers);
   static bool Contains(uintptr_t register_set, intptr_t reg) {
     return (register_set & (static_cast<uintptr_t>(1) << reg)) != 0;

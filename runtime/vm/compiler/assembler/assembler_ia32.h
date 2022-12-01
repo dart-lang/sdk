@@ -759,8 +759,17 @@ class Assembler : public AssemblerBase {
   }
 
   void SubImmediate(Register reg, const Immediate& imm);
-  void SubRegisters(Register dest, Register src) {
-    subl(dest, src);
+  void SubRegisters(Register dest, Register src) { subl(dest, src); }
+  void MulImmediate(Register reg,
+                    int32_t imm,
+                    OperandSize width = kFourBytes) override {
+    ASSERT(width == kFourBytes);
+    if (Utils::IsPowerOfTwo(imm)) {
+      const intptr_t shift = Utils::ShiftForPowerOfTwo(imm);
+      shll(reg, Immediate(shift));
+    } else {
+      imull(reg, Immediate(imm));
+    }
   }
   void AndImmediate(Register dst, int32_t value) {
     andl(dst, Immediate(value));
@@ -773,6 +782,10 @@ class Assembler : public AssemblerBase {
   }
   void LslImmediate(Register dst, int32_t shift) {
     shll(dst, Immediate(shift));
+  }
+  void LslRegister(Register dst, Register shift) override {
+    ASSERT_EQUAL(shift, ECX);  // IA32 does not have a TMP.
+    shll(dst, shift);
   }
   void LsrImmediate(Register dst, int32_t shift) override {
     shrl(dst, Immediate(shift));
@@ -924,6 +937,9 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHash(Register dst, Register scratch = kNoRegister) override;
 
   // In debug mode, this generates code to check that:
   //   FP + kExitLinkSlotFromEntryFp == SP

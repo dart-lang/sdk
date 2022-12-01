@@ -1544,6 +1544,7 @@ class TypeParameters : public AllStatic {
 
 class TypeArguments : public AllStatic {
  public:
+  static word hash_offset();
   static word instantiations_offset();
   static word length_offset();
   static word nullability_offset();

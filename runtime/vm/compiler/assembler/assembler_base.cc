@@ -37,7 +37,11 @@ void AssemblerBase::LoadFromSlot(Register dst,
     return LoadFromOffset(dst, address, sz);
   }
   if (slot.is_compressed()) {
-    return LoadCompressedField(dst, address);
+    if (slot.ComputeCompileType().ToCid() == kSmiCid) {
+      return LoadCompressedSmi(dst, address);
+    } else {
+      return LoadCompressedField(dst, address);
+    }
   }
   return LoadField(dst, address);
 }

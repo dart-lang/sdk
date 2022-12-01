@@ -597,6 +597,7 @@ class Assembler : public AssemblerBase {
   void LslImmediate(Register dst, int32_t shift) {
     shlq(dst, Immediate(shift));
   }
+  void LslRegister(Register dst, Register shift) override;
   void LsrImmediate(Register dst, int32_t shift) override {
     shrq(dst, Immediate(shift));
   }
@@ -659,6 +660,11 @@ class Assembler : public AssemblerBase {
   void MulImmediate(Register reg,
                     const Immediate& imm,
                     OperandSize width = kEightBytes);
+  void MulImmediate(Register reg,
+                    int64_t imm,
+                    OperandSize width = kEightBytes) override {
+    MulImmediate(reg, Immediate(imm), width);
+  }
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -1303,6 +1309,9 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHash(Register dst, Register scratch = TMP) override;
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.

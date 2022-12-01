@@ -359,6 +359,7 @@
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
+  FIELD(TypeArguments, hash_offset)                                            \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \

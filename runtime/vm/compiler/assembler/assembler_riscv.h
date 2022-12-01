@@ -995,9 +995,12 @@ class Assembler : public MicroAssembler {
   void AddImmediate(Register dest, intx_t imm) {
     AddImmediate(dest, dest, imm);
   }
-  void AddRegisters(Register dest, Register src) {
-    add(dest, dest, src);
+  void MulImmediate(Register dest,
+                    intx_t imm,
+                    OperandSize width = kWordBytes) override {
+    MulImmediate(dest, dest, imm, width);
   }
+  void AddRegisters(Register dest, Register src) { add(dest, dest, src); }
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,
@@ -1018,6 +1021,10 @@ class Assembler : public MicroAssembler {
                     Register rn,
                     intx_t imm,
                     OperandSize sz = kWordBytes);
+  void MulImmediate(Register dest,
+                    Register rn,
+                    intx_t imm,
+                    OperandSize width = kWordBytes);
   void AndImmediate(Register rd,
                     Register rn,
                     intx_t imm,
@@ -1047,6 +1054,9 @@ class Assembler : public MicroAssembler {
                     OperandSize sz = kWordBytes);
   void LslImmediate(Register rd, int32_t shift) {
     slli(rd, rd, shift);
+  }
+  void LslRegister(Register dst, Register shift) override {
+    sll(dst, dst, shift);
   }
   void LsrImmediate(Register rd, int32_t shift) override {
     srli(rd, rd, shift);
@@ -1389,6 +1399,9 @@ class Assembler : public MicroAssembler {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register dst, Register other) override;
+  void FinalizeHash(Register dst, Register scratch = TMP) override;
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.

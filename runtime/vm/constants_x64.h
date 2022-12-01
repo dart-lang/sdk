@@ -31,8 +31,8 @@ enum Register {
   R8 = 8,
   R9 = 9,
   R10 = 10,
-  R11 = 11,
-  R12 = 12,
+  R11 = 11,  // TMP
+  R12 = 12,  // CODE_REG
   R13 = 13,
   R14 = 14,  // THR
   R15 = 15,  // PP
@@ -153,6 +153,20 @@ struct InstantiationABI {
   static const Register kResultTypeArgumentsReg = RAX;
   static const Register kResultTypeReg = RAX;
   static const Register kScratchReg = R9;
+};
+
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // The set of registers that must be pushed/popped when probing a hash-based
+  // cache due to overlap with the registers in InstantiationABI.
+  static const intptr_t kSavedRegisters = 0;
+
+  // Additional registers used to probe hash-based caches.
+  static const Register kEntryStartReg = R10;
+  static const Register kProbeMaskReg = R13;
+  static const Register kProbeDistanceReg = R8;
+  static const Register kCurrentEntryIndexReg = RSI;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the

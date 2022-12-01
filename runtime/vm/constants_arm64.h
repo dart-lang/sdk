@@ -181,6 +181,20 @@ struct InstantiationABI {
   static const Register kScratchReg = R8;
 };
 
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // The set of registers that must be pushed/popped when probing a hash-based
+  // cache due to overlap with the registers in InstantiationABI.
+  static const intptr_t kSavedRegisters = 0;
+
+  // Additional registers used to probe hash-based caches.
+  static const Register kEntryStartReg = R9;
+  static const Register kProbeMaskReg = R7;
+  static const Register kProbeDistanceReg = R6;
+  static const Register kCurrentEntryIndexReg = R10;
+};
+
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of type testing stubs that are _not_ preserved.
 struct TTSInternalRegs {

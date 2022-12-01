@@ -127,6 +127,7 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
   V(Record, UntaggedRecord, field_names, ImmutableArray, FINAL)                \
   V(Record, UntaggedRecord, num_fields, Smi, FINAL)                            \
+  V(TypeArguments, UntaggedTypeArguments, hash, Smi, VAR)                      \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \

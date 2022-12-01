@@ -2975,6 +2975,40 @@ void Assembler::AddImmediate(Register rd,
     add(rd, rs1, TMP2);
   }
 }
+
+void Assembler::MulImmediate(Register rd,
+                             Register rs1,
+                             intx_t imm,
+                             OperandSize sz) {
+  if (Utils::IsPowerOfTwo(imm)) {
+    const intx_t shift = Utils::ShiftForPowerOfTwo(imm);
+#if XLEN >= 64
+    ASSERT(sz == kFourBytes || sz == kEightBytes);
+    if (sz == kFourBytes) {
+      slliw(rd, rs1, shift);
+    } else {
+      slli(rd, rs1, shift);
+    }
+#else
+    ASSERT(sz == kFourBytes);
+    slli(rd, rs1, shift);
+#endif
+  } else {
+    LoadImmediate(TMP, imm);
+#if XLEN >= 64
+    ASSERT(sz == kFourBytes || sz == kEightBytes);
+    if (sz == kFourBytes) {
+      mulw(rd, rs1, TMP);
+    } else {
+      mul(rd, rs1, TMP);
+    }
+#else
+    ASSERT(sz == kFourBytes);
+    mul(rd, rs1, TMP);
+#endif
+  }
+}
+
 void Assembler::AndImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
@@ -4174,6 +4208,56 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   while (CodeSize() < target::Instructions::kPolymorphicEntryOffsetJIT) {
     ebreak();
   }
+}
+
+void Assembler::CombineHashes(Register hash, Register other) {
+#if XLEN >= 64
+  // hash += other_hash
+  addw(hash, hash, other);
+  // hash += hash << 10
+  slliw(other, hash, 10);
+  addw(hash, hash, other);
+  // hash ^= hash >> 6
+  srliw(other, hash, 6);
+  xor_(hash, hash, other);
+#else
+  // hash += other_hash
+  add(hash, hash, other);
+  // hash += hash << 10
+  slli(other, hash, 10);
+  add(hash, hash, other);
+  // hash ^= hash >> 6
+  srli(other, hash, 6);
+  xor_(hash, hash, other);
+#endif
+}
+
+void Assembler::FinalizeHash(Register hash, Register scratch) {
+  ASSERT(scratch != kNoRegister);
+#if XLEN >= 64
+  // hash += hash << 3;
+  slliw(scratch, hash, 3);
+  addw(hash, hash, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  srliw(scratch, hash, 11);
+  xor_(hash, hash, scratch);
+  // hash += hash << 15;
+  slliw(scratch, hash, 15);
+  addw(hash, hash, scratch);
+#else
+  // hash += hash << 3;
+  slli(scratch, hash, 3);
+  add(hash, hash, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  srli(scratch, hash, 11);
+  xor_(hash, hash, scratch);
+  // hash += hash << 15;
+  slli(scratch, hash, 15);
+  add(hash, hash, scratch);
+#endif
+  // return (hash == 0) ? 1 : hash;
+  seqz(scratch, hash);
+  add(hash, hash, scratch);
 }
 
 #ifndef PRODUCT
