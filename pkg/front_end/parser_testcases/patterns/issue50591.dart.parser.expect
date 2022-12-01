@@ -1,0 +1,9 @@
+f(x, bool Function() a) => switch(x) {
+_ when a() => 0
+};
+
+
+f[StringToken]([BeginToken]x[StringToken],[SimpleToken] bool[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken] a[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+_[StringToken] when[KeywordToken] a[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken]
+}[SimpleToken];[SimpleToken]
+[SimpleToken]
