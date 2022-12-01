@@ -53,10 +53,10 @@ enum Register {
   R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia, TEB on Windows.
   R19 = 19,
   R20 = 20,
-  R21 = 21,  // DISPATCH_TABLE_REG
+  R21 = 21,  // DISPATCH_TABLE_REG (AOT only)
   R22 = 22,  // NULL_REG
   R23 = 23,
-  R24 = 24,
+  R24 = 24,  // CODE_REG
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
