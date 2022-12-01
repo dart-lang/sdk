@@ -1050,7 +1050,7 @@ class _OneByteString extends _StringBase {
 
   @override
   int codeUnitAt(int index) {
-    RangeError.checkValueInInterval(index, 0, length);
+    RangeError.checkValueInInterval(index, 0, length - 1);
     return _array.readUnsigned(index);
   }
 
@@ -1415,7 +1415,7 @@ class _TwoByteString extends _StringBase {
 
   @override
   int codeUnitAt(int index) {
-    RangeError.checkValueInInterval(index, 0, length);
+    RangeError.checkValueInInterval(index, 0, length - 1);
     return _array.readUnsigned(index);
   }
 
