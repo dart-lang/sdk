@@ -5234,8 +5234,7 @@ class Parser {
           token,
           /* lateToken = */ null,
           /* varFinalOrConst = */ null,
-          /* typeInfo = */ null,
-          /* onlyParseVariableDeclarationStart = */ false);
+          /* typeInfo = */ null);
     }
     final String? value = token.next!.stringValue;
     if (identical(value, '{')) {
@@ -5251,13 +5250,8 @@ class Parser {
     } else if (identical(value, 'var') || identical(value, 'final')) {
       Token varOrFinal = token.next!;
       if (!isModifier(varOrFinal.next!)) {
-        return parseExpressionStatementOrDeclarationAfterModifiers(
-            varOrFinal,
-            token,
-            /* lateToken = */ null,
-            varOrFinal,
-            /* typeInfo = */ null,
-            /* onlyParseVariableDeclarationStart = */ false);
+        return parseExpressionStatementOrDeclarationAfterModifiers(varOrFinal,
+            token, /* lateToken = */ null, varOrFinal, /* typeInfo = */ null);
       }
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, 'if')) {
@@ -7358,30 +7352,30 @@ class Parser {
         }
       }
       return parseExpressionStatementOrDeclarationAfterModifiers(
-          constToken,
-          start,
-          /* lateToken = */ null,
-          constToken,
-          typeInfo,
-          /* onlyParseVariableDeclarationStart = */ false);
+          constToken, start, /* lateToken = */ null, constToken, typeInfo);
     }
     return parseExpressionStatementOrDeclaration(start);
   }
 
   /// This method has two modes based upon [onlyParseVariableDeclarationStart].
   ///
-  /// If [onlyParseVariableDeclarationStart] is `false` (the default) then this
-  /// method will parse a local variable declaration, a local function,
-  /// or an expression statement, and then return the last consumed token.
+  /// If [forPartsContext] is `null` (the default), then the parser is currently
+  /// processing a statement or declaration.  This method will parse a local
+  /// variable declaration, a local function, or an expression statement, and
+  /// then return the last consumed token.
   ///
-  /// If [onlyParseVariableDeclarationStart] is `true` then this method
-  /// will only parse the metadata, modifiers, and type of a local variable
-  /// declaration if it exists. It is the responsibility of the caller to
-  /// call [parseVariablesDeclarationRest] to finish parsing the local variable
-  /// declaration. If a local variable declaration is not found then this
-  /// method will return [start].
+  /// If [forPartsContext] is non-null, then this method will only parse the
+  /// metadata, modifiers, and type of a local variable declaration if it
+  /// exists; it is the responsibility of the caller to call
+  /// [parseVariablesDeclarationRest] to finish parsing the local variable
+  /// declaration.  Or it will parse the metadata, `var` or `final` keyword, and
+  /// pattern of a pattern variable declaration, and store the `var` or `final`
+  /// keyword in [forPartsContext]; it is the responsibility of the caller to
+  /// consume the rest of the pattern variable declaration.  Or, if neither a
+  /// local variable declaration nor a pattern variable declaration is found,
+  /// then this method will return [start].
   Token parseExpressionStatementOrDeclaration(final Token start,
-      [bool onlyParseVariableDeclarationStart = false]) {
+      [ForPartsContext? forPartsContext]) {
     Token token = start;
     Token next = token.next!;
     if (optional('@', next)) {
@@ -7424,13 +7418,8 @@ class Parser {
       }
     }
 
-    return parseExpressionStatementOrDeclarationAfterModifiers(
-        token,
-        start,
-        lateToken,
-        varFinalOrConst,
-        /* typeInfo = */ null,
-        onlyParseVariableDeclarationStart);
+    return parseExpressionStatementOrDeclarationAfterModifiers(token, start,
+        lateToken, varFinalOrConst, /* typeInfo = */ null, forPartsContext);
   }
 
   /// See [parseExpressionStatementOrDeclaration].
@@ -7438,13 +7427,9 @@ class Parser {
   /// If `start.next` is an `@` token (i.e. this is a declaration with metadata)
   /// then the caller should parse it before calling this method; otherwise,
   /// this method will handle the lack of metadata appropriately.
-  Token parseExpressionStatementOrDeclarationAfterModifiers(
-      Token beforeType,
-      Token start,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      TypeInfo? typeInfo,
-      bool onlyParseVariableDeclarationStart) {
+  Token parseExpressionStatementOrDeclarationAfterModifiers(Token beforeType,
+      Token start, Token? lateToken, Token? varFinalOrConst, TypeInfo? typeInfo,
+      [ForPartsContext? forPartsContext]) {
     // In simple cases check for bad 'late' modifier in non-nnbd-mode.
     if (typeInfo == null &&
         lateToken == null &&
@@ -7470,7 +7455,6 @@ class Parser {
         varFinalOrConst != null &&
         (optional('var', varFinalOrConst) ||
             optional('final', varFinalOrConst)) &&
-        !onlyParseVariableDeclarationStart &&
         looksLikeOuterPatternEquals(beforeType)) {
       // If there was any metadata, then the caller was responsible for parsing
       // it; if not, then we need to let the listener know there wasn't any.
@@ -7478,8 +7462,13 @@ class Parser {
         listener.beginMetadataStar(start.next!);
         listener.endMetadataStar(/* count = */ 0);
       }
-      return parsePatternVariableDeclarationStatement(
-          beforeType, start, varFinalOrConst);
+      if (forPartsContext != null) {
+        forPartsContext.patternKeyword = varFinalOrConst;
+        return parsePattern(beforeType, isRefutableContext: false);
+      } else {
+        return parsePatternVariableDeclarationStatement(
+            beforeType, start, varFinalOrConst);
+      }
     }
 
     typeInfo ??= computeType(beforeType, /* required = */ false);
@@ -7487,7 +7476,7 @@ class Parser {
     Token token = typeInfo.skipType(beforeType);
     Token next = token.next!;
 
-    if (onlyParseVariableDeclarationStart) {
+    if (forPartsContext != null) {
       if (lateToken != null) {
         reportRecoverableErrorWithToken(
             lateToken, codes.templateExtraneousModifier);
@@ -7575,7 +7564,7 @@ class Parser {
     if (token == start) {
       // If no annotation, modifier, or type, and this is not a local function
       // then this must be an expression statement.
-      if (onlyParseVariableDeclarationStart) {
+      if (forPartsContext != null) {
         return start;
       } else {
         return parseExpressionStatement(start);
@@ -7592,7 +7581,7 @@ class Parser {
         if (EQ_TOKEN != kind &&
             SEMICOLON_TOKEN != kind &&
             COMMA_TOKEN != kind) {
-          if (onlyParseVariableDeclarationStart) {
+          if (forPartsContext != null) {
             if (!optional('in', next.next!)) {
               return start;
             }
@@ -7627,7 +7616,7 @@ class Parser {
     token = typeInfo.parseType(beforeType, this);
     next = token.next!;
     listener.beginVariablesDeclaration(next, lateToken, varFinalOrConst);
-    if (!onlyParseVariableDeclarationStart) {
+    if (forPartsContext == null) {
       token =
           parseVariablesDeclarationRest(token, /* endWithSemicolon = */ true);
     }
@@ -7707,7 +7696,22 @@ class Parser {
     assert(optional('for', token));
     listener.beginForStatement(forToken);
 
-    token = parseForLoopPartsStart(awaitToken, forToken);
+    ForPartsContext forPartsContext = new ForPartsContext();
+    token = parseForLoopPartsStart(awaitToken, forToken, forPartsContext);
+    Token? patternKeyword = forPartsContext.patternKeyword;
+    if (patternKeyword != null) {
+      if (optional('=', token.next!)) {
+        // Process `for ( pattern = expression ; ... ; ... )`
+        Token equals = token.next!;
+        token = parseExpression(equals);
+        listener.handleForInitializerPatternVariableAssignment(
+            patternKeyword, equals);
+        return parseForRest(awaitToken, token, forToken);
+      } else {
+        // Process `for ( pattern in expression )`
+        throw new UnimplementedError('TODO(paulberry)');
+      }
+    }
     Token identifier = token.next!;
     token = parseForLoopPartsMid(token, awaitToken, forToken);
     if (optional('in', token.next!) || optional(':', token.next!)) {
@@ -7721,7 +7725,8 @@ class Parser {
 
   /// Parse the start of a for loop control structure
   /// from the open parenthesis up to but not including the identifier.
-  Token parseForLoopPartsStart(Token? awaitToken, Token forToken) {
+  Token parseForLoopPartsStart(
+      Token? awaitToken, Token forToken, ForPartsContext forPartsContext) {
     Token leftParenthesis = forToken.next!;
     if (!optional('(', leftParenthesis)) {
       // Recovery
@@ -7757,7 +7762,7 @@ class Parser {
     // declaration if it exists. This enables capturing [beforeIdentifier]
     // for later error reporting.
     return parseExpressionStatementOrDeclaration(
-        leftParenthesis, /* onlyParseVariableDeclarationStart = */ true);
+        leftParenthesis, forPartsContext);
   }
 
   /// Parse the remainder of the local variable declaration
@@ -9953,3 +9958,14 @@ class Parser {
 typedef _MessageWithArgument<T> = codes.Message Function(T);
 
 enum AwaitOrYieldContext { Statement, UnaryExpression }
+
+/// Data structure tracking additional information when parsing the
+/// `forLoopParts` grammar production.
+class ForPartsContext {
+  /// If `forLoopParts` began with `( 'final' | 'var' ) outerPattern`, followed
+  /// by `=`, the `final` or `var` keyword.  Otherwise `null`.
+  Token? patternKeyword;
+
+  @override
+  String toString() => 'ForPartsContext($patternKeyword)';
+}

@@ -757,6 +757,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    ForInitializerPatternVariableAssignmentHandle data =
+        new ForInitializerPatternVariableAssignmentHandle(ParserAstType.HANDLE,
+            keyword: keyword, equals: equals);
+    seen(data);
+  }
+
+  @override
   void beginForStatement(Token token) {
     ForStatementBegin data =
         new ForStatementBegin(ParserAstType.BEGIN, token: token);
@@ -4228,6 +4237,21 @@ class ForInitializerLocalVariableDeclarationHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "forIn": forIn,
+      };
+}
+
+class ForInitializerPatternVariableAssignmentHandle extends ParserAstNode {
+  final Token keyword;
+  final Token equals;
+
+  ForInitializerPatternVariableAssignmentHandle(ParserAstType type,
+      {required this.keyword, required this.equals})
+      : super("ForInitializerPatternVariableAssignment", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "keyword": keyword,
+        "equals": equals,
       };
 }
 

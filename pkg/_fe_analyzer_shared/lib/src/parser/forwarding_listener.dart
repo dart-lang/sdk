@@ -1481,6 +1481,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    listener?.handleForInitializerPatternVariableAssignment(keyword, equals);
+  }
+
+  @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token inKeyword) {
     listener?.handleForInLoopParts(

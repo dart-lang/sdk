@@ -866,6 +866,16 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    seen(keyword);
+    seen(equals);
+    doPrint('handleForInitializerPatternVariableAssignment('
+        '$keyword, '
+        '$equals)');
+  }
+
+  @override
   void beginForStatement(Token token) {
     seen(token);
     doPrint('beginForStatement(' '$token)');

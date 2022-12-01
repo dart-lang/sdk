@@ -551,6 +551,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    _writeln('ForElement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     _writeln('FormalParameterList');
     _withIndent(() {
@@ -569,6 +577,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
     _writeln('ForPartsWithExpression');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitForPartsWithPattern(ForPartsWithPattern node) {
+    _writeln('ForPartsWithPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });

@@ -1,0 +1,5 @@
+void f(x) => [for (var (a, b) = x; ;) 0];
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] [[BeginToken]for[KeywordToken] ([BeginToken]var[KeywordToken] ([BeginToken]a[StringToken],[SimpleToken] b[StringToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken] ;[SimpleToken])[SimpleToken] 0[StringToken]][SimpleToken];[SimpleToken]
+[SimpleToken]
