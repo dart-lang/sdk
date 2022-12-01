@@ -9968,6 +9968,14 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     _expression = _becomeParentOf(expression);
   }
 
+  /// If [keyword] is `final`, returns it.
+  Token? get finalToken {
+    if (keyword.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;
 
@@ -13686,6 +13694,36 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
 
   @override
   Token get endToken => name;
+
+  /// If [keyword] is `final`, returns it.
+  Token? get finalToken {
+    final keyword = this.keyword;
+    if (keyword != null && keyword.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
+  /// Returns the context for this pattern.
+  /// * Declaration context: [PatternVariableDeclarationImpl]
+  /// * Assignment context: [PatternAssignmentImpl]
+  /// * Matching context: [GuardedPatternImpl]
+  AstNodeImpl? get patternContext {
+    for (DartPatternImpl current = this;;) {
+      final parent = current.parent;
+      if (parent is PatternVariableDeclarationImpl) {
+        return parent;
+      } else if (parent is PatternAssignmentImpl) {
+        return parent;
+      } else if (parent is GuardedPatternImpl) {
+        return parent;
+      } else if (parent is DartPatternImpl) {
+        current = parent;
+      } else {
+        return null;
+      }
+    }
+  }
 
   @override
   VariablePatternImpl? get variablePattern => this;

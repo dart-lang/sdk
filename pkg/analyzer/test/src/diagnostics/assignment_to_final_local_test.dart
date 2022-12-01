@@ -39,6 +39,18 @@ class B extends A {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 78, 1),
     ]);
   }
+
+  test_patternVariable_final() async {
+    await assertErrorsInCode('''
+void f() {
+  final (a) = 0;
+  a = 1;
+  a;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 30, 1),
+    ]);
+  }
 }
 
 @reflectiveTest

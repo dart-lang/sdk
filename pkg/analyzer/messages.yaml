@@ -15297,6 +15297,9 @@ CompileTimeErrorCode:
         void getValues() {}
       }
       ```
+  VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
+    problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+    correctionMessage: Try removing the keyword.
   VARIABLE_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a const variable of type '{1}'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"

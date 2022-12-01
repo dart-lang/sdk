@@ -1285,10 +1285,24 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _patternVariables.add(name, element);
       _elementHolder.enclose(element);
       _define(element);
-      element.isFinal = node.keyword?.keyword == Keyword.FINAL;
       element.hasImplicitType = node.type == null;
       element.type = node.type?.type ?? _dynamicType;
       node.declaredElement = element;
+
+      var patternContext = node.patternContext;
+      if (patternContext is PatternVariableDeclarationImpl) {
+        element.isFinal = patternContext.finalToken != null;
+        var keyword = node.keyword;
+        if (keyword != null) {
+          _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode
+                .VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+            keyword,
+          );
+        }
+      } else {
+        element.isFinal = node.finalToken != null;
+      }
     }
   }
 
