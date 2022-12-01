@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+view Class /* representationType = core::int */ {
+  method instanceMethod = self::Class|instanceMethod;
+  static method staticMethod = self::Class|staticMethod;
+}
+static method Class|instanceMethod() → void
+  ;
+static method Class|staticMethod() → void
+  ;

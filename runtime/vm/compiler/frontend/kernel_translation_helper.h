@@ -495,6 +495,7 @@ class FieldHelper {
     kNonNullableByDefault = 1 << 7,
     kInternalImplementation = 1 << 8,
     kEnumElement = 1 << 9,
+    kViewMember = 1 << 10,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -520,6 +521,7 @@ class FieldHelper {
   }
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
+  bool IsViewMember() const { return (flags_ & kViewMember) != 0; }
 
   NameIndex canonical_name_field_;
   NameIndex canonical_name_getter_;
@@ -593,6 +595,8 @@ class ProcedureHelper {
     kExtensionMember = 1 << 5,
     kSyntheticProcedure = 1 << 7,
     kInternalImplementation = 1 << 8,
+    kIsAbstractFieldAccessor = 1 << 9,
+    kViewMember = 1 << 10,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -626,6 +630,7 @@ class ProcedureHelper {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
+  bool IsViewMember() const { return (flags_ & kViewMember) != 0; }
   bool IsMemberSignature() const {
     return stub_kind_ == kMemberSignatureStubKind;
   }

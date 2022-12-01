@@ -1,0 +1,6 @@
+view
+class Class {
+  final int it;
+  void instanceMethod() {}
+  static void staticMethod() {}
+}

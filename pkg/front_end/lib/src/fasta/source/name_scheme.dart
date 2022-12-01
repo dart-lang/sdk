@@ -32,6 +32,8 @@ class NameScheme {
 
   bool get isExtensionMember => containerType == ContainerType.Extension;
 
+  bool get isViewMember => containerType == ContainerType.View;
+
   MemberName getFieldMemberName(FieldNameType fieldNameType, String name,
       {required bool isSynthesized}) {
     bool hasSynthesizedName;
@@ -118,31 +120,34 @@ class NameScheme {
       required bool isStatic,
       required ProcedureKind kind,
       required String name}) {
-    if (containerType == ContainerType.Extension) {
-      String extensionName = containerName!.name;
-      String kindInfix = '';
-      if (!isStatic) {
-        // Instance getter and setter are converted to methods so we use an
-        // infix to make their names unique.
-        switch (kind) {
-          case ProcedureKind.Getter:
-            kindInfix = 'get#';
-            break;
-          case ProcedureKind.Setter:
-            kindInfix = 'set#';
-            break;
-          case ProcedureKind.Method:
-          case ProcedureKind.Operator:
-            kindInfix = '';
-            break;
-          case ProcedureKind.Factory:
-            throw new UnsupportedError(
-                'Unexpected extension method kind ${kind}');
+    switch (containerType) {
+      case ContainerType.Extension:
+      case ContainerType.View:
+        String extensionName = containerName!.name;
+        String kindInfix = '';
+        if (!isStatic) {
+          // Instance getter and setter are converted to methods so we use an
+          // infix to make their names unique.
+          switch (kind) {
+            case ProcedureKind.Getter:
+              kindInfix = 'get#';
+              break;
+            case ProcedureKind.Setter:
+              kindInfix = 'set#';
+              break;
+            case ProcedureKind.Method:
+            case ProcedureKind.Operator:
+              kindInfix = '';
+              break;
+            case ProcedureKind.Factory:
+              throw new UnsupportedError(
+                  'Unexpected extension method kind ${kind}');
+          }
         }
-      }
-      return '${extensionName}|${kindInfix}${name}';
-    } else {
-      return name;
+        return '${extensionName}|${kindInfix}${name}';
+      case ContainerType.Library:
+      case ContainerType.Class:
+        return name;
     }
   }
 

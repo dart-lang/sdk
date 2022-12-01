@@ -2859,8 +2859,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         tearOffReference,
         asyncModifier,
         nameScheme,
-        isExtensionMember: isExtensionMember,
-        isInstanceMember: isInstanceMember,
         nativeMethodName: nativeMethodName);
     checkTypeVariables(typeVariables, procedureBuilder);
     addBuilder(name, procedureBuilder, charOffset,

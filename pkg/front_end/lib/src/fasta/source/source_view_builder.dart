@@ -114,28 +114,36 @@ class SourceViewBuilder extends ViewBuilderImpl
       case BuiltMemberKind.RedirectingFactory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
+      case BuiltMemberKind.ExtensionMethod:
+      case BuiltMemberKind.ExtensionGetter:
+      case BuiltMemberKind.ExtensionSetter:
+      case BuiltMemberKind.ExtensionOperator:
+      case BuiltMemberKind.ExtensionTearOff:
         unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
         kind = ViewMemberKind.Field;
         break;
-      case BuiltMemberKind.ExtensionMethod:
+      case BuiltMemberKind.ViewMethod:
         kind = ViewMemberKind.Method;
         break;
-      case BuiltMemberKind.ExtensionGetter:
+      case BuiltMemberKind.ViewGetter:
       case BuiltMemberKind.LateGetter:
         kind = ViewMemberKind.Getter;
         break;
-      case BuiltMemberKind.ExtensionSetter:
+      case BuiltMemberKind.ViewSetter:
       case BuiltMemberKind.LateSetter:
         kind = ViewMemberKind.Setter;
         break;
-      case BuiltMemberKind.ExtensionOperator:
+      case BuiltMemberKind.ViewOperator:
         kind = ViewMemberKind.Operator;
         break;
-      case BuiltMemberKind.ExtensionTearOff:
+      case BuiltMemberKind.ViewTearOff:
         kind = ViewMemberKind.TearOff;
+        break;
+      case BuiltMemberKind.ViewFactory:
+        kind = ViewMemberKind.Factory;
         break;
     }
     // ignore: unnecessary_null_comparison

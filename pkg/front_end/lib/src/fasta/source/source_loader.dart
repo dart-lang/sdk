@@ -1325,9 +1325,7 @@ severity: $severity
             containerName: null,
             containerType: ContainerType.Library,
             isInstanceMember: false,
-            libraryName: libraryBuilder.libraryName),
-        isInstanceMember: false,
-        isExtensionMember: false)
+            libraryName: libraryBuilder.libraryName))
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
