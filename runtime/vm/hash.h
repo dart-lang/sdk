@@ -10,6 +10,7 @@
 namespace dart {
 
 inline uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
+  // Keep in sync with AssemblerBase::CombineHashes.
   hash += other_hash;
   hash += hash << 10;
   hash ^= hash >> 6;  // Logical shift, unsigned hash.
@@ -17,6 +18,7 @@ inline uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
 }
 
 inline uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits = kBitsPerInt32) {
+  // Keep in sync with AssemblerBase::FinalizeHash.
   hash += hash << 3;
   hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;

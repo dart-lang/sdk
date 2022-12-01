@@ -1016,10 +1016,10 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     empty_instantiations_cache_array_->untag()->set_length(
         Smi::New(array_size));
-    // The empty cache has no occupied entries.
+    // The empty cache has no occupied entries and is not a hash-based cache.
     smi = Smi::New(0);
     empty_instantiations_cache_array_->SetAt(
-        TypeArguments::Cache::kOccupiedEntriesIndex, smi);
+        TypeArguments::Cache::kMetadataIndex, smi);
     // Make the first (and only) entry unoccupied by setting its first element
     // to the sentinel value.
     smi = TypeArguments::Cache::Sentinel();
@@ -6779,7 +6779,8 @@ bool TypeArguments::Cache::IsHash(const Array& array) {
 }
 
 intptr_t TypeArguments::Cache::NumOccupied(const Array& array) {
-  return RawSmiValue(Smi::RawCast(array.AtAcquire(kOccupiedEntriesIndex)));
+  return NumOccupiedBits::decode(
+      RawSmiValue(Smi::RawCast(array.AtAcquire(kMetadataIndex))));
 }
 
 #if defined(DEBUG)
@@ -6806,7 +6807,14 @@ bool TypeArguments::Cache::IsValidStorageLocked(const Array& array) {
   const bool is_linear_cache = IsLinear(array);
   // The capacity of a hash-based cache must be a power of two (see
   // EnsureCapacityLocked as to why).
-  if (!is_linear_cache && !Utils::IsPowerOfTwo(num_entries)) return false;
+  if (!is_linear_cache) {
+    if (!Utils::IsPowerOfTwo(num_entries)) return false;
+    const intptr_t metadata =
+        RawSmiValue(Smi::RawCast(array.AtAcquire(kMetadataIndex)));
+    if ((1 << EntryCountLog2Bits::decode(metadata)) != num_entries) {
+      return false;
+    }
+  }
   for (intptr_t i = 0; i < num_entries; i++) {
     const intptr_t index = kHeaderSize + i * kEntrySize;
     if (array.At(index + kSentinelIndex) == Sentinel()) {
@@ -6910,12 +6918,11 @@ TypeArguments::Cache::KeyLocation TypeArguments::Cache::AddEntry(
     entry = loc.entry;
   }
 
-  // Increment the number of occupied entries prior to adding the entry.
-  // Only the Cache class uses the information, and Cache objects are only
-  // created when holding the type arguments canonicalization mutex, so we
-  // don't need a store-release barrier for this.
-  smi_handle_ = Smi::New(new_occupied);
-  data_.SetAt(kOccupiedEntriesIndex, smi_handle_);
+  // Go ahead and increment the number of occupied entries prior to adding the
+  // entry. Use a store-release barrier in case of concurrent readers.
+  const intptr_t metadata = RawSmiValue(Smi::RawCast(data_.At(kMetadataIndex)));
+  smi_handle_ = Smi::New(NumOccupiedBits::update(new_occupied, metadata));
+  data_.SetAtRelease(kMetadataIndex, smi_handle_);
 
   InstantiationsCacheTable table(data_);
   const auto& tuple = table.At(entry);
@@ -7004,12 +7011,11 @@ bool TypeArguments::Cache::EnsureCapacity(intptr_t new_occupied) const {
   const auto& new_data =
       Array::Handle(zone_, Array::NewUninitialized(new_size, Heap::kOld));
   ASSERT(!new_data.IsNull());
-  // First copy over the metadata.
-  auto& object = Object::Handle(zone_);
-  for (intptr_t i = 0; i < kHeaderSize; i++) {
-    object = data_.At(i);
-    new_data.SetAt(i, object);
-  }
+  // First set up the metadata in new_data.
+  const intptr_t metadata = RawSmiValue(Smi::RawCast(data_.At(kMetadataIndex)));
+  smi_handle_ = Smi::New(EntryCountLog2Bits::update(
+      Utils::ShiftForPowerOfTwo(new_capacity), metadata));
+  new_data.SetAt(kMetadataIndex, smi_handle_);
   // Then mark all the entries in new_data as unoccupied.
   smi_handle_ = Sentinel();
   InstantiationsCacheTable to_table(new_data);
@@ -7017,14 +7023,14 @@ bool TypeArguments::Cache::EnsureCapacity(intptr_t new_occupied) const {
     tuple.Set<kSentinelIndex>(smi_handle_);
   }
   // Finally, copy over the entries.
+  auto& instantiator_tav = TypeArguments::Handle(zone_);
   auto& function_tav = TypeArguments::Handle(zone_);
   auto& result_tav = TypeArguments::Handle(zone_);
   const InstantiationsCacheTable from_table(data_);
   for (const auto& from_tuple : from_table) {
     // Skip unoccupied entries.
     if (from_tuple.Get<kSentinelIndex>() == Sentinel()) continue;
-    object = from_tuple.Get<kInstantiatorTypeArgsIndex>();
-    const auto& instantiator_tav = TypeArguments::Cast(object);
+    instantiator_tav ^= from_tuple.Get<kInstantiatorTypeArgsIndex>();
     function_tav = from_tuple.Get<kFunctionTypeArgsIndex>();
     result_tav = from_tuple.Get<kInstantiatedTypeArgsIndex>();
     // Since new_data has a different total capacity, we can't use the old
@@ -7350,6 +7356,14 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
   return instantiated_array.ptr();
 }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+// A local flag used only in object_test.cc that, when true, causes a failure
+// when a cache entry for the given instantiator and function type arguments
+// already exists. Used to check that the InstantiateTypeArguments stub found
+// the cache entry instead of calling the runtime.
+bool TESTING_runtime_fail_on_existing_cache_entry = false;
+#endif
+
 TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments) const {
@@ -7368,6 +7382,27 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   auto const loc = cache.FindKeyOrUnused(instantiator_type_arguments,
                                          function_type_arguments);
   if (loc.present) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    if (TESTING_runtime_fail_on_existing_cache_entry) {
+      TextBuffer buffer(1024);
+      buffer.Printf("for\n");
+      buffer.Printf("  * uninstantiated type arguments %s\n", ToCString());
+      buffer.Printf("  * instantiation type arguments: %s (hash: %" Pu ")\n",
+                    instantiator_type_arguments.ToCString(),
+                    instantiator_type_arguments.Hash());
+      buffer.Printf("  * function type arguments: %s (hash: %" Pu ")\n",
+                    function_type_arguments.ToCString(),
+                    function_type_arguments.Hash());
+      buffer.Printf("  * number of occupied entries in cache: %" Pd "\n",
+                    cache.NumOccupied());
+      buffer.Printf("  * number of total entries in cache: %" Pd "\n",
+                    cache.NumEntries());
+      buffer.Printf("expected to find entry %" Pd
+                    " of cache in stub, but reached runtime",
+                    loc.entry);
+      FATAL("%s", buffer.buffer());
+    }
+#endif
     return cache.Retrieve(loc.entry);
   }
   // Cache lookup failed. Instantiate the type arguments.

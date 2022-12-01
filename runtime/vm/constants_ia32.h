@@ -120,6 +120,14 @@ struct InstantiationABI {
   static const Register kScratchReg = EDI;  // On ia32 we don't use CODE_REG.
 };
 
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // On IA32, we don't do hash cache checks in the stub. We only define
+  // kSavedRegisters to avoid needing to #ifdef uses of it.
+  static const intptr_t kSavedRegisters = 0;
+};
+
 // Calling convention when calling SubtypeTestCacheStub.
 // Although ia32 uses a stack-based calling convention, we keep the same
 // 'TypeTestABI' name for symmetry with other architectures with a proper ABI.

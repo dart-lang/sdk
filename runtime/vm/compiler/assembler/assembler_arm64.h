@@ -594,18 +594,20 @@ class Assembler : public AssemblerBase {
   void LoadAcquireCompressed(Register dst,
                              Register address,
                              int32_t offset = 0) override {
+    Register src = address;
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
-      ldar(dst, TMP2, kObjectBytes);
-#if defined(USING_THREAD_SANITIZER)
-      TsanLoadAcquire(TMP2);
-#endif
-    } else {
-      ldar(dst, address, kObjectBytes);
-#if defined(USING_THREAD_SANITIZER)
-      TsanLoadAcquire(address);
-#endif
+      src = TMP2;
     }
+#if !defined(DART_COMPRESSED_POINTERS)
+    ldar(dst, src);
+#else
+    ldar(dst, src, kUnsignedFourBytes);  // Zero-extension.
+    add(dst, dst, Operand(HEAP_BITS, LSL, 32));
+#endif
+#if defined(USING_THREAD_SANITIZER)
+    TsanLoadAcquire(src);
+#endif
   }
 
   void StoreRelease(Register src,
@@ -1697,6 +1699,9 @@ class Assembler : public AssemblerBase {
   void LslImmediate(Register rd, int32_t shift, OperandSize sz = kEightBytes) {
     LslImmediate(rd, rd, shift, sz);
   }
+  void LslRegister(Register dst, Register shift) override {
+    lslv(dst, dst, shift);
+  }
   void LsrImmediate(Register rd,
                     Register rn,
                     int shift,
@@ -1833,6 +1838,21 @@ class Assembler : public AssemblerBase {
                             OperandSize sz = kEightBytes);
   void SubRegisters(Register dest, Register src) {
     sub(dest, dest, Operand(src));
+  }
+  void MulImmediate(Register reg,
+                    int64_t imm,
+                    OperandSize width = kEightBytes) override {
+    ASSERT(width == kFourBytes || width == kEightBytes);
+    if (Utils::IsPowerOfTwo(imm)) {
+      LslImmediate(reg, Utils::ShiftForPowerOfTwo(imm), width);
+    } else {
+      LoadImmediate(TMP, imm);
+      if (width == kFourBytes) {
+        mulw(reg, reg, TMP);
+      } else {
+        mul(reg, reg, TMP);
+      }
+    }
   }
   void AndImmediate(Register rd,
                     Register rn,
@@ -2209,6 +2229,9 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
+
+  void CombineHashes(Register hash, Register other) override;
+  void FinalizeHash(Register hash, Register scratch = TMP) override;
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.

@@ -2383,6 +2383,40 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
+void Assembler::CombineHashes(Register dst, Register other) {
+  // hash += other_hash
+  addl(dst, other);
+  // hash += hash << 10
+  movl(other, dst);
+  shll(other, Immediate(10));
+  addl(dst, other);
+  // hash ^= hash >> 6
+  movl(other, dst);
+  shrl(other, Immediate(6));
+  xorl(dst, other);
+}
+
+void Assembler::FinalizeHash(Register dst, Register scratch) {
+  ASSERT(scratch != kNoRegister);
+  // hash += hash << 3;
+  movl(scratch, dst);
+  shll(scratch, Immediate(3));
+  addl(dst, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  movl(scratch, dst);
+  shrl(scratch, Immediate(11));
+  xorl(dst, scratch);
+  // hash += hash << 15;
+  movl(scratch, dst);
+  shll(scratch, Immediate(15));
+  addl(dst, scratch);
+  // return (hash == 0) ? 1 : hash;
+  Label done;
+  j(NOT_ZERO, &done, kNearJump);
+  incl(dst);
+  Bind(&done);
+}
+
 void Assembler::EnterFullSafepoint(Register scratch) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.

@@ -8140,10 +8140,28 @@ class TypeArguments : public Instance {
     // type arguments.
 
     enum Header {
-      // The number of occupied entries in the cache.
-      kOccupiedEntriesIndex = 0,
+      // A single Smi that is a bitfield containing two values:
+      // - The number of occupied entries in the cache for all caches.
+      // - For hash-based caches, the upper bits contain log2(N) where N
+      //   is the number of total entries in the cache, so this information can
+      //   be quickly retrieved by stubs.
+      //
+      // Note: accesses outside of the type arguments canonicalization mutex
+      // must have acquire semantics. In C++ code, use NumOccupied to retrieve
+      // the number of occupied entries.
+      kMetadataIndex = 0,
       kHeaderSize,
     };
+
+    using NumOccupiedBits = BitField<intptr_t,
+                                     intptr_t,
+                                     0,
+                                     compiler::target::kSmiBits -
+                                         compiler::target::kBitsPerWordLog2>;
+    using EntryCountLog2Bits = BitField<intptr_t,
+                                        intptr_t,
+                                        NumOccupiedBits::kNextBit,
+                                        compiler::target::kBitsPerWordLog2>;
 
     // The tuple of values stored in a given entry.
     //
@@ -8239,9 +8257,20 @@ class TypeArguments : public Instance {
     // Returns whether the backing store changed.
     bool EnsureCapacity(intptr_t occupied) const;
 
+   public:  // For testing purposes only.
     // Retrieves the number of entries (occupied or unoccupied) in the cache.
     intptr_t NumEntries() const { return NumEntries(data_); }
 
+    // The maximum number of occupied entries for a linear cache of
+    // instantiations before swapping to a hash table-based cache.
+#if defined(TARGET_ARCH_IA32)
+    // We don't generate hash cache probing in the stub on IA32.
+    static constexpr intptr_t kMaxLinearCacheEntries = 500;
+#else
+    static constexpr intptr_t kMaxLinearCacheEntries = 10;
+#endif
+
+   private:
     // Retrieves the number of entries (occupied or unoccupied) in a cache
     // backed by the given array.
     static intptr_t NumEntries(const Array& array);
@@ -8258,11 +8287,7 @@ class TypeArguments : public Instance {
     // The sentinel value in the Smi returned from Sentinel().
     static constexpr intptr_t kSentinelValue = 0;
 
-   public:
-    // The maximum number of occupied entries for a linear cache of
-    // instantiations before swapping to a hash table-based cache.
-    static constexpr intptr_t kMaxLinearCacheEntries = 500;
-
+   public:  // Used in the StubCodeCompiler.
     // The maximum size of the array backing a linear cache. All hash based
     // caches are guaranteed to have sizes larger than this.
     static constexpr intptr_t kMaxLinearCacheSize =
@@ -8319,6 +8344,9 @@ class TypeArguments : public Instance {
   }
   uword Hash() const;
   uword HashForRange(intptr_t from_index, intptr_t len) const;
+  static intptr_t hash_offset() {
+    return OFFSET_OF(UntaggedTypeArguments, hash_);
+  }
 
   static TypeArgumentsPtr New(intptr_t len, Heap::Space space = Heap::kOld);
 

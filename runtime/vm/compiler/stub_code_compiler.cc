@@ -15,6 +15,7 @@
 
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/stack_frame.h"
 
 #define __ assembler->
@@ -282,64 +283,174 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   // the runtime or until we retrieve the instantiated type arguments out of it
   // to put in the result register, so we use the result register to store it.
   const Register kEntryReg = InstantiationABI::kResultTypeArgumentsReg;
+
+  // The registers that need spilling prior to traversing a hash-based cache.
+  const RegisterSet saved_registers(InstantiateTAVInternalRegs::kSavedRegisters,
+                                    /*fpu_register_mask=*/0);
+
+  static_assert(((1 << InstantiationABI::kInstantiatorTypeArgumentsReg) &
+                 InstantiateTAVInternalRegs::kSavedRegisters) == 0,
+                "Must handle possibility of inst tav reg being spilled");
+  static_assert(((1 << InstantiationABI::kFunctionTypeArgumentsReg) &
+                 InstantiateTAVInternalRegs::kSavedRegisters) == 0,
+                "Must handle possibility of inst tav reg being spilled");
+
+  // Takes labels for the cache hit/miss cases (to allow for restoring spilled
+  // registers).
+  auto check_entry = [&](compiler::Label* found, compiler::Label* not_found) {
+    __ Comment("Check cache entry");
+    // Use load-acquire to get the entry.
+    static_assert(TypeArguments::Cache::kSentinelIndex ==
+                      TypeArguments::Cache::kInstantiatorTypeArgsIndex,
+                  "sentinel is not same index as instantiator type args");
+    __ LoadAcquireCompressed(InstantiationABI::kScratchReg, kEntryReg,
+                             TypeArguments::Cache::kInstantiatorTypeArgsIndex *
+                                 target::kCompressedWordSize);
+    // Test for an unoccupied entry by checking for the Smi sentinel.
+    __ BranchIfSmi(InstantiationABI::kScratchReg, not_found);
+    // Otherwise it must be occupied and contain TypeArguments objects.
+    compiler::Label next;
+    __ CompareRegisters(InstantiationABI::kScratchReg,
+                        InstantiationABI::kInstantiatorTypeArgumentsReg);
+    __ BranchIf(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
+    __ LoadCompressed(
+        InstantiationABI::kScratchReg,
+        compiler::Address(kEntryReg,
+                          TypeArguments::Cache::kFunctionTypeArgsIndex *
+                              target::kCompressedWordSize));
+    __ CompareRegisters(InstantiationABI::kScratchReg,
+                        InstantiationABI::kFunctionTypeArgumentsReg);
+    __ BranchIf(EQUAL, found);
+    __ Bind(&next);
+  };
+
   // Lookup cache before calling runtime.
   __ LoadCompressed(
       InstantiationABI::kScratchReg,
       compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
                              target::TypeArguments::instantiations_offset()));
-  // Both the linear and hash-based cache access loops assume kEntryReg is
-  // the address of the first cache entry, so set it before branching.
+  // Go ahead and load the backing array data address into kEntryReg.
   __ LoadFieldAddressForOffset(kEntryReg, InstantiationABI::kScratchReg,
-                               Array::data_offset());
-  __ AddImmediate(kEntryReg, TypeArguments::Cache::kHeaderSize *
-                                 target::kCompressedWordSize);
+                               target::Array::data_offset());
 
-  compiler::Label linear_cache_loop, hash_cache_loop, found, call_runtime;
+  compiler::Label linear_cache_loop, hash_cache_search, cache_hit, call_runtime;
 
-  // There is a maximum size for linear caches that is smaller than the size of
-  // any hash-based cache, so we check the size of the backing array to
+  // There is a maximum size for linear caches that is smaller than the size
+  // of any hash-based cache, so we check the size of the backing array to
   // determine if this is a linear or hash-based cache.
   __ LoadFromSlot(InstantiationABI::kScratchReg, InstantiationABI::kScratchReg,
                   Slot::Array_length());
   __ CompareImmediate(
       InstantiationABI::kScratchReg,
       target::ToRawSmi(TypeArguments::Cache::kMaxLinearCacheSize));
+#if defined(TARGET_ARCH_IA32)
+  // We just don't have enough registers to do hash-based cache searching in a
+  // way that doesn't overly complicate the generation code, so just go to
+  // runtime.
   __ BranchIf(GREATER, &call_runtime);
+#else
+  __ BranchIf(GREATER, &hash_cache_search);
+#endif
 
+  __ Comment("Check linear cache");
+  // Move kEntryReg to the start of the first entry.
+  __ AddImmediate(kEntryReg, TypeArguments::Cache::kHeaderSize *
+                                 target::kCompressedWordSize);
   __ Bind(&linear_cache_loop);
-  // Use load-acquire to get the entry.
-  static_assert(TypeArguments::Cache::kSentinelIndex ==
-                    TypeArguments::Cache::kInstantiatorTypeArgsIndex,
-                "sentinel is not same index as instantiator type args");
-  __ LoadAcquireCompressed(InstantiationABI::kScratchReg, kEntryReg,
-                           TypeArguments::Cache::kInstantiatorTypeArgsIndex *
-                               target::kCompressedWordSize);
-  // Must either be the sentinel (a Smi) or a TypeArguments object, so test for
-  // a Smi and go to the runtime if found.
-  __ BranchIfSmi(InstantiationABI::kScratchReg, &call_runtime,
-                 compiler::Assembler::kNearJump);
-  // We have a TypeArguments object, so this is an array cache and we can
-  // safely access the other entries.
-  compiler::Label next;
-  __ CompareRegisters(InstantiationABI::kScratchReg,
-                      InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ BranchIf(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
-  __ LoadCompressed(
-      InstantiationABI::kScratchReg,
-      compiler::Address(kEntryReg,
-                        TypeArguments::Cache::kFunctionTypeArgsIndex *
-                            target::kCompressedWordSize));
-  __ CompareRegisters(InstantiationABI::kScratchReg,
-                      InstantiationABI::kFunctionTypeArgumentsReg);
-  __ BranchIf(EQUAL, &found, compiler::Assembler::kNearJump);
-  __ Bind(&next);
+  check_entry(&cache_hit, &call_runtime);
   __ AddImmediate(kEntryReg, TypeArguments::Cache::kEntrySize *
                                  target::kCompressedWordSize);
   __ Jump(&linear_cache_loop, compiler::Assembler::kNearJump);
 
+#if !defined(TARGET_ARCH_IA32)
+  __ Bind(&hash_cache_search);
+  __ Comment("Check hash-based cache");
+
+  compiler::Label pop_before_success, pop_before_failure;
+  if (!saved_registers.IsEmpty()) {
+    __ Comment("Spills due to register pressure");
+    __ PushRegisters(saved_registers);
+  }
+
+  __ Comment("Calculate address of first entry");
+  __ AddImmediate(
+      InstantiateTAVInternalRegs::kEntryStartReg, kEntryReg,
+      TypeArguments::Cache::kHeaderSize * target::kCompressedWordSize);
+
+  __ Comment("Calculate probe mask");
+  __ LoadAcquireCompressed(
+      InstantiationABI::kScratchReg, kEntryReg,
+      TypeArguments::Cache::kMetadataIndex * target::kCompressedWordSize);
+  __ LsrImmediate(
+      InstantiationABI::kScratchReg,
+      TypeArguments::Cache::EntryCountLog2Bits::shift() + kSmiTagShift);
+  __ LoadImmediate(InstantiateTAVInternalRegs::kProbeMaskReg, 1);
+  __ LslRegister(InstantiateTAVInternalRegs::kProbeMaskReg,
+                 InstantiationABI::kScratchReg);
+  __ AddImmediate(InstantiateTAVInternalRegs::kProbeMaskReg, -1);
+  // Can use kEntryReg as scratch now until we're entering the loop.
+
+  // Retrieve the hash from the TAV. If the retrieved hash is 0, jumps to
+  // not_found, otherwise falls through.
+  auto retrieve_hash = [&](Register dst, Register src) {
+    Label is_not_null, done;
+    __ CompareObject(src, NullObject());
+    __ BranchIf(NOT_EQUAL, &is_not_null, compiler::Assembler::kNearJump);
+    __ LoadImmediate(dst, TypeArguments::kAllDynamicHash);
+    __ Jump(&done, compiler::Assembler::kNearJump);
+    __ Bind(&is_not_null);
+    __ LoadFromSlot(dst, src, Slot::TypeArguments_hash());
+    __ SmiUntag(dst);
+    // If the retrieved hash is 0, then it hasn't been computed yet.
+    __ BranchIfZero(dst, &pop_before_failure);
+    __ Bind(&done);
+  };
+
+  __ Comment("Calculate initial probe from type argument vector hashes");
+  retrieve_hash(InstantiateTAVInternalRegs::kCurrentEntryIndexReg,
+                InstantiationABI::kInstantiatorTypeArgumentsReg);
+  retrieve_hash(InstantiationABI::kScratchReg,
+                InstantiationABI::kFunctionTypeArgumentsReg);
+  __ CombineHashes(InstantiateTAVInternalRegs::kCurrentEntryIndexReg,
+                   InstantiationABI::kScratchReg);
+  __ FinalizeHash(InstantiateTAVInternalRegs::kCurrentEntryIndexReg,
+                  InstantiationABI::kScratchReg);
+  // Use the probe mask to get a valid entry index.
+  __ AndRegisters(InstantiateTAVInternalRegs::kCurrentEntryIndexReg,
+                  InstantiateTAVInternalRegs::kProbeMaskReg);
+
+  // Start off the probing distance at zero (will increment prior to use).
+  __ LoadImmediate(InstantiateTAVInternalRegs::kProbeDistanceReg, 0);
+
+  compiler::Label loop;
+  __ Bind(&loop);
+  __ Comment("Loop over hash cache entries");
+  // Convert the current entry index into the entry address.
+  __ MoveRegister(kEntryReg, InstantiateTAVInternalRegs::kCurrentEntryIndexReg);
+  __ MulImmediate(kEntryReg, TypeArguments::Cache::kEntrySize *
+                                 target::kCompressedWordSize);
+  __ AddRegisters(kEntryReg, InstantiateTAVInternalRegs::kEntryStartReg);
+  check_entry(&pop_before_success, &pop_before_failure);
+  // Increment the probing distance and then add it to the current entry
+  // index, then mask the result with the probe mask.
+  __ AddImmediate(InstantiateTAVInternalRegs::kProbeDistanceReg, 1);
+  __ AddRegisters(InstantiateTAVInternalRegs::kCurrentEntryIndexReg,
+                  InstantiateTAVInternalRegs::kProbeDistanceReg);
+  __ AndRegisters(InstantiateTAVInternalRegs::kCurrentEntryIndexReg,
+                  InstantiateTAVInternalRegs::kProbeMaskReg);
+  __ Jump(&loop);
+
+  __ Bind(&pop_before_failure);
+  if (!saved_registers.IsEmpty()) {
+    __ Comment("Restore spilled registers on cache miss");
+    __ PopRegisters(saved_registers);
+  }
+#endif
+
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
   __ Bind(&call_runtime);
+  __ Comment("Cache miss");
   __ EnterStubFrame();
 #if !defined(DART_ASSEMBLER_HAS_NULL_REG)
   __ PushObject(Object::null_object());  // Make room for the result.
@@ -365,7 +476,16 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ LeaveStubFrame();
   __ Ret();
 
-  __ Bind(&found);
+#if !defined(TARGET_ARCH_IA32)
+  __ Bind(&pop_before_success);
+  if (!saved_registers.IsEmpty()) {
+    __ Comment("Restore spilled registers on cache hit");
+    __ PopRegisters(saved_registers);
+  }
+#endif
+
+  __ Bind(&cache_hit);
+  __ Comment("Cache hit");
   __ LoadCompressed(
       InstantiationABI::kResultTypeArgumentsReg,
       compiler::Address(kEntryReg,

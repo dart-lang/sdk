@@ -8077,6 +8077,71 @@ FutureOr<T?> bar<T>() { return null; }
   }
 }
 
+#define __ assembler->
+
+static void GenerateInvokeInstantiateTAVStub(compiler::Assembler* assembler) {
+  __ EnterDartFrame(0);
+
+  // Load the arguments into the right stub calling convention registers.
+  const intptr_t uninstantiated_offset =
+      (kCallerSpSlotFromFp + 2) * compiler::target::kWordSize;
+  const intptr_t inst_type_args_offset =
+      (kCallerSpSlotFromFp + 1) * compiler::target::kWordSize;
+  const intptr_t fun_type_args_offset =
+      (kCallerSpSlotFromFp + 0) * compiler::target::kWordSize;
+
+  __ LoadMemoryValue(InstantiationABI::kUninstantiatedTypeArgumentsReg, FPREG,
+                     uninstantiated_offset);
+  __ LoadMemoryValue(InstantiationABI::kInstantiatorTypeArgumentsReg, FPREG,
+                     inst_type_args_offset);
+  __ LoadMemoryValue(InstantiationABI::kFunctionTypeArgumentsReg, FPREG,
+                     fun_type_args_offset);
+
+  __ Call(StubCode::InstantiateTypeArguments());
+
+  // Set the return from the stub.
+  __ MoveRegister(CallingConventions::kReturnReg,
+                  InstantiationABI::kResultTypeArgumentsReg);
+  __ LeaveDartFrame();
+  __ Ret();
+}
+
+#undef __
+
+static CodePtr CreateInvokeInstantiateTypeArgumentsStub(Thread* thread) {
+  Zone* const zone = thread->zone();
+  const auto& klass = Class::Handle(
+      zone, thread->isolate_group()->class_table()->At(kInstanceCid));
+  const auto& symbol = String::Handle(
+      zone, Symbols::New(thread, OS::SCreate(zone, "InstantiateTAVTest")));
+  const auto& signature = FunctionType::Handle(zone, FunctionType::New());
+  const auto& function = Function::Handle(
+      zone, Function::New(signature, symbol, UntaggedFunction::kRegularFunction,
+                          false, false, false, false, false, klass,
+                          TokenPosition::kNoSource));
+  compiler::ObjectPoolBuilder pool_builder;
+  const auto& invoke_instantiate_tav =
+      Code::Handle(zone, StubCode::Generate("InstantiateTAV", &pool_builder,
+                                            &GenerateInvokeInstantiateTAVStub));
+  const auto& pool =
+      ObjectPool::Handle(zone, ObjectPool::NewFromBuilder(pool_builder));
+  invoke_instantiate_tav.set_object_pool(pool.ptr());
+  invoke_instantiate_tav.set_owner(function);
+  invoke_instantiate_tav.set_exception_handlers(
+      ExceptionHandlers::Handle(zone, ExceptionHandlers::New(0)));
+#if defined(TARGET_ARCH_IA32)
+  EXPECT_EQ(0, pool.Length());
+#else
+  EXPECT_EQ(1, pool.Length());  // The InstantiateTypeArguments stub.
+#endif
+  return invoke_instantiate_tav.ptr();
+}
+
+#if !defined(PRODUCT)
+// Defined before TypeArguments::InstantiateAndCanonicalizeFrom in object.cc.
+extern bool TESTING_runtime_fail_on_existing_cache_entry;
+#endif
+
 static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   TextBuffer buffer(MB);
   buffer.AddString("class D<T> {}\n");
@@ -8086,7 +8151,7 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   }
   buffer.AddString("main() {\n");
   for (intptr_t i = 0; i < num_classes; i++) {
-    buffer.Printf("  new C%" Pd "().toString();\n", i);
+    buffer.Printf("  C%" Pd "().toString();\n", i);
   }
   buffer.AddString("}\n");
 
@@ -8122,7 +8187,16 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   // Cache the first computed set of instantiator type arguments to check that
   // no entries from the cache have been lost when the cache grows.
   auto& first_instantiator_type_args = TypeArguments::Handle(zone);
+  // Used for the cache hit in stub check.
+  const auto& invoke_instantiate_tav =
+      Code::Handle(zone, CreateInvokeInstantiateTypeArgumentsStub(thread));
+  const auto& invoke_instantiate_tav_arguments =
+      Array::Handle(zone, Array::New(3));
+  const auto& invoke_instantiate_tav_args_descriptor =
+      Array::Handle(zone, ArgumentsDescriptor::NewBoxed(0, 3));
   for (intptr_t i = 0; i < num_classes; ++i) {
+    const bool updated_cache_is_linear =
+        i < TypeArguments::Cache::kMaxLinearCacheEntries;
     auto const name = OS::SCreate(zone, "C%" Pd "", i);
     class_c = GetClass(root_lib, name);
     ASSERT(!class_c.IsNull());
@@ -8131,7 +8205,16 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
     instantiator_type_args.SetTypeAt(0, decl_type_c);
     instantiator_type_args = instantiator_type_args.Canonicalize(thread);
 
+#if !defined(PRODUCT)
+    // The first call to InstantiateAndCanonicalizeFrom shouldn't have a cache
+    // hit since the instantiator type arguments should be unique for each
+    // iteration, and after that we do a check that the InstantiateTypeArguments
+    // stub finds the entry (unless the cache is hash-based on IA32).
+    TESTING_runtime_fail_on_existing_cache_entry = true;
+#endif
+
     // Check that the key does not currently exist in the cache.
+    intptr_t old_capacity;
     {
       SafepointMutexLocker ml(
           thread->isolate_group()->type_arguments_canonicalization_mutex());
@@ -8140,6 +8223,7 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
       auto loc =
           cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
       EXPECT(!loc.present);
+      old_capacity = cache.NumEntries();
     }
 
     decl_type_d_type_args.InstantiateAndCanonicalizeFrom(instantiator_type_args,
@@ -8147,17 +8231,44 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
 
     // Check that the key now does exist in the cache.
     TypeArguments::Cache::KeyLocation loc;
+    bool storage_changed;
     {
       SafepointMutexLocker ml(
           thread->isolate_group()->type_arguments_canonicalization_mutex());
       TypeArguments::Cache cache(zone, decl_type_d_type_args);
       EXPECT_EQ(i + 1, cache.NumOccupied());
       // Double-check that we got the expected type of cache.
-      EXPECT(i < TypeArguments::Cache::kMaxLinearCacheEntries ? cache.IsLinear()
-                                                              : cache.IsHash());
+      EXPECT(updated_cache_is_linear ? cache.IsLinear() : cache.IsHash());
       loc = cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
       EXPECT(loc.present);
+      storage_changed = cache.NumEntries() != old_capacity;
     }
+
+#if defined(TARGET_ARCH_IA32)
+    const bool stub_checks_hash_caches = false;
+#else
+    const bool stub_checks_hash_caches = true;
+#endif
+    // Now check that we get the expected result from calling the stub if it
+    // checks the cache (e.g., in all cases but hash-based caches on IA32).
+    if (updated_cache_is_linear || stub_checks_hash_caches) {
+      invoke_instantiate_tav_arguments.SetAt(0, decl_type_d_type_args);
+      invoke_instantiate_tav_arguments.SetAt(1, instantiator_type_args);
+      invoke_instantiate_tav_arguments.SetAt(2, function_type_args);
+      result_type_args ^= DartEntry::InvokeCode(
+          invoke_instantiate_tav, invoke_instantiate_tav.EntryPoint(),
+          invoke_instantiate_tav_args_descriptor,
+          invoke_instantiate_tav_arguments, thread);
+      EXPECT_EQ(1, result_type_args.Length());
+      result_type = result_type_args.TypeAt(0);
+      EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(decl_type_c, result_type);
+    }
+
+#if !defined(PRODUCT)
+    // Setting to false prior to re-calling InstantiateAndCanonicalizeFrom with
+    // the same keys, as now we want a runtime check of an existing cache entry.
+    TESTING_runtime_fail_on_existing_cache_entry = false;
+#endif
 
     result_type_args = decl_type_d_type_args.InstantiateAndCanonicalizeFrom(
         instantiator_type_args, function_type_args);
@@ -8178,8 +8289,8 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
 
     if (i == 0) {
       first_instantiator_type_args = instantiator_type_args.ptr();
-    } else {
-      // Check that the first instantiator TAV still exists in the cache.
+    } else if (storage_changed) {
+      // Check that the first instantiator TAV still exists in the new cache.
       SafepointMutexLocker ml(
           thread->isolate_group()->type_arguments_canonicalization_mutex());
       TypeArguments::Cache cache(zone, decl_type_d_type_args);
@@ -8201,10 +8312,11 @@ TEST_CASE(TypeArguments_Cache_SomeInstantiations) {
                              2 * TypeArguments::Cache::kMaxLinearCacheEntries);
 }
 
-// Too slow in debug mode. Also avoid the sanitizers for similar reasons.
+// Too slow in debug mode. Also avoid the sanitizers and simulators for similar
+// reasons. Any core issues will likely be found by SomeInstantiations.
 #if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
     !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
-    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER)
+    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) && !defined(USING_SIMULATOR)
 TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
   const intptr_t kNumClasses = 100000;
   static_assert(kNumClasses > TypeArguments::Cache::kMaxLinearCacheEntries,

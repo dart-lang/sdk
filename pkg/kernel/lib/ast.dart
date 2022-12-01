@@ -2239,6 +2239,21 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   ///
   bool get isExtensionMember;
 
+  /// If `true` this member is compiled from a member declared in a view class
+  /// declaration.
+  ///
+  /// For instance `field`, `method1` and `method2` in:
+  ///
+  ///     view class A {
+  ///       final B it;
+  ///       A(this.it);
+  ///       static var field;
+  ///       B method1() => this;
+  ///       static B method2() => new B();
+  ///     }
+  ///
+  bool get isViewMember;
+
   /// If `true` this member is defined in a library for which non-nullable by
   /// default is enabled.
   bool get isNonNullableByDefault;
@@ -2474,6 +2489,7 @@ class Field extends Member {
   static const int FlagNonNullableByDefault = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagEnumElement = 1 << 9;
+  static const int FlagViewMember = 1 << 10;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
@@ -2487,6 +2503,9 @@ class Field extends Member {
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
+
+  @override
+  bool get isViewMember => flags & FlagViewMember != 0;
 
   /// Indicates whether the implicit setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
@@ -2557,6 +2576,10 @@ class Field extends Member {
 
   void set isEnumElement(bool value) {
     flags = value ? (flags | FlagEnumElement) : (flags & ~FlagEnumElement);
+  }
+
+  void set isViewMember(bool value) {
+    flags = value ? (flags | FlagViewMember) : (flags & ~FlagViewMember);
   }
 
   @override
@@ -2736,6 +2759,9 @@ class Constructor extends Member {
   bool get isExtensionMember => false;
 
   @override
+  bool get isViewMember => false;
+
+  @override
   bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
 
   @override
@@ -2897,6 +2923,9 @@ class RedirectingFactory extends Member {
 
   @override
   bool get isExtensionMember => false;
+
+  @override
+  bool get isViewMember => false;
 
   bool get isUnresolved => targetReference == null;
 
@@ -3313,6 +3342,7 @@ class Procedure extends Member {
   static const int FlagSynthetic = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagIsAbstractFieldAccessor = 1 << 9;
+  static const int FlagViewMember = 1 << 10;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3392,6 +3422,9 @@ class Procedure extends Member {
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
 
+  @override
+  bool get isViewMember => flags & FlagViewMember != 0;
+
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
   }
@@ -3418,6 +3451,10 @@ class Procedure extends Member {
   void set isExtensionMember(bool value) {
     flags =
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
+  }
+
+  void set isViewMember(bool value) {
+    flags = value ? (flags | FlagViewMember) : (flags & ~FlagViewMember);
   }
 
   void set isSynthetic(bool value) {
@@ -14774,10 +14811,12 @@ class Component extends TreeNode {
   Component(
       {CanonicalName? nameRoot,
       List<Library>? libraries,
-      Map<Uri, Source>? uriToSource})
+      Map<Uri, Source>? uriToSource,
+      NonNullableByDefaultCompiledMode? mode})
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
-        uriToSource = uriToSource ?? <Uri, Source>{} {
+        uriToSource = uriToSource ?? <Uri, Source>{},
+        _mode = mode {
     adoptChildren();
   }
 

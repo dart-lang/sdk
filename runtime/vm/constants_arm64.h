@@ -53,10 +53,10 @@ enum Register {
   R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia, TEB on Windows.
   R19 = 19,
   R20 = 20,
-  R21 = 21,  // DISPATCH_TABLE_REG
+  R21 = 21,  // DISPATCH_TABLE_REG (AOT only)
   R22 = 22,  // NULL_REG
   R23 = 23,
-  R24 = 24,
+  R24 = 24,  // CODE_REG
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
@@ -179,6 +179,20 @@ struct InstantiationABI {
   static const Register kResultTypeArgumentsReg = R0;
   static const Register kResultTypeReg = R0;
   static const Register kScratchReg = R8;
+};
+
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // The set of registers that must be pushed/popped when probing a hash-based
+  // cache due to overlap with the registers in InstantiationABI.
+  static const intptr_t kSavedRegisters = 0;
+
+  // Additional registers used to probe hash-based caches.
+  static const Register kEntryStartReg = R9;
+  static const Register kProbeMaskReg = R7;
+  static const Register kProbeDistanceReg = R6;
+  static const Register kCurrentEntryIndexReg = R10;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the

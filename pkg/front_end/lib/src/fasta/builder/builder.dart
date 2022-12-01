@@ -194,6 +194,29 @@ abstract class Builder {
   ///
   bool get isExtensionInstanceMember;
 
+  /// Returns `true` if this builder is an instance member of an extension
+  /// declaration.
+  ///
+  /// For instance `method3a` in:
+  ///
+  ///     class A {
+  ///       A.constructor();     // Not a view instance member.
+  ///       method1a() {}        // Not a view instance member.
+  ///       static method1b() {} // Not a view instance member.
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}        // Not a view instance member.
+  ///       static method2b() {} // Not a view instance member.
+  ///     }
+  ///     view C {
+  ///       final A it;
+  ///       A(this.is);          // Not a view instance member.
+  ///       method3a() {}
+  ///       static method3b() {} // Not a view instance member.
+  ///     }
+  ///
+  bool get isViewInstanceMember;
+
   bool get isLocal;
 
   bool get isPatch;
@@ -275,6 +298,9 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isExtensionInstanceMember => false;
+
+  @override
+  bool get isViewInstanceMember => false;
 
   @override
   bool get isLocal => false;

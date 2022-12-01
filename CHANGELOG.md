@@ -323,6 +323,16 @@ Updated the Linter to `1.31.0`, which includes changes that
 - **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
   dart2js no longer supports HTTP URIs as inputs.
 
+## 2.18.5 - 2022-11-23
+
+- fixes an error on private variable setters in mixins on dart web
+  (issue [#50119][]).
+- fixes the handling of type parameter nullability in factory constructors
+  (issue [#50392][]).
+
+[#50119]: https://github.com/dart-lang/sdk/issues/50119
+[#50392]: https://github.com/dart-lang/sdk/issues/50392
+
 ## 2.18.4 - 2022-11-02
 
 This is a patch release that fixes crashes during hot reload

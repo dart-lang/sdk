@@ -3457,6 +3457,26 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
+void Assembler::CombineHashes(Register hash, Register other) {
+  // hash += other_hash
+  add(hash, hash, Operand(other));
+  // hash += hash << 10
+  add(hash, hash, Operand(hash, LSL, 10));
+  // hash ^= hash >> 6
+  eor(hash, hash, Operand(hash, LSR, 6));
+}
+
+void Assembler::FinalizeHash(Register hash, Register scratch) {
+  // hash += hash << 3;
+  add(hash, hash, Operand(hash, LSL, 3));
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  eor(hash, hash, Operand(hash, LSR, 11));
+  // hash += hash << 15;
+  adds(hash, hash, Operand(hash, LSL, 15));
+  // return (hash == 0) ? 1 : hash;
+  LoadImmediate(hash, 1, ZERO);
+}
+
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(Register stats_addr_reg, Label* trace) {
   ASSERT(stats_addr_reg != kNoRegister);

@@ -390,8 +390,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
             containerName: new ClassName(name),
             containerType: ContainerType.Class,
             libraryName: new LibraryName(coreLibrary.library.reference)),
-        isExtensionMember: false,
-        isInstanceMember: true,
         isSynthetic: true);
     members["_enumToString"] = toStringBuilder;
     String className = name;

@@ -89,12 +89,12 @@ enum Register {
   R3 = 3,
   R4 = 4,
   R5 = 5,  // PP
-  R6 = 6,  // CODE
-  R7 = 7,  // iOS FP
+  R6 = 6,  // CODE_REG
+  R7 = 7,  // FP on iOS, DISPATCH_TABLE_REG on non-iOS (AOT only)
   R8 = 8,
   R9 = 9,
   R10 = 10,  // THR
-  R11 = 11,  // Linux/Android/Windows FP
+  R11 = 11,  // FP on non-iOS, DISPATCH_TABLE_REG on iOS (AOT only)
   R12 = 12,  // IP aka TMP
   R13 = 13,  // SP
   R14 = 14,  // LR
@@ -350,6 +350,25 @@ struct InstantiationABI {
   static const Register kResultTypeArgumentsReg = R0;
   static const Register kResultTypeReg = R0;
   static const Register kScratchReg = R8;
+};
+
+// Registers in addition to those listed in InstantiationABI used inside the
+// implementation of the InstantiateTypeArguments stubs.
+struct InstantiateTAVInternalRegs {
+  // The set of registers that must be pushed/popped when probing a hash-based
+  // cache due to overlap with the registers in InstantiationABI.
+  static const intptr_t kSavedRegisters =
+#if defined(DART_PRECOMPILER)
+      (1 << DISPATCH_TABLE_REG) |
+#endif
+      (1 << InstantiationABI::kUninstantiatedTypeArgumentsReg);
+
+  // Additional registers used to probe hash-based caches.
+  static const Register kEntryStartReg = R9;
+  static const Register kProbeMaskReg = R4;
+  static const Register kProbeDistanceReg = DISPATCH_TABLE_REG;
+  static const Register kCurrentEntryIndexReg =
+      InstantiationABI::kUninstantiatedTypeArgumentsReg;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the

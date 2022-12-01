@@ -766,6 +766,17 @@ void Assembler::AndRegisters(Register dst, Register src1, Register src2) {
   }
 }
 
+void Assembler::LslRegister(Register dst, Register shift) {
+  if (shift != RCX) {
+    movq(TMP, RCX);
+    movq(RCX, shift);
+    shlq(dst == RCX ? TMP : dst, RCX);
+    movq(RCX, TMP);
+  } else {
+    shlq(dst, shift);
+  }
+}
+
 void Assembler::OrImmediate(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     orq(dst, imm);
@@ -850,7 +861,14 @@ void Assembler::MulImmediate(Register reg,
                              const Immediate& imm,
                              OperandSize width) {
   ASSERT(width == kFourBytes || width == kEightBytes);
-  if (imm.is_int32()) {
+  if (Utils::IsPowerOfTwo(imm.value())) {
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(imm.value());
+    if (width == kFourBytes) {
+      shll(reg, Immediate(shift));
+    } else {
+      shlq(reg, Immediate(shift));
+    }
+  } else if (imm.is_int32()) {
     if (width == kFourBytes) {
       imull(reg, imm);
     } else {
@@ -2171,6 +2189,40 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   while (CodeSize() < target::Instructions::kPolymorphicEntryOffsetJIT) {
     int3();
   }
+}
+
+void Assembler::CombineHashes(Register dst, Register other) {
+  // hash += other_hash
+  addl(dst, other);
+  // hash += hash << 10
+  movl(other, dst);
+  shll(other, Immediate(10));
+  addl(dst, other);
+  // hash ^= hash >> 6
+  movl(other, dst);
+  shrl(other, Immediate(6));
+  xorl(dst, other);
+}
+
+void Assembler::FinalizeHash(Register dst, Register scratch) {
+  ASSERT(scratch != kNoRegister);
+  // hash += hash << 3;
+  movl(scratch, dst);
+  shll(scratch, Immediate(3));
+  addl(dst, scratch);
+  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
+  movl(scratch, dst);
+  shrl(scratch, Immediate(11));
+  xorl(dst, scratch);
+  // hash += hash << 15;
+  movl(scratch, dst);
+  shll(scratch, Immediate(15));
+  addl(dst, scratch);
+  // return (hash == 0) ? 1 : hash;
+  Label done;
+  j(NOT_ZERO, &done, kNearJump);
+  incl(dst);
+  Bind(&done);
 }
 
 #ifndef PRODUCT

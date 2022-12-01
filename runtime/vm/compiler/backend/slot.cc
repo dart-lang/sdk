@@ -160,6 +160,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kArrayElement:
     case Slot::Kind::kInstance_native_fields_array:
     case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kTypeArguments_hash:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_typed_data:
     case Slot::Kind::kGrowableObjectArray_data:
