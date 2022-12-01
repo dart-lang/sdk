@@ -204,14 +204,6 @@ bool SourceReport::ShouldFiltersIncludeUrl(const String& url) {
   return false;
 }
 
-bool SourceReport::ShouldFiltersIncludeLibrary(const Library& lib) {
-  if (library_filters_.IsNull()) {
-    return true;
-  }
-  const String& url = String::Handle(zone(), lib.url());
-  return ShouldFiltersIncludeUrl(url);
-}
-
 bool SourceReport::ShouldFiltersIncludeScript(const Script& script) {
   if (library_filters_.IsNull()) return true;
   String& url = String::Handle(zone(), script.url());
@@ -623,25 +615,18 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Field& field = Field::Handle(zone());
   Script& script = Script::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-
-  if (!ShouldFiltersIncludeLibrary(lib)) {
-    return;
-  }
-
   while (it.HasNext()) {
     cls = it.GetNextClass();
-
-    script = cls.script();
-    const intptr_t script_index = GetScriptIndex(script);
-    if (script_index < 0) {
-      continue;
-    }
-
     if (!cls.is_finalized()) {
       if (compile_mode_ == kForceCompile) {
         Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
+          script = cls.script();
+          const intptr_t script_index = GetScriptIndex(script);
+          if (script_index < 0) {
+            continue;
+          }
           JSONObject range(jsarr);
           range.AddProperty("scriptIndex", script_index);
           range.AddProperty("startPos", cls.token_pos());
@@ -654,6 +639,11 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
       } else {
         cls.EnsureDeclarationLoaded();
         // Emit one range for the whole uncompiled class.
+        script = cls.script();
+        const intptr_t script_index = GetScriptIndex(script);
+        if (script_index < 0) {
+          continue;
+        }
         JSONObject range(jsarr);
         range.AddProperty("scriptIndex", script_index);
         range.AddProperty("startPos", cls.token_pos());
