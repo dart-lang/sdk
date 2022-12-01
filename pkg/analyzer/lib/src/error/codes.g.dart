@@ -4898,6 +4898,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT = CompileTimeErrorCode(
+    'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
+    "Variable patterns in declaration context can't specify 'var' or 'final' "
+        "keyword.",
+    correctionMessage: "Try removing the keyword.",
+  );
+
   ///  Parameters:
   ///  0: the type of the object being assigned.
   ///  1: the type of the variable being assigned to

@@ -29,3 +29,8 @@ class OutsideB implements SealedClass {
   @override
   int bar(int value) => value;
 }
+
+mixin OutsideMixin implements SealedClass {}
+//    ^
+// [analyzer] unspecified
+// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.

@@ -9,3 +9,9 @@ sealed class SealedClass {}
 abstract class A extends SealedClass {}
 
 class B extends SealedClass {}
+
+sealed mixin SealedMixin {}
+
+class C extends SealedClass with SealedMixin {}
+
+class D with SealedMixin {}

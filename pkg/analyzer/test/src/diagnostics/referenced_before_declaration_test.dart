@@ -20,18 +20,18 @@ class ReferencedBeforeDeclarationTest extends PubPackageResolutionTest {
 var v = 0;
 void f() {
   v;
-  var [var v] = [0];
+  var [v] = [0];
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 24, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 38, 1)]),
+          contextMessages: [message('/home/test/lib/test.dart', 34, 1)]),
     ]);
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@38
+  staticElement: v@34
   staticType: dynamic
 ''');
   }
@@ -40,7 +40,7 @@ SimpleIdentifier
     await assertNoErrorsInCode(r'''
 var v = 0;
 void f() {
-  var [var v] = [0];
+  var [v] = [0];
   v;
 }
 ''');

@@ -1,6 +1,6 @@
 test(dynamic x) {
 switch (x) {
-case int? _ & double? _ & Object? _:
+case int? _ && double? _ && Object? _:
 break;
 }
 }
@@ -8,7 +8,7 @@ break;
 
 test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
 switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
-case[KeywordToken] int[StringToken]?[SimpleToken] _[StringToken] &[SimpleToken] double[StringToken]?[SimpleToken] _[StringToken] &[SimpleToken] Object[StringToken]?[SimpleToken] _[StringToken]:[SimpleToken]
+case[KeywordToken] int[StringToken]?[SimpleToken] _[StringToken] &&[SimpleToken] double[StringToken]?[SimpleToken] _[StringToken] &&[SimpleToken] Object[StringToken]?[SimpleToken] _[StringToken]:[SimpleToken]
 break[KeywordToken];[SimpleToken]
 }[SimpleToken]
 }[SimpleToken]

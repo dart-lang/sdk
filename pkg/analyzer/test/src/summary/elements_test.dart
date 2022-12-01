@@ -7570,6 +7570,18 @@ library
 ''');
   }
 
+  test_class_sealed() async {
+    var library = await buildLibrary('sealed class C {}');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      sealed class C @13
+        constructors
+          synthetic @-1
+''');
+  }
+
   test_class_setter_abstract() async {
     var library =
         await buildLibrary('abstract class C { void set x(int value); }');
@@ -9028,6 +9040,35 @@ library
       class E @37
         constructors
           synthetic @-1
+''');
+  }
+
+  test_classAlias_sealed() async {
+    var library = await buildLibrary('''
+sealed class C = Object with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      sealed class alias C @13
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::new
+    mixins
+      mixin M @38
+        superclassConstraints
+          Object
 ''');
   }
 
@@ -34204,6 +34245,20 @@ library
         methods
           A @33
             returnType: void
+''');
+  }
+
+  test_mixin_sealed() async {
+    var library = await buildLibrary(r'''
+sealed mixin M on A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      sealed mixin M @13
+        superclassConstraints
+          Object
 ''');
   }
 

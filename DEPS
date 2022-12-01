@@ -129,7 +129,7 @@ vars = {
   "devtools_rev": "dd3fade2bd2ef74fc6102e56333a48f0efc594d3",
   "ffi_rev": "17a8142da8114a065e03200467c7657b5368a86d",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
-  "fixnum_rev": "bca3816daf641397f7b5ab9cf865a6d10d30c625", # b/260609190
+  "fixnum_rev": "bca3816daf641397f7b5ab9cf865a6d10d30c625",
   "glob_rev": "7f97bf5be6bfe8c90a92283e4c590dba2a676083",
   "html_rev": "28fb8b97acf471bedcfa4eaf38899a0f65d5e30d",
   "http_multi_server_rev": "e31c6988e3869fb4019429254604066338f86095",
@@ -139,7 +139,7 @@ vars = {
   "intl_rev": "a127902594a964f2090239fb454adadf7c1a77ef",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "16fed53fbebd38edf170f58c1da1de2a325b2b98",
-  "linter_rev": "f42cb7a38ffccaa5bfe3ede091b71be87d7075d8", # 1.31.0
+  "linter_rev": "7fe671cdadb52139295bae0abf62c014369af93a", # 1.31.0
   "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "f322480fb9d9e83e677c08db6d09067059f7ff74",
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9",

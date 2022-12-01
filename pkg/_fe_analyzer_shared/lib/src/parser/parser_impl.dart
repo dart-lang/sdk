@@ -7243,7 +7243,9 @@ class Parser {
         'as',
         '..',
         '|',
-        '&'
+        '||',
+        '&',
+        '&&'
       ])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
@@ -9266,7 +9268,9 @@ class Parser {
           token = next;
           break;
         case '&':
+        case '&&':
         case '|':
+        case '||':
           listener.beginBinaryPattern(next);
           // Left associative so we parse the RHS one precedence level higher
           token = parsePattern(next,

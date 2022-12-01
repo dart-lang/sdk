@@ -482,6 +482,16 @@ $code
     _assertSource(code, findNode.classDeclaration(code));
   }
 
+  void test_visitClassDeclaration_sealed() {
+    var findNode = _parseStringToFindNode(r'''
+sealed class A {}
+''');
+    _assertSource(
+      'sealed class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_singleMember() {
     final code = 'class C {var a;}';
     final findNode = _parseStringToFindNode(code);
@@ -593,6 +603,16 @@ $code
 $code
 ''');
     _assertSource(code, findNode.classTypeAlias(code));
+  }
+
+  void test_visitClassTypeAlias_sealed() {
+    var findNode = _parseStringToFindNode(r'''
+sealed class A = S with M;
+''');
+    _assertSource(
+      'sealed class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_withMetadata() {

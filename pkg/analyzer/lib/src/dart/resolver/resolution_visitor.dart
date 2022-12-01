@@ -180,7 +180,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitBinaryPattern(covariant BinaryPatternImpl node) {
-    final isOr = node.operator.type == TokenType.BAR;
+    assert(node.operator.type == TokenType.AMPERSAND ||
+        node.operator.type == TokenType.AMPERSAND_AMPERSAND ||
+        node.operator.type == TokenType.BAR ||
+        node.operator.type == TokenType.BAR_BAR);
+    final isOr = node.operator.type == TokenType.BAR ||
+        node.operator.type == TokenType.BAR_BAR;
     if (isOr) {
       _patternVariables.logicalOrPatternStart();
       node.leftOperand.accept(this);
@@ -1280,10 +1285,24 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _patternVariables.add(name, element);
       _elementHolder.enclose(element);
       _define(element);
-      element.isFinal = node.keyword?.keyword == Keyword.FINAL;
       element.hasImplicitType = node.type == null;
       element.type = node.type?.type ?? _dynamicType;
       node.declaredElement = element;
+
+      var patternContext = node.patternContext;
+      if (patternContext is PatternVariableDeclarationImpl) {
+        element.isFinal = patternContext.finalToken != null;
+        var keyword = node.keyword;
+        if (keyword != null) {
+          _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode
+                .VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+            keyword,
+          );
+        }
+      } else {
+        element.isFinal = node.finalToken != null;
+      }
     }
   }
 

@@ -998,6 +998,14 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
     return _interfaces;
   }
 
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
+  }
+
   @override
   bool get isSimplyBounded {
     return hasModifier(Modifier.SIMPLY_BOUNDED);
@@ -4839,24 +4847,27 @@ class Modifier implements Comparable<Modifier> {
 
   static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 20);
 
+  /// Indicates that the modifier 'sealed' was applied to the element.
+  static const Modifier SEALED = Modifier('SEALED', 21);
+
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 21);
+  static const Modifier SETTER = Modifier('SETTER', 22);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 22);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 23);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 23);
+  static const Modifier STATIC = Modifier('STATIC', 24);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 24);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 25);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 25);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 26);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4879,6 +4890,7 @@ class Modifier implements Comparable<Modifier> {
     MACRO,
     MIXIN_APPLICATION,
     PROMOTABLE,
+    SEALED,
     SETTER,
     STATIC,
     SIMPLY_BOUNDED,

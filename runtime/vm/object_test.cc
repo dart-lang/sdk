@@ -1921,6 +1921,38 @@ ISOLATE_UNIT_TEST_CASE(Array) {
   EXPECT(obj.IsArray());
 }
 
+ISOLATE_UNIT_TEST_CASE(Array_Grow) {
+  const intptr_t kSmallSize = 100;
+  EXPECT(!Array::UseCardMarkingForAllocation(kSmallSize));
+  const intptr_t kMediumSize = 1000;
+  EXPECT(!Array::UseCardMarkingForAllocation(kMediumSize));
+  const intptr_t kLargeSize = 100000;
+  EXPECT(Array::UseCardMarkingForAllocation(kLargeSize));
+
+  const Array& small = Array::Handle(Array::New(kSmallSize));
+  for (intptr_t i = 0; i < kSmallSize; i++) {
+    small.SetAt(i, Smi::Handle(Smi::New(i)));
+  }
+
+  const Array& medium = Array::Handle(Array::Grow(small, kMediumSize));
+  EXPECT_EQ(kMediumSize, medium.Length());
+  for (intptr_t i = 0; i < kSmallSize; i++) {
+    EXPECT_EQ(Smi::New(i), medium.At(i));
+  }
+  for (intptr_t i = kSmallSize; i < kMediumSize; i++) {
+    EXPECT_EQ(Object::null(), medium.At(i));
+  }
+
+  const Array& large = Array::Handle(Array::Grow(small, kLargeSize));
+  EXPECT_EQ(kLargeSize, large.Length());
+  for (intptr_t i = 0; i < kSmallSize; i++) {
+    EXPECT_EQ(large.At(i), Smi::New(i));
+  }
+  for (intptr_t i = kSmallSize; i < kLargeSize; i++) {
+    EXPECT_EQ(large.At(i), Object::null());
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(EmptyInstantiationsCacheArray) {
   SafepointMutexLocker ml(
       thread->isolate_group()->type_arguments_canonicalization_mutex());

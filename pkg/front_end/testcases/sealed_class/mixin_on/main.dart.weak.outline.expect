@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+abstract class MClass extends mai::SealedClass /*isMixinDeclaration*/  {
+}
+abstract class MMixin extends mai::SealedMixin /*isMixinDeclaration*/  {
+}
+abstract class _MClassMultiple&SealedClass&SealedMixin extends core::Object implements mai::SealedClass, mai::SealedMixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MClassMultiple&SealedClass&SealedMixin
+    ;
+}
+abstract class MClassMultiple extends self::_MClassMultiple&SealedClass&SealedMixin /*isMixinDeclaration*/  {
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+abstract sealed class SealedClass extends core::Object {
+  synthetic constructor •() → mai::SealedClass
+    ;
+}
+abstract sealed class SealedMixin extends core::Object /*isMixinDeclaration*/  {
+}

@@ -567,9 +567,9 @@ class MicroAssembler : public AssemblerBase {
   void ctzw(Register rd, Register rs);
   void cpop(Register rd, Register rs);
   void cpopw(Register rd, Register rs);
-  void max(Register rd, Register rs1, Register rs2);
+  void max(Register rd, Register rs1, Register rs2);  // NOLINT
   void maxu(Register rd, Register rs1, Register rs2);
-  void min(Register rd, Register rs1, Register rs2);
+  void min(Register rd, Register rs1, Register rs2);  // NOLINT
   void minu(Register rd, Register rs1, Register rs2);
   void sextb(Register rd, Register rs);
   void sexth(Register rd, Register rs);
@@ -1056,6 +1056,7 @@ class Assembler : public MicroAssembler {
                         intx_t imm,
                         OperandSize sz = kWordBytes) override;
 
+  Address PrepareLargeOffset(Register base, int32_t offset);
   void LoadFromOffset(Register dest,
                       const Address& address,
                       OperandSize sz = kWordBytes) override;
