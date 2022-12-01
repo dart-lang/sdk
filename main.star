@@ -18,7 +18,6 @@ load(
     "//lib/defaults.star",
     "arm64",
     "chrome",
-    "emscripten",
     "experimental",
     "firefox",
     "focal",
@@ -282,13 +281,6 @@ cron.weekly_builder(
     channels = [],
     execution_timeout = 12 * time.hour,
 )
-cron.nightly_builder(
-    "dart2wasm-linux-x64-d8",
-    category = "d2w|d",
-    channels = ["try"],
-    properties = emscripten,
-    location_filters = paths.to_location_filters(paths.dart2wasm),
-)
 
 # flutter
 dart.ci_sandbox_builder(
@@ -335,6 +327,8 @@ dart.ci_builder(
     triggered_by = ["dart-gitiles-trigger-flutter-daily"],
     notifies = None,
 )
+
+exec("//dart2wasm.star")
 
 vm = exec("//vm.star")
 
