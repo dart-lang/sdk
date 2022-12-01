@@ -57,6 +57,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// Otherwise `null`.
   NullabilityNodeTarget? _target;
 
+  /// [ClassDeclaration] for the current class or `null` if we are currently
+  /// not inside a class declaration.
+  ClassDeclaration? _classDeclaration;
+
   final NullabilityMigrationListener? listener;
 
   final NullabilityMigrationInstrumentation? instrumentation;
@@ -79,6 +83,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(false, 'Unknown nullability node target');
     return NullabilityNodeTarget.text('unknown');
   }
+
+  bool get _isInjectable =>
+      _classDeclaration?.metadata
+          .any((ann) => _isAngularConstructor(ann.element, 'Injectable')) ??
+      false;
+  bool get _isInsideAngularComponent =>
+      _classDeclaration?.metadata
+          .toList()
+          .any((ann) => _isAngularConstructor(ann.element, 'Component')) ??
+      false;
 
   @override
   DecoratedType? visitAsExpression(AsExpression node) {
@@ -130,7 +144,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.nativeClause?.accept(this);
+    _classDeclaration = node;
     node.members.accept(this);
+    _classDeclaration = null;
     var classElement = node.declaredElement!;
     _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass,
         node.withClause, node.implementsClause, null);
@@ -841,15 +857,26 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _handleNullabilityHint(node, decoratedType);
     }
     _variables.recordDecoratedElementType(declaredElement, decoratedType);
+    var isAnnotated = false;
     for (var annotation in node.metadata) {
       var element = annotation.element;
-      if (element is ConstructorElement &&
-          element.enclosingElement.name == 'Optional' &&
-          _isAngularUri(element.librarySource.uri)) {
-        _graph.makeNullable(
-            decoratedType!.node, AngularAnnotationOrigin(source, node));
+      if (_isAngularConstructor(element, 'Optional') ||
+          _isAngularConstructor(element, 'Attribute')) {
+        isAnnotated = true;
+        if (_isAngularConstructor(element, 'Optional') ||
+            _isInsideAngularComponent) {
+          _graph.makeNullable(
+              decoratedType!.node, AngularAnnotationOrigin(source, node));
+        }
       }
     }
+    if (declaredElement.enclosingElement is ConstructorElement &&
+        (_isInsideAngularComponent || _isInjectable) &&
+        !isAnnotated) {
+      _graph.makeNonNullable(
+          decoratedType!.node, AngularConstructorArgumentOrigin(source, node));
+    }
+
     if (declaredElement.isNamed) {
       _namedParameters![declaredElement.name] = decoratedType!;
     } else {
@@ -937,6 +964,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _variables.recordDecoratedDirectSupertypes(
         declaredElement, decoratedSupertypes);
   }
+
+  /// Determines whether [element] is a constructor named [name] from Angular
+  /// package.
+  bool _isAngularConstructor(Element? element, String name) =>
+      element is ConstructorElement &&
+      element.enclosingElement.name == name &&
+      _isAngularUri(element.librarySource.uri);
 
   /// Determines whether the given [uri] comes from the Angular package.
   bool _isAngularUri(Uri uri) {

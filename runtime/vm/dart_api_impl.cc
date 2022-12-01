@@ -36,6 +36,7 @@
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/os_thread.h"
@@ -7124,6 +7125,20 @@ DART_EXPORT char* Dart_GetUserTagLabel(Dart_Handle user_tag) {
   }
   const String& label = String::Handle(Z, tag.label());
   return Utils::StrDup(label.ToCString());
+}
+
+DART_EXPORT char* Dart_WriteHeapSnapshot(
+    Dart_HeapSnapshotWriteChunkCallback write,
+    void* context) {
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+  DARTSCOPE(Thread::Current());
+  CallbackHeapSnapshotWriter callback_writer(T, write, context);
+  HeapSnapshotWriter writer(T, &callback_writer);
+  writer.Write();
+  return nullptr;
+#else
+  return Utils::StrDup("VM is built without the heap snapshot writer.");
+#endif
 }
 
 }  // namespace dart

@@ -369,7 +369,7 @@ DART_EXPORT bool Dart_IsReloading();
  *
  *  When "all" is specified all the categories are enabled.
  *  When a comma separated list of categories is specified, the categories
- *   that are specified will be enabled and the rest will be disabled. 
+ *   that are specified will be enabled and the rest will be disabled.
  *  When "" is specified all the categories are disabled.
  *  The category names are case sensitive.
  *  eg:  Dart_EnableTimelineCategory("all");
@@ -616,5 +616,53 @@ DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag);
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_GetUserTagLabel(
     Dart_Handle user_tag);
+
+/*
+ * =======
+ * Heap Snapshot
+ * =======
+ */
+
+/**
+ * Callback provided by the caller of `Dart_WriteHeapSnapshot` which is
+ * used to write out chunks of the requested heap snapshot.
+ *
+ * \param context An opaque context which was passed to `Dart_WriteHeapSnapshot`
+ *   together with this callback.
+ *
+ * \param buffer Pointer to the buffer containing a chunk of the snapshot.
+ *   The callback owns the buffer and needs to `free` it.
+ *
+ * \param size Number of bytes in the `buffer` to be written.
+ *
+ * \param is_last Set to `true` for the last chunk. The callback will not
+ *   be invoked again after it was invoked once with `is_last` set to `true`.
+ */
+typedef void (*Dart_HeapSnapshotWriteChunkCallback)(void* context,
+                                                    uint8_t* buffer,
+                                                    intptr_t size,
+                                                    bool is_last);
+
+/**
+ * Generate heap snapshot of the current isolate group and stream it into the
+ * given `callback`. VM would produce snapshot in chunks and send these chunks
+ * one by one back to the embedder by invoking the provided `callback`.
+ *
+ * This API enables embedder to stream snapshot into a file or socket without
+ * allocating a buffer to hold the whole snapshot in memory.
+ *
+ * The isolate group will be paused for the duration of this operation.
+ *
+ * \param write Callback used to write chunks of the heap snapshot.
+ *
+ * \param context Opaque context which would be passed on each invocation of
+ *   `write` callback.
+ *
+ * \returns `nullptr` if the operation is successful otherwise error message.
+ *   Caller owns error message string and needs to `free` it.
+ */
+DART_EXPORT char* Dart_WriteHeapSnapshot(
+    Dart_HeapSnapshotWriteChunkCallback write,
+    void* context);
 
 #endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_
