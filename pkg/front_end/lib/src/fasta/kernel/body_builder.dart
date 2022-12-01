@@ -1564,7 +1564,7 @@ class BodyBuilder extends StackListenerImpl
       if (replacement == null) {
         delayedRedirectingFactoryInvocations.add(invocation);
       } else {
-        invocation.replaceWith(replacement);
+        invocation.parent?.replaceChild(invocation, replacement);
       }
     }
   }
@@ -1593,9 +1593,10 @@ class BodyBuilder extends StackListenerImpl
       Arguments invocationArguments = forest.createArguments(
           noLocation, invocation.arguments.positional,
           types: invocationTypeArguments, named: invocation.arguments.named);
-      invocation.replaceWith(new ConstructorInvocation(
-          invocation.target, invocationArguments,
-          isConst: invocation.isConst));
+      invocation.parent?.replaceChild(
+          invocation,
+          new ConstructorInvocation(invocation.target, invocationArguments,
+              isConst: invocation.isConst));
     }
     typeAliasedConstructorInvocations.clear();
   }
@@ -1638,7 +1639,7 @@ class BodyBuilder extends StackListenerImpl
       if (replacement == null) {
         delayedTypeAliasedFactoryInvocations.add(invocation);
       } else {
-        invocation.replaceWith(replacement);
+        invocation.parent?.replaceChild(invocation, replacement);
       }
     }
     typeAliasedFactoryInvocations.clear();
