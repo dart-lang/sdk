@@ -64,7 +64,7 @@ class AlwaysNullableTypeOrigin extends EdgeOrigin {
 }
 
 /// Edge origin resulting from the presence of an Angular annotation such as
-/// `@Optional()`, `@ViewChild(...)`, or `@ContentChild(...)`.
+/// `@Optional()`, `@Attribute(...)`, `@ViewChild(...)`, or `@ContentChild(...)`.
 class AngularAnnotationOrigin extends EdgeOrigin {
   AngularAnnotationOrigin(super.source, AstNode super.node);
 
@@ -74,6 +74,21 @@ class AngularAnnotationOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.angularAnnotation;
+}
+
+/// Edge origin resulting from `@Component(...)` or `@Injectable()` class
+/// constructor arguments having neither `@Optional()` nor `@Attribute()`
+/// annotation.
+class AngularConstructorArgumentOrigin extends EdgeOrigin {
+  AngularConstructorArgumentOrigin(super.source, AstNode super.node);
+
+  @override
+  String get description =>
+      'Component or @Injectable() class constructor arguments without'
+      ' @Optional/@Attribute annotations must be non-nullable';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.angularConstructorArgument;
 }
 
 /// Edge origin resulting from the presence of a call to

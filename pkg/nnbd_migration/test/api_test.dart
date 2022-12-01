@@ -356,6 +356,66 @@ g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_component_attribute() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int foo;
+  MyComponent(@Attribute('foo') this.foo);
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int? foo;
+  MyComponent(@Attribute('foo') this.foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_component_constructor() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int foo;
+  MyComponent(this.foo);
+  void nullifyFoo() { foo = null; }
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Component(
+  selector: 'my-component'
+)
+class MyComponent {
+  int? foo;
+  MyComponent(int this.foo);
+  void nullifyFoo() { foo = null; }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_contentChild_field() async {
     addAngularPackage();
     var content = '''
@@ -464,6 +524,33 @@ class myComponent {
   }
   g() => bar!.id;
   h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_injectable_constructor() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Injectable()
+class MyClass {
+  int foo;
+  MyClass(this.foo);
+  void nullifyFoo() { foo = null; }
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+@Injectable()
+class MyClass {
+  int? foo;
+  MyClass(int this.foo);
+  void nullifyFoo() { foo = null; }
 }
 ''';
     await _checkSingleFileChanges(content, expected);
