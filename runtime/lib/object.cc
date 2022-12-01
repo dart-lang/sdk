@@ -335,7 +335,7 @@ DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
-#if !defined(PRODUCT)
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
   const String& filename =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   {

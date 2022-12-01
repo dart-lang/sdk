@@ -8,7 +8,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) || !defined(PRODUCT)
+#if defined(DART_PRECOMPILER) || defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 // The list contains concrete classes and all of their fields (including ones
 // from super hierarchy)

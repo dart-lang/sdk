@@ -19,7 +19,7 @@
 
 namespace dart {
 
-#if !defined(PRODUCT)
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 static bool IsUserClass(intptr_t cid) {
   if (cid == kContextCid) return true;
@@ -1416,6 +1416,7 @@ FileHeapSnapshotWriter::FileHeapSnapshotWriter(Thread* thread,
     file_ = open(filename, /*write=*/true);
   }
 }
+
 FileHeapSnapshotWriter::~FileHeapSnapshotWriter() {
   auto close = Dart::file_close_callback();
   if (close != nullptr) {
@@ -1433,6 +1434,20 @@ void FileHeapSnapshotWriter::WriteChunk(uint8_t* buffer,
     }
   }
   free(buffer);
+}
+
+CallbackHeapSnapshotWriter::CallbackHeapSnapshotWriter(
+    Thread* thread,
+    Dart_HeapSnapshotWriteChunkCallback callback,
+    void* context)
+    : ChunkedWriter(thread), callback_(callback), context_(context) {}
+
+CallbackHeapSnapshotWriter::~CallbackHeapSnapshotWriter() {}
+
+void CallbackHeapSnapshotWriter::WriteChunk(uint8_t* buffer,
+                                            intptr_t size,
+                                            bool last) {
+  callback_(context_, buffer, size, last);
 }
 
 void HeapSnapshotWriter::Write() {
@@ -1823,6 +1838,6 @@ void CountObjectsVisitor::VisitHandle(uword addr) {
   }
 }
 
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 }  // namespace dart

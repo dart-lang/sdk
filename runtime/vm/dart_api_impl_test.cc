@@ -10586,4 +10586,28 @@ TEST_CASE(DartAPI_HeapSampling) {
 
 #endif  // !PRODUCT
 
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+TEST_CASE(DartAPI_WriteHeapSnapshot) {
+  struct WriterContext {
+    intptr_t bytes_written;
+    bool saw_last_chunk;
+  };
+
+  WriterContext context = {0, false};
+  char* error = Dart_WriteHeapSnapshot(
+      [](void* context, uint8_t* buffer, intptr_t size, bool is_last) {
+        auto ctx = static_cast<WriterContext*>(context);
+        ctx->bytes_written += size;
+        EXPECT(!ctx->saw_last_chunk);
+        ctx->saw_last_chunk = is_last;
+
+        free(buffer);
+      },
+      &context);
+  EXPECT(error == nullptr);
+  EXPECT_GT(context.bytes_written, 0);
+  EXPECT(context.saw_last_chunk);
+}
+#endif  // defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+
 }  // namespace dart
