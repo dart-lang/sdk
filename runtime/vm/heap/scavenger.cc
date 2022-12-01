@@ -711,9 +711,9 @@ Page* SemiSpace::TryAllocatePageLocked(bool link) {
   return page;
 }
 
-bool SemiSpace::Contains(uword addr, intptr_t size) const {
+bool SemiSpace::Contains(uword addr) const {
   for (Page* page = head_; page != nullptr; page = page->next()) {
-    if (page->Contains(addr, size)) return true;
+    if (page->Contains(addr)) return true;
   }
   return false;
 }

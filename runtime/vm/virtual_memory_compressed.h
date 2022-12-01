@@ -47,7 +47,7 @@ class VirtualMemoryCompressedHeap : public AllStatic {
   static void Free(void* address, intptr_t size);
 
   // Returns whether the address is within the compressed heap.
-  static bool Contains(void* address, intptr_t size = 1);
+  static bool Contains(void* address);
 
   // Returns a pointer to the compressed heap region.
   static void* GetRegion();
