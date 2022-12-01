@@ -77,7 +77,7 @@ GuardedPattern
   test_ifCase_logicalOr2_both_direct() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | final a) {}
+  if (x case final a || final a) {}
 }
 ''');
     final node = findNode.singleGuardedPattern.pattern;
@@ -88,11 +88,11 @@ BinaryPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@45
+    declaredElement: hasImplicitType isFinal a@46
       type: int
 ''');
   }
@@ -100,7 +100,7 @@ BinaryPattern
   test_ifCase_logicalOr2_both_nested_logicalAnd() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {
-  if (x case 0 & final a | final a) {}
+  if (x case 0 && final a || final a) {}
 }
 ''');
     final node = findNode.singleGuardedPattern.pattern;
@@ -111,17 +111,17 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
-    operator: &
+    operator: &&
     rightOperand: VariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@39
+      declaredElement: hasImplicitType isFinal a@40
         type: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@49
+    declaredElement: hasImplicitType isFinal a@51
       type: int
 ''');
   }
@@ -129,10 +129,10 @@ BinaryPattern
   test_ifCase_logicalOr2_left() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | 2) {}
+  if (x case final a || 2) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 39, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -142,7 +142,7 @@ BinaryPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -153,7 +153,7 @@ BinaryPattern
   test_ifCase_logicalOr2_right() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 1 | final a) {}
+  if (x case 1 || final a) {}
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
@@ -165,11 +165,11 @@ BinaryPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@39
+    declaredElement: hasImplicitType isFinal a@40
       type: int
 ''');
   }
@@ -177,11 +177,11 @@ BinaryPattern
   test_ifCase_logicalOr3_1() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | 2 | 3) {}
+  if (x case final a || 2 || 3) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 39, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 43, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -192,12 +192,12 @@ BinaryPattern
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
-    operator: |
+    operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
@@ -208,10 +208,10 @@ BinaryPattern
   test_ifCase_logicalOr3_12() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | final a | 3) {}
+  if (x case final a || final a || 3) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -222,13 +222,13 @@ BinaryPattern
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
-    operator: |
+    operator: ||
     rightOperand: VariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@45
+      declaredElement: hasImplicitType isFinal a@46
         type: int
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
@@ -239,7 +239,7 @@ BinaryPattern
   test_ifCase_logicalOr3_123() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | final a | final a) {}
+  if (x case final a || final a || final a) {}
 }
 ''');
     final node = findNode.singleGuardedPattern.pattern;
@@ -251,17 +251,17 @@ BinaryPattern
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
-    operator: |
+    operator: ||
     rightOperand: VariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@45
+      declaredElement: hasImplicitType isFinal a@46
         type: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@55
+    declaredElement: hasImplicitType isFinal a@57
       type: int
 ''');
   }
@@ -269,10 +269,10 @@ BinaryPattern
   test_ifCase_logicalOr3_13() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case final a | 2 | final a) {}
+  if (x case final a || 2 || final a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 39, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -283,16 +283,16 @@ BinaryPattern
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
-    operator: |
+    operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@49
+    declaredElement: hasImplicitType isFinal a@51
       type: int
 ''');
   }
@@ -300,11 +300,11 @@ BinaryPattern
   test_ifCase_logicalOr3_2() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 1 | final a | 3) {}
+  if (x case 1 || final a || 3) {}
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 43, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -314,13 +314,13 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
-    operator: |
+    operator: ||
     rightOperand: VariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@39
+      declaredElement: hasImplicitType isFinal a@40
         type: int
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
@@ -331,7 +331,7 @@ BinaryPattern
   test_ifCase_logicalOr3_23() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 1 | final a | final a) {}
+  if (x case 1 || final a || final a) {}
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
@@ -344,17 +344,17 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
-    operator: |
+    operator: ||
     rightOperand: VariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@39
+      declaredElement: hasImplicitType isFinal a@40
         type: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@49
+    declaredElement: hasImplicitType isFinal a@51
       type: int
 ''');
   }
@@ -362,10 +362,10 @@ BinaryPattern
   test_ifCase_logicalOr3_3() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case 1 | 2 | final a) {}
+  if (x case 1 || 2 || final a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 5),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -375,16 +375,16 @@ BinaryPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
-    operator: |
+    operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@43
+    declaredElement: hasImplicitType isFinal a@45
       type: int
 ''');
   }
@@ -393,7 +393,7 @@ BinaryPattern
     await assertNoErrorsInCode(r'''
 void f(int x) {
   switch (x) {
-    case final a | final a:
+    case final a || final a:
       return;
   }
 }
@@ -406,11 +406,11 @@ BinaryPattern
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@56
+    declaredElement: hasImplicitType isFinal a@57
       type: int
 ''');
   }
@@ -419,12 +419,12 @@ BinaryPattern
     await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
-    case final a | 2:
+    case final a || 2:
       return;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 50, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -434,7 +434,7 @@ BinaryPattern
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
-  operator: |
+  operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
@@ -446,7 +446,7 @@ BinaryPattern
     await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
-    case 1 | final a:
+    case 1 || final a:
       return;
   }
 }
@@ -460,11 +460,11 @@ BinaryPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@50
+    declaredElement: hasImplicitType isFinal a@51
       type: int
 ''');
   }

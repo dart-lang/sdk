@@ -17,7 +17,7 @@ class BinaryPatternResolutionTest extends PubPackageResolutionTest {
   test_logicalAnd_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
-  if (x case int _ & double _) {}
+  if (x case int _ && double _) {}
 }
 ''');
     final node = findNode.singleGuardedPattern.pattern;
@@ -31,7 +31,7 @@ BinaryPattern
         staticType: null
       type: int
     name: _
-  operator: &
+  operator: &&
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -47,7 +47,7 @@ BinaryPattern
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
-    case int _ & double _:
+    case int _ && double _:
       break;
   }
 }
@@ -63,7 +63,7 @@ BinaryPattern
         staticType: null
       type: int
     name: _
-  operator: &
+  operator: &&
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -78,7 +78,7 @@ BinaryPattern
   test_logicalOr_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
-  if (x case int _ | double _) {}
+  if (x case int _ || double _) {}
 }
 ''');
     final node = findNode.singleGuardedPattern.pattern;
@@ -92,7 +92,7 @@ BinaryPattern
         staticType: null
       type: int
     name: _
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -108,7 +108,7 @@ BinaryPattern
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
-    case int _ | double _:
+    case int _ || double _:
       break;
   }
 }
@@ -124,7 +124,7 @@ BinaryPattern
         staticType: null
       type: int
     name: _
-  operator: |
+  operator: ||
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier

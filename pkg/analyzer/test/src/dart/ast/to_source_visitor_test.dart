@@ -154,13 +154,13 @@ var v = a * (b + c);
     var findNode = _parseStringToFindNode('''
 void f(x) {
   switch (x) {
-    case int? _ & double? _ & Object? _:
+    case int? _ && double? _ && Object? _:
       break;
   }
 }
 ''');
     _assertSource(
-      'int? _ & double? _ & Object? _',
+      'int? _ && double? _ && Object? _',
       findNode.binaryPattern('Object?'),
     );
   }
