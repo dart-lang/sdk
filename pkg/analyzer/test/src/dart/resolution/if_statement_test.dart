@@ -48,7 +48,7 @@ IfStatement
   test_caseClause_variables_logicalOr2_consistent() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x) {
-  if (x case int a | [int a] when a > 0) {
+  if (x case int a || [int a] when a > 0) {
     a;
   }
 }
@@ -77,7 +77,7 @@ IfStatement
           name: a
           declaredElement: a@37
             type: int
-        operator: |
+        operator: ||
         rightOperand: ListPattern
           leftBracket: [
           elements
@@ -89,7 +89,7 @@ IfStatement
                   staticType: null
                 type: int
               name: a
-              declaredElement: a@46
+              declaredElement: a@47
                 type: int
           rightBracket: ]
           requiredType: List<Object?>
@@ -98,7 +98,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: a[a@37, a@46]
+            staticElement: a[a@37, a@47]
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -115,7 +115,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a[a@37, a@46]
+          staticElement: a[a@37, a@47]
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -125,12 +125,12 @@ IfStatement
   test_caseClause_variables_logicalOr2_notConsistent_differentFinality() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
-  if (x case int a | [final int a] when a > 0) {
+  if (x case int a || [final int a] when a > 0) {
     a;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 52, 1),
+      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 53, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -156,7 +156,7 @@ IfStatement
           name: a
           declaredElement: a@37
             type: int
-        operator: |
+        operator: ||
         rightOperand: ListPattern
           leftBracket: [
           elements
@@ -169,7 +169,7 @@ IfStatement
                   staticType: null
                 type: int
               name: a
-              declaredElement: isFinal a@52
+              declaredElement: isFinal a@53
                 type: int
           rightBracket: ]
           requiredType: List<Object?>
@@ -178,7 +178,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: notConsistent a[a@37, a@52]
+            staticElement: notConsistent a[a@37, a@53]
             staticType: dynamic
           operator: >
           rightOperand: IntegerLiteral
@@ -195,7 +195,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: notConsistent a[a@37, a@52]
+          staticElement: notConsistent a[a@37, a@53]
           staticType: dynamic
         semicolon: ;
     rightBracket: }
@@ -205,12 +205,12 @@ IfStatement
   test_caseClause_variables_logicalOr2_notConsistent_differentType() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
-  if (x case int a | [double a] when a > 0) {
+  if (x case int a || [double a] when a > 0) {
     a;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 49, 1),
+      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 50, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -236,7 +236,7 @@ IfStatement
           name: a
           declaredElement: a@37
             type: int
-        operator: |
+        operator: ||
         rightOperand: ListPattern
           leftBracket: [
           elements
@@ -248,7 +248,7 @@ IfStatement
                   staticType: null
                 type: double
               name: a
-              declaredElement: a@49
+              declaredElement: a@50
                 type: double
           rightBracket: ]
           requiredType: List<Object?>
@@ -257,7 +257,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: notConsistent a[a@37, a@49]
+            staticElement: notConsistent a[a@37, a@50]
             staticType: dynamic
           operator: >
           rightOperand: IntegerLiteral
@@ -274,7 +274,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: notConsistent a[a@37, a@49]
+          staticElement: notConsistent a[a@37, a@50]
           staticType: dynamic
         semicolon: ;
     rightBracket: }
@@ -284,13 +284,13 @@ IfStatement
   test_caseClause_variables_logicalOr3_1() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
-  if (x case int a | 2 | 3 when a > 0) {
+  if (x case int a || 2 || 3 when a > 0) {
     a;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 41, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -317,12 +317,12 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
-          operator: |
+          operator: ||
           rightOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 2
               staticType: int
-        operator: |
+        operator: ||
         rightOperand: ConstantPattern
           expression: IntegerLiteral
             literal: 3
@@ -359,12 +359,12 @@ IfStatement
   test_caseClause_variables_logicalOr3_12() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
-  if (x case int a | int a | 3 when a > 0) {
+  if (x case int a || int a || 3 when a > 0) {
     a;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -391,7 +391,7 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
-          operator: |
+          operator: ||
           rightOperand: VariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -400,9 +400,9 @@ IfStatement
                 staticType: null
               type: int
             name: a
-            declaredElement: a@45
+            declaredElement: a@46
               type: int
-        operator: |
+        operator: ||
         rightOperand: ConstantPattern
           expression: IntegerLiteral
             literal: 3
@@ -412,7 +412,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: notConsistent a[a@37, a@45]
+            staticElement: notConsistent a[a@37, a@46]
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -429,7 +429,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: notConsistent a[a@37, a@45]
+          staticElement: notConsistent a[a@37, a@46]
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -439,7 +439,7 @@ IfStatement
   test_caseClause_variables_logicalOr3_123() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x) {
-  if (x case int a | int a | int a when a > 0) {
+  if (x case int a || int a || int a when a > 0) {
     a;
   }
 }
@@ -469,7 +469,7 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
-          operator: |
+          operator: ||
           rightOperand: VariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -478,9 +478,9 @@ IfStatement
                 staticType: null
               type: int
             name: a
-            declaredElement: a@45
+            declaredElement: a@46
               type: int
-        operator: |
+        operator: ||
         rightOperand: VariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -489,14 +489,14 @@ IfStatement
               staticType: null
             type: int
           name: a
-          declaredElement: a@53
+          declaredElement: a@55
             type: int
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: a[a@37, a@45, a@53]
+            staticElement: a[a@37, a@46, a@55]
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -513,7 +513,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a[a@37, a@45, a@53]
+          staticElement: a[a@37, a@46, a@55]
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -523,12 +523,12 @@ IfStatement
   test_caseClause_variables_logicalOr3_13() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
-  if (x case int a | 2 | int a when a > 0) {
+  if (x case int a || 2 || int a when a > 0) {
     a;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 41, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -555,12 +555,12 @@ IfStatement
             name: a
             declaredElement: a@37
               type: int
-          operator: |
+          operator: ||
           rightOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 2
               staticType: int
-        operator: |
+        operator: ||
         rightOperand: VariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -569,14 +569,14 @@ IfStatement
               staticType: null
             type: int
           name: a
-          declaredElement: a@49
+          declaredElement: a@51
             type: int
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: notConsistent a[a@37, a@49]
+            staticElement: notConsistent a[a@37, a@51]
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -593,7 +593,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: notConsistent a[a@37, a@49]
+          staticElement: notConsistent a[a@37, a@51]
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -603,13 +603,13 @@ IfStatement
   test_caseClause_variables_logicalOr3_2() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
-  if (x case 1 | int a | 3 when a > 0) {
+  if (x case 1 || int a || 3 when a > 0) {
     a;
   }
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -630,7 +630,7 @@ IfStatement
             expression: IntegerLiteral
               literal: 1
               staticType: int
-          operator: |
+          operator: ||
           rightOperand: VariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -639,9 +639,9 @@ IfStatement
                 staticType: null
               type: int
             name: a
-            declaredElement: a@41
+            declaredElement: a@42
               type: int
-        operator: |
+        operator: ||
         rightOperand: ConstantPattern
           expression: IntegerLiteral
             literal: 3
@@ -651,7 +651,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: notConsistent a[a@41]
+            staticElement: notConsistent a[a@42]
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -668,7 +668,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: notConsistent a[a@41]
+          staticElement: notConsistent a[a@42]
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -678,7 +678,7 @@ IfStatement
   test_caseClause_variables_logicalOr3_23() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
-  if (x case 1 | int a | int a when a > 0) {
+  if (x case 1 || int a || int a when a > 0) {
     a;
   }
 }
@@ -704,7 +704,7 @@ IfStatement
             expression: IntegerLiteral
               literal: 1
               staticType: int
-          operator: |
+          operator: ||
           rightOperand: VariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -713,9 +713,9 @@ IfStatement
                 staticType: null
               type: int
             name: a
-            declaredElement: a@41
+            declaredElement: a@42
               type: int
-        operator: |
+        operator: ||
         rightOperand: VariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -724,14 +724,14 @@ IfStatement
               staticType: null
             type: int
           name: a
-          declaredElement: a@49
+          declaredElement: a@51
             type: int
       whenClause: WhenClause
         whenKeyword: when
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            staticElement: notConsistent a[a@41, a@49]
+            staticElement: notConsistent a[a@42, a@51]
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -748,7 +748,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: notConsistent a[a@41, a@49]
+          staticElement: notConsistent a[a@42, a@51]
           staticType: int
         semicolon: ;
     rightBracket: }

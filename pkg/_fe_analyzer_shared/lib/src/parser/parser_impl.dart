@@ -9883,6 +9883,8 @@ class Parser {
   Token parseSwitchExpression(Token token) {
     Token switchKeyword = token.next!;
     assert(optional('switch', switchKeyword));
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     listener.beginSwitchExpression(switchKeyword);
     token = ensureParenthesizedCondition(switchKeyword, allowCase: false);
     Token beginSwitch =
@@ -9898,7 +9900,9 @@ class Parser {
         next = token.next!;
         if (optional('when', next)) {
           when = token = next;
+          mayParseFunctionExpressions = false;
           token = parseExpression(token);
+          mayParseFunctionExpressions = true;
         }
         Token arrow = token = ensureFunctionArrow(token);
         token = parseExpression(token);
@@ -9937,6 +9941,7 @@ class Parser {
       }
     }
     listener.endSwitchExpressionBlock(caseCount, beginSwitch, next);
+    mayParseFunctionExpressions = old;
     token = next;
     assert(token.isEof || optional('}', token));
     listener.endSwitchExpression(switchKeyword, token);

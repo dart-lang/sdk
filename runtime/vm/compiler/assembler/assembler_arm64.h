@@ -599,10 +599,8 @@ class Assembler : public AssemblerBase {
       AddImmediate(TMP2, address, offset);
       src = TMP2;
     }
-#if !defined(DART_COMPRESSED_POINTERS)
-    ldar(dst, src);
-#else
-    ldar(dst, src, kUnsignedFourBytes);  // Zero-extension.
+    ldar(dst, src, kObjectBytes);  // ldar does zero extension for 4 bytes.
+#if defined(DART_COMPRESSED_POINTERS)
     add(dst, dst, Operand(HEAP_BITS, LSL, 32));
 #endif
 #if defined(USING_THREAD_SANITIZER)

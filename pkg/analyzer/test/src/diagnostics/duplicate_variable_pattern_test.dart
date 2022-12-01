@@ -18,10 +18,10 @@ class DuplicateVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase() async {
     await assertErrorsInCode(r'''
 void f(int x) {
-  if (x case var a & var a) {}
+  if (x case var a && var a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 41, 1,
+      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 42, 1,
           contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -32,11 +32,11 @@ BinaryPattern
     name: a
     declaredElement: hasImplicitType a@33
       type: int
-  operator: &
+  operator: &&
   rightOperand: VariablePattern
     keyword: var
     name: a
-    declaredElement: hasImplicitType a@41
+    declaredElement: hasImplicitType a@42
       type: int
 ''');
   }
@@ -45,12 +45,12 @@ BinaryPattern
     await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
-    case var a & var a:
+    case var a && var a:
       break;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 52, 1,
+      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 53, 1,
           contextMessages: [message('/home/test/lib/test.dart', 44, 1)]),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -61,11 +61,11 @@ BinaryPattern
     name: a
     declaredElement: hasImplicitType a@44
       type: int
-  operator: &
+  operator: &&
   rightOperand: VariablePattern
     keyword: var
     name: a
-    declaredElement: hasImplicitType a@52
+    declaredElement: hasImplicitType a@53
       type: int
 ''');
   }

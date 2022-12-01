@@ -1,0 +1,15 @@
+f(x, y) {
+switch(x) {
+case _ when y + () => 0:
+break;
+}
+}
+
+
+f[StringToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] _[StringToken] when[KeywordToken] y[StringToken] +[SimpleToken] ([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

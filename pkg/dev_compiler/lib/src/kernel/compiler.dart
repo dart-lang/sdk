@@ -1004,7 +1004,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         } else if (t is RecordType) {
           var positional = t.positional.map(emitDeferredType);
           var named = t.named.map((n) => emitDeferredType(n.type));
-          return _emitRecordType(t, positional, named);
+          var typeRep = _emitRecordType(t, positional, named);
+          return emitNullability
+              ? _emitNullabilityWrapper(typeRep, t.nullability)
+              : typeRep;
         } else if (t is TypeParameterType) {
           return _emitTypeParameterType(t, emitNullability: emitNullability);
         }
@@ -3390,7 +3393,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitRecordType(type) {
     var positionalTypeReps = type.positional.map((p) => p.accept(this));
     var namedTypeReps = type.named.map((n) => n.type.accept(this));
-    return _emitRecordType(type, positionalTypeReps, namedTypeReps);
+    var typeRep = _emitRecordType(type, positionalTypeReps, namedTypeReps);
+    return _emitNullabilityWrapper(typeRep, type.nullability);
   }
 
   js_ast.Expression _emitRecordType(
