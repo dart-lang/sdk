@@ -145,6 +145,11 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void restPatternWithSubPatternInMap(DartPattern node, AstNode element) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void switchCaseCompletesNormally(
       covariant SwitchStatement node, int caseIndex, int numHeads) {
     _errorReporter.reportErrorForToken(

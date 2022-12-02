@@ -7431,6 +7431,32 @@ ListPattern
 ''');
   }
 
+  test_rest_withSubpattern_insideMap() {
+    // The parser accepts this syntax even though it's not legal dart, because
+    // we suspect it's a mistake a user is likely to make, and we want to ensure
+    // that we give a helpful error message.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {...var y}:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    RestPatternElement
+      operator: ...
+      pattern: VariablePattern
+        keyword: var
+        name: y
+  rightBracket: }
+''');
+  }
+
   test_skipOuterPattern_eof() {
     // See https://github.com/dart-lang/sdk/issues/50563
     _parse('''

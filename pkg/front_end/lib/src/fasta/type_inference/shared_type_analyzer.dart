@@ -108,6 +108,11 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void restPatternWithSubPatternInMap(Pattern node, Node element) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void switchCaseCompletesNormally(
       covariant SwitchStatement node, int caseIndex, int numMergedCases) {
     helper.addProblem(messageSwitchCaseFallThrough,
