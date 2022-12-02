@@ -369,7 +369,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       while (true) {
         _benchmarker?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
         currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
-            reusedLibraries, experimentalInvalidation, entryPoints.first);
+            reusedLibraries, experimentalInvalidation, entryPoints);
         Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
             _experimentalInvalidationCreateRebuildBodiesBuilders(
                 currentKernelTarget, experimentalInvalidation, uriTranslator);
@@ -989,7 +989,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ClassHierarchy? hierarchy,
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation? experimentalInvalidation,
-      Uri firstEntryPoint) {
+      List<Uri> entryPoints) {
     IncrementalKernelTarget kernelTarget = createIncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
@@ -1044,8 +1044,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // The entry point(s) has to be set first for loader.firstUri to be setup
     // correctly.
-    kernelTarget.loader.firstUri =
-        kernelTarget.getEntryPointUri(firstEntryPoint, issueProblem: false);
+    kernelTarget.loader.roots.clear();
+    for (Uri entryPoint in entryPoints) {
+      kernelTarget.loader.roots.add(kernelTarget.getEntryPointUri(entryPoint));
+    }
     return kernelTarget;
   }
 

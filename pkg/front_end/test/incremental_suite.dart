@@ -344,6 +344,9 @@ class ExpressionCompilationProperties {
 
   static const Property<String> expression =
       Property.required('expression', StringValue());
+
+  static const Property<String?> className =
+      Property.optional('className', StringValue());
 }
 
 final ExpectationSet staticExpectationSet =
@@ -781,12 +784,14 @@ class ExpressionCompilation {
   final bool warnings;
   final String uri;
   final String expression;
+  final String? className;
 
   ExpressionCompilation(
       {required this.errors,
       required this.warnings,
       required this.uri,
-      required this.expression});
+      required this.expression,
+      required this.className});
 
   static ExpressionCompilation create(Map yaml) {
     Set<String> keys = new Set<String>.from(yaml.keys);
@@ -796,12 +801,18 @@ class ExpressionCompilation {
     String uri = ExpressionCompilationProperties.uri.read(yaml, keys);
     String expression =
         ExpressionCompilationProperties.expression.read(yaml, keys);
+    String? className =
+        ExpressionCompilationProperties.className.read(yaml, keys);
 
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for ExpressionCompilation: $keys";
     }
     return new ExpressionCompilation(
-        errors: errors, warnings: warnings, uri: uri, expression: expression);
+        errors: errors,
+        warnings: warnings,
+        uri: uri,
+        expression: expression,
+        className: className);
   }
 }
 
@@ -1668,7 +1679,13 @@ class NewWorldTest {
           clearPrevErrorsEtc();
           Uri uri = base.resolve(compilation.uri);
           Procedure procedure = (await compiler.compileExpression(
-              compilation.expression, {}, [], "debugExpr", uri))!;
+            compilation.expression,
+            {},
+            [],
+            "debugExpr",
+            uri,
+            className: compilation.className,
+          ))!;
           if (gotError && !compilation.errors) {
             return new Result<TestData>(data, UnexpectedErrors,
                 "Got error(s) on expression compilation: ${formattedErrors}.");

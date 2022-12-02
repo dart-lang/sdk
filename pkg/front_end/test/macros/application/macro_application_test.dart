@@ -140,8 +140,8 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
-    if (library.importUri ==
-        testResultData.compilerResult.kernelTargetForTesting!.loader.firstUri) {
+    if (testResultData.compilerResult.kernelTargetForTesting!.loader.roots
+        .contains(library.importUri)) {
       if (macroApplicationData.typesApplicationOrder.isNotEmpty) {
         sb.write('\nTypes Order:');
         for (ApplicationDataForTesting application

@@ -60,7 +60,6 @@ import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder_graph.dart';
-import '../crash.dart' show firstSourceUri;
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../dill/dill_library_builder.dart';
@@ -212,16 +211,16 @@ class SourceLoader extends Loader {
   LibraryBuilder? _coreLibrary;
   LibraryBuilder? typedDataLibrary;
 
-  /// The first library that we've been asked to compile. When compiling a
-  /// program (aka script), this is the library that should have a main method.
-  Uri? _firstUri;
+  final Set<Uri> roots = {};
 
-  LibraryBuilder? get first => _builders[_firstUri];
-
-  Uri? get firstUri => _firstUri;
-
-  void set firstUri(Uri? value) {
-    _firstUri = value;
+  // TODO(johnniwinther): Replace with a `singleRoot`.
+  // See also https://dart-review.googlesource.com/c/sdk/+/273381.
+  LibraryBuilder? get firstRoot {
+    for (Uri uri in roots) {
+      LibraryBuilder? builder = _builders[uri];
+      if (builder != null) return builder;
+    }
+    return null;
   }
 
   int byteCount = 0;
@@ -375,7 +374,8 @@ class SourceLoader extends Loader {
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation) {
+      bool isAugmentation,
+      bool addAsRoot) {
     if (fileUri != null &&
         (fileUri.isScheme("dart") ||
             fileUri.isScheme("package") ||
@@ -462,11 +462,9 @@ class SourceLoader extends Loader {
           packageLanguageVersionProblem, 0, noLength, libraryBuilder.fileUri);
     }
 
-    // Add any additional logic after this block. Setting the
-    // firstSourceUri and first library should be done as early as
-    // possible.
-    firstSourceUri ??= uri;
-    firstUri ??= libraryBuilder.importUri;
+    if (addAsRoot) {
+      roots.add(uri);
+    }
 
     _checkForDartCore(uri, libraryBuilder);
 
@@ -575,7 +573,8 @@ class SourceLoader extends Loader {
         origin: origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner,
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        addAsRoot: false);
     libraryBuilder.recordAccess(
         accessor, charOffset, noLength, accessor.fileUri);
     if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
@@ -594,22 +593,22 @@ class SourceLoader extends Loader {
   /// that access to platform private libraries cannot be granted.
   LibraryBuilder readAsEntryPoint(Uri uri,
       {Uri? fileUri, Library? referencesFrom}) {
-    LibraryBuilder libraryBuilder =
-        _read(uri, fileUri: fileUri, referencesFrom: referencesFrom);
+    LibraryBuilder libraryBuilder = _read(uri,
+        fileUri: fileUri, referencesFrom: referencesFrom, addAsRoot: true);
     // TODO(johnniwinther): Avoid using the first library, if present, as the
     // accessor of [libraryBuilder]. Currently the incremental compiler doesn't
     // handle errors reported without an accessor, since the messages are not
     // associated with a library. This currently has the side effect that
     // the first library is the accessor of itself.
-    LibraryBuilder? firstLibrary = first;
+    LibraryBuilder? firstLibrary = firstRoot;
     if (firstLibrary != null) {
       libraryBuilder.recordAccess(
           firstLibrary, -1, noLength, firstLibrary.fileUri);
     }
     if (!_hasLibraryAccess(imported: uri, importer: firstLibrary?.importUri)) {
       if (firstLibrary != null) {
-        firstLibrary.addProblem(
-            messagePlatformPrivateLibraryAccess, -1, noLength, firstUri);
+        firstLibrary.addProblem(messagePlatformPrivateLibraryAccess, -1,
+            noLength, firstLibrary.importUri);
       } else {
         addProblem(messagePlatformPrivateLibraryAccess, -1, noLength, null);
       }
@@ -634,7 +633,8 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation = false}) {
+      bool isAugmentation = false,
+      required bool addAsRoot}) {
     LibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       if (target.dillTarget.isLoaded) {
@@ -647,7 +647,8 @@ class SourceLoader extends Loader {
             origin as SourceLibraryBuilder?,
             referencesFrom,
             referenceIsPartOwner,
-            isAugmentation);
+            isAugmentation,
+            addAsRoot);
       }
       _builders[uri] = libraryBuilder;
     }
@@ -1064,7 +1065,7 @@ severity: $severity
       _nnbdMismatchLibraries = null;
     }
     if (_unavailableDartLibraries.isNotEmpty) {
-      LibraryBuilder? rootLibrary = first;
+      LibraryBuilder? rootLibrary = firstRoot;
       LoadedLibraries? loadedLibraries;
       for (SourceLibraryBuilder libraryBuilder in _unavailableDartLibraries) {
         List<LocatedMessage>? context;
@@ -1373,8 +1374,9 @@ severity: $severity
     for (Uri uri in parts) {
       if (usedParts.contains(uri)) {
         LibraryBuilder? part = _builders.remove(uri);
-        if (_firstUri == uri) {
-          firstUri = part!.partOfLibrary!.importUri;
+        if (roots.contains(uri)) {
+          roots.remove(uri);
+          roots.add(part!.partOfLibrary!.importUri);
         }
       } else {
         SourceLibraryBuilder part =
@@ -2194,7 +2196,7 @@ severity: $severity
       if (!libraryBuilder.isPatch &&
           (libraryBuilder.loader == this ||
               libraryBuilder.importUri.isScheme("dart") ||
-              libraryBuilder == this.first)) {
+              roots.contains(libraryBuilder.importUri))) {
         if (libraries.add(libraryBuilder.library)) {
           workList.add(libraryBuilder.library);
         }
@@ -2703,7 +2705,6 @@ severity: $severity
     _typeInferenceEngine = null;
     _builders.clear();
     libraries.clear();
-    firstUri = null;
     sourceBytes.clear();
     target.releaseAncillaryResources();
     _coreTypes = null;
