@@ -174,13 +174,12 @@ class StreamManager {
         final destinationStreamId =
             event.extensionData?.data['__destinationStream']!;
 
-        if (destinationStreamId != 'Extension') {
+        if (destinationStreamId != 'Extension' && destinationStreamId != null) {
           if (streamListeners.containsKey(destinationStreamId)) {
-            // throw kDANTESTEXCEPTION;
-            throw json_rpc.RpcException(
-              6666,
-              'Attempted to post to a non-Custom stream',
-            );
+            // __destinationStream is only used by developer.postEvent.
+            // We don't want to allow posting to streamListeners since those are
+            // subscribed to by the VM, so return early here.
+            return;
           }
           final values = parameters.value;
 
