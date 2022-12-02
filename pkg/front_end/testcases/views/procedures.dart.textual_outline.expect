@@ -2,11 +2,13 @@ view
 class Class {
   final int it;
   void instanceMethod() {}
+  void instanceMethod2(String s, [int i = 42]) {}
   static void staticMethod() {}
 }
 view
 class GenericClass<T> {
   final T it;
   void instanceMethod() {}
+  void instanceMethod2(String s, {int i = 42}) {}
   static void staticMethod() {}
 }

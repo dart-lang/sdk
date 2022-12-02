@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
@@ -82,7 +83,9 @@ List<Element> getExtensionMembers(ExtensionElement extension, [String? name]) {
 /// Return all implementations of the given [member], its superclasses, and
 /// their subclasses.
 Future<Set<ClassMemberElement>> getHierarchyMembers(
-    SearchEngine searchEngine, ClassMemberElement member) async {
+    SearchEngine searchEngine, ClassMemberElement member,
+    {OperationPerformanceImpl? performance}) async {
+  performance ??= OperationPerformanceImpl("<root>");
   Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
   var enclosingElement = member.enclosingElement;
@@ -108,7 +111,10 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
         continue;
       }
       // check all sub- classes
-      var subClasses = await searchEngine.searchAllSubtypes(superClass);
+      var subClasses = await performance.runAsync(
+          "searchAllSubtypes",
+          (performance) => searchEngine.searchAllSubtypes(superClass,
+              performance: performance));
       subClasses.add(superClass);
       for (var subClass in subClasses) {
         var subClassMembers = getChildren(subClass, name);

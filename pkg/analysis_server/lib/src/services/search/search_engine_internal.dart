@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A [SearchEngine] implementation.
 class SearchEngineImpl implements SearchEngine {
@@ -51,12 +52,20 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type) async {
+  Future<Set<InterfaceElement>> searchAllSubtypes(
+    InterfaceElement type, {
+    // TODO(jensj): Possibly make this required.
+    OperationPerformanceImpl? performance,
+  }) async {
+    var nnPerformance = performance ?? OperationPerformanceImpl("<root>");
     var allSubtypes = <InterfaceElement>{};
     var searchEngineCache = SearchEngineCache();
 
     Future<void> addSubtypes(InterfaceElement type) async {
-      var directResults = await _searchDirectSubtypes(type, searchEngineCache);
+      var directResults = await nnPerformance.runAsync(
+          "_searchDirectSubtypes",
+          (performance) =>
+              _searchDirectSubtypes(type, searchEngineCache, performance));
       for (var directResult in directResults) {
         var directSubtype = directResult.enclosingElement as InterfaceElement;
         if (allSubtypes.add(directSubtype)) {
@@ -108,8 +117,11 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchSubtypes(
-      InterfaceElement type, SearchEngineCache searchEngineCache) async {
-    var results = await _searchDirectSubtypes(type, searchEngineCache);
+      InterfaceElement type, SearchEngineCache searchEngineCache,
+      {OperationPerformanceImpl? performance}) async {
+    performance ??= OperationPerformanceImpl("<root>");
+    var results =
+        await _searchDirectSubtypes(type, searchEngineCache, performance);
     return results.map(SearchMatchImpl.forSearchResult).toList();
   }
 
@@ -136,7 +148,9 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(
-      InterfaceElement type, SearchEngineCache searchEngineCache) async {
+      InterfaceElement type,
+      SearchEngineCache searchEngineCache,
+      OperationPerformanceImpl performance) async {
     var allResults = <SearchResult>[];
 
     // Fill out cache if needed.
@@ -148,7 +162,8 @@ class SearchEngineImpl implements SearchEngine {
       assignedFiles = searchEngineCache.assignedFiles = {};
       for (var driver in drivers) {
         var assignedFilesForDrive = assignedFiles[driver] = [];
-        await driver.discoverAvailableFiles();
+        await performance.runAsync(
+            "discoverAvailableFiles", (_) => driver.discoverAvailableFiles());
         for (var file in driver.fsState.knownFiles) {
           if (searchedFiles.add(file.path, driver.search)) {
             assignedFilesForDrive.add(file);
@@ -158,8 +173,10 @@ class SearchEngineImpl implements SearchEngine {
     }
 
     for (var driver in drivers) {
-      var results = await driver.search
-          .subTypes(type, searchedFiles, filesToCheck: assignedFiles[driver]);
+      var results = await performance.runAsync(
+          "subTypes",
+          (_) => driver.search.subTypes(type, searchedFiles,
+              filesToCheck: assignedFiles![driver]));
       allResults.addAll(results);
     }
     return allResults;

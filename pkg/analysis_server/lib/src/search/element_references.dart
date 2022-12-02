@@ -74,8 +74,10 @@ class ElementReferencesComputer {
           (_) => getHierarchyNamedParameters(searchEngine, element));
     }
     if (element is ClassMemberElement) {
-      return performance.runAsync("getHierarchyMembers",
-          (_) => getHierarchyMembers(searchEngine, element));
+      return performance.runAsync(
+          "getHierarchyMembers",
+          (performance) => getHierarchyMembers(searchEngine, element,
+              performance: performance));
     }
     return Future.value([element]);
   }

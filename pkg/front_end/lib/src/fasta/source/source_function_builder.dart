@@ -4,19 +4,18 @@
 
 library fasta.procedure_builder;
 
-import 'package:front_end/src/fasta/builder/omitted_type_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
-import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../identifiers.dart';
@@ -35,6 +34,7 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'source_builder_mixins.dart';
 import 'source_member_builder.dart';
 
 abstract class SourceFunctionBuilder
@@ -387,8 +387,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.returnType =
           returnType.build(libraryBuilder, TypeUse.returnType);
     }
-    if (isExtensionInstanceMember) {
-      ExtensionBuilder extensionBuilder = parent as ExtensionBuilder;
+    if (isExtensionInstanceMember || isViewInstanceMember) {
+      SourceDeclarationBuilderMixin extensionBuilder =
+          parent as SourceDeclarationBuilderMixin;
       _extensionThis = function.positionalParameters.first;
       if (extensionBuilder.typeParameters != null) {
         int count = extensionBuilder.typeParameters!.length;
@@ -401,7 +402,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   VariableDeclaration getFormalParameter(int index) {
-    if (isExtensionInstanceMember) {
+    if (isExtensionInstanceMember || isViewInstanceMember) {
       return formals![index + 1].variable!;
     } else {
       return formals![index].variable!;
@@ -413,7 +414,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   VariableDeclaration? get extensionThis {
-    assert(_extensionThis != null || !isExtensionInstanceMember,
+    assert(
+        _extensionThis != null ||
+            !(isExtensionInstanceMember || isViewInstanceMember),
         "ProcedureBuilder.extensionThis has not been set.");
     return _extensionThis;
   }
@@ -422,7 +425,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   List<TypeParameter>? get extensionTypeParameters {
     // Use [_extensionThis] as marker for whether extension type parameters have
     // been computed.
-    assert(_extensionThis != null || !isExtensionInstanceMember,
+    assert(
+        _extensionThis != null ||
+            !(isExtensionInstanceMember || isViewInstanceMember),
         "ProcedureBuilder.extensionTypeParameters has not been set.");
     return _extensionTypeParameters;
   }

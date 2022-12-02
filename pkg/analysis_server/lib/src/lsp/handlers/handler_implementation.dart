@@ -39,8 +39,8 @@ class ImplementationHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
         "_getImplementations",
-        (performanceChild) async => offset.mapResult((offset) =>
-            _getImplementations(unit.result, offset, token, performanceChild)));
+        (performance) async => offset.mapResult((offset) =>
+            _getImplementations(unit.result, offset, token, performance)));
   }
 
   Future<ErrorOr<List<Location>>> _getImplementations(
@@ -63,8 +63,8 @@ class ImplementationHandler
 
     Set<InterfaceElement> allSubtypes = await performance.runAsync(
         "searchAllSubtypes",
-        (_) async =>
-            await server.searchEngine.searchAllSubtypes(interfaceElement));
+        (performance) => server.searchEngine
+            .searchAllSubtypes(interfaceElement, performance: performance));
     final locations = performance.run(
         "filter and get location",
         (_) => allSubtypes
