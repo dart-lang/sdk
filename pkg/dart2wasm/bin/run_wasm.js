@@ -8,11 +8,15 @@
 //
 // $> d8 --experimental-wasm-gc --experimental-wasm-stack-switching --experimental-wasm-type-reflection run_wasm.js -- <dart_module>.wasm [<ffi_module>.wasm]
 //
+// Or with the `run_dart2wasm_d8` helper script:
+//
+// $> sdk/bin/run_dart2wasm_d8 <dart_module>.wasm [<ffi_module>.wasm]
+//
 // If an FFI module is specified, it will be instantiated first, and its
 // exports will be supplied as imports to the Dart module under the 'ffi'
 // module name.
 
-// We would like this itself to be a ES module rather than a script, but 
+// We would like this itself to be a ES module rather than a script, but
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
