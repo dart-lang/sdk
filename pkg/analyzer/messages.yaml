@@ -12269,6 +12269,9 @@ CompileTimeErrorCode:
         print(x);
       }
       ```
+  REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
+    problemMessage: Refutable patterns can't be used in an irrefutable context.
+    correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
     problemMessage: The return type of operators used in relational patterns must be assignable to 'bool'.
     correctionMessage: Try updating the operator declaration to return 'bool'.

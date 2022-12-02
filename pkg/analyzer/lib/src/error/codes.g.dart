@@ -4004,6 +4004,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT =
+      CompileTimeErrorCode(
+    'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
+    "Refutable patterns can't be used in an irrefutable context.",
+    correctionMessage:
+        "Try using an if-case, a 'switch' statement, or a 'switch' expression "
+        "instead.",
+  );
+
   static const CompileTimeErrorCode
       RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL =
       CompileTimeErrorCode(

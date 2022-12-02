@@ -40,9 +40,7 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void assertInErrorRecovery() {
-    throw UnimplementedError('TODO(paulberry)');
-  }
+  void assertInErrorRecovery() {}
 
   @override
   void caseExpressionTypeMismatch(
@@ -129,7 +127,10 @@ class SharedTypeAnalyzerErrors
 
   @override
   void refutablePatternInIrrefutableContext(AstNode pattern, AstNode context) {
-    throw UnimplementedError('TODO(paulberry)');
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+      pattern,
+    );
   }
 
   @override
