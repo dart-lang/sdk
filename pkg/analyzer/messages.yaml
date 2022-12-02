@@ -11166,6 +11166,13 @@ CompileTimeErrorCode:
       %uri="lib/part_file.dart"
       part of 'test.dart';
       ```
+  PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
+    problemMessage: "The matched value of type '{0}' isn't assignable to the required type '{1}'."
+    correctionMessage: "Try changing the required type of the pattern, or the matched value type."
+    comment: |-
+      Parameters:
+      0: the matched type
+      1: the required type
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.

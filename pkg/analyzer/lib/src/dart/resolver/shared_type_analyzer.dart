@@ -114,12 +114,17 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void patternTypeMismatchInIrrefutableContext(
-      {required AstNode pattern,
-      required AstNode context,
-      required DartType matchedType,
-      required DartType requiredType}) {
-    throw UnimplementedError('TODO(paulberry)');
+  void patternTypeMismatchInIrrefutableContext({
+    required covariant DartPatternImpl pattern,
+    required AstNode context,
+    required DartType matchedType,
+    required DartType requiredType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+      pattern,
+      [matchedType, requiredType],
+    );
   }
 
   @override
