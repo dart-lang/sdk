@@ -299,13 +299,13 @@ bool is_compressed_pointer() {
 }
 
 void OffsetsTable::Init() {
+  static const OffsetsTable::OffsetsTableEntry table[] {
 #define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
-  field_offsets_table.Add(                                                     \
-      {class_name::kClassId, #field_name,                                      \
-       is_compressed_pointer<decltype(Untagged##class_name::field_name)>(),    \
-       OFFSET_OF(Untagged##class_name, field_name)});
+  {class_name::kClassId, #field_name,                                          \
+   is_compressed_pointer<decltype(Untagged##class_name::field_name)>(),        \
+   OFFSET_OF(Untagged##class_name, field_name)},
 
-  COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+    COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
   NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
@@ -327,6 +327,11 @@ void OffsetsTable::Init() {
 #endif
 
 #undef DEFINE_OFFSETS_TABLE_ENTRY
+  };
+
+  for (const OffsetsTableEntry& entry : table) {
+  field_offsets_table.Add(entry);
+  }
 }
 
 void OffsetsTable::Cleanup() {
