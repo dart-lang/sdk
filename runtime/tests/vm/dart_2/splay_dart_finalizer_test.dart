@@ -31,7 +31,7 @@
 // VMOptions=--verify_store_buffer
 // VMOptions=--verify_after_marking
 // VMOptions=--stress_write_barrier_elimination
-// VMOptions=--old_gen_heap_size=300
+// VMOptions=--old_gen_heap_size=150
 
 import "splay_common.dart";
 
@@ -45,26 +45,9 @@ class FinalizerSplay extends Splay {
   Node newNode(num key, Object value) => new FinalizerNode(key, value);
 }
 
-final payloadLeft = <Object, dynamic>{};
-final payloadRight = <Object, dynamic>{};
-finalizePayload(Object token) {
-  payloadLeft.remove(token);
-  payloadRight.remove(token);
-}
-
-final payloadFinalizer = new Finalizer<Object>(finalizePayload);
-
 class Payload {
-  Payload(left, right) {
-    this.left = left;
-    this.right = right;
-    payloadFinalizer.attach(this, token, detach: this);
-  }
-  var token = new Object();
-  get left => payloadLeft[token];
-  set left(value) => payloadLeft[token] = value;
-  get right => payloadRight[token];
-  set right(value) => payloadRight[token] = value;
+  Payload(this.left, this.right);
+  var left, right;
 
   static generate(depth, tag) {
     if (depth == 0) return new Leaf(tag);
