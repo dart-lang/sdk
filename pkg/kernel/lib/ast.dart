@@ -2510,8 +2510,7 @@ class Field extends Member {
   /// Indicates whether the implicit setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
   ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
+  /// When `true`, runtime checks may need to be performed.
   bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the field is declared with the `late` keyword.
@@ -11153,8 +11152,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// whether the method implementation needs to contain a runtime type check to
   /// deal with generic covariance.
   ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
+  /// When `true`, runtime checks may need to be performed.
   // TODO(johnniwinther): Rename to isCovariantByClass
   bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
@@ -13518,8 +13516,7 @@ class TypeParameter extends TreeNode implements Annotatable {
   /// whether the method implementation needs to contain a runtime type check to
   /// deal with generic covariance.
   ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
+  /// When `true`, runtime checks may need to be performed.
   bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   void set isCovariantByClass(bool value) {
