@@ -7,6 +7,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Instances of the enum [MatchKind] represent the kind of reference that was
 /// found when a match represents a reference to an element.
@@ -77,7 +78,8 @@ abstract class SearchEngine {
   /// Returns all subtypes of the given [type].
   ///
   /// [type] - the [InterfaceElement] being subtyped by the found matches.
-  Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type);
+  Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type,
+      {OperationPerformanceImpl? performance});
 
   /// Returns declarations of class members with the given name.
   ///
@@ -101,7 +103,8 @@ abstract class SearchEngine {
   /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
   ///    empty it will be filled out and can be used on any subsequent query.
   Future<List<SearchMatch>> searchSubtypes(
-      InterfaceElement type, SearchEngineCache cache);
+      InterfaceElement type, SearchEngineCache cache,
+      {OperationPerformanceImpl? performance});
 
   /// Returns all the top-level declarations matching the given pattern.
   ///

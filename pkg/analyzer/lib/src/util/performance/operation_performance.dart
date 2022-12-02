@@ -72,6 +72,7 @@ class OperationPerformanceImpl implements OperationPerformance {
   final String name;
 
   final Stopwatch _timer = Stopwatch();
+  int _count = 0;
   final List<OperationPerformanceImpl> _children = [];
 
   final Map<String, OperationPerformanceData<Object>> _data = {};
@@ -140,12 +141,12 @@ class OperationPerformanceImpl implements OperationPerformance {
     T Function(OperationPerformanceImpl) operation,
   ) {
     OperationPerformanceImpl child = _existingOrNewChild(name);
-    child._timer.start();
+    child._start();
 
     try {
       return operation(child);
     } finally {
-      child._timer.stop();
+      child._stop();
     }
   }
 
@@ -160,15 +161,18 @@ class OperationPerformanceImpl implements OperationPerformance {
     Future<T> Function(OperationPerformanceImpl) operation,
   ) async {
     var child = _existingOrNewChild(name);
-    child._timer.start();
-    var result = await operation(child);
-    child._timer.stop();
-    return result;
+    child._start();
+    try {
+      return await operation(child);
+    } finally {
+      child._stop();
+    }
   }
 
   @override
   String toString() {
-    return '(name: $name, elapsed: $elapsed, elapsedSelf: $elapsedSelf)';
+    return '(name: $name, count: $_count, '
+        'elapsed: $elapsed, elapsedSelf: $elapsedSelf)';
   }
 
   @override
@@ -197,5 +201,14 @@ class OperationPerformanceImpl implements OperationPerformance {
       _children.add(child);
     }
     return child;
+  }
+
+  void _start() {
+    _timer.start();
+    _count++;
+  }
+
+  void _stop() {
+    _timer.stop();
   }
 }
