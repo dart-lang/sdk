@@ -73,7 +73,6 @@ final sharableObjects = [
   const [1, 2, 3],
   const {1: 1, 2: 2, 3: 2},
   const {1, 2, 3},
-  RegExp('a'),
   Isolate.current.pauseCapability,
   Int32x4(1, 2, 3, 4),
   StackTrace.current,
