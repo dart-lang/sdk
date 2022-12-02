@@ -180,12 +180,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitBinaryPattern(covariant BinaryPatternImpl node) {
-    assert(node.operator.type == TokenType.AMPERSAND ||
-        node.operator.type == TokenType.AMPERSAND_AMPERSAND ||
-        node.operator.type == TokenType.BAR ||
+    assert(node.operator.type == TokenType.AMPERSAND_AMPERSAND ||
         node.operator.type == TokenType.BAR_BAR);
-    final isOr = node.operator.type == TokenType.BAR ||
-        node.operator.type == TokenType.BAR_BAR;
+    final isOr = node.operator.type == TokenType.BAR_BAR;
     if (isOr) {
       _patternVariables.logicalOrPatternStart();
       node.leftOperand.accept(this);

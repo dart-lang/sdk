@@ -2615,11 +2615,9 @@ class BodyBuilder extends StackListenerImpl
 
     String operator = token.lexeme;
     switch (operator) {
-      case '&':
       case '&&':
         push(new AndPattern(left, right, token.charOffset));
         break;
-      case '|':
       case '||':
         Map<String, VariableDeclaration> leftVariablesByName = {
           for (VariableDeclaration leftVariable in left.declaredVariables)
