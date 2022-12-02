@@ -3673,6 +3673,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the matched type
+  ///  1: the required type
+  static const CompileTimeErrorCode
+      PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT = CompileTimeErrorCode(
+    'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
+    "The matched value of type '{0}' isn't assignable to the required type "
+        "'{1}'.",
+    correctionMessage:
+        "Try changing the required type of the pattern, or the matched value "
+        "type.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode
       POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT =

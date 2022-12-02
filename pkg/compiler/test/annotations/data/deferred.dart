@@ -5,7 +5,7 @@
 import 'dart:collection' deferred as normal;
 
 @pragma('dart2js:load-priority:high')
-import 'dart:collection' deferred as high;
+import 'dart:math' deferred as high;
 
 test1() async {
   await normal. /*spec.invoke: normal*/ loadLibrary();

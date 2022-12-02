@@ -605,6 +605,8 @@ import 'packed_annotation_alignment_test.dart' as packed_annotation_alignment;
 import 'packed_annotation_test.dart' as packed_annotation;
 import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
+import 'pattern_type_mismatch_in_irrefutable_context_test.dart'
+    as pattern_type_mismatch_in_irrefutable_context;
 import 'positional_super_formal_parameter_with_positional_argument_test.dart'
     as positional_super_formal_parameter_with_positional_argument;
 import 'prefix_collides_with_top_level_member_test.dart'
@@ -1213,6 +1215,7 @@ main() {
     packed_annotation_alignment.main();
     part_of_different_library.main();
     part_of_non_part.main();
+    pattern_type_mismatch_in_irrefutable_context.main();
     positional_super_formal_parameter_with_positional_argument.main();
     prefix_collides_with_top_level_member.main();
     prefix_identifier_not_followed_by_dot.main();

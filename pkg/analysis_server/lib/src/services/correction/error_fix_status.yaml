@@ -891,6 +891,8 @@ CompileTimeErrorCode.PART_OF_NON_PART:
   status: needsEvaluation
 CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY:
   status: needsEvaluation
+CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
+  status: needsEvaluation
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: needsFix
   since: 2.17
