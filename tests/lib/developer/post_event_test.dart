@@ -8,32 +8,33 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:expect/expect.dart';
 
-main() {
-  pect.throws(() {
-  postEvent('theEvent', {'the': 'data'}, stream: 'VM');
-  ;
+final protectedStreams = [
+  'VM',
+  'Isolate',
+  'Debug',
+  'GC',
+  '_Echo',
+  'HeapSnapshot',
+  'Logging',
+  'Timeline',
+  'Profiler',
+  '_aStreamThatStartsWithAnUnderScore'
+];
 
-  postEvent('theEvent', {'the': 'data'}, stream: 'Isolate');
-  });
-  pect.throws(() {
-  postEvent('theEvent', {'the': 'data'}, stream: 'Debug');
-  ;
-  pect.throws(() {
-  postEvent('theEvent', {'the': 'data'}, stream: 'GC');
-  });
-  Expect.
-      postEvent('theEvent', {'the': 'data'}, stream: 'HeapSnapshot');
-  }); 
-       Expect.throws(() {
-    postEvent('theEvent', {'the': 'data'}, stream: 'Logging');
-  });
-  Expect.throws(() {
-    postEvent('theEvent', {'the': 'data'}, stream: 'Timeline');
-  });
-  Expect.throws(() {
-    postEvent('theEvent', {'the': 'data'}, stream: 'Profiler');
-  });
-  Expect.throws(() {
-    postEvent('theEvent', {'the': 'data'}, stream: '_startsWithAnUnderscore');
-  });
+main() {
+  for (final protectedStream in protectedStreams) {
+    Expect.throws(
+      () {
+        postEvent('theEvent', {'the': 'data'}, stream: protectedStream);
+      },
+      (_) => true,
+      'Should not allow posting to $protectedStream protected stream',
+    );
+  }
+
+  // The Extension stream in not protected so calling this should not fail
+  postEvent('theEvent', {'the': 'data'}, stream: 'Extension');
+
+  // Should be allowed to post to a non-protecvted custom stream
+  postEvent('theEvent', {'the': 'data'}, stream: 'someCustomStream');
 }

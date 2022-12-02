@@ -146,7 +146,10 @@ external bool get extensionStreamHasListener;
 /// event stream.
 ///
 /// If [extensionStreamHasListener] is false, this method is a no-op.
+// This event will only be posted to the extension stream, if you try to post to a stream that is part of the vm service or is defined by the dart VM Embedder
 void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
+  // Keep protected streams in sync with `streams_` in runtime/vm/service.cc
+  // `Extension` is the only stream that should not be protected here.
   final protectedStreams = [
     'VM',
     'Isolate',
