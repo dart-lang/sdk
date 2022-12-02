@@ -620,6 +620,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION = CompileTimeErrorCode(
+    'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
+    "The expression of a constant pattern must be a valid constant.",
+    correctionMessage: "Try making the expression a valid constant.",
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   ///

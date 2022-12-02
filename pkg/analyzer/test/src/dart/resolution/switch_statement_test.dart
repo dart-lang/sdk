@@ -134,11 +134,15 @@ SwitchStatement
 
   test_rewrite_pattern() async {
     await assertNoErrorsInCode(r'''
-void f(Object? x, int Function() a) {
+void f(Object? x) {
   switch (x) {
-    case const a():
+    case const A():
       break;
   }
+}
+
+class A {
+  const A();
 }
 ''');
 
@@ -159,17 +163,19 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
           const: const
-          expression: FunctionExpressionInvocation
-            function: SimpleIdentifier
-              token: a
-              staticElement: self::@function::f::@parameter::a
-              staticType: int Function()
+          expression: InstanceCreationExpression
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: A
+                  staticElement: self::@class::A
+                  staticType: null
+                type: A
+              staticElement: self::@class::A::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: (
               rightParenthesis: )
-            staticElement: <null>
-            staticInvokeType: int Function()
-            staticType: int
+            staticType: A
       colon: :
       statements
         BreakStatement

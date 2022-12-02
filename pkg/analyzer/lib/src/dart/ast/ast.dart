@@ -4302,6 +4302,8 @@ abstract class ExpressionImpl extends AstNodeImpl
       var parent = child.parent;
       if (parent is ConstantContextForExpressionImpl) {
         return true;
+      } else if (parent is ConstantPatternImpl) {
+        return true;
       } else if (parent is EnumConstantArguments) {
         return true;
       } else if (parent is TypedLiteralImpl && parent.constKeyword != null) {

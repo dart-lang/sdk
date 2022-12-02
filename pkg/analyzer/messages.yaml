@@ -2878,6 +2878,10 @@ CompileTimeErrorCode:
 
       Parameters:
       0: the name of the type
+  CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
+    problemMessage: The expression of a constant pattern must be a valid constant.
+    correctionMessage: Try making the expression a valid constant.
+    comment: No parameters.
   CONTINUE_LABEL_ON_SWITCH:
     problemMessage: A `continue` label resolves to a `switch` statement, but the label must be on a loop or a switch member.
     hasPublishedDocs: true

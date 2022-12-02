@@ -94,11 +94,15 @@ SwitchExpressionCase
 
   test_rewrite_case_pattern() async {
     await assertNoErrorsInCode(r'''
-void f(Object? x, int Function() a) {
+void f(Object? x) {
   (switch (x) {
-    const a() => 0,
+    const A() => 0,
     _ => 1,
   });
+}
+
+class A {
+  const A();
 }
 ''');
 
@@ -108,17 +112,19 @@ SwitchExpressionCase
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
       const: const
-      expression: FunctionExpressionInvocation
-        function: SimpleIdentifier
-          token: a
-          staticElement: self::@function::f::@parameter::a
-          staticType: int Function()
+      expression: InstanceCreationExpression
+        constructorName: ConstructorName
+          type: NamedType
+            name: SimpleIdentifier
+              token: A
+              staticElement: self::@class::A
+              staticType: null
+            type: A
+          staticElement: self::@class::A::@constructor::new
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticElement: <null>
-        staticInvokeType: int Function()
-        staticType: int
+        staticType: A
   arrow: =>
   expression: IntegerLiteral
     literal: 0

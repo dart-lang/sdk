@@ -126,6 +126,8 @@ import 'const_with_non_type_test.dart' as const_with_non_type;
 import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
 import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
+import 'constant_pattern_with_non_constant_expression_test.dart'
+    as constant_pattern_with_non_constant_expression;
 import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
@@ -901,6 +903,7 @@ main() {
     const_with_non_type.main();
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
+    constant_pattern_with_non_constant_expression.main();
     could_not_infer.main();
     creation_of_struct_or_union.main();
     dead_code.main();

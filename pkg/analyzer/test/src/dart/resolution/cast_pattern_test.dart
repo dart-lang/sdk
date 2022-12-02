@@ -40,9 +40,10 @@ CastPattern
 
   test_switchCase() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x) {
+  const a = 0;
   switch (x) {
-    case y as int:
+    case a as int:
       break;
   }
 }
@@ -52,9 +53,9 @@ void f(x, y) {
 CastPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
-      token: y
-      staticElement: self::@function::f::@parameter::y
-      staticType: dynamic
+      token: a
+      staticElement: a@20
+      staticType: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
