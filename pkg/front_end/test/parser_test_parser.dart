@@ -2104,30 +2104,33 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseForInRest(
-      Token token, Token? awaitToken, Token forToken, Token identifier) {
+  Token parseForInRest(Token token, Token? awaitToken, Token forToken,
+      Token? patternKeyword, Token? identifier) {
     doPrint('parseForInRest('
         '$token, '
         '$awaitToken, '
         '$forToken, '
+        '$patternKeyword, '
         '$identifier)');
     indent++;
-    var result = super.parseForInRest(token, awaitToken, forToken, identifier);
+    var result = super.parseForInRest(
+        token, awaitToken, forToken, patternKeyword, identifier);
     indent--;
     return result;
   }
 
   @override
-  Token parseForInLoopPartsRest(
-      Token token, Token? awaitToken, Token forToken, Token identifier) {
+  Token parseForInLoopPartsRest(Token token, Token? awaitToken, Token forToken,
+      Token? patternKeyword, Token? identifier) {
     doPrint('parseForInLoopPartsRest('
         '$token, '
         '$awaitToken, '
         '$forToken, '
+        '$patternKeyword, '
         '$identifier)');
     indent++;
-    var result =
-        super.parseForInLoopPartsRest(token, awaitToken, forToken, identifier);
+    var result = super.parseForInLoopPartsRest(
+        token, awaitToken, forToken, patternKeyword, identifier);
     indent--;
     return result;
   }

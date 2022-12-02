@@ -5082,9 +5082,10 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   Token get beginToken => keyword;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
+  ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
-    ..addNode('pattern', pattern);
+    ..addNode('pattern', pattern)
+    ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>

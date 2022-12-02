@@ -6271,6 +6271,69 @@ PostfixPattern
 ''');
   }
 
+  test_pattern_inForIn_element() {
+    _parse('''
+void f(x) => [for (var (a, b) in x) 0];
+''');
+    var node = findNode.forElement('for');
+    assertParsedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: VariablePattern
+            name: a
+        RecordPatternField
+          pattern: VariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_pattern_inForIn_statement() {
+    _parse('''
+void f(x) {
+  for (var (a, b) in x) {}
+}
+''');
+    var node = findNode.forStatement('for');
+    assertParsedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: VariablePattern
+            name: a
+        RecordPatternField
+          pattern: VariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_pattern_inForInitializer_element() {
     _parse('''
 void f(x) => [for (var (a, b) = x; ;) 0];

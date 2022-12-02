@@ -621,9 +621,13 @@ class Listener implements UnescapeErrorListener {
 
   /// Marks the end of parsing the control structure of a for-in statement
   /// or for control flow entry up to and including the closing parenthesis.
-  /// `for` `(` (type)? identifier `in` iterator `)`
+  /// If [patternKeyword] is `null`, this takes the form:
+  ///   `for` `(` (type)? identifier `in` iterator `)`
+  /// If [patternKeyword] is not `null`, it is either a `var` or `final` token,
+  /// and this takes the form:
+  ///   `for` `(` patternKeyword pattern `in` iterator `)`
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {}
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {}
 
   // One of the two possible corresponding end events for [beginForStatement].
   void endForIn(Token endToken) {
