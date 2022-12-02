@@ -9596,11 +9596,12 @@ class Parser {
       if (optional('...', next)) {
         Token dots = next;
         token = next;
-        // TODO(paulberry): users might assume that `...pattern` is valid inside
-        // a map (because it's valid inside a list).  Consider accepting this
-        // and reporting the error at a later stage of the compilation pipeline
-        // so that the error is more useful.
-        listener.handleRestPattern(dots, hasSubPattern: false);
+        next = token.next!;
+        bool hasSubPattern = looksLikePatternStart(next);
+        if (hasSubPattern) {
+          token = parsePattern(token, isRefutableContext: isRefutableContext);
+        }
+        listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
       } else {
         token = parseExpression(token);
         Token colon = token.next!;

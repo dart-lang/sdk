@@ -117,6 +117,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is FunctionType) {
       const IsFunctionSubtypeOf relation = const IsFunctionSubtypeOf();
@@ -140,6 +142,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is TypeParameterType) {
       const IsTypeParameterSubtypeOf relation =
@@ -164,6 +168,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is IntersectionType) {
       const IsIntersectionSubtypeOf relation = const IsIntersectionSubtypeOf();
@@ -187,6 +193,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is TypedefType) {
       const IsTypedefSubtypeOf relation = const IsTypedefSubtypeOf();
@@ -210,6 +218,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is FutureOrType) {
       const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
@@ -233,6 +243,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is NullType) {
       const IsNullTypeSubtypeOf relation = const IsNullTypeSubtypeOf();
@@ -256,6 +268,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is NeverType) {
       const IsNeverTypeSubtypeOf relation = const IsNeverTypeSubtypeOf();
@@ -279,6 +293,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is RecordType) {
       const IsRecordSubtypeOf relation = const IsRecordSubtypeOf();
@@ -303,6 +319,8 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else if (t is ExtensionType) {
       const IsExtensionTypeSubtypeOf relation =
@@ -328,6 +346,34 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
+      }
+    } else if (t is ViewType) {
+      const IsViewTypeSubtypeOf relation = const IsViewTypeSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
+      } else if (s is IntersectionType) {
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
+      } else if (s is RecordType) {
+        return relation.isRecordRelated(s, t, this);
+      } else if (s is ViewType) {
+        return relation.isViewTypeRelated(s, t, this);
       }
     } else {
       throw "Unhandled type: ${t.runtimeType}";
@@ -415,6 +461,8 @@ abstract class TypeRelation<T extends DartType> {
   IsSubtypeOf isExtensionRelated(ExtensionType s, T t, Types types);
 
   IsSubtypeOf isRecordRelated(RecordType s, T t, Types types);
+
+  IsSubtypeOf isViewTypeRelated(ViewType s, T t, Types types);
 }
 
 class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
@@ -498,6 +546,11 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
     return t.classNode == types.hierarchy.coreTypes.recordClass
         ? new IsSubtypeOf.basedSolelyOnNullabilities(s, t)
         : const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, InterfaceType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 }
 
@@ -683,6 +736,11 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
   IsSubtypeOf isRecordRelated(RecordType s, FunctionType t, Types types) {
     return const IsSubtypeOf.never();
   }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, FunctionType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsRecordSubtypeOf extends TypeRelation<RecordType> {
@@ -768,6 +826,11 @@ class IsRecordSubtypeOf extends TypeRelation<RecordType> {
       }
     }
     return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
+  }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, RecordType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 }
 
@@ -860,6 +923,11 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   IsSubtypeOf isRecordRelated(RecordType s, TypeParameterType t, Types types) {
     return const IsSubtypeOf.never();
   }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, TypeParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
@@ -915,6 +983,11 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   @override
   IsSubtypeOf isRecordRelated(RecordType s, TypedefType t, Types types) {
     return types.performNullabilityAwareMutualSubtypesCheck(s, t.unalias);
+  }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 }
 
@@ -1057,6 +1130,13 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
     return types.performNullabilityAwareMutualSubtypesCheck(
         s, t.typeArgument.withDeclaredNullability(t.nullability));
   }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, FutureOrType t, Types types) {
+    // Rule 11.
+    return types.performNullabilityAwareSubtypeCheck(
+        s, t.typeArgument.withDeclaredNullability(t.nullability));
+  }
 }
 
 class IsIntersectionSubtypeOf extends TypeRelation<IntersectionType> {
@@ -1127,6 +1207,11 @@ class IsIntersectionSubtypeOf extends TypeRelation<IntersectionType> {
   IsSubtypeOf isRecordRelated(RecordType s, IntersectionType t, Types types) {
     return const IsSubtypeOf.never();
   }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, IntersectionType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
@@ -1187,6 +1272,11 @@ class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
   IsSubtypeOf isRecordRelated(RecordType s, NullType t, Types types) {
     return const IsSubtypeOf.never();
   }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
@@ -1243,6 +1333,11 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
 
   @override
   IsSubtypeOf isRecordRelated(RecordType s, NeverType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, NeverType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -1310,5 +1405,78 @@ class IsExtensionTypeSubtypeOf implements TypeRelation<ExtensionType> {
   @override
   IsSubtypeOf isRecordRelated(RecordType s, ExtensionType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s, t.onType);
+  }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, ExtensionType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+}
+
+class IsViewTypeSubtypeOf implements TypeRelation<ViewType> {
+  const IsViewTypeSubtypeOf();
+
+  @override
+  IsSubtypeOf isDynamicRelated(DynamicType s, ViewType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isVoidRelated(VoidType s, ViewType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isInterfaceRelated(InterfaceType s, ViewType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isIntersectionRelated(
+      IntersectionType intersection, ViewType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(intersection.right, t);
+  }
+
+  @override
+  IsSubtypeOf isFunctionRelated(FunctionType s, ViewType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isFutureOrRelated(FutureOrType s, ViewType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, ViewType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.bound, t);
+  }
+
+  @override
+  IsSubtypeOf isTypedefRelated(TypedefType s, ViewType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
+  }
+
+  @override
+  IsSubtypeOf isExtensionRelated(ExtensionType s, ViewType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isRecordRelated(RecordType s, ViewType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isViewTypeRelated(ViewType s, ViewType t, Types types) {
+    if (s.view != t.view) {
+      // TODO(johnniwinther): Support view interfaces.
+      return const IsSubtypeOf.never();
+    }
+    return types
+        .areTypeArgumentsOfSubtypeKernel(
+            s.typeArguments, t.typeArguments, t.view.typeParameters)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 }

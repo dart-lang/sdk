@@ -698,6 +698,11 @@ mixin TypeAnalyzer<
         handleMapPatternEntry(node, element);
       } else {
         assert(isRestPatternElement(element));
+        Pattern? subPattern = getRestPatternElementPattern(element);
+        if (subPattern != null) {
+          errors?.restPatternWithSubPatternInMap(node, element);
+          dispatchPattern(dynamicType, context, subPattern);
+        }
         handleMapPatternRestElement(node, element);
       }
     }
@@ -1826,6 +1831,11 @@ abstract class TypeAnalyzerErrors<
     required Node node,
     required Type returnType,
   });
+
+  /// Called if a rest pattern inside a map pattern has a subpattern.
+  ///
+  /// [node] is the map pattern.  [element] is the rest pattern.
+  void restPatternWithSubPatternInMap(Pattern node, Node element);
 
   /// Called if one of the case bodies of a switch statement completes normally
   /// (other than the last case body), and the "patterns" feature is not

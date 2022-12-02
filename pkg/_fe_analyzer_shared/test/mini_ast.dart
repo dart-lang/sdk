@@ -2979,6 +2979,12 @@ class _MiniAstErrors
   }
 
   @override
+  void restPatternWithSubPatternInMap(Pattern node, Node element) {
+    _recordError(
+        'restPatternWithSubPatternInMap(${node.errorId}, ${element.errorId})');
+  }
+
+  @override
   void switchCaseCompletesNormally(
       covariant _SwitchStatement node, int caseIndex, int numHeads) {
     _recordError(

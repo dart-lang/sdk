@@ -1660,6 +1660,24 @@ main() {
           });
         });
       });
+
+      group('Errors:', () {
+        test('Rest pattern with subpattern', () {
+          var x = Var('x');
+          h.run([
+            match(
+              mapPattern([
+                mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
+                mapPatternRestElement(wildcard())..errorId = 'REST_ELEMENT',
+              ])
+                ..errorId = 'MAP_PATTERN',
+              expr('dynamic'),
+            ),
+          ], expectedErrors: {
+            'restPatternWithSubPatternInMap(MAP_PATTERN, REST_ELEMENT)'
+          });
+        });
+      });
     });
 
     group('List:', () {
