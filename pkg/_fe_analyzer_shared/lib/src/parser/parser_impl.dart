@@ -9523,6 +9523,8 @@ class Parser {
       );
       return token.next!;
     }
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     while (true) {
       Token next = token.next!;
       if (optional(']', next)) {
@@ -9573,6 +9575,7 @@ class Parser {
       token = next;
     }
     listener.handleListPattern(count, beginToken, token);
+    mayParseFunctionExpressions = old;
     return token;
   }
 
@@ -9591,6 +9594,8 @@ class Parser {
       return next;
     }
 
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     int count = 0;
     while (true) {
       if (optional('...', next)) {
@@ -9625,8 +9630,7 @@ class Parser {
         next = token.next!;
       }
       if (optional('}', next)) {
-        listener.handleMapPattern(count, leftBrace, next);
-        return next;
+        break;
       }
 
       if (comma == null) {
@@ -9645,11 +9649,13 @@ class Parser {
               next, codes.templateExpectedButGot.withArguments('}'));
           // Scanner guarantees a closing curly bracket
           next = leftBrace.endGroup!;
-          listener.handleMapPattern(count, leftBrace, next);
-          return next;
+          break;
         }
       }
     }
+    mayParseFunctionExpressions = old;
+    listener.handleMapPattern(count, leftBrace, next);
+    return next;
   }
 
   /// Parses either a parenthesizedPattern or a recordPattern.
@@ -9662,6 +9668,8 @@ class Parser {
       {required bool isRefutableContext}) {
     Token begin = token.next!;
     assert(optional('(', begin));
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
 
     token = begin;
     int count = 0;
@@ -9725,6 +9733,7 @@ class Parser {
       listener.handleParenthesizedPattern(begin);
     }
 
+    mayParseFunctionExpressions = old;
     return token;
   }
 
@@ -9899,6 +9908,7 @@ class Parser {
     Token next = token.next!;
     int caseCount = 0;
     if (!optional('}', next)) {
+      mayParseFunctionExpressions = false;
       while (true) {
         listener.beginSwitchExpressionCase();
         token = parsePattern(token, isRefutableContext: true);
@@ -9906,12 +9916,12 @@ class Parser {
         next = token.next!;
         if (optional('when', next)) {
           when = token = next;
-          mayParseFunctionExpressions = false;
           token = parseExpression(token);
-          mayParseFunctionExpressions = true;
         }
         Token arrow = token = ensureFunctionArrow(token);
+        mayParseFunctionExpressions = true;
         token = parseExpression(token);
+        mayParseFunctionExpressions = false;
         listener.endSwitchExpressionCase(when, arrow, token);
         ++caseCount;
         next = token.next!;

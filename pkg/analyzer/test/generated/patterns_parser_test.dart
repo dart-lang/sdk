@@ -3026,6 +3026,130 @@ IfStatement
 ''');
   }
 
+  test_functionExpression_allowed_insideListPattern() {
+    _parse('''
+f(x) => switch(x) { [== () => 0] => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    RelationalPattern
+      operator: ==
+      operand: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+  rightBracket: ]
+''');
+  }
+
+  test_functionExpression_allowed_insideMapPattern() {
+    _parse('''
+f(x) => switch(x) { {'x': == () => 0} => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'x'
+      separator: :
+      value: RelationalPattern
+        operator: ==
+        operand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
+              literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideObjectPattern() {
+    _parse('''
+f(x) => switch(x) { Foo(bar: == () => 0) => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: Foo
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: bar
+        colon: :
+      pattern: RelationalPattern
+        operator: ==
+        operand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
+              literal: 0
+  rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideParenthesizedConstPattern() {
+    _parse('''
+f(x) => switch(x) { const (() => 0) => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ConstantPattern
+  const: const
+  expression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression: IntegerLiteral
+          literal: 0
+    rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideParenthesizedPattern() {
+    _parse('''
+f(x) => switch(x) { (== () => 0) => 0 };
+''');
+    var node = findNode.switchExpressionCase('() => 0').guardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: RelationalPattern
+    operator: ==
+    operand: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression: IntegerLiteral
+          literal: 0
+  rightParenthesis: )
+''');
+  }
+
   test_functionExpression_allowed_insideSwitchExpressionCase_guarded() {
     _parse('''
 f(x) => switch(x) { _ when switch(x) { _ when true => () => 0 } => 0 };
@@ -3135,6 +3259,116 @@ SwitchPatternCase
 ''');
   }
 
+  test_functionExpression_disallowed_afterListPattern() {
+    _parse('''
+f(x) => switch(x) { [_] when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        VariablePattern
+          name: _
+      rightBracket: ]
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_afterMapPattern() {
+    _parse('''
+f(x) => switch(x) { {'x': _} when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key: SimpleStringLiteral
+            literal: 'x'
+          separator: :
+          value: VariablePattern
+            name: _
+      rightBracket: }
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_afterObjectPattern() {
+    _parse('''
+f(x) => switch(x) { Foo(bar: _) when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ObjectPattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: Foo
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          fieldName: RecordPatternFieldName
+            name: bar
+            colon: :
+          pattern: VariablePattern
+            name: _
+      rightParenthesis: )
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_afterParenthesizedPattern() {
+    _parse('''
+f(x) => switch(x) { (_) when () => 0 };
+''');
+    var node = findNode.switchExpressionCase('when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: VariablePattern
+        name: _
+      rightParenthesis: )
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+''');
+  }
+
   test_functionExpression_disallowed_afterSwitchExpressionInWhenClause() {
     _parse('''
 f(x) => switch(x) { _ when switch(x) {} + () => 0 };
@@ -3191,7 +3425,7 @@ SwitchExpressionCase
 ''');
   }
 
-  test_issue50591() {
+  test_issue50591_example1() {
     _parse('''
 f(x, bool Function() a) => switch(x) {
   _ when a() => 0
@@ -3222,6 +3456,48 @@ SwitchExpression
       arrow: =>
       expression: IntegerLiteral
         literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_issue50591_example2() {
+    _parse('''
+void f(Object? x) {
+  (switch (x) {
+    const A() => 0,
+    _ => 1,
+  });
+}''');
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          const: const
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: VariablePattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 1
   rightBracket: }
 ''');
   }
