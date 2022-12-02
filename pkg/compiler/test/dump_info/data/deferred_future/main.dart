@@ -83,30 +83,6 @@
   "size": 59,
   "outputUnit": "outputUnit/main",
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
-},
-  {
-  "id": "constant/B.List_gQW = A._setArrayType(makeConstList([B.LoadLibraryPriority_0, B.LoadLibraryPriority_1]), A.findType(\"JSArray<LoadLibraryPriority*>\"));\n",
-  "kind": "constant",
-  "name": "",
-  "size": 142,
-  "outputUnit": "outputUnit/main",
-  "code": "B.List_gQW = A._setArrayType(makeConstList([B.LoadLibraryPriority_0, B.LoadLibraryPriority_1]), A.findType(\"JSArray<LoadLibraryPriority*>\"));\n"
-},
-  {
-  "id": "constant/B.LoadLibraryPriority_0 = new A.LoadLibraryPriority(0, \"normal\");\n",
-  "kind": "constant",
-  "name": "",
-  "size": 66,
-  "outputUnit": "outputUnit/main",
-  "code": "B.LoadLibraryPriority_0 = new A.LoadLibraryPriority(0, \"normal\");\n"
-},
-  {
-  "id": "constant/B.LoadLibraryPriority_1 = new A.LoadLibraryPriority(1, \"high\");\n",
-  "kind": "constant",
-  "name": "",
-  "size": 64,
-  "outputUnit": "outputUnit/main",
-  "code": "B.LoadLibraryPriority_1 = new A.LoadLibraryPriority(1, \"high\");\n"
 }],
  deferredFiles=[{
   "main.dart": {

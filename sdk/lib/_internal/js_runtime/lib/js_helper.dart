@@ -2679,13 +2679,11 @@ DeferredLoadCallback? deferredLoadHook;
 ///   - `0` for `LoadLibraryPriority.normal`
 ///   - `1` for `LoadLibraryPriority.high`
 Future<Null> loadDeferredLibrary(String loadId, int priority) {
-  // Convert [priority] to the enum value as form of validation:
-  final unusedPriorityEnum = LoadLibraryPriority.values[priority];
-  // The enum's values may be checked via the `index`:
-  assert(priority == LoadLibraryPriority.normal.index ||
-      priority == LoadLibraryPriority.high.index);
-
-  // TODO(sra): Implement prioritization.
+  // Validate the priority using the index to allow the actual enum to get
+  // tree-shaken.
+  if (priority < 0 || priority >= LoadLibraryPriority.values.length) {
+    throw DeferredLoadException('Invalid library priority: $priority');
+  }
 
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and
@@ -2749,7 +2747,7 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i], loadId).then((Null _) {
+    return _loadHunk(uris[i], loadId, priority).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -2905,7 +2903,7 @@ String _computeThisScriptFromTrace() {
   throw new UnsupportedError('Cannot extract URI from "$stack"');
 }
 
-Future<Null> _loadHunk(String hunkName, String loadId) {
+Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
   var future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
@@ -2997,6 +2995,9 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     }
     if (_crossOrigin != null && _crossOrigin != '') {
       JS('', '#.crossOrigin = #', script, _crossOrigin);
+    }
+    if (priority == LoadLibraryPriority.high.index) {
+      JS('', '#.fetchPriority = "high"', script);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);
