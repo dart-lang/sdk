@@ -207,6 +207,9 @@ class _ElementInfo {
   /// The kind of the element.
   final IndexSyntheticElementKind kind;
 
+  /// The prefixes used to reference the element.
+  final Set<String> importPrefixes = {};
+
   /// The unique id of the element.  It is set after indexing of the whole
   /// package is done and we are assembling the full package index.
   late int id;
@@ -291,6 +294,11 @@ class _IndexAssembler {
     nameRelations.add(_NameRelationInfo(nameId, kind, offset, isQualified));
   }
 
+  void addPrefixForElement(PrefixElement prefixElement, Element element) {
+    _ElementInfo elementInfo = _getElementInfo(element);
+    elementInfo.importPrefixes.add(prefixElement.name);
+  }
+
   void addSubtype(String name, List<String> members, List<String> supertypes) {
     for (var supertype in supertypes) {
       subtypes.add(
@@ -352,6 +360,9 @@ class _IndexAssembler {
         nullStringId: nullString.id,
         unitLibraryUris: unitLibraryUris.map((s) => s.id).toList(),
         unitUnitUris: unitUnitUris.map((s) => s.id).toList(),
+        elementImportPrefixes: elementInfoList
+            .map((e) => e.importPrefixes.toList().join(','))
+            .toList(),
         elementKinds: elementInfoList.map((e) => e.kind).toList(),
         elementUnits: elementInfoList.map((e) => e.unitId).toList(),
         elementNameUnitMemberIds:
@@ -575,6 +586,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
     recordIsAncestorOf(node.declaredElement!);
+    var superclassName = node.superclass.name;
+    if (superclassName is PrefixedIdentifier) {
+      visitPrefixedIdentifier(superclassName);
+    }
     super.visitClassTypeAlias(node);
   }
 
@@ -706,6 +721,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
+    var superclassName = node.superclass.name;
+    if (superclassName is PrefixedIdentifier) {
+      visitPrefixedIdentifier(superclassName);
+    }
   }
 
   @override
@@ -725,6 +744,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitImplementsClause(ImplementsClause node) {
     for (NamedType namedType in node.interfaces) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
+      var supertypeName = namedType.name;
+      if (supertypeName is PrefixedIdentifier) {
+        visitPrefixedIdentifier(supertypeName);
+      }
     }
   }
 
@@ -807,6 +830,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitPostfixExpression(PostfixExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitPostfixExpression(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    var prefixElement = node.prefix.staticElement;
+    var element = node.staticElement;
+    if (element != null &&
+        prefixElement is PrefixElement &&
+        element is! MultiplyDefinedElementImpl &&
+        element is! DynamicElementImpl &&
+        element is! NeverElementImpl) {
+      // TODO(brianwilkerson) The last two conditions are here because the
+      //  elements for `dynamic` and `Never` are singletons and hence don't have
+      //  a parent element for which we can find an `_ElementInfo`. This means
+      //  that any reference to either type via a prefix can't be stored in the
+      //  index. The solution is to make those elements be normal (not unique)
+      //  elements.
+      assembler.addPrefixForElement(prefixElement, element);
+    }
+    super.visitPrefixedIdentifier(node);
   }
 
   @override
@@ -902,6 +945,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
+      var supertypeName = namedType.name;
+      if (supertypeName is PrefixedIdentifier) {
+        visitPrefixedIdentifier(supertypeName);
+      }
     }
   }
 
