@@ -4027,6 +4027,21 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    var expression = pop() as ExpressionImpl;
+    var pattern = pop() as DartPatternImpl;
+    var metadata = pop() as List<AnnotationImpl>?;
+    push(PatternVariableDeclarationImpl(
+        keyword: keyword,
+        pattern: pattern,
+        equals: equals,
+        expression: expression,
+        comment: null,
+        metadata: metadata));
+  }
+
+  @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token inKeyword) {
     assert(optionalOrNull('await', awaitToken));
@@ -4102,6 +4117,13 @@ class AstBuilder extends StackListener {
         rightSeparator: rightSeparator,
         updaters: updates,
       );
+    } else if (initializerPart is PatternVariableDeclarationImpl) {
+      forLoopParts = ForPartsWithPatternImpl(
+          variables: initializerPart,
+          leftSeparator: leftSeparator,
+          condition: condition,
+          rightSeparator: rightSeparator,
+          updaters: updates);
     } else {
       forLoopParts = ForPartsWithExpressionImpl(
         initialization: initializerPart as ExpressionImpl?,

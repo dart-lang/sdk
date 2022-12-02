@@ -14,7 +14,7 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart'
-    show AwaitOrYieldContext;
+    show AwaitOrYieldContext, ForPartsContext;
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -1992,32 +1992,28 @@ class TestParser extends Parser {
 
   @override
   Token parseExpressionStatementOrDeclaration(final Token start,
-      [bool onlyParseVariableDeclarationStart = false]) {
+      [ForPartsContext? forPartsContext]) {
     doPrint('parseExpressionStatementOrDeclaration('
         '$start, '
-        '$onlyParseVariableDeclarationStart)');
+        '$forPartsContext)');
     indent++;
-    var result = super.parseExpressionStatementOrDeclaration(
-        start, onlyParseVariableDeclarationStart);
+    var result =
+        super.parseExpressionStatementOrDeclaration(start, forPartsContext);
     indent--;
     return result;
   }
 
   @override
-  Token parseExpressionStatementOrDeclarationAfterModifiers(
-      Token beforeType,
-      Token start,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      TypeInfo? typeInfo,
-      bool onlyParseVariableDeclarationStart) {
+  Token parseExpressionStatementOrDeclarationAfterModifiers(Token beforeType,
+      Token start, Token? lateToken, Token? varFinalOrConst, TypeInfo? typeInfo,
+      [ForPartsContext? forPartsContext]) {
     doPrint('parseExpressionStatementOrDeclarationAfterModifiers('
         '$beforeType, '
         '$start, '
         '$lateToken, '
         '$varFinalOrConst, '
         '$typeInfo, '
-        '$onlyParseVariableDeclarationStart)');
+        '$forPartsContext)');
     indent++;
     var result = super.parseExpressionStatementOrDeclarationAfterModifiers(
         beforeType,
@@ -2025,7 +2021,7 @@ class TestParser extends Parser {
         lateToken,
         varFinalOrConst,
         typeInfo,
-        onlyParseVariableDeclarationStart);
+        forPartsContext);
     indent--;
     return result;
   }
@@ -2067,10 +2063,15 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseForLoopPartsStart(Token? awaitToken, Token forToken) {
-    doPrint('parseForLoopPartsStart(' '$awaitToken, ' '$forToken)');
+  Token parseForLoopPartsStart(
+      Token? awaitToken, Token forToken, ForPartsContext forPartsContext) {
+    doPrint('parseForLoopPartsStart('
+        '$awaitToken, '
+        '$forToken, '
+        '$forPartsContext)');
     indent++;
-    var result = super.parseForLoopPartsStart(awaitToken, forToken);
+    var result =
+        super.parseForLoopPartsStart(awaitToken, forToken, forPartsContext);
     indent--;
     return result;
   }

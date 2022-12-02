@@ -5995,6 +5995,75 @@ PostfixPattern
 ''');
   }
 
+  test_pattern_inForInitializer_element() {
+    _parse('''
+void f(x) => [for (var (a, b) = x; ;) 0];
+''');
+    var node = findNode.forElement('for');
+    assertParsedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      keyword: var
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: VariablePattern
+              name: a
+          RecordPatternField
+            pattern: VariablePattern
+              name: b
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_pattern_inForInitializer_statement() {
+    _parse('''
+void f(x) {
+  for (var (a, b) = x; ;) {}
+}
+''');
+    var node = findNode.forStatement('for');
+    assertParsedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      keyword: var
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: VariablePattern
+              name: a
+          RecordPatternField
+            pattern: VariablePattern
+              name: b
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_patternVariableDeclarationStatement_disallowsLate() {
     // TODO(paulberry): do better error recovery.
     _parse('''

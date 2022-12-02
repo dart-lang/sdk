@@ -585,9 +585,18 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
-  /// it was a `localVariableDeclaration`.
+  /// it was a `localVariableDeclaration` of the form
+  /// `metadata initializedVariableDeclaration ';'`.
   void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     logEvent("ForInitializerLocalVariableDeclaration");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was a `localVariableDeclaration` of the form
+  /// `metadata patternVariableDeclaration ';'`.
+  void handleForInitializerPatternVariableAssignment(
+      Token keyword, Token equals) {
+    logEvent("handleForInitializerPatternVariableAssignment");
   }
 
   /// Marks the start of a for statement which is ended by either

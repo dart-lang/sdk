@@ -5511,8 +5511,9 @@ class ForPartsWithPatternImpl extends ForPartsImpl
   Token get beginToken => variables.beginToken;
 
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities..addNode('variables', variables);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('variables', variables)
+    ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForPartsWithPattern(this);
