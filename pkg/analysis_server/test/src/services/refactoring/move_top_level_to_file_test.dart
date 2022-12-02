@@ -299,6 +299,129 @@ class B {}
         newFileContent: newFileContent);
   }
 
+  Future<void> test_imports_referenceInThirdFile_noPrefix() async {
+    var originalSource = '''
+class A {}
+
+class B^ {}
+''';
+    var modifiedSource = '''
+class A {}
+''';
+    var declarationName = 'B';
+    var newFileName = 'b.dart';
+    var newFileContent = '''
+class B {}
+''';
+    var otherFilePath = '$projectFolderPath/lib/c.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart';
+
+B? b;
+''';
+    var modifiedOtherFileContent = '''
+import 'package:test/b.dart';
+import 'package:test/main.dart';
+
+B? b;
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent,
+        modifiedOtherFileContent: modifiedOtherFileContent);
+  }
+
+  @failingTest
+  Future<void> test_imports_referenceInThirdFile_withMultiplePrefixes() async {
+    // This fails for two reasons:
+    // 1. The indexer isn't recording when a top-level element is referenced
+    //    without a prefix.
+    // 2. The method `DartFileEditBuilderImpl._importLibrary` doesn't support
+    //    importing the same URI with multiple prefixes.
+    var originalSource = '''
+class A {}
+
+class B^ {}
+''';
+    var modifiedSource = '''
+class A {}
+''';
+    var declarationName = 'B';
+    var newFileName = 'b.dart';
+    var newFileContent = '''
+class B {}
+''';
+    var otherFilePath = '$projectFolderPath/lib/c.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart';
+import 'package:test/main.dart' as p;
+import 'package:test/main.dart' as q;
+
+void f(p.B b, q.B b, B b) {}
+''';
+    var modifiedOtherFileContent = '''
+import 'package:test/b.dart';
+import 'package:test/b.dart' as p;
+import 'package:test/b.dart' as q;
+import 'package:test/main.dart';
+import 'package:test/main.dart' as p;
+import 'package:test/main.dart' as q;
+
+void f(p.B b, q.B b, B b) {}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent,
+        modifiedOtherFileContent: modifiedOtherFileContent);
+  }
+
+  Future<void> test_imports_referenceInThirdFile_withSinglePrefix() async {
+    var originalSource = '''
+class A {}
+
+class B^ {}
+''';
+    var modifiedSource = '''
+class A {}
+''';
+    var declarationName = 'B';
+    var newFileName = 'b.dart';
+    var newFileContent = '''
+class B {}
+''';
+    var otherFilePath = '$projectFolderPath/lib/c.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart' as p;
+
+p.B? b;
+''';
+    var modifiedOtherFileContent = '''
+import 'package:test/b.dart' as p;
+import 'package:test/main.dart' as p;
+
+p.B? b;
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent,
+        modifiedOtherFileContent: modifiedOtherFileContent);
+  }
+
   Future<void> test_mixin() async {
     var originalSource = '''
 class A {}
@@ -394,8 +517,14 @@ int variableToMove = 3;
       required String modifiedSource,
       required String declarationName,
       required String newFileName,
-      required String newFileContent}) async {
+      required String newFileContent,
+      String? otherFilePath,
+      String? otherFileContent,
+      String? modifiedOtherFileContent}) async {
     addTestSource(originalSource);
+    if (otherFilePath != null) {
+      addSource(otherFilePath, otherFileContent!);
+    }
 
     /// Expected new file path/content.
     final expectedNewFilePath = join(projectFolderPath, 'lib', newFileName);
@@ -409,5 +538,8 @@ int variableToMove = 3;
     // was sent, the executeRefactor helper would've thrown when trying to
     // apply the changes.
     expect(content[expectedNewFilePath], newFileContent);
+    if (modifiedOtherFileContent != null) {
+      expect(content[otherFilePath!], modifiedOtherFileContent);
+    }
   }
 }

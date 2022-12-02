@@ -5,7 +5,9 @@
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
@@ -101,6 +103,14 @@ class SearchEngineImpl implements SearchEngine {
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
+  }
+
+  @override
+  Future<Set<String>> searchPrefixesUsedInLibrary(
+      covariant LibraryElementImpl library, Element element) async {
+    var driver =
+        (library.session.analysisContext as DriverBasedAnalysisContext).driver;
+    return await driver.search.prefixesUsedInLibrary(library, element);
   }
 
   @override

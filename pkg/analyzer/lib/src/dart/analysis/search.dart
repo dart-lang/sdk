@@ -264,6 +264,24 @@ class Search {
     return elements;
   }
 
+  /// Return the prefixes used to reference the [element] in any of the
+  /// compilation units in the [library]. The returned set will include an empty
+  /// string if the element is referenced without a prefix.
+  Future<Set<String>> prefixesUsedInLibrary(
+      LibraryElementImpl library, Element element) async {
+    var prefixes = <String>{};
+    for (var unit in library.units) {
+      var index = await _driver.getIndex(unit.source.fullName);
+      if (index != null) {
+        _IndexRequest request = _IndexRequest(index);
+        int elementId = request.findElementId(element);
+        var prefixList = index.elementImportPrefixes[elementId].split(',');
+        prefixes.addAll(prefixList);
+      }
+    }
+    return prefixes;
+  }
+
   /// Returns references to the [element].
   Future<List<SearchResult>> references(
       Element? element, SearchedFiles searchedFiles) async {

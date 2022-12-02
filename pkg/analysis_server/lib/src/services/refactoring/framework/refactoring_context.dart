@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -52,6 +53,9 @@ class RefactoringContext {
     required this.selectionOffset,
     required this.selectionLength,
   });
+
+  /// Return the search engine used to search outside the resolved library.
+  SearchEngine get searchEngine => server.searchEngine;
 
   /// Return the analysis session in which additional resolution can occur.
   AnalysisSession get session => resolvedUnitResult.session;
