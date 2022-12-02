@@ -6,12 +6,12 @@ view class Class {
   final int it;
 
   void instanceMethod() {
-    this;
+    var local = this;
   }
   void instanceMethod2(String s, [int i = 42]) {
-    this;
-    s;
-    i;
+    var local = this;
+    var localS = s;
+    var localI = i;
   }
   static void staticMethod() {}
 }
@@ -20,12 +20,12 @@ view class GenericClass<T> {
   final T it;
 
   void instanceMethod() {
-    this;
+    var local = this;
   }
   void instanceMethod2(String s, {int i = 42}) {
-    this;
-    s;
-    i;
+    var local = this;
+    var localS = s;
+    var localI = i;
   }
   static void staticMethod() {}
 }
