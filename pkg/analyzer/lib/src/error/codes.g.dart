@@ -4023,6 +4023,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try updating the operator declaration to return 'bool'.",
   );
 
+  static const CompileTimeErrorCode
+      REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN = CompileTimeErrorCode(
+    'REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN',
+    "A rest element in a map pattern can't have a subpattern.",
+    correctionMessage: "Try removing the subpattern.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH =
       CompileTimeErrorCode(

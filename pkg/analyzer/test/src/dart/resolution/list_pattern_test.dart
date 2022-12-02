@@ -101,7 +101,29 @@ ListPattern
 ''');
   }
 
-  test_matchList_noTypeArguments_restElement() async {
+  test_matchList_noTypeArguments_restElement_noPattern() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  if (x case [0, ...]) {}
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    RestPatternElement
+      operator: ...
+  rightBracket: ]
+  requiredType: List<int>
+''');
+  }
+
+  test_matchList_noTypeArguments_restElement_withPattern() async {
     await assertNoErrorsInCode(r'''
 void f(List<int> x) {
   if (x case [0, ...var rest]) {}

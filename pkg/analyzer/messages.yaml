@@ -12275,6 +12275,9 @@ CompileTimeErrorCode:
   RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
     problemMessage: The return type of operators used in relational patterns must be assignable to 'bool'.
     correctionMessage: Try updating the operator declaration to return 'bool'.
+  REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
+    problemMessage: A rest element in a map pattern can't have a subpattern.
+    correctionMessage: Try removing the subpattern.
   RETHROW_OUTSIDE_CATCH:
     problemMessage: A rethrow must be inside of a catch clause.
     correctionMessage: "Try moving the expression into a catch clause, or using a 'throw' expression."

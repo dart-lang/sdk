@@ -146,8 +146,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternWithSubPatternInMap(DartPattern node, AstNode element) {
-    throw UnimplementedError('TODO(paulberry)');
+  void restPatternWithSubPatternInMap(
+    covariant MapPatternImpl node,
+    covariant RestPatternElementImpl element,
+  ) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
+      element.pattern!,
+    );
   }
 
   @override
