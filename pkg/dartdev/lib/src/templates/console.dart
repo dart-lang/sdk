@@ -44,7 +44,8 @@ version: 1.0.0
 environment:
   ${common.sdkConstraint}
 
-# dependencies:
+dependencies:
+# Add regular dependencies here, for example:
 #   path: ^1.8.0
 
 dev_dependencies:
