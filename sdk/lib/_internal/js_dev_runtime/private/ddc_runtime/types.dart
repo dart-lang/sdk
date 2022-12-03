@@ -2344,7 +2344,8 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
     return cached;
   }
 
-  Object recordClass = JS('!', 'class _Record extends # {}', _RecordImpl);
+  Object recordClass =
+      JS('!', 'class _Record extends # {}', JS_CLASS_REF(_RecordImpl));
   // Add a 'new' function to be used instead of a constructor
   // (which is disallowed on dart objects).
   Object newRecord = JS(
@@ -2478,7 +2479,7 @@ class RecordType extends DartType {
 
   @JSExportName('is')
   bool is_T(obj) {
-    if (JS('!', '# instanceof #', obj, _RecordImpl)) {
+    if (obj is _RecordImpl) {
       var actual = getReifiedType(obj);
       return actual != null && isSubtypeOf(actual, this);
     }
