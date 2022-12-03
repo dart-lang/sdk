@@ -350,7 +350,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _assertInteropMethod = sdk.getTopLevelMember(
             'dart:_runtime', 'assertInterop') as Procedure,
         _futureOrNormalizer = FutureOrNormalizer(_coreTypes),
-        _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes);
+        _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy);
 
   @override
   Library? get currentLibrary => _currentLibrary;
@@ -483,6 +483,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     moduleItems.addAll(afterClassDefItems);
     afterClassDefItems.clear();
+
+    // Add all type hierarchy rules for the interface types used in this module.
+    if (_options.newRuntimeTypes) {
+      var universeClass =
+          rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
+      var typeRules = _typeRecipeGenerator.visitedInterfaceTypeRules;
+      var template = "#._Universe.#(#, JSON.parse('${jsonEncode(typeRules)}'))";
+      var addRulesStatement = js.call(template, [
+        emitLibraryName(rtiLibrary),
+        _emitMemberName('addRules', memberClass: universeClass),
+        runtimeCall('typeUniverse')
+      ]).toStatement();
+      moduleItems.add(addRulesStatement);
+    }
 
     // Visit directives (for exports)
     libraries.forEach(_emitExports);
@@ -763,15 +777,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     });
 
     var jsCtors = _defineConstructors(c, className);
+
+    // TODO(nshahan) Use ClassTypeEnvironment when the representation of generic
+    // classes is no longer a closure that defines the class and captures the
+    // type arguments.
     // Emitting class members in a class type environment results in a more
     // succinct type representation when referencing class type arguments from
-    // instance members.
-    var savedTypeEnvironment = _currentTypeEnvironment;
-    if (c.typeParameters.isNotEmpty) {
-      _currentTypeEnvironment = ClassTypeEnvironment(c.typeParameters);
-    }
+    // instance members but the type rules must include mappings of all type
+    // arguments throughout the hierarchy.
     var jsMethods = _emitClassMethods(c);
-    _currentTypeEnvironment = savedTypeEnvironment;
 
     _emitSuperHelperSymbols(body);
     // Deferred supertypes must be evaluated lazily while emitting classes to
@@ -795,11 +809,34 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var finishGenericTypeTest = _emitClassTypeTests(c, className, body);
 
+    /// Collects all implemented types in the ancestry of [cls].
+    Iterable<Supertype> transitiveImplementedTypes(Class cls) {
+      var allImplementedTypes = <Supertype>{};
+      var toVisit = ListQueue<Supertype>()..addAll(cls.implementedTypes);
+      while (toVisit.isNotEmpty) {
+        var supertype = toVisit.removeFirst();
+        var superclass = supertype.classNode;
+        if (allImplementedTypes.contains(supertype) ||
+            superclass == _coreTypes.objectClass) continue;
+        toVisit.addAll(superclass.supers);
+        // Skip encoding the synthetic classes in the type rules because they
+        // will never be instantiated or appear in type tests.
+        if (superclass.isAnonymousMixin) continue;
+        allImplementedTypes.add(supertype);
+      }
+      return allImplementedTypes;
+    }
+
     // Attach caches on all canonicalized types.
     if (_options.newRuntimeTypes) {
       var name = _typeRecipeGenerator.interfaceTypeRecipe(c);
-      body.add(runtimeStatement(
-          'addRtiResources(#, #)', [className, js.string(name)]));
+      var implementedRecipes = [
+        name,
+        for (var type in transitiveImplementedTypes(c))
+          _typeRecipeGenerator.interfaceTypeRecipe(type.classNode)
+      ];
+      body.add(runtimeStatement('addRtiResources(#, #)',
+          [className, js_ast.stringArray(implementedRecipes)]));
     }
     body.add(runtimeStatement('addTypeCaches(#)', [className]));
 
@@ -981,8 +1018,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (t is InterfaceType) {
           _declareBeforeUse(t.classNode);
           if (t.typeArguments.isNotEmpty) {
-            var typeRep =
-                _emitGenericClassType(t, t.typeArguments.map(emitDeferredType));
+            var typeRep = _emitGenericClassType(
+                t,
+                _options.newRuntimeTypes
+                    // No reason to defer type arguments in the new type
+                    // representation.
+                    ? t.typeArguments.map(_emitType)
+                    : t.typeArguments.map(emitDeferredType));
             return emitNullability
                 ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
                 : typeRep;
@@ -3041,11 +3083,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       } else if (environment is ClassTypeEnvironment) {
         // Class type environments are already constructed and attached to the
         // instance of a generic class.
-        return js.call('this.${js_ast.FixedNames.rtiName}');
+        var env = runtimeCall('getReifiedType(this)');
+        return emitRtiEval(env, recipe);
       } else if (environment is ExtendedClassTypeEnvironment) {
         // A generic class instance already stores a reference to a type
         // containing all of its type arguments.
-        var env = js.call('this.${js_ast.FixedNames.rtiName}');
+        var env = runtimeCall('getReifiedType(this)');
         // Bind extra type parameters.
         for (var parameter in environment.extendedParameters) {
           env = emitRtiBind(env, parameter);
@@ -3201,6 +3244,44 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Hoist the nullable or legacy versions of the type to the top level and
     // use it everywhere it appears.
     return _typeTable.nameType(type, typeRep);
+  }
+
+  /// Emits the a reference to the class described by [type].
+  ///
+  /// The nullability of [type] is not considered because it is meaningless when
+  /// describing a reference to the class itself.
+  ///
+  /// In the case of a generic type, this reference will be a call to the
+  /// function that defines the class and will pass the type parameters as
+  /// arguments. The nullability of the type parameters does have meaning so it
+  /// is encoded.
+  js_ast.Expression _emitClassRef(InterfaceType type) {
+    var cls = type.classNode;
+    _declareBeforeUse(cls);
+    // Type parameters don't matter as JS interop types cannot be reified.
+    // package:js types fall under `@JS`, `@anonymous`, or `@staticInterop`
+    // types. `@JS` types are used to correspond to JS types that exist, but we
+    // do not use the underlying type for type checks, so they operate virtually
+    // the same as `@anonymous` types. `@staticInterop` types, however, can be
+    // casted to other `package:js` types as well as any type that inherits
+    // `JavaScriptObject`. This is to match the behavior across the other
+    // backends that use erasure. We represent `@JS` and `@anonymous` types with
+    // a NonStaticInteropType and `@staticInterop` with a StaticInteropType to
+    // make this distinction at runtime.
+    var jsName = isJSAnonymousType(cls)
+        ? getLocalClassName(cls)
+        : _emitJsNameWithoutGlobal(cls);
+    if (jsName != null) {
+      return runtimeCall('packageJSType(#, #)',
+          [js.escapedString(jsName), js.boolean(isStaticInteropType(cls))]);
+    }
+    var args = type.typeArguments;
+    Iterable<js_ast.Expression>? jsArgs;
+    if (args.any((a) => a != const DynamicType())) {
+      jsArgs = args.map(_emitType);
+    }
+    if (jsArgs != null) return _emitGenericClassType(type, jsArgs);
+    return _emitTopLevelNameNoInterop(type.classNode);
   }
 
   /// Emits the representation of a FutureOr [type].
@@ -3420,7 +3501,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emits an expression that lets you access statics on a [type] from code.
   js_ast.Expression _emitConstructorAccess(InterfaceType type) {
     return _emitJSInterop(type.classNode) ??
-        _emitInterfaceType(type, emitNullability: false);
+        (_options.newRuntimeTypes
+            ? _emitClassRef(type)
+            : _emitInterfaceType(type, emitNullability: false));
   }
 
   js_ast.Expression _emitConstructorName(InterfaceType type, Member c) {

@@ -2069,44 +2069,60 @@ severity: $severity
               noLength);
         }
       } else if (supertype is ClassBuilder &&
-          supertype.isSealed &&
-          supertype.libraryBuilder.origin != cls.libraryBuilder.origin) {
-        // If the class is a mixin declaration with an `on` clause which is the
-        // supertype we are evaluating right now, we want to avoid reporting an
-        // error.
-        bool superTypeIsOnClause = false;
-        if (cls.cls.isAnonymousMixin && !cls.cls.isEliminatedMixin) {
-          // The class has multiple 'on' clauses.
-          List<TypeBuilder>? classInterfaces = cls.interfaceBuilders;
-          if (classInterfaces != null) {
-            for (TypeBuilder interface in classInterfaces) {
-              if (interface.declaration == supertype) {
-                superTypeIsOnClause = true;
-                break;
+          cls.libraryBuilder.libraryFeatures.sealedClass.isEnabled) {
+        // Check for implicit class mixins.
+        TypeBuilder? mixedInType = cls.mixedInTypeBuilder;
+        if (cls.isMixinApplication &&
+            mixedInType != null &&
+            mixedInType.declaration == supertype &&
+            !supertype.isMixinDeclaration) {
+          cls.addProblem(
+              templateCantUseClassAsMixin
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        }
+
+        // Report error for subtyping outside of sealed supertype's library.
+        if (supertype.isSealed &&
+            supertype.libraryBuilder.origin != cls.libraryBuilder.origin) {
+          // If the class is a mixin declaration with an `on` clause which is
+          // the supertype we are evaluating right now, we want to avoid
+          // reporting an error.
+          bool superTypeIsOnClause = false;
+          if (cls.cls.isAnonymousMixin && !cls.cls.isEliminatedMixin) {
+            // The class has multiple 'on' clauses.
+            List<TypeBuilder>? classInterfaces = cls.interfaceBuilders;
+            if (classInterfaces != null) {
+              for (TypeBuilder interface in classInterfaces) {
+                if (interface.declaration == supertype) {
+                  superTypeIsOnClause = true;
+                  break;
+                }
               }
             }
+          } else if (cls.isMixinDeclaration) {
+            // The class has up to one 'on' clause.
+            TypeBuilder? classSuperType = cls.supertypeBuilder;
+            if (classSuperType != null &&
+                classSuperType.declaration == supertype) {
+              superTypeIsOnClause = true;
+            }
           }
-        } else if (cls.isMixinDeclaration) {
-          // The class has up to one 'on' clause.
-          TypeBuilder? classSuperType = cls.supertypeBuilder;
-          if (classSuperType != null &&
-              classSuperType.declaration == supertype) {
-            superTypeIsOnClause = true;
-          }
-        }
-        if (!superTypeIsOnClause) {
-          if (supertype.isMixinDeclaration) {
-            cls.addProblem(
-                templateSealedMixinSubtypeOutsideOfLibrary
-                    .withArguments(supertype.fullNameForErrors),
-                cls.charOffset,
-                noLength);
-          } else {
-            cls.addProblem(
-                templateSealedClassSubtypeOutsideOfLibrary
-                    .withArguments(supertype.fullNameForErrors),
-                cls.charOffset,
-                noLength);
+          if (!superTypeIsOnClause) {
+            if (supertype.isMixinDeclaration) {
+              cls.addProblem(
+                  templateSealedMixinSubtypeOutsideOfLibrary
+                      .withArguments(supertype.fullNameForErrors),
+                  cls.charOffset,
+                  noLength);
+            } else {
+              cls.addProblem(
+                  templateSealedClassSubtypeOutsideOfLibrary
+                      .withArguments(supertype.fullNameForErrors),
+                  cls.charOffset,
+                  noLength);
+            }
           }
         }
       }

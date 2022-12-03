@@ -10,6 +10,10 @@ library /*isNonNullableByDefault*/;
 // class Class2 implements Sealed {}
 //       ^
 //
+// pkg/front_end/testcases/sealed_class/extends_implements_with/main.dart:11:7: Error: Class 'Sealed' can't be used as a mixin.
+// class Class3 with Sealed {}
+//       ^
+//
 // pkg/front_end/testcases/sealed_class/extends_implements_with/main.dart:11:7: Error: Sealed class 'Sealed' can't be extended, implemented, or mixed in outside of its library.
 // class Class3 with Sealed {}
 //       ^

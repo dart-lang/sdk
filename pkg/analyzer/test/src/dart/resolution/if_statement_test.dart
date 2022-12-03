@@ -927,8 +927,12 @@ IfStatement
 
   test_rewrite_caseClause_pattern() async {
     await assertNoErrorsInCode(r'''
-void f(x, int Function() a) {
-  if (x case const a()) {}
+void f(x) {
+  if (x case const A()) {}
+}
+
+class A {
+  const A();
 }
 ''');
 
@@ -946,17 +950,19 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
         const: const
-        expression: FunctionExpressionInvocation
-          function: SimpleIdentifier
-            token: a
-            staticElement: self::@function::f::@parameter::a
-            staticType: int Function()
+        expression: InstanceCreationExpression
+          constructorName: ConstructorName
+            type: NamedType
+              name: SimpleIdentifier
+                token: A
+                staticElement: self::@class::A
+                staticType: null
+              type: A
+            staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticElement: <null>
-          staticInvokeType: int Function()
-          staticType: int
+          staticType: A
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
+    show CommandParameter, SaveUriCommandParameter;
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -138,8 +140,47 @@ class MoveTopLevelToFile extends RefactoringProducer {
       }
       builder.addDeletion(range.deletionRange(member.node));
     });
-    // TODO(brianwilkerson) Find references to the moved declaration(s) outside
-    //  the source library and update the imports in those files.
+    // TODO(brianwilkerson) This doesn't correctly handle prefixes. In order to
+    //  use the correct prefix when adding the import we need to either
+    //  - enhance SearchMatch to know the prefix used for a reference match, or
+    //  - look at the imports for the library to find the imports that might
+    //    have been used to import the `element` and create a corresponding
+    //    import of the new library for each of them.
+    //
+    //  The latter has the disadvantage that we might end up adding more imports
+    //  than are actually required because we can't know whether they're all
+    //  needed.
+    var libraries = <LibraryElement, Set<Element>>{};
+    for (var element in analyzer.movingDeclarations) {
+      var matches = await searchEngine.searchReferences(element);
+      for (var match in matches) {
+        if (match.isResolved) {
+          libraries.putIfAbsent(match.libraryElement, () => {}).add(element);
+        }
+      }
+    }
+
+    /// Don't update the library from which the code is being moved because
+    /// that's already been done.
+    libraries.remove(libraryResult.element);
+    for (var entry in libraries.entries) {
+      var library = entry.key;
+      var prefixes = <String>{};
+      for (var element in entry.value) {
+        var prefixList =
+            await searchEngine.searchPrefixesUsedInLibrary(library, element);
+        prefixes.addAll(prefixList);
+      }
+      await builder.addDartFileEdit(library.source.fullName, (builder) {
+        for (var prefix in prefixes) {
+          if (prefix.isEmpty) {
+            builder.importLibrary(destinationImportUri);
+          } else {
+            builder.importLibrary(destinationImportUri, prefix: prefix);
+          }
+        }
+      });
+    }
   }
 
   @override

@@ -443,9 +443,7 @@ bool mayFollowVariablePattern(Token token) =>
 const Set<String> _allowedTokensAfterVariablePattern = {
   ',',
   ':',
-  '|',
   '||',
-  '&',
   '&&',
   ')',
   '}',

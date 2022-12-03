@@ -100,6 +100,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstantPattern(ConstantPattern node) {
+    _validate(
+      node.expression,
+      CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+    );
+
+    super.visitConstantPattern(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {

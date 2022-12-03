@@ -6021,3 +6021,10 @@ SealedMixinSubtypeOutsideOfLibrary:
       class B with M {}
     lib.dart:
       sealed mixin M {}
+
+CantUseClassAsMixin:
+  problemMessage: "Class '#name' can't be used as a mixin."
+  experiments: sealed-class
+  script: |
+    class A {}
+    class B with A {}

@@ -19,8 +19,6 @@ import '../scanner/token.dart'
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         Keyword,
-        LOGICAL_AND_PRECEDENCE,
-        LOGICAL_OR_PRECEDENCE,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
@@ -5858,12 +5856,6 @@ class Parser {
           _tokenRecoveryReplacements.containsKey(token.lexeme)) {
         _recoverAtPrecedenceLevel = true;
       }
-    } else if (forPattern && identical(type, TokenType.BAR)) {
-      // `|` in a pattern is treated like `||`.
-      return LOGICAL_OR_PRECEDENCE;
-    } else if (forPattern && identical(type, TokenType.AMPERSAND)) {
-      // `&` in a pattern is treated like `&&`.
-      return LOGICAL_AND_PRECEDENCE;
     }
 
     return type.precedence;
@@ -7236,9 +7228,7 @@ class Parser {
         'is',
         'as',
         '..',
-        '|',
         '||',
-        '&',
         '&&'
       ])) {
         // TODO(danrubel): investigate other situations
@@ -9284,9 +9274,7 @@ class Parser {
           listener.handleNullCheckPattern(next);
           token = next;
           break;
-        case '&':
         case '&&':
-        case '|':
         case '||':
           listener.beginBinaryPattern(next);
           // Left associative so we parse the RHS one precedence level higher

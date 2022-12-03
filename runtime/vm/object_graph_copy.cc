@@ -10,6 +10,7 @@
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/regexp.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
@@ -68,7 +69,6 @@
   V(Pointer)                                                                   \
   V(ReceivePort)                                                               \
   V(RecordType)                                                                \
-  V(RegExp)                                                                    \
   V(Script)                                                                    \
   V(Sentinel)                                                                  \
   V(SendPort)                                                                  \
@@ -170,7 +170,13 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
   if (cid == kInt32x4Cid) return true;  // No field guards here.
   if (cid == kSendPortCid) return true;
   if (cid == kCapabilityCid) return true;
+
+    // Generated code for regexp can't be shared.
+#if defined(DART_PRECOMPILED_RUNTIME)
   if (cid == kRegExpCid) return true;
+#else
+  if (FLAG_interpret_irregexp && cid == kRegExpCid) return true;
+#endif
 
   if (cid == kClosureCid) {
     // We can share a closure iff it doesn't close over any state.
@@ -214,7 +220,11 @@ static bool MightNeedReHashing(ObjectPtr object) {
   // a map or a value in a set, they will already have the identity hash code
   // set.
   if (cid == kImmutableArrayCid) return false;
+#if defined(DART_PRECOMPILED_RUNTIME)
   if (cid == kRegExpCid) return false;
+#else
+  if (FLAG_interpret_irregexp && cid == kRegExpCid) return false;
+#endif
   if (cid == kInt32x4Cid) return false;
 
   // We copy those (instead of sharing them) - see [CanShareObjct]. They rely
@@ -661,6 +671,7 @@ class FastForwardMap : public ForwardMapBase {
   void AddExternalTypedData(ExternalTypedDataPtr to) {
     raw_external_typed_data_to_.Add(to);
   }
+  void AddRegExp(RegExpPtr to) { raw_reg_exp_to_.Add(to); }
 
   void AddObjectToRehash(ObjectPtr to) { raw_objects_to_rehash_.Add(to); }
   void AddExpandoToRehash(ObjectPtr to) { raw_expandos_to_rehash_.Add(to); }
@@ -672,6 +683,7 @@ class FastForwardMap : public ForwardMapBase {
   IdentityMap* map_;
   GrowableArray<ObjectPtr> raw_from_to_;
   GrowableArray<TransferableTypedDataPtr> raw_transferables_from_to_;
+  GrowableArray<RegExpPtr> raw_reg_exp_to_;
   GrowableArray<ExternalTypedDataPtr> raw_external_typed_data_to_;
   GrowableArray<ObjectPtr> raw_objects_to_rehash_;
   GrowableArray<ObjectPtr> raw_expandos_to_rehash_;
@@ -714,6 +726,7 @@ class SlowForwardMap : public ForwardMapBase {
     transferables_from_to_.Add(&TransferableTypedData::Handle(from.ptr()));
     transferables_from_to_.Add(&TransferableTypedData::Handle(to.ptr()));
   }
+  void AddRegExp(const RegExp& to) { reg_exps_.Add(&RegExp::Handle(to.ptr())); }
   void AddWeakProperty(const WeakProperty& from) {
     weak_properties_.Add(&WeakProperty::Handle(from.ptr()));
   }
@@ -740,6 +753,29 @@ class SlowForwardMap : public ForwardMapBase {
     }
   }
 
+  void FinalizeRegExps() {
+    if (FLAG_interpret_irregexp) {
+      return;
+    }
+    if (reg_exps_.length() == 0) {
+      return;
+    }
+    const Library& lib = Library::Handle(zone_, Library::CoreLibrary());
+    const Class& owner =
+        Class::Handle(zone_, lib.LookupClass(Symbols::RegExp()));
+
+    for (intptr_t i = 0; i < reg_exps_.length(); i++) {
+      auto regexp = reg_exps_[i];
+      for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
+           cid++) {
+        CreateSpecializedFunction(thread_, zone_, *regexp, cid,
+                                  /*sticky=*/false, owner);
+        CreateSpecializedFunction(thread_, zone_, *regexp, cid,
+                                  /*sticky=*/true, owner);
+      }
+    }
+  }
+
   void FinalizeExternalTypedData() {
     for (intptr_t i = 0; i < external_typed_data_.length(); i++) {
       auto to = external_typed_data_[i];
@@ -756,6 +792,7 @@ class SlowForwardMap : public ForwardMapBase {
   GrowableArray<const PassiveObject*> from_to_transition_;
   GrowableObjectArray& from_to_;
   GrowableArray<const TransferableTypedData*> transferables_from_to_;
+  GrowableArray<const RegExp*> reg_exps_;
   GrowableArray<const ExternalTypedData*> external_typed_data_;
   GrowableArray<const Object*> objects_to_rehash_;
   GrowableArray<const Object*> expandos_to_rehash_;
@@ -1030,6 +1067,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
                            TransferableTypedDataPtr to) {
     fast_forward_map_.AddTransferable(from, to);
   }
+  void EnqueueRegExp(RegExpPtr to) { fast_forward_map_.AddRegExp(to); }
   void EnqueueWeakProperty(WeakPropertyPtr from) {
     fast_forward_map_.AddWeakProperty(from);
   }
@@ -1235,6 +1273,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
                            const TransferableTypedData& to) {
     slow_forward_map_.AddTransferable(from, to);
   }
+  void EnqueueRegExp(const RegExp& to) { slow_forward_map_.AddRegExp(to); }
   void EnqueueWeakProperty(const WeakProperty& from) {
     slow_forward_map_.AddWeakProperty(from);
   }
@@ -1445,6 +1484,49 @@ class ObjectCopy : public Base {
     Base::ForwardCompressedPointers(
         from, to, Record::field_offset(0),
         Record::field_offset(0) + Record::kBytesPerElement * num_fields);
+  }
+
+  void CopyRegExp(typename Types::RegExp from, typename Types::RegExp to) {
+    Base::StoreCompressedPointers(from, to,
+                                  OFFSET_OF(UntaggedRegExp, capture_name_map_),
+                                  OFFSET_OF(UntaggedRegExp, pattern_));
+
+    UntagRegExp(to)->num_bracket_expressions_ =
+        UntagRegExp(from)->num_bracket_expressions_;
+    UntagRegExp(to)->num_one_byte_registers_ =
+        UntagRegExp(from)->num_one_byte_registers_;
+    UntagRegExp(to)->num_two_byte_registers_ =
+        UntagRegExp(from)->num_two_byte_registers_;
+    UntagRegExp(to)->type_flags_ = UntagRegExp(from)->type_flags_;
+    Base::StoreCompressedPointerNoBarrier(Types::GetRegExpPtr(to),
+                                          OFFSET_OF(UntaggedRegExp, one_byte_),
+                                          Object::null());
+    Base::StoreCompressedPointerNoBarrier(Types::GetRegExpPtr(to),
+                                          OFFSET_OF(UntaggedRegExp, one_byte_),
+                                          Object::null());
+    Base::StoreCompressedPointerNoBarrier(Types::GetRegExpPtr(to),
+                                          OFFSET_OF(UntaggedRegExp, two_byte_),
+                                          Object::null());
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetRegExpPtr(to), OFFSET_OF(UntaggedRegExp, external_one_byte_),
+        Object::null());
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetRegExpPtr(to), OFFSET_OF(UntaggedRegExp, external_two_byte_),
+        Object::null());
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetRegExpPtr(to), OFFSET_OF(UntaggedRegExp, one_byte_sticky_),
+        Object::null());
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetRegExpPtr(to), OFFSET_OF(UntaggedRegExp, two_byte_sticky_),
+        Object::null());
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetRegExpPtr(to),
+        OFFSET_OF(UntaggedRegExp, external_one_byte_sticky_), Object::null());
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetRegExpPtr(to),
+        OFFSET_OF(UntaggedRegExp, external_two_byte_sticky_), Object::null());
+
+    Base::EnqueueRegExp(to);
   }
 
   template <intptr_t one_for_set_two_for_map, typename T>
@@ -2066,6 +2148,7 @@ class ObjectGraphCopier : public StackResource {
     // The copy was successful, then detach transferable data from the sender
     // and attach to the copied graph.
     slow_object_copy_.slow_forward_map_.FinalizeTransferables();
+    slow_object_copy_.slow_forward_map_.FinalizeRegExps();
     return result.ptr();
   }
 
@@ -2111,6 +2194,7 @@ class ObjectGraphCopier : public StackResource {
             result_array.SetAt(2, fast_object_copy_.tmp_);
             HandlifyExternalTypedData();
             HandlifyTransferables();
+            HandlifyRegExp();
             allocated_bytes_ =
                 fast_object_copy_.fast_forward_map_.allocated_bytes;
             copied_objects_ =
@@ -2172,6 +2256,7 @@ class ObjectGraphCopier : public StackResource {
     HandlifyWeakProperties();
     HandlifyWeakReferences();
     HandlifyExternalTypedData();
+    HandlifyRegExp();
     HandlifyObjectsToReHash();
     HandlifyExpandosToReHash();
     HandlifyFromToObjects();
@@ -2217,6 +2302,10 @@ class ObjectGraphCopier : public StackResource {
   void HandlifyExternalTypedData() {
     Handlify(&fast_object_copy_.fast_forward_map_.raw_external_typed_data_to_,
              &slow_object_copy_.slow_forward_map_.external_typed_data_);
+  }
+  void HandlifyRegExp() {
+    Handlify(&fast_object_copy_.fast_forward_map_.raw_reg_exp_to_,
+             &slow_object_copy_.slow_forward_map_.reg_exps_);
   }
   void HandlifyObjectsToReHash() {
     Handlify(&fast_object_copy_.fast_forward_map_.raw_objects_to_rehash_,

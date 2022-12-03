@@ -1135,14 +1135,10 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    assert(operator.type == TokenType.AMPERSAND ||
-        operator.type == TokenType.AMPERSAND_AMPERSAND ||
-        operator.type == TokenType.BAR ||
-        operator.type == TokenType.BAR_BAR);
+    assert(operator.type == TokenType.AMPERSAND_AMPERSAND || operator.type == TokenType.BAR_BAR);
     resolverVisitor.analyzeLogicalPattern(
         matchedType, context, this, leftOperand, rightOperand,
-        isAnd: operator.type == TokenType.AMPERSAND ||
-            operator.type == TokenType.AMPERSAND_AMPERSAND);
+        isAnd: operator.type == TokenType.AMPERSAND_AMPERSAND);
   }
 
   @override
@@ -4301,6 +4297,8 @@ abstract class ExpressionImpl extends AstNodeImpl
         child is ForElement) {
       var parent = child.parent;
       if (parent is ConstantContextForExpressionImpl) {
+        return true;
+      } else if (parent is ConstantPatternImpl) {
         return true;
       } else if (parent is EnumConstantArguments) {
         return true;

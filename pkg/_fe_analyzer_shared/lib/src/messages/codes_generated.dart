@@ -906,6 +906,27 @@ Message _withArgumentsCantReadFile(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateCantUseClassAsMixin =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate: r"""Class '#name' can't be used as a mixin.""",
+        withArguments: _withArgumentsCantUseClassAsMixin);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCantUseClassAsMixin =
+    const Code<Message Function(String name)>(
+  "CantUseClassAsMixin",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantUseClassAsMixin(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantUseClassAsMixin,
+      problemMessage: """Class '${name}' can't be used as a mixin.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)>
     templateCantUseControlFlowOrSpreadAsConstant =
     const Template<Message Function(Token token)>(

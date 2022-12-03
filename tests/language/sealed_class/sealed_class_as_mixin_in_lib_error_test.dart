@@ -12,16 +12,19 @@ sealed class SealedClass {
   int nonAbstractBar(int value) => value + 100;
   int bar(int value);
 }
+sealed mixin SealedMixin {}
+class Class {}
+mixin Mixin {}
 
 abstract class A with SealedClass {}
-// ^
+//             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Class 'SealedClass' can't be used as a mixin.
 
 class B with SealedClass {
-// ^
+//    ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Class 'SealedClass' can't be used as a mixin.
   @override
   int nonAbstractFoo = 100;
 
@@ -33,6 +36,27 @@ class B with SealedClass {
 }
 
 abstract class C = Object with SealedClass;
-// ^
+//             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Class 'SealedClass' can't be used as a mixin.
+
+abstract class D with SealedClass, Class {}
+//             ^
+// [analyzer] unspecified
+// [cfe] Class 'Class' can't be used as a mixin.
+// [cfe] Class 'SealedClass' can't be used as a mixin.
+
+class E with Class, SealedMixin {}
+//    ^
+// [analyzer] unspecified
+// [cfe] Class 'Class' can't be used as a mixin.
+
+abstract class F with Mixin, SealedClass {}
+//             ^
+// [analyzer] unspecified
+// [cfe] Class 'SealedClass' can't be used as a mixin.
+
+class G with Mixin, Class {}
+//    ^
+// [analyzer] unspecified
+// [cfe] Class 'Class' can't be used as a mixin.
