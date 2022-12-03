@@ -6761,7 +6761,11 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
+    if (patternKeyword != null) {
+      throw new UnimplementedError(
+          'TODO(paulberry): handle pattern in for-in loop');
+    }
     push(awaitToken ?? NullValue.AwaitToken);
     push(forToken);
     push(inKeyword);

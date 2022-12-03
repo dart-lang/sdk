@@ -930,9 +930,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
-    return CompilationCommand('precompiler', tempDir, bootstrapDependencies(),
-        exec!, args, environmentOverrides,
+    var command = CompilationCommand('precompiler', tempDir,
+        bootstrapDependencies(), exec!, args, environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   Command computeILCompareCommand(String tempDir, List<String> arguments,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -122,7 +123,7 @@ MapPattern
 ''');
   }
 
-  test_matchMap_noTypeArguments_restElement() async {
+  test_matchMap_noTypeArguments_restElement_noPattern() async {
     await assertNoErrorsInCode(r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...}) {}
@@ -143,6 +144,40 @@ MapPattern
           literal: ''
     RestPatternElement
       operator: ...
+  rightBracket: }
+  requiredType: Map<int, String>
+''');
+  }
+
+  test_matchMap_noTypeArguments_restElement_withPattern() async {
+    await assertErrorsInCode(r'''
+void f(Map<int, String> x) {
+  if (x case {0: '', ...var rest}) {}
+}
+''', [
+      error(CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
+          57, 4),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: IntegerLiteral
+        literal: 0
+        staticType: int
+      separator: :
+      value: ConstantPattern
+        expression: SimpleStringLiteral
+          literal: ''
+    RestPatternElement
+      operator: ...
+      pattern: VariablePattern
+        keyword: var
+        name: rest
+        declaredElement: hasImplicitType rest@57
+          type: dynamic
   rightBracket: }
   requiredType: Map<int, String>
 ''');

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -126,7 +124,9 @@ import 'lib.dart' as p;
 class B extends p.A {} // 2
 ''');
     ClassElement elementA = importFindLib().class_('A');
-    assertThat(elementA).isExtendedAt('A {} // 2', true);
+    assertThat(elementA)
+      ..isExtendedAt('A {} // 2', true)
+      ..hasPrefixes('p');
   }
 
   test_isExtendedBy_ClassDeclaration_Object() async {
@@ -174,7 +174,8 @@ class C = p.A with B;
     ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA)
       ..isExtendedAt('A with', true)
-      ..isReferencedAt('A with', true);
+      ..isReferencedAt('A with', true)
+      ..hasPrefixes('p');
   }
 
   test_isImplementedBy_ClassDeclaration() async {
@@ -199,7 +200,8 @@ class B implements p.A {} // 2
     ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA)
       ..isImplementedAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isReferencedAt('A {} // 2', true)
+      ..hasPrefixes('p');
   }
 
   test_isImplementedBy_ClassDeclaration_TypeAliasElement() async {
@@ -258,7 +260,7 @@ foo() {}
     await _indexTestUnit('''
 import 'lib.dart';
 import 'lib.dart' as pref;
-main() {
+void f() {
   pref.foo(); // q
   foo(); // nq
 }''');
@@ -271,7 +273,7 @@ main() {
   test_isInvokedBy_FunctionElement_synthetic_loadLibrary() async {
     await _indexTestUnit('''
 import 'dart:math' deferred as math;
-main() {
+void f() {
   math.loadLibrary(); // 1
   math.loadLibrary(); // 2
 }
@@ -286,7 +288,7 @@ main() {
     await _indexTestUnit('''
 class A {
   foo() {}
-  main() {
+  void m() {
     this.foo(); // q
     foo(); // nq
   }
@@ -323,7 +325,7 @@ extension E on int {
   void foo() {}
 }
 
-main() {
+void f() {
   0.foo();
 }
 ''');
@@ -337,7 +339,7 @@ extension E on int {
   static void foo() {}
 }
 
-main() {
+void f() {
   E.foo();
 }
 ''');
@@ -355,7 +357,7 @@ extension on double {
   void foo() {} // double
 }
 
-main() {
+void f() {
   0.foo(); // int ref
   (1.2).foo(); // double ref
 }
@@ -375,7 +377,7 @@ main() {
 class A {
   foo() {}
 }
-main() {
+void f() {
   var a = new A();
   a.foo();
 }
@@ -389,7 +391,7 @@ main() {
 class A {
   operator +(other) => this;
 }
-main(A a) {
+void f(A a) {
   print(a + 1);
   a += 2;
   ++a;
@@ -410,7 +412,7 @@ class A {
   operator [](i) => null;
   operator []=(i, v) {}
 }
-main(A a) {
+void f(A a) {
   print(a[0]);
   a[1] = 42;
 }
@@ -426,7 +428,7 @@ main(A a) {
 class A {
   A operator ~() => this;
 }
-main(A a) {
+void f(A a) {
   print(~a);
 }
 ''');
@@ -518,7 +520,9 @@ import 'lib.dart' as p;
 class B extends Object with p.A {} // 2
 ''');
     ClassElement elementA = importFindLib().class_('A');
-    assertThat(elementA).isMixedInAt('A {} // 2', true);
+    assertThat(elementA)
+      ..isMixedInAt('A {} // 2', true)
+      ..hasPrefixes('p');
   }
 
   test_isMixedInBy_ClassDeclaration_mixin() async {
@@ -566,7 +570,7 @@ enum E with M { // 2
     await _indexTestUnit('''
 class A {
   var field;
-  main() {
+  void m() {
     this.field(); // q
     field(); // nq
   }
@@ -581,7 +585,7 @@ class A {
     await _indexTestUnit('''
 class A {
   get ggg => null;
-  main() {
+  void m() {
     this.ggg(); // q
     ggg(); // nq
   }
@@ -597,7 +601,7 @@ class A {
 class A {
   static var field;
 }
-main(A p) {
+void f(A p) {
   A v;
   new A(); // 2
   A.field = 1;
@@ -617,7 +621,7 @@ main(A p) {
     await _indexTestUnit('''
 enum MyEnum {a}
 
-main(MyEnum p) {
+void f(MyEnum p) {
   MyEnum v;
   MyEnum.a;
 }
@@ -642,7 +646,7 @@ extension E on A<int> {}
   test_isReferencedBy_ClassElement_implicitNew() async {
     await _indexTestUnit('''
 class A {}
-main() {
+void f() {
   A(); // invalid code, but still a reference
 }''');
     ClassElement element = findElement.class_('A');
@@ -697,18 +701,20 @@ class A {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' as p;
-main() {
+void f() {
   p.A(); // invalid code, but still a reference
 }''');
     Element element = importFindLib().class_('A');
-    assertThat(element).isReferencedAt('A();', true);
+    assertThat(element)
+      ..isReferencedAt('A();', true)
+      ..hasPrefixes('p');
   }
 
   test_isReferencedBy_ClassElement_invocationTypeArgument() async {
     await _indexTestUnit('''
 class A {}
 void f<T>() {}
-main() {
+void g() {
   f<A>();
 }
 ''');
@@ -720,7 +726,7 @@ main() {
     await _indexTestUnit('''
 class A {}
 class B = Object with A;
-main(B p) {
+void f(B p) {
   B v;
 }
 ''');
@@ -728,6 +734,36 @@ main(B p) {
     assertThat(element)
       ..isReferencedAt('B p) {', false)
       ..isReferencedAt('B v;', false);
+  }
+
+  test_isReferencedBy_commentReference() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+/// An [A].
+void f(A a) {}
+''');
+    var element = findElement.function('f').parameters[0].type.element!;
+    assertThat(element).isReferencedAt('A]', false, length: 1);
+  }
+
+  test_isReferencedBy_commentReference_withPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+
+/// A [p.A].
+void f(p.A a) {}
+''');
+    var element = findElement.function('f').parameters[0].type.element!;
+    assertThat(element)
+      ..isReferencedAt('A]', true, length: 1)
+      ..hasPrefixes('p');
   }
 
   test_isReferencedBy_CompilationUnitElement_export() async {
@@ -806,7 +842,7 @@ void f() {
 class A {
   A.named() {}
 }
-main() {
+void f() {
   new A.named();
 }
 ''');
@@ -918,7 +954,7 @@ class A implements B {
 }
 class B = A with M;
 class C = B with M;
-main() {
+void f() {
   new B(); // B1
   new B.named(); // B2
   new C(); // C1
@@ -940,7 +976,7 @@ main() {
 class M {}
 class A = B with M;
 class B = A with M;
-main() {
+void f() {
   new A();
   new B();
 }
@@ -1032,13 +1068,71 @@ dynamic f() {
     expect(index.usedElementOffsets, isEmpty);
   }
 
+  test_isReferencedBy_enumConstant() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+enum E {
+  c;
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+void f(E e) {
+  f(E.c);
+}
+''');
+    var element = findElement.function('f').parameters[0].type.element!;
+    assertThat(element)
+      ..isReferencedAt('E.', false, length: 1)
+      ..hasPrefixes('');
+  }
+
+  test_isReferencedBy_enumConstant_withMultiplePrefixes() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+enum E {
+  c;
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+import 'lib.dart' as q;
+
+void f(p.E e) {
+  f(q.E.c);
+}
+''');
+    var element = findElement.function('f').parameters[0].type.element!;
+    assertThat(element)
+      ..isReferencedAt('E.', true, length: 1)
+      ..hasPrefixes('p,q');
+  }
+
+  test_isReferencedBy_enumConstant_withPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+enum E {
+  c;
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+
+void f(p.E e) {
+  f(p.E.c);
+}
+''');
+    var element = findElement.function('f').parameters[0].type.element!;
+    assertThat(element)
+      ..isReferencedAt('E.', true, length: 1)
+      ..hasPrefixes('p');
+  }
+
   test_isReferencedBy_ExtensionElement() async {
     await _indexTestUnit('''
 extension E on int {
   void foo() {}
 }
 
-main() {
+void f() {
   E(0).foo();
 }
 ''');
@@ -1056,7 +1150,7 @@ class A {
     print(field); // nq
   }
 }
-main(A a) {
+void f(A a) {
   a.field = 3; // q
   print(a.field); // q
   new A(field: 4);
@@ -1073,7 +1167,7 @@ main(A a) {
     // m()
     assertThat(setter).isReferencedAt('field = 2; // nq', false, length: 5);
     assertThat(getter).isReferencedAt('field); // nq', false, length: 5);
-    // main()
+    // f()
     assertThat(setter).isReferencedAt('field = 3; // q', true, length: 5);
     assertThat(getter).isReferencedAt('field); // q', true, length: 5);
   }
@@ -1184,7 +1278,7 @@ void f(E e) {
 enum MyEnum {
   A, B, C
 }
-main() {
+void f() {
   print(MyEnum.values);
   print(MyEnum.A.index);
   print(MyEnum.A);
@@ -1237,7 +1331,7 @@ enum E {
   test_isReferencedBy_FunctionElement() async {
     await _indexTestUnit('''
 foo() {}
-main() {
+void f() {
   print(foo);
   print(foo());
 }
@@ -1254,7 +1348,7 @@ bar() {}
 ''');
     await _indexTestUnit('''
 import "foo.dart";
-main() {
+void f() {
   bar();
 }
 ''');
@@ -1270,11 +1364,30 @@ main() {
   test_isReferencedBy_FunctionTypeAliasElement() async {
     await _indexTestUnit('''
 typedef A();
-main(A p) {
+void f(A p) {
 }
 ''');
     Element element = findElement.typeAlias('A');
     assertThat(element).isReferencedAt('A p) {', false);
+  }
+
+  test_isReferencedBy_getter_withPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {
+  static int get f => 0;
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+
+int f() => p.A.f;
+
+class B extends p.A {}
+''');
+    var element = findElement.class_('B').supertype!.element;
+    assertThat(element)
+      ..isReferencedAt('A.', true, length: 1)
+      ..hasPrefixes('p');
   }
 
   /// There was a bug in the AST structure, when single [Comment] was cloned and
@@ -1296,7 +1409,7 @@ var myVariable = null;
     await _indexTestUnit('''
 class A {
   method() {}
-  main() {
+  void m() {
     print(this.method); // q
     print(method); // nq
   }
@@ -1327,6 +1440,25 @@ void f(E e) {
       ..isReferencedAt('foo; // q2', true);
   }
 
+  test_isReferencedBy_methodInvocation_withPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {
+  static void m() {}
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+
+void f() => p.A.m();
+
+class B extends p.A {}
+''');
+    var element = findElement.class_('B').supertype!.element;
+    assertThat(element)
+      ..isReferencedAt('A.', true, length: 1)
+      ..hasPrefixes('p');
+  }
+
   test_isReferencedBy_MultiplyDefinedElement() async {
     newFile('$testPackageLibPath/a1.dart', 'class A {}');
     newFile('$testPackageLibPath/a2.dart', 'class A {}');
@@ -1347,7 +1479,7 @@ Never f() {
   test_isReferencedBy_ParameterElement() async {
     await _indexTestUnit('''
 foo({var p}) {}
-main() {
+void f() {
   foo(p: 1);
 }
 ''');
@@ -1359,7 +1491,7 @@ main() {
     await _indexTestUnit('''
 typedef F = void Function({int? p});
 
-void main(F f) {
+void g(F f) {
   f(p: 0);
 }
 ''');
@@ -1371,7 +1503,7 @@ void main(F f) {
     await _indexTestUnit('''
 typedef F<T> = void Function({T? test});
 
-main(F<int> f) {
+void g(F<int> f) {
   f.call(test: 0);
 }
 ''');
@@ -1389,7 +1521,7 @@ void foo<T>({T? a}) {}
 import 'a.dart';
 import 'b.dart';
 
-void main() {
+void f() {
   foo(a: 0);
 }
 """);
@@ -1428,7 +1560,7 @@ class A<T> {
   A({T? test});
 }
 
-main() {
+void f() {
   A(test: 0);
 }
 ''');
@@ -1442,7 +1574,7 @@ class A<T> {
   void foo({T? test}) {}
 }
 
-main(A<int> a) {
+void f(A<int> a) {
   a.foo(test: 0);
 }
 ''');
@@ -1479,7 +1611,7 @@ void() {
 foo([p]) {
   p; // 1
 }
-main() {
+void f() {
   foo(1); // 2
 }
 ''');
@@ -1508,7 +1640,7 @@ extension E on int {
   void set foo(int _) {}
 }
 
-main() {
+void f() {
   0.foo;
   0.foo = 0;
 }
@@ -1526,7 +1658,7 @@ extension E on int {
   static void set foo(int _) {}
 }
 
-main() {
+void f() {
   0.foo;
   0.foo = 0;
 }
@@ -1549,7 +1681,7 @@ extension on double {
   void set foo(int _) {} // double setter
 }
 
-main() {
+void f() {
   0.foo; // int getter ref
   0.foo = 0; // int setter ref
   (1.2).foo; // double getter ref
@@ -1572,11 +1704,47 @@ main() {
         .isReferencedAt('foo = 0; // double setter ref', true);
   }
 
+  test_isReferencedBy_setter_withPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {
+  static int f = 0;
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+
+void f(int i) => p.A.f = i;
+
+class B extends p.A {}
+''');
+    var element = findElement.class_('B').supertype!.element;
+    assertThat(element)
+      ..isReferencedAt('A.', true, length: 1)
+      ..hasPrefixes('p');
+  }
+
+  test_isReferencedBy_simpleIdentifier_withPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+
+var t = p.A;
+
+class B extends p.A {}
+''');
+    var element = findElement.class_('B').supertype!.element;
+    assertThat(element)
+      ..isReferencedAt('A;', true, length: 1)
+      ..hasPrefixes('p');
+  }
+
   test_isReferencedBy_synthetic_leastUpperBound() async {
     await _indexTestUnit('''
 int f1({int p}) => 1;
 int f2({int p}) => 2;
-main(bool b) {
+void g(bool b) {
   var f = b ? f1 : f2;
   f(p: 0);
 }''');
@@ -1592,7 +1760,7 @@ var V;
     await _indexTestUnit('''
 import 'lib.dart' show V; // imp
 import 'lib.dart' as pref;
-main() {
+void f() {
   pref.V = 5; // q
   print(pref.V); // q
   V = 5; // nq
@@ -1832,7 +2000,7 @@ library aaa.bbb.ccc;
 class C {
   var bbb;
 }
-main(p) {
+void f(p) {
   p.bbb = 1;
 }
 ''');
@@ -1846,7 +2014,7 @@ main(p) {
 class C {
   var x;
 }
-main(C c) {
+void f(C c) {
   c.x; // 1
   c.x = 1;
   c.x += 2;
@@ -1862,7 +2030,7 @@ main(C c) {
 
   test_usedName_qualified_unresolved() async {
     await _indexTestUnit('''
-main(p) {
+void f(p) {
   p.x;
   p.x = 1;
   p.x += 2;
@@ -1897,7 +2065,7 @@ class C {
 
   test_usedName_unqualified_unresolved() async {
     await _indexTestUnit('''
-main() {
+void f() {
   x;
   x = 1;
   x += 2;
@@ -1918,6 +2086,12 @@ class _ElementIndexAssert {
   final List<_Relation> relations;
 
   _ElementIndexAssert(this.test, this.element, this.relations);
+
+  void hasPrefixes(String expectedPrefixes) {
+    var id = test._findElementId(element);
+    var actualPrefixes = test.index.elementImportPrefixes[id];
+    expect(actualPrefixes, expectedPrefixes);
+  }
 
   void hasRelationCount(int expectedCount) {
     expect(relations, hasLength(expectedCount));
@@ -2077,9 +2251,20 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   void _failWithIndexDump(String msg) {
-    String packageIndexJsonString =
-        JsonEncoder.withIndent('  ').convert(index.toJson());
-    fail('$msg in\n$packageIndexJsonString');
+    var buffer = StringBuffer();
+    for (int i = 0; i < index.usedElementOffsets.length; i++) {
+      buffer.write('  id = ');
+      buffer.write(index.usedElements[i]);
+      buffer.write(' kind = ');
+      buffer.write(index.usedElementKinds[i]);
+      buffer.write(' offset = ');
+      buffer.write(index.usedElementOffsets[i]);
+      buffer.write(' length = ');
+      buffer.write(index.usedElementLengths[i]);
+      buffer.write(' isQualified = ');
+      buffer.writeln(index.usedElementIsQualifiedFlags[i]);
+    }
+    fail('$msg in\n${buffer.toString()}');
   }
 
   /// Return the [element] identifier in [index] or fail.

@@ -652,6 +652,8 @@ import 'redirect_to_type_alias_expands_to_type_parameter_test.dart'
     as redirect_to_type_alias_expands_to_type_parameter;
 import 'referenced_before_declaration_test.dart'
     as referenced_before_declaration;
+import 'refutable_pattern_in_irrefutable_context_test.dart'
+    as refutable_pattern_in_irrefutable_context;
 import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart'
     as relational_pattern_operator_return_type_not_assignable_to_bool;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
@@ -1241,6 +1243,7 @@ main() {
     redirect_to_non_const_constructor.main();
     redirect_to_type_alias_expands_to_type_parameter.main();
     referenced_before_declaration.main();
+    refutable_pattern_in_irrefutable_context.main();
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();

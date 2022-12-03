@@ -75,6 +75,38 @@ BinaryPattern
 ''');
   }
 
+  test_logicalAnd_variableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var (a && b) = 0;
+}
+''');
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: BinaryPattern
+        leftOperand: VariablePattern
+          name: a
+          declaredElement: hasImplicitType a@18
+            type: int
+        operator: &&
+        rightOperand: VariablePattern
+          name: b
+          declaredElement: hasImplicitType b@23
+            type: int
+      rightParenthesis: )
+    equals: =
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+  semicolon: ;
+''');
+  }
+
   test_logicalOr_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {

@@ -1120,8 +1120,14 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeLogicalPatternSchema(
+      leftOperand,
+      rightOperand,
+      isAnd: operator.type == TokenType.AMPERSAND ||
+          operator.type == TokenType.AMPERSAND_AMPERSAND,
+    );
+  }
 
   @override
   void resolvePattern(
@@ -2810,8 +2816,9 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeConstantPatternSchema();
+  }
 
   @override
   void resolvePattern(
@@ -2819,7 +2826,8 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeExpression(expression, matchedType);
+    resolverVisitor.analyzeConstantPattern(
+        matchedType, context, this, expression);
     expression = resolverVisitor.popRewrite()!;
   }
 
@@ -5082,9 +5090,10 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   Token get beginToken => keyword;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
+  ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
-    ..addNode('pattern', pattern);
+    ..addNode('pattern', pattern)
+    ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -10984,8 +10993,9 @@ class RelationalPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeRelationalPatternSchema();
+  }
 
   @override
   void resolvePattern(

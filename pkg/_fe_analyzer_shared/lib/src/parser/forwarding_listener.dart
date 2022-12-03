@@ -1488,9 +1488,9 @@ class ForwardingListener implements Listener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     listener?.handleForInLoopParts(
-        awaitToken, forToken, leftParenthesis, inKeyword);
+        awaitToken, forToken, leftParenthesis, patternKeyword, inKeyword);
   }
 
   @override

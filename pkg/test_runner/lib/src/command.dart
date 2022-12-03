@@ -657,8 +657,8 @@ class VMCommand extends ProcessCommand {
 // out and would be killed by the harness, so the copying and cleanup logic
 // must be in the harness.
 class RRCommand extends Command {
-  VMCommand originalCommand;
-  late VMCommand wrappedCommand;
+  ProcessCommand originalCommand;
+  late ProcessCommand wrappedCommand;
   late io.Directory recordingDir;
   late io.Directory savedDir;
 

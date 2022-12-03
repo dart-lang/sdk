@@ -1767,7 +1767,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     _unsupported();
   }
 

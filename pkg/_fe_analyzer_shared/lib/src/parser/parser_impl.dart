@@ -7454,20 +7454,26 @@ class Parser {
         lateToken == null &&
         varFinalOrConst != null &&
         (optional('var', varFinalOrConst) ||
-            optional('final', varFinalOrConst)) &&
-        looksLikeOuterPatternEquals(beforeType)) {
-      // If there was any metadata, then the caller was responsible for parsing
-      // it; if not, then we need to let the listener know there wasn't any.
-      if (!optional('@', start.next!)) {
-        listener.beginMetadataStar(start.next!);
-        listener.endMetadataStar(/* count = */ 0);
-      }
-      if (forPartsContext != null) {
-        forPartsContext.patternKeyword = varFinalOrConst;
-        return parsePattern(beforeType, isRefutableContext: false);
-      } else {
-        return parsePatternVariableDeclarationStatement(
-            beforeType, start, varFinalOrConst);
+            optional('final', varFinalOrConst))) {
+      Token? afterOuterPattern = skipOuterPattern(beforeType);
+      if (afterOuterPattern != null &&
+          (optional('=', afterOuterPattern.next!) ||
+              (forPartsContext != null &&
+                  optional('in', afterOuterPattern.next!)))) {
+        // If there was any metadata, then the caller was responsible for
+        // parsing it; if not, then we need to let the listener know there
+        // wasn't any.
+        if (!optional('@', start.next!)) {
+          listener.beginMetadataStar(start.next!);
+          listener.endMetadataStar(/* count = */ 0);
+        }
+        if (forPartsContext != null) {
+          forPartsContext.patternKeyword = varFinalOrConst;
+          return parsePattern(beforeType, isRefutableContext: false);
+        } else {
+          return parsePatternVariableDeclarationStatement(
+              beforeType, start, varFinalOrConst);
+        }
       }
     }
 
@@ -7683,6 +7689,7 @@ class Parser {
   ///    | expression? ';' expression? ';' expressionList?
   ///    | localVariableDeclaration 'in' expression
   ///    | identifier 'in' expression
+  ///    | metadata ( 'final' | 'var' ) outerPattern 'in' expression
   /// ;
   ///
   /// forInitializerStatement:
@@ -7709,14 +7716,16 @@ class Parser {
         return parseForRest(awaitToken, token, forToken);
       } else {
         // Process `for ( pattern in expression )`
-        throw new UnimplementedError('TODO(paulberry)');
+        assert(optional('in', token.next!));
+        return parseForInRest(
+            token, awaitToken, forToken, patternKeyword, null);
       }
     }
     Token identifier = token.next!;
     token = parseForLoopPartsMid(token, awaitToken, forToken);
     if (optional('in', token.next!) || optional(':', token.next!)) {
       // Process `for ( ... in ... )`
-      return parseForInRest(token, awaitToken, forToken, identifier);
+      return parseForInRest(token, awaitToken, forToken, null, identifier);
     } else {
       // Process `for ( ... ; ... ; ... )`
       return parseForRest(awaitToken, token, forToken);
@@ -7870,11 +7879,13 @@ class Parser {
   ///    | expression? ';' expression? ';' expressionList?
   ///    | localVariableDeclaration 'in' expression
   ///    | identifier 'in' expression
+  ///    | metadata ( 'final' | 'var' ) outerPattern 'in' expression
   /// ;
   /// ```
-  Token parseForInRest(
-      Token token, Token? awaitToken, Token forToken, Token identifier) {
-    token = parseForInLoopPartsRest(token, awaitToken, forToken, identifier);
+  Token parseForInRest(Token token, Token? awaitToken, Token forToken,
+      Token? patternKeyword, Token? identifier) {
+    token = parseForInLoopPartsRest(
+        token, awaitToken, forToken, patternKeyword, identifier);
     listener.beginForInBody(token.next!);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -7885,37 +7896,38 @@ class Parser {
     return token;
   }
 
-  Token parseForInLoopPartsRest(
-      Token token, Token? awaitToken, Token forToken, Token identifier) {
+  Token parseForInLoopPartsRest(Token token, Token? awaitToken, Token forToken,
+      Token? patternKeyword, Token? identifier) {
     Token inKeyword = token.next!;
     assert(optional('for', forToken));
     assert(optional('(', forToken.next!));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
 
-    if (!identifier.isIdentifier) {
-      // TODO(jensj): This should probably (sometimes) be
-      // templateExpectedIdentifierButGotKeyword instead.
-      reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
-    } else if (identifier != token) {
-      if (optional('=', identifier.next!)) {
-        reportRecoverableError(
-            identifier.next!, codes.messageInitializedVariableInForEach);
-      } else {
+    if (identifier != null) {
+      if (!identifier.isIdentifier) {
+        // TODO(jensj): This should probably (sometimes) be
+        // templateExpectedIdentifierButGotKeyword instead.
         reportRecoverableErrorWithToken(
-            identifier.next!, codes.templateUnexpectedToken);
+            identifier, codes.templateExpectedIdentifier);
+      } else if (identifier != token) {
+        if (optional('=', identifier.next!)) {
+          reportRecoverableError(
+              identifier.next!, codes.messageInitializedVariableInForEach);
+        } else {
+          reportRecoverableErrorWithToken(
+              identifier.next!, codes.templateUnexpectedToken);
+        }
+      } else if (awaitToken != null && !inAsync) {
+        // TODO(danrubel): consider reporting the error on awaitToken
+        reportRecoverableError(inKeyword, codes.messageAwaitForNotAsync);
       }
-    } else if (awaitToken != null && !inAsync) {
-      // TODO(danrubel): consider reporting the error on awaitToken
-      reportRecoverableError(inKeyword, codes.messageAwaitForNotAsync);
     }
-
     listener.beginForInExpression(inKeyword.next!);
     token = parseExpression(inKeyword);
     token = ensureCloseParen(token, forToken.next!);
     listener.endForInExpression(token);
     listener.handleForInLoopParts(
-        awaitToken, forToken, forToken.next!, inKeyword);
+        awaitToken, forToken, forToken.next!, patternKeyword, inKeyword);
     return token;
   }
 
@@ -9974,7 +9986,7 @@ enum AwaitOrYieldContext { Statement, UnaryExpression }
 /// `forLoopParts` grammar production.
 class ForPartsContext {
   /// If `forLoopParts` began with `( 'final' | 'var' ) outerPattern`, followed
-  /// by `=`, the `final` or `var` keyword.  Otherwise `null`.
+  /// by either `=` or `in`, the `final` or `var` keyword.  Otherwise `null`.
   Token? patternKeyword;
 
   @override

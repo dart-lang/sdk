@@ -48,7 +48,10 @@ class ForCondition extends LiteralEntryInfo {
         return parser.parseForLoopPartsRest(token, forToken, awaitToken);
       } else {
         // Process `for ( pattern in expression )`
-        throw new UnimplementedError('TODO(paulberry)');
+        assert(optional('in', token.next!));
+        _inStyle = true;
+        return parser.parseForInLoopPartsRest(
+            token, awaitToken, forToken, patternKeyword, null);
       }
     }
     Token identifier = token.next!;
@@ -58,7 +61,7 @@ class ForCondition extends LiteralEntryInfo {
       // Process `for ( ... in ... )`
       _inStyle = true;
       token = parser.parseForInLoopPartsRest(
-          token, awaitToken, forToken, identifier);
+          token, awaitToken, forToken, null, identifier);
     } else {
       // Process `for ( ... ; ... ; ... )`
       _inStyle = false;

@@ -1616,7 +1616,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Reports [message] on all libraries that access this library.
   void addProblemAtAccessors(Message message) {
     if (accessProblem == null) {
-      if (accessors.isEmpty && this == loader.first) {
+      if (accessors.isEmpty && loader.roots.contains(this.importUri)) {
         // This is the entry point library, and nobody access it directly. So
         // we need to report a problem.
         loader.addProblem(message, -1, 1, null);

@@ -17,9 +17,10 @@ the IDE launches DAS, the steps are different for each IDE.
    value to `--instrumentation-log-file=/some/file.txt`. If there are other
    arguments listed, which you wish to keep, add this new argument to the
    existing value, separated by whitespace.
-3. In the **Dart Analysis** panel, click the ![restart DAS
-   icon](restart-das-ison.png) **Restart Dart Analysis Server**
-   button.
+3. In the **Dart Analysis** panel, click the
+   <img src="restart-das-icon-light.png#gh-light-mode-only"
+   style="width:16px" /><img src="restart-das-icon.png#gh-dark-mode-only"
+   style="width:16px" /> **Restart Dart Analysis Server** button.
 
 After doing those steps, DAS will write an instrumentation log to the specified
 file (`/some/file.txt` above).
@@ -37,10 +38,11 @@ IDE.
 
 ### IntelliJ IDEA and Android Studio
 
-1. In the **Dart Analysis** panel, click the ![gear-icon.png](gear-icon.png)
-   **Analyzer Settings** button on the left with the gear icon. Note, this is
-   different from the "Show Options Menu" button at the top, which also has a
-   gear icon.
+1. In the **Dart Analysis** panel, click the
+   <img src="gear-icon-light.png#gh-light-mode-only" style="width:16px" /><img
+   src="gear-icon.png#gh-dark-mode-only" style="width:16px" /> **Analyzer
+   Settings** button on the left with the gear icon. Note, this is different
+   from the "Show Options Menu" button at the top, which also has a gear icon.
 2. Click the **View analyzer diagnostics** link. The analyzer diagnostics
    website should open in an external browser.
 

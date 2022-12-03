@@ -347,8 +347,12 @@ class VMTestSuite extends TestSuite {
       test.name
     ];
 
-    var command = ProcessCommand(
+    Command command = ProcessCommand(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
+    var isCrashExpected = expectations.contains(Expectation.crash);
+    if (configuration.rr && !isCrashExpected) {
+      command = RRCommand(command as ProcessCommand);
+    }
     _addTestCase(testFile, fullName, [command], expectations, onTest);
   }
 

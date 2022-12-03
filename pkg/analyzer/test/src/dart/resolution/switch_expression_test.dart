@@ -92,8 +92,6 @@ SwitchExpressionCase
 ''');
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50591')
   test_rewrite_case_pattern() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x, int Function() a) {
@@ -106,11 +104,28 @@ void f(Object? x, int Function() a) {
 
     final node = findNode.switchExpressionCase('=> 0');
     assertResolvedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ConstantPattern
+      const: const
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: a
+          staticElement: self::@function::f::@parameter::a
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: int Function()
+        staticType: int
+  arrow: =>
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
 ''');
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50591')
   test_rewrite_case_whenClause() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x, bool Function() a) {
@@ -121,8 +136,31 @@ void f(Object? x, bool Function() a) {
 }
 ''');
 
-    final node = findNode.switchExpressionCase('_');
+    final node = findNode.switchExpressionCase('=> true');
     assertResolvedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    whenClause: WhenClause
+      whenKeyword: when
+      expression: FunctionExpressionInvocation
+        function: SimpleIdentifier
+          token: a
+          staticElement: self::@function::f::@parameter::a
+          staticType: bool Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticElement: <null>
+        staticInvokeType: bool Function()
+        staticType: bool
+  arrow: =>
+  expression: BooleanLiteral
+    literal: true
+    staticType: bool
 ''');
   }
 

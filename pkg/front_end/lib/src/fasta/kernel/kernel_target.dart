@@ -285,8 +285,7 @@ class KernelTarget extends TargetImplementation {
   List<Uri> setEntryPoints(List<Uri> entryPoints) {
     List<Uri> result = <Uri>[];
     for (Uri entryPoint in entryPoints) {
-      Uri translatedEntryPoint =
-          getEntryPointUri(entryPoint, issueProblem: true);
+      Uri translatedEntryPoint = getEntryPointUri(entryPoint);
       result.add(translatedEntryPoint);
       loader.readAsEntryPoint(translatedEntryPoint,
           fileUri: translatedEntryPoint != entryPoint ? entryPoint : null);
@@ -295,7 +294,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   /// Return list of same size as input with possibly translated uris.
-  Uri getEntryPointUri(Uri entryPoint, {bool issueProblem = false}) {
+  Uri getEntryPointUri(Uri entryPoint) {
     String scheme = entryPoint.scheme;
     switch (scheme) {
       case "package":
@@ -347,7 +346,7 @@ class KernelTarget extends TargetImplementation {
     assert(!_hasComputedNeededPrecompilations,
         "Needed precompilations have already been computed.");
     _hasComputedNeededPrecompilations = true;
-    if (loader.first == null) return null;
+    if (loader.roots.isEmpty) return null;
     return withCrashReporting<NeededPrecompilations?>(() async {
       benchmarker?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
       await loader.buildOutlines();
@@ -402,7 +401,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
-    if (loader.first == null) return new BuildResult();
+    if (loader.roots.isEmpty) return new BuildResult();
     return withCrashReporting<BuildResult>(() async {
       if (!_hasComputedNeededPrecompilations) {
         NeededPrecompilations? neededPrecompilations =
@@ -587,7 +586,7 @@ class KernelTarget extends TargetImplementation {
   Future<BuildResult> buildComponent(
       {required MacroApplications? macroApplications,
       bool verify = false}) async {
-    if (loader.first == null) {
+    if (loader.roots.isEmpty) {
       return new BuildResult(macroApplications: macroApplications);
     }
     return withCrashReporting<BuildResult>(() async {
@@ -710,10 +709,11 @@ class KernelTarget extends TargetImplementation {
 
     Reference? mainReference;
 
-    if (loader.first != null) {
+    LibraryBuilder? firstRoot = loader.firstRoot;
+    if (firstRoot != null) {
       // TODO(sigmund): do only for full program
       Builder? declaration =
-          loader.first!.exportScope.lookup("main", -1, loader.first!.fileUri);
+          firstRoot.exportScope.lookup("main", -1, firstRoot.fileUri);
       if (declaration is AmbiguousBuilder) {
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();

@@ -40,9 +40,7 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void assertInErrorRecovery() {
-    throw UnimplementedError('TODO(paulberry)');
-  }
+  void assertInErrorRecovery() {}
 
   @override
   void caseExpressionTypeMismatch(
@@ -129,7 +127,10 @@ class SharedTypeAnalyzerErrors
 
   @override
   void refutablePatternInIrrefutableContext(AstNode pattern, AstNode context) {
-    throw UnimplementedError('TODO(paulberry)');
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+      pattern,
+    );
   }
 
   @override
@@ -145,8 +146,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternWithSubPatternInMap(DartPattern node, AstNode element) {
-    throw UnimplementedError('TODO(paulberry)');
+  void restPatternWithSubPatternInMap(
+    covariant MapPatternImpl node,
+    covariant RestPatternElementImpl element,
+  ) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
+      element.pattern!,
+    );
   }
 
   @override

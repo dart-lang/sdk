@@ -918,15 +918,17 @@ class ParserTestListener implements Listener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     seen(awaitToken);
     seen(forToken);
     seen(leftParenthesis);
+    seen(patternKeyword);
     seen(inKeyword);
     doPrint('handleForInLoopParts('
         '$awaitToken, '
         '$forToken, '
         '$leftParenthesis, '
+        '$patternKeyword, '
         '$inKeyword)');
   }
 

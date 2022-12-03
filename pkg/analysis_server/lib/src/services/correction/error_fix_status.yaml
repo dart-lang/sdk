@@ -946,8 +946,12 @@ CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: needsEvaluation
 CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION:
   status: needsEvaluation
+CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
+  status: needsEvaluation
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
   status: noFix
+CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
+  status: needsEvaluation
 CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
   status: needsEvaluation
 CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:

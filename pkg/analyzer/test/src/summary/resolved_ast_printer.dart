@@ -551,6 +551,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    _writeln('ForEachPartsWithPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitForElement(ForElement node) {
     _writeln('ForElement');
     _withIndent(() {

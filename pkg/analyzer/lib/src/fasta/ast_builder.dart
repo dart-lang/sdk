@@ -4043,7 +4043,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     assert(optionalOrNull('await', awaitToken));
     assert(optional('for', forToken));
     assert(optional('(', leftParenthesis));
@@ -4053,7 +4053,16 @@ class AstBuilder extends StackListener {
     var variableOrDeclaration = pop()!;
 
     ForEachPartsImpl forLoopParts;
-    if (variableOrDeclaration is VariableDeclarationStatementImpl) {
+    if (patternKeyword != null) {
+      // TODO(paulberry): handle metadata
+      // ignore: unused_local_variable
+      var metadata = pop() as List<AnnotationImpl>?;
+      forLoopParts = ForEachPartsWithPatternImpl(
+          keyword: patternKeyword,
+          pattern: variableOrDeclaration as DartPatternImpl,
+          inKeyword: inKeyword,
+          iterable: iterable);
+    } else if (variableOrDeclaration is VariableDeclarationStatementImpl) {
       var variableList = variableOrDeclaration.variables;
       forLoopParts = ForEachPartsWithDeclarationImpl(
         loopVariable: DeclaredIdentifierImpl(

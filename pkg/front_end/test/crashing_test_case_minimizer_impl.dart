@@ -814,7 +814,7 @@ worlds:
 
   Uri _getImportUri(Uri uri) {
     return _latestCrashingIncrementalCompiler!.kernelTargetForTesting!
-        .getEntryPointUri(uri, issueProblem: false);
+        .getEntryPointUri(uri);
   }
 
   Uint8List _sublist(Uint8List data, int start, int end) {

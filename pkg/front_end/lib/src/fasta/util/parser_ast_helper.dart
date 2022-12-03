@@ -806,11 +806,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token inKeyword) {
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     ForInLoopPartsHandle data = new ForInLoopPartsHandle(ParserAstType.HANDLE,
         awaitToken: awaitToken,
         forToken: forToken,
         leftParenthesis: leftParenthesis,
+        patternKeyword: patternKeyword,
         inKeyword: inKeyword);
     seen(data);
   }
@@ -4329,12 +4330,14 @@ class ForInLoopPartsHandle extends ParserAstNode {
   final Token? awaitToken;
   final Token forToken;
   final Token leftParenthesis;
+  final Token? patternKeyword;
   final Token inKeyword;
 
   ForInLoopPartsHandle(ParserAstType type,
       {this.awaitToken,
       required this.forToken,
       required this.leftParenthesis,
+      this.patternKeyword,
       required this.inKeyword})
       : super("ForInLoopParts", type);
 
@@ -4343,6 +4346,7 @@ class ForInLoopPartsHandle extends ParserAstNode {
         "awaitToken": awaitToken,
         "forToken": forToken,
         "leftParenthesis": leftParenthesis,
+        "patternKeyword": patternKeyword,
         "inKeyword": inKeyword,
       };
 }

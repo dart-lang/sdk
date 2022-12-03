@@ -1,0 +1,35 @@
+main = <No Member>;
+library from "org-dartlang-test:///a.dart" as a {
+
+  class A extends dart.core::Object {
+    synthetic constructor •() → a::A
+      : super dart.core::Object::•()
+      ;
+    method bar() → void {}
+  }
+  class B extends a::A {
+    synthetic constructor •() → a::B
+      : super a::A::•()
+      ;
+    method bar() → void {
+      super.{a::A::bar}();
+    }
+  }
+}
+library from "org-dartlang-test:///b.dart" as b {
+
+  class C extends dart.core::Object {
+    synthetic constructor •() → b::C
+      : super dart.core::Object::•()
+      ;
+    method foo() → void {}
+  }
+  class D extends b::C {
+    synthetic constructor •() → b::D
+      : super b::C::•()
+      ;
+    method foo() → void {
+      super.{b::C::foo}();
+    }
+  }
+}
