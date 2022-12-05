@@ -319,15 +319,13 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   static bool ForwardOrSetNullIfCollected(uword heap_base,
                                           CompressedObjectPtr* ptr_address) {
     ObjectPtr raw = ptr_address->Decompress(heap_base);
-    if (raw.IsRawNull()) {
-      // Object already null before this GC.
-      return false;
-    }
     if (raw.IsNewObject()) {
       // Object not touched during this GC.
       return false;
     }
     if (raw->untag()->IsMarked()) {
+      // Object already null (which is permanently marked) or has survived this
+      // GC.
       return false;
     }
     *ptr_address = Object::null();
