@@ -617,7 +617,7 @@ main() {
           ).checkIr('switch(expr(int), case(heads(head(const(0, matchedType: '
               'int), true), variables()), block(break())), case(heads('
               'head(const(1, matchedType: int), true), variables()), '
-              'block()))'),
+              'block(synthetic-break())))'),
         ]);
       });
 

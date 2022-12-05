@@ -3542,11 +3542,14 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleMergedStatementCase(
-    covariant _SwitchStatement node, {
-    required int caseIndex,
-  }) {
+  void handleMergedStatementCase(covariant _SwitchStatement node,
+      {required int caseIndex, required bool isTerminating}) {
     var numStatements = node.cases[caseIndex]._body.statements.length;
+    if (!isTerminating) {
+      _irBuilder.apply('synthetic-break', [], Kind.statement,
+          location: node.location);
+      numStatements++;
+    }
     _irBuilder.apply(
         'block', List.filled(numStatements, Kind.statement), Kind.statement,
         location: node.location);

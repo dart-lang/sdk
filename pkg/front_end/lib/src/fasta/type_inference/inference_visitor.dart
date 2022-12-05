@@ -8669,15 +8669,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleMergedStatementCase(
-    covariant SwitchStatement node, {
-    required int caseIndex,
-  }) {
+  void handleMergedStatementCase(covariant SwitchStatement node,
+      {required int caseIndex, required bool isTerminating}) {
     // Stack: (Statement)
     SwitchCase case_ = node.cases[caseIndex];
     Statement body = case_.body;
     Node? rewrite = popRewrite();
     // Stack: ()
+    // TODO(paulberry): if `isTerminating` is `false`, add a synthetic `break`.
+    // - I'm not sure exactly how best to do this (if `body` is a block, should
+    //   it be inserted into it, or should we always create a fresh block that
+    //   wraps both `body` and the `break`?)
+    // - I'm not sure if this should be done for the last case in a switch
+    //   statement or not.  I worry there may be a complicated interaction
+    //   between insertion of a synthetic break and the handling of
+    //   `shouldThrowUnsoundnessException` in `visitSwitchStatement`.
     if (!identical(body, rewrite)) {
       body = rewrite as Statement;
       case_.body = body..parent = case_;
