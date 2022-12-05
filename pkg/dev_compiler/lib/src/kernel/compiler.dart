@@ -292,13 +292,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _moduleEmitted = false;
 
+  /// Supports verbose logging with a timer.
+  Ticker? _ticker;
+
   factory ProgramCompiler(
-      Component component,
-      ClassHierarchy hierarchy,
-      SharedCompilerOptions options,
-      Map<Library, Component> importToSummary,
-      Map<Component, String> summaryToModule,
-      {CoreTypes? coreTypes}) {
+    Component component,
+    ClassHierarchy hierarchy,
+    SharedCompilerOptions options,
+    Map<Library, Component> importToSummary,
+    Map<Component, String> summaryToModule, {
+    CoreTypes? coreTypes,
+    Ticker? ticker,
+  }) {
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
@@ -306,6 +311,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return ProgramCompiler._(
+      ticker,
       coreTypes,
       coreTypes.index,
       nativeTypes,
@@ -322,6 +328,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   ProgramCompiler._(
+      this._ticker,
       this._coreTypes,
       LibraryIndex sdk,
       this._extensionTypes,
@@ -377,6 +384,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_moduleEmitted) {
       throw StateError('Can only call emitModule once.');
     }
+    _ticker?.logMs('Emitting module');
     _component = component;
 
     var libraries = component.libraries;
@@ -461,6 +469,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(_coreTypes.coreLibrary);
+    _ticker?.logMs('Added table declarations');
 
     // Visit each library and emit its code.
     //
@@ -468,6 +477,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Order will be changed as needed so the resulting code can execute.
     // This is done by forward declaring items.
     libraries.forEach(_emitLibrary);
+    _ticker?.logMs('Emitted ${libraries.length} libraries');
 
     // Emit hoisted assert strings
     moduleItems.insertAll(safeDeclarationIndex, _uriContainer.emit());
@@ -483,6 +493,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     moduleItems.addAll(afterClassDefItems);
     afterClassDefItems.clear();
+    _ticker?.logMs('Added table caches');
 
     // Add all type hierarchy rules for the interface types used in this module.
     if (_options.newRuntimeTypes) {
@@ -500,11 +511,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Visit directives (for exports)
     libraries.forEach(_emitExports);
+    _ticker?.logMs('Emitted exports');
 
     // Declare imports and extension symbols
     emitImportsAndExtensionSymbols(items,
         forceExtensionSymbols:
             libraries.any((l) => allowedNativeTest(l.importUri)));
+    _ticker?.logMs('Emitted imports and extension symbols');
 
     // Insert a check that runs when loading this module to verify that the null
     // safety mode it was compiled in matches the mode used when compiling the
@@ -534,9 +547,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Emit the hoisted type table cache variables
     items.addAll(_typeTable.dischargeBoundTypes());
+    _ticker?.logMs('Emitted type table');
 
     var module = finishModule(items, _options.moduleName,
         header: generateCompilationHeader());
+    _ticker?.logMs('Finished emitting module');
 
     // Mark as finished for incremental mode, so it is safe to
     // switch to the incremental mode for expression compilation.
