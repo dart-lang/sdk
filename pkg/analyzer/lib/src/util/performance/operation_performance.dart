@@ -9,6 +9,9 @@ abstract class OperationPerformance {
   /// The child operations, might be empty.
   List<OperationPerformance> get children;
 
+  /// The number of times this child has been started/run.
+  int get count;
+
   /// The data attachments, for non-timing data, e.g. how many files were read,
   /// or how many bytes were processed.
   List<OperationPerformanceData> get data;
@@ -83,6 +86,9 @@ class OperationPerformanceImpl implements OperationPerformance {
   List<OperationPerformance> get children {
     return _children;
   }
+
+  @override
+  int get count => _count;
 
   @override
   List<OperationPerformanceData<Object>> get data {

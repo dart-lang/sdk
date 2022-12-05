@@ -61,10 +61,11 @@ class ImplementationHandler
     }
     final needsMember = helper.findMemberElement(interfaceElement) != null;
 
-    Set<InterfaceElement> allSubtypes = await performance.runAsync(
-        "searchAllSubtypes",
+    var allSubtypes = <InterfaceElement>{};
+    await performance.runAsync(
+        "appendAllSubtypes",
         (performance) => server.searchEngine
-            .searchAllSubtypes(interfaceElement, performance: performance));
+            .appendAllSubtypes(interfaceElement, allSubtypes, performance));
     final locations = performance.run(
         "filter and get location",
         (_) => allSubtypes
