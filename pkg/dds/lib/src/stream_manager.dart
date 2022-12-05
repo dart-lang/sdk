@@ -46,36 +46,10 @@ class StreamManager {
           if (streamId == kProfilerStream) {
             processed = _processProfilerEvents(listener, data);
           }
-          try {
-            listener.sendNotification('streamNotify', processed);
-          } on json_rpc.RpcException catch (e) {
-            debugMessage(
-              "YES caught on the streamNotify ${e.code} ${e.message}",
-            );
-          }
+          listener.sendNotification('streamNotify', processed);
         }
       }
     }
-  }
-
-  void debugMessage(String message) {
-    developer.postEvent('DAKE_DEBUG', {'message': message});
-    // var listeners = customStreamListeners['Dake_Debug'];
-    // if (listeners != null) {
-    //   for (final listener in listeners) {
-    //     Map<String, dynamic> processed = {
-    //       'streamId': 'Dake_Debug',
-    //       'event': {
-    //         'type': 'Event',
-    //         'kind': 'Logging',
-    //         'timestamp': DateTime.now().millisecondsSinceEpoch,
-    //         'service': 'service',
-    //         'extensionData': message
-    //       }
-    //     };
-    //     listener.sendNotification('streamNotify', processed);
-    //   }
-    // }
   }
 
   static Map<String, dynamic> _processProfilerEvents(
@@ -177,8 +151,8 @@ class StreamManager {
         if (destinationStreamId != 'Extension' && destinationStreamId != null) {
           if (streamListeners.containsKey(destinationStreamId)) {
             // __destinationStream is only used by developer.postEvent.
-            // We don't want to allow posting to streamListeners since those are
-            // subscribed to by the VM, so return early here.
+            // developer.postEvent is only supposed to postEvents to the
+            // Extension stream or to custom streams
             return;
           }
           final values = parameters.value;
@@ -251,11 +225,15 @@ class StreamManager {
               assert(result['type'] == 'Success');
             } on json_rpc.RpcException catch (e) {
               if (e.code == RpcErrorCodes.kInvalidParams) {
+                // catching kInvalid params means that the vmServiceClient
+                // does not know about the stream we passed. So assume that
+                // the stream is a custom stream.
                 isNewCustomStream = true;
               } else {
                 rethrow;
               }
             }
+
             if (isNewCustomStream) {
               customStreamListeners[stream] = <DartDevelopmentServiceClient>[];
             } else {
@@ -283,7 +261,7 @@ class StreamManager {
         }
         if (client != null) {
           if (isNewCustomStream || customStreamListeners[stream] != null) {
-            customStreamListeners[stream]?.add(client);
+            customStreamListeners[stream]!.add(client);
           } else {
             streamListeners[stream]!.add(client);
           }
@@ -335,8 +313,10 @@ class StreamManager {
     await _streamSubscriptionMutex.runGuarded(
       () async {
         assert(stream.isNotEmpty);
-        var listeners = streamListeners[stream];
-        listeners ??= customStreamListeners[stream];
+        final customListeners = customStreamListeners[stream];
+        customListeners?.remove(client);
+
+        final listeners = streamListeners[stream];
         if (listeners == null ||
             client != null && !listeners.contains(client)) {
           throw kStreamNotSubscribedException;
@@ -385,7 +365,10 @@ class StreamManager {
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.
   void clientDisconnect(DartDevelopmentServiceClient client) {
-    for (final streamId in streamListeners.keys.toList()) {
+    final allStreamListeners = streamListeners.keys.toList();
+    allStreamListeners.addAll(customStreamListeners.keys);
+
+    for (final streamId in allStreamListeners) {
       streamCancel(client, streamId).catchError(
         (_) => null,
         // Ignore 'stream not subscribed' errors and StateErrors which arise
@@ -413,12 +396,6 @@ class StreamManager {
   static final kStreamNotSubscribedException = RpcErrorCodes.buildRpcException(
     RpcErrorCodes.kStreamNotSubscribed,
   );
-  json_rpc.RpcException kDANTESTEXCEPTION(String message, Object? data) =>
-      json_rpc.RpcException(
-        66666,
-        message,
-        data: data,
-      );
 
   static const kDebugStream = 'Debug';
   static const kExtensionStream = 'Extension';
@@ -458,23 +435,6 @@ class StreamManager {
     ...loggingRepositoryStreams,
   };
 
-  static final protectedStreams = <String>{
-    'VM',
-    'Isolate',
-    'Debug',
-    'GC',
-    '_Echo',
-    'HeapSnapshot',
-    'Logging',
-    'Extension',
-    'Timeline',
-    'Profiler',
-  };
-  static final allStandardStreams = <String>{
-    ...isolateManagerStreams,
-    ...loggingRepositoryStreams,
-    ...cpuSampleRepositoryStreams,
-  };
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
   final customStreamListeners = <String, List<DartDevelopmentServiceClient>>{};
