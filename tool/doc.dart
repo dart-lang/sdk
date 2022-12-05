@@ -88,7 +88,8 @@ final recommendedRules = <String?>[];
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
-    List<LintRule>.of(Registry.ruleRegistry, growable: false)..sort();
+    List<LintRule>.of(Registry.ruleRegistry, growable: false)
+      ..sort((a, b) => a.name.compareTo(b.name));
 
 late Map<String, SinceInfo> sinceInfo;
 
@@ -207,11 +208,10 @@ Future<void> generateDocs(String? dir,
   }
 
   // Generate index.
-  HtmlIndexer(Registry.ruleRegistry, fixStatusMap).generate(outDir);
+  HtmlIndexer(rules, fixStatusMap).generate(outDir);
 
   if (enableMarkdown) {
-    MarkdownIndexer(Registry.ruleRegistry, fixStatusMap)
-        .generate(filePath: outDir);
+    MarkdownIndexer(rules, fixStatusMap).generate(filePath: outDir);
   }
 
   // Generate options samples.
