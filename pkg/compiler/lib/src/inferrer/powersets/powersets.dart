@@ -9,6 +9,7 @@ import '../../elements/types.dart' show DartType;
 import '../../ir/class_relation.dart';
 import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
+import '../../universe/member_hierarchy.dart';
 import '../../universe/selector.dart';
 import '../../universe/world_builder.dart';
 import '../../universe/use.dart';
@@ -806,6 +807,12 @@ class PowersetDomain with AbstractValueDomain {
   @override
   AbstractValue get typeType => PowersetValue(
       _abstractValueDomain.typeType, _powersetBitsDomain.typeType);
+
+  @override
+  Iterable<MemberEntity> findRootsOfTargets(covariant PowersetValue receiver,
+          Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) =>
+      _abstractValueDomain.findRootsOfTargets(
+          receiver.abstractValue, selector, memberHierarchyBuilder);
 }
 
 class PowersetStrategy implements AbstractValueStrategy {

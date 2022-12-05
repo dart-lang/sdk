@@ -643,6 +643,17 @@ class JClosedWorld implements World {
   void registerExtractTypeArguments(ClassEntity interface) {
     extractTypeArgumentsInterfacesNewRti.add(interface);
   }
+
+  late final Set<ClassEntity> _defaultSuperclasses = {
+    commonElements.objectClass,
+    commonElements.jsLegacyJavaScriptObjectClass,
+    commonElements.jsInterceptorClass
+  };
+
+  /// Returns true if [cls] acts as a default superclass to some subset of
+  /// classes.
+  bool isDefaultSuperclass(ClassEntity cls) =>
+      _defaultSuperclasses.contains(cls);
 }
 
 class KernelSorter implements Sorter {
