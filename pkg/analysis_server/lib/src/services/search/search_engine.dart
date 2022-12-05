@@ -70,16 +70,19 @@ class MatchKind {
 /// The interface [SearchEngine] defines the behavior of objects that can be
 /// used to search for various pieces of information.
 abstract class SearchEngine {
+  /// Adds all subtypes of the given [type] into [allSubtypes].
+  ///
+  /// If [allSubtypes] already contains an element it is assumed that it
+  /// contains the entire subtree and the element won't be search on further.
+  ///
+  /// [type] - the [InterfaceElement] being subtyped by the found matches.
+  Future<void> appendAllSubtypes(InterfaceElement type,
+      Set<InterfaceElement> allSubtypes, OperationPerformanceImpl performance);
+
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.
   Future<Set<String>?> membersOfSubtypes(InterfaceElement type);
-
-  /// Returns all subtypes of the given [type].
-  ///
-  /// [type] - the [InterfaceElement] being subtyped by the found matches.
-  Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type,
-      {OperationPerformanceImpl? performance});
 
   /// Returns declarations of class members with the given name.
   ///

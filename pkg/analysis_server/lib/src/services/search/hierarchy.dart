@@ -105,23 +105,25 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
       ...enclosingElement.allSupertypes.map((e) => e.element),
       enclosingElement,
     ];
+    var subClasses = <InterfaceElement>{};
     for (var superClass in searchClasses) {
       // ignore if super- class does not declare member
       if (getClassMembers(superClass, name).isEmpty) {
         continue;
       }
       // check all sub- classes
-      var subClasses = await performance.runAsync(
-          "searchAllSubtypes",
-          (performance) => searchEngine.searchAllSubtypes(superClass,
-              performance: performance));
+      await performance.runAsync(
+          "appendAllSubtypes",
+          (performance) => searchEngine.appendAllSubtypes(
+              superClass, subClasses, performance));
       subClasses.add(superClass);
-      for (var subClass in subClasses) {
-        var subClassMembers = getChildren(subClass, name);
-        for (var member in subClassMembers) {
-          if (member is ClassMemberElement) {
-            result.add(member);
-          }
+    }
+
+    for (var subClass in subClasses) {
+      var subClassMembers = getChildren(subClass, name);
+      for (var member in subClassMembers) {
+        if (member is ClassMemberElement) {
+          result.add(member);
         }
       }
     }

@@ -67,6 +67,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/variable_builder.dart';
+import '../builder/view_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
@@ -3201,6 +3202,34 @@ class BodyBuilder extends StackListenerImpl
           this,
           token,
           extensionBuilder.extension,
+          name,
+          extensionThis!,
+          extensionTypeParameters,
+          getterBuilder,
+          setterBuilder);
+    } else if (declaration.isViewInstanceMember) {
+      ViewBuilder viewBuilder = declarationBuilder as ViewBuilder;
+      MemberBuilder? setterBuilder =
+          _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
+      // TODO(johnniwinther): Check for constantContext like below?
+      if (declaration.isField) {
+        declaration = null;
+      }
+      if (setterBuilder != null &&
+          (setterBuilder.isField || setterBuilder.isStatic)) {
+        setterBuilder = null;
+      }
+      if (declaration == null && setterBuilder == null) {
+        return new UnresolvedNameGenerator(
+            this, token, new Name(name, libraryBuilder.nameOrigin),
+            unresolvedReadKind: UnresolvedKind.Unknown);
+      }
+      MemberBuilder? getterBuilder =
+          declaration is MemberBuilder ? declaration : null;
+      return new ViewInstanceAccessGenerator.fromBuilder(
+          this,
+          token,
+          viewBuilder.view,
           name,
           extensionThis!,
           extensionTypeParameters,

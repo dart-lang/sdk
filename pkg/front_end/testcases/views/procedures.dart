@@ -7,13 +7,32 @@ view class Class {
 
   void instanceMethod() {
     var local = this;
+    var localM = instanceMethod();
+    var localT = instanceMethod;
+    var localG = instanceGetter;
   }
+
+  int get instanceGetter => 42;
+
   void instanceMethod2(String s, [int i = 42]) {
     var local = this;
     var localS = s;
     var localI = i;
+    var localG1 = genericInstanceMethod(s);
+    var localG2 = genericInstanceMethod(i);
+    var localG3 = genericInstanceMethod<num>(i);
   }
-  static void staticMethod() {}
+
+  S genericInstanceMethod<S>(S s) => s;
+
+  static void staticMethod() {
+    staticMethod();
+    var localG1 = genericStaticMethod(0);
+    var localG2 = genericStaticMethod('');
+    var localG3 = genericStaticMethod<num>(0);
+  }
+
+  static S genericStaticMethod<S>(S s) => s;
 }
 
 view class GenericClass<T> {
@@ -21,11 +40,30 @@ view class GenericClass<T> {
 
   void instanceMethod() {
     var local = this;
+    var localM = instanceMethod();
+    var localT = instanceMethod;
+    var localG = instanceGetter;
   }
+
+  T get instanceGetter => throw '';
+
   void instanceMethod2(String s, {int i = 42}) {
     var local = this;
     var localS = s;
     var localI = i;
+    var localG1 = genericInstanceMethod(s);
+    var localG2 = genericInstanceMethod(i);
+    var localG3 = genericInstanceMethod<num>(i);
   }
-  static void staticMethod() {}
+
+  S genericInstanceMethod<S>(S s) => s;
+
+  static void staticMethod() {
+    staticMethod();
+    var localG1 = genericStaticMethod(0);
+    var localG2 = genericStaticMethod('');
+    var localG3 = genericStaticMethod<num>(0);
+  }
+
+  static S genericStaticMethod<S>(S s) => s;
 }

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -141,6 +142,43 @@ class C extends B {
     {
       var members = await getHierarchyMembers(searchEngine, memberC);
       expect(members, unorderedEquals([memberC]));
+    }
+  }
+
+  Future<void> test_getHierarchyMembers_linear_number_of_calls() async {
+    const count = 150;
+    const last = count - 1;
+    StringBuffer sb = StringBuffer();
+    for (int i = 0; i < count; i++) {
+      if (i == 0) {
+        sb.writeln("class X0 { void foo() { print('hello'); } }");
+      } else {
+        sb.writeln(
+            "class X$i extends X${i - 1} { void foo() { print('hello'); } }");
+      }
+    }
+
+    await _indexTestUnit(sb.toString());
+    var classLast = findElement.class_('X$last');
+    ClassMemberElement member =
+        classLast.methods.where((element) => element.name == "foo").single;
+    OperationPerformanceImpl performance = OperationPerformanceImpl("<root>");
+    var result = await performance.runAsync(
+        "getHierarchyMembers",
+        (performance) => getHierarchyMembers(searchEngine, member,
+            performance: performance));
+    expect(result, hasLength(count));
+
+    var worklist = <OperationPerformance>[];
+    worklist.add(performance);
+    while (worklist.isNotEmpty) {
+      var performance = worklist.removeLast();
+      expect(
+        performance.count,
+        lessThanOrEqualTo(count + 1),
+        reason: performance.toString(),
+      );
+      worklist.addAll(performance.children);
     }
   }
 

@@ -18,6 +18,29 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._drivers);
 
   @override
+  Future<void> appendAllSubtypes(
+      InterfaceElement type,
+      Set<InterfaceElement> allSubtypes,
+      OperationPerformanceImpl performance) async {
+    var searchEngineCache = SearchEngineCache();
+
+    Future<void> addSubtypes(InterfaceElement type) async {
+      var directResults = await performance.runAsync(
+          "_searchDirectSubtypes",
+          (performance) =>
+              _searchDirectSubtypes(type, searchEngineCache, performance));
+      for (var directResult in directResults) {
+        var directSubtype = directResult.enclosingElement as InterfaceElement;
+        if (allSubtypes.add(directSubtype)) {
+          await addSubtypes(directSubtype);
+        }
+      }
+    }
+
+    await addSubtypes(type);
+  }
+
+  @override
   Future<Set<String>?> membersOfSubtypes(InterfaceElement type) async {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
@@ -51,33 +74,6 @@ class SearchEngineImpl implements SearchEngine {
       return null;
     }
     return members;
-  }
-
-  @override
-  Future<Set<InterfaceElement>> searchAllSubtypes(
-    InterfaceElement type, {
-    // TODO(jensj): Possibly make this required.
-    OperationPerformanceImpl? performance,
-  }) async {
-    var nnPerformance = performance ?? OperationPerformanceImpl("<root>");
-    var allSubtypes = <InterfaceElement>{};
-    var searchEngineCache = SearchEngineCache();
-
-    Future<void> addSubtypes(InterfaceElement type) async {
-      var directResults = await nnPerformance.runAsync(
-          "_searchDirectSubtypes",
-          (performance) =>
-              _searchDirectSubtypes(type, searchEngineCache, performance));
-      for (var directResult in directResults) {
-        var directSubtype = directResult.enclosingElement as InterfaceElement;
-        if (allSubtypes.add(directSubtype)) {
-          await addSubtypes(directSubtype);
-        }
-      }
-    }
-
-    await addSubtypes(type);
-    return allSubtypes;
   }
 
   @override
