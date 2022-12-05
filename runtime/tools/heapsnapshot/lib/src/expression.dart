@@ -84,7 +84,7 @@ class DFilterExpression extends SetExpression {
             final len = analysis.variableLengthOf(o);
             return len != -1 && len >= limit;
           };
-        if (ge)
+        if (g)
           return (o) {
             final len = analysis.variableLengthOf(o);
             return len != -1 && len > limit;
