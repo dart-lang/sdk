@@ -146,13 +146,17 @@ This will:
       '--format=%C(auto) $originUrl/+/%h %s ',
       '$currentRev..$target',
     ], workingDirectory: pkgDir, explanation: 'Listing new commits');
+    // To avoid github notifying issues in the sdk when it sees #issueid
+    // we remove all '#' characters.
+    final cleanedGitLogResult =
+        gitLogResult.map((x) => x.replaceAll('#', '')).join('\n');
     final commitMessage = '''
 Bump $toUpdate to $target
 
 Changes:
 ```
 > git log --format="%C(auto) %h %s" ${currentRev.substring(0, 7)}..${target.substring(0, 7)}
-${gitLogResult.join('\n')}
+$cleanedGitLogResult
 ```
 Diff: $originUrl/+/$currentRev~..$target/
 ''';
