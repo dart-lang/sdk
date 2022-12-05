@@ -1095,6 +1095,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     callee.removeCall(caller, _call!);
   }
 
+  // TODO(natebiggs): Populate this below.
+  late final Set<MemberEntity> closurizedTargets = {};
+
   @override
   void addToGraph(InferrerEngine inferrer) {
     assert((receiver as dynamic) != null); // TODO(48820): Remove when sound.

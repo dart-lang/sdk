@@ -323,7 +323,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         (MemberEntity member, GlobalTypeInferenceMemberResult result) =>
             result.writeToDataSink(
                 sink,
-                elementMap.getMemberContextNode(member)!,
+                elementMap.getMemberContextNode(member),
                 closedWorld.abstractValueDomain)));
     sink.writeDeferrable(() => sink.writeLocalMap(
         _parameterResults.loaded(),

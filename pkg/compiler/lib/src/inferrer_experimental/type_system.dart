@@ -331,8 +331,6 @@ class TypeSystem {
   }
 
   MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
-    assert(!member.isAbstract,
-        failedAt(member, "Unexpected abstract member $member."));
     return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
   }
 
