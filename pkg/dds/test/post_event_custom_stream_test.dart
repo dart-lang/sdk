@@ -38,7 +38,8 @@ void main() {
     process.kill();
   });
 
-  test('sends a postEvent over a custom stream', () async {
+  test('sends a postEvent over a custom stream to multiple listeners',
+      () async {
     process = await spawnDartProcess(
       'post_event_custom_stream_script.dart',
     );
@@ -46,19 +47,32 @@ void main() {
       remoteVmServiceUri,
     );
     expect(dds.isRunning, true);
-    final service = await vmServiceConnectUri(dds.wsUri.toString());
-    final completer = Completer<Event>();
-    final isolateId = (await service.getVM()).isolates!.first.id!;
 
-    service.streamListen(script.customStreamId);
-    service.onEvent(script.customStreamId).listen((event) {
-      completer.complete(event);
+    final service1 = await vmServiceConnectUri(dds.wsUri.toString());
+    final service2 = await vmServiceConnectUri(dds.wsUri.toString());
+    final completer1 = Completer<Event>();
+    final completer2 = Completer<Event>();
+    final isolateId = (await service1.getVM()).isolates!.first.id!;
+
+    await service1.streamListen(script.customStreamId);
+    service1.onEvent(script.customStreamId).listen((event) {
+      completer1.complete(event);
     });
 
-    await service.resume(isolateId);
+    await service2.streamListen(script.customStreamId);
+    service2.onEvent(script.customStreamId).listen((event) {
+      completer2.complete(event);
+    });
 
-    final event = await completer.future;
-    expect(event.extensionKind, equals(script.eventKind));
-    expect(event.extensionData?.data, equals(script.eventData));
+    await service1.resume(isolateId);
+
+    final event1 = await completer1.future;
+    final event2 = await completer2.future;
+
+    expect(event1.extensionKind, equals(script.eventKind));
+    expect(event1.extensionData?.data, equals(script.eventData));
+
+    expect(event2.extensionKind, equals(script.eventKind));
+    expect(event2.extensionData?.data, equals(script.eventData));
   });
 }
