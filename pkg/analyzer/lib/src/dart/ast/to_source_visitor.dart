@@ -1227,7 +1227,6 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
-    sink.write('case ');
     _visitNode(node.guardedPattern);
     sink.write(' => ');
     _visitNode(node.expression);
