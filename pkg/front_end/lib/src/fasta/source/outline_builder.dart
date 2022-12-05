@@ -1984,9 +1984,9 @@ class OutlineBuilder extends StackListenerImpl {
           thisType = libraryBuilder.addNamedType(
               extension.name,
               const NullabilityBuilder.omitted(),
-              typeVariables != null
+              extension.typeVariables != null
                   ? new List<TypeBuilder>.generate(
-                      typeVariables.length,
+                      extension.typeVariables!.length,
                       (int index) =>
                           new NamedTypeBuilder.fromTypeDeclarationBuilder(
                               typeVariables![index],

@@ -1566,6 +1566,280 @@ class StaticAccessGenerator extends Generator {
   }
 }
 
+/// An [ViewInstanceAccessGenerator] represents a subexpression whose
+/// prefix is a view instance member.
+///
+/// For instance
+///
+///   class A {}
+///   view class B {
+///     final A it;
+///     B(this.it);
+///     get property => 0;
+///     set property(_) {}
+///     method() {
+///       property;     // this generator is created for `property`.
+///       property = 0; // this generator is created for `property`.
+///       method;       // this generator is created for `method`.
+///       method();     // this generator is created for `method`.
+///     }
+///   }
+///
+/// These can only occur within a view instance member.
+class ViewInstanceAccessGenerator extends Generator {
+  final View view;
+
+  /// The original name of the target.
+  final String targetName;
+
+  /// The static [Member] generated for an instance view member which is
+  /// used for performing a read on this subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have a readable target.
+  /// For instance if the subexpression is a setter without a corresponding
+  /// getter.
+  final Procedure? readTarget;
+
+  /// The static [Member] generated for an instance view member which is
+  /// used for performing an invocation on this subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have an invokable target.
+  /// For instance if the subexpression is a getter or setter.
+  final Procedure? invokeTarget;
+
+  /// The static [Member] generated for an instance view member which is
+  /// used for performing a write on this subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have a writable target.
+  /// For instance if the subexpression is a final field, a method, or a getter
+  /// without a corresponding setter.
+  final Procedure? writeTarget;
+
+  /// The parameter holding the value for `this` within the current view
+  /// instance method.
+  final VariableDeclaration viewThis;
+
+  /// The type parameters synthetically added to  the current view
+  /// instance method.
+  final List<TypeParameter>? viewTypeParameters;
+
+  ViewInstanceAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      this.view,
+      this.targetName,
+      this.readTarget,
+      this.invokeTarget,
+      this.writeTarget,
+      this.viewThis,
+      this.viewTypeParameters)
+      : assert(
+            readTarget != null || invokeTarget != null || writeTarget != null),
+        super(helper, token);
+
+  factory ViewInstanceAccessGenerator.fromBuilder(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      View view,
+      String? targetName,
+      VariableDeclaration viewThis,
+      List<TypeParameter>? viewTypeParameters,
+      MemberBuilder? getterBuilder,
+      MemberBuilder? setterBuilder) {
+    Procedure? readTarget;
+    Procedure? invokeTarget;
+    if (getterBuilder != null) {
+      if (getterBuilder.isGetter) {
+        assert(!getterBuilder.isStatic);
+        readTarget = getterBuilder.readTarget as Procedure?;
+      } else if (getterBuilder.isRegularMethod) {
+        assert(!getterBuilder.isStatic);
+        readTarget = getterBuilder.readTarget as Procedure?;
+        invokeTarget = getterBuilder.invokeTarget as Procedure?;
+      } else if (getterBuilder.isOperator) {
+        assert(!getterBuilder.isStatic);
+        invokeTarget = getterBuilder.invokeTarget as Procedure?;
+      } else {
+        return unhandled(
+            "${getterBuilder.runtimeType}",
+            "ViewInstanceAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
+      }
+    }
+    Procedure? writeTarget;
+    if (setterBuilder != null) {
+      if (setterBuilder.isSetter) {
+        assert(!setterBuilder.isStatic);
+        writeTarget = setterBuilder.writeTarget as Procedure?;
+        targetName ??= setterBuilder.name;
+      } else {
+        return unhandled(
+            "${setterBuilder.runtimeType}",
+            "ViewInstanceAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
+      }
+    }
+    return new ViewInstanceAccessGenerator(helper, token, view, targetName!,
+        readTarget, invokeTarget, writeTarget, viewThis, viewTypeParameters);
+  }
+
+  @override
+  String get _debugName => "ViewInstanceAccessGenerator";
+
+  @override
+  String get _plainNameForRead => targetName;
+
+  int get _viewTypeParameterCount => viewTypeParameters?.length ?? 0;
+
+  List<DartType> _createViewTypeArguments() {
+    List<DartType> viewTypeArguments = const <DartType>[];
+    if (viewTypeParameters != null) {
+      viewTypeArguments = [];
+      for (TypeParameter typeParameter in viewTypeParameters!) {
+        viewTypeArguments.add(
+            _forest.createTypeParameterTypeWithDefaultNullabilityForLibrary(
+                typeParameter, view.enclosingLibrary));
+      }
+    }
+    return viewTypeArguments;
+  }
+
+  @override
+  Expression buildSimpleRead() {
+    return _createRead();
+  }
+
+  Expression _createRead() {
+    Expression read;
+    if (readTarget == null) {
+      read = _makeInvalidRead(UnresolvedKind.Getter);
+    } else {
+      read = _helper.buildExtensionMethodInvocation(
+          fileOffset,
+          readTarget!,
+          _helper.forest.createArgumentsForExtensionMethod(
+              fileOffset,
+              _viewTypeParameterCount,
+              0,
+              _helper.createVariableGet(viewThis, fileOffset),
+              extensionTypeArguments: _createViewTypeArguments()),
+          isTearOff: invokeTarget != null);
+    }
+    return read;
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    return _createWrite(fileOffset, value, forEffect: voidContext);
+  }
+
+  Expression _createWrite(int offset, Expression value,
+      {required bool forEffect}) {
+    Expression write;
+    if (writeTarget == null) {
+      write = _makeInvalidWrite(value);
+    } else {
+      // TODO(johnniwinther): Support view instance setter writes.
+      throw new UnsupportedError("ViewSet");
+      /*write = new ViewSet(
+          view,
+          _createViewTypeArguments(),
+          _helper.createVariableGet(viewThis, fileOffset),
+          writeTarget!,
+          value,
+          forEffect: forEffect);*/
+    }
+    write.fileOffset = offset;
+    return write;
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext = false}) {
+    return new IfNullSet(
+        _createRead(), _createWrite(fileOffset, value, forEffect: voidContext),
+        forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
+    return _createWrite(fileOffset, binary, forEffect: voidContext);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
+    Expression value = _forest.createIntLiteral(offset, 1);
+    if (voidContext) {
+      return buildCompoundAssignment(binaryOperator, value,
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
+    }
+    VariableDeclarationImpl read =
+        _helper.createVariableDeclarationForValue(_createRead());
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
+    VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
+        _createWrite(fileOffset, binary, forEffect: true));
+    return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
+  }
+
+  @override
+  Expression doInvocation(
+      int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
+      {bool isTypeArgumentsInForest = false}) {
+    if (invokeTarget != null) {
+      return _helper.buildExtensionMethodInvocation(
+          offset,
+          invokeTarget!,
+          _forest.createArgumentsForExtensionMethod(
+              fileOffset,
+              _viewTypeParameterCount,
+              invokeTarget!.function.typeParameters.length -
+                  _viewTypeParameterCount,
+              _helper.createVariableGet(viewThis, offset),
+              extensionTypeArguments: _createViewTypeArguments(),
+              typeArguments: arguments.types,
+              positionalArguments: arguments.positional,
+              namedArguments: arguments.named,
+              argumentsOriginalOrder: arguments.argumentsOriginalOrder),
+          isTearOff: false);
+    } else {
+      return _helper.forest.createExpressionInvocation(
+          adjustForImplicitCall(_plainNameForRead, offset),
+          buildSimpleRead(),
+          arguments);
+    }
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token,
+      {required bool isNullAware}) {
+    // ignore: unnecessary_null_comparison
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", targetName: ");
+    sink.write(targetName);
+    sink.write(", readTarget: ");
+    printQualifiedNameOn(readTarget, sink);
+    sink.write(", writeTarget: ");
+    printQualifiedNameOn(writeTarget, sink);
+  }
+}
+
 /// An [ExtensionInstanceAccessGenerator] represents a subexpression whose
 /// prefix is an extension instance member.
 ///
@@ -1663,6 +1937,12 @@ class ExtensionInstanceAccessGenerator extends Generator {
       } else if (getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         invokeTarget = getterBuilder.invokeTarget as Procedure?;
+      } else {
+        return unhandled(
+            "${getterBuilder.runtimeType}",
+            "ExtensionInstanceAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
       }
     }
     Procedure? writeTarget;
