@@ -41,7 +41,7 @@ class AnalysisServerTest with ResourceProviderMixin {
 
   /// Test that having multiple analysis contexts analyze the same file doesn't
   /// cause that file to receive duplicate notifications when it's modified.
-  Future do_not_test_no_duplicate_notifications() async {
+  Future<void> do_not_test_no_duplicate_notifications() async {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = {ServerService.STATUS};
     newFolder('/foo');
@@ -51,7 +51,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     await server.setAnalysisRoots('0', ['/foo', '/bar'], []);
     var subscriptions = <AnalysisService, Set<String>>{};
     for (var service in AnalysisService.VALUES) {
-      subscriptions[service] = <String>{bar.path};
+      subscriptions[service] = {bar.path};
     }
     // The following line causes the isolate to continue running even though the
     // test completes.
@@ -105,11 +105,76 @@ class AnalysisServerTest with ResourceProviderMixin {
         InstrumentationService.NULL_SERVICE);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50496')
+  Future<void> test_cache() async {
+    var lib = convertPath('/lib');
+    newFolder(lib);
+    var foo = newFile('/lib/foo.dart', '''
+abstract class A {
+  set foo(_);
+}
+mixin M on A {
+  void bar() {
+    super.foo = 0;
+  }
+}
+abstract class X extends A with M {}
+''');
+    await server.setAnalysisRoots('0', [lib], []);
+    await server.onAnalysisComplete;
+    expect(server.statusAnalyzing, isFalse);
+    channel.notificationsReceived.clear();
+
+    server.updateContent('0', {
+      foo.path: AddContentOverlay('''
+abstract class A {
+  set boo(_);
+}
+mixin M on A {
+  void bar() {
+    super.foo = 0;
+  }
+}
+abstract class X extends A with M {}
+''')
+    });
+    await server.onAnalysisComplete;
+    expect(server.statusAnalyzing, isFalse);
+    channel.notificationsReceived.clear();
+
+    server.updateContent('0', {
+      foo.path: AddContentOverlay('''
+abstract class A {
+  set boo(_);
+}
+mixin M on A {
+  void bar() {
+    super.boo = 0;
+  }
+}
+abstract class X extends A with M {}
+''')
+    });
+    await server.onAnalysisComplete;
+    expect(server.statusAnalyzing, isFalse);
+    var notifications = channel.notificationsReceived;
+    expect(notifications, hasLength(1));
+    var notification = notifications.first;
+    expect(notification.event, 'analysis.errors');
+    var params = notification.params;
+    expect(params, isNotNull);
+    var errors = params!['errors'] as List<Map<String, dynamic>>;
+    expect(errors, hasLength(1));
+    var error = errors.first;
+    var message = error['message'];
+    expect(message, contains("boo"));
+  }
+
   /// Test that modifying package_config again while a context rebuild is in
   /// progress does not get lost due to a gap between creating a file watcher
   /// and it raising events.
   /// https://github.com/Dart-Code/Dart-Code/issues/3438
-  Future test_concurrentContextRebuilds() async {
+  Future<void> test_concurrentContextRebuilds() async {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = {ServerService.STATUS};
     final projectRoot = convertPath('/foo');
@@ -172,7 +237,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     expect(await getUriNotExistErrors(), hasLength(0));
   }
 
-  Future test_serverStatusNotifications_hasFile() async {
+  Future<void> test_serverStatusNotifications_hasFile() async {
     server.serverServices.add(ServerService.STATUS);
 
     newFile('/test/lib/a.dart', r'''
@@ -204,7 +269,7 @@ class A {}
     expect(params.analysis!.isAnalyzing, isFalse);
   }
 
-  Future test_serverStatusNotifications_noFiles() async {
+  Future<void> test_serverStatusNotifications_noFiles() async {
     server.serverServices.add(ServerService.STATUS);
 
     newFolder('/test');
@@ -276,7 +341,7 @@ analyzer:
     }), isTrue);
   }
 
-  Future test_shutdown() {
+  Future<void> test_shutdown() {
     var request = Request('my28', SERVER_REQUEST_SHUTDOWN);
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my28'));
@@ -284,7 +349,7 @@ analyzer:
     });
   }
 
-  Future test_unknownRequest() {
+  Future<void> test_unknownRequest() {
     var request = Request('my22', 'randomRequest');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my22'));

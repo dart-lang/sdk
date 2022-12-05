@@ -250,7 +250,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   /// Return the errors collected by the listener.
   List<AnalysisError> get errors {
     if (_errors == null) {
-      return const <AnalysisError>[];
+      return const [];
     }
     return _errors!.toList();
   }
@@ -258,7 +258,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   /// Return the errors collected by the listener for the given [source].
   List<AnalysisError> getErrorsForSource(Source source) {
     if (_errors == null) {
-      return const <AnalysisError>[];
+      return const [];
     }
     return _errors!.where((error) => error.source == source).toList();
   }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
@@ -261,7 +260,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   bool statusAnalyzing = false;
 
   /// A set of the [ServerService]s to send notifications for.
-  Set<ServerService> serverServices = HashSet<ServerService>();
+  Set<ServerService> serverServices = {};
 
   /// A table mapping request ids to cancellation tokens that allow cancelling
   /// the request.
@@ -271,13 +270,11 @@ class LegacyAnalysisServer extends AnalysisServer {
   Map<String, CancelableToken> cancellationTokens = {};
 
   /// A set of the [GeneralAnalysisService]s to send notifications for.
-  Set<GeneralAnalysisService> generalAnalysisServices =
-      HashSet<GeneralAnalysisService>();
+  Set<GeneralAnalysisService> generalAnalysisServices = {};
 
   /// A table mapping [AnalysisService]s to the file paths for which these
   /// notifications should be sent.
-  Map<AnalysisService, Set<String>> analysisServices =
-      HashMap<AnalysisService, Set<String>>();
+  Map<AnalysisService, Set<String>> analysisServices = {};
 
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
