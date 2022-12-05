@@ -519,6 +519,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         try {
           unrankedResults =
               await performance.runAsync('getSnippets', (performance) async {
+            // TODO(dantup): Pass `fuzzy` into here so we can filter snippets
+            //  before computing them to avoid looking up Element->Public Library
+            //  if they won't be included.
             final snippets = await _getDartSnippetItems(
               clientCapabilities: capabilities,
               unit: unit,

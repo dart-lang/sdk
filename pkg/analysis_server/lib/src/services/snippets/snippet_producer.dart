@@ -13,6 +13,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
+    show DartFileEditBuilderImpl;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -50,13 +52,38 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   late ClassElement? classWidget;
   late ClassElement? classPlaceholder;
 
+  /// Elements that need to be imported for generated code to be valid.
+  ///
+  /// Calling [getClass] or [getMixin] records elements in this set.
+  /// Calling [addImports] will add any required imports to the supplied
+  /// builder.
+  final Set<Element> _requiredElementImports = {};
+
   FlutterSnippetProducer(super.request);
 
-  Future<ClassElement?> getClass(String name) =>
-      sessionHelper.getClass(flutter.widgetsUri, name);
+  /// Adds public imports for any elements fetched by [getClass] and [getMixin]
+  /// to [builder].
+  Future<void> addImports(DartFileEditBuilder builder) async {
+    final dartBuilder = builder as DartFileEditBuilderImpl;
+    await Future.wait(
+        _requiredElementImports.map(dartBuilder.importElementLibrary));
+  }
 
-  Future<MixinElement?> getMixin(String name) =>
-      sessionHelper.getMixin(flutter.widgetsUri, name);
+  Future<ClassElement?> getClass(String name) async {
+    final class_ = await sessionHelper.getClass(flutter.widgetsUri, name);
+    if (class_ != null) {
+      _requiredElementImports.add(class_);
+    }
+    return class_;
+  }
+
+  Future<MixinElement?> getMixin(String name) async {
+    final mixin = await sessionHelper.getMixin(flutter.widgetsUri, name);
+    if (mixin != null) {
+      _requiredElementImports.add(mixin);
+    }
+    return mixin;
+  }
 
   DartType getType(
     InterfaceElement classElement, [

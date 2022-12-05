@@ -19,6 +19,42 @@ class TopLevelDeclarations {
     return analysisContext as DriverBasedAnalysisContext;
   }
 
+  /// Return the first public library that that exports (but does not necessary
+  /// declare) [element].
+  Future<LibraryElement?> publiclyExporting(Element element) async {
+    var declarationFilePath = element.source?.fullName;
+    if (declarationFilePath == null) {
+      return null;
+    }
+
+    var analysisDriver = _analysisContext.driver;
+    var fsState = analysisDriver.fsState;
+    await analysisDriver.discoverAvailableFiles();
+
+    var declarationFile = fsState.getFileForPath(declarationFilePath);
+    var declarationPackage = declarationFile.uriProperties.packageName;
+
+    for (var file in fsState.knownFiles.toList()) {
+      var uri = file.uriProperties;
+      // Only search the package that contains the declaration and its public
+      // libraries.
+      if (uri.packageName != declarationPackage || uri.isSrc) {
+        continue;
+      }
+
+      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      if (elementResult is! LibraryElementResult) {
+        continue;
+      }
+
+      if (_findElement(elementResult.element, element.displayName) != null) {
+        return elementResult.element;
+      }
+    }
+
+    return null;
+  }
+
   /// Return the mapping from a library (that is available to this context) to
   /// a top-level declaration that is exported (not necessary declared) by this
   /// library, and has the requested base name. For getters and setters the
@@ -55,17 +91,15 @@ class TopLevelDeclarations {
     LibraryElement libraryElement,
     String baseName,
   ) {
-    void addSingle(String name) {
-      var element = libraryElement.exportNamespace.get(name);
-      if (element is PropertyAccessorElement) {
-        element = element.variable;
-      }
-      if (element != null) {
-        result[libraryElement] = element;
-      }
+    var element = _findElement(libraryElement, baseName);
+    if (element != null) {
+      result[libraryElement] = element;
     }
+  }
 
-    addSingle(baseName);
-    addSingle('$baseName=');
+  static Element? _findElement(LibraryElement libraryElement, String name) {
+    var element = libraryElement.exportNamespace.get(name) ??
+        libraryElement.exportNamespace.get('$name=');
+    return element is PropertyAccessorElement ? element.variable : element;
   }
 }
