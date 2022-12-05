@@ -1,0 +1,5 @@
+void f(x) => [for (@annotation var (a, b) in x) 0];
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] [[BeginToken]for[KeywordToken] ([BeginToken]@[SimpleToken]annotation[StringToken] var[KeywordToken] ([BeginToken]a[StringToken],[SimpleToken] b[StringToken])[SimpleToken] in[KeywordToken] x[StringToken])[SimpleToken] 0[StringToken]][SimpleToken];[SimpleToken]
+[SimpleToken]

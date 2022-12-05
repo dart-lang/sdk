@@ -4054,10 +4054,9 @@ class AstBuilder extends StackListener {
 
     ForEachPartsImpl forLoopParts;
     if (patternKeyword != null) {
-      // TODO(paulberry): handle metadata
-      // ignore: unused_local_variable
       var metadata = pop() as List<AnnotationImpl>?;
       forLoopParts = ForEachPartsWithPatternImpl(
+          metadata: metadata,
           keyword: patternKeyword,
           pattern: variableOrDeclaration as DartPatternImpl,
           inKeyword: inKeyword,

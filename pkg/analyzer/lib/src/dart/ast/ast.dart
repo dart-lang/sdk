@@ -5069,6 +5069,9 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 @experimental
 class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     implements ForEachPartsWithPattern {
+  /// The annotations associated with this node.
+  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
+
   @override
   final Token keyword;
 
@@ -5076,19 +5079,31 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   final DartPatternImpl pattern;
 
   ForEachPartsWithPatternImpl({
+    required List<AnnotationImpl>? metadata,
     required this.keyword,
     required this.pattern,
     required super.inKeyword,
     required super.iterable,
   }) {
+    _metadata._initialize(this, metadata);
     _becomeParentOf(pattern);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken {
+    if (_metadata.isEmpty) {
+      return keyword;
+    } else {
+      return _metadata.beginToken!;
+    }
+  }
+
+  @override
+  NodeListImpl<AnnotationImpl> get metadata => _metadata;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('metadata', metadata)
     ..addToken('keyword', keyword)
     ..addNode('pattern', pattern)
     ..addAll(super._childEntities);
@@ -5099,6 +5114,7 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    _metadata.accept(visitor);
     pattern.accept(visitor);
     super.visitChildren(visitor);
   }

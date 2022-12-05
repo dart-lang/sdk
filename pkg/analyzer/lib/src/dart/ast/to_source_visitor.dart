@@ -484,6 +484,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write(node.keyword.lexeme);
     _visitNode(node.pattern);
     sink.write(' in ');
